@@ -199,27 +199,11 @@ export function MemberEmptyState({
       {illustration && (
         <div className="premium-cloud-mark mx-auto mb-6" aria-hidden="true">
           <span className="premium-cloud-mark__ring" />
-          <svg
-            viewBox="0 0 64 64"
-            className="premium-cloud-mark__glyph"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path
-              className="premium-cloud-mark__shadow"
-              d="M18.5 37.5h27c5 0 9-3.5 9-8.3 0-4.7-3.7-8.4-8.4-8.4-1 0-2 .2-2.9.5-2.4-6.3-8-10.3-14.8-10.3-7.4 0-13.8 5.2-15.3 12.3-4.6.7-8 4.4-8 8.9 0 4.8 4.1 8.3 9.4 8.3h4"
-            />
-            <path
-              className="premium-cloud-mark__cloud"
-              d="M18.5 34.5h27c5 0 9-3.5 9-8.3 0-4.7-3.7-8.4-8.4-8.4-1 0-2 .2-2.9.5C40.8 12 35.2 8 28.4 8 21 8 14.6 13.2 13.1 20.3c-4.6.7-8 4.4-8 8.9 0 4.8 4.1 8.3 9.4 8.3h4"
-            />
-            <path className="premium-cloud-mark__line" d="M21 45h22" />
-            <path
-              className="premium-cloud-mark__line premium-cloud-mark__line--soft"
-              d="M25 51h14"
-            />
-          </svg>
+          <span className="premium-cloud-mark__monogram">
+            <span>C</span>
+            <span className="premium-cloud-mark__amp">&amp;</span>
+            <span>C</span>
+          </span>
         </div>
       )}
 

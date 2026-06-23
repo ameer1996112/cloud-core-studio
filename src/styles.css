@@ -756,32 +756,30 @@ select.input:focus {
   border-block-color: rgba(212, 175, 106, 0.34);
 }
 
-.premium-cloud-mark__glyph {
+.premium-cloud-mark__monogram {
   position: relative;
   z-index: 1;
-  width: 42px;
-  height: 42px;
-  transform: translateY(1px);
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05em;
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--color-navy);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
-.premium-cloud-mark__cloud {
-  stroke: var(--color-navy);
-  stroke-width: 2;
-}
-
-.premium-cloud-mark__shadow {
-  stroke: rgba(212, 175, 106, 0.55);
-  stroke-width: 2.25;
-  transform: translateY(3px);
-}
-
-.premium-cloud-mark__line {
-  stroke: var(--color-gold);
-  stroke-width: 1.8;
-}
-
-.premium-cloud-mark__line--soft {
-  opacity: 0.55;
+.premium-cloud-mark__amp {
+  position: relative;
+  top: -0.04em;
+  margin-inline: 0.03em;
+  color: var(--color-gold);
+  font-size: 0.54em;
+  font-style: italic;
 }
 
 .member-link-action:active,
