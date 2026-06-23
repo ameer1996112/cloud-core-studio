@@ -3,7 +3,6 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   css: { transformer: "lightningcss" },
@@ -30,7 +29,6 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
-    tsconfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
       server: { entry: "server" },
       importProtection: {
@@ -51,6 +49,24 @@ export default defineConfig({
         stabilityThreshold: 1000,
         pollInterval: 100,
       },
+    },
+    warmup: {
+      clientFiles: [
+        "./src/routes/auth.tsx",
+        "./src/routes/__root.tsx",
+        "./src/routes/_authenticated/route.tsx",
+        "./src/routes/_authenticated/member/index.tsx",
+        "./src/routes/_authenticated/member/schedule.tsx",
+        "./src/components/app-shell/AppShell.tsx",
+        "./src/components/visual/VisualClassCard.tsx",
+      ],
+      ssrFiles: [
+        "./src/routes/auth.tsx",
+        "./src/routes/__root.tsx",
+        "./src/routes/_authenticated/route.tsx",
+        "./src/routes/_authenticated/member/index.tsx",
+        "./src/lib/member.functions.ts",
+      ],
     },
   },
 });
