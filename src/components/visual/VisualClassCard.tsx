@@ -340,22 +340,8 @@ export function VisualClassCard({
       type="button"
       dir="ltr"
       onClick={onOpen}
-      className="group grid w-full min-w-0 grid-cols-[58px_minmax(0,1fr)] items-stretch gap-3 text-start sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4"
+      className="group block w-full min-w-0 text-start"
     >
-      {/* Time column — outside the card */}
-      <div className="class-time-rail" dir={isRtl ? "rtl" : "ltr"}>
-        <span className="class-time-rail__day">{time.weekday}</span>
-        <span className="class-time-rail__clock">
-          <span>{time.hour}</span>
-          <span className="class-time-rail__divider" aria-hidden="true" />
-          <span>{time.minute}</span>
-        </span>
-        <span className="class-time-rail__duration">
-          {cls.duration_minutes}
-          {t("common.minutes")}
-        </span>
-      </div>
-
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
       <article
         className={`visual-class-card relative min-w-0 max-w-full overflow-hidden rounded-[22px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-[0_24px_50px_-24px_rgba(11,29,58,0.55)] ${
@@ -386,22 +372,23 @@ export function VisualClassCard({
           aria-hidden
           style={{
             background:
-              "linear-gradient(90deg, rgba(11,29,58,0.05) 0%, rgba(11,29,58,0.18) 36%, rgba(11,29,58,0.60) 72%, rgba(11,29,58,0.78) 100%)",
+              "linear-gradient(90deg, rgba(11,29,58,0.34) 0%, rgba(11,29,58,0.08) 34%, rgba(11,29,58,0.42) 72%, rgba(11,29,58,0.76) 100%)",
           }}
         />
 
-        {/* Content — anchored right-side safe zone (RTL-first) */}
-        <div
-          dir={isRtl ? "rtl" : "ltr"}
-          className="absolute z-[3] flex flex-col items-end gap-2.5 text-right"
-          style={{
-            top: "50%",
-            right: "24px",
-            transform: "translateY(-50%)",
-            width: "min(48%, 380px)",
-            color: "#FAF7F2",
-          }}
-        >
+        <div className="class-time-badge" dir={isRtl ? "rtl" : "ltr"}>
+          <span className="class-time-badge__day">{time.weekday}</span>
+          <span className="class-time-badge__time">
+            {time.hour}:{time.minute}
+          </span>
+          <span className="class-time-badge__duration">
+            {cls.duration_minutes}
+            {t("common.minutes")}
+          </span>
+        </div>
+
+        {/* Content — stable visual placement, localized text direction. */}
+        <div dir={isRtl ? "rtl" : "ltr"} className="class-card-copy">
           <h3 className="font-sans text-[22px] sm:text-[26px] font-semibold leading-[1.1] tracking-tight text-ivory drop-shadow-[0_1px_3px_rgba(11,29,58,0.7)]">
             {title}
           </h3>

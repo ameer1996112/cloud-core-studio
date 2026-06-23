@@ -33,6 +33,7 @@ function knownClassTitle(rawTitle: string, lang: Lang): string | null {
 
   if (/Sculpt/i.test(rawTitle) && /פילאטיס/.test(rawTitle)) {
     if (lang === "en") return "Sculpt Pilates";
+    if (lang === "he") return "פילאטיס סקלפט";
     if (lang === "ar") return "بيلاتس سكلبت";
   }
 
