@@ -3,6 +3,15 @@ import { getActiveLang, type Lang } from "@/lib/i18n";
 const HEBREW_RE = /[\u0590-\u05ff]/;
 const ARABIC_RE = /[\u0600-\u06ff]/;
 
+const INSTRUCTOR_NAME_ALIASES: Record<string, Record<Lang, string>> = {
+  "נור עאמר": { en: "Noor Amer", he: "נור עאמר", ar: "نور عامر" },
+  "noor amer": { en: "Noor Amer", he: "נור עאמר", ar: "نور عامر" },
+  "نور عامر": { en: "Noor Amer", he: "נור עאמר", ar: "نور عامر" },
+  "yareen shobash": { en: "Yareen Shobash", he: "ירין שובאש", ar: "يارين شوباش" },
+  "ירין שובאש": { en: "Yareen Shobash", he: "ירין שובאש", ar: "يارين شوباش" },
+  "يارين شوباش": { en: "Yareen Shobash", he: "ירין שובאש", ar: "يارين شوباش" },
+};
+
 function hasText(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -78,11 +87,9 @@ export function localizedInstructorName(
 ) {
   if (!hasText(name)) return "—";
   const normalized = name.trim();
-  if (["נור עאמר", "Noor Amer", "نور عامر"].includes(normalized)) {
-    if (lang === "he") return "נור עאמר";
-    if (lang === "en") return "Noor Amer";
-    if (lang === "ar") return "نور عامر";
-  }
+  const alias =
+    INSTRUCTOR_NAME_ALIASES[normalized] ?? INSTRUCTOR_NAME_ALIASES[normalized.toLowerCase()];
+  if (alias) return alias[lang];
   return normalized;
 }
 
