@@ -338,11 +338,12 @@ export function VisualClassCard({
   return (
     <button
       type="button"
+      dir="ltr"
       onClick={onOpen}
       className="group grid w-full min-w-0 grid-cols-[58px_minmax(0,1fr)] items-stretch gap-3 text-start sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4"
     >
       {/* Time column — outside the card */}
-      <div className="class-time-rail">
+      <div className="class-time-rail" dir={isRtl ? "rtl" : "ltr"}>
         <span className="class-time-rail__day">{time.weekday}</span>
         <span className="class-time-rail__clock">
           <span>{time.hour}</span>
@@ -384,9 +385,8 @@ export function VisualClassCard({
           className="absolute inset-0 z-[2] pointer-events-none"
           aria-hidden
           style={{
-            background: isRtl
-              ? "linear-gradient(270deg, rgba(11,29,58,0.78) 0%, rgba(11,29,58,0.60) 28%, rgba(11,29,58,0.18) 64%, rgba(11,29,58,0.05) 100%)"
-              : "linear-gradient(90deg, rgba(11,29,58,0.05) 0%, rgba(11,29,58,0.18) 36%, rgba(11,29,58,0.60) 72%, rgba(11,29,58,0.78) 100%)",
+            background:
+              "linear-gradient(90deg, rgba(11,29,58,0.05) 0%, rgba(11,29,58,0.18) 36%, rgba(11,29,58,0.60) 72%, rgba(11,29,58,0.78) 100%)",
           }}
         />
 
@@ -396,7 +396,7 @@ export function VisualClassCard({
           className="absolute z-[3] flex flex-col items-end gap-2.5 text-right"
           style={{
             top: "50%",
-            insetInlineEnd: "24px",
+            right: "24px",
             transform: "translateY(-50%)",
             width: "min(48%, 380px)",
             color: "#FAF7F2",
@@ -425,7 +425,7 @@ export function VisualClassCard({
           <div
             dir={isRtl ? "rtl" : "ltr"}
             className="absolute bottom-3 z-[3] flex items-center gap-1"
-            style={{ insetInlineEnd: "14px" }}
+            style={{ right: "14px" }}
           >
             {participants.slice(0, 3).map((n, i) => (
               <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
