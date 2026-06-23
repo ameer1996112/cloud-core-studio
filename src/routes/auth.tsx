@@ -23,6 +23,7 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     const initial = getStoredLang();
@@ -41,6 +42,7 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -70,10 +72,15 @@ function AuthPage() {
       }
     } catch (err) {
       const { friendlyErrorMessage } = await import("@/lib/error-messages");
-      toast.error(friendlyErrorMessage(err, t("auth.tryAgain")));
+      const message = friendlyErrorMessage(err, t("auth.tryAgain"));
+      setFormError(message);
     } finally {
       setBusy(false);
     }
+  }
+
+  function clearError() {
+    if (formError) setFormError("");
   }
 
   const eyebrow =
@@ -133,7 +140,10 @@ function AuthPage() {
                 <Field label={t("auth.name")}>
                   <input
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      clearError();
+                    }}
                     required
                     className="editorial-input focus:editorial-input-focus"
                     autoComplete="name"
@@ -144,7 +154,10 @@ function AuthPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearError();
+                  }}
                   required
                   className="editorial-input focus:editorial-input-focus"
                   autoComplete="email"
@@ -157,7 +170,10 @@ function AuthPage() {
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        clearError();
+                      }}
                       required
                       minLength={6}
                       className="editorial-input focus:editorial-input-focus pe-10"
@@ -177,7 +193,14 @@ function AuthPage() {
                 </Field>
               )}
 
+              {formError && (
+                <p className="auth-form-error" role="alert" aria-live="polite">
+                  {formError}
+                </p>
+              )}
+
               <button
+                type="submit"
                 disabled={busy}
                 className={
                   busy ? "cta-navy cta-navy-disabled mt-3" : "cta-navy hover:cta-navy-hover mt-3"
@@ -195,7 +218,10 @@ function AuthPage() {
               {mode === "signin" && (
                 <button
                   type="button"
-                  onClick={() => setMode("forgot")}
+                  onClick={() => {
+                    setMode("forgot");
+                    setFormError("");
+                  }}
                   className="flex min-h-11 w-full items-center justify-center text-center text-[12px] text-slate hover:text-navy"
                 >
                   {t("auth.forgot")}
@@ -204,7 +230,10 @@ function AuthPage() {
 
               <button
                 type="button"
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                onClick={() => {
+                  setMode(mode === "signin" ? "signup" : "signin");
+                  setFormError("");
+                }}
                 className="flex min-h-11 w-full items-center justify-center border-t hairline text-center text-[12px] text-gold hover:text-navy"
               >
                 {mode === "signin"
