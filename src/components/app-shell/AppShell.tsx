@@ -93,12 +93,12 @@ export function AppShell({ role, children }: Props) {
             <button
               onClick={() => setMobileOpen(true)}
               aria-label={t("shell.openMenu")}
-              className="inline-flex items-center justify-center h-8 w-8 text-navy"
+              className="inline-flex items-center justify-center h-11 w-11 text-navy"
             >
               <Menu className="h-4 w-4" />
             </button>
           ) : (
-            <span className="inline-flex h-8 w-8" aria-hidden />
+            <span className="inline-flex h-11 w-11" aria-hidden />
           )}
           <span className="font-display text-lg text-navy">Cloud &amp; Core</span>
           <div className="flex items-center gap-1.5">
@@ -106,7 +106,7 @@ export function AppShell({ role, children }: Props) {
             <button
               onClick={signOut}
               aria-label={t("shell.signOut")}
-              className="inline-flex items-center justify-center h-8 w-8 text-slate hover:text-navy"
+              className="inline-flex items-center justify-center h-11 w-11 text-slate hover:text-navy"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -143,7 +143,7 @@ export function AppShell({ role, children }: Props) {
                   <Link
                     key={to}
                     to={to}
-                    className={`relative inline-flex items-center gap-2 text-sm transition-colors pb-2 ${
+                    className={`relative inline-flex min-h-11 items-center gap-2 text-sm transition-colors pb-2 ${
                       active ? "text-navy font-medium" : "text-slate hover:text-navy"
                     }`}
                   >
@@ -182,7 +182,7 @@ export function AppShell({ role, children }: Props) {
                     key={to}
                     to={to}
                     aria-label={label}
-                    className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 text-[10.5px] transition ${
+                    className={`relative flex-1 flex min-h-12 flex-col items-center justify-center gap-0.5 py-1.5 text-[10.5px] transition ${
                       active ? "text-navy" : "text-slate hover:text-navy"
                     }`}
                   >
@@ -228,7 +228,7 @@ function SidebarPanel({
         <Link
           to={role === "member" ? "/member" : "/admin"}
           onClick={onNavigate}
-          className="font-display text-2xl font-semibold tracking-tight"
+          className="inline-flex min-h-11 items-center font-display text-2xl font-semibold tracking-tight"
         >
           Cloud &amp; Core
         </Link>
@@ -236,7 +236,7 @@ function SidebarPanel({
           <button
             onClick={onNavigate}
             aria-label={t("shell.closeMenu")}
-            className="md:hidden h-8 w-8 inline-flex items-center justify-center"
+            className="md:hidden h-11 w-11 inline-flex items-center justify-center"
           >
             <X className="h-4 w-4" />
           </button>
@@ -259,7 +259,7 @@ function SidebarPanel({
                     <Link
                       to={item.to}
                       onClick={onNavigate}
-                      className={`flex items-center gap-3 px-4 py-2 text-sm rounded-[2px] transition-colors ${
+                      className={`flex min-h-11 items-center gap-3 px-4 py-2 text-sm rounded-[2px] transition-colors ${
                         active
                           ? "font-medium bg-white border-b border-gold text-foreground"
                           : "text-slate hover:text-foreground"
@@ -279,7 +279,7 @@ function SidebarPanel({
       <div className="p-6 border-t border-gold/20">
         <button
           onClick={onSignOut}
-          className="w-full flex items-center justify-between px-4 py-2 text-xs uppercase tracking-[0.18em] text-slate hover:text-foreground transition-colors"
+          className="w-full flex min-h-11 items-center justify-between px-4 py-2 text-xs uppercase tracking-[0.18em] text-slate hover:text-foreground transition-colors"
         >
           <span>{t("shell.signOut")}</span>
           <LogOut className="h-3.5 w-3.5" />
@@ -297,7 +297,7 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
           key={code}
           type="button"
           onClick={() => applyLang(code)}
-          className={`${compact ? "px-2 py-1" : "px-3 py-1.5"} ${lang === code ? "bg-navy text-ivory" : "text-slate hover:text-navy"}`}
+          className={`${compact ? "min-h-11 min-w-11 px-2 py-1" : "min-h-11 px-3 py-1.5"} ${lang === code ? "bg-navy text-ivory" : "text-slate hover:text-navy"}`}
           aria-pressed={lang === code}
         >
           {compact ? code.toUpperCase() : LANG_META[code].label}

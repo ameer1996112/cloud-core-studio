@@ -10,7 +10,6 @@ import { studioImages } from "@/lib/image-assets";
 const BG_SRC = studioImages.loginHero.src;
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   head: () => ({ meta: [{ title: "כניסה — Cloud & Core" }] }),
   component: AuthPage,
 });
@@ -167,10 +166,9 @@ function AuthPage() {
                     />
                     <button
                       type="button"
-                      tabIndex={-1}
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute end-3 top-1/2 -translate-y-1/2 text-slate hover:text-navy"
-                      aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                      className="absolute end-1 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center text-slate hover:text-navy"
+                      aria-label={showPassword ? t("auth.hideSecret") : t("auth.showSecret")}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -198,7 +196,7 @@ function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setMode("forgot")}
-                  className="block w-full text-center text-[12px] text-slate hover:text-navy pt-1"
+                  className="flex min-h-11 w-full items-center justify-center text-center text-[12px] text-slate hover:text-navy"
                 >
                   {t("auth.forgot")}
                 </button>
@@ -207,7 +205,7 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                className="block w-full text-center text-[12px] text-gold hover:text-navy pt-3 mt-1 border-t hairline"
+                className="flex min-h-11 w-full items-center justify-center border-t hairline text-center text-[12px] text-gold hover:text-navy"
               >
                 {mode === "signin"
                   ? t("auth.create")

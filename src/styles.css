@@ -703,6 +703,7 @@ select.input:focus {
 }
 .auth-lang-btn {
   padding: 0.4rem 0.85rem;
+  min-height: 44px;
   font-size: 11px;
   letter-spacing: 0.04em;
   color: #6f7a8c;
@@ -781,20 +782,4 @@ select.input:focus {
   .auth-card {
     padding: 2.5rem;
   }
-}
-
-/* Quantum Lovable - watermark removal */
-#lovable-badge {
-  display: none !important;
-}
-a[href*="lovable.dev"],
-iframe[src*="lovable.dev"],
-div[style*="Edit with Lovable"],
-.lovable-badge {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  z-index: -9999 !important;
 }

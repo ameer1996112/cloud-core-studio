@@ -58,6 +58,8 @@ function MemberHome() {
   const recommended = (data?.recommended ?? []).filter((c: any) => !isDemoNoise(c));
   const upcomingBookings = (data?.upcoming ?? []).filter((b: any) => !isDemoNoise(b.class));
   const nextBooking = upcomingBookings[0] ?? null;
+  const featuredClass = !nextBooking ? recommended[0] : null;
+  const recommendedList = featuredClass ? recommended.slice(1) : recommended;
 
   return (
     <section className="space-y-6 sm:space-y-8 max-w-3xl mx-auto pb-6">
@@ -102,6 +104,33 @@ function MemberHome() {
           studioName={settings?.studio_name ?? null}
           address={settings?.address ?? null}
         />
+      ) : featuredClass ? (
+        <section className="member-card member-panel-sand p-5 space-y-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="member-eyebrow">{t("member.bookNext")}</p>
+              <h2 className="font-display italic text-2xl text-navy mt-1">
+                {t("member.keepPracticeMoving")}
+              </h2>
+            </div>
+            <Link
+              to="/member/schedule"
+              className="member-eyebrow min-h-11 inline-flex items-center text-gold hover:text-navy"
+            >
+              {t("member.allSessions")} →
+            </Link>
+          </div>
+          <VisualClassCard
+            cls={featuredClass}
+            state={deriveClassState(featuredClass, {
+              booked: false,
+              waiting: false,
+              remainingCredits: data?.member?.remaining_credits ?? 0,
+            })}
+            onOpen={() => setOpenClass(featuredClass.id)}
+            compact
+          />
+        </section>
       ) : (
         <MemberEmptyState
           title={t("member.home.emptyTitle")}
@@ -124,7 +153,10 @@ function MemberHome() {
       <div className="space-y-4">
         <div className="flex items-baseline justify-between">
           <h2 className="font-display italic text-2xl text-navy">{t("member.forYou")}</h2>
-          <Link to="/member/schedule" className="member-eyebrow text-gold hover:text-navy">
+          <Link
+            to="/member/schedule"
+            className="member-eyebrow min-h-11 inline-flex items-center text-gold hover:text-navy"
+          >
             {t("member.allSessions")} →
           </Link>
         </div>
@@ -134,11 +166,11 @@ function MemberHome() {
               <div key={i} className="h-[128px] skeleton-brand rounded-[18px]" />
             ))}
           </div>
-        ) : recommended.length === 0 ? (
+        ) : recommendedList.length === 0 ? (
           <p className="text-sm italic text-slate">{t("member.noCalendar")}</p>
         ) : (
           <div className="space-y-2.5">
-            {recommended.slice(0, 3).map((c: any) => (
+            {recommendedList.slice(0, 3).map((c: any) => (
               <VisualClassCard
                 key={c.id}
                 cls={c}
@@ -308,7 +340,7 @@ function QuickActions({
       <p className="member-eyebrow">{t("member.quickActions")}</p>
       <Link
         to="/member/schedule"
-        className="flex items-center justify-between text-sm text-navy py-2 border-b hairline"
+        className="flex min-h-11 items-center justify-between text-sm text-navy py-2 border-b hairline"
       >
         <span className="inline-flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gold" /> {t("member.bookClass")}
@@ -317,7 +349,7 @@ function QuickActions({
       </Link>
       <Link
         to="/member/packages"
-        className="flex items-center justify-between text-sm text-navy py-2 border-b hairline"
+        className="flex min-h-11 items-center justify-between text-sm text-navy py-2 border-b hairline"
       >
         <span className="inline-flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-gold" /> {t("member.buyPackage")}
@@ -328,7 +360,7 @@ function QuickActions({
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center justify-between text-sm text-navy py-2"
+        className="flex min-h-11 items-center justify-between text-sm text-navy py-2"
       >
         <span className="inline-flex items-center gap-2">
           <MessageCircle className="h-4 w-4 text-gold" /> {t("member.contactStudio")}
