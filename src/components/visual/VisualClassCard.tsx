@@ -377,8 +377,13 @@ export function VisualClassCard({
             }}
           />
 
-          <div className="class-time-badge" dir={isRtl ? "rtl" : "ltr"}>
-            <span className="class-time-badge__day">{time.weekday}</span>
+          <div
+            className="class-time-badge"
+            dir="ltr"
+            aria-label={`${time.weekday} ${time.hour}:${time.minute}, ${cls.duration_minutes}${t(
+              "common.minutes",
+            )}`}
+          >
             <span className="class-time-badge__time">
               {time.hour}:{time.minute}
             </span>
