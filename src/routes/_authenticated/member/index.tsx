@@ -64,30 +64,36 @@ function MemberHome() {
   const recommendedList = featuredClass ? recommended.slice(1) : recommended;
 
   return (
-    <section className="space-y-6 sm:space-y-8 max-w-3xl mx-auto pb-6">
-      {/* Subtle studio atmosphere band — no decoration, just place. */}
-      <div className="member-studio-banner -mx-4 sm:mx-0 sm:rounded-[20px] bg-sand/60">
-        <img
-          src={(settings as any)?.hero_image_url || studioImages.atmosphere.src}
-          alt={localizedAlt(studioImages.atmosphere, getLocale())}
-          loading="eager"
-          fetchPriority="high"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-ivory/85 via-ivory/10 to-transparent"
-          aria-hidden
-        />
-      </div>
-
-      <div>
-        <p className="member-eyebrow">{greeting}</p>
-        <h1 className="member-headline mt-2 capitalize text-[32px] sm:text-[40px]">
-          {greetingName}.
-        </h1>
-        <p className="text-sm text-slate mt-2">
-          {settings?.welcome_text ?? t("member.welcomeBack")}
-        </p>
+    <section className="space-y-6 sm:space-y-8 max-w-5xl mx-auto pb-6">
+      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="member-page-copy p-6 sm:p-8 md:p-10">
+          <p className="member-eyebrow">{greeting}</p>
+          <h1 className="member-page-title mt-3 capitalize">{greetingName}.</h1>
+          <p className="member-page-body mt-3">
+            {settings?.welcome_text ?? t("member.welcomeBack")}
+          </p>
+          <div className="member-stat-strip mt-6">
+            <StatCell
+              label={t("member.stat.credits")}
+              value={data?.member?.remaining_credits ?? 0}
+            />
+            <StatCell label={t("member.stat.bookings")} value={upcomingBookings.length} />
+            <StatCell label={t("member.stat.available")} value={recommended.length} />
+          </div>
+        </div>
+        <div className="relative min-h-[220px] border-t border-gold/20 md:border-s md:border-t-0">
+          <img
+            src={(settings as any)?.hero_image_url || studioImages.atmosphere.src}
+            alt={localizedAlt(studioImages.atmosphere, getLocale())}
+            loading="eager"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-navy/10"
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-navy/28 via-transparent to-ivory/20"
+            aria-hidden
+          />
+        </div>
       </div>
 
       {settings?.announcement_text && (
@@ -107,18 +113,13 @@ function MemberHome() {
           address={settings?.address ?? null}
         />
       ) : featuredClass ? (
-        <section className="member-card member-panel-sand p-5 space-y-4">
-          <div className="flex items-end justify-between gap-4">
+        <section className="member-card member-panel-sand p-5 sm:p-6 space-y-4">
+          <div className="member-section-heading">
             <div>
               <p className="member-eyebrow">{t("member.bookNext")}</p>
-              <h2 className="font-display italic text-2xl text-navy mt-1">
-                {t("member.keepPracticeMoving")}
-              </h2>
+              <h2 className="member-section-title mt-1">{t("member.keepPracticeMoving")}</h2>
             </div>
-            <Link
-              to="/member/schedule"
-              className="member-eyebrow min-h-11 inline-flex items-center text-gold hover:text-navy"
-            >
+            <Link to="/member/schedule" className="member-eyebrow member-link-action">
               {t("member.allSessions")} →
             </Link>
           </div>
@@ -153,12 +154,9 @@ function MemberHome() {
 
       {/* Recommended */}
       <div className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display italic text-2xl text-navy">{t("member.forYou")}</h2>
-          <Link
-            to="/member/schedule"
-            className="member-eyebrow min-h-11 inline-flex items-center text-gold hover:text-navy"
-          >
+        <div className="member-section-heading">
+          <h2 className="member-section-title">{t("member.forYou")}</h2>
+          <Link to="/member/schedule" className="member-eyebrow member-link-action">
             {t("member.allSessions")} →
           </Link>
         </div>
@@ -192,7 +190,9 @@ function MemberHome() {
       {/* Upcoming list preview */}
       {upcomingBookings.length > 1 && (
         <div className="space-y-3">
-          <h2 className="font-display text-xl text-navy">{t("member.alsoComing")}</h2>
+          <div className="member-section-heading">
+            <h2 className="member-section-title">{t("member.alsoComing")}</h2>
+          </div>
           <div className="space-y-2.5">
             {upcomingBookings.slice(1).map((b: any) => (
               <VisualClassCardMini
@@ -216,6 +216,15 @@ function MemberHome() {
         onOpenChange={(v) => !v && setOpenClass(null)}
       />
     </section>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="member-stat-cell">
+      <p className="member-eyebrow text-slate">{label}</p>
+      <p className="numeric-display numeric-display-md mt-2">{value}</p>
+    </div>
   );
 }
 

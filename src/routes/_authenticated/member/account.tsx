@@ -52,30 +52,36 @@ function MemberAccount() {
   }
 
   return (
-    <section className="space-y-8 max-w-2xl mx-auto pb-10">
-      {/* Studio identity card */}
-      <div className="member-profile-banner rounded-[20px] border border-gold/30 bg-sand/60">
-        <img
-          src={studioImages.logoWall.src}
-          alt={localizedAlt(studioImages.logoWall, getLocale())}
-          loading="lazy"
-          className="member-logo-wall-image absolute inset-0 h-full w-full object-cover"
-        />
-      </div>
-      <div className="member-card member-panel-sand p-6">
-        <p className="member-eyebrow">{t("profile.memberSince")}</p>
-        <p className="font-display italic text-2xl text-navy mt-2 capitalize">{me?.name ?? "—"}</p>
-        <p className="text-sm text-slate mt-1">{me?.email ?? ""}</p>
-        <div className="mt-3 flex gap-3">
-          <span className="member-chip">{me?.status ?? "active"}</span>
-          {me?.preferred_language && (
-            <span className="member-chip">{me.preferred_language.toUpperCase()}</span>
-          )}
+    <section className="space-y-8 max-w-4xl mx-auto pb-10">
+      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="member-page-copy p-6 sm:p-8">
+          <p className="member-eyebrow">{t("member.account.kicker")}</p>
+          <h1 className="member-page-title mt-3 capitalize">{me?.name ?? t("nav.profile")}</h1>
+          <p className="member-page-body mt-3">{me?.email ?? t("member.account.body")}</p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="member-chip">{me?.status ?? "active"}</span>
+            {me?.preferred_language && (
+              <span className="member-chip">{me.preferred_language.toUpperCase()}</span>
+            )}
+          </div>
+        </div>
+        <div className="relative min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
+          <img
+            src={studioImages.logoWall.src}
+            alt={localizedAlt(studioImages.logoWall, getLocale())}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-navy/10"
+          />
         </div>
       </div>
 
       <div className="member-card p-6 space-y-4">
-        <h2 className="font-display italic text-2xl text-navy">{t("profile.details")}</h2>
+        <div className="member-section-heading">
+          <div>
+            <p className="member-eyebrow">{t("profile.memberSince")}</p>
+            <h2 className="member-section-title mt-1">{t("profile.details")}</h2>
+          </div>
+        </div>
 
         <Field label={t("profile.name")}>
           <input

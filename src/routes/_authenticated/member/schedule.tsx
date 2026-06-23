@@ -93,67 +93,80 @@ function MemberSchedule() {
 
   return (
     <section className="space-y-6 pb-10 max-w-4xl mx-auto">
-      {/* Search */}
-      <div className="relative">
-        <Search className="h-4 w-4 text-slate absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("member.search")}
-          className="editorial-input pl-10"
-        />
+      <div className="member-page-panel p-6 sm:p-8">
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end">
+          <div className="member-page-copy">
+            <p className="member-eyebrow">{t("member.schedule.kicker")}</p>
+            <h1 className="member-page-title mt-3">{t("nav.schedule")}</h1>
+            <p className="member-page-body mt-3">{t("member.schedule.body")}</p>
+          </div>
+          <div className="member-stat-strip">
+            <StatCell label={t("member.stat.available")} value={filtered.length} />
+            <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
+          </div>
+        </div>
       </div>
 
-      {/* Date scope */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {(["today", "tomorrow", "week", "all"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setDateScope(s)}
-            className={
-              dateScope === s
-                ? "pill-toggle pill-toggle-active capitalize"
-                : "pill-toggle capitalize"
-            }
-          >
-            {s === "week"
-              ? t("common.thisWeek")
-              : s === "today"
-                ? t("common.today")
-                : s === "tomorrow"
-                  ? t("common.tomorrow")
-                  : t("common.all")}
-          </button>
-        ))}
-      </div>
+      <div className="member-control-panel p-4 sm:p-5 space-y-4">
+        <div className="relative">
+          <Search className="h-4 w-4 text-slate absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("member.search")}
+            className="editorial-input pl-10"
+          />
+        </div>
 
-      {/* Filter chips */}
-      <div className="flex flex-wrap gap-2">
-        <FilterGroup
-          label={t("member.filter.level")}
-          options={levels}
-          value={filter.level}
-          onChange={(v) => setFilter({ ...filter, level: v })}
-        />
-        <FilterGroup
-          label={t("member.filter.energy")}
-          options={energies}
-          value={filter.energy}
-          onChange={(v) => setFilter({ ...filter, energy: v })}
-        />
-        <FilterGroup
-          label={t("common.room")}
-          options={rooms}
-          value={filter.room}
-          onChange={(v) => setFilter({ ...filter, room: v })}
-        />
-        <FilterGroup
-          label={t("common.with")}
-          options={instructors}
-          formatOption={(o) => localizedInstructorName(o)}
-          value={filter.instructor}
-          onChange={(v) => setFilter({ ...filter, instructor: v })}
-        />
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {(["today", "tomorrow", "week", "all"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setDateScope(s)}
+              className={
+                dateScope === s
+                  ? "pill-toggle pill-toggle-active capitalize"
+                  : "pill-toggle capitalize"
+              }
+            >
+              {s === "week"
+                ? t("common.thisWeek")
+                : s === "today"
+                  ? t("common.today")
+                  : s === "tomorrow"
+                    ? t("common.tomorrow")
+                    : t("common.all")}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 border-t border-gold/20 pt-4">
+          <FilterGroup
+            label={t("member.filter.level")}
+            options={levels}
+            value={filter.level}
+            onChange={(v) => setFilter({ ...filter, level: v })}
+          />
+          <FilterGroup
+            label={t("member.filter.energy")}
+            options={energies}
+            value={filter.energy}
+            onChange={(v) => setFilter({ ...filter, energy: v })}
+          />
+          <FilterGroup
+            label={t("common.room")}
+            options={rooms}
+            value={filter.room}
+            onChange={(v) => setFilter({ ...filter, room: v })}
+          />
+          <FilterGroup
+            label={t("common.with")}
+            options={instructors}
+            formatOption={(o) => localizedInstructorName(o)}
+            value={filter.instructor}
+            onChange={(v) => setFilter({ ...filter, instructor: v })}
+          />
+        </div>
       </div>
 
       {isLoading && (
@@ -195,6 +208,15 @@ function MemberSchedule() {
         onOpenChange={(v) => !v && setOpenClass(null)}
       />
     </section>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="member-stat-cell">
+      <p className="member-eyebrow text-slate">{label}</p>
+      <p className="numeric-display numeric-display-md mt-2">{value}</p>
+    </div>
   );
 }
 

@@ -59,27 +59,38 @@ function MemberPackages() {
   for (const r of requests ?? []) if (r.plan_id) requestsByPlan[r.plan_id] = r;
 
   return (
-    <section className="space-y-8 max-w-3xl mx-auto pb-10">
-      <div className="member-card member-panel-powder p-7 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-5 items-end">
-        <div>
-          <p className="member-eyebrow">{t("member.activePackage")}</p>
-          <p className="font-display italic text-3xl text-navy mt-2 leading-tight">
-            {active?.plan?.name ?? t("member.noActivePackage")}
-          </p>
-          {active?.expires_at && (
-            <p className="text-sm text-slate mt-2">
-              Valid until{" "}
-              {new Date(active.expires_at).toLocaleDateString(undefined, {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          )}
+    <section className="space-y-8 max-w-5xl mx-auto pb-10">
+      <div className="member-page-panel p-6 sm:p-8">
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] md:items-end">
+          <div className="member-page-copy">
+            <p className="member-eyebrow">{t("member.packages.kicker")}</p>
+            <h1 className="member-page-title mt-3">{t("nav.plans")}</h1>
+            <p className="member-page-body mt-3">{t("member.packages.body")}</p>
+          </div>
+          <div className="member-stat-strip">
+            <StatCell label={t("member.stat.credits")} value={credits} />
+            <StatCell label={t("member.stat.requests")} value={requests?.length ?? 0} />
+          </div>
         </div>
-        <div className="text-right">
-          <p className="numeric-display text-5xl font-display text-navy">{credits}</p>
-          <p className="member-eyebrow mt-1">{t("member.creditsRemaining")}</p>
+        <div className="mt-6 border-t border-gold/25 pt-5">
+          <p className="member-eyebrow">{t("member.activePackage")}</p>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <p className="font-display italic text-3xl text-navy leading-tight">
+              {active?.plan?.name ?? t("member.noActivePackage")}
+            </p>
+            {active?.expires_at && (
+              <p className="text-sm text-slate">
+                {t("member.expires")}{" "}
+                <span className="text-navy">
+                  {new Date(active.expires_at).toLocaleDateString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -115,7 +126,9 @@ function MemberPackages() {
       )}
 
       <div className="space-y-4">
-        <h2 className="font-display italic text-2xl text-navy">{t("packages.available")}</h2>
+        <div className="member-section-heading">
+          <h2 className="member-section-title">{t("packages.available")}</h2>
+        </div>
         {isLoading && <div className="h-40 skeleton-brand rounded-[8px]" />}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(data?.plans ?? [])
@@ -133,7 +146,9 @@ function MemberPackages() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="font-display italic text-2xl text-navy">{t("packages.creditHistory")}</h2>
+        <div className="member-section-heading">
+          <h2 className="member-section-title">{t("packages.creditHistory")}</h2>
+        </div>
         <div className="member-card divide-y hairline">
           {data?.ledger.length === 0 && (
             <p className="p-5 text-sm italic text-slate">{t("packages.noCredit")}</p>
@@ -158,7 +173,9 @@ function MemberPackages() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="font-display italic text-2xl text-navy">{t("packages.paymentHistory")}</h2>
+        <div className="member-section-heading">
+          <h2 className="member-section-title">{t("packages.paymentHistory")}</h2>
+        </div>
         <div className="member-card divide-y hairline">
           {data?.payments.length === 0 && (
             <p className="p-5 text-sm italic text-slate">{t("packages.noPayments")}</p>
@@ -195,6 +212,15 @@ function MemberPackages() {
         </div>
       </div>
     </section>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="member-stat-cell">
+      <p className="member-eyebrow text-slate">{label}</p>
+      <p className="numeric-display numeric-display-md mt-2">{value}</p>
+    </div>
   );
 }
 

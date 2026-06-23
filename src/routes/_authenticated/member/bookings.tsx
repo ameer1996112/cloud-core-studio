@@ -104,25 +104,37 @@ function MyBookings() {
           : waitlist;
 
   return (
-    <section className="space-y-6 pb-10 max-w-3xl mx-auto">
-      {/* Cloud Card premium navy banner */}
-      <div className="member-brand-banner -mx-4 rounded-[20px] sm:mx-0 bg-navy">
-        <img
-          src={studioImages.brandBannerNavy.src}
-          alt={localizedAlt(studioImages.brandBannerNavy, getLocale())}
-          loading="eager"
-          className="member-brand-banner-image absolute inset-0 h-full w-full object-cover"
-        />
+    <section className="space-y-6 pb-10 max-w-4xl mx-auto">
+      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="member-page-copy p-6 sm:p-8">
+          <p className="member-eyebrow">{t("member.bookings.kicker")}</p>
+          <h1 className="member-page-title mt-3">{t("nav.myBookings")}</h1>
+          <p className="member-page-body mt-3">{t("member.bookings.body")}</p>
+          <div className="member-stat-strip mt-6">
+            <StatCell label={t("bookings.upcoming")} value={counts.upcoming} />
+            <StatCell label={t("bookings.waitlist")} value={counts.waitlist} />
+            <StatCell label={t("bookings.past")} value={counts.past} />
+          </div>
+        </div>
+        <div className="relative min-h-[190px] bg-navy md:border-s md:border-gold/20">
+          <img
+            src={studioImages.brandBannerNavy.src}
+            alt={localizedAlt(studioImages.brandBannerNavy, getLocale())}
+            loading="eager"
+            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-ivory/10"
+          />
+        </div>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 border-b border-gold/30">
+
+      <div className="member-control-panel flex gap-2 overflow-x-auto p-2 no-scrollbar">
         {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (
           <button
             key={tabKey}
             onClick={() => setTab(tabKey)}
-            className={`px-4 py-2 text-[11px] uppercase tracking-[0.22em] -mb-px border-b-2 transition ${
+            className={`min-h-11 rounded-[2px] px-4 py-2 text-[11px] uppercase tracking-[0.22em] transition-[transform,background-color,color,border-color] ${
               tab === tabKey
-                ? "border-gold text-navy"
-                : "border-transparent text-slate hover:text-navy"
+                ? "bg-navy text-ivory"
+                : "bg-transparent text-slate hover:bg-sand/60 hover:text-navy"
             }`}
           >
             {tabKey === "upcoming"
@@ -219,6 +231,15 @@ function MyBookings() {
         </DialogContent>
       </Dialog>
     </section>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="member-stat-cell">
+      <p className="member-eyebrow text-slate">{label}</p>
+      <p className="numeric-display numeric-display-md mt-2">{value}</p>
+    </div>
   );
 }
 
