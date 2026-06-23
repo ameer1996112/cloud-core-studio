@@ -4,20 +4,22 @@ import { useQuery } from "@tanstack/react-query";
 import { adminOverview } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Home, Plus, Users, Wallet, Sparkles, BarChart3 } from "lucide-react";
+import { t, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({ meta: [{ title: "Studio Command Center — Cloud & Core" }] }),
   component: OverviewPage,
 });
 
-const ils = (n: number) =>
-  new Intl.NumberFormat("he-IL", {
+const ils = (n: number, locale: string) =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "ILS",
     maximumFractionDigits: 0,
   }).format(n);
 
 function OverviewPage() {
+  const { locale } = useI18n();
   const fn = useServerFn(adminOverview);
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
@@ -60,17 +62,18 @@ function OverviewPage() {
     <div className="space-y-12">
       <header className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] items-end gap-5 pb-6 border-b border-gold/30">
         <div className="min-w-0">
-          <p className="eyebrow text-[10px]">מרכז תפעול</p>
+          <p className="eyebrow text-[10px]">{t("admin.overview.eyebrow")}</p>
           <h1 className="font-display italic text-3xl sm:text-4xl md:text-5xl mt-2 leading-[1.05]">
-            מה צריך תשומת לב היום
+            {t("admin.overview.headline")}
           </h1>
           <p className="text-slate text-sm mt-3">
-            {new Date().toLocaleDateString(undefined, {
+            {new Date().toLocaleDateString(locale, {
               weekday: "long",
               month: "long",
               day: "numeric",
             })}{" "}
-            · {d.todayClasses.length} שיעורים בלוח · {d.waitingCount} ברשימת המתנה
+            · {t("admin.overview.classesToday", { count: d.todayClasses.length })} ·{" "}
+            {t("admin.overview.waitlistSummary", { count: d.waitingCount })}
           </p>
         </div>
         <QuickActions />
@@ -78,30 +81,34 @@ function OverviewPage() {
 
       {/* KPI strip */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard label="לקוחות" value={d.memberCount} />
-        <KpiCard label="הזמנות פעילות" value={d.activeBookings} />
+        <KpiCard label={t("admin.overview.clients")} value={d.memberCount} />
+        <KpiCard label={t("admin.overview.activeBookings")} value={d.activeBookings} />
         <KpiCard
-          label="רשימת המתנה"
+          label={t("admin.overview.waitlist")}
           value={d.waitingCount}
           tone={d.waitingCount > 0 ? "gold" : "default"}
         />
-        <KpiCard label="הכנסות החודש" value={ils(d.monthRevenueIls)} compact />
+        <KpiCard
+          label={t("admin.overview.monthRevenue")}
+          value={ils(d.monthRevenueIls, locale)}
+          compact
+        />
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Panel title="שיעורי היום" className="lg:col-span-2">
+        <Panel title={t("admin.overview.todayClasses")} className="lg:col-span-2">
           {d.todayClasses.length === 0 ? (
             <p className="text-sm text-slate font-display italic">
-              אין שיעורים להיום.{" "}
+              {t("admin.overview.noClassesToday")}{" "}
               <Link to="/admin/calendar" className="underline">
-                פתיחת לוח
+                {t("admin.overview.openCalendar")}
               </Link>
               .
             </p>
           ) : (
             <ul className="divide-y divide-gold/15">
               {d.todayClasses.map((c: any) => {
-                const t = new Date(c.starts_at);
+                const startsAt = new Date(c.starts_at);
                 const left = c.capacity - c.booked_count;
                 return (
                   <li key={c.id}>
@@ -112,18 +119,21 @@ function OverviewPage() {
                     >
                       <div className="w-16 text-center pr-3 border-r border-gold/20">
                         <p className="font-display text-xl leading-none">
-                          {t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                          {startsAt.toLocaleTimeString(locale, {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-display text-lg truncate">{c.title}</p>
                         <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-0.5">
-                          {c.room} · {c.instructor?.name ?? "ללא מדריך"}
+                          {c.room} · {c.instructor?.name ?? t("common.unassigned")}
                         </p>
                       </div>
                       <span className="shrink-0 text-[11px] uppercase tracking-[0.15em] text-slate">
                         {c.booked_count}/{c.capacity}
-                        {left <= 0 ? " · מלא" : ""}
+                        {left <= 0 ? ` · ${t("common.full")}` : ""}
                       </span>
                     </Link>
                   </li>
@@ -133,14 +143,22 @@ function OverviewPage() {
           )}
         </Panel>
 
-        <Panel title="לטיפול עכשיו" tone="sand">
+        <Panel title={t("admin.overview.attentionNow")} tone="sand">
           <div className="space-y-5 text-sm">
-            <Pulse label="לקוחות חדשים" value={d.firstTimerCount} hint="לקבל אותם לפני השיעור" />
-            <Pulse label="לחץ המתנה" value={d.waitingCount} hint="לקדם כשמתפנה מקום" />
-            <Pulse label="חדרים פעילים" value={d.roomCount} />
+            <Pulse
+              label={t("admin.overview.newClients")}
+              value={d.firstTimerCount}
+              hint={t("admin.overview.newClientsHint")}
+            />
+            <Pulse
+              label={t("admin.overview.waitlistPressure")}
+              value={d.waitingCount}
+              hint={t("admin.overview.waitlistPressureHint")}
+            />
+            <Pulse label={t("admin.overview.activeRooms")} value={d.roomCount} />
             {d.membersLowCredit.length > 0 && (
               <div>
-                <p className="eyebrow text-[10px] mb-2">קרדיטים נמוכים</p>
+                <p className="eyebrow text-[10px] mb-2">{t("admin.overview.lowCredits")}</p>
                 <ul className="space-y-1">
                   {d.membersLowCredit.map((m: any) => (
                     <li key={m.id} className="flex items-center justify-between gap-3 text-sm">
@@ -151,7 +169,9 @@ function OverviewPage() {
                       >
                         {m.name}
                       </Link>
-                      <span className="text-slate text-[11px]">נשארו {m.remaining_credits}</span>
+                      <span className="text-slate text-[11px]">
+                        {t("admin.overview.creditsLeft", { count: m.remaining_credits })}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -162,26 +182,30 @@ function OverviewPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Panel title="השבוע הקרוב">
+        <Panel title={t("admin.overview.upcomingWeek")}>
           {d.upcoming.length === 0 ? (
             <p className="text-sm text-slate font-display italic">
-              הסטודיו שקט. כדאי לתכנן שיעורים בלוח.
+              {t("admin.overview.noUpcoming")}
             </p>
           ) : (
             <ul className="divide-y divide-gold/15">
               {d.upcoming.slice(0, 6).map((c: any) => {
-                const t = new Date(c.starts_at);
+                const startsAt = new Date(c.starts_at);
                 return (
                   <li key={c.id} className="py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-display truncate">{c.title}</p>
                       <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-0.5">
-                        {t.toLocaleDateString(undefined, {
+                        {startsAt.toLocaleDateString(locale, {
                           weekday: "short",
                           month: "short",
                           day: "numeric",
                         })}{" "}
-                        · {t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}{" "}
+                        ·{" "}
+                        {startsAt.toLocaleTimeString(locale, {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}{" "}
                         · {c.room}
                       </p>
                     </div>
@@ -195,16 +219,18 @@ function OverviewPage() {
           )}
         </Panel>
 
-        <Panel title="פעילות אחרונה">
+        <Panel title={t("admin.overview.recentActivity")}>
           {d.recentLog.length === 0 ? (
-            <p className="text-sm text-slate font-display italic">אין עדיין פעולות אחרונות.</p>
+            <p className="text-sm text-slate font-display italic">
+              {t("admin.overview.noRecentActivity")}
+            </p>
           ) : (
             <ul className="divide-y divide-gold/15">
               {d.recentLog.map((l: any) => (
                 <li key={l.id} className="py-3">
                   <p className="text-sm">{l.action.replace(/\./g, " · ")}</p>
                   <p className="text-[11px] text-slate mt-0.5">
-                    {new Date(l.created_at).toLocaleString()}
+                    {new Date(l.created_at).toLocaleString(locale)}
                   </p>
                 </li>
               ))}
@@ -218,11 +244,11 @@ function OverviewPage() {
 
 function QuickActions() {
   const items = [
-    { to: "/admin/classes/new", icon: Plus, label: "הוספת שיעור" },
-    { to: "/admin/calendar", icon: Calendar, label: "לוח שיעורים" },
-    { to: "/admin/payments", icon: Wallet, label: "רישום תשלום" },
-    { to: "/admin/members", icon: Users, label: "לקוחות" },
-    { to: "/admin/reports", icon: BarChart3, label: "דוחות" },
+    { to: "/admin/classes/new", icon: Plus, label: t("admin.overview.addClass") },
+    { to: "/admin/calendar", icon: Calendar, label: t("admin.overview.calendar") },
+    { to: "/admin/payments", icon: Wallet, label: t("admin.overview.recordPayment") },
+    { to: "/admin/members", icon: Users, label: t("admin.overview.clients") },
+    { to: "/admin/reports", icon: BarChart3, label: t("admin.overview.reports") },
   ] as const;
   return (
     <div className="flex flex-wrap gap-2">
