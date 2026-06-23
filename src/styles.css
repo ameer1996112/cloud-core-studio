@@ -275,6 +275,11 @@
   height: clamp(172px, 19vw, 280px);
 }
 
+.schedule-class-media {
+  width: 100%;
+  height: clamp(148px, 15vw, 190px);
+}
+
 .member-class-hero-media {
   width: 100%;
   height: clamp(220px, 24vw, 340px);
@@ -295,6 +300,10 @@
 
   .member-class-media {
     height: clamp(176px, 56vw, 230px);
+  }
+
+  .schedule-class-media {
+    height: clamp(170px, 52vw, 220px);
   }
 
   .member-class-hero-media {

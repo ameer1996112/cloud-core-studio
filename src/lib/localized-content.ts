@@ -32,6 +32,11 @@ function knownClassTitle(rawTitle: string, lang: Lang): string | null {
     if (lang === "ar") return "يوغا هوائية";
   }
 
+  if (/שיעור\s+פרטי/.test(rawTitle)) {
+    if (lang === "en") return "Private Session";
+    if (lang === "ar") return "جلسة خاصة";
+  }
+
   return null;
 }
 

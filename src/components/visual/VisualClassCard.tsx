@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
 import { getLocale, t } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { initialsFor, resolveClassImageSrc } from "@/lib/image-assets";
@@ -292,20 +291,6 @@ function overlayFor(state: ClassState): {
   }
 }
 
-function ctaClassesFor(state: ClassState): string {
-  switch (state.kind) {
-    case "booked":
-    case "waiting":
-      return "bg-ivory text-navy hover:bg-gold";
-    case "full":
-    case "cancelled":
-    case "closed":
-      return "bg-ivory/25 text-ivory/80 cursor-not-allowed";
-    default:
-      return "bg-gold text-navy hover:bg-ivory";
-  }
-}
-
 export function VisualClassCard({
   cls,
   state,
@@ -321,7 +306,7 @@ export function VisualClassCard({
   compact?: boolean;
   eager?: boolean;
 }) {
-  const { chipLabel, cta } = toneFor(state);
+  const { chipLabel } = toneFor(state);
   const ovr = overlayFor(state);
   const title = localizedClassTitle(cls);
   const instructor = localizedInstructorName(cls.instructor?.name);
@@ -337,10 +322,10 @@ export function VisualClassCard({
     <button
       type="button"
       onClick={onOpen}
-      className="group grid w-full min-w-0 grid-cols-[52px_minmax(0,1fr)] gap-3 text-start"
+      className="group grid w-full min-w-0 grid-cols-[58px_minmax(0,1fr)] items-stretch gap-3 text-start sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4"
     >
       {/* Time column — outside the card */}
-      <div className="flex flex-col items-center justify-center py-1">
+      <div className="flex min-h-[148px] flex-col items-center justify-center rounded-[18px] border border-gold/25 bg-ivory/65 px-2 py-3 shadow-[0_10px_28px_-24px_rgba(11,29,58,0.55)] sm:min-h-[168px]">
         <span className="font-sans text-[20px] font-semibold leading-none text-navy tabular-nums">
           {formatTime(cls.starts_at)}
         </span>
@@ -351,7 +336,11 @@ export function VisualClassCard({
       </div>
 
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
-      <article className="visual-class-card member-class-media relative min-w-0 max-w-full overflow-hidden rounded-[24px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-transform group-hover:-translate-y-0.5">
+      <article
+        className={`visual-class-card relative min-w-0 max-w-full overflow-hidden rounded-[22px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-[0_24px_50px_-24px_rgba(11,29,58,0.55)] ${
+          compact ? "member-class-media" : "schedule-class-media"
+        }`}
+      >
         <ClassMoodImage
           title={title}
           programTypeName={localizedProgramName(cls?.program_type)}
@@ -389,7 +378,7 @@ export function VisualClassCard({
             top: "50%",
             insetInlineEnd: "24px",
             transform: "translateY(-50%)",
-            width: "min(40%, 320px)",
+            width: "min(48%, 380px)",
             color: "#FAF7F2",
           }}
         >
@@ -410,17 +399,6 @@ export function VisualClassCard({
                 : t("capacity.left.many", { count: spotsLeft })}
           </span>
         </div>
-
-        {/* Subtle CTA affordance — bottom inline-start corner */}
-        {cta && !cta.disabled && !compact && (
-          <span
-            aria-hidden
-            className={`absolute bottom-3 z-[3] inline-flex h-8 w-8 items-center justify-center rounded-full shadow-[0_4px_12px_-4px_rgba(11,29,58,0.5)] ${ctaClassesFor(state)}`}
-            style={{ insetInlineStart: "14px" }}
-          >
-            <ChevronLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
-          </span>
-        )}
 
         {/* Participants — bottom inline-end, only when present */}
         {participants.length > 0 && (

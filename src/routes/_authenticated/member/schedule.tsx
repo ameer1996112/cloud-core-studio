@@ -203,6 +203,7 @@ function FilterGroup({
   options,
   value,
   onChange,
+  formatOption,
 }: {
   label: string;
   options: any[];
