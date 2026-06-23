@@ -690,6 +690,168 @@ select.input:focus {
   box-shadow: 0 14px 32px -30px rgba(11, 29, 58, 0.5);
 }
 
+.member-search-suite {
+  position: relative;
+  padding: 1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 247, 242, 0.82)),
+    radial-gradient(circle at 100% 0%, rgba(183, 204, 230, 0.2), transparent 40%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.58) inset,
+    0 18px 38px -32px rgba(11, 29, 58, 0.68);
+}
+
+.member-search-suite::before {
+  content: "";
+  position: absolute;
+  inset-inline: 1.25rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 106, 0.7), transparent);
+}
+
+.member-search-field {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  min-height: 58px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(11, 29, 58, 0.12);
+  border-bottom-color: rgba(212, 175, 106, 0.5);
+  border-radius: 3px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 12px 26px -24px rgba(11, 29, 58, 0.68);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.member-search-field:focus-within {
+  background: #fffdf8;
+  border-color: rgba(212, 175, 106, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 106, 0.22),
+    0 16px 34px -28px rgba(11, 29, 58, 0.8);
+}
+
+.member-search-icon {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--color-navy);
+  border-inline-end: 1px solid rgba(212, 175, 106, 0.22);
+}
+
+.member-search-input {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0 1rem;
+  color: var(--color-navy);
+  font-size: 14px;
+  outline: none;
+}
+
+.member-search-input::placeholder {
+  color: rgba(111, 122, 140, 0.78);
+}
+
+.member-date-segment {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.8rem;
+  overflow-x: auto;
+  border: 1px solid rgba(212, 175, 106, 0.22);
+  background: rgba(232, 223, 209, 0.28);
+  padding: 0.35rem;
+}
+
+.member-date-pill {
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--color-slate);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    transform 160ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.member-date-pill:hover {
+  color: var(--color-navy);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.member-date-pill-active {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: var(--color-ivory);
+  box-shadow: 0 12px 24px -20px rgba(11, 29, 58, 0.85);
+}
+
+.member-filter-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  border-top: 1px solid rgba(212, 175, 106, 0.24);
+  padding-top: 1rem;
+}
+
+.member-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.member-filter-label {
+  margin-inline-end: 0.2rem;
+  color: var(--color-slate);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.member-filter-pill {
+  min-height: 38px;
+  border: 1px solid rgba(11, 29, 58, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--color-slate);
+  padding: 0 0.95rem;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition:
+    transform 160ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.member-filter-pill:hover {
+  border-color: rgba(212, 175, 106, 0.55);
+  color: var(--color-navy);
+}
+
+.member-filter-pill-active {
+  border-color: rgba(212, 175, 106, 0.72);
+  background: rgba(212, 175, 106, 0.13);
+  color: var(--color-navy);
+  box-shadow: 0 10px 22px -20px rgba(11, 29, 58, 0.72);
+}
+
 .member-section-heading {
   display: flex;
   align-items: end;
@@ -787,7 +949,9 @@ a.member-card:active,
 button.member-card:active,
 .btn-navy:active,
 .btn-ghost:active,
-.pill-toggle:active {
+.pill-toggle:active,
+.member-date-pill:active,
+.member-filter-pill:active {
   transform: scale(0.96);
 }
 
@@ -909,6 +1073,9 @@ button.member-card:active,
 :root[dir="rtl"] .btn-ghost,
 :root[dir="rtl"] .cta-navy,
 :root[dir="rtl"] .pill-toggle,
+:root[dir="rtl"] .member-date-pill,
+:root[dir="rtl"] .member-filter-pill,
+:root[dir="rtl"] .member-filter-label,
 :root[dir="rtl"] .member-eyebrow,
 :root[dir="rtl"] .member-chip,
 :root[dir="rtl"] .eyebrow {

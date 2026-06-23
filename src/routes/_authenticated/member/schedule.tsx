@@ -107,26 +107,28 @@ function MemberSchedule() {
         </div>
       </div>
 
-      <div className="member-control-panel p-4 sm:p-5 space-y-4">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate absolute left-3 top-1/2 -translate-y-1/2" />
+      <div className="member-control-panel member-search-suite">
+        <div className="member-search-field">
+          <span className="member-search-icon" aria-hidden="true">
+            <Search className="h-4 w-4" />
+          </span>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("member.search")}
-            className="editorial-input pl-10"
+            className="member-search-input"
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="member-date-segment no-scrollbar">
           {(["today", "tomorrow", "week", "all"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setDateScope(s)}
               className={
                 dateScope === s
-                  ? "pill-toggle pill-toggle-active capitalize"
-                  : "pill-toggle capitalize"
+                  ? "member-date-pill member-date-pill-active capitalize"
+                  : "member-date-pill capitalize"
               }
             >
               {s === "week"
@@ -140,7 +142,7 @@ function MemberSchedule() {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-gold/20 pt-4">
+        <div className="member-filter-shelf">
           <FilterGroup
             label={t("member.filter.level")}
             options={levels}
@@ -235,14 +237,16 @@ function FilterGroup({
 }) {
   if (options.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1.5 items-center">
-      <span className="text-[10px] uppercase tracking-[0.2em] text-slate mr-1">{label}</span>
+    <div className="member-filter-group">
+      <span className="member-filter-label">{label}</span>
       {options.map((o) => (
         <button
           key={o}
           onClick={() => onChange(value === o ? undefined : o)}
           className={
-            value === o ? "pill-toggle pill-toggle-active capitalize" : "pill-toggle capitalize"
+            value === o
+              ? "member-filter-pill member-filter-pill-active capitalize"
+              : "member-filter-pill capitalize"
           }
         >
           {formatOption ? formatOption(o) : o}
