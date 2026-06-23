@@ -337,15 +337,6 @@
   background: rgba(212, 175, 106, 0.58);
 }
 
-.class-time-rail__period {
-  color: var(--color-navy);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
 .class-time-rail__duration {
   margin-top: 0.18rem;
   color: var(--color-slate);
@@ -1155,7 +1146,6 @@ button.member-card:active,
 :root[dir="rtl"] .member-filter-pill,
 :root[dir="rtl"] .member-filter-label,
 :root[dir="rtl"] .class-time-rail__day,
-:root[dir="rtl"] .class-time-rail__period,
 :root[dir="rtl"] .member-eyebrow,
 :root[dir="rtl"] .member-chip,
 :root[dir="rtl"] .eyebrow {

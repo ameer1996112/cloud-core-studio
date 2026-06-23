@@ -236,14 +236,13 @@ function formatTimeParts(iso: string) {
   const parts = new Intl.DateTimeFormat(getLocale(), {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   }).formatToParts(date);
   const hour = parts.find((p) => p.type === "hour")?.value ?? "";
   const minute = parts.find((p) => p.type === "minute")?.value ?? "";
-  const dayPeriod = parts.find((p) => p.type === "dayPeriod")?.value ?? "";
   return {
     hour,
     minute,
-    dayPeriod,
     weekday: date.toLocaleDateString(getLocale(), { weekday: "short" }),
   };
 }
@@ -350,7 +349,6 @@ export function VisualClassCard({
           <span className="class-time-rail__divider" aria-hidden="true" />
           <span>{time.minute}</span>
         </span>
-        {time.dayPeriod && <span className="class-time-rail__period">{time.dayPeriod}</span>}
         <span className="class-time-rail__duration">
           {cls.duration_minutes}
           {t("common.minutes")}
