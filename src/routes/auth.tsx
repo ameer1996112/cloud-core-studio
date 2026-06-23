@@ -176,14 +176,14 @@ function AuthPage() {
                       }}
                       required
                       minLength={6}
-                      className="editorial-input focus:editorial-input-focus pe-10"
+                      className="editorial-input focus:editorial-input-focus pr-10"
                       autoComplete={mode === "signup" ? "new-password" : "current-password"}
                       dir="ltr"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute end-1 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center text-slate hover:text-navy"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center text-slate hover:text-navy"
                       aria-label={showPassword ? t("auth.hideSecret") : t("auth.showSecret")}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
