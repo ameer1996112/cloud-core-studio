@@ -1,0 +1,800 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =====================================================================
+   Cloud & Core Studio — Brand Design System
+   Palette is the official brand sheet (no substitutions).
+   Deep Navy   #0B1D3A — headlines, primary text, CTA bars
+   Soft Ivory  #FAF7F2 — main background
+   Warm Gold   #D4AF6A — accents, borders, icon highlights
+   Powder Blue #B7CCE6 — cloud / line-art motifs
+   Warm Sand   #E8DFD1 — secondary neutral surfaces
+   Slate Gray  #6F7A8C — secondary text, subtle UI details
+===================================================================== */
+
+@theme inline {
+  /* Sharp surfaces — pills/avatars use rounded-full explicitly */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-3xl: 12px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  /* Brand named tokens — usable as bg-navy, text-gold, etc. */
+  --color-navy: #0b1d3a;
+  --color-ivory: #faf7f2;
+  --color-gold: #d4af6a;
+  --color-gold-soft: #e5cda0;
+  --color-powder: #b7cce6;
+  --color-sand: #e8dfd1;
+  --color-slate: #6f7a8c;
+
+  /* Legacy aliases kept so existing components keep compiling */
+  --color-brass: var(--color-gold);
+  --color-brass-soft: var(--color-gold-soft);
+
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "DM Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 4px;
+
+  /* Brand hexes mapped into the shadcn token system */
+  --background: #faf7f2; /* Ivory */
+  --foreground: #0b1d3a; /* Navy */
+
+  --card: #ffffff;
+  --card-foreground: #0b1d3a;
+  --popover: #ffffff;
+  --popover-foreground: #0b1d3a;
+
+  /* Primary = Navy (CTA bars, primary buttons) */
+  --primary: #0b1d3a;
+  --primary-foreground: #faf7f2;
+
+  /* Secondary = Sand (subtle surfaces) */
+  --secondary: #e8dfd1;
+  --secondary-foreground: #0b1d3a;
+
+  --muted: #f1ece3;
+  --muted-foreground: #6f7a8c; /* Slate */
+
+  /* Accent = Gold — reserved for borders/highlights, NOT large fills */
+  --accent: #d4af6a;
+  --accent-foreground: #0b1d3a;
+
+  --destructive: #b23a48;
+  --destructive-foreground: #faf7f2;
+
+  --border: rgba(11, 29, 58, 0.1); /* navy at 10% */
+  --input: rgba(11, 29, 58, 0.18);
+  --ring: #d4af6a;
+
+  /* Legacy brass aliases */
+  --brass: #d4af6a;
+  --brass-soft: #e5cda0;
+  --ink: #0b1d3a;
+  --ink-2: #122747;
+  --ink-3: #1a335a;
+}
+
+/* =====================================================================
+   Base
+===================================================================== */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(900px 500px at 100% -10%, rgba(183, 204, 230, 0.22), transparent 60%),
+      radial-gradient(700px 500px at -10% 110%, rgba(232, 223, 209, 0.35), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Editorial headings — Cormorant Garamond */
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-display);
+    color: var(--color-foreground);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  /* RTL — keep Hebrew/Arabic rendered in DM Sans + Noto fallback */
+  [dir="rtl"] body,
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4,
+  [dir="rtl"] .font-display {
+    font-family: "DM Sans", "Noto Naskh Arabic", "Noto Sans Hebrew", system-ui, sans-serif;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background-color: rgba(212, 175, 106, 0.35);
+    color: var(--color-foreground);
+  }
+
+  /* Editorial focus ring — gold hairline */
+  :focus-visible {
+    outline: 1px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+/* =====================================================================
+   Type scale — 13 / 15 / 17 / 20 / 28 / 40 / 56
+===================================================================== */
+@utility text-xs-brand {
+  font-size: 13px;
+  line-height: 1.45;
+}
+@utility text-sm-brand {
+  font-size: 15px;
+  line-height: 1.55;
+}
+@utility text-base-brand {
+  font-size: 17px;
+  line-height: 1.6;
+}
+@utility text-lg-brand {
+  font-size: 20px;
+  line-height: 1.4;
+}
+@utility text-xl-brand {
+  font-size: 28px;
+  line-height: 1.2;
+}
+@utility text-2xl-brand {
+  font-size: 40px;
+  line-height: 1.1;
+}
+@utility text-3xl-brand {
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+/* Uppercase editorial eyebrow label — Cormorant or DM Sans both fine */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+}
+
+/* Gold hairline divider — replaces drop shadows */
+@utility hairline {
+  border-color: rgba(212, 175, 106, 0.35);
+}
+@utility hairline-soft {
+  border-color: rgba(11, 29, 58, 0.08);
+}
+
+/* Surfaces */
+@utility surface-ivory {
+  background-color: var(--color-ivory);
+  color: var(--color-foreground);
+}
+@utility surface-sand {
+  background-color: var(--color-sand);
+  color: var(--color-foreground);
+}
+@utility surface-navy {
+  background-color: var(--color-navy);
+  color: var(--color-ivory);
+}
+
+/* Cloud / decorative powder-blue accent backdrop */
+@utility cloud-backdrop {
+  background-image:
+    radial-gradient(600px 320px at 0% 0%, rgba(183, 204, 230, 0.45), transparent 60%),
+    radial-gradient(500px 280px at 100% 100%, rgba(232, 223, 209, 0.55), transparent 60%);
+}
+
+/* Subtle gold underline used for active nav, headings, links */
+@utility gold-underline {
+  background-image: linear-gradient(to right, var(--color-gold), var(--color-gold));
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 100%;
+}
+
+/* Glass — kept for back-compat but reads ivory not midnight now */
+@utility glass {
+  background: color-mix(in oklab, white 85%, transparent);
+  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(212, 175, 106, 0.25);
+}
+
+@utility brass-text {
+  background: linear-gradient(135deg, #e5cda0, #d4af6a 60%, #b8924e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Branded skeleton — ivory shimmer with sand undertone */
+@utility skeleton-brand {
+  background: linear-gradient(
+    90deg,
+    rgba(232, 223, 209, 0.4) 0%,
+    rgba(212, 175, 106, 0.18) 50%,
+    rgba(232, 223, 209, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Calm hover-lift — used on cards/buttons */
+@utility lift {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+@utility lift-hover {
+  transform: translateY(-1px);
+  border-color: rgba(212, 175, 106, 0.55);
+}
+
+/* =====================================================================
+   Editorial primitives — shared across admin/instructor/member screens
+===================================================================== */
+
+/* Card with gold hairline; replaces rounded-2xl bg-card border border-border */
+@utility editorial-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(212, 175, 106, 0.22);
+  border-radius: 3px;
+  transition:
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+@utility editorial-card-hover {
+  border-color: rgba(212, 175, 106, 0.55);
+  transform: translateY(-1px);
+}
+
+/* Soft sand panel for secondary surfaces */
+@utility editorial-panel {
+  background-color: rgba(232, 223, 209, 0.35);
+  border: 1px solid rgba(212, 175, 106, 0.22);
+  border-radius: 4px;
+}
+
+/* Inputs / selects / textareas */
+@utility editorial-input {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid rgba(11, 29, 58, 0.14);
+  border-bottom: 1px solid rgba(11, 29, 58, 0.28);
+  border-radius: 2px;
+  padding: 0.7rem 0.9rem;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-foreground);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+@utility editorial-input-focus {
+  outline: none;
+  border-color: var(--color-gold);
+  background-color: #fffdf7;
+}
+
+/* Field label — small caps eyebrow above editorial-input */
+@utility field-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+  margin-bottom: 0.45rem;
+}
+
+/* Navy primary CTA, sharp corners */
+@utility btn-navy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--color-navy);
+  color: var(--color-ivory);
+  border: 1px solid var(--color-navy);
+  border-radius: 2px;
+  padding: 0.65rem 1.4rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+@utility btn-navy-hover {
+  background-color: transparent;
+  color: var(--color-navy);
+}
+
+/* Gold-outlined ghost CTA */
+@utility btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-gold);
+  border-radius: 2px;
+  padding: 0.6rem 1.3rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+@utility btn-ghost-hover {
+  background-color: var(--color-gold);
+  color: var(--color-ivory);
+}
+
+/* Pill toggle for filter rows */
+@utility pill-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: transparent;
+  border: 1px solid rgba(11, 29, 58, 0.16);
+  color: var(--color-slate);
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: all 180ms ease;
+}
+@utility pill-toggle-active {
+  background-color: var(--color-navy);
+  border-color: var(--color-navy);
+  color: var(--color-ivory);
+}
+
+/* Compact section title with gold underline */
+@utility section-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-foreground);
+  border-bottom: 1px solid rgba(212, 175, 106, 0.55);
+  padding-bottom: 0.35rem;
+  display: inline-block;
+}
+
+/* Subtle gold divider rule */
+@utility rule-gold {
+  height: 1px;
+  background-color: rgba(212, 175, 106, 0.35);
+  width: 100%;
+}
+
+/* Legacy `.input` class — many existing forms still use it.
+   Map to the editorial input style so old markup picks up the new look. */
+input.input,
+textarea.input,
+select.input {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid rgba(11, 29, 58, 0.14);
+  border-bottom: 1px solid rgba(11, 29, 58, 0.28);
+  border-radius: 2px;
+  padding: 0.7rem 0.9rem;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-foreground);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+input.input:focus,
+textarea.input:focus,
+select.input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  background-color: #fffdf7;
+}
+
+/* =====================================================================
+   Member-facing soft editorial — calmer, airier variant of the admin set.
+   Slightly larger radii (8px), sand/powder washes, gold hairlines kept.
+===================================================================== */
+
+@utility member-shell {
+  background-color: var(--color-ivory);
+  background-image:
+    radial-gradient(620px 380px at 100% -10%, rgba(183, 204, 230, 0.32), transparent 60%),
+    radial-gradient(520px 360px at -10% 110%, rgba(232, 223, 209, 0.55), transparent 60%);
+  background-attachment: fixed;
+}
+
+@utility member-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+@utility member-headline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.05;
+  color: var(--color-navy);
+  letter-spacing: -0.01em;
+}
+
+@utility member-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(212, 175, 106, 0.28);
+  border-radius: 8px;
+  transition:
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+@utility member-card-hover {
+  border-color: rgba(212, 175, 106, 0.6);
+  transform: translateY(-1px);
+}
+
+@utility member-panel-sand {
+  background-color: rgba(232, 223, 209, 0.55);
+  border: 1px solid rgba(212, 175, 106, 0.22);
+  border-radius: 8px;
+}
+
+@utility member-panel-powder {
+  background-color: rgba(183, 204, 230, 0.28);
+  border: 1px solid rgba(183, 204, 230, 0.55);
+  border-radius: 8px;
+}
+
+@utility member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: rgba(232, 223, 209, 0.7);
+  color: var(--color-navy);
+  border: 1px solid rgba(212, 175, 106, 0.35);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Full-width navy CTA used at the bottom of member screens. Sharp 4px corners. */
+@utility cta-navy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: var(--color-navy);
+  color: var(--color-ivory);
+  border: 1px solid var(--color-navy);
+  border-radius: 4px;
+  padding: 1rem 1.4rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+@utility cta-navy-hover {
+  background-color: transparent;
+  color: var(--color-navy);
+}
+@utility cta-navy-disabled {
+  background-color: transparent;
+  color: rgba(11, 29, 58, 0.45);
+  border: 1px dashed rgba(11, 29, 58, 0.25);
+  cursor: not-allowed;
+}
+
+/* Ivory floating nav bar — replaces the dark glass pill */
+@utility nav-bar-ivory {
+  background-color: rgba(250, 247, 242, 0.95);
+  backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(212, 175, 106, 0.35);
+  border-radius: 4px;
+}
+
+/* =====================================================================
+   Numeric display — for KPI figures.
+   Cormorant Garamond's "1" looks like "I" and "0" looks like "O" at large
+   sizes; use DM Sans with tabular/lining numerals for raw stats.
+===================================================================== */
+@utility numeric-display {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--color-navy);
+}
+@utility numeric-display-xl {
+  font-size: 64px;
+  line-height: 1;
+}
+@utility numeric-display-lg {
+  font-size: 40px;
+  line-height: 1;
+}
+@utility numeric-display-md {
+  font-size: 28px;
+  line-height: 1;
+}
+
+/* =====================================================================
+   Shared premium primitives — used across admin + member surfaces.
+===================================================================== */
+
+/* Calm warn tone — replaces harsh red/amber. Uses gold + navy. */
+@utility chip-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: rgba(212, 175, 106, 0.1);
+  color: var(--color-navy);
+  border: 1px solid rgba(212, 175, 106, 0.5);
+  border-radius: 2px;
+  padding: 0.25rem 0.55rem;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Minimum touch target for icon buttons on mobile-critical surfaces. */
+@utility touch-tap {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* =====================================================================
+   Hebrew & Arabic typography safety.
+   English uppercase + wide tracking destroys readability in RTL scripts.
+   When the document is RTL, strip uppercase and reset tracking on any
+   element that opted into them. Numeric displays keep their tracking.
+===================================================================== */
+:root[dir="rtl"] .btn-navy,
+:root[dir="rtl"] .btn-ghost,
+:root[dir="rtl"] .cta-navy,
+:root[dir="rtl"] .pill-toggle,
+:root[dir="rtl"] .member-eyebrow,
+:root[dir="rtl"] .member-chip,
+:root[dir="rtl"] .eyebrow {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+:root[dir="rtl"] .btn-navy,
+:root[dir="rtl"] .btn-ghost,
+:root[dir="rtl"] .cta-navy {
+  font-size: 13px;
+}
+:root[dir="rtl"] .member-eyebrow,
+:root[dir="rtl"] .eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Global RTL safety net: any element that opted into uppercase + wide
+   tracking gets normalized in Hebrew/Arabic. Catches inline utility classes
+   (e.g. filter pills, tabs) that don't go through the named component classes
+   above. Allowlist: keep tracking on tabular-nums and digit displays. */
+:root[dir="rtl"] .uppercase {
+  text-transform: none;
+}
+:root[dir="rtl"] [class*="tracking-["]:not(.tabular-nums):not(.numeric-display) {
+  letter-spacing: 0 !important;
+}
+
+/* Photo-led class card — gradient overlay direction is per text-flow.
+   In RTL the dark side sits on the right (inline-end). In LTR it flips. */
+.visual-class-card {
+  --ovr-dir: to right;
+}
+[dir="ltr"] .visual-class-card {
+  --ovr-dir: to left;
+}
+
+/* ============================================================
+   /auth — direction-aware two-column layout
+   ============================================================ */
+.auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+}
+
+.auth-lang-switch {
+  display: inline-flex;
+  border: 1px solid rgba(11, 29, 58, 0.18);
+  border-radius: 9999px;
+  background: var(--color-card, #fff);
+  overflow: hidden;
+}
+.auth-lang-btn {
+  padding: 0.4rem 0.85rem;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #6f7a8c;
+  background: transparent;
+  border: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.auth-lang-btn:hover {
+  color: #0b1d3a;
+}
+.auth-lang-btn.is-active {
+  background: #0b1d3a;
+  color: #faf7f2;
+}
+[dir="rtl"] .auth-lang-btn {
+  letter-spacing: 0;
+}
+
+/* Full-bleed background image */
+.auth-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.auth-bg-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(212, 175, 106, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(11, 29, 58, 0.55) 0%, rgba(11, 29, 58, 0.78) 100%);
+}
+
+/* Top bar variant when sitting on the image */
+.auth-topbar-on-image {
+  color: #faf7f2;
+}
+.auth-lang-switch-on-image {
+  background: rgba(250, 247, 242, 0.1);
+  border-color: rgba(250, 247, 242, 0.3);
+  backdrop-filter: blur(8px);
+}
+.auth-lang-switch-on-image .auth-lang-btn {
+  color: rgba(250, 247, 242, 0.8);
+}
+.auth-lang-switch-on-image .auth-lang-btn:hover {
+  color: #faf7f2;
+}
+.auth-lang-switch-on-image .auth-lang-btn.is-active {
+  background: #faf7f2;
+  color: #0b1d3a;
+}
+
+/* Glass login card centered over the image */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: #faf7f2;
+  border: 1px solid rgba(212, 175, 106, 0.35);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px -22px rgba(11, 29, 58, 0.3);
+}
+.auth-card-glass {
+  background: color-mix(in oklab, #faf7f2 88%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(250, 247, 242, 0.55);
+  box-shadow:
+    0 30px 80px -20px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(212, 175, 106, 0.2) inset;
+}
+@media (min-width: 1024px) {
+  .auth-card {
+    padding: 2.5rem;
+  }
+}
+
+/* Quantum Lovable - watermark removal */
+#lovable-badge {
+  display: none !important;
+}
+a[href*="lovable.dev"],
+iframe[src*="lovable.dev"],
+div[style*="Edit with Lovable"],
+.lovable-badge {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}

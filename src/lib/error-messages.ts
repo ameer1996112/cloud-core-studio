@@ -1,0 +1,114 @@
+import { toast } from "sonner";
+
+// Map raw Supabase / Postgres / RPC errors to gentle, brand-voice messages.
+// Never leak SQL, JWT, or schema names to the user.
+
+const RULES: Array<{ test: (msg: string, code?: string) => boolean; friendly: string }> = [
+  {
+    test: (m) => /invalid login|invalid credentials|invalid_grant/i.test(m),
+    friendly: "Those credentials didn't match. Please try once more.",
+  },
+  {
+    test: (m) => /email not confirmed/i.test(m),
+    friendly: "Please confirm your email to continue.",
+  },
+  {
+    test: (m) => /user already registered|already exists/i.test(m),
+    friendly: "An account with that email already exists.",
+  },
+  {
+    test: (m) => /password.*(short|6|weak)/i.test(m),
+    friendly: "Please choose a longer password.",
+  },
+  {
+    test: (m) => /rate limit|too many requests/i.test(m),
+    friendly: "A few too many attempts. Please pause a moment and try again.",
+  },
+  {
+    test: (m) => /jwt|unauthorized|not authenticated|no authorization/i.test(m),
+    friendly: "Your session has rested. Please sign in again.",
+  },
+  {
+    test: (m) => /permission denied|rls|not allowed|forbidden/i.test(m),
+    friendly: "You don't have access to that just yet.",
+  },
+  {
+    test: (m) => /no.?credits?|insufficient.*credit/i.test(m),
+    friendly: "No credits left on this package.",
+  },
+  {
+    test: (m) => /already booked|duplicate booking/i.test(m),
+    friendly: "You're already on this class.",
+  },
+  {
+    test: (m) => /class.*full|capacity/i.test(m),
+    friendly: "This class is full — you can join the waitlist.",
+  },
+  {
+    test: (m) => /cancellation.*(deadline|window|late)/i.test(m),
+    friendly: "The cancellation window for this class has closed.",
+  },
+  { test: (m) => /expired|past/i.test(m), friendly: "This package or class has already passed." },
+  {
+    test: (m) => /network|fetch failed|failed to fetch|timeout/i.test(m),
+    friendly: "The line went quiet. Please check your connection and try again.",
+  },
+  {
+    test: (_m, c) => c === "PGRST116",
+    friendly: "We couldn't find that. It may have been removed.",
+  },
+  { test: (_m, c) => c === "23505", friendly: "That already exists." },
+  {
+    test: (_m, c) => c === "23503",
+    friendly: "That's still linked to other data — remove the links first.",
+  },
+  {
+    test: (m) => /payment_not_confirmable/i.test(m),
+    friendly: "This payment cannot be confirmed in its current state.",
+  },
+  {
+    test: (m) => /invalid_amount/i.test(m),
+    friendly: "Enter a valid payment amount before confirming.",
+  },
+  {
+    test: (m) => /provider_not_configured/i.test(m),
+    friendly:
+      "Online checkout is not connected yet. Please request the package or contact the studio.",
+  },
+  {
+    test: (m) => /already_confirmed/i.test(m),
+    friendly: "This payment was already confirmed — its receipt is ready.",
+  },
+];
+
+export function friendlyErrorMessage(
+  err: unknown,
+  fallback = "Something didn't quite land. Please try again.",
+): string {
+  if (!err) return fallback;
+  const anyErr = err as { message?: string; code?: string; error_description?: string };
+  const msg = (anyErr.message ?? anyErr.error_description ?? String(err)).toString();
+  const code = anyErr.code;
+  for (const r of RULES) {
+    try {
+      if (r.test(msg, code)) return r.friendly;
+    } catch {
+      /* ignore */
+    }
+  }
+  // Strip SQL-y prefixes
+  const clean = msg
+    .replace(/^.*violates.*?:\s*/i, "")
+    .replace(/^Error:\s*/i, "")
+    .trim();
+  if (!clean || clean.length > 180) return fallback;
+  return clean;
+}
+
+export function showApiError(err: unknown, fallback?: string) {
+  toast.error(friendlyErrorMessage(err, fallback));
+}
+
+export function showApiSuccess(message: string) {
+  toast.success(message);
+}

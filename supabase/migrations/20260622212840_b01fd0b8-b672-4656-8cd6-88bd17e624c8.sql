@@ -1,0 +1,46 @@
+
+REVOKE EXECUTE ON FUNCTION public.member_cancel_booking(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.member_join_waitlist(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.member_leave_waitlist(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_waitlist_offer(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_waitlist_promote(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_create_booking(uuid, uuid, uuid, boolean) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_cancel_booking(uuid, uuid, boolean) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_adjust_credits(uuid, uuid, integer, text, boolean) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_assign_plan(uuid, uuid, uuid, text) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.admin_generate_class_from_template(uuid, uuid, timestamp with time zone) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.mark_attendance_v2(uuid, uuid, text) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.book_class_v2(uuid, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public._log_action_as(uuid, text, text, uuid, jsonb) FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION public.member_cancel_booking(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.member_join_waitlist(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.member_leave_waitlist(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_waitlist_offer(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_waitlist_promote(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_create_booking(uuid, uuid, uuid, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_cancel_booking(uuid, uuid, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_adjust_credits(uuid, uuid, integer, text, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_assign_plan(uuid, uuid, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_generate_class_from_template(uuid, uuid, timestamp with time zone) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.mark_attendance_v2(uuid, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.book_class_v2(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
+
+CREATE INDEX IF NOT EXISTS bookings_member_idx ON public.bookings(member_id);
+CREATE INDEX IF NOT EXISTS bookings_class_idx ON public.bookings(class_id);
+CREATE INDEX IF NOT EXISTS bookings_status_idx ON public.bookings(status);
+CREATE INDEX IF NOT EXISTS bookings_member_status_idx ON public.bookings(member_id, status);
+CREATE INDEX IF NOT EXISTS classes_starts_at_idx ON public.classes(starts_at);
+CREATE INDEX IF NOT EXISTS classes_status_starts_at_idx ON public.classes(status, starts_at);
+CREATE INDEX IF NOT EXISTS notification_logs_recipient_idx ON public.notification_logs(recipient_member_id);
+CREATE INDEX IF NOT EXISTS notification_logs_created_at_idx ON public.notification_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS package_requests_member_idx ON public.package_requests(member_id);
+CREATE INDEX IF NOT EXISTS package_requests_status_idx ON public.package_requests(status);
+CREATE INDEX IF NOT EXISTS member_plans_member_idx ON public.member_plans(member_id);
+CREATE INDEX IF NOT EXISTS member_plans_expires_at_idx ON public.member_plans(expires_at);
+CREATE INDEX IF NOT EXISTS waitlist_member_idx ON public.waitlist_entries(member_id);
+CREATE INDEX IF NOT EXISTS waitlist_status_idx ON public.waitlist_entries(status);
+CREATE INDEX IF NOT EXISTS attendance_status_idx ON public.attendance_records(status);
+CREATE INDEX IF NOT EXISTS credit_transactions_created_at_idx ON public.credit_transactions(created_at DESC);

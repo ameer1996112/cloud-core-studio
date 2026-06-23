@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="No payments">
+  <rect width="320" height="200" rx="14" fill="#FAF7F2"/>
+  <g fill="none" stroke="#0B1D3A" stroke-width="1.25" opacity="0.7">
+    <rect x="70" y="70" width="180" height="80" rx="10"/>
+    <path d="M70 96 h180"/>
+    <path d="M90 124 h40 M150 124 h60"/>
+  </g>
+  <path d="M70 170 h180" stroke="#D4AF6A" stroke-dasharray="2 6"/>
+</svg>
