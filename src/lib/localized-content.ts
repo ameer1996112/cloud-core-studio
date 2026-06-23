@@ -84,3 +84,16 @@ export function localizedInstructorName(
   }
   return normalized;
 }
+
+export function localizedInstructorBio(
+  bio: string | null | undefined,
+  lang: Lang = getActiveLang(),
+) {
+  if (!hasText(bio)) return null;
+  const normalized = bio.trim();
+  if (normalized === "Aerial & mat lead") {
+    if (lang === "he") return "מובילה יוגה אווירית ומזרן";
+    if (lang === "ar") return "مدرّبة يوغا هوائية وبساط";
+  }
+  return normalized;
+}
