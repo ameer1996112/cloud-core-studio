@@ -197,20 +197,28 @@ export function MemberEmptyState({
       />
 
       {illustration && (
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-ivory/70 ring-1 ring-gold/35">
+        <div className="premium-cloud-mark mx-auto mb-6" aria-hidden="true">
+          <span className="premium-cloud-mark__ring" />
           <svg
-            viewBox="0 0 48 48"
-            aria-hidden="true"
-            className="h-8 w-8 text-navy/80"
+            viewBox="0 0 64 64"
+            className="premium-cloud-mark__glyph"
             fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M14 30c-3.3 0-6-2.5-6-5.7 0-2.8 2-5.1 4.8-5.6.6-4 4.1-7 8.3-7 3.8 0 7.1 2.5 8.1 6 .3-.1.7-.1 1-.1 3.3 0 6 2.6 6 5.8 0 3.2-2.7 5.7-6 5.7H14z" />
-            <path d="M16 36h16" opacity="0.5" />
-            <path d="M19 40h10" opacity="0.35" />
+            <path
+              className="premium-cloud-mark__shadow"
+              d="M18.5 37.5h27c5 0 9-3.5 9-8.3 0-4.7-3.7-8.4-8.4-8.4-1 0-2 .2-2.9.5-2.4-6.3-8-10.3-14.8-10.3-7.4 0-13.8 5.2-15.3 12.3-4.6.7-8 4.4-8 8.9 0 4.8 4.1 8.3 9.4 8.3h4"
+            />
+            <path
+              className="premium-cloud-mark__cloud"
+              d="M18.5 34.5h27c5 0 9-3.5 9-8.3 0-4.7-3.7-8.4-8.4-8.4-1 0-2 .2-2.9.5C40.8 12 35.2 8 28.4 8 21 8 14.6 13.2 13.1 20.3c-4.6.7-8 4.4-8 8.9 0 4.8 4.1 8.3 9.4 8.3h4"
+            />
+            <path className="premium-cloud-mark__line" d="M21 45h22" />
+            <path
+              className="premium-cloud-mark__line premium-cloud-mark__line--soft"
+              d="M25 51h14"
+            />
           </svg>
         </div>
       )}

@@ -723,6 +723,67 @@ select.input:focus {
   color: var(--color-navy);
 }
 
+.premium-cloud-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 242, 0.7)),
+    radial-gradient(circle at 35% 25%, rgba(183, 204, 230, 0.22), transparent 48%);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 106, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 34px -28px rgba(11, 29, 58, 0.78);
+}
+
+.premium-cloud-mark::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: inherit;
+  border: 1px solid rgba(212, 175, 106, 0.18);
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.premium-cloud-mark__ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  border: 1px solid rgba(212, 175, 106, 0.16);
+  border-block-color: rgba(212, 175, 106, 0.34);
+}
+
+.premium-cloud-mark__glyph {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  transform: translateY(1px);
+}
+
+.premium-cloud-mark__cloud {
+  stroke: var(--color-navy);
+  stroke-width: 2;
+}
+
+.premium-cloud-mark__shadow {
+  stroke: rgba(212, 175, 106, 0.55);
+  stroke-width: 2.25;
+  transform: translateY(3px);
+}
+
+.premium-cloud-mark__line {
+  stroke: var(--color-gold);
+  stroke-width: 1.8;
+}
+
+.premium-cloud-mark__line--soft {
+  opacity: 0.55;
+}
+
 .member-link-action:active,
 a.member-card:active,
 button.member-card:active,
