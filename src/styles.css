@@ -280,8 +280,24 @@
   height: clamp(148px, 15vw, 190px);
 }
 
+.class-card-shell {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 106, 0.22),
+    0 18px 38px -30px rgba(11, 29, 58, 0.68);
+}
+
+.class-card-photo {
+  border-radius: 8px 8px 0 0;
+  background: var(--color-navy);
+}
+
 .class-time-badge {
-  position: relative;
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  left: 14px;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -338,38 +354,27 @@
 }
 
 .class-card-copy {
-  position: absolute;
-  z-index: 3;
-  right: 16px;
-  bottom: 16px;
-  left: 16px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: flex-end;
-  gap: 0.9rem;
-  border: 1px solid rgba(250, 247, 242, 0.12);
-  border-radius: 4px;
-  background: linear-gradient(90deg, rgba(11, 29, 58, 0.82), rgba(11, 29, 58, 0.58));
-  padding: 0.85rem;
-  color: var(--color-ivory);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 20px 44px -30px rgba(11, 29, 58, 0.95);
-  backdrop-filter: blur(8px) saturate(120%);
+  display: block;
+  border-top: 1px solid rgba(212, 175, 106, 0.2);
+  background: linear-gradient(180deg, rgba(250, 247, 242, 0.98), rgba(255, 255, 255, 0.92));
+  padding: 0.9rem 1rem 1rem;
 }
 
 .class-card-main {
   min-width: 0;
-  align-self: center;
-  text-align: end;
+  text-align: start;
 }
 
 .class-card-capacity {
-  align-self: center;
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  background: rgba(11, 29, 58, 0.35);
+  background: rgba(11, 29, 58, 0.62);
+  backdrop-filter: blur(8px) saturate(120%);
   color: var(--color-ivory);
   font-size: 11px;
   font-weight: 500;
@@ -404,6 +409,8 @@
   }
 
   .class-time-badge {
+    top: 12px;
+    left: 12px;
     gap: 0.4rem;
     min-height: 38px;
     padding: 0.34rem 0.5rem;
@@ -414,13 +421,7 @@
   }
 
   .class-card-copy {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    gap: 0.65rem;
-    padding: 0.75rem;
+    padding: 0.85rem;
   }
 
   .class-card-main {
@@ -428,7 +429,8 @@
   }
 
   .class-card-capacity {
-    justify-self: start;
+    top: 12px;
+    right: 12px;
   }
 
   .member-class-hero-media {

@@ -343,41 +343,40 @@ export function VisualClassCard({
       className="group block w-full min-w-0 text-start"
     >
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
-      <article
-        className={`visual-class-card relative min-w-0 max-w-full overflow-hidden rounded-[22px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-[0_24px_50px_-24px_rgba(11,29,58,0.55)] ${
-          compact ? "member-class-media" : "schedule-class-media"
-        }`}
-      >
-        <ClassMoodImage
-          title={title}
-          programTypeName={localizedProgramName(cls?.program_type)}
-          imageUrl={resolveClassImageSrc(cls, "card")}
-          variant="card"
-          imageFit="cover"
-          imagePosition="center center"
-          className="!absolute inset-0 h-full w-full"
-          eager={eager}
-        />
-
-        {ovr.desaturate && (
-          <div
-            className="absolute inset-0 z-[2] bg-navy/25 mix-blend-luminosity pointer-events-none"
-            aria-hidden
-          />
-        )}
-
-        {/* Readable gradient overlay — strong on the text side, soft on the subject side */}
+      <article className="visual-class-card class-card-shell relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5">
         <div
-          className="absolute inset-0 z-[2] pointer-events-none"
-          aria-hidden
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(11,29,58,0.34) 0%, rgba(11,29,58,0.08) 34%, rgba(11,29,58,0.42) 72%, rgba(11,29,58,0.76) 100%)",
-          }}
-        />
+          className={`class-card-photo relative overflow-hidden ${
+            compact ? "member-class-media" : "schedule-class-media"
+          }`}
+        >
+          <ClassMoodImage
+            title={title}
+            programTypeName={localizedProgramName(cls?.program_type)}
+            imageUrl={resolveClassImageSrc(cls, "card")}
+            variant="card"
+            imageFit="cover"
+            imagePosition="center center"
+            className="!absolute inset-0 h-full w-full"
+            eager={eager}
+          />
 
-        {/* Content — one clean band, stable layout with localized text direction. */}
-        <div className="class-card-copy">
+          {ovr.desaturate && (
+            <div
+              className="absolute inset-0 z-[2] bg-navy/25 mix-blend-luminosity pointer-events-none"
+              aria-hidden
+            />
+          )}
+
+          {/* A soft readability wash only; class details live below the image. */}
+          <div
+            className="absolute inset-0 z-[2] pointer-events-none"
+            aria-hidden
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(11,29,58,0.16) 0%, rgba(11,29,58,0.02) 44%, rgba(11,29,58,0.20) 100%)",
+            }}
+          />
+
           <div className="class-time-badge" dir={isRtl ? "rtl" : "ltr"}>
             <span className="class-time-badge__day">{time.weekday}</span>
             <span className="class-time-badge__time">
@@ -388,15 +387,7 @@ export function VisualClassCard({
               {t("common.minutes")}
             </span>
           </div>
-          <div className="class-card-main" dir={isRtl ? "rtl" : "ltr"}>
-            <h3 className="font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-tight text-ivory drop-shadow-[0_1px_3px_rgba(11,29,58,0.7)]">
-              {title}
-            </h3>
-            <p className="text-[13px] sm:text-[14px] text-ivory/85 leading-snug drop-shadow-[0_1px_2px_rgba(11,29,58,0.55)] line-clamp-1">
-              {instructor}
-              {room ? ` · ${room}` : " · Cloud & Core"}
-            </p>
-          </div>
+
           <span className={`class-card-capacity border ${ovr.capacityBorder}`}>
             {spotsLeft === 0
               ? t("capacity.full")
@@ -404,23 +395,35 @@ export function VisualClassCard({
                 ? t("capacity.left.one")
                 : t("capacity.left.many", { count: spotsLeft })}
           </span>
+
+          {/* Participants — bottom inline-end, only when present */}
+          {participants.length > 0 && (
+            <div
+              dir={isRtl ? "rtl" : "ltr"}
+              className="absolute bottom-3 z-[3] flex items-center gap-1"
+              style={{ right: "14px" }}
+            >
+              {participants.slice(0, 3).map((n, i) => (
+                <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
+              ))}
+              {participants.length > 3 && (
+                <span className="text-[10px] text-ivory/90">+{participants.length - 3}</span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Participants — bottom inline-end, only when present */}
-        {participants.length > 0 && (
-          <div
-            dir={isRtl ? "rtl" : "ltr"}
-            className="absolute bottom-3 z-[3] flex items-center gap-1"
-            style={{ right: "14px" }}
-          >
-            {participants.slice(0, 3).map((n, i) => (
-              <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
-            ))}
-            {participants.length > 3 && (
-              <span className="text-[10px] text-ivory/90">+{participants.length - 3}</span>
-            )}
+        <div className="class-card-copy">
+          <div className="class-card-main" dir={isRtl ? "rtl" : "ltr"}>
+            <h3 className="font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-tight text-navy">
+              {title}
+            </h3>
+            <p className="text-[13px] sm:text-[14px] text-slate leading-snug line-clamp-1">
+              {instructor}
+              {room ? ` · ${room}` : " · Cloud & Core"}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Screen-reader only state label (visual chip removed to avoid duplicate capacity info) */}
         <span className="sr-only">{chipLabel}</span>
