@@ -253,7 +253,7 @@ function NextBookingCard({
       description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${instructor}.`,
       studioName,
     });
-    downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    void downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
   }
   return (
     <Link

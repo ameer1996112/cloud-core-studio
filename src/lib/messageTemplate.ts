@@ -124,12 +124,39 @@ export function buildIcs(opts: {
     .join("\r\n");
 }
 
-export function downloadIcs(filename: string, content: string) {
-  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+type CalendarShareData = {
+  files?: File[];
+  title?: string;
+  text?: string;
+};
+
+type CalendarNavigator = Navigator & {
+  canShare?: (data: CalendarShareData) => boolean;
+  share?: (data: CalendarShareData) => Promise<void>;
+};
+
+export async function downloadIcs(filename: string, content: string) {
+  const file = new File([content], filename, { type: "text/calendar;charset=utf-8" });
+  const nav = typeof navigator !== "undefined" ? (navigator as CalendarNavigator) : null;
+
+  if (nav?.share && nav.canShare?.({ files: [file] })) {
+    try {
+      await nav.share({
+        files: [file],
+        title: filename.replace(/\.ics$/i, ""),
+        text: "Add this class to your calendar.",
+      });
+      return;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+    }
+  }
+
+  const url = URL.createObjectURL(file);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
   a.remove();

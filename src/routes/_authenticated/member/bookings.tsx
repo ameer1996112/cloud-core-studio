@@ -298,7 +298,7 @@ function BookingCard({
       description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${instructor}.`,
       studioName: studio?.studio_name ?? null,
     });
-    downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    void downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
   }
   const contactUrl = waUrl({
     to: studio?.whatsapp_number ?? studio?.public_phone,
