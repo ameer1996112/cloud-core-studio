@@ -25,8 +25,9 @@ import {
 } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, VisualClassCardMini } from "@/components/visual/VisualClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
-import { t, getLocale } from "@/lib/i18n";
+import { t, getLocale, useI18n } from "@/lib/i18n";
 import { studioImages, localizedAlt } from "@/lib/image-assets";
+import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/")({
   head: () => ({ meta: [{ title: "בית — Cloud & Core" }] }),
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/member/")({
 });
 
 function MemberHome() {
+  useI18n();
   const fetchHome = useServerFn(getMemberHome);
   const fetchSettings = useServerFn(getPublicStudioSettings);
   const { data, isLoading } = useQuery({ queryKey: ["member-home"], queryFn: () => fetchHome() });
@@ -227,19 +229,22 @@ function NextBookingCard({
   address: string | null;
 }) {
   const cls = booking.class;
+  const title = localizedClassTitle(cls);
+  const instructor = localizedInstructorName(cls.instructor?.name);
+
   function addToCalendar(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     const ics = buildIcs({
       uid: booking.id,
-      title: cls.title,
+      title,
       startsAt: cls.starts_at,
       durationMinutes: cls.duration_minutes,
       location: [cls.room_ref?.name ?? cls.room, address].filter(Boolean).join(" · "),
-      description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${cls.instructor?.name ?? "—"}.`,
+      description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${instructor}.`,
       studioName,
     });
-    downloadIcs(`${cls.title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
   }
   return (
     <Link
@@ -266,7 +271,7 @@ function NextBookingCard({
             {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
           </p>
           <p className="font-display text-3xl mt-1 leading-tight text-ivory drop-shadow-[0_1px_2px_rgba(11,29,58,0.65)]">
-            {cls.title}
+            {title}
           </p>
         </div>
       </ClassImage>
@@ -277,7 +282,7 @@ function NextBookingCard({
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Sparkles className="h-3 w-3 text-gold" />
-          {cls.instructor?.name ?? "—"}
+          {instructor}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Clock className="h-3 w-3 text-gold" />

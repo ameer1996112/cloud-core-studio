@@ -4,6 +4,11 @@ import type { ReactNode } from "react";
 import { getLocale, t } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { resolveClassImageSrc, type ImageVariant } from "@/lib/image-assets";
+import {
+  localizedClassTitle,
+  localizedInstructorName,
+  localizedProgramName,
+} from "@/lib/localized-content";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString(getLocale(), { hour: "numeric", minute: "2-digit" });
@@ -33,10 +38,11 @@ export function ClassImage({
   imagePosition?: string;
   eager?: boolean;
 }) {
+  const title = localizedClassTitle(cls);
   return (
     <ClassMoodImage
-      title={cls?.title}
-      programTypeName={cls?.program_type?.name_en ?? cls?.program_type?.name ?? null}
+      title={title}
+      programTypeName={localizedProgramName(cls?.program_type)}
       imageUrl={resolveClassImageSrc(cls, variant)}
       variant={variant}
       imageFit={imageFit}
@@ -116,6 +122,9 @@ export function PremiumClassCard({
   state: ClassState;
   onOpen: () => void;
 }) {
+  const title = localizedClassTitle(cls);
+  const instructor = localizedInstructorName(cls.instructor?.name);
+
   return (
     <button
       onClick={onOpen}
@@ -138,7 +147,7 @@ export function PremiumClassCard({
             {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
           </p>
           <p className="font-display text-2xl leading-tight mt-1 text-ivory drop-shadow-sm">
-            {cls.title}
+            {title}
           </p>
         </div>
       </ClassImage>
@@ -154,7 +163,7 @@ export function PremiumClassCard({
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Sparkles className="h-3 w-3 text-gold" />
-          {cls.instructor?.name ?? "—"}
+          {instructor}
         </span>
       </div>
     </button>

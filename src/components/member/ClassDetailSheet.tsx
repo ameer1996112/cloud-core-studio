@@ -15,6 +15,12 @@ import {
   StateBadge,
 } from "./PremiumClassCard";
 import { t } from "@/lib/i18n";
+import {
+  localizedClassTitle,
+  localizedInstructorName,
+  localizedProgramDescription,
+  localizedProgramName,
+} from "@/lib/localized-content";
 
 export function ClassDetailSheet({
   classId,
@@ -87,6 +93,10 @@ export function ClassDetailSheet({
   });
 
   const cls = data?.cls;
+  const title = cls ? localizedClassTitle(cls) : "";
+  const instructor = cls ? localizedInstructorName(cls.instructor?.name) : "—";
+  const programName = cls ? localizedProgramName(cls.program_type) : null;
+  const programDescription = cls ? localizedProgramDescription(cls.program_type) : null;
   const state = cls
     ? deriveClassState(cls, {
         booked: data?.myBooking?.status === "booked",
@@ -136,12 +146,11 @@ export function ClassDetailSheet({
                   {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
                 </p>
                 <h2 className="font-display text-3xl mt-1 leading-tight text-ivory drop-shadow-[0_1px_2px_rgba(11,29,58,0.65)]">
-                  {cls.title}
+                  {title}
                 </h2>
-                {cls.program_type?.name_en && (
+                {programName && (
                   <p className="text-xs opacity-90 mt-1">
-                    {cls.program_type.name_en}{" "}
-                    {cls.program_type?.level ? `· ${cls.program_type.level}` : ""}
+                    {programName} {cls.program_type?.level ? `· ${cls.program_type.level}` : ""}
                   </p>
                 )}
               </div>
@@ -160,7 +169,7 @@ export function ClassDetailSheet({
                 <Stat
                   icon={<Sparkles className="h-3 w-3 text-gold" />}
                   label={t("common.with")}
-                  value={cls.instructor?.name ?? "—"}
+                  value={instructor}
                 />
                 <Stat
                   icon={<MapPin className="h-3 w-3 text-gold" />}
@@ -174,10 +183,8 @@ export function ClassDetailSheet({
                 />
               </div>
 
-              {cls.program_type?.description_en && (
-                <p className="text-sm text-slate leading-relaxed">
-                  {cls.program_type.description_en}
-                </p>
+              {programDescription && (
+                <p className="text-sm text-slate leading-relaxed">{programDescription}</p>
               )}
 
               <div className="member-panel-sand p-4 text-xs text-slate space-y-1">
@@ -261,6 +268,9 @@ function ConfirmationView({
   onDone: () => void;
 }) {
   const code = confirmation.bookingId.slice(0, 6).toUpperCase();
+  const title = localizedClassTitle(cls);
+  const instructor = localizedInstructorName(cls.instructor?.name);
+
   return (
     <div className="p-6 sm:p-8 space-y-5">
       <div className="text-center space-y-3">
@@ -288,9 +298,7 @@ function ConfirmationView({
               <p className="text-[10px] uppercase tracking-[0.3em] text-slate">
                 {t("booking.confirmed")}
               </p>
-              <p className="font-display text-2xl text-navy mt-1 leading-tight truncate">
-                {cls.title}
-              </p>
+              <p className="font-display text-2xl text-navy mt-1 leading-tight truncate">{title}</p>
             </div>
             <div className="shrink-0 text-end">
               <p className="text-[9px] uppercase tracking-[0.3em] text-slate">{t("common.code")}</p>
@@ -308,7 +316,7 @@ function ConfirmationView({
               value={`${cls.duration_minutes} ${t("common.minutes")}`}
             />
             <CardField label={t("common.room")} value={cls.room_ref?.name ?? cls.room ?? "—"} />
-            <CardField label={t("common.with")} value={cls.instructor?.name ?? "—"} />
+            <CardField label={t("common.with")} value={instructor} />
           </div>
 
           <div className="flex items-center justify-between pt-3 border-t hairline text-[11px] text-slate">

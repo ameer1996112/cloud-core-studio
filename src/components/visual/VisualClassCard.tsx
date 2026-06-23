@@ -4,6 +4,11 @@ import { getLocale, t } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { initialsFor, resolveClassImageSrc } from "@/lib/image-assets";
 import type { ClassState } from "@/components/member/PremiumClassCard";
+import {
+  localizedClassTitle,
+  localizedInstructorName,
+  localizedProgramName,
+} from "@/lib/localized-content";
 
 /**
  * Cloud & Core schedule card — typography-led, image-accented.
@@ -132,26 +137,34 @@ function toneFor(state: ClassState): {
   // Chip label + CTA per kind
   switch (state.kind) {
     case "booked":
-      return { tone: tones.booked, chipLabel: t("state.booked"), cta: { label: "ניהול הזמנה" } };
+      return {
+        tone: tones.booked,
+        chipLabel: t("state.booked"),
+        cta: { label: t("class.cta.manageBooking") },
+      };
     case "waiting":
-      return { tone: tones.waiting, chipLabel: t("state.waiting"), cta: { label: "ניהול המתנה" } };
+      return {
+        tone: tones.waiting,
+        chipLabel: t("state.waiting"),
+        cta: { label: t("class.cta.manageWaitlist") },
+      };
     case "almost":
       return {
         tone: tones.almost,
         chipLabel: t("state.almost", { count: state.spotsLeft }),
-        cta: { label: "הזמיני שיעור" },
+        cta: { label: t("class.cta.bookClass") },
       };
     case "available":
       return {
         tone: tones.available,
         chipLabel: t("state.available", { count: state.spotsLeft }),
-        cta: { label: "הזמיני שיעור" },
+        cta: { label: t("class.cta.bookClass") },
       };
     case "waitlist_available":
       return {
         tone: tones.waitlist_available,
         chipLabel: t("state.waitlist_available"),
-        cta: { label: "הצטרפי לרשימת המתנה" },
+        cta: { label: t("class.cta.joinWaitlist") },
       };
     case "full":
       return {
@@ -163,13 +176,13 @@ function toneFor(state: ClassState): {
       return {
         tone: tones.low_credits,
         chipLabel: t("state.low_credits"),
-        cta: { label: "חידוש קרדיטים" },
+        cta: { label: t("class.cta.topUpCredits") },
       };
     case "package_required":
       return {
         tone: tones.package_required,
         chipLabel: t("state.package_required"),
-        cta: { label: "בחירת חבילה" },
+        cta: { label: t("class.cta.choosePackage") },
       };
     case "cancelled":
       return { tone: tones.cancelled, chipLabel: t("state.cancelled"), cta: null };
@@ -310,7 +323,8 @@ export function VisualClassCard({
 }) {
   const { chipLabel, cta } = toneFor(state);
   const ovr = overlayFor(state);
-  const instructor = cls.instructor?.name ?? "—";
+  const title = localizedClassTitle(cls);
+  const instructor = localizedInstructorName(cls.instructor?.name);
   const room = cls.room_ref?.name ?? cls.room ?? null;
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
@@ -339,8 +353,8 @@ export function VisualClassCard({
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
       <article className="visual-class-card member-class-media relative min-w-0 max-w-full overflow-hidden rounded-[24px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-transform group-hover:-translate-y-0.5">
         <ClassMoodImage
-          title={cls.title}
-          programTypeName={cls?.program_type?.name_en ?? cls?.program_type?.name_he ?? null}
+          title={title}
+          programTypeName={localizedProgramName(cls?.program_type)}
           imageUrl={resolveClassImageSrc(cls, "card")}
           variant="card"
           imageFit="cover"
@@ -380,7 +394,7 @@ export function VisualClassCard({
           }}
         >
           <h3 className="font-sans text-[22px] sm:text-[26px] font-semibold leading-[1.1] tracking-tight text-ivory drop-shadow-[0_1px_3px_rgba(11,29,58,0.7)]">
-            {cls.title}
+            {title}
           </h3>
           <p className="text-[13px] sm:text-[14px] text-ivory/85 leading-snug drop-shadow-[0_1px_2px_rgba(11,29,58,0.55)] line-clamp-1">
             {instructor}
@@ -442,6 +456,8 @@ export function VisualClassCardMini({
   to: string;
 }) {
   const { tone, chipLabel } = toneFor(state);
+  const title = localizedClassTitle(cls);
+  const instructor = localizedInstructorName(cls.instructor?.name);
   return (
     <Link
       to={to}
@@ -454,8 +470,8 @@ export function VisualClassCardMini({
           style={{ width: 52, height: 52 }}
         >
           <ClassMoodImage
-            title={cls.title}
-            programTypeName={cls?.program_type?.name_en ?? cls?.program_type?.name ?? null}
+            title={title}
+            programTypeName={localizedProgramName(cls?.program_type)}
             imageUrl={resolveClassImageSrc(cls, "thumb")}
             variant="thumb"
             className="absolute inset-0 h-full w-full"
@@ -467,10 +483,10 @@ export function VisualClassCardMini({
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-sans text-[14px] font-semibold leading-tight tracking-normal truncate">
-            {cls.title}
+            {title}
           </p>
           <p className={`text-[11px] truncate ${tone.soft} tabular-nums`}>
-            {formatTime(cls.starts_at)} · {cls.instructor?.name ?? "—"}
+            {formatTime(cls.starts_at)} · {instructor}
           </p>
         </div>
         <span

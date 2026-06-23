@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { t, useI18n, getLocale } from "@/lib/i18n";
+import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
   head: () => ({ meta: [{ title: "ההזמנות שלי — Cloud & Core" }] }),
@@ -242,22 +243,24 @@ function BookingCard({
   );
   const canCancel = Date.now() < deadline.getTime() && booking.status === "booked";
   const isUpcoming = startsAt.getTime() >= Date.now() && booking.status === "booked";
+  const title = localizedClassTitle(cls);
+  const instructor = localizedInstructorName(cls.instructor?.name);
 
   function addToCalendar() {
     const ics = buildIcs({
       uid: booking.id,
-      title: cls.title,
+      title,
       startsAt: cls.starts_at,
       durationMinutes: cls.duration_minutes,
       location: [cls.room_ref?.name ?? cls.room, studio?.address].filter(Boolean).join(" · "),
-      description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${cls.instructor?.name ?? "—"}.`,
+      description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${instructor}.`,
       studioName: studio?.studio_name ?? null,
     });
-    downloadIcs(`${cls.title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
   }
   const contactUrl = waUrl({
     to: studio?.whatsapp_number ?? studio?.public_phone,
-    text: `Hi ${studio?.studio_name ?? "the studio"}, I need help with my booking for ${cls.title} on ${formatDate(cls.starts_at)} at ${formatTime(cls.starts_at)}.`,
+    text: `Hi ${studio?.studio_name ?? "the studio"}, I need help with my booking for ${title} on ${formatDate(cls.starts_at)} at ${formatTime(cls.starts_at)}.`,
   });
 
   return (
@@ -283,7 +286,7 @@ function BookingCard({
               {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
             </p>
             <p className="font-display text-[20px] leading-tight mt-1 truncate text-ivory drop-shadow-[0_1px_2px_rgba(11,29,58,0.55)]">
-              {cls.title}
+              {title}
             </p>
           </div>
           {attendance?.status === "attended" && (
@@ -299,11 +302,11 @@ function BookingCard({
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ivory/85">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3 w-3 text-gold" />
-            {cls.room_ref?.name ?? cls.room ?? "סטודיו Cloud & Core"}
+            {cls.room_ref?.name ?? cls.room ?? "Cloud & Core Studio"}
           </span>
           <span className="inline-flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-gold" />
-            {cls.instructor?.name ?? "—"}
+            {instructor}
           </span>
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3 text-gold" />
@@ -323,7 +326,7 @@ function BookingCard({
                 onClick={onCancel}
                 className="text-[10px] tracking-[0.18em] text-ivory/90 hover:text-gold border-b border-ivory/40"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             ) : (
               <a
@@ -345,6 +348,7 @@ function BookingCard({
 function WaitlistCard({ entry, onLeave }: { entry: any; onLeave: () => void }) {
   const cls = entry.class;
   if (!cls) return null;
+  const title = localizedClassTitle(cls);
   return (
     <div className="member-card overflow-hidden">
       <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[180px_1fr]">
@@ -355,7 +359,7 @@ function WaitlistCard({ entry, onLeave }: { entry: any; onLeave: () => void }) {
               <p className="text-[10px] uppercase tracking-[0.25em] text-slate">
                 {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
               </p>
-              <p className="font-display text-xl text-navy leading-tight mt-1">{cls.title}</p>
+              <p className="font-display text-xl text-navy leading-tight mt-1">{title}</p>
             </div>
             <StateBadge
               state={

@@ -7,7 +7,8 @@ import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, ScheduleDaySection } from "@/components/visual/VisualClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
-import { t } from "@/lib/i18n";
+import { t, useI18n } from "@/lib/i18n";
+import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/schedule")({
   head: () => ({ meta: [{ title: "לוח שיעורים — Cloud & Core" }] }),
@@ -21,6 +22,7 @@ function startOfDay(d: Date) {
 }
 
 function MemberSchedule() {
+  useI18n();
   const fetchSchedule = useServerFn(listAvailableClasses);
   const { data, isLoading } = useQuery({
     queryKey: ["member-schedule"],
@@ -75,7 +77,8 @@ function MemberSchedule() {
       if (filter.energy && c.energy !== filter.energy) return false;
       if (filter.instructor && c.instructor?.name !== filter.instructor) return false;
       if (filter.room && (c.room_ref?.name ?? c.room) !== filter.room) return false;
-      if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !localizedClassTitle(c).toLowerCase().includes(search.toLowerCase()))
+        return false;
       return true;
     });
   }, [classes, dateScope, filter, search]);
@@ -127,13 +130,13 @@ function MemberSchedule() {
       {/* Filter chips */}
       <div className="flex flex-wrap gap-2">
         <FilterGroup
-          label="רמה"
+          label={t("member.filter.level")}
           options={levels}
           value={filter.level}
           onChange={(v) => setFilter({ ...filter, level: v })}
         />
         <FilterGroup
-          label="אנרגיה"
+          label={t("member.filter.energy")}
           options={energies}
           value={filter.energy}
           onChange={(v) => setFilter({ ...filter, energy: v })}
@@ -147,6 +150,7 @@ function MemberSchedule() {
         <FilterGroup
           label={t("common.with")}
           options={instructors}
+          formatOption={(o) => localizedInstructorName(o)}
           value={filter.instructor}
           onChange={(v) => setFilter({ ...filter, instructor: v })}
         />
@@ -204,6 +208,7 @@ function FilterGroup({
   options: any[];
   value?: string;
   onChange: (v?: string) => void;
+  formatOption?: (value: string) => string;
 }) {
   if (options.length === 0) return null;
   return (
@@ -217,7 +222,7 @@ function FilterGroup({
             value === o ? "pill-toggle pill-toggle-active capitalize" : "pill-toggle capitalize"
           }
         >
-          {o}
+          {formatOption ? formatOption(o) : o}
         </button>
       ))}
     </div>

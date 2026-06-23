@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const classSelect =
-  "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,color_tag,level,description_en,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
+  "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
 
 export const getMemberHome = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
