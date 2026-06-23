@@ -68,6 +68,10 @@ export function ClassDetailSheet({
         toast(t("booking.toast.error"));
       }
     },
+    onError: (err) => {
+      console.error("[booking] bookClass failed", err);
+      toast.error(t("booking.toast.error"));
+    },
   });
 
   const join = useMutation({

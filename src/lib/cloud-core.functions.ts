@@ -84,8 +84,7 @@ export const bookClass = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ classId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: result, error } = await supabaseAdmin.rpc("book_class_v2", {
+    const { data: result, error } = await context.supabase.rpc("book_class_v2", {
       p_actor_id: context.userId,
       p_class_id: data.classId,
     });
