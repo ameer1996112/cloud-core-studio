@@ -89,7 +89,7 @@ function MemberSchedule() {
   }
 
   return (
-    <section className="space-y-6 pb-10">
+    <section className="space-y-6 pb-10 max-w-4xl mx-auto">
       {/* Search */}
       <div className="relative">
         <Search className="h-4 w-4 text-slate absolute left-3 top-1/2 -translate-y-1/2" />

@@ -238,6 +238,49 @@
     radial-gradient(500px 280px at 100% 100%, rgba(232, 223, 209, 0.55), transparent 60%);
 }
 
+/* Member media sizing: full-width containers with stable, clamped heights. */
+.member-studio-banner {
+  position: relative;
+  width: 100%;
+  height: clamp(150px, 14vw, 220px);
+  overflow: hidden;
+}
+
+.member-profile-banner {
+  position: relative;
+  width: 100%;
+  height: clamp(160px, 18vw, 220px);
+  overflow: hidden;
+}
+
+.member-class-media {
+  width: 100%;
+  height: clamp(172px, 19vw, 280px);
+}
+
+.member-class-hero-media {
+  width: 100%;
+  height: clamp(220px, 24vw, 340px);
+}
+
+@media (max-width: 640px) {
+  .member-studio-banner {
+    height: clamp(132px, 38vw, 170px);
+  }
+
+  .member-profile-banner {
+    height: clamp(150px, 46vw, 200px);
+  }
+
+  .member-class-media {
+    height: clamp(176px, 56vw, 230px);
+  }
+
+  .member-class-hero-media {
+    height: clamp(220px, 62vw, 300px);
+  }
+}
+
 /* Subtle gold underline used for active nav, headings, links */
 @utility gold-underline {
   background-image: linear-gradient(to right, var(--color-gold), var(--color-gold));

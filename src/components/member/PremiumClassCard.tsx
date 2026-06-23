@@ -121,7 +121,7 @@ export function PremiumClassCard({
       onClick={onOpen}
       className="member-card hover:member-card-hover text-left w-full overflow-hidden flex flex-col group"
     >
-      <ClassImage cls={cls} className="aspect-[16/9] min-h-[220px] max-h-[360px] w-full">
+      <ClassImage cls={cls} className="member-class-media">
         <div
           className="absolute inset-0 z-[2] pointer-events-none"
           aria-hidden

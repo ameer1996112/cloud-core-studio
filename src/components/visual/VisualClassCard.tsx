@@ -337,7 +337,7 @@ export function VisualClassCard({
       </div>
 
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
-      <article className="visual-class-card relative aspect-[16/9] min-h-[220px] min-w-0 max-h-[360px] w-full max-w-full overflow-hidden rounded-[24px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-transform group-hover:-translate-y-0.5">
+      <article className="visual-class-card member-class-media relative min-w-0 max-w-full overflow-hidden rounded-[24px] bg-navy shadow-[0_18px_38px_-18px_rgba(11,29,58,0.45)] transition-transform group-hover:-translate-y-0.5">
         <ClassMoodImage
           title={cls.title}
           programTypeName={cls?.program_type?.name_en ?? cls?.program_type?.name_he ?? null}

@@ -105,7 +105,7 @@ function MyBookings() {
   return (
     <section className="space-y-6 pb-10 max-w-3xl mx-auto">
       {/* Cloud Card premium navy banner */}
-      <div className="relative -mx-4 sm:mx-0 overflow-hidden sm:rounded-[20px] aspect-[21/8] max-h-[180px] bg-navy">
+      <div className="member-studio-banner -mx-4 sm:mx-0 sm:rounded-[20px] bg-navy">
         <img
           src={studioImages.brandBannerNavy.src}
           alt={localizedAlt(studioImages.brandBannerNavy, getLocale())}
@@ -262,7 +262,7 @@ function BookingCard({
 
   return (
     <div
-      className={`visual-class-card relative aspect-[16/9] min-h-[220px] max-h-[360px] overflow-hidden rounded-[24px] bg-navy shadow-[0_16px_36px_-18px_rgba(11,29,58,0.45)] ${muted ? "opacity-80" : ""}`}
+      className={`visual-class-card member-class-media relative overflow-hidden rounded-[24px] bg-navy shadow-[0_16px_36px_-18px_rgba(11,29,58,0.45)] ${muted ? "opacity-80" : ""}`}
     >
       <ClassImage cls={cls} className="absolute inset-0 h-full w-full" />
       <div

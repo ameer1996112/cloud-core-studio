@@ -126,12 +126,7 @@ export function ClassDetailSheet({
           <div className="h-80 skeleton-brand" />
         ) : (
           <>
-            <ClassImage
-              cls={cls}
-              variant="hero"
-              eager
-              className="w-full aspect-[21/9] min-h-[220px] max-h-[420px]"
-            >
+            <ClassImage cls={cls} variant="hero" eager className="member-class-hero-media">
               <div
                 className="absolute inset-x-0 bottom-0 top-1/3 z-[2] bg-linear-to-t from-navy/80 via-navy/35 to-transparent pointer-events-none"
                 aria-hidden

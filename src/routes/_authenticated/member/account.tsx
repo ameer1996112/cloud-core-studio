@@ -54,7 +54,7 @@ function MemberAccount() {
   return (
     <section className="space-y-8 max-w-2xl mx-auto pb-10">
       {/* Studio identity card */}
-      <div className="relative overflow-hidden rounded-[20px] border border-gold/30 aspect-[16/9] max-h-[200px] bg-sand/60">
+      <div className="member-profile-banner rounded-[20px] border border-gold/30 bg-sand/60">
         <img
           src={studioImages.logoWall.src}
           alt={localizedAlt(studioImages.logoWall, getLocale())}

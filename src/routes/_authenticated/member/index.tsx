@@ -64,7 +64,7 @@ function MemberHome() {
   return (
     <section className="space-y-6 sm:space-y-8 max-w-3xl mx-auto pb-6">
       {/* Subtle studio atmosphere band — no decoration, just place. */}
-      <div className="relative -mx-4 sm:mx-0 overflow-hidden sm:rounded-[20px] aspect-[16/6] max-h-[180px] bg-sand/60">
+      <div className="member-studio-banner -mx-4 sm:mx-0 sm:rounded-[20px] bg-sand/60">
         <img
           src={(settings as any)?.hero_image_url || studioImages.atmosphere.src}
           alt={localizedAlt(studioImages.atmosphere, getLocale())}
@@ -246,7 +246,7 @@ function NextBookingCard({
       to="/member/bookings"
       className="block member-card overflow-hidden hover:member-card-hover"
     >
-      <ClassImage cls={cls} className="aspect-[16/9] min-h-[220px] max-h-[360px]">
+      <ClassImage cls={cls} className="member-class-media">
         <div
           className="absolute inset-0 z-[2] pointer-events-none"
           aria-hidden
