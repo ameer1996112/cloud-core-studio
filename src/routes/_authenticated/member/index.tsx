@@ -271,7 +271,8 @@ function NextBookingCard({
         />
         <div className="absolute top-4 left-5 right-5 z-10 text-ivory flex items-center justify-between">
           <p className="text-[10px] uppercase tracking-[0.3em]">{t("member.yourCloudCard")}</p>
-          <span className="text-[10px] uppercase tracking-[0.25em] bg-white/85 text-navy px-2.5 py-1 rounded-full">
+          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-[11px] font-semibold tracking-normal text-ivory shadow-[0_16px_30px_-24px_rgba(11,29,58,0.95)] backdrop-blur-md">
+            <Clock className="h-3.5 w-3.5 text-gold" />
             {formatRelative(cls.starts_at)}
           </span>
         </div>

@@ -226,11 +226,12 @@ export function formatRelative(iso: string): string {
   const ms = new Date(iso).getTime() - Date.now();
   if (ms <= 0) return t("common.today");
   const minutes = Math.floor(ms / 60000);
-  if (minutes < 60) return `in ${minutes}m`;
+  if (minutes < 2) return t("member.startsSoon");
+  if (minutes < 60) return t("member.startsInMinutes", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `in ${hours}h`;
+  if (hours < 24) return t("member.startsInHours", { count: hours });
   const days = Math.floor(hours / 24);
-  return `in ${days}d`;
+  return t("member.startsInDays", { count: days });
 }
 
 export { formatTime, formatDate };
