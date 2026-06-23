@@ -25,7 +25,7 @@ type InstructorForm = {
 const emptyForm: InstructorForm = { name: "", bio_short: "", avatar_url: "", active: true };
 
 function Page() {
-  useI18n();
+  const { lang } = useI18n();
   const fn = useServerFn(listInstructors);
   const upFn = useServerFn(upsertInstructor);
   const qc = useQueryClient();
@@ -39,10 +39,10 @@ function Page() {
         .filter((i: any) => !/^E2E\s/i.test(i.name ?? ""))
         .map((i: any) => ({
           ...i,
-          displayName: localizedInstructorName(i.name),
-          displayBio: localizedInstructorBio(i.bio_short),
+          displayName: localizedInstructorName(i.name, lang),
+          displayBio: localizedInstructorBio(i.bio_short, lang),
         })),
-    [data],
+    [data, lang],
   );
 
   const filtered = instructors.filter((i: any) => {

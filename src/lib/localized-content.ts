@@ -78,7 +78,8 @@ export function localizedInstructorName(
 ) {
   if (!hasText(name)) return "—";
   const normalized = name.trim();
-  if (normalized === "נור עאמר") {
+  if (["נור עאמר", "Noor Amer", "نور عامر"].includes(normalized)) {
+    if (lang === "he") return "נור עאמר";
     if (lang === "en") return "Noor Amer";
     if (lang === "ar") return "نور عامر";
   }
@@ -91,7 +92,12 @@ export function localizedInstructorBio(
 ) {
   if (!hasText(bio)) return null;
   const normalized = bio.trim();
-  if (normalized === "Aerial & mat lead") {
+  if (
+    ["Aerial & mat lead", "מובילה יוגה אווירית ומזרן", "مدرّبة يوغا هوائية وبساط"].includes(
+      normalized,
+    )
+  ) {
+    if (lang === "en") return "Aerial & mat lead";
     if (lang === "he") return "מובילה יוגה אווירית ומזרן";
     if (lang === "ar") return "مدرّبة يوغا هوائية وبساط";
   }
