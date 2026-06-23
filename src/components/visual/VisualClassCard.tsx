@@ -231,6 +231,23 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatTimeParts(iso: string) {
+  const date = new Date(iso);
+  const parts = new Intl.DateTimeFormat(getLocale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(date);
+  const hour = parts.find((p) => p.type === "hour")?.value ?? "";
+  const minute = parts.find((p) => p.type === "minute")?.value ?? "";
+  const dayPeriod = parts.find((p) => p.type === "dayPeriod")?.value ?? "";
+  return {
+    hour,
+    minute,
+    dayPeriod,
+    weekday: date.toLocaleDateString(getLocale(), { weekday: "short" }),
+  };
+}
+
 /**
  * Overlay tone for the photo-led card. State drives overlay strength and the
  * CTA pill color; the photo is always the dominant visual layer.
@@ -313,6 +330,7 @@ export function VisualClassCard({
   const room = cls.room_ref?.name ?? cls.room ?? null;
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
+  const time = formatTimeParts(cls.starts_at);
   const isRtl =
     typeof document !== "undefined"
       ? document.documentElement.dir === "rtl"
@@ -325,11 +343,15 @@ export function VisualClassCard({
       className="group grid w-full min-w-0 grid-cols-[58px_minmax(0,1fr)] items-stretch gap-3 text-start sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4"
     >
       {/* Time column — outside the card */}
-      <div className="flex min-h-[148px] flex-col items-center justify-center rounded-[18px] border border-gold/25 bg-ivory/65 px-2 py-3 shadow-[0_10px_28px_-24px_rgba(11,29,58,0.55)] sm:min-h-[168px]">
-        <span className="font-sans text-[20px] font-semibold leading-none text-navy tabular-nums">
-          {formatTime(cls.starts_at)}
+      <div className="class-time-rail">
+        <span className="class-time-rail__day">{time.weekday}</span>
+        <span className="class-time-rail__clock">
+          <span>{time.hour}</span>
+          <span className="class-time-rail__divider" aria-hidden="true" />
+          <span>{time.minute}</span>
         </span>
-        <span className="mt-1 text-[10px] text-slate tabular-nums">
+        {time.dayPeriod && <span className="class-time-rail__period">{time.dayPeriod}</span>}
+        <span className="class-time-rail__duration">
           {cls.duration_minutes}
           {t("common.minutes")}
         </span>

@@ -280,6 +280,80 @@
   height: clamp(148px, 15vw, 190px);
 }
 
+.class-time-rail {
+  position: relative;
+  display: flex;
+  min-height: 148px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 106, 0.34);
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(250, 247, 242, 0.78)),
+    radial-gradient(circle at 50% 0%, rgba(212, 175, 106, 0.16), transparent 48%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 34px -30px rgba(11, 29, 58, 0.72);
+}
+
+.class-time-rail::before {
+  content: "";
+  position: absolute;
+  inset-inline: 13px;
+  top: 0;
+  height: 2px;
+  background: var(--color-gold);
+}
+
+.class-time-rail__day {
+  color: var(--color-gold);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.class-time-rail__clock {
+  display: grid;
+  gap: 0.05rem;
+  color: var(--color-navy);
+  font-size: 21px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 0.86;
+  text-align: center;
+}
+
+.class-time-rail__divider {
+  display: block;
+  width: 20px;
+  height: 1px;
+  margin: 0.18rem auto;
+  background: rgba(212, 175, 106, 0.58);
+}
+
+.class-time-rail__period {
+  color: var(--color-navy);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.class-time-rail__duration {
+  margin-top: 0.18rem;
+  color: var(--color-slate);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
 .member-class-hero-media {
   width: 100%;
   height: clamp(220px, 24vw, 340px);
@@ -304,6 +378,10 @@
 
   .schedule-class-media {
     height: clamp(170px, 52vw, 220px);
+  }
+
+  .class-time-rail {
+    min-height: 170px;
   }
 
   .member-class-hero-media {
@@ -1076,6 +1154,8 @@ button.member-card:active,
 :root[dir="rtl"] .member-date-pill,
 :root[dir="rtl"] .member-filter-pill,
 :root[dir="rtl"] .member-filter-label,
+:root[dir="rtl"] .class-time-rail__day,
+:root[dir="rtl"] .class-time-rail__period,
 :root[dir="rtl"] .member-eyebrow,
 :root[dir="rtl"] .member-chip,
 :root[dir="rtl"] .eyebrow {
