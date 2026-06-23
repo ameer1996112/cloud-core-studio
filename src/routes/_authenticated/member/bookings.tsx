@@ -110,7 +110,7 @@ function MyBookings() {
           src={studioImages.brandBannerNavy.src}
           alt={localizedAlt(studioImages.brandBannerNavy, getLocale())}
           loading="eager"
-          className="absolute inset-0 h-full w-full object-contain"
+          className="member-brand-banner-image absolute inset-0 h-full w-full object-cover"
         />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 border-b border-gold/30">

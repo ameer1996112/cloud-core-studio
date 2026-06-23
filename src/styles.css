@@ -253,11 +253,21 @@
   overflow: hidden;
 }
 
+.member-logo-wall-image {
+  transform: scale(1.08);
+  transform-origin: center;
+}
+
 .member-brand-banner {
   position: relative;
   width: 100%;
   height: clamp(200px, 23vw, 290px);
   overflow: hidden;
+}
+
+.member-brand-banner-image {
+  transform: scale(1.04);
+  transform-origin: center;
 }
 
 .member-class-media {

@@ -59,7 +59,7 @@ function MemberAccount() {
           src={studioImages.logoWall.src}
           alt={localizedAlt(studioImages.logoWall, getLocale())}
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="member-logo-wall-image absolute inset-0 h-full w-full object-cover"
         />
       </div>
       <div className="member-card member-panel-sand p-6">
