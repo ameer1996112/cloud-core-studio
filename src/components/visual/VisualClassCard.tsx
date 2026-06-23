@@ -376,29 +376,28 @@ export function VisualClassCard({
           }}
         />
 
-        <div className="class-time-badge" dir={isRtl ? "rtl" : "ltr"}>
-          <span className="class-time-badge__day">{time.weekday}</span>
-          <span className="class-time-badge__time">
-            {time.hour}:{time.minute}
-          </span>
-          <span className="class-time-badge__duration">
-            {cls.duration_minutes}
-            {t("common.minutes")}
-          </span>
-        </div>
-
-        {/* Content — stable visual placement, localized text direction. */}
-        <div dir={isRtl ? "rtl" : "ltr"} className="class-card-copy">
-          <h3 className="font-sans text-[22px] sm:text-[26px] font-semibold leading-[1.1] tracking-tight text-ivory drop-shadow-[0_1px_3px_rgba(11,29,58,0.7)]">
-            {title}
-          </h3>
-          <p className="text-[13px] sm:text-[14px] text-ivory/85 leading-snug drop-shadow-[0_1px_2px_rgba(11,29,58,0.55)] line-clamp-1">
-            {instructor}
-            {room ? ` · ${room}` : " · Cloud & Core"}
-          </p>
-          <span
-            className={`inline-flex items-center rounded-full bg-navy/55 backdrop-blur-[2px] border ${ovr.capacityBorder} px-2.5 py-1 text-[11px] font-medium text-ivory whitespace-nowrap`}
-          >
+        {/* Content — one clean band, stable layout with localized text direction. */}
+        <div className="class-card-copy">
+          <div className="class-time-badge" dir={isRtl ? "rtl" : "ltr"}>
+            <span className="class-time-badge__day">{time.weekday}</span>
+            <span className="class-time-badge__time">
+              {time.hour}:{time.minute}
+            </span>
+            <span className="class-time-badge__duration">
+              {cls.duration_minutes}
+              {t("common.minutes")}
+            </span>
+          </div>
+          <div className="class-card-main" dir={isRtl ? "rtl" : "ltr"}>
+            <h3 className="font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-tight text-ivory drop-shadow-[0_1px_3px_rgba(11,29,58,0.7)]">
+              {title}
+            </h3>
+            <p className="text-[13px] sm:text-[14px] text-ivory/85 leading-snug drop-shadow-[0_1px_2px_rgba(11,29,58,0.55)] line-clamp-1">
+              {instructor}
+              {room ? ` · ${room}` : " · Cloud & Core"}
+            </p>
+          </div>
+          <span className={`class-card-capacity border ${ovr.capacityBorder}`}>
             {spotsLeft === 0
               ? t("capacity.full")
               : spotsLeft === 1

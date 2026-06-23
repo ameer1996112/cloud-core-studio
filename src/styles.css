@@ -281,24 +281,21 @@
 }
 
 .class-time-badge {
-  position: absolute;
-  z-index: 3;
-  top: 16px;
-  left: 16px;
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  min-height: 46px;
-  max-width: calc(100% - 32px);
+  gap: 0.45rem;
+  min-height: 40px;
+  min-width: max-content;
   overflow: hidden;
-  border: 1px solid rgba(212, 175, 106, 0.42);
+  border: 1px solid rgba(212, 175, 106, 0.36);
   border-radius: 4px;
-  background: rgba(250, 247, 242, 0.9);
-  padding: 0.45rem 0.65rem;
+  background: rgba(250, 247, 242, 0.94);
+  padding: 0.38rem 0.58rem;
   color: var(--color-navy);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 18px 34px -26px rgba(11, 29, 58, 0.82);
+    0 14px 28px -24px rgba(11, 29, 58, 0.82);
   backdrop-filter: blur(10px) saturate(125%);
 }
 
@@ -323,7 +320,7 @@
 
 .class-time-badge__time {
   color: var(--color-navy);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -343,25 +340,41 @@
 .class-card-copy {
   position: absolute;
   z-index: 3;
-  top: 50%;
-  right: 18px;
-  display: flex;
-  width: min(42%, 360px);
-  flex-direction: column;
-  justify-content: center;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: flex-end;
-  gap: 0.65rem;
-  transform: translateY(-50%);
+  gap: 0.9rem;
   border: 1px solid rgba(250, 247, 242, 0.12);
   border-radius: 4px;
-  background: linear-gradient(135deg, rgba(11, 29, 58, 0.62), rgba(11, 29, 58, 0.36));
-  padding: 1rem;
+  background: linear-gradient(90deg, rgba(11, 29, 58, 0.82), rgba(11, 29, 58, 0.58));
+  padding: 0.85rem;
   color: var(--color-ivory);
-  text-align: end;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 18px 38px -28px rgba(11, 29, 58, 0.9);
+    0 20px 44px -30px rgba(11, 29, 58, 0.95);
   backdrop-filter: blur(8px) saturate(120%);
+}
+
+.class-card-main {
+  min-width: 0;
+  align-self: center;
+  text-align: end;
+}
+
+.class-card-capacity {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(11, 29, 58, 0.35);
+  color: var(--color-ivory);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0.32rem 0.68rem;
+  white-space: nowrap;
 }
 
 .member-class-hero-media {
@@ -391,24 +404,31 @@
   }
 
   .class-time-badge {
-    top: 12px;
-    left: 12px;
     gap: 0.4rem;
-    min-height: 40px;
-    padding: 0.38rem 0.55rem;
+    min-height: 38px;
+    padding: 0.34rem 0.5rem;
   }
 
   .class-time-badge__time {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .class-card-copy {
+    left: 12px;
     right: 12px;
     bottom: 12px;
-    top: auto;
-    width: min(72%, 340px);
-    transform: none;
-    padding: 0.85rem;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .class-card-main {
+    text-align: start;
+  }
+
+  .class-card-capacity {
+    justify-self: start;
   }
 
   .member-class-hero-media {
