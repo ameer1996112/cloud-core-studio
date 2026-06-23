@@ -105,12 +105,12 @@ function MyBookings() {
   return (
     <section className="space-y-6 pb-10 max-w-3xl mx-auto">
       {/* Cloud Card premium navy banner */}
-      <div className="member-studio-banner -mx-4 sm:mx-0 sm:rounded-[20px] bg-navy">
+      <div className="member-brand-banner -mx-4 rounded-[20px] sm:mx-0 bg-navy">
         <img
           src={studioImages.brandBannerNavy.src}
           alt={localizedAlt(studioImages.brandBannerNavy, getLocale())}
           loading="eager"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-contain"
         />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 border-b border-gold/30">
