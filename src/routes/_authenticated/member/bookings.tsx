@@ -14,6 +14,7 @@ import {
   MemberEmptyState,
   StateBadge,
 } from "@/components/member/PremiumClassCard";
+import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { t, useI18n, getLocale } from "@/lib/i18n";
@@ -41,6 +42,7 @@ function MyBookings() {
   });
   const [tab, setTab] = useState<Tab>("upcoming");
   const [confirmCancel, setConfirmCancel] = useState<any | null>(null);
+  const [openClass, setOpenClass] = useState<string | null>(null);
 
   const cancelFn = useServerFn(memberCancelBooking);
   const leaveFn = useServerFn(leaveWaitlist);
@@ -187,6 +189,7 @@ function MyBookings() {
                 key={b.id}
                 booking={b}
                 attendance={attMap[b.id]}
+                onOpen={() => setOpenClass(b.class.id)}
                 onCancel={tab === "upcoming" ? () => setConfirmCancel(b) : undefined}
                 muted={tab !== "upcoming"}
                 studio={settings ?? null}
@@ -230,6 +233,12 @@ function MyBookings() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ClassDetailSheet
+        classId={openClass}
+        open={!!openClass}
+        onOpenChange={(v) => !v && setOpenClass(null)}
+      />
     </section>
   );
 }
@@ -246,12 +255,14 @@ function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
 function BookingCard({
   booking,
   attendance,
+  onOpen,
   onCancel,
   muted,
   studio,
 }: {
   booking: any;
   attendance?: { status: string; marked_at: string | null };
+  onOpen: () => void;
   onCancel?: () => void;
   muted?: boolean;
   studio?: any;
@@ -267,7 +278,9 @@ function BookingCard({
   const title = localizedClassTitle(cls);
   const instructor = localizedInstructorName(cls.instructor?.name);
 
-  function addToCalendar() {
+  function addToCalendar(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     const ics = buildIcs({
       uid: booking.id,
       title,
@@ -286,7 +299,18 @@ function BookingCard({
 
   return (
     <div
-      className={`visual-class-card member-class-media relative overflow-hidden rounded-[24px] bg-navy shadow-[0_16px_36px_-18px_rgba(11,29,58,0.45)] ${muted ? "opacity-80" : ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className={`visual-class-card member-class-media relative overflow-hidden rounded-[24px] bg-navy shadow-[0_16px_36px_-18px_rgba(11,29,58,0.45)] cursor-pointer outline-none transition-[transform,box-shadow,opacity] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory ${
+        muted ? "opacity-80" : ""
+      }`}
     >
       <ClassImage cls={cls} className="absolute inset-0 h-full w-full" />
       <div
@@ -344,7 +368,11 @@ function BookingCard({
             </button>
             {canCancel && onCancel ? (
               <button
-                onClick={onCancel}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCancel();
+                }}
                 className="text-[10px] tracking-[0.18em] text-ivory/90 hover:text-gold border-b border-ivory/40"
               >
                 {t("common.cancel")}
@@ -354,6 +382,7 @@ function BookingCard({
                 href={contactUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center gap-1 text-[10px] tracking-[0.18em] text-gold hover:text-ivory"
               >
                 <MessageCircle className="h-3 w-3" /> {t("member.contactStudio")}
