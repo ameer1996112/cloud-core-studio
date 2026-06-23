@@ -101,6 +101,7 @@ export function ClassDetailSheet({
   const instructor = cls ? localizedInstructorName(cls.instructor?.name) : "—";
   const programName = cls ? localizedProgramName(cls.program_type) : null;
   const programDescription = cls ? localizedProgramDescription(cls.program_type) : null;
+  const spotsLeft = cls ? Math.max(0, cls.capacity - cls.booked_count) : 0;
   const state = cls
     ? deriveClassState(cls, {
         booked: data?.myBooking?.status === "booked",
@@ -117,11 +118,11 @@ export function ClassDetailSheet({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-xl p-0 overflow-hidden gap-0 bg-ivory border-gold/30">
+      <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]">
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute top-3 right-3 z-50 h-9 w-9 rounded-full bg-white/90 border border-gold/40 flex items-center justify-center hover:bg-white"
+          className="absolute top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gold/35 bg-ivory/95 shadow-[0_18px_34px_-24px_rgba(11,29,58,0.75)] transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white"
         >
           <X className="h-4 w-4 text-navy" />
         </button>
@@ -140,36 +141,40 @@ export function ClassDetailSheet({
           <div className="h-80 skeleton-brand" />
         ) : (
           <>
-            <ClassImage cls={cls} variant="hero" eager className="member-class-hero-media">
+            <ClassImage cls={cls} variant="hero" eager className="h-[300px] sm:h-[340px]">
               <div
-                className="absolute inset-x-0 bottom-0 top-1/3 z-[2] bg-linear-to-t from-navy/80 via-navy/35 to-transparent pointer-events-none"
+                className="absolute inset-x-0 bottom-0 top-1/4 z-[2] bg-linear-to-t from-navy/88 via-navy/38 to-transparent pointer-events-none"
                 aria-hidden
               />
-              <div className="absolute bottom-4 left-5 right-5 text-ivory z-10">
-                <p className="text-[10px] uppercase tracking-[0.3em] opacity-90">
+              <div className="absolute left-5 top-5 z-10 rounded-full border border-ivory/20 bg-navy/55 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-ivory/90 backdrop-blur-md">
+                {cls.duration_minutes} {t("common.minutes")} · {cls.credit_cost}{" "}
+                {cls.credit_cost === 1 ? t("common.credit") : t("common.credits")}
+              </div>
+              <div className="absolute bottom-5 left-5 right-5 text-ivory z-10">
+                <p className="text-[10px] uppercase tracking-[0.26em] opacity-90 tabular-nums">
                   {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
                 </p>
-                <h2 className="font-display text-3xl mt-1 leading-tight text-ivory drop-shadow-[0_1px_2px_rgba(11,29,58,0.65)]">
+                <h2 className="font-display text-4xl mt-1 leading-[0.95] text-ivory drop-shadow-[0_2px_5px_rgba(11,29,58,0.7)]">
                   {title}
                 </h2>
                 {programName && (
-                  <p className="text-xs opacity-90 mt-1">
+                  <p className="text-xs opacity-90 mt-2">
                     {programName} {cls.program_type?.level ? `· ${cls.program_type.level}` : ""}
                   </p>
                 )}
               </div>
             </ClassImage>
 
-            <div className="p-6 space-y-5 overflow-y-auto max-h-[60vh]">
-              <div className="flex items-center justify-between">
+            <div className="space-y-5 overflow-y-auto max-h-[62vh] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(250,247,242,0.98))] p-5 sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 {state && <StateBadge state={state} />}
-                <span className="member-eyebrow">
+                <span className="rounded-full border border-gold/25 bg-sand/45 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-slate">
                   {cls.duration_minutes} {t("common.minutes")} · {cls.credit_cost}{" "}
                   {cls.credit_cost === 1 ? t("common.credit") : t("common.credits")}
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 text-xs">
+              <div className="grid gap-3 text-xs sm:grid-cols-3">
                 <Stat
                   icon={<Sparkles className="h-3 w-3 text-gold" />}
                   label={t("common.with")}
@@ -183,7 +188,7 @@ export function ClassDetailSheet({
                 <Stat
                   icon={<Users className="h-3 w-3 text-gold" />}
                   label={t("common.spots")}
-                  value={`${Math.max(0, cls.capacity - cls.booked_count)}/${cls.capacity}`}
+                  value={`${spotsLeft}/${cls.capacity}`}
                 />
               </div>
 
@@ -191,7 +196,7 @@ export function ClassDetailSheet({
                 <p className="text-sm text-slate leading-relaxed">{programDescription}</p>
               )}
 
-              <div className="member-panel-sand p-4 text-xs text-slate space-y-1">
+              <div className="member-panel-sand border border-gold/20 p-4 text-xs text-slate space-y-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
                 <p className="member-eyebrow">{t("booking.notes")}</p>
                 <p className="flex items-center gap-2">
                   <Clock className="h-3 w-3 text-gold" />{" "}

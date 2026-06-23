@@ -11,7 +11,11 @@ import {
 } from "@/lib/localized-content";
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString(getLocale(), { hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString(getLocale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(getLocale(), {

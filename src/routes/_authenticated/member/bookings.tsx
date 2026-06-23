@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Clock, MapPin, Sparkles, MessageCircle, CalendarPlus } from "lucide-react";
+import { MapPin, Sparkles, MessageCircle, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 import { getMyBookingsAll, memberCancelBooking, leaveWaitlist } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
@@ -277,6 +277,14 @@ function BookingCard({
   const isUpcoming = startsAt.getTime() >= Date.now() && booking.status === "booked";
   const title = localizedClassTitle(cls);
   const instructor = localizedInstructorName(cls.instructor?.name);
+  const statusLabel =
+    booking.status === "cancelled"
+      ? t("bookings.cancelled")
+      : attendance?.status === "attended"
+        ? t("bookings.attended")
+        : attendance?.status === "no_show"
+          ? t("bookings.noShow")
+          : t("state.booked");
 
   function addToCalendar(e: React.MouseEvent) {
     e.preventDefault();
@@ -308,32 +316,29 @@ function BookingCard({
           onOpen();
         }
       }}
-      className={`visual-class-card member-class-media relative overflow-hidden rounded-[24px] bg-navy shadow-[0_16px_36px_-18px_rgba(11,29,58,0.45)] cursor-pointer outline-none transition-[transform,box-shadow,opacity] hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory ${
+      className={`visual-class-card member-card group cursor-pointer overflow-hidden outline-none transition-[transform,box-shadow,opacity] hover:-translate-y-0.5 hover:member-card-hover focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory ${
         muted ? "opacity-80" : ""
       }`}
     >
-      <ClassImage cls={cls} className="absolute inset-0 h-full w-full" />
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(var(--ovr-dir, to left), rgba(11,29,58,0.20) 0%, rgba(11,29,58,0.62) 45%, rgba(11,29,58,0.92) 100%)",
-        }}
-      />
-      <div
-        className="relative h-full p-4 text-ivory flex flex-col gap-2"
-        style={{ maxWidth: "68%", marginInlineEnd: "auto" }}
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-[10px] tracking-[0.18em] text-ivory/75 tabular-nums">
-              {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
-            </p>
-            <p className="font-display text-[20px] leading-tight mt-1 truncate text-ivory drop-shadow-[0_1px_2px_rgba(11,29,58,0.55)]">
-              {title}
-            </p>
-          </div>
+      <div className="relative overflow-hidden bg-navy">
+        <ClassImage cls={cls} className="member-class-media" />
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(11,29,58,0.06) 0%, rgba(11,29,58,0.10) 48%, rgba(11,29,58,0.34) 100%)",
+          }}
+        />
+        <div className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-[11px] font-semibold tabular-nums text-ivory shadow-[0_16px_30px_-24px_rgba(11,29,58,0.95)] backdrop-blur-md">
+          <span>{formatTime(cls.starts_at)}</span>
+          <span className="h-3 w-px bg-ivory/22" aria-hidden />
+          <span className="font-medium text-ivory/72">
+            {cls.duration_minutes}
+            {t("common.minutes")}
+          </span>
+        </div>
+        <div className="absolute right-4 top-4 z-10 flex flex-wrap justify-end gap-2">
           {attendance?.status === "attended" && (
             <span className="member-chip">{t("bookings.attended")}</span>
           )}
@@ -344,7 +349,22 @@ function BookingCard({
             <span className="member-chip">{t("bookings.cancelled")}</span>
           )}
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ivory/85">
+      </div>
+
+      <div className="bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(250,247,242,0.98))] p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="member-eyebrow text-gold">{formatDate(cls.starts_at)}</p>
+            <h3 className="mt-1 font-sans text-[22px] font-semibold leading-tight tracking-normal text-navy">
+              {title}
+            </h3>
+          </div>
+          <span className="rounded-full border border-gold/30 bg-sand/45 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-slate">
+            {statusLabel}
+          </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-slate">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3 w-3 text-gold" />
             {cls.room_ref?.name ?? cls.room ?? "Cloud & Core Studio"}
@@ -353,16 +373,13 @@ function BookingCard({
             <Sparkles className="h-3 w-3 text-gold" />
             {instructor}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-3 w-3 text-gold" />
-            {cls.duration_minutes}m
-          </span>
         </div>
+
         {isUpcoming && (
-          <div className="mt-auto pt-2 border-t border-ivory/15 flex flex-wrap items-center justify-between gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t hairline pt-3">
             <button
               onClick={addToCalendar}
-              className="inline-flex items-center gap-1 text-[10px] tracking-[0.18em] text-gold hover:text-ivory"
+              className="inline-flex min-h-10 items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-gold hover:text-navy"
             >
               <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
             </button>
@@ -373,7 +390,7 @@ function BookingCard({
                   e.stopPropagation();
                   onCancel();
                 }}
-                className="text-[10px] tracking-[0.18em] text-ivory/90 hover:text-gold border-b border-ivory/40"
+                className="min-h-10 text-[10px] uppercase tracking-[0.18em] text-slate hover:text-navy border-b border-gold/40"
               >
                 {t("common.cancel")}
               </button>
@@ -383,7 +400,7 @@ function BookingCard({
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1 text-[10px] tracking-[0.18em] text-gold hover:text-ivory"
+                className="inline-flex min-h-10 items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-gold hover:text-navy"
               >
                 <MessageCircle className="h-3 w-3" /> {t("member.contactStudio")}
               </a>
