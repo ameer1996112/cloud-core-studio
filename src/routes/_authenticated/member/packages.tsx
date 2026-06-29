@@ -55,7 +55,7 @@ function MemberPackages() {
     mutationFn: (v: { planId: string; method: "cash" | "bit"; messageText: string }) =>
       createManualPayment({ data: v }),
     onSuccess: () => {
-      toast.success(t("packages.manualPaymentSaved"));
+      toast.success(t("packages.requestReceived"));
       setSelectedPlan(null);
       qc.invalidateQueries({ queryKey: ["member-packages"] });
     },
