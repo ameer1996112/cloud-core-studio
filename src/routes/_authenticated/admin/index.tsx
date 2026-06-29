@@ -256,6 +256,7 @@ function localizeActivityAction(action: string, lang: "en" | "he" | "ar"): strin
   const ACTION_MAP: Record<string, Record<string, string>> = {
     "booking.created": { he: "הזמנה נוצרה", ar: "تم إنشاء حجز", en: "Booking created" },
     "booking.cancelled": { he: "הזמנה בוטלה", ar: "تم إلغاء الحجز", en: "Booking cancelled" },
+    "booking.member_cancel": { he: "ביטול עצמי (מתאמן/ת)", ar: "إلغاء ذاتي (متدرب/ة)", en: "Member self-cancel" },
     "payment.confirmed": { he: "תשלום אושר", ar: "تم تأكيد الدفع", en: "Payment confirmed" },
     "payment.created": { he: "תשלום נרשם", ar: "تم تسجيل الدفع", en: "Payment recorded" },
     "payment.refunded": { he: "זיכוי בוצע", ar: "تم رد المبلغ", en: "Payment refunded" },
@@ -263,11 +264,13 @@ function localizeActivityAction(action: string, lang: "en" | "he" | "ar"): strin
     "class.created": { he: "שיעור נוצר", ar: "تم إنشاء حصة", en: "Class created" },
     "class.updated": { he: "שיעור עודכן", ar: "تم تحديث الحصة", en: "Class updated" },
     "class.cancelled": { he: "שיעור בוטל", ar: "تم إلغاء الحصة", en: "Class cancelled" },
-    "attendance.checked_in": {
-      he: "צ׳ק-אין בוצע",
-      ar: "تم تسجيل الحضور",
-      en: "Checked in",
-    },
+    "class.generated": { he: "שיעורים שוחררו", ar: "تم توليد حصص", en: "Classes generated" },
+    "plan.assigned": { he: "כרטיסיה הופעלה", ar: "تفعيل اشتراك", en: "Package assigned" },
+    "credits.adjusted": { he: "עדכון יתרת קרדיטים", ar: "تعديل الرصيد", en: "Credits adjusted" },
+    "waitlist.offered": { he: "הצעת מקום מהמתנה", ar: "عرض مقعد قائمة الانتظار", en: "Waitlist spot offered" },
+    "waitlist.promoted": { he: "קידום מרשימת המתנה", ar: "ترقية من قائمة الانتظار", en: "Waitlist promoted" },
+    "attendance.checked_in": { he: "צ׳ק-אין בוצע", ar: "تم تسجيل الحضور", en: "Checked in" },
+    "attendance.marked": { he: "נוכחות עודכנה", ar: "تم تحديث الحضور", en: "Attendance marked" },
   };
 
   const key = action.toLowerCase().trim();

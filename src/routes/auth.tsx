@@ -26,6 +26,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
@@ -43,6 +44,7 @@ function AuthPage() {
   useEffect(() => {
     const clearTransientAuthFields = () => {
       setName("");
+      setPhone("");
       setEmail("");
       setPassword("");
       setShowPassword(false);
@@ -69,7 +71,7 @@ function AuthPage() {
         const { data: signed, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin, data: { name } },
+          options: { emailRedirectTo: window.location.origin, data: { name, phone } },
         });
         if (error) throw error;
         if (signed.session) {
@@ -78,6 +80,7 @@ function AuthPage() {
         }
         setMode("signin");
         setName("");
+        setPhone("");
         setEmail("");
         setPassword("");
         setShowPassword(false);
@@ -191,22 +194,41 @@ function AuthPage() {
                 autoComplete={mode === "signin" ? "on" : "off"}
               >
                 {mode === "signup" && (
-                  <Field label={t("auth.name")}>
-                    <input
-                      name={`signup-name-${formVersion}`}
-                      value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                        clearError();
-                      }}
-                      required
-                      className="auth-text-input editorial-input focus:editorial-input-focus"
-                      autoComplete="off"
-                      autoCapitalize="words"
-                      autoCorrect="off"
-                      spellCheck={false}
-                    />
-                  </Field>
+                  <>
+                    <Field label={t("auth.name")}>
+                      <input
+                        name={`signup-name-${formVersion}`}
+                        value={name}
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          clearError();
+                        }}
+                        required
+                        className="auth-text-input editorial-input focus:editorial-input-focus"
+                        autoComplete="off"
+                        autoCapitalize="words"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
+                    </Field>
+                    <Field label={t("auth.phone")}>
+                      <input
+                        type="tel"
+                        name={`signup-phone-${formVersion}`}
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value);
+                          clearError();
+                        }}
+                        required
+                        className="auth-text-input editorial-input focus:editorial-input-focus"
+                        autoComplete="tel"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
+                    </Field>
+                  </>
                 )}
                 <Field label={t("auth.email")}>
                   <input

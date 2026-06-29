@@ -64,10 +64,12 @@
 ### Task 1: Add Notification Log Migration And Types
 
 **Files:**
+
 - Create: `supabase/migrations/20260629120000_notification_logs_v1.sql`
 - Modify: `src/integrations/supabase/types.ts`
 
 **Interfaces:**
+
 - Consumes: existing `notification_logs`, `payments`, `receipts`, `package_requests`, and `public.has_role`.
 - Produces: `notification_logs.language`, `provider`, `provider_message_id`, `related_payment_id`, `related_receipt_id`, `related_package_request_id`, `sent_at`, `error_message`, `idempotency_key`, `staff_visibility`.
 
@@ -177,10 +179,12 @@ git commit -m "feat: extend notification log schema"
 ### Task 2: Add Pure Notification Template Helpers
 
 **Files:**
+
 - Create: `src/lib/notificationTemplates.ts`
 - Create: `tests/unit/notificationTemplates.test.mjs`
 
 **Interfaces:**
+
 - Produces:
   - `type NotificationLanguage = "he" | "ar" | "en"`
   - `type NotificationChannel = "whatsapp" | "email"`
@@ -362,8 +366,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "he",
     audience: "member",
     subject: null,
-    body:
-      "שלום {{member_name}}, ההרשמה שלך לשיעור {{class_name}} אושרה.\nתאריך: {{class_date}}\nשעה: {{class_time}}\nמדריכה: {{instructor_name}}\nנתראה ב-{{studio_name}}.",
+    body: "שלום {{member_name}}, ההרשמה שלך לשיעור {{class_name}} אושרה.\nתאריך: {{class_date}}\nשעה: {{class_time}}\nמדריכה: {{instructor_name}}\nנתראה ב-{{studio_name}}.",
   },
   {
     eventKey: "booking_confirmed",
@@ -371,8 +374,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "he",
     audience: "member",
     subject: "ההרשמה שלך אושרה · {{class_name}}",
-    body:
-      "שלום {{member_name}}, המקום שלך נשמר לשיעור {{class_name}} בתאריך {{class_date}} בשעה {{class_time}}. נתראה ב-{{studio_name}}.",
+    body: "שלום {{member_name}}, המקום שלך נשמר לשיעור {{class_name}} בתאריך {{class_date}} בשעה {{class_time}}. נתראה ב-{{studio_name}}.",
   },
   {
     eventKey: "booking_confirmed",
@@ -380,8 +382,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "ar",
     audience: "member",
     subject: null,
-    body:
-      "مرحباً {{member_name}}، تم تأكيد حجزك لحصة {{class_name}}.\nالتاريخ: {{class_date}}\nالساعة: {{class_time}}\nالمدربة: {{instructor_name}}\nنراك في {{studio_name}}.",
+    body: "مرحباً {{member_name}}، تم تأكيد حجزك لحصة {{class_name}}.\nالتاريخ: {{class_date}}\nالساعة: {{class_time}}\nالمدربة: {{instructor_name}}\nنراك في {{studio_name}}.",
   },
   {
     eventKey: "booking_confirmed",
@@ -389,8 +390,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "ar",
     audience: "member",
     subject: "تم تأكيد حجزك · {{class_name}}",
-    body:
-      "مرحباً {{member_name}}، تم حفظ مكانك في حصة {{class_name}} بتاريخ {{class_date}} الساعة {{class_time}}. نراك في {{studio_name}}.",
+    body: "مرحباً {{member_name}}، تم حفظ مكانك في حصة {{class_name}} بتاريخ {{class_date}} الساعة {{class_time}}. نراك في {{studio_name}}.",
   },
   {
     eventKey: "booking_confirmed",
@@ -398,8 +398,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "en",
     audience: "member",
     subject: null,
-    body:
-      "Hi {{member_name}}, your booking for {{class_name}} is confirmed.\nDate: {{class_date}}\nTime: {{class_time}}\nInstructor: {{instructor_name}}\nSee you at {{studio_name}}.",
+    body: "Hi {{member_name}}, your booking for {{class_name}} is confirmed.\nDate: {{class_date}}\nTime: {{class_time}}\nInstructor: {{instructor_name}}\nSee you at {{studio_name}}.",
   },
   {
     eventKey: "booking_confirmed",
@@ -407,8 +406,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "en",
     audience: "member",
     subject: "Your class booking is confirmed · {{class_name}}",
-    body:
-      "Hi {{member_name}}, your spot is saved for {{class_name}} on {{class_date}} at {{class_time}}. See you at {{studio_name}}.",
+    body: "Hi {{member_name}}, your spot is saved for {{class_name}} on {{class_date}} at {{class_time}}. See you at {{studio_name}}.",
   },
 ];
 
@@ -605,10 +603,12 @@ git commit -m "feat: add notification template helpers"
 ### Task 3: Add Pure Draft Row Builder
 
 **Files:**
+
 - Create: `src/lib/notificationDrafts.ts`
 - Create: `tests/unit/notificationDrafts.test.mjs`
 
 **Interfaces:**
+
 - Consumes: Task 2 helpers.
 - Produces:
   - `type NotificationDraftInput`
@@ -830,7 +830,9 @@ function skipReason(channel: NotificationChannel, member: DraftMember): string |
   return null;
 }
 
-export function buildNotificationDraftRows(input: NotificationDraftInput): NotificationLogInsertRow[] {
+export function buildNotificationDraftRows(
+  input: NotificationDraftInput,
+): NotificationLogInsertRow[] {
   const language = resolveNotificationLanguage({
     memberPreferredLanguage: input.member.preferred_language,
     appLanguage: input.appLanguage,
@@ -913,9 +915,11 @@ git commit -m "feat: build notification draft rows"
 ### Task 4: Add Server-Side Draft Preparation Functions
 
 **Files:**
+
 - Modify: `src/lib/messages.functions.ts`
 
 **Interfaces:**
+
 - Consumes: `buildNotificationDraftRows(input)`.
 - Produces:
   - `prepareNotificationDrafts`
@@ -1067,7 +1071,9 @@ export const sendWhatsAppMessage = createServerFn({ method: "POST" })
   .inputValidator((d) => sendWhatsAppSchema.parse(d))
   .handler(async ({ context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
-    throw new Error("Direct WhatsApp sending is disabled in V1. Use Open WhatsApp, then Mark manually sent.");
+    throw new Error(
+      "Direct WhatsApp sending is disabled in V1. Use Open WhatsApp, then Mark manually sent.",
+    );
   });
 ```
 
@@ -1088,15 +1094,15 @@ Change `markNotificationSent` update to:
 Change `listNotificationLogs` validator to:
 
 ```ts
-z
-  .object({
-    limit: z.number().int().positive().max(200).default(50),
-    channel: z.enum(["all", "whatsapp", "email", "in_app"]).default("all"),
-    status: z.enum(["all", "draft", "queued", "sent", "failed", "manually_sent", "skipped"]).default("all"),
-    triggerType: z.string().default("all"),
-    visibility: z.enum(["all", "operational", "admin_only"]).default("all"),
-  })
-  .parse(d ?? {})
+z.object({
+  limit: z.number().int().positive().max(200).default(50),
+  channel: z.enum(["all", "whatsapp", "email", "in_app"]).default("all"),
+  status: z
+    .enum(["all", "draft", "queued", "sent", "failed", "manually_sent", "skipped"])
+    .default("all"),
+  triggerType: z.string().default("all"),
+  visibility: z.enum(["all", "operational", "admin_only"]).default("all"),
+}).parse(d ?? {});
 ```
 
 Apply filters before `.limit(data.limit)`:
@@ -1136,6 +1142,7 @@ git commit -m "feat: prepare notification drafts on server"
 ### Task 5: Wire Booking, Cancellation, Waitlist, Attendance, Package, Payment, And Receipt Events
 
 **Files:**
+
 - Modify: `src/lib/cloud-core.functions.ts`
 - Modify: `src/lib/member.functions.ts`
 - Modify: `src/lib/admin.functions.ts`
@@ -1143,6 +1150,7 @@ git commit -m "feat: prepare notification drafts on server"
 - Modify: `src/lib/receipts.functions.ts`
 
 **Interfaces:**
+
 - Consumes: `buildNotificationDraftRows`.
 - Produces: domain functions create idempotent notification drafts after successful operations.
 
@@ -1176,7 +1184,9 @@ if ((result as any)?.status === "booked" && bookingId) {
   const [bookingRes, settingsRes] = await Promise.all([
     context.supabase
       .from("bookings")
-      .select("id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))")
+      .select(
+        "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+      )
       .eq("id", bookingId)
       .maybeSingle(),
     context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
@@ -1196,7 +1206,10 @@ if ((result as any)?.status === "booked" && bookingId) {
         variables: {
           class_name: booking.class.title,
           class_date: new Date(booking.class.starts_at).toLocaleDateString("en-GB"),
-          class_time: new Date(booking.class.starts_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+          class_time: new Date(booking.class.starts_at).toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           instructor_name: booking.class.instructor?.name ?? "",
         },
       }),
@@ -1262,7 +1275,10 @@ export const prepareClassReminderDrafts = createServerFn({ method: "POST" })
             variables: {
               class_name: cls.title,
               class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
-              class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+              class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
               instructor_name: cls.instructor?.name ?? "",
             },
           })
@@ -1313,9 +1329,11 @@ git commit -m "feat: create drafts for notification events"
 ### Task 6: Update Admin Messages UI For Draft Workflow
 
 **Files:**
+
 - Modify: `src/routes/_authenticated/admin/messages.tsx`
 
 **Interfaces:**
+
 - Consumes: `listNotificationLogs`, `markNotificationSent`, `prepareClassReminderDrafts`, `waUrl`.
 - Produces: admin UI where copy/open actions do not imply sent status and logs can be filtered by V1 fields.
 
@@ -1409,7 +1427,7 @@ Show `l.subject`, `l.language`, `l.staff_visibility`, `l.error_message`, and `l.
 Render Mark manually sent only when:
 
 ```ts
-l.status !== "manually_sent" && l.status !== "sent" && l.status !== "skipped"
+l.status !== "manually_sent" && l.status !== "sent" && l.status !== "skipped";
 ```
 
 Button label:
@@ -1441,11 +1459,13 @@ git commit -m "feat: update messages draft workflow"
 ### Task 7: Update Member Copy And Final Verification
 
 **Files:**
+
 - Modify: `src/components/member/ClassDetailSheet.tsx`
 - Modify: `src/routes/_authenticated/member/bookings.tsx`
 - Modify: package request UI file found by `rg -n "createMyPackageRequest|createManualPackagePayment" src`
 
 **Interfaces:**
+
 - Consumes: completed V1 draft behavior.
 - Produces: member-facing copy that says actions succeeded but does not say external messages were sent.
 

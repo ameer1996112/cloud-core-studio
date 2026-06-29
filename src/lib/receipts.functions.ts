@@ -113,8 +113,7 @@ export const confirmPaymentAndIssueReceipt = createServerFn({ method: "POST" })
         const payment = paymentRes.data as any;
         const receipt = receiptRes.data as any;
         if (payment?.member) {
-          const packageName =
-            payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
+          const packageName = payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
           const paymentRows = buildNotificationDraftRows({
             eventKey: "payment_confirmed",
             channels: ["whatsapp", "email"],

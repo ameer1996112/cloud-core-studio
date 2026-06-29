@@ -5636,7 +5636,11 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 24%, transparent);
   border-radius: var(--cc-radius-card);
   background:
-    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--color-gold, #d4af6a) 10%, transparent), transparent 18rem),
+    radial-gradient(
+      circle at 12% 10%,
+      color-mix(in srgb, var(--color-gold, #d4af6a) 10%, transparent),
+      transparent 18rem
+    ),
     color-mix(in srgb, var(--color-surface, #fffaf3) 88%, var(--color-ivory, #faf7f2));
   box-shadow: var(--shadow-card);
   padding: clamp(0.85rem, 2vw, 1.1rem);
@@ -5644,7 +5648,11 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 [dir="rtl"] .admin-instructors-control-panel {
   background:
-    radial-gradient(circle at 88% 10%, color-mix(in srgb, var(--color-gold, #d4af6a) 10%, transparent), transparent 18rem),
+    radial-gradient(
+      circle at 88% 10%,
+      color-mix(in srgb, var(--color-gold, #d4af6a) 10%, transparent),
+      transparent 18rem
+    ),
     color-mix(in srgb, var(--color-surface, #fffaf3) 88%, var(--color-ivory, #faf7f2));
 }
 
@@ -5783,7 +5791,11 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 28%, transparent);
   border-radius: var(--cc-radius-card);
   background:
-    linear-gradient(180deg, color-mix(in srgb, white 76%, var(--color-surface, #fffaf3)), var(--color-surface, #fffaf3)),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, white 76%, var(--color-surface, #fffaf3)),
+      var(--color-surface, #fffaf3)
+    ),
     var(--color-surface, #fffaf3);
   box-shadow: 0 18px 42px color-mix(in srgb, var(--color-navy, #0b1d3a) 7%, transparent);
   padding: clamp(1rem, 2vw, 1.25rem);
@@ -6133,8 +6145,16 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 32%, transparent);
   border-radius: var(--cc-radius-card);
   background:
-    radial-gradient(circle at 78% 38%, color-mix(in srgb, var(--color-gold, #d4af6a) 12%, transparent), transparent 24rem),
-    linear-gradient(135deg, color-mix(in srgb, var(--color-surface, #fffaf3) 94%, transparent), var(--color-ivory, #faf7f2));
+    radial-gradient(
+      circle at 78% 38%,
+      color-mix(in srgb, var(--color-gold, #d4af6a) 12%, transparent),
+      transparent 24rem
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-surface, #fffaf3) 94%, transparent),
+      var(--color-ivory, #faf7f2)
+    );
   box-shadow: 0 24px 52px color-mix(in srgb, var(--color-navy, #0b1d3a) 8%, transparent);
   padding: 2.4rem min(4vw, 4.5rem);
 }

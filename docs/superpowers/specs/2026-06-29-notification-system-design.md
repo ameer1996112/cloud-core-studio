@@ -114,17 +114,17 @@ Operational logs can include class booking, class cancellation, class change, wa
 
 ## V1 Event Matrix
 
-| Event | Trigger | Channels | V1 Behavior | Visibility |
-| --- | --- | --- | --- | --- |
-| Booking confirmed | Member/admin booking succeeds | WhatsApp draft, email draft | Log localized drafts, admin can open/copy/mark manually sent | Admin, instructor operational |
-| Booking cancelled | Member/admin cancellation succeeds | WhatsApp draft, email draft | Log localized drafts | Admin, instructor operational |
-| Waitlist joined | Member/admin waitlist entry created | WhatsApp draft, email draft | Log localized drafts | Admin, instructor operational |
-| Waitlist spot available | Admin offer/promotion flow | WhatsApp draft, email draft | Log localized drafts | Admin, instructor operational |
-| Package request submitted | Cash/Bit package request created | Member draft, admin action draft | Log both drafts | Admin only for payment-related details |
-| Payment confirmed | Admin payment confirmation succeeds | WhatsApp draft, email draft | Log payment confirmation draft | Admin only |
-| Receipt issued | Receipt exists after payment confirmation | WhatsApp draft, email draft | Log receipt notification draft with receipt relation | Admin only |
-| Manual class reminder | Admin prepares reminder | WhatsApp draft, email draft | Log reminder drafts, no scheduler | Admin, instructor operational if allowed |
-| Attendance/no-show | Attendance/no-show marking succeeds | WhatsApp draft, email draft | Log follow-up draft where enabled | Admin, instructor operational |
+| Event                     | Trigger                                   | Channels                         | V1 Behavior                                                  | Visibility                               |
+| ------------------------- | ----------------------------------------- | -------------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| Booking confirmed         | Member/admin booking succeeds             | WhatsApp draft, email draft      | Log localized drafts, admin can open/copy/mark manually sent | Admin, instructor operational            |
+| Booking cancelled         | Member/admin cancellation succeeds        | WhatsApp draft, email draft      | Log localized drafts                                         | Admin, instructor operational            |
+| Waitlist joined           | Member/admin waitlist entry created       | WhatsApp draft, email draft      | Log localized drafts                                         | Admin, instructor operational            |
+| Waitlist spot available   | Admin offer/promotion flow                | WhatsApp draft, email draft      | Log localized drafts                                         | Admin, instructor operational            |
+| Package request submitted | Cash/Bit package request created          | Member draft, admin action draft | Log both drafts                                              | Admin only for payment-related details   |
+| Payment confirmed         | Admin payment confirmation succeeds       | WhatsApp draft, email draft      | Log payment confirmation draft                               | Admin only                               |
+| Receipt issued            | Receipt exists after payment confirmation | WhatsApp draft, email draft      | Log receipt notification draft with receipt relation         | Admin only                               |
+| Manual class reminder     | Admin prepares reminder                   | WhatsApp draft, email draft      | Log reminder drafts, no scheduler                            | Admin, instructor operational if allowed |
+| Attendance/no-show        | Attendance/no-show marking succeeds       | WhatsApp draft, email draft      | Log follow-up draft where enabled                            | Admin, instructor operational            |
 
 ## Status Model
 
