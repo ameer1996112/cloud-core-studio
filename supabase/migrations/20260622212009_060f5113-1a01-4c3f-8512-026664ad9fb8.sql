@@ -33,7 +33,7 @@ CREATE TABLE public.members (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL DEFAULT 'Member',
   preferred_language TEXT NOT NULL DEFAULT 'en',
-  remaining_credits INTEGER NOT NULL DEFAULT 5 CHECK (remaining_credits >= 0),
+  remaining_credits INTEGER NOT NULL DEFAULT 0 CHECK (remaining_credits >= 0),
   attendance_count INTEGER NOT NULL DEFAULT 0 CHECK (attendance_count >= 0),
   last_visit_at TIMESTAMPTZ,
   energy_preference TEXT,

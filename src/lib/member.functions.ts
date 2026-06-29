@@ -317,7 +317,13 @@ export const getMyPackages = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const [memberRes, mineRes, plansRes, ledgerRes, paymentsRes] = await Promise.all([
-      supabase.from("members").select("remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference").eq("id", userId).maybeSingle(),
+      supabase
+        .from("members")
+        .select(
+          "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference",
+        )
+        .eq("id", userId)
+        .maybeSingle(),
       supabase
         .from("member_plans")
         .select(
