@@ -478,8 +478,9 @@ export const adminCreateBooking = createServerFn({ method: "POST" })
       p_override: data.override ?? false,
     });
     if (error) throw error;
+    const status = (r as any)?.status;
     const bookingId = (r as any)?.booking_id;
-    if (bookingId) {
+    if (status === "booked" && bookingId) {
       try {
         const [bookingRes, settingsRes] = await Promise.all([
           context.supabase
@@ -807,8 +808,9 @@ export const waitlistPromote = createServerFn({ method: "POST" })
     });
     if (error) throw error;
     try {
+      const status = (r as any)?.status;
       const bookingId = (r as any)?.booking_id;
-      if (bookingId) {
+      if (status === "booked" && bookingId) {
         const [bookingRes, settingsRes] = await Promise.all([
           context.supabase
             .from("bookings")
@@ -834,35 +836,6 @@ export const waitlistPromote = createServerFn({ method: "POST" })
               studioSettings: settingsRes.data ?? null,
               relatedIds: { bookingId: booking.id, classId: booking.class_id },
               variables: buildClassVariables(booking.class),
-            }),
-          );
-        }
-      } else {
-        const [entryRes, settingsRes] = await Promise.all([
-          context.supabase
-            .from("waitlist_entries")
-            .select(
-              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
-            )
-            .eq("id", data.entryId)
-            .maybeSingle(),
-          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
-        ]);
-        if (entryRes.error) throw entryRes.error;
-        if (settingsRes.error) throw settingsRes.error;
-        const entry = entryRes.data as any;
-        if (entry?.member && entry?.class) {
-          await insertNotificationDraftRows(
-            context.supabase,
-            buildNotificationDraftRows({
-              eventKey: "waitlist_spot_available",
-              channels: ["whatsapp", "email"],
-              audience: "member",
-              member: entry.member,
-              appLanguage: null,
-              studioSettings: settingsRes.data ?? null,
-              relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
-              variables: buildClassVariables(entry.class),
             }),
           );
         }

@@ -230,7 +230,7 @@ export const joinWaitlist = createServerFn({ method: "POST" })
     });
     if (error) return { status: "error", message: error.message } as const;
     const typedResult = result as { status: string; entry_id?: string; position?: number };
-    if (typedResult.entry_id) {
+    if (typedResult.status === "waiting" && typedResult.entry_id) {
       try {
         const [entryRes, settingsRes] = await Promise.all([
           context.supabase

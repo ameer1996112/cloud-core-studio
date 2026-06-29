@@ -63,6 +63,21 @@ assert.ok(rendered.body.includes("נועה"));
 assert.ok(rendered.body.includes("Core Flow"));
 assert.equal(rendered.subject, null);
 
+const adminPackageTemplate = findNotificationTemplate({
+  eventKey: "package_request_received",
+  channel: "email",
+  language: "en",
+  audience: "admin",
+});
+
+const adminRendered = renderNotificationCopy(adminPackageTemplate, {
+  member_name: "Noa",
+  package_name: "10 Class Pack",
+});
+
+assert.ok(adminRendered.subject?.includes("awaiting review"));
+assert.ok(adminRendered.body.includes("A new package request was received"));
+
 assert.equal(notificationStaffVisibility("payment_confirmed"), "admin_only");
 assert.equal(notificationStaffVisibility("receipt_issued"), "admin_only");
 assert.equal(notificationStaffVisibility("booking_confirmed"), "operational");

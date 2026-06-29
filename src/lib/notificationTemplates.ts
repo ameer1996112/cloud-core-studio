@@ -148,6 +148,16 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
   },
 };
 
+const ADMIN_FALLBACK_BODIES: Partial<
+  Record<NotificationEventKey, Record<NotificationLanguage, string>>
+> = {
+  package_request_received: {
+    he: "בקשת חבילה חדשה התקבלה עבור {{member_name}}: {{package_name}}.",
+    ar: "تم استلام طلب باقة جديد للعضو {{member_name}}: {{package_name}}.",
+    en: "A new package request was received for {{member_name}}: {{package_name}}.",
+  },
+};
+
 const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, string>> = {
   booking_confirmed: {
     he: "ההרשמה שלך אושרה · {{class_name}}",
@@ -196,6 +206,16 @@ const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, 
   },
 };
 
+const ADMIN_EMAIL_SUBJECTS: Partial<
+  Record<NotificationEventKey, Record<NotificationLanguage, string>>
+> = {
+  package_request_received: {
+    he: "בקשת חבילה חדשה מחכה לטיפול · {{package_name}}",
+    ar: "طلب باقة جديد بانتظار المتابعة · {{package_name}}",
+    en: "New package request awaiting review · {{package_name}}",
+  },
+};
+
 export function findNotificationTemplate(input: {
   eventKey: NotificationEventKey;
   channel: NotificationChannel;
@@ -212,13 +232,20 @@ export function findNotificationTemplate(input: {
   );
   if (existing) return existing;
 
+  const adminBody = input.audience === "admin" ? ADMIN_FALLBACK_BODIES[input.eventKey] : undefined;
+  const adminSubject =
+    input.audience === "admin" ? ADMIN_EMAIL_SUBJECTS[input.eventKey] : undefined;
+
   return {
     eventKey: input.eventKey,
     channel: input.channel,
     language: input.language,
     audience,
-    subject: input.channel === "email" ? EMAIL_SUBJECTS[input.eventKey][input.language] : null,
-    body: FALLBACK_BODIES[input.eventKey][input.language],
+    subject:
+      input.channel === "email"
+        ? adminSubject?.[input.language] ?? EMAIL_SUBJECTS[input.eventKey][input.language]
+        : null,
+    body: adminBody?.[input.language] ?? FALLBACK_BODIES[input.eventKey][input.language],
   };
 }
 
