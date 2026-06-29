@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { SectionTitle } from "@/components/admin-shared";
+import { AdminPageShell, AdminPageHeader } from "@/components/admin-shared";
 import {
   listMessageTemplates,
   upsertMessageTemplate,
@@ -277,11 +277,8 @@ function Page() {
   const copy = pageCopy(lang);
   const [tab, setTab] = useState<Tab>("composer");
   return (
-    <div className="space-y-6">
-      <div>
-        <SectionTitle>{t("messages.center")}</SectionTitle>
-        <p className="text-sm text-slate mt-2 max-w-xl">{copy.intro}</p>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader title={t("messages.center")} description={copy.intro} />
 
       <div className="flex gap-2 border-b border-gold/30 overflow-x-auto">
         {(
@@ -310,7 +307,7 @@ function Page() {
       {tab === "templates" && <TemplatesTab />}
       {tab === "requests" && <RequestsTab />}
       {tab === "logs" && <LogsTab />}
-    </div>
+    </AdminPageShell>
   );
 }
 

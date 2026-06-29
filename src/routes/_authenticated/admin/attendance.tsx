@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { todaysClasses, markAttendance } from "@/lib/admin.functions";
 import { getClassRoster } from "@/lib/members.functions";
 import { useMemo, useState } from "react";
-import { AdminPage, AdminSection, Empty } from "@/components/admin-shared";
+import { AdminPageShell, AdminPageHeader, Empty } from "@/components/admin-shared";
 import {
   CheckCircle2,
   Clock,
@@ -20,6 +20,11 @@ import {
 import { labelForStatus, t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPlanDisplay } from "@/lib/planDisplay";
+import {
+  localizedClassTitle,
+  localizedInstructorName,
+  localizedRoomName,
+} from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/admin/attendance")({
   component: Page,
@@ -40,40 +45,52 @@ function ClassesList({ onOpen, lang }: { onOpen: (id: string) => void; lang: "en
   const dir = isRtl ? "rtl" : "ltr";
 
   return (
-    <AdminPage>
-      <AdminSection title={t("attendance.today")} eyebrow={t("attendance.checkIn")}>
-        <p className="text-sm text-slate max-w-2xl leading-relaxed">{t("attendance.help")}</p>
-        {isLoading && <div className="h-40 editorial-panel animate-pulse" />}
-        {!isLoading && (data?.length ?? 0) === 0 && (
-          <Empty
-            title={t("attendance.empty.title")}
-            body={t("attendance.empty.body")}
-            dir={dir}
-            primaryAction={
-              <Link to="/admin/classes/new" className="btn-navy hover:btn-navy-hover">
-                <Plus className="h-4 w-4" />
-                {t("attendance.empty.primary")}
-              </Link>
-            }
-            secondaryAction={
-              <Link to="/admin/schedule" className="btn-ghost">
-                <CalendarDays className="h-4 w-4" />
-                {t("attendance.empty.secondary")}
-              </Link>
-            }
-          />
-        )}
-        <div className="grid gap-4 md:grid-cols-2">
-          {(data ?? []).map((c: any) => (
-            <ClassCard key={c.id} c={c} onOpen={onOpen} />
-          ))}
-        </div>
-      </AdminSection>
-    </AdminPage>
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("attendance.checkIn")}
+        title={t("attendance.today")}
+        description={t("attendance.help")}
+      />
+
+      {isLoading && <div className="h-40 editorial-panel animate-pulse" />}
+      {!isLoading && (data?.length ?? 0) === 0 && (
+        <Empty
+          title={t("attendance.empty.title")}
+          body={t("attendance.empty.body")}
+          dir={dir}
+          primaryAction={
+            <Link to="/admin/classes/new" className="btn-navy hover:btn-navy-hover">
+              <Plus className="h-4 w-4" />
+              {t("attendance.empty.primary")}
+            </Link>
+          }
+          secondaryAction={
+            <Link to="/admin/schedule" className="btn-ghost">
+              <CalendarDays className="h-4 w-4" />
+              {t("attendance.empty.secondary")}
+            </Link>
+          }
+        />
+      )}
+      <div className="grid gap-4 md:grid-cols-2">
+        {(data ?? []).map((c: any) => (
+          <ClassCard key={c.id} c={c} onOpen={onOpen} lang={lang} />
+        ))}
+      </div>
+    </AdminPageShell>
   );
 }
 
-function ClassCard({ c, onOpen }: { c: any; onOpen: (id: string) => void }) {
+function ClassCard({
+  c,
+  onOpen,
+  lang,
+}: {
+  c: any;
+  onOpen: (id: string) => void;
+  lang: "en" | "he" | "ar";
+}) {
+  const { locale } = useI18n();
   const d = new Date(c.starts_at);
   return (
     <button
@@ -82,14 +99,19 @@ function ClassCard({ c, onOpen }: { c: any; onOpen: (id: string) => void }) {
     >
       <div className="text-center pe-5 border-e border-gold/25 shrink-0">
         <p className="numeric-display text-2xl leading-none text-navy">
-          {d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+          {d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
         </p>
         <p className="mt-1.5 text-xs font-medium text-slate">{c.duration_minutes}m</p>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-display text-lg text-navy truncate">{c.title}</p>
+        <p className="font-display text-lg text-navy truncate" dir="auto">
+          <bdi>{localizedClassTitle(c, lang)}</bdi>
+        </p>
         <p className="mt-1 truncate text-xs font-medium text-slate">
-          {c.room} · {c.instructor?.name ?? t("common.unassigned")}
+          {localizedRoomName(c.room, lang)} ·{" "}
+          {c.instructor?.name
+            ? localizedInstructorName(c.instructor.name, lang)
+            : t("common.unassigned")}
         </p>
         <div className="flex gap-2 mt-3">
           <span className="rounded-full border border-gold/30 px-2.5 py-1 text-xs font-medium text-slate">
@@ -115,6 +137,7 @@ function CheckInScreen({
   onBack: () => void;
   lang: "en" | "he" | "ar";
 }) {
+  const { locale } = useI18n();
   const qc = useQueryClient();
   const rosterFn = useServerFn(getClassRoster);
   const markFn = useServerFn(markAttendance);
@@ -146,7 +169,7 @@ function CheckInScreen({
   const totalBooked = data.bookings.filter((b: any) => b.status === "booked").length;
 
   return (
-    <AdminPage className="space-y-5">
+    <AdminPageShell>
       <button
         onClick={onBack}
         className="inline-flex items-center gap-1.5 text-xs font-medium text-slate transition-colors hover:text-navy"
@@ -156,10 +179,15 @@ function CheckInScreen({
 
       <div className="editorial-panel p-6">
         <p className="eyebrow">{t("attendance.checkIn")}</p>
-        <h2 className="text-2xl sm:text-3xl font-semibold text-navy mt-2">{c.title}</h2>
+        <h2 className="text-2xl sm:text-3xl font-semibold text-navy mt-2" dir="auto">
+          <bdi>{localizedClassTitle(c, lang)}</bdi>
+        </h2>
         <p className="text-sm text-slate mt-1">
-          {start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} ·{" "}
-          {c.room_obj?.name ?? c.room} · {c.instructor?.name ?? t("common.unassigned")}
+          {start.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })} ·{" "}
+          {localizedRoomName(c.room_obj?.name ?? c.room, lang)} ·{" "}
+          {c.instructor?.name
+            ? localizedInstructorName(c.instructor.name, lang)
+            : t("common.unassigned")}
         </p>
         <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-gold/20 text-center">
           <KStat label={t("attendance.booked")} value={totalBooked} />
@@ -191,7 +219,7 @@ function CheckInScreen({
           />
         ))}
       </div>
-    </AdminPage>
+    </AdminPageShell>
   );
 }
 
@@ -228,7 +256,9 @@ function KioskRow({
             {m.phone && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-slate">
                 <Phone className="h-3 w-3" />
-                {m.phone}
+                <span dir="ltr" className="inline-block">
+                  {m.phone}
+                </span>
               </span>
             )}
             {m.is_first_timer && (

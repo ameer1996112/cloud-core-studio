@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStudioSettingsFull, updateStudioSettings } from "@/lib/studioSettings.functions";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { SectionTitle, CardSkeleton } from "@/components/admin-shared";
+import { AdminPageShell, AdminPageHeader, CardSkeleton } from "@/components/admin-shared";
 import { LANGUAGES } from "@/lib/messageTemplate";
 import { friendlyErrorMessage } from "@/lib/error-messages";
 import { useI18n } from "@/lib/i18n";
@@ -153,15 +153,12 @@ function Page() {
   const packageMsg = t("settings.packageMsg", { studio: f.studio_name || "the studio" });
 
   return (
-    <div className="settings-page mx-auto max-w-5xl space-y-6 sm:space-y-7">
-      <header className="settings-hero">
-        <div>
-          <p className="settings-kicker">{t("settings.eyebrow")}</p>
-          <SectionTitle>{t("settings.studioConfig")}</SectionTitle>
-          <p className="settings-hero-copy">{t("settings.headerBody")}</p>
-        </div>
-      </header>
-
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("settings.eyebrow")}
+        title={t("settings.studioConfig")}
+        description={t("settings.headerBody")}
+      />
       <form
         className="space-y-5 sm:space-y-6"
         onSubmit={(e) => {
@@ -571,7 +568,7 @@ function Page() {
           </div>
         </div>
       </form>
-    </div>
+    </AdminPageShell>
   );
 }
 

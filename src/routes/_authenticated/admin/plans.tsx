@@ -4,7 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, CreditCard, Pencil, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { Empty, Field, SectionTitle } from "@/components/admin-shared";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AdminMetricCard,
+  Empty,
+  Field,
+} from "@/components/admin-shared";
 import { listPlans, upsertPlan } from "@/lib/admin.functions";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -62,24 +68,20 @@ function PlansPage() {
   const totalCredits = activePlans.reduce((sum: number, p: Plan) => sum + (p.credits ?? 0), 0);
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
+    <AdminPageShell>
+      <AdminPageHeader
+        title={t("nav.plans")}
         action={
           <button onClick={() => setEditing("new")} className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("admin.plans.add")}
           </button>
         }
-      >
-        {t("nav.plans")}
-      </SectionTitle>
+      />
 
-      <div className="editorial-panel p-6">
-        <p className="eyebrow">{t("admin.plans.revenue")}</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <Stat label={t("admin.plans.activePackages")} value={activePlans.length} />
-          <Stat label={t("admin.plans.creditsAvailable")} value={totalCredits} />
-          <Stat label={t("admin.plans.visibleToMembers")} value={activePlans.length} />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <AdminMetricCard label={t("admin.plans.activePackages")} value={activePlans.length} />
+        <AdminMetricCard label={t("admin.plans.creditsAvailable")} value={totalCredits} />
+        <AdminMetricCard label={t("admin.plans.visibleToMembers")} value={activePlans.length} />
       </div>
 
       {isLoading && <div className="editorial-card h-36 skeleton-brand" />}
@@ -99,16 +101,7 @@ function PlansPage() {
           onSave={(v) => save.mutate(v)}
         />
       )}
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-xl border border-gold/20 bg-ivory/70 p-4">
-      <p className="eyebrow">{label}</p>
-      <p className="numeric-display text-3xl text-navy mt-2">{value}</p>
-    </div>
+    </AdminPageShell>
   );
 }
 

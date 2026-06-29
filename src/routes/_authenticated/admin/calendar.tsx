@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { calendarRange } from "@/lib/calendar.functions";
-import { Empty } from "@/components/admin-shared";
+import { AdminPageShell, AdminPageHeader, AdminMetricCard, Empty } from "@/components/admin-shared";
 import {
   ChevronLeft,
   ChevronRight,
@@ -147,104 +147,101 @@ function CalendarPage() {
   const headerEyebrow = view === "day" ? t("calendar.dayView") : t("calendar.weekView");
 
   return (
-    <div className="space-y-7">
+    <AdminPageShell>
       {/* Editorial page header */}
-      <header className="space-y-5 pb-5 border-b border-gold/25">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-          <div className="min-w-0">
-            <p className="eyebrow">{headerEyebrow}</p>
-            <h2 className="mt-1.5 truncate font-display text-2xl text-navy sm:text-3xl">
-              {headerLabel}
-            </h2>
-          </div>
-          <ViewToggle view={view} onChange={setView} />
-        </div>
+      <AdminPageHeader
+        eyebrow={headerEyebrow}
+        title={headerLabel}
+        action={
+          <>
+            <NavBtn onClick={() => shift(view === "day" ? -1 : -7)} aria-label={t("common.back")}>
+              <ChevronLeft className="h-4 w-4 directional-icon-back" />
+            </NavBtn>
+            <button
+              onClick={today}
+              className="btn-outline inline-flex h-10 items-center px-4 text-xs hover:btn-outline-hover"
+            >
+              {t("common.today")}
+            </button>
+            <NavBtn onClick={() => shift(view === "day" ? 1 : 7)} aria-label={t("common.next")}>
+              <ChevronRight className="h-4 w-4 directional-icon-forward" />
+            </NavBtn>
+            <div className="hidden sm:block h-6 w-px bg-gold/30 mx-1" />
+            <QuickActions />
+          </>
+        }
+        secondaryAction={<ViewToggle view={view} onChange={setView} />}
+      />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <NavBtn onClick={() => shift(view === "day" ? -1 : -7)} aria-label={t("common.back")}>
-            <ChevronLeft className="h-4 w-4 directional-icon-back" />
-          </NavBtn>
-          <button
-            onClick={today}
-            className="btn-outline inline-flex h-10 items-center px-4 text-xs hover:btn-outline-hover"
-          >
-            {t("common.today")}
-          </button>
-          <NavBtn onClick={() => shift(view === "day" ? 1 : 7)} aria-label={t("common.next")}>
-            <ChevronRight className="h-4 w-4 directional-icon-forward" />
-          </NavBtn>
-          <div className="hidden sm:block h-6 w-px bg-gold/30 mx-1" />
-          <QuickActions />
-        </div>
-      </header>
+      <div className="space-y-7 mt-6">
+        {/* KPI strip */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <AdminMetricCard
+            label={view === "day" ? t("calendar.classesToday") : t("calendar.todayClasses")}
+            value={kpi.classes}
+          />
+          <AdminMetricCard label={t("calendar.bookedSpots")} value={kpi.bookedSpots} />
+          <AdminMetricCard
+            label={t("calendar.waitlistPressure")}
+            value={kpi.waiting}
+            accent={kpi.waiting > 0}
+          />
+          <AdminMetricCard
+            label={t("calendar.roomsInUse")}
+            value={`${kpi.roomsInUse}${rooms.length ? ` / ${rooms.length}` : ""}`}
+          />
+        </section>
 
-      {/* KPI strip */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Kpi
-          icon={CalIcon}
-          label={view === "day" ? t("calendar.classesToday") : t("calendar.todayClasses")}
-          value={kpi.classes}
-        />
-        <Kpi icon={Users} label={t("calendar.bookedSpots")} value={kpi.bookedSpots} />
-        <Kpi
-          icon={Clock}
-          label={t("calendar.waitlistPressure")}
-          value={kpi.waiting}
-          tone={kpi.waiting > 0 ? "gold" : "default"}
-        />
-        <Kpi
-          icon={MapPin}
-          label={t("calendar.roomsInUse")}
-          value={`${kpi.roomsInUse}${rooms.length ? ` / ${rooms.length}` : ""}`}
-        />
-      </section>
+        {/* Body */}
+        {isError ? (
+          <ErrorState onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <CalendarSkeleton />
+        ) : rooms.length === 0 ? (
+          <Empty>
+            {t("calendar.addRoomPrompt")}{" "}
+            <Link to="/admin/rooms" className="underline underline-offset-4">
+              {t("common.room")}
+            </Link>{" "}
+            {t("calendar.addRoomSuffix")}
+          </Empty>
+        ) : view === "day" ? (
+          <DayLayout day={anchor} rooms={rooms} classes={classes} onOpen={setOpenClassId} />
+        ) : (
+          <WeekLayout
+            days={days}
+            rooms={rooms}
+            classes={classes}
+            onOpen={setOpenClassId}
+            anchor={anchor}
+            setAnchor={setAnchor}
+          />
+        )}
 
-      {/* Body */}
-      {isError ? (
-        <ErrorState onRetry={() => refetch()} />
-      ) : isLoading ? (
-        <CalendarSkeleton />
-      ) : rooms.length === 0 ? (
-        <Empty>
-          {t("calendar.addRoomPrompt")}{" "}
-          <Link to="/admin/rooms" className="underline underline-offset-4">
-            {t("common.room")}
-          </Link>{" "}
-          {t("calendar.addRoomSuffix")}
-        </Empty>
-      ) : view === "day" ? (
-        <DayLayout day={anchor} rooms={rooms} classes={classes} onOpen={setOpenClassId} />
-      ) : (
-        <WeekLayout
-          days={days}
-          rooms={rooms}
-          classes={classes}
-          onOpen={setOpenClassId}
-          anchor={anchor}
-          setAnchor={setAnchor}
-        />
-      )}
-
-      {/* Room legend */}
-      {rooms.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 border-t border-gold/20">
-          <span className="eyebrow">{t("calendar.rooms")}</span>
-          {rooms.map((r: any) => (
-            <span key={r.id} className="inline-flex items-center gap-2 text-xs text-slate">
-              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: r.color }} />
-              <span className="truncate">
-                {localizedRoomName(r.name, getLocale() as Lang)}{" "}
-                <span className="text-slate/60">
-                  · {t("calendar.capacityShort", { count: r.capacity })}
+        {/* Room legend */}
+        {rooms.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 border-t border-gold/20">
+            <span className="eyebrow">{t("calendar.rooms")}</span>
+            {rooms.map((r: any) => (
+              <span key={r.id} className="inline-flex items-center gap-2 text-xs text-slate">
+                <span
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  style={{ background: r.color }}
+                />
+                <span className="truncate">
+                  {localizedRoomName(r.name, getLocale() as Lang)}{" "}
+                  <span className="text-slate/60">
+                    · {t("calendar.capacityShort", { count: r.capacity })}
+                  </span>
                 </span>
               </span>
-            </span>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
 
-      <ClassRosterDrawer classId={openClassId} onClose={() => setOpenClassId(null)} />
-    </div>
+        <ClassRosterDrawer classId={openClassId} onClose={() => setOpenClassId(null)} />
+      </div>
+    </AdminPageShell>
   );
 }
 
@@ -302,30 +299,6 @@ function QuickActions() {
           <span className="hidden sm:inline">{i.label}</span>
         </Link>
       ))}
-    </div>
-  );
-}
-
-function Kpi({
-  icon: Icon,
-  label,
-  value,
-  tone = "default",
-}: {
-  icon: any;
-  label: string;
-  value: React.ReactNode;
-  tone?: "default" | "gold";
-}) {
-  return (
-    <div
-      className={`editorial-card px-4 py-3.5 sm:p-5 ${tone === "gold" ? "border-s-4 border-s-gold" : ""}`}
-    >
-      <div className="flex items-center justify-between">
-        <p className="truncate text-xs font-medium text-slate">{label}</p>
-        <Icon className="h-3.5 w-3.5 text-gold/70 shrink-0" />
-      </div>
-      <p className="numeric-display mt-2 text-2xl sm:text-3xl">{value}</p>
     </div>
   );
 }

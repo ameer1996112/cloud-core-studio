@@ -70,17 +70,17 @@ CSS changes keep the card moderate instead of tall and empty:
 
 ## Production deployment
 
-| Item | Result |
-| --- | --- |
-| Cloud Build ID | `6380fdd2-0bf6-44f8-93fd-5c1a867ea129` |
-| Image | `me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260629083233` |
-| Image digest | `sha256:60f38d4e90c2054bbd541e90c25f5ad71ad2dddc9e92297fb3cf8f44c27069d4` |
-| Cloud Run service | `cloud-core-studio` |
-| Region | `me-west1` |
-| Revision | `cloud-core-studio-00098-b5c` |
-| Traffic | `100%` |
-| Cloud Run URL | `https://cloud-core-studio-190584124070.me-west1.run.app` |
-| Public URL smoke | `https://cloudandcorestudio.com/auth` returned `200` |
+| Item              | Result                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| Cloud Build ID    | `6380fdd2-0bf6-44f8-93fd-5c1a867ea129`                                                   |
+| Image             | `me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260629083233` |
+| Image digest      | `sha256:60f38d4e90c2054bbd541e90c25f5ad71ad2dddc9e92297fb3cf8f44c27069d4`                |
+| Cloud Run service | `cloud-core-studio`                                                                      |
+| Region            | `me-west1`                                                                               |
+| Revision          | `cloud-core-studio-00098-b5c`                                                            |
+| Traffic           | `100%`                                                                                   |
+| Cloud Run URL     | `https://cloud-core-studio-190584124070.me-west1.run.app`                                |
+| Public URL smoke  | `https://cloudandcorestudio.com/auth` returned `200`                                     |
 
 Production smoke checks:
 

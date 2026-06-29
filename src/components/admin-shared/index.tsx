@@ -1,5 +1,16 @@
 import * as React from "react";
 
+/** Consistent page container for all admin routes. Enforces max-width, padding, and vertical spacing. */
+export function AdminPageShell({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={`admin-page-shell ${className}`}>{children}</div>;
+}
+
 export function AdminPage({
   children,
   className = "",
@@ -15,11 +26,13 @@ export function AdminPageHeader({
   title,
   description,
   action,
+  secondaryAction,
 }: {
   eyebrow?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
+  secondaryAction?: React.ReactNode;
 }) {
   return (
     <header className="border-b border-gold/25 pb-6">
@@ -33,7 +46,12 @@ export function AdminPageHeader({
             <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate">{description}</p>
           )}
         </div>
-        {action && <div className="shrink-0">{action}</div>}
+        {(action || secondaryAction) && (
+          <div className="shrink-0 flex items-center gap-2 flex-wrap">
+            {secondaryAction}
+            {action}
+          </div>
+        )}
       </div>
     </header>
   );
@@ -173,6 +191,27 @@ export function SectionTitle({
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 mb-6 border-b border-gold/20 pb-3">
       <h2 className="font-display text-xl font-semibold leading-tight text-navy">{children}</h2>
       {action && <div className="shrink-0">{action}</div>}
+    </div>
+  );
+}
+
+/** Consistent KPI / metric card used across admin pages */
+export function AdminMetricCard({
+  label,
+  value,
+  helper,
+  accent = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  helper?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className={`admin-metric-card${accent ? " admin-metric-card--accent" : ""}`}>
+      <p className="admin-metric-card__label">{label}</p>
+      <p className="admin-metric-card__value">{value}</p>
+      {helper && <p className="admin-metric-card__helper">{helper}</p>}
     </div>
   );
 }

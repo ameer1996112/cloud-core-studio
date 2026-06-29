@@ -4,7 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { listRooms, upsertRoom, deleteRoom } from "@/lib/rooms.functions";
-import { Empty, SectionTitle, Field, CardSkeleton } from "@/components/admin-shared";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  Empty,
+  Field,
+  CardSkeleton,
+} from "@/components/admin-shared";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ImagePlus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -103,19 +109,15 @@ function RoomsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <SectionTitle
+    <AdminPageShell>
+      <AdminPageHeader
+        title={t("admin.rooms.title")}
         action={
-          <button
-            onClick={() => setEditing(empty)}
-            className="inline-flex items-center gap-2 rounded-xl border border-gold px-4 py-2 text-xs font-medium text-navy transition-colors hover:bg-gold hover:text-ivory"
-          >
+          <button onClick={() => setEditing(empty)} className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("admin.rooms.add")}
           </button>
         }
-      >
-        {t("admin.rooms.title")}
-      </SectionTitle>
+      />
 
       {isLoading ? (
         <CardSkeleton rows={3} />
@@ -354,6 +356,6 @@ function RoomsPage() {
           </div>
         </div>
       )}
-    </div>
+    </AdminPageShell>
   );
 }

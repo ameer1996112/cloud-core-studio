@@ -5,7 +5,14 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Search, Sparkles, UserRound } from "lucide-react";
 import { listInstructors, upsertInstructor } from "@/lib/admin.functions";
-import { Empty, SectionTitle, Field, CardSkeleton } from "@/components/admin-shared";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AdminMetricCard,
+  Empty,
+  Field,
+  CardSkeleton,
+} from "@/components/admin-shared";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedInstructorBio, localizedInstructorName } from "@/lib/localized-content";
@@ -77,43 +84,34 @@ function Page() {
   });
 
   return (
-    <div className="space-y-7">
-      <SectionTitle
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("admin.instructors.roster")}
+        title={t("admin.instructors.title")}
+        description={t("admin.instructors.hint")}
         action={
           <button onClick={() => setEditing(emptyForm)} className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("admin.instructors.add")}
           </button>
         }
-      >
-        {t("admin.instructors.title")}
-      </SectionTitle>
+      />
 
-      <section className="editorial-panel overflow-hidden">
-        <div className="grid gap-0 md:grid-cols-[1fr_320px]">
-          <div className="p-5 sm:p-6">
-            <p className="text-xs font-medium text-slate">{t("admin.instructors.roster")}</p>
-            <h2 className="mt-2 font-display text-[28px] leading-tight text-navy">
-              {t("admin.instructors.headline")}
-            </h2>
-            <div className="relative mt-5 max-w-xl">
-              <Search className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
-              <input
-                className="editorial-input ps-11"
-                placeholder={t("admin.instructors.search")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="border-t border-gold/20 bg-sand/35 p-5 sm:p-6 md:border-s md:border-t-0">
-            <div className="grid grid-cols-2 gap-3">
-              <Stat label={t("admin.instructors.total")} value={instructors.length} />
-              <Stat label={t("admin.instructors.active")} value={activeCount} />
-            </div>
-            <p className="mt-4 text-xs leading-relaxed text-slate">{t("admin.instructors.hint")}</p>
+      {/* Compact metrics + search */}
+      <div className="grid gap-4 sm:grid-cols-[1fr_1fr_minmax(0,2fr)]">
+        <AdminMetricCard label={t("admin.instructors.total")} value={instructors.length} />
+        <AdminMetricCard label={t("admin.instructors.active")} value={activeCount} />
+        <div className="flex items-end">
+          <div className="relative w-full">
+            <Search className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+            <input
+              className="editorial-input ps-11"
+              placeholder={t("admin.instructors.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
-      </section>
+      </div>
 
       {isLoading ? (
         <CardSkeleton rows={3} />
@@ -220,7 +218,7 @@ function Page() {
           </form>
         </div>
       )}
-    </div>
+    </AdminPageShell>
   );
 }
 
@@ -300,14 +298,5 @@ function StatusBadge({ active }: { active: boolean }) {
     >
       {active ? t("admin.instructors.active") : t("admin.instructors.inactive")}
     </span>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="border border-gold/25 bg-ivory/65 p-3">
-      <p className="font-display text-3xl leading-none text-navy">{value}</p>
-      <p className="mt-1 text-xs font-medium text-slate">{label}</p>
-    </div>
   );
 }

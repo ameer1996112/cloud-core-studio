@@ -5,7 +5,7 @@ import { listProgramTypes, upsertProgramType, archiveProgramType } from "@/lib/a
 import { useState } from "react";
 import { Plus, Pencil, Archive, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
-import { Empty, Field } from "@/components/admin-shared";
+import { AdminPageShell, AdminPageHeader, Empty, Field } from "@/components/admin-shared";
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
@@ -88,21 +88,17 @@ function Page() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-7">
-      <div className="flex flex-col gap-5 border-b border-gold/25 pb-6 md:flex-row md:items-end md:justify-between">
-        <div className="max-w-2xl space-y-3">
-          <p className="eyebrow text-slate">{t("admin.programs.catalog")}</p>
-          <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
-            {t("admin.programs.title")}
-          </h1>
-          <p className="text-sm leading-7 text-slate">{t("admin.programs.description")}</p>
-        </div>
-        <div className="flex shrink-0">
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("admin.programs.catalog")}
+        title={t("admin.programs.title")}
+        description={t("admin.programs.description")}
+        action={
           <button onClick={() => setEditing("new")} className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("admin.programs.add")}
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {isLoading && <div className="editorial-card h-32 skeleton-brand" />}
       {data && data.length === 0 && <Empty>{t("admin.noPrograms")}</Empty>}
@@ -114,9 +110,9 @@ function Page() {
           return (
             <article
               key={p.id}
-              className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-[8px] border border-gold/20 bg-white shadow-[0_16px_38px_-30px_rgba(11,29,58,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_24px_50px_-34px_rgba(11,29,58,0.55)]"
+              className="group relative flex flex-col overflow-hidden editorial-card transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_24px_50px_-34px_rgba(11,29,58,0.55)]"
             >
-              <div className="h-1.5 bg-gold/80" />
+              <div className="h-1 bg-gold/50" />
               <div className="flex flex-1 flex-col p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 space-y-3">
@@ -127,7 +123,7 @@ function Page() {
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-medium ${
                           p.active
-                            ? "border border-powder/60 bg-powder/25 text-navy"
+                            ? "border border-gold/40 bg-gold/10 text-navy"
                             : "border border-slate/20 bg-sand/40 text-slate"
                         }`}
                       >
@@ -138,7 +134,7 @@ function Page() {
                       {display.name}
                     </h2>
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 gap-1">
                     <button
                       onClick={() => setEditing(p)}
                       aria-label={t("admin.programs.edit")}
@@ -194,7 +190,7 @@ function Page() {
           saving={saveMut.isPending}
         />
       )}
-    </div>
+    </AdminPageShell>
   );
 }
 
@@ -445,8 +441,8 @@ function getProgramDisplay(p: ProgramType, lang: "en" | "he" | "ar") {
 
 function ProgramMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-gold/20 bg-ivory/70 px-4 py-3">
-      <p className="text-xs font-medium text-slate">{label}</p>
+    <div className="admin-metric-card">
+      <p className="admin-metric-card__label">{label}</p>
       <p className="mt-1 font-display text-lg leading-tight text-navy">{value}</p>
     </div>
   );

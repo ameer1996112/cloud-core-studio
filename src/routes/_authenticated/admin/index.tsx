@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { adminOverview } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Home, Plus, Users, Wallet, Sparkles, BarChart3 } from "lucide-react";
+import { Calendar, Plus, Users, Wallet, Sparkles, BarChart3 } from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
@@ -11,6 +11,7 @@ import {
   localizedInstructorName,
   localizedRoomName,
 } from "@/lib/localized-content";
+import { AdminPageShell, AdminPageHeader, AdminMetricCard } from "@/components/admin-shared";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: OverviewPage,
@@ -52,27 +53,25 @@ function OverviewPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="space-y-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <AdminPageShell>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="skeleton-brand h-28 rounded-[var(--cc-radius-card)]" />
           ))}
         </div>
-      </div>
+      </AdminPageShell>
     );
   }
 
   const d: any = data;
 
   return (
-    <div className="space-y-12">
-      <header className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] items-end gap-5 pb-6 border-b border-gold/30">
-        <div className="min-w-0">
-          <p className="eyebrow">{t("admin.overview.eyebrow")}</p>
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl mt-2 leading-[1.05]">
-            {t("admin.overview.headline")}
-          </h1>
-          <p className="text-slate text-sm mt-3">
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("admin.overview.eyebrow")}
+        title={t("admin.overview.headline")}
+        description={
+          <>
             {new Date().toLocaleDateString(locale, {
               weekday: "long",
               month: "long",
@@ -80,24 +79,23 @@ function OverviewPage() {
             })}{" "}
             · {t("admin.overview.classesToday", { count: d.todayClasses.length })} ·{" "}
             {t("admin.overview.waitlistSummary", { count: d.waitingCount })}
-          </p>
-        </div>
-        <QuickActions />
-      </header>
+          </>
+        }
+        action={<QuickActions />}
+      />
 
       {/* KPI strip */}
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-        <KpiCard label={t("admin.overview.clients")} value={d.memberCount} />
-        <KpiCard label={t("admin.overview.activeBookings")} value={d.activeBookings} />
-        <KpiCard
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <AdminMetricCard label={t("admin.overview.clients")} value={d.memberCount} />
+        <AdminMetricCard label={t("admin.overview.activeBookings")} value={d.activeBookings} />
+        <AdminMetricCard
           label={t("admin.overview.waitlist")}
           value={d.waitingCount}
-          tone={d.waitingCount > 0 ? "gold" : "default"}
+          accent={d.waitingCount > 0}
         />
-        <KpiCard
+        <AdminMetricCard
           label={t("admin.overview.monthRevenue")}
           value={ils(d.monthRevenueIls, locale)}
-          compact
         />
       </section>
 
@@ -239,7 +237,7 @@ function OverviewPage() {
             <ul className="divide-y divide-gold/15">
               {d.recentLog.map((l: any) => (
                 <li key={l.id} className="py-3">
-                  <p className="text-sm">{l.action.replace(/\./g, " · ")}</p>
+                  <p className="text-sm">{localizeActivityAction(l.action, lang)}</p>
                   <p className="mt-0.5 text-xs text-slate">
                     {new Date(l.created_at).toLocaleString(locale)}
                   </p>
@@ -249,8 +247,34 @@ function OverviewPage() {
           )}
         </Panel>
       </section>
-    </div>
+    </AdminPageShell>
   );
+}
+
+/** Localize dot-notated activity log actions to human-readable strings */
+function localizeActivityAction(action: string, lang: "en" | "he" | "ar"): string {
+  const ACTION_MAP: Record<string, Record<string, string>> = {
+    "booking.created": { he: "הזמנה נוצרה", ar: "تم إنشاء حجز", en: "Booking created" },
+    "booking.cancelled": { he: "הזמנה בוטלה", ar: "تم إلغاء الحجز", en: "Booking cancelled" },
+    "payment.confirmed": { he: "תשלום אושר", ar: "تم تأكيد الدفع", en: "Payment confirmed" },
+    "payment.created": { he: "תשלום נרשם", ar: "تم تسجيل الدفع", en: "Payment recorded" },
+    "payment.refunded": { he: "זיכוי בוצע", ar: "تم رد المبلغ", en: "Payment refunded" },
+    "member.created": { he: "לקוח/ה חדש/ה", ar: "عميل/ة جديد/ة", en: "New client" },
+    "class.created": { he: "שיעור נוצר", ar: "تم إنشاء حصة", en: "Class created" },
+    "class.updated": { he: "שיעור עודכן", ar: "تم تحديث الحصة", en: "Class updated" },
+    "class.cancelled": { he: "שיעור בוטל", ar: "تم إلغاء الحصة", en: "Class cancelled" },
+    "attendance.checked_in": {
+      he: "צ׳ק-אין בוצע",
+      ar: "تم تسجيل الحضور",
+      en: "Checked in",
+    },
+  };
+
+  const key = action.toLowerCase().trim();
+  const mapping = ACTION_MAP[key];
+  if (mapping && mapping[lang]) return mapping[lang];
+  // Fallback: humanize dot notation
+  return action.replace(/\./g, " · ");
 }
 
 function QuickActions() {
@@ -272,29 +296,6 @@ function QuickActions() {
           <i.icon className="h-3.5 w-3.5" /> {i.label}
         </Link>
       ))}
-    </div>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  compact = false,
-  tone = "default",
-}: {
-  label: string;
-  value: React.ReactNode;
-  compact?: boolean;
-  tone?: "default" | "gold";
-}) {
-  return (
-    <div
-      className={`editorial-card p-5 sm:p-6 ${tone === "gold" ? "border-s-[3px] border-s-gold" : ""}`}
-    >
-      <p className="eyebrow">{label}</p>
-      <p className={`numeric-display mt-3 ${compact ? "text-3xl" : "text-4xl"} leading-none`}>
-        {value}
-      </p>
     </div>
   );
 }

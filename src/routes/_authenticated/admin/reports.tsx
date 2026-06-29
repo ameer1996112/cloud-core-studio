@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Empty } from "@/components/admin-shared";
+import { AdminPageShell, AdminPageHeader, Empty } from "@/components/admin-shared";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   component: ReportsPage,
@@ -119,727 +119,735 @@ function ReportsPage() {
   });
 
   return (
-    <div className="space-y-10 md:space-y-14 pb-16">
-      <header className="space-y-5 pb-6 border-b border-gold/30">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 md:flex md:flex-wrap md:justify-between">
-          <div className="min-w-0">
-            <p className="eyebrow">{t("reports.eyebrow")}</p>
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl mt-2 leading-[1.05]">
-              {t("reports.title")}
-            </h1>
-            <p className="text-slate text-sm mt-3 max-w-xl leading-relaxed">
-              {t("reports.subtitle")}
-            </p>
-            <p className="mt-3 text-xs font-medium text-slate">
-              {range.start.toLocaleDateString(locale, { month: "long", day: "numeric" })} —{" "}
-              {range.end.toLocaleDateString(locale, {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("reports.eyebrow")}
+        title={t("reports.title")}
+        description={t("reports.subtitle")}
+        action={
+          <p className="mt-3 text-xs font-medium text-slate">
+            {range.start.toLocaleDateString(locale, { month: "long", day: "numeric" })} —{" "}
+            {range.end.toLocaleDateString(locale, {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </p>
+        }
+      />
+      <div className="space-y-10 md:space-y-14 pb-16">
+        <div className="pb-6 border-b border-gold/30">
+          <DateRangePicker
+            preset={preset}
+            setPreset={setPreset}
+            customStart={customStart}
+            customEnd={customEnd}
+            setCustomStart={setCustomStart}
+            setCustomEnd={setCustomEnd}
+          />
         </div>
-        <DateRangePicker
-          preset={preset}
-          setPreset={setPreset}
-          customStart={customStart}
-          customEnd={customEnd}
-          setCustomStart={setCustomStart}
-          setCustomEnd={setCustomEnd}
-        />
-      </header>
+        {isLoading && <LoadingGrid />}
+        {error && (
+          <p className="text-sm text-slate font-display">
+            {(error as Error).message === "forbidden"
+              ? t("reports.error.forbidden")
+              : t("reports.error.load")}
+          </p>
+        )}
 
-      {isLoading && <LoadingGrid />}
-      {error && (
-        <p className="text-sm text-slate font-display">
-          {(error as Error).message === "forbidden"
-            ? t("reports.error.forbidden")
-            : t("reports.error.load")}
-        </p>
-      )}
-
-      {data && (
-        <>
-          {/* Insights */}
-          {data.insights.length > 0 ? (
-            <section>
-              <SectionHeader title={t("reports.insights")} eyebrow={t("reports.attention")} />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-6">
-                {data.insights.map((i) => (
-                  <InsightCard key={i.id} insight={i} lang={lang} />
-                ))}
-              </div>
-            </section>
-          ) : (
-            <section>
-              <SectionHeader title={t("reports.insights")} eyebrow={t("reports.attention")} />
-              <div className="mt-6 editorial-card p-8 text-center">
-                <Sparkles className="h-5 w-5 text-gold/70 mx-auto" />
-                <p className="font-display text-lg mt-3">{t("reports.noUrgent")}</p>
-                <p className="mt-2 text-xs font-medium text-slate">{t("reports.calm")}</p>
-              </div>
-            </section>
-          )}
-
-          {/* Summary KPI strip */}
-          <section>
-            <SectionHeader title={t("reports.atGlance")} eyebrow={t("reports.topMetrics")} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5 mt-6">
-              <MetricCard
-                label={t("reports.revenue")}
-                value={ils(data.summary.totalRevenue)}
-                prev={
-                  data.summary.prevTotalRevenue !== null ? ils(data.summary.prevTotalRevenue) : null
-                }
-                delta={delta(data.summary.totalRevenue, data.summary.prevTotalRevenue)}
-                hint={t("reports.netRefunds")}
-              />
-              <MetricCard
-                label={t("reports.bookings")}
-                value={String(data.summary.bookingsCount)}
-                prev={
-                  data.summary.prevBookingsCount !== null
-                    ? String(data.summary.prevBookingsCount)
-                    : null
-                }
-                delta={delta(data.summary.bookingsCount, data.summary.prevBookingsCount)}
-                hint={t("reports.createdRange")}
-              />
-              <MetricCard
-                label={t("reports.attendanceRate")}
-                value={pct(data.summary.attendanceRate)}
-                hint={t("reports.expectedAttendance")}
-              />
-              <MetricCard
-                label={t("reports.activeMembers")}
-                value={String(data.summary.activeMembersCount)}
-                hint={t("reports.visited60")}
-              />
-              <MetricCard
-                label={t("reports.newMembers")}
-                value={String(data.summary.newMembersCount)}
-                hint={t("reports.joinedPeriod")}
-              />
-              <MetricCard
-                label={t("reports.packageSales")}
-                value={String(data.summary.packageSalesCount)}
-                hint={t("reports.paidPlanTransactions")}
-              />
-              <MetricCard
-                label={t("reports.noShowRate")}
-                value={pct(data.summary.noShowRate)}
-                hint={t("reports.markedAttendance")}
-                tone={data.summary.noShowRate > 0.15 ? "gold" : "default"}
-              />
-              <MetricCard
-                label={t("reports.waitlistDemand")}
-                value={String(data.summary.waitlistDemand)}
-                hint={t("reports.entriesPeriod")}
-              />
-            </div>
-          </section>
-
-          {/* Revenue */}
-          <section>
-            <SectionHeader
-              title={t("reports.revenue")}
-              eyebrow={t("reports.revenue")}
-              right={
-                <ExportButton
-                  onClick={() =>
-                    csvDownload("revenue.csv", [
-                      ["Date", "Amount (ILS)"],
-                      ...data.revenue.series.map((s) => [s.date, s.amount]),
-                    ])
-                  }
-                  label={t("reports.exportRevenue")}
-                />
-              }
-            />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
-              <Panel title={t("reports.trend")} className="lg:col-span-2">
-                {data.revenue.series.length === 0 ? (
-                  <EmptyState text={t("reports.noPaymentsRange")} />
-                ) : (
-                  <div className="h-56 w-full min-w-0 -mx-2 sm:mx-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={data.revenue.series}
-                        margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
-                      >
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fill: "#6F7A8C", fontSize: 11 }}
-                          tickFormatter={(d) => d.slice(5)}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            background: "#FAF7F2",
-                            border: "1px solid rgba(212,175,106,0.4)",
-                            borderRadius: 10,
-                          }}
-                          formatter={(v: number) => ils(v)}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="amount"
-                          stroke="#0B1D3A"
-                          strokeWidth={2}
-                          dot={{ fill: "#D4AF6A", r: 3 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-                <div className="mt-5 pt-5 border-t border-gold/20 grid grid-cols-3 gap-3 sm:gap-4 text-sm">
-                  <Stat label={t("reports.total")} value={ils(data.revenue.total)} />
-                  <Stat label={t("reports.refunded")} value={ils(data.revenue.refunded)} />
-                  <Stat label={t("reports.outstanding")} value={ils(data.revenue.outstanding)} />
+        {data && (
+          <>
+            {/* Insights */}
+            {data.insights.length > 0 ? (
+              <section>
+                <SectionHeader title={t("reports.insights")} eyebrow={t("reports.attention")} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-6">
+                  {data.insights.map((i) => (
+                    <InsightCard key={i.id} insight={i} lang={lang} />
+                  ))}
                 </div>
-              </Panel>
+              </section>
+            ) : (
+              <section>
+                <SectionHeader title={t("reports.insights")} eyebrow={t("reports.attention")} />
+                <div className="mt-6 editorial-card p-8 text-center">
+                  <Sparkles className="h-5 w-5 text-gold/70 mx-auto" />
+                  <p className="font-display text-lg mt-3">{t("reports.noUrgent")}</p>
+                  <p className="mt-2 text-xs font-medium text-slate">{t("reports.calm")}</p>
+                </div>
+              </section>
+            )}
 
-              <Panel title={t("reports.byMethod")}>
-                {Object.keys(data.revenue.byMethod).length === 0 ? (
-                  <EmptyState text={t("reports.noRevenue")} />
-                ) : (
-                  <ul className="space-y-3">
-                    {Object.entries(data.revenue.byMethod)
-                      .sort((a, b) => b[1] - a[1])
-                      .map(([m, v]) => (
-                        <li key={m} className="flex items-center justify-between gap-3">
-                          <span className="text-sm capitalize">{m.replace(/_/g, " ")}</span>
-                          <span className="font-display text-lg">{ils(v)}</span>
+            {/* Summary KPI strip */}
+            <section>
+              <SectionHeader title={t("reports.atGlance")} eyebrow={t("reports.topMetrics")} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5 mt-6">
+                <MetricCard
+                  label={t("reports.revenue")}
+                  value={ils(data.summary.totalRevenue)}
+                  prev={
+                    data.summary.prevTotalRevenue !== null
+                      ? ils(data.summary.prevTotalRevenue)
+                      : null
+                  }
+                  delta={delta(data.summary.totalRevenue, data.summary.prevTotalRevenue)}
+                  hint={t("reports.netRefunds")}
+                />
+                <MetricCard
+                  label={t("reports.bookings")}
+                  value={String(data.summary.bookingsCount)}
+                  prev={
+                    data.summary.prevBookingsCount !== null
+                      ? String(data.summary.prevBookingsCount)
+                      : null
+                  }
+                  delta={delta(data.summary.bookingsCount, data.summary.prevBookingsCount)}
+                  hint={t("reports.createdRange")}
+                />
+                <MetricCard
+                  label={t("reports.attendanceRate")}
+                  value={pct(data.summary.attendanceRate)}
+                  hint={t("reports.expectedAttendance")}
+                />
+                <MetricCard
+                  label={t("reports.activeMembers")}
+                  value={String(data.summary.activeMembersCount)}
+                  hint={t("reports.visited60")}
+                />
+                <MetricCard
+                  label={t("reports.newMembers")}
+                  value={String(data.summary.newMembersCount)}
+                  hint={t("reports.joinedPeriod")}
+                />
+                <MetricCard
+                  label={t("reports.packageSales")}
+                  value={String(data.summary.packageSalesCount)}
+                  hint={t("reports.paidPlanTransactions")}
+                />
+                <MetricCard
+                  label={t("reports.noShowRate")}
+                  value={pct(data.summary.noShowRate)}
+                  hint={t("reports.markedAttendance")}
+                  tone={data.summary.noShowRate > 0.15 ? "gold" : "default"}
+                />
+                <MetricCard
+                  label={t("reports.waitlistDemand")}
+                  value={String(data.summary.waitlistDemand)}
+                  hint={t("reports.entriesPeriod")}
+                />
+              </div>
+            </section>
+
+            {/* Revenue */}
+            <section>
+              <SectionHeader
+                title={t("reports.revenue")}
+                eyebrow={t("reports.revenue")}
+                right={
+                  <ExportButton
+                    onClick={() =>
+                      csvDownload("revenue.csv", [
+                        ["Date", "Amount (ILS)"],
+                        ...data.revenue.series.map((s) => [s.date, s.amount]),
+                      ])
+                    }
+                    label={t("reports.exportRevenue")}
+                  />
+                }
+              />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
+                <Panel title={t("reports.trend")} className="lg:col-span-2">
+                  {data.revenue.series.length === 0 ? (
+                    <EmptyState text={t("reports.noPaymentsRange")} />
+                  ) : (
+                    <div className="h-56 w-full min-w-0 -mx-2 sm:mx-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={data.revenue.series}
+                          margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fill: "#6F7A8C", fontSize: 11 }}
+                            tickFormatter={(d) => d.slice(5)}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              background: "#FAF7F2",
+                              border: "1px solid rgba(212,175,106,0.4)",
+                              borderRadius: 10,
+                            }}
+                            formatter={(v: number) => ils(v)}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="amount"
+                            stroke="#0B1D3A"
+                            strokeWidth={2}
+                            dot={{ fill: "#D4AF6A", r: 3 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                  <div className="mt-5 pt-5 border-t border-gold/20 grid grid-cols-3 gap-3 sm:gap-4 text-sm">
+                    <Stat label={t("reports.total")} value={ils(data.revenue.total)} />
+                    <Stat label={t("reports.refunded")} value={ils(data.revenue.refunded)} />
+                    <Stat label={t("reports.outstanding")} value={ils(data.revenue.outstanding)} />
+                  </div>
+                </Panel>
+
+                <Panel title={t("reports.byMethod")}>
+                  {Object.keys(data.revenue.byMethod).length === 0 ? (
+                    <EmptyState text={t("reports.noRevenue")} />
+                  ) : (
+                    <ul className="space-y-3">
+                      {Object.entries(data.revenue.byMethod)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([m, v]) => (
+                          <li key={m} className="flex items-center justify-between gap-3">
+                            <span className="text-sm capitalize">{m.replace(/_/g, " ")}</span>
+                            <span className="font-display text-lg">{ils(v)}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </Panel>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+                <Panel title={t("reports.byPackage")}>
+                  {data.revenue.byPlan.length === 0 ? (
+                    <EmptyState text={t("reports.noPackageRevenue")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {data.revenue.byPlan.slice(0, 8).map((p) => (
+                        <li key={p.id} className="py-2.5 flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-display truncate">{p.name}</p>
+                            <p className="text-xs text-slate">
+                              {t("reports.salesCount", { count: p.count })}
+                            </p>
+                          </div>
+                          <span className="font-display text-lg shrink-0">{ils(p.amount)}</span>
                         </li>
                       ))}
-                  </ul>
-                )}
-              </Panel>
-            </div>
+                    </ul>
+                  )}
+                </Panel>
+                <Panel title={t("reports.topSpenders")}>
+                  {data.revenue.topSpenders.length === 0 ? (
+                    <EmptyState text={t("reports.noSpending")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {data.revenue.topSpenders.map((s) => (
+                        <li key={s.id} className="py-2.5 flex items-center justify-between gap-3">
+                          <Link
+                            to="/admin/members/$id"
+                            params={{ id: s.id }}
+                            className="font-display truncate hover:underline"
+                          >
+                            {s.name}
+                          </Link>
+                          <span className="font-display text-lg shrink-0">{ils(s.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Panel>
+              </div>
+              <p className="mt-3 text-xs text-slate">
+                {t("reports.averageRevenue")}:{" "}
+                <span className="font-display text-navy">
+                  {ils(data.summary.avgRevenuePerActiveMember)}
+                </span>
+              </p>
+            </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-              <Panel title={t("reports.byPackage")}>
-                {data.revenue.byPlan.length === 0 ? (
-                  <EmptyState text={t("reports.noPackageRevenue")} />
-                ) : (
+            {/* Classes & Attendance */}
+            <section>
+              <SectionHeader
+                title={t("reports.classesAttendance")}
+                eyebrow={t("reports.fillingStudio")}
+                right={
+                  <ExportButton
+                    onClick={() =>
+                      csvDownload("attendance.csv", [
+                        ["Class", "Date", "Room", "Instructor", "Capacity", "Booked", "Fill %"],
+                        ...data.attendance.mostBooked.map((c) => [
+                          c.title,
+                          c.starts_at,
+                          c.room ?? "",
+                          c.instructor ?? "",
+                          c.capacity,
+                          c.booked,
+                          (c.fill * 100).toFixed(0),
+                        ]),
+                      ])
+                    }
+                    label={t("reports.exportAttendance")}
+                  />
+                }
+              />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-5 mt-6">
+                <MetricCard
+                  label={t("reports.classesHeld")}
+                  value={String(data.attendance.totalClasses)}
+                />
+                <MetricCard
+                  label={t("reports.totalBookings")}
+                  value={String(data.attendance.totalBookings)}
+                />
+                <MetricCard
+                  label={t("reports.avgFillRate")}
+                  value={pct(data.attendance.fillRate)}
+                />
+                <MetricCard label={t("reports.noShows")} value={pct(data.attendance.noShowRate)} />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+                <Panel title={t("reports.mostBooked")}>
+                  {data.attendance.mostBooked.length === 0 ? (
+                    <EmptyState text={t("reports.noClassesRange")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {data.attendance.mostBooked.map((c) => (
+                        <ClassRow key={c.id} c={c} locale={locale} />
+                      ))}
+                    </ul>
+                  )}
+                </Panel>
+                <Panel title={t("reports.lowFillRate")}>
+                  {data.attendance.leastBooked.length === 0 ? (
+                    <EmptyState text={t("reports.nothingToFlag")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {data.attendance.leastBooked.map((c) => (
+                        <ClassRow key={c.id} c={c} locale={locale} />
+                      ))}
+                    </ul>
+                  )}
+                </Panel>
+              </div>
+              {data.attendance.upcomingAtRisk.length > 0 && (
+                <Panel title={t("reports.upcomingAtRisk")} tone="sand" className="mt-5">
                   <ul className="divide-y divide-gold/15">
-                    {data.revenue.byPlan.slice(0, 8).map((p) => (
-                      <li key={p.id} className="py-2.5 flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-display truncate">{p.name}</p>
+                    {data.attendance.upcomingAtRisk.map((c) => (
+                      <li
+                        key={c.id}
+                        className="py-2.5 flex items-center justify-between gap-3 text-sm"
+                      >
+                        <div>
+                          <p className="font-display">{c.title}</p>
                           <p className="text-xs text-slate">
-                            {t("reports.salesCount", { count: p.count })}
+                            {new Date(c.starts_at).toLocaleString(locale, {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}{" "}
+                            · {c.room}
                           </p>
                         </div>
-                        <span className="font-display text-lg shrink-0">{ils(p.amount)}</span>
+                        <span className="text-xs font-medium text-slate">
+                          {c.booked}/{c.capacity}
+                        </span>
                       </li>
                     ))}
                   </ul>
-                )}
-              </Panel>
-              <Panel title={t("reports.topSpenders")}>
-                {data.revenue.topSpenders.length === 0 ? (
-                  <EmptyState text={t("reports.noSpending")} />
-                ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {data.revenue.topSpenders.map((s) => (
-                      <li key={s.id} className="py-2.5 flex items-center justify-between gap-3">
-                        <Link
-                          to="/admin/members/$id"
-                          params={{ id: s.id }}
-                          className="font-display truncate hover:underline"
-                        >
-                          {s.name}
-                        </Link>
-                        <span className="font-display text-lg shrink-0">{ils(s.amount)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Panel>
-            </div>
-            <p className="mt-3 text-xs text-slate">
-              {t("reports.averageRevenue")}:{" "}
-              <span className="font-display text-navy">
-                {ils(data.summary.avgRevenuePerActiveMember)}
-              </span>
-            </p>
-          </section>
+                </Panel>
+              )}
+            </section>
 
-          {/* Classes & Attendance */}
-          <section>
-            <SectionHeader
-              title={t("reports.classesAttendance")}
-              eyebrow={t("reports.fillingStudio")}
-              right={
-                <ExportButton
-                  onClick={() =>
-                    csvDownload("attendance.csv", [
-                      ["Class", "Date", "Room", "Instructor", "Capacity", "Booked", "Fill %"],
-                      ...data.attendance.mostBooked.map((c) => [
-                        c.title,
-                        c.starts_at,
-                        c.room ?? "",
-                        c.instructor ?? "",
-                        c.capacity,
-                        c.booked,
-                        (c.fill * 100).toFixed(0),
-                      ]),
-                    ])
-                  }
-                  label={t("reports.exportAttendance")}
-                />
-              }
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-5 mt-6">
-              <MetricCard
-                label={t("reports.classesHeld")}
-                value={String(data.attendance.totalClasses)}
+            {/* Rooms */}
+            <section>
+              <SectionHeader
+                title={t("reports.rooms.title")}
+                eyebrow={t("reports.rooms.eyebrow")}
               />
-              <MetricCard
-                label={t("reports.totalBookings")}
-                value={String(data.attendance.totalBookings)}
-              />
-              <MetricCard label={t("reports.avgFillRate")} value={pct(data.attendance.fillRate)} />
-              <MetricCard label={t("reports.noShows")} value={pct(data.attendance.noShowRate)} />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-              <Panel title={t("reports.mostBooked")}>
-                {data.attendance.mostBooked.length === 0 ? (
-                  <EmptyState text={t("reports.noClassesRange")} />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+                {data.rooms.length === 0 ? (
+                  <div className="lg:col-span-3">
+                    <EmptyState text={t("reports.noRoomActivity")} />
+                  </div>
                 ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {data.attendance.mostBooked.map((c) => (
-                      <ClassRow key={c.id} c={c} locale={locale} />
-                    ))}
-                  </ul>
-                )}
-              </Panel>
-              <Panel title={t("reports.lowFillRate")}>
-                {data.attendance.leastBooked.length === 0 ? (
-                  <EmptyState text={t("reports.nothingToFlag")} />
-                ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {data.attendance.leastBooked.map((c) => (
-                      <ClassRow key={c.id} c={c} locale={locale} />
-                    ))}
-                  </ul>
-                )}
-              </Panel>
-            </div>
-            {data.attendance.upcomingAtRisk.length > 0 && (
-              <Panel title={t("reports.upcomingAtRisk")} tone="sand" className="mt-5">
-                <ul className="divide-y divide-gold/15">
-                  {data.attendance.upcomingAtRisk.map((c) => (
-                    <li
-                      key={c.id}
-                      className="py-2.5 flex items-center justify-between gap-3 text-sm"
-                    >
-                      <div>
-                        <p className="font-display">{c.title}</p>
-                        <p className="text-xs text-slate">
-                          {new Date(c.starts_at).toLocaleString(locale, {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}{" "}
-                          · {c.room}
+                  data.rooms.map((r, i) => (
+                    <div key={r.id ?? r.name + i} className="editorial-card overflow-hidden">
+                      {r.image_url && (
+                        <div
+                          className="h-32 bg-cover bg-center"
+                          style={{ backgroundImage: `url(${r.image_url})` }}
+                        />
+                      )}
+                      <div className="p-5">
+                        <p className="font-display text-xl">{r.name}</p>
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                          <Stat label={t("reports.classes")} value={String(r.classes)} />
+                          <Stat label={t("reports.avgFill")} value={pct(r.avgFill)} />
+                        </div>
+                        <p className="mt-3 text-xs font-medium text-slate">
+                          {r.classes < 3
+                            ? t("reports.needsMoreData")
+                            : r.avgFill >= 0.85
+                              ? t("reports.highDemand")
+                              : r.avgFill >= 0.5
+                                ? t("reports.comfortablyUsed")
+                                : t("reports.underused")}
                         </p>
                       </div>
-                      <span className="text-xs font-medium text-slate">
-                        {c.booked}/{c.capacity}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-            )}
-          </section>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
 
-          {/* Rooms */}
-          <section>
-            <SectionHeader title={t("reports.rooms.title")} eyebrow={t("reports.rooms.eyebrow")} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-              {data.rooms.length === 0 ? (
-                <div className="lg:col-span-3">
-                  <EmptyState text={t("reports.noRoomActivity")} />
-                </div>
-              ) : (
-                data.rooms.map((r, i) => (
-                  <div key={r.id ?? r.name + i} className="editorial-card overflow-hidden">
-                    {r.image_url && (
-                      <div
-                        className="h-32 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${r.image_url})` }}
-                      />
-                    )}
-                    <div className="p-5">
-                      <p className="font-display text-xl">{r.name}</p>
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                        <Stat label={t("reports.classes")} value={String(r.classes)} />
-                        <Stat label={t("reports.avgFill")} value={pct(r.avgFill)} />
+            {/* Instructors */}
+            <section>
+              <SectionHeader
+                title={t("reports.instructors.title")}
+                eyebrow={t("reports.instructors.eyebrow")}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+                {data.instructors.length === 0 ? (
+                  <div className="lg:col-span-3">
+                    <EmptyState text={t("reports.noInstructorClasses")} />
+                  </div>
+                ) : (
+                  data.instructors.map((i) => (
+                    <div key={i.id} className="editorial-card p-5">
+                      <div className="flex items-center gap-3">
+                        {i.avatar_url ? (
+                          <img
+                            src={i.avatar_url}
+                            alt={i.name}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-gold/20" />
+                        )}
+                        <p className="font-display text-lg">{i.name}</p>
                       </div>
-                      <p className="mt-3 text-xs font-medium text-slate">
-                        {r.classes < 3
-                          ? t("reports.needsMoreData")
-                          : r.avgFill >= 0.85
-                            ? t("reports.highDemand")
-                            : r.avgFill >= 0.5
-                              ? t("reports.comfortablyUsed")
-                              : t("reports.underused")}
-                      </p>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                        <Stat label={t("reports.classes")} value={String(i.classes)} />
+                        <Stat label={t("reports.fill")} value={pct(i.avgFill)} />
+                        <Stat label={t("reports.attended")} value={pct(i.attendanceRate)} />
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
+                  ))
+                )}
+              </div>
+            </section>
 
-          {/* Instructors */}
-          <section>
-            <SectionHeader
-              title={t("reports.instructors.title")}
-              eyebrow={t("reports.instructors.eyebrow")}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-              {data.instructors.length === 0 ? (
-                <div className="lg:col-span-3">
-                  <EmptyState text={t("reports.noInstructorClasses")} />
-                </div>
-              ) : (
-                data.instructors.map((i) => (
-                  <div key={i.id} className="editorial-card p-5">
-                    <div className="flex items-center gap-3">
-                      {i.avatar_url ? (
-                        <img
-                          src={i.avatar_url}
-                          alt={i.name}
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gold/20" />
-                      )}
-                      <p className="font-display text-lg">{i.name}</p>
-                    </div>
-                    <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                      <Stat label={t("reports.classes")} value={String(i.classes)} />
-                      <Stat label={t("reports.fill")} value={pct(i.avgFill)} />
-                      <Stat label={t("reports.attended")} value={pct(i.attendanceRate)} />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-
-          {/* Members at risk */}
-          <section>
-            <SectionHeader
-              title={t("reports.members.title")}
-              eyebrow={t("reports.members.eyebrow")}
-              right={
-                <ExportButton
-                  onClick={() =>
-                    csvDownload("members-at-risk.csv", [
-                      ["Name", "Phone", "Last visit", "Remaining credits", "Reasons"],
-                      ...data.members.atRisk.map((m) => [
-                        m.name,
-                        m.phone ?? "",
-                        m.last_visit_at ?? "",
-                        m.remaining_credits,
-                        m.reasons.join("; "),
-                      ]),
-                    ])
-                  }
-                  label={t("reports.exportMembers")}
+            {/* Members at risk */}
+            <section>
+              <SectionHeader
+                title={t("reports.members.title")}
+                eyebrow={t("reports.members.eyebrow")}
+                right={
+                  <ExportButton
+                    onClick={() =>
+                      csvDownload("members-at-risk.csv", [
+                        ["Name", "Phone", "Last visit", "Remaining credits", "Reasons"],
+                        ...data.members.atRisk.map((m) => [
+                          m.name,
+                          m.phone ?? "",
+                          m.last_visit_at ?? "",
+                          m.remaining_credits,
+                          m.reasons.join("; "),
+                        ]),
+                      ])
+                    }
+                    label={t("reports.exportMembers")}
+                  />
+                }
+              />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-5 mt-6">
+                <MetricCard label={t("reports.active")} value={String(data.members.active)} />
+                <MetricCard label={t("reports.new")} value={String(data.members.new)} />
+                <MetricCard label={t("reports.inactive")} value={String(data.members.inactive)} />
+                <MetricCard
+                  label={t("reports.firstTimers")}
+                  value={String(data.members.firstTimers)}
                 />
-              }
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-5 mt-6">
-              <MetricCard label={t("reports.active")} value={String(data.members.active)} />
-              <MetricCard label={t("reports.new")} value={String(data.members.new)} />
-              <MetricCard label={t("reports.inactive")} value={String(data.members.inactive)} />
-              <MetricCard
-                label={t("reports.firstTimers")}
-                value={String(data.members.firstTimers)}
+                <MetricCard
+                  label={t("reports.lowCredits")}
+                  value={String(data.members.lowCredits)}
+                />
+                <MetricCard
+                  label={t("reports.packageExpiring")}
+                  value={String(data.members.expiringSoon)}
+                />
+              </div>
+              <Panel title={t("reports.attention")} tone="sand" className="mt-5">
+                {data.members.atRisk.length === 0 ? (
+                  <EmptyState text={t("reports.everyMemberGood")} />
+                ) : (
+                  <ul className="divide-y divide-gold/15">
+                    {data.members.atRisk.slice(0, 12).map((m) => {
+                      const waHref = m.phone
+                        ? `https://wa.me/${String(m.phone).replace(/[^0-9]/g, "")}`
+                        : null;
+                      return (
+                        <li
+                          key={m.id}
+                          className="py-3 grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center"
+                        >
+                          <div className="min-w-0">
+                            <Link
+                              to="/admin/members/$id"
+                              params={{ id: m.id }}
+                              className="font-display text-base sm:text-lg hover:underline truncate block"
+                            >
+                              {m.name}
+                            </Link>
+                            <p className="mt-1 truncate text-xs font-medium text-slate">
+                              {m.reasons.join(" · ") || t("reports.checkIn")}
+                            </p>
+                            <p className="mt-1 text-xs text-slate">
+                              {t("reports.credits", { count: m.remaining_credits })}
+                              {m.last_visit_at
+                                ? ` · ${t("reports.lastVisit", { date: new Date(m.last_visit_at).toLocaleDateString(locale, { month: "short", day: "numeric" }) })}`
+                                : ` · ${t("reports.noVisitsYet")}`}
+                            </p>
+                          </div>
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+                            {waHref && (
+                              <a
+                                href={waHref}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn-outline inline-flex items-center gap-1 px-2.5 py-1 text-xs hover:btn-outline-hover"
+                              >
+                                {t("reports.message")}
+                              </a>
+                            )}
+                            <Link
+                              to="/admin/members/$id"
+                              params={{ id: m.id }}
+                              className="inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-gold"
+                            >
+                              {t("reports.open")} <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </Panel>
+            </section>
+
+            {/* Packages */}
+            <section>
+              <SectionHeader
+                title={t("reports.packages.title")}
+                eyebrow={t("reports.packages.eyebrow")}
+                right={
+                  <ExportButton
+                    onClick={() =>
+                      csvDownload("packages.csv", [
+                        ["Package", "Revenue", "Sales", "Active", "Expiring soon"],
+                        ...data.packages.report.map((p) => [
+                          p.name,
+                          p.revenue,
+                          p.sales,
+                          p.active,
+                          p.expiringSoon,
+                        ]),
+                      ])
+                    }
+                    label={t("reports.exportPackages")}
+                  />
+                }
               />
-              <MetricCard label={t("reports.lowCredits")} value={String(data.members.lowCredits)} />
-              <MetricCard
-                label={t("reports.packageExpiring")}
-                value={String(data.members.expiringSoon)}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                {data.packages.report.length === 0 ? (
+                  <div className="md:col-span-2">
+                    <EmptyState text={t("reports.noPlans")} />
+                  </div>
+                ) : (
+                  data.packages.report.slice(0, 8).map((p) => (
+                    <div key={p.id} className="editorial-card p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-display text-xl">{p.name}</p>
+                        <span className="font-display text-2xl">{ils(p.revenue)}</span>
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                        <Stat label={t("reports.sales")} value={String(p.sales)} />
+                        <Stat label={t("reports.active")} value={String(p.active)} />
+                        <Stat label={t("reports.expiring")} value={String(p.expiringSoon)} />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <Panel title={t("reports.packageRequests")} className="mt-5">
+                {Object.keys(data.packages.requestsByStatus).length === 0 ? (
+                  <EmptyState text={t("reports.noPackageRequests")} />
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(data.packages.requestsByStatus).map(([s, n]) => (
+                      <Stat key={s} label={s.replace(/_/g, " ")} value={String(n)} />
+                    ))}
+                  </div>
+                )}
+              </Panel>
+            </section>
+
+            {/* Waitlist */}
+            <section>
+              <SectionHeader
+                title={t("reports.waitlist.title")}
+                eyebrow={t("reports.waitlist.eyebrow")}
+                right={
+                  <ExportButton
+                    onClick={() =>
+                      csvDownload("waitlist.csv", [
+                        ["Class", "Date", "Waitlist count", "Promoted"],
+                        ...data.waitlist.topClasses.map((c) => [
+                          c.title ?? "",
+                          c.starts_at ?? "",
+                          c.count,
+                          c.promoted,
+                        ]),
+                      ])
+                    }
+                    label={t("reports.exportWaitlist")}
+                  />
+                }
               />
-            </div>
-            <Panel title={t("reports.attention")} tone="sand" className="mt-5">
-              {data.members.atRisk.length === 0 ? (
-                <EmptyState text={t("reports.everyMemberGood")} />
-              ) : (
-                <ul className="divide-y divide-gold/15">
-                  {data.members.atRisk.slice(0, 12).map((m) => {
-                    const waHref = m.phone
-                      ? `https://wa.me/${String(m.phone).replace(/[^0-9]/g, "")}`
-                      : null;
-                    return (
-                      <li
-                        key={m.id}
-                        className="py-3 grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center"
-                      >
-                        <div className="min-w-0">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-5 mt-6">
+                <MetricCard
+                  label={t("reports.totalJoins")}
+                  value={String(data.waitlist.totalJoins)}
+                />
+                <MetricCard
+                  label={t("reports.offered")}
+                  value={String(data.waitlist.byStatus["offered"] ?? 0)}
+                />
+                <MetricCard
+                  label={t("reports.promoted")}
+                  value={String(data.waitlist.byStatus["promoted"] ?? 0)}
+                />
+                <MetricCard
+                  label={t("reports.conversion")}
+                  value={pct(data.waitlist.conversionRate)}
+                />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+                <Panel title={t("reports.mostWaitlisted")}>
+                  {data.waitlist.topClasses.length === 0 ? (
+                    <EmptyState text={t("reports.noWaitlistActivity")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {data.waitlist.topClasses.map((c) => (
+                        <li key={c.id} className="py-2.5 flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-display truncate">{c.title}</p>
+                            <p className="text-xs text-slate">
+                              {c.starts_at
+                                ? new Date(c.starts_at).toLocaleDateString(locale, {
+                                    month: "short",
+                                    day: "numeric",
+                                  })
+                                : "—"}
+                            </p>
+                          </div>
+                          <span className="font-display text-lg shrink-0">{c.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Panel>
+                <Panel title={t("reports.frequentWaitlisters")}>
+                  {data.waitlist.frequentMembers.length === 0 ? (
+                    <EmptyState text={t("reports.noRepeatWaitlisters")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {data.waitlist.frequentMembers.map((m) => (
+                        <li key={m.id} className="py-2.5 flex items-center justify-between gap-3">
                           <Link
                             to="/admin/members/$id"
                             params={{ id: m.id }}
-                            className="font-display text-base sm:text-lg hover:underline truncate block"
+                            className="font-display hover:underline"
                           >
                             {m.name}
                           </Link>
-                          <p className="mt-1 truncate text-xs font-medium text-slate">
-                            {m.reasons.join(" · ") || t("reports.checkIn")}
-                          </p>
-                          <p className="mt-1 text-xs text-slate">
-                            {t("reports.credits", { count: m.remaining_credits })}
-                            {m.last_visit_at
-                              ? ` · ${t("reports.lastVisit", { date: new Date(m.last_visit_at).toLocaleDateString(locale, { month: "short", day: "numeric" }) })}`
-                              : ` · ${t("reports.noVisitsYet")}`}
-                          </p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
-                          {waHref && (
-                            <a
-                              href={waHref}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="btn-outline inline-flex items-center gap-1 px-2.5 py-1 text-xs hover:btn-outline-hover"
-                            >
-                              {t("reports.message")}
-                            </a>
-                          )}
-                          <Link
-                            to="/admin/members/$id"
-                            params={{ id: m.id }}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-gold"
-                          >
-                            {t("reports.open")} <ArrowRight className="h-3 w-3" />
-                          </Link>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </Panel>
-          </section>
-
-          {/* Packages */}
-          <section>
-            <SectionHeader
-              title={t("reports.packages.title")}
-              eyebrow={t("reports.packages.eyebrow")}
-              right={
-                <ExportButton
-                  onClick={() =>
-                    csvDownload("packages.csv", [
-                      ["Package", "Revenue", "Sales", "Active", "Expiring soon"],
-                      ...data.packages.report.map((p) => [
-                        p.name,
-                        p.revenue,
-                        p.sales,
-                        p.active,
-                        p.expiringSoon,
-                      ]),
-                    ])
-                  }
-                  label={t("reports.exportPackages")}
-                />
-              }
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
-              {data.packages.report.length === 0 ? (
-                <div className="md:col-span-2">
-                  <EmptyState text={t("reports.noPlans")} />
-                </div>
-              ) : (
-                data.packages.report.slice(0, 8).map((p) => (
-                  <div key={p.id} className="editorial-card p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="font-display text-xl">{p.name}</p>
-                      <span className="font-display text-2xl">{ils(p.revenue)}</span>
-                    </div>
-                    <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                      <Stat label={t("reports.sales")} value={String(p.sales)} />
-                      <Stat label={t("reports.active")} value={String(p.active)} />
-                      <Stat label={t("reports.expiring")} value={String(p.expiringSoon)} />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <Panel title={t("reports.packageRequests")} className="mt-5">
-              {Object.keys(data.packages.requestsByStatus).length === 0 ? (
-                <EmptyState text={t("reports.noPackageRequests")} />
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(data.packages.requestsByStatus).map(([s, n]) => (
-                    <Stat key={s} label={s.replace(/_/g, " ")} value={String(n)} />
-                  ))}
-                </div>
-              )}
-            </Panel>
-          </section>
-
-          {/* Waitlist */}
-          <section>
-            <SectionHeader
-              title={t("reports.waitlist.title")}
-              eyebrow={t("reports.waitlist.eyebrow")}
-              right={
-                <ExportButton
-                  onClick={() =>
-                    csvDownload("waitlist.csv", [
-                      ["Class", "Date", "Waitlist count", "Promoted"],
-                      ...data.waitlist.topClasses.map((c) => [
-                        c.title ?? "",
-                        c.starts_at ?? "",
-                        c.count,
-                        c.promoted,
-                      ]),
-                    ])
-                  }
-                  label={t("reports.exportWaitlist")}
-                />
-              }
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-5 mt-6">
-              <MetricCard
-                label={t("reports.totalJoins")}
-                value={String(data.waitlist.totalJoins)}
-              />
-              <MetricCard
-                label={t("reports.offered")}
-                value={String(data.waitlist.byStatus["offered"] ?? 0)}
-              />
-              <MetricCard
-                label={t("reports.promoted")}
-                value={String(data.waitlist.byStatus["promoted"] ?? 0)}
-              />
-              <MetricCard
-                label={t("reports.conversion")}
-                value={pct(data.waitlist.conversionRate)}
-              />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-              <Panel title={t("reports.mostWaitlisted")}>
-                {data.waitlist.topClasses.length === 0 ? (
-                  <EmptyState text={t("reports.noWaitlistActivity")} />
-                ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {data.waitlist.topClasses.map((c) => (
-                      <li key={c.id} className="py-2.5 flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-display truncate">{c.title}</p>
-                          <p className="text-xs text-slate">
-                            {c.starts_at
-                              ? new Date(c.starts_at).toLocaleDateString(locale, {
-                                  month: "short",
-                                  day: "numeric",
-                                })
-                              : "—"}
-                          </p>
-                        </div>
-                        <span className="font-display text-lg shrink-0">{c.count}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Panel>
-              <Panel title={t("reports.frequentWaitlisters")}>
-                {data.waitlist.frequentMembers.length === 0 ? (
-                  <EmptyState text={t("reports.noRepeatWaitlisters")} />
-                ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {data.waitlist.frequentMembers.map((m) => (
-                      <li key={m.id} className="py-2.5 flex items-center justify-between gap-3">
-                        <Link
-                          to="/admin/members/$id"
-                          params={{ id: m.id }}
-                          className="font-display hover:underline"
-                        >
-                          {m.name}
-                        </Link>
-                        <span className="font-display text-lg">{m.count}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Panel>
-            </div>
-          </section>
-
-          {/* Communication */}
-          <section>
-            <SectionHeader
-              title={t("reports.communication.title")}
-              eyebrow={t("reports.communication.eyebrow")}
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-5 mt-6">
-              <MetricCard
-                label={t("reports.generated")}
-                value={String(data.communication.generated)}
-                hint={t("reports.messagesPrepared")}
-              />
-              <MetricCard
-                label={t("reports.markedSent")}
-                value={String(data.communication.markedSent)}
-                hint={t("reports.manuallyConfirmed")}
-              />
-              <MetricCard
-                label={t("reports.templatesUsed")}
-                value={String(Object.keys(data.communication.byTemplate).length)}
-              />
-              <MetricCard
-                label={t("reports.triggerTypes")}
-                value={String(Object.keys(data.communication.byTrigger).length)}
-              />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-              <Panel title={t("reports.mostUsedTemplates")}>
-                {Object.keys(data.communication.byTemplate).length === 0 ? (
-                  <EmptyState text={t("reports.noMessagesPrepared")} />
-                ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {Object.entries(data.communication.byTemplate)
-                      .sort((a, b) => b[1] - a[1])
-                      .slice(0, 6)
-                      .map(([k, v]) => (
-                        <li key={k} className="py-2.5 flex items-center justify-between gap-3">
-                          <span className="text-sm capitalize">{k.replace(/_/g, " ")}</span>
-                          <span className="font-display text-lg">{v}</span>
+                          <span className="font-display text-lg">{m.count}</span>
                         </li>
                       ))}
-                  </ul>
-                )}
-              </Panel>
-              <Panel title={t("reports.byTrigger")}>
-                {Object.keys(data.communication.byTrigger).length === 0 ? (
-                  <EmptyState text={t("reports.noTrackedTriggers")} />
-                ) : (
-                  <ul className="divide-y divide-gold/15">
-                    {Object.entries(data.communication.byTrigger)
-                      .sort((a, b) => b[1] - a[1])
-                      .map(([k, v]) => (
-                        <li key={k} className="py-2.5 flex items-center justify-between gap-3">
-                          <span className="text-sm capitalize">{k.replace(/_/g, " ")}</span>
-                          <span className="font-display text-lg">{v}</span>
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </Panel>
-            </div>
-          </section>
-        </>
-      )}
-    </div>
+                    </ul>
+                  )}
+                </Panel>
+              </div>
+            </section>
+
+            {/* Communication */}
+            <section>
+              <SectionHeader
+                title={t("reports.communication.title")}
+                eyebrow={t("reports.communication.eyebrow")}
+              />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-5 mt-6">
+                <MetricCard
+                  label={t("reports.generated")}
+                  value={String(data.communication.generated)}
+                  hint={t("reports.messagesPrepared")}
+                />
+                <MetricCard
+                  label={t("reports.markedSent")}
+                  value={String(data.communication.markedSent)}
+                  hint={t("reports.manuallyConfirmed")}
+                />
+                <MetricCard
+                  label={t("reports.templatesUsed")}
+                  value={String(Object.keys(data.communication.byTemplate).length)}
+                />
+                <MetricCard
+                  label={t("reports.triggerTypes")}
+                  value={String(Object.keys(data.communication.byTrigger).length)}
+                />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+                <Panel title={t("reports.mostUsedTemplates")}>
+                  {Object.keys(data.communication.byTemplate).length === 0 ? (
+                    <EmptyState text={t("reports.noMessagesPrepared")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {Object.entries(data.communication.byTemplate)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 6)
+                        .map(([k, v]) => (
+                          <li key={k} className="py-2.5 flex items-center justify-between gap-3">
+                            <span className="text-sm capitalize">{k.replace(/_/g, " ")}</span>
+                            <span className="font-display text-lg">{v}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </Panel>
+                <Panel title={t("reports.byTrigger")}>
+                  {Object.keys(data.communication.byTrigger).length === 0 ? (
+                    <EmptyState text={t("reports.noTrackedTriggers")} />
+                  ) : (
+                    <ul className="divide-y divide-gold/15">
+                      {Object.entries(data.communication.byTrigger)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([k, v]) => (
+                          <li key={k} className="py-2.5 flex items-center justify-between gap-3">
+                            <span className="text-sm capitalize">{k.replace(/_/g, " ")}</span>
+                            <span className="font-display text-lg">{v}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </Panel>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </AdminPageShell>
   );
 }
 

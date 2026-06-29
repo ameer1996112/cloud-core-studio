@@ -10,7 +10,13 @@ import {
 } from "@/lib/payments.functions";
 import { confirmPaymentAndIssueReceipt } from "@/lib/receipts.functions";
 import { listMembers, listPlans } from "@/lib/admin.functions";
-import { Empty, SectionTitle, Field, Stat } from "@/components/admin-shared";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AdminMetricCard,
+  Empty,
+  Field,
+} from "@/components/admin-shared";
 import { showApiError, showApiSuccess } from "@/lib/error-messages";
 import { toast } from "sonner";
 import { Plus, RotateCcw, CheckCircle2, FileText, X } from "lucide-react";
@@ -31,15 +37,8 @@ export const Route = createFileRoute("/_authenticated/admin/payments")({
   component: PaymentsPage,
 });
 
-const ils = (n: number) =>
-  new Intl.NumberFormat("he-IL", {
-    style: "currency",
-    currency: "ILS",
-    maximumFractionDigits: 0,
-  }).format(n);
-
 function PaymentsPage() {
-  const { lang } = useI18n();
+  const { lang, locale } = useI18n();
   useDocumentTitle("page.payments.title");
   const list = useServerFn(listPayments);
   const sum = useServerFn(revenueSummary);
@@ -48,6 +47,13 @@ function PaymentsPage() {
   const refund = useServerFn(refundPayment);
   const confirmReceipt = useServerFn(confirmPaymentAndIssueReceipt);
   const qc = useQueryClient();
+
+  const ils = (n: number) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "ILS",
+      maximumFractionDigits: 0,
+    }).format(n);
 
   const { data, isLoading } = useQuery({ queryKey: ["admin-payments"], queryFn: () => list({}) });
   const { data: summary } = useQuery({ queryKey: ["admin-revenue"], queryFn: () => sum() });
@@ -117,55 +123,52 @@ function PaymentsPage() {
   });
 
   return (
-    <div className="space-y-8">
-      <SectionTitle
+    <AdminPageShell>
+      <AdminPageHeader
+        eyebrow={t("payments.title")}
+        title={t("payments.title")}
         action={
-          <button
-            onClick={() => setOpen(true)}
-            className="btn-outline inline-flex items-center gap-2 px-4 py-2 text-xs hover:btn-outline-hover"
-          >
+          <button onClick={() => setOpen(true)} className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("payments.record")}
           </button>
         }
-      >
-        {t("payments.title")}
-      </SectionTitle>
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <Stat
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <AdminMetricCard
           label={t("payments.month")}
           value={ils(summary?.monthRevenueIls ?? 0)}
-          hint={t("payments.net")}
+          helper={t("payments.net")}
         />
-        <Stat
+        <AdminMetricCard
           label={t("payments.visible")}
           value={ils(totalShown)}
-          hint={t("payments.records", { count: data?.length ?? 0 })}
+          helper={t("payments.records", { count: data?.length ?? 0 })}
         />
-        <Stat
+        <AdminMetricCard
           label={t("payments.outstanding")}
           value={summary?.outstandingCount ?? 0}
-          hint={t("payments.pending")}
+          helper={t("payments.pending")}
+          accent={(summary?.outstandingCount ?? 0) > 0}
         />
-      </div>
+      </section>
 
       {isLoading ? (
         <div className="editorial-panel py-12 text-center text-slate">{t("payments.loading")}</div>
       ) : (data ?? []).length === 0 ? (
         <Empty>{t("payments.empty")}</Empty>
       ) : (
-        <div className="editorial-panel overflow-x-auto p-0">
-          <table className="w-full text-sm">
+        <div className="admin-table-wrap">
+          <table>
             <thead>
-              <tr className="border-b border-gold/20 text-xs font-medium text-slate">
-                <th className="text-start px-4 py-3">{t("common.date")}</th>
-                <th className="text-start px-4 py-3">{t("common.member")}</th>
-                <th className="text-start px-4 py-3">{t("common.method")}</th>
-                <th className="text-start px-4 py-3">{t("common.provider")}</th>
-                <th className="text-start px-4 py-3">{t("common.plan")}</th>
-                <th className="text-end px-4 py-3">{t("common.amount")}</th>
-                <th className="text-end px-4 py-3">{t("common.status")}</th>
-                <th className="text-end px-4 py-3">{t("common.receipt")}</th>
+              <tr>
+                <th className="text-start">{t("common.date")}</th>
+                <th className="text-start">{t("common.member")}</th>
+                <th className="text-start">{t("common.method")}</th>
+                <th className="text-start">{t("common.plan")}</th>
+                <th className="text-end">{t("common.amount")}</th>
+                <th className="text-end">{t("common.status")}</th>
+                <th className="text-end">{t("common.receipt")}</th>
                 <th />
               </tr>
             </thead>
@@ -177,29 +180,26 @@ function PaymentsPage() {
                 );
                 const canConfirm = !terminal && !receipt && Number(p.amount) > 0;
                 return (
-                  <tr key={p.id} className="border-b border-gold/10">
-                    <td className="px-4 py-3 text-slate">
-                      {new Date(p.created_at ?? p.paid_at).toLocaleDateString()}
+                  <tr key={p.id}>
+                    <td className="text-slate whitespace-nowrap">
+                      {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)}
                     </td>
-                    <td className="px-4 py-3 font-display">{p.member?.name ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs font-medium text-slate">
-                      {labelForMethod(p.method)}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-medium text-slate">
-                      {p.provider ?? t("method.manual")}
-                    </td>
-                    <td className="px-4 py-3 text-slate">
+                    <td className="font-display">{p.member?.name ?? "—"}</td>
+                    <td className="text-xs font-medium text-slate">{labelForMethod(p.method)}</td>
+                    <td className="text-slate">
                       {p.plan ? getPlanDisplay(p.plan, lang).name : "—"}
                     </td>
-                    <td className="px-4 py-3 text-end numeric-display">{ils(Number(p.amount))}</td>
-                    <td className="px-4 py-3 text-end">
+                    <td className="text-end numeric-display whitespace-nowrap">
+                      {ils(Number(p.amount))}
+                    </td>
+                    <td className="text-end">
                       <span
                         className={`rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap ${STATUS_TONE[p.status] ?? "border-slate/30 text-slate"}`}
                       >
                         {labelForStatus(p.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-end">
+                    <td className="text-end">
                       {receipt ? (
                         <Link
                           to="/receipts/$id"
@@ -207,13 +207,15 @@ function PaymentsPage() {
                           className="inline-flex max-w-[140px] items-center gap-1 truncate text-xs font-medium text-navy hover:text-gold"
                         >
                           <FileText className="h-3.5 w-3.5 shrink-0" />{" "}
-                          <span className="truncate">{receipt.receipt_number}</span>
+                          <span dir="ltr" className="truncate inline-block">
+                            {receipt.receipt_number}
+                          </span>
                         </Link>
                       ) : (
                         <span className="text-xs text-slate/50">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-end whitespace-nowrap">
+                    <td className="text-end whitespace-nowrap">
                       {canConfirm && (
                         <button
                           onClick={() => doConfirm.mutate(p.id)}
@@ -230,9 +232,10 @@ function PaymentsPage() {
                       {p.status === "paid" && (
                         <button
                           onClick={() => {
+                            const max = p.amount - p.refunded_amount;
                             const a = prompt(
-                              `Refund amount in ILS (max ${p.amount - p.refunded_amount})`,
-                              String(p.amount - p.refunded_amount),
+                              t("payments.refundPrompt", { max: String(max) }),
+                              String(max),
                             );
                             const n = Number(a);
                             if (a && !Number.isNaN(n) && n > 0)
@@ -341,7 +344,7 @@ function PaymentsPage() {
                 className="editorial-input"
                 value={form.reference}
                 onChange={(e) => setForm({ ...form, reference: e.target.value })}
-                placeholder="Receipt #, transaction id…"
+                placeholder={t("payments.referencePlaceholder")}
               />
             </Field>
             <Field label={t("payments.notes")}>
@@ -355,14 +358,14 @@ function PaymentsPage() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="btn-outline px-4 py-2 text-xs hover:btn-outline-hover"
+                className="btn-ghost hover:btn-ghost-hover"
               >
                 {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={save.isPending || !form.member_id || !form.amount}
-                className="btn-navy px-5 py-2 text-xs hover:btn-navy-hover disabled:opacity-60"
+                className="btn-navy hover:btn-navy-hover disabled:opacity-60"
               >
                 {save.isPending ? t("common.saving") : t("payments.recordShort")}
               </button>
@@ -370,6 +373,6 @@ function PaymentsPage() {
           </form>
         </div>
       )}
-    </div>
+    </AdminPageShell>
   );
 }
