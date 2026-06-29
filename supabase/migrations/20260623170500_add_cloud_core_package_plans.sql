@@ -39,12 +39,12 @@ BEGIN
            credits = 10,
            price_cents = 70000,
            currency = 'ILS',
-           duration_days = NULL,
+           duration_days = 90,
            active = true,
            updated_at = now()
      WHERE description = 'cloud_10_entry_card';
   ELSE
     INSERT INTO public.plans (name, description, credits, price_cents, currency, duration_days, active)
-    VALUES ('Cloud 10 Entry Card', 'cloud_10_entry_card', 10, 70000, 'ILS', NULL, true);
+    VALUES ('Cloud 10 Entry Card', 'cloud_10_entry_card', 10, 70000, 'ILS', 90, true);
   END IF;
 END $$;
