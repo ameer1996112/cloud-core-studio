@@ -11,6 +11,7 @@ import {
 export type LessonCardVariant = "hero" | "standard" | "compact";
 export type LessonVisualMode = "image" | "artTile" | "accent" | "minimal";
 export type LessonCardContext = "memberHome" | "memberSchedule" | "adminSchedule" | "detail";
+export type ArtTileVariant = "a" | "b" | "c";
 
 export type LessonVisualSource = LocalizedClassSource & {
   id?: string | null;
@@ -202,6 +203,16 @@ export function getLessonProgramAccent(lesson: LessonVisualSource | null | undef
   if (/hot|הוט|هوت|heat/.test(name)) return PROGRAM_ACCENTS.hot;
   if (/mat|מזרן|فرشة|حصيرة|pilates/.test(name)) return PROGRAM_ACCENTS.mat;
   return PROGRAM_ACCENTS.default;
+}
+
+export function getArtTileVariant(
+  lesson: LessonVisualSource | null | undefined,
+  index: number,
+): ArtTileVariant {
+  const hour = hasText(lesson?.starts_at) ? new Date(lesson.starts_at).getHours() : 0;
+  const toneWeight = normalize(lesson?.energy).length % 3;
+  const slot = Math.abs(index + hour + toneWeight) % 3;
+  return slot === 0 ? "a" : slot === 1 ? "b" : "c";
 }
 
 export function shouldShowRoomOnLessonCard(

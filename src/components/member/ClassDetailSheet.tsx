@@ -29,6 +29,7 @@ import { ClassArtTile } from "@/components/visual/VisualClassCard";
 import {
   formatDuration,
   formatSpots,
+  getArtTileVariant,
   getFriendlyStudioLocation,
   getLessonVisualMode,
 } from "@/lib/lesson-card-variants";
@@ -135,6 +136,7 @@ export function ClassDetailSheet({
   const detailVisualMode = cls
     ? getLessonVisualMode({ index: 0, lesson: cls, variant: "hero", context: "detail" })
     : "artTile";
+  const artTileVariant = cls ? getArtTileVariant(cls, 0) : "a";
   const locationLabel = getFriendlyStudioLocation(lang);
   const durationLabel = cls ? formatDuration(cls.duration_minutes, lang) : "";
   const spotsLabel = cls ? formatSpots(spotsLeft, cls.capacity, lang) : "";
@@ -221,7 +223,12 @@ export function ClassDetailSheet({
                   />
                 </ClassImage>
               ) : (
-                <ClassArtTile programType={cls.program_type} tone={cls.energy} lang={lang} />
+                <ClassArtTile
+                  programType={cls.program_type}
+                  tone={cls.energy}
+                  lang={lang}
+                  variant={artTileVariant}
+                />
               )}
             </div>
 

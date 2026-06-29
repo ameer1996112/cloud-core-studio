@@ -123,6 +123,61 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+function getDomPatchesScript() {
+  return `
+    (function() {
+      try {
+        if (typeof Node !== 'undefined') {
+          var origInsertBefore = Node.prototype.insertBefore;
+          Node.prototype.insertBefore = function(newNode, refNode) {
+            if (refNode && refNode.parentNode !== this) {
+              console.warn('DOM Patch [insertBefore]: referenceNode is not a child of this parent. Appending instead.', { parent: this, newNode: newNode, refNode: refNode });
+              return this.appendChild(newNode);
+            }
+            return origInsertBefore.call(this, newNode, refNode);
+          };
+
+          var origRemoveChild = Node.prototype.removeChild;
+          Node.prototype.removeChild = function(child) {
+            if (child && child.parentNode !== this) {
+              console.warn('DOM Patch [removeChild]: child is not a child of this parent. Skipping.', { parent: this, child: child });
+              return child;
+            }
+            return origRemoveChild.call(this, child);
+          };
+
+          var origReplaceChild = Node.prototype.replaceChild;
+          Node.prototype.replaceChild = function(newChild, oldChild) {
+            if (oldChild && oldChild.parentNode !== this) {
+              console.warn('DOM Patch [replaceChild]: oldChild is not a child of this parent. Appending instead.', { parent: this, newChild: newChild, oldChild: oldChild });
+              this.appendChild(newChild);
+              return oldChild;
+            }
+            return origReplaceChild.call(this, newChild, oldChild);
+          };
+        }
+
+        if (typeof Window !== 'undefined') {
+          var origPostMessage = Window.prototype.postMessage;
+          Window.prototype.postMessage = function(message, targetOrigin, transfer) {
+            try {
+              return origPostMessage.call(this, message, targetOrigin, transfer);
+            } catch (e) {
+              if (e instanceof Error && (e.message.indexOf('target origin') !== -1 || e.message.indexOf('origin') !== -1)) {
+                console.warn('DOM Patch [postMessage]: Suppressed origin mismatch error.', e);
+                return;
+              }
+              throw e;
+            }
+          };
+        }
+      } catch (err) {
+        console.error('DOM safety patches failed to initialize:', err);
+      }
+    })();
+  `;
+}
+
 function RootShell({ children }: { children: ReactNode }) {
   const initialLang = getInitialShellLang();
   setActiveLang(initialLang);
@@ -130,6 +185,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang={initialLang} dir={getDirection(initialLang)} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: getDomPatchesScript() }} />
         <script dangerouslySetInnerHTML={{ __html: getBootLangScript() }} />
         <HeadContent />
       </head>

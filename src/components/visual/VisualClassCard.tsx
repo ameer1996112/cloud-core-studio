@@ -14,9 +14,11 @@ import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
 import {
   formatDuration,
   formatSpots,
+  getArtTileVariant,
   getFriendlyStudioLocation,
   getLessonProgramAccent,
   getLessonVisualMode,
+  type ArtTileVariant,
   shouldShowRoomOnLessonCard,
   type LessonCardContext,
   type LessonCardVariant,
@@ -69,11 +71,13 @@ export function ClassArtTile({
   tone,
   lang: _lang,
   compact = false,
+  variant = "a",
 }: {
   programType?: Record<string, unknown> | null;
   tone?: string | null;
   lang?: string;
   compact?: boolean;
+  variant?: ArtTileVariant;
 }) {
   const accent = getLessonProgramAccent({
     program_type: programType ?? null,
@@ -84,7 +88,7 @@ export function ClassArtTile({
     <div
       className={`lesson-card__art-tile lesson-card__art-tile--${key} ${
         compact ? "lesson-card__art-tile--compact" : ""
-      }`}
+      } lesson-card__art-tile--variant-${variant}`}
       style={
         {
           "--lesson-accent": accent.rail,
@@ -97,28 +101,62 @@ export function ClassArtTile({
       <svg viewBox="0 0 96 96" role="img" focusable="false">
         {key === "aerial" ? (
           <>
-            <path className="motif motif-primary" d="M18 31c15-14 45-14 60 0" />
-            <path className="motif motif-soft" d="M26 31c2 23 10 34 22 34s20-11 22-34" />
-            <path className="motif motif-gold" d="M35 67c8 7 18 7 26 0" />
+            <path
+              className="motif motif-primary"
+              d={
+                variant === "b"
+                  ? "M17 38c17-18 44-18 62 0"
+                  : variant === "c"
+                    ? "M16 30c12-10 25-14 39-9 10 3 18 7 25 13"
+                    : "M18 31c15-14 45-14 60 0"
+              }
+            />
+            <path
+              className="motif motif-soft"
+              d={
+                variant === "c" ? "M28 31c5 25 15 36 30 31" : "M26 31c2 23 10 34 22 34s20-11 22-34"
+              }
+            />
+            <path
+              className="motif motif-gold"
+              d={variant === "b" ? "M31 69c10 5 24 5 34 0" : "M35 67c8 7 18 7 26 0"}
+            />
           </>
         ) : key === "hot" ? (
           <>
-            <path className="motif motif-primary" d="M27 66c12-11 8-23 21-36 16 15 21 25 13 38" />
-            <path className="motif motif-soft" d="M38 68c8-7 6-14 14-23 9 10 10 17 4 24" />
-            <path className="motif motif-gold" d="M24 74h48" />
+            <path
+              className="motif motif-primary"
+              d={
+                variant === "b"
+                  ? "M24 58c10-7 14-19 23-31 17 15 23 28 16 42"
+                  : "M27 66c12-11 8-23 21-36 16 15 21 25 13 38"
+              }
+            />
+            <path
+              className="motif motif-soft"
+              d={
+                variant === "c"
+                  ? "M31 50c9 5 20 5 31 0M30 61c10 5 22 5 33 0"
+                  : "M38 68c8-7 6-14 14-23 9 10 10 17 4 24"
+              }
+            />
+            <path className="motif motif-gold" d={variant === "b" ? "M28 74h40" : "M24 74h48"} />
           </>
         ) : key === "mat" ? (
           <>
             <rect
               className="motif-rect motif-soft-fill"
-              x="24"
-              y="28"
-              width="48"
-              height="40"
+              x={variant === "b" ? "20" : "24"}
+              y={variant === "c" ? "32" : "28"}
+              width={variant === "b" ? "56" : "48"}
+              height={variant === "c" ? "34" : "40"}
               rx="10"
             />
-            <path className="motif motif-primary" d="M31 39h34M31 49h34M31 59h22" />
-            <path className="motif motif-gold" d="M22 72h52" />
+            <path
+              className="motif motif-primary"
+              d={variant === "b" ? "M29 39h38M29 50h30M29 61h38" : "M31 39h34M31 49h34M31 59h22"}
+            />
+            <path className="motif motif-gold" d={variant === "c" ? "M28 74h40" : "M22 72h52"} />
           </>
         ) : (
           <>
@@ -449,6 +487,7 @@ export function VisualClassCard({
     context,
   });
   const accent = getLessonProgramAccent(cls);
+  const tileVariant = getArtTileVariant(cls, index);
   const isHero = resolvedVariant === "hero";
   const useHeroImage = isHero && visualMode === "image";
   const roomName =
@@ -538,6 +577,7 @@ export function VisualClassCard({
                 tone={typeof cls.energy === "string" ? cls.energy : null}
                 lang={lang}
                 compact={resolvedVariant === "compact" || visualMode === "minimal"}
+                variant={tileVariant}
               />
             </div>
           </div>
@@ -595,6 +635,7 @@ export function VisualClassCard({
               programType={cls.program_type}
               tone={typeof cls.energy === "string" ? cls.energy : null}
               lang={lang}
+              variant={tileVariant}
             />
           )}
 

@@ -40,6 +40,7 @@ const PROGRAM_NAME_ALIASES: Record<string, Record<Lang, string>> = {
   "aerial yoga": { en: "Aerial Yoga", he: "יוגה אווירית", ar: "يوغا هوائية" },
   "aerial / yoga": { en: "Aerial Yoga", he: "יוגה אווירית", ar: "يوغا هوائية" },
   "pilates mat": { en: "Pilates Mat", he: "פילאטיס מזרן", ar: "بيلاتيس فرشة" },
+  "mat pilates": { en: "Mat Pilates", he: "פילאטיס מזרן", ar: "بيلاتيس فرشة" },
   "hot pilates": { en: "Hot Pilates", he: "הוט פילאטיס", ar: "هوت بيلاتيس" },
   "core balance": { en: "Core Balance", he: "איזון ליבה", ar: "توازن مركزي" },
   pilates: { en: "Pilates", he: "פילאטיס", ar: "بيلاتس" },
@@ -153,7 +154,7 @@ function localizedPresetFromBase(baseName: string | null, lang: Lang) {
       TONE_ALIASES["tone & energy"][lang],
     ];
   }
-  if (/pilates mat|מזרן|فرشة|حصيرة/.test(normalized)) {
+  if (/pilates mat|mat pilates|מזרן|فرشة|حصيرة/.test(normalized)) {
     return [
       PROGRAM_NAME_ALIASES["pilates mat"][lang],
       LEVEL_ALIASES["all levels"][lang],
@@ -422,7 +423,9 @@ function aliasText(
   lang: Lang,
 ) {
   if (!hasText(value)) return null;
-  return aliases[value.trim().toLowerCase()]?.[lang] ?? null;
+  const direct = value.trim().toLowerCase();
+  const normalized = direct.replace(/[_-]+/g, " ").replace(/\s*\/\s*/g, " / ");
+  return aliases[direct]?.[lang] ?? aliases[normalized]?.[lang] ?? null;
 }
 
 export function localizedInstructorBio(

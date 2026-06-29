@@ -3,6 +3,7 @@ import {
   formatDuration,
   formatSpots,
   formatTime,
+  getArtTileVariant,
   getLessonVisualMode,
   getLocalizedIntensity,
   getLocalizedLessonTitle,
@@ -10,6 +11,7 @@ import {
   getLocalizedTone,
   shouldUseImageCard,
 } from "../../src/lib/lesson-card-variants.ts";
+import { localizedClassMetadataChips } from "../../src/lib/localized-content.ts";
 
 const aerial = {
   id: "aerial-1",
@@ -23,6 +25,18 @@ const aerial = {
     name_ar: "يوغا هوائية",
     level: "all_levels",
     energy: "calm",
+  },
+};
+
+const mat = {
+  id: "mat-1",
+  title: "Core Precision — Pilates Mat",
+  starts_at: "2026-07-01T09:00:00.000Z",
+  duration_minutes: 45,
+  energy: "flow",
+  program_type: {
+    name: "Mat Pilates",
+    level: "all-levels",
   },
 };
 
@@ -87,9 +101,19 @@ assert.equal(getLocalizedProgramName(aerial.program_type, "he"), "יוגה או�
 assert.equal(getLocalizedProgramName(aerial.program_type, "ar"), "يوغا هوائية");
 assert.equal(getLocalizedProgramName(aerial.program_type, "en"), "Aerial Yoga");
 assert.equal(getLocalizedProgramName({ name: "Pilates Mat" }, "en"), "Mat Pilates");
+assert.equal(getLocalizedProgramName({ name: "Mat Pilates" }, "he"), "פילאטיס מזרן");
 assert.equal(getLocalizedLessonTitle(aerial, "he"), "Cloud & Core — יוגה אווירית");
 assert.equal(getLocalizedIntensity("all_levels", "he"), "לכל הרמות");
+assert.equal(getLocalizedIntensity("all-levels", "he"), "לכל הרמות");
+assert.equal(getLocalizedIntensity("beginner-to-intermediate", "ar"), "مبتدئات–متوسط");
 assert.equal(getLocalizedTone("calm", "en"), "Calm");
+assert.deepEqual(localizedClassMetadataChips(mat, "he"), [
+  "פילאטיס מזרן",
+  "לכל הרמות",
+  "חיזוק ודיוק",
+]);
+assert.notEqual(getArtTileVariant(aerial, 0), getArtTileVariant(aerial, 1));
+assert.equal(getArtTileVariant({ ...aerial, id: "aerial-1" }, 0), getArtTileVariant(aerial, 0));
 
 assert.equal(formatDuration(55, "he"), "55 דק׳");
 assert.equal(formatDuration(55, "ar"), "55 دقيقة");
