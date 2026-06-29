@@ -40,3 +40,17 @@ Implemented Task 5 draft wiring only in:
 - Updated `waitlistPromote` to keep `booking_confirmed` limited to `status === "booked"` with a `booking_id`.
 - Added a separate dormant `waitlist_spot_available` draft branch that only runs for an explicit successful offer-like status of `status === "offered"`, using `entryId` to load the waitlist entry, member, and class.
 - Confirmed no spot-available drafts are created for `error`, `not_found`, `already_booked`, or any other non-offer status.
+
+## Visibility Fix
+
+- Updated `notificationStaffVisibility(eventKey, audience?)` so `package_request_received` is `admin_only` only for `audience: "admin"` and remains `operational` for member confirmation drafts.
+- Threaded `audience` through `buildNotificationDraftRows` when assigning `staff_visibility`.
+- Added focused unit coverage for member and admin package-request draft visibility and helper-level visibility behavior.
+
+## Visibility Fix Verification
+
+- FAIL in sandbox: `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationTemplates.test.mjs` with `listen EPERM` on the `tsx` IPC pipe under `/var/folders/...`.
+- PASS with escalated permissions: `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationTemplates.test.mjs`
+- FAIL in sandbox: `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs` with `listen EPERM` on the `tsx` IPC pipe under `/var/folders/...`.
+- PASS with escalated permissions: `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs`
+- PASS: `/Users/ameeramer/.bun/bin/bunx tsc --noEmit`

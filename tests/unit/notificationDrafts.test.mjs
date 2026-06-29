@@ -145,4 +145,62 @@ const paymentRows = buildNotificationDraftRows({
 assert.equal(paymentRows[0].staff_visibility, "admin_only");
 assert.equal(paymentRows[0].related_payment_id, "payment-1");
 
+const memberPackageRequestRows = buildNotificationDraftRows({
+  eventKey: "package_request_received",
+  channels: ["email"],
+  audience: "member",
+  member: {
+    id: "member-5",
+    name: "Rina",
+    phone: null,
+    email: "rina@example.com",
+    preferred_language: "en",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: null,
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    packageRequestId: "pkg-req-1",
+  },
+  variables: {
+    package_name: "Intro Pack",
+  },
+});
+
+assert.equal(memberPackageRequestRows[0].staff_visibility, "operational");
+
+const adminPackageRequestRows = buildNotificationDraftRows({
+  eventKey: "package_request_received",
+  channels: ["email"],
+  audience: "admin",
+  member: {
+    id: "member-6",
+    name: "Rina",
+    phone: null,
+    email: "rina@example.com",
+    preferred_language: "en",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: null,
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    packageRequestId: "pkg-req-2",
+  },
+  variables: {
+    package_name: "Intro Pack",
+  },
+});
+
+assert.equal(adminPackageRequestRows[0].staff_visibility, "admin_only");
+
 console.log("notification draft rows OK");

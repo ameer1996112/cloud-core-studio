@@ -142,7 +142,7 @@ export function buildNotificationDraftRows(
         audience,
         relatedIds: input.relatedIds,
       }),
-      staff_visibility: notificationStaffVisibility(input.eventKey),
+      staff_visibility: notificationStaffVisibility(input.eventKey, audience),
     };
   });
 }

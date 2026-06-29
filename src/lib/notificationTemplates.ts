@@ -261,10 +261,11 @@ export function renderNotificationCopy(
 
 export function notificationStaffVisibility(
   eventKey: NotificationEventKey,
+  audience?: NotificationAudience,
 ): "operational" | "admin_only" {
   return eventKey === "payment_confirmed" ||
     eventKey === "receipt_issued" ||
-    eventKey === "package_request_received"
+    (eventKey === "package_request_received" && audience === "admin")
     ? "admin_only"
     : "operational";
 }

@@ -80,6 +80,8 @@ assert.ok(adminRendered.body.includes("A new package request was received"));
 
 assert.equal(notificationStaffVisibility("payment_confirmed"), "admin_only");
 assert.equal(notificationStaffVisibility("receipt_issued"), "admin_only");
+assert.equal(notificationStaffVisibility("package_request_received", "member"), "operational");
+assert.equal(notificationStaffVisibility("package_request_received", "admin"), "admin_only");
 assert.equal(notificationStaffVisibility("booking_confirmed"), "operational");
 
 assert.equal(
