@@ -217,6 +217,7 @@ function MemberHome() {
         ) : recommendedList.length === 0 ? (
           <MemberEmptyState
             variant="schedule"
+            align="start"
             title={t("member.empty.schedule.title")}
             body={t("member.empty.schedule.body")}
             secondaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
