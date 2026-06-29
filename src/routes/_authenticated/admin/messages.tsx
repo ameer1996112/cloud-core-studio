@@ -18,7 +18,7 @@ import {
   updatePackageRequest,
 } from "@/lib/messages.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
-import { listClasses } from "@/lib/admin.functions";
+import { listClasses, prepareClassReminderDrafts } from "@/lib/admin.functions";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
@@ -81,7 +81,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     noMembers: "No members match this audience right now.",
     messagesReady: "messages ready",
     copyAll: "Copy all to clipboard",
-    markAllSent: "Mark all sent",
+    prepareReminderDrafts: "Prepare reminder drafts",
+    markAllSent: "Mark all manually sent",
     working: "Working...",
     credits: "credits",
     subject: "Subject",
@@ -92,7 +93,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     sending: "Sending...",
     openWhatsApp: "Open WhatsApp",
     openEmail: "Open email",
-    markSent: "Mark sent",
+    markSent: "Mark manually sent",
     audienceClassRoster: "Class roster",
     audienceClassWaitlist: "Class waitlist",
     audienceLowCredits: "Low credits (<=2)",
@@ -126,7 +127,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     noMembers: "אין חברים שתואמים לקהל הזה כרגע.",
     messagesReady: "הודעות מוכנות",
     copyAll: "העתקת הכל",
-    markAllSent: "סימון הכל כנשלח",
+    prepareReminderDrafts: "הכנת טיוטות תזכורת",
+    markAllSent: "סימון הכל כנשלח ידנית",
     working: "עובד...",
     credits: "קרדיטים",
     subject: "נושא",
@@ -137,7 +139,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     sending: "שולח...",
     openWhatsApp: "פתיחת WhatsApp",
     openEmail: "פתיחת אימייל",
-    markSent: "סימון כנשלח",
+    markSent: "סימון כנשלח ידנית",
     audienceClassRoster: "רשימת שיעור",
     audienceClassWaitlist: "רשימת המתנה",
     audienceLowCredits: "קרדיטים נמוכים (2 ומטה)",
@@ -172,7 +174,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     noMembers: "لا يوجد أعضاء مطابقون لهذا الجمهور الآن.",
     messagesReady: "رسائل جاهزة",
     copyAll: "نسخ الكل",
-    markAllSent: "تحديد الكل كمرسل",
+    prepareReminderDrafts: "تحضير مسودات التذكير",
+    markAllSent: "تحديد الكل كمرسل يدوياً",
     working: "جار العمل...",
     credits: "أرصدة",
     subject: "الموضوع",
@@ -183,7 +186,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     sending: "جار الإرسال...",
     openWhatsApp: "فتح واتساب",
     openEmail: "فتح البريد",
-    markSent: "تحديد كمرسل",
+    markSent: "تحديد كمرسل يدوياً",
     audienceClassRoster: "قائمة الحصة",
     audienceClassWaitlist: "قائمة الانتظار",
     audienceLowCredits: "رصيد منخفض (2 أو أقل)",
@@ -752,6 +755,7 @@ function ComposerTab() {
   const audFn = useServerFn(buildAudience);
   const searchFn = useServerFn(searchMembersBasic);
   const classesFn = useServerFn(listClasses);
+  const prepareReminderFn = useServerFn(prepareClassReminderDrafts);
   const settingsFn = useServerFn(getPublicStudioSettings);
   const logFn = useServerFn(logNotification);
 
@@ -772,6 +776,7 @@ function ComposerTab() {
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   const [markingAll, setMarkingAll] = useState(false);
+  const [preparingReminders, setPreparingReminders] = useState(false);
   const [editedMessages, setEditedMessages] = useState<Record<string, string>>({});
 
   const needsClass = AUDIENCE_OPTIONS.find((a) => a.k === audienceKind)?.needsClass;
@@ -815,6 +820,8 @@ function ComposerTab() {
   const preferredTrigger = matchingTriggerType;
   const preferredLanguage = autoTemplateUsesMemberLanguage ? null : lang;
   const audienceMembers = audience.data?.members ?? [];
+  const canPrepareClassReminders =
+    audienceKind === "class_roster" && matchingTriggerType === "class_reminder" && !!classId;
 
   useEffect(() => {
     setTemplateId("");
@@ -920,6 +927,19 @@ function ComposerTab() {
       toast.error("Mark all failed");
     } finally {
       setMarkingAll(false);
+    }
+  }
+
+  async function handlePrepareReminderDrafts() {
+    if (!canPrepareClassReminders) return;
+    setPreparingReminders(true);
+    try {
+      const result = await prepareReminderFn({ data: { classId } });
+      toast.success(`Prepared ${result.prepared} reminder drafts`);
+    } catch {
+      toast.error("Prepare reminder drafts failed");
+    } finally {
+      setPreparingReminders(false);
     }
   }
 
@@ -1059,6 +1079,16 @@ function ComposerTab() {
               {audienceMembers.length} {copy.messagesReady}
             </p>
             <div className="flex flex-wrap gap-2">
+              {canPrepareClassReminders && (
+                <button
+                  onClick={handlePrepareReminderDrafts}
+                  disabled={preparingReminders}
+                  className="btn-outline inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-outline-hover disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Sparkles className="h-3 w-3" />{" "}
+                  {preparingReminders ? copy.working : copy.prepareReminderDrafts}
+                </button>
+              )}
               <button
                 onClick={handleCopyAll}
                 disabled={markingAll}
@@ -1658,7 +1688,7 @@ function LogsTab() {
     },
   });
   if (isLoading) return <div className="skeleton-brand h-24 rounded-[8px]" />;
-  if (!data?.length) return <Empty>{t("messages.noMessages")}</Empty>;
+  const logs = data ?? [];
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -1724,14 +1754,14 @@ function LogsTab() {
       </div>
       <div className="flex gap-6 pb-4 border-b border-gold/20">
         {[
-          { label: "Total", value: data.length },
+          { label: "Total", value: logs.length },
           {
             label: "Sent",
-            value: data.filter((l: any) => l.status === "manually_sent" || l.status === "sent")
+            value: logs.filter((l: any) => l.status === "manually_sent" || l.status === "sent")
               .length,
           },
-          { label: "WhatsApp", value: data.filter((l: any) => l.channel === "whatsapp").length },
-          { label: "Email", value: data.filter((l: any) => l.channel === "email").length },
+          { label: "WhatsApp", value: logs.filter((l: any) => l.channel === "whatsapp").length },
+          { label: "Email", value: logs.filter((l: any) => l.channel === "email").length },
         ].map(({ label, value }) => (
           <div key={label}>
             <p className="text-[20px] font-display text-navy">{value}</p>
@@ -1739,8 +1769,9 @@ function LogsTab() {
           </div>
         ))}
       </div>
+      {!logs.length && <Empty>{t("messages.noMessages")}</Empty>}
       <ol className="relative border-s border-gold/30 ps-5 space-y-4">
-        {(data ?? []).map((l: any) => (
+        {logs.map((l: any) => (
           <li key={l.id} className="relative">
             <span className="absolute -start-[26px] top-2 h-2.5 w-2.5 rounded-full bg-gold" />
             <article className="editorial-panel p-4">

@@ -58,7 +58,7 @@ function MyBookings() {
     mutationFn: (bookingId: string) => cancelFn({ data: { bookingId } }),
     onSuccess: (res: any) => {
       if (res.status === "cancelled") {
-        toast.success(t("bookings.toastCancelled"));
+        toast.success(t("booking.cancelled"));
         qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
         qc.invalidateQueries({ queryKey: ["member-home"] });
         qc.invalidateQueries({ queryKey: ["member-schedule"] });

@@ -74,7 +74,7 @@ export function ClassDetailSheet({
     mutationFn: () => bookFn({ data: { classId: classId! } }),
     onSuccess: (res: BookClassResult) => {
       if (hasBookingId(res)) {
-        toast.success(t("booking.toast.booked"));
+        toast.success(t("booking.confirmed"));
         setConfirmation({ bookingId: res.booking_id, remaining: res.remaining_credits ?? 0 });
         qc.invalidateQueries({ queryKey: ["member-home"] });
         qc.invalidateQueries({ queryKey: ["member-schedule"] });
@@ -368,7 +368,7 @@ function ConfirmationView({
         <div className="px-5 sm:px-6 py-5 space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate">{t("booking.confirmed")}</p>
+              <p className="text-xs font-medium text-slate">{t("bookings.confirmed")}</p>
               <p className="font-display text-2xl text-navy mt-1 leading-tight truncate" dir="auto">
                 <bdi>{title}</bdi>
               </p>
