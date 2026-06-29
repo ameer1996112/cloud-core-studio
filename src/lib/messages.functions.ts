@@ -8,6 +8,7 @@ async function ensureStaff(supabase: any, userId: string, level: "admin" | "staf
   const role = data?.role;
   if (level === "admin" && role !== "admin") throw new Error("forbidden");
   if (level === "staff" && role !== "admin" && role !== "instructor") throw new Error("forbidden");
+  return role;
 }
 
 // ===== Templates =====
@@ -337,6 +338,16 @@ function normalizeLogStatus(status: string) {
   return status;
 }
 
+function getLogStatusFilter(status: string) {
+  if (status === "draft") return ["draft", "generated", "copied", "opened"];
+  if (status === "manually_sent") return ["manually_sent", "marked_sent"];
+  if (status === "sent") return ["sent"];
+  if (status === "failed") return ["failed"];
+  if (status === "skipped") return ["skipped"];
+  if (status === "queued") return ["queued"];
+  return [status];
+}
+
 export const logNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => logSchema.parse(d))
@@ -417,7 +428,7 @@ export const prepareNotificationDrafts = createServerFn({ method: "POST" })
     ]);
     if (memberRes.error) throw memberRes.error;
     if (settingsRes.error) throw settingsRes.error;
-    if (!memberRes.data) return { inserted: 0, skipped: 0 };
+    if (!memberRes.data) return { prepared: 0, draftCount: 0, skippedCount: 0 };
 
     const rows = buildNotificationDraftRows({
       eventKey: data.eventKey,
@@ -435,8 +446,9 @@ export const prepareNotificationDrafts = createServerFn({ method: "POST" })
       .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
     if (error) throw error;
     return {
-      inserted: rows.filter((row) => row.status === "draft").length,
-      skipped: rows.filter((row) => row.status === "skipped").length,
+      prepared: rows.length,
+      draftCount: rows.filter((row) => row.status === "draft").length,
+      skippedCount: rows.filter((row) => row.status === "skipped").length,
     };
   });
 
@@ -496,15 +508,21 @@ export const listNotificationLogs = createServerFn({ method: "GET" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    await ensureStaff(context.supabase, context.userId, "staff");
+    const role = await ensureStaff(context.supabase, context.userId, "staff");
+    if (role === "instructor" && data.visibility === "admin_only") return [];
+
     let query = context.supabase
       .from("notification_logs")
       .select("*, member:members(id,name,phone,email)")
       .order("created_at", { ascending: false });
     if (data.channel !== "all") query = query.eq("channel", data.channel);
-    if (data.status !== "all") query = query.eq("status", data.status);
+    if (data.status !== "all") query = query.in("status", getLogStatusFilter(data.status));
     if (data.triggerType !== "all") query = query.eq("trigger_type", data.triggerType);
-    if (data.visibility !== "all") query = query.eq("staff_visibility", data.visibility);
+    if (role === "admin") {
+      if (data.visibility !== "all") query = query.eq("staff_visibility", data.visibility);
+    } else {
+      query = query.eq("staff_visibility", "operational");
+    }
     const { data: rows } = await query.limit(data.limit);
     return rows ?? [];
   });
