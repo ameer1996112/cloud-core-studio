@@ -27,10 +27,24 @@ const aerial = {
 };
 
 assert.equal(
-  getLessonVisualMode({ index: 0, lesson: aerial, variant: "featured" }),
-  "featured-image",
+  getLessonVisualMode({ index: 0, lesson: aerial, variant: "hero", context: "memberHome" }),
+  "image",
 );
-assert.equal(shouldUseImageCard({ index: 0, lesson: aerial, variant: "featured" }), true);
+assert.equal(
+  shouldUseImageCard({ index: 0, lesson: aerial, variant: "hero", context: "memberHome" }),
+  true,
+);
+
+assert.equal(
+  getLessonVisualMode({
+    index: 1,
+    lesson: { ...aerial, id: "aerial-2" },
+    previousLesson: aerial,
+    variant: "hero",
+    context: "memberSchedule",
+  }),
+  "artTile",
+);
 
 assert.equal(
   getLessonVisualMode({
@@ -38,6 +52,7 @@ assert.equal(
     lesson: { ...aerial, id: "aerial-2" },
     previousLesson: aerial,
     variant: "standard",
+    context: "memberSchedule",
   }),
   "accent",
 );
@@ -48,16 +63,30 @@ assert.equal(
     lesson: { ...aerial, id: "mat-1", image_url: "https://assets.example.com/mat.jpg" },
     previousLesson: aerial,
     variant: "standard",
+    context: "memberHome",
   }),
-  "thumbnail",
+  "artTile",
 );
 
-assert.equal(getLessonVisualMode({ index: 0, lesson: aerial, variant: "compact" }), "accent");
-assert.equal(shouldUseImageCard({ index: 1, lesson: aerial, previousLesson: aerial }), false);
+assert.equal(
+  getLessonVisualMode({ index: 0, lesson: aerial, variant: "compact", context: "memberSchedule" }),
+  "minimal",
+);
+assert.equal(
+  shouldUseImageCard({
+    index: 1,
+    lesson: aerial,
+    previousLesson: aerial,
+    variant: "hero",
+    context: "memberHome",
+  }),
+  false,
+);
 
 assert.equal(getLocalizedProgramName(aerial.program_type, "he"), "יוגה אווירית");
 assert.equal(getLocalizedProgramName(aerial.program_type, "ar"), "يوغا هوائية");
 assert.equal(getLocalizedProgramName(aerial.program_type, "en"), "Aerial Yoga");
+assert.equal(getLocalizedProgramName({ name: "Pilates Mat" }, "en"), "Mat Pilates");
 assert.equal(getLocalizedLessonTitle(aerial, "he"), "Cloud & Core — יוגה אווירית");
 assert.equal(getLocalizedIntensity("all_levels", "he"), "לכל הרמות");
 assert.equal(getLocalizedTone("calm", "en"), "Calm");

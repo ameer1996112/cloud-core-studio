@@ -1067,11 +1067,23 @@
   border-radius: 8px;
 }
 
+.lesson-card--hero {
+  background: #ffffff;
+}
+
 .lesson-card--standard,
 .lesson-card--compact {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--lesson-wash, #faf7f2) 38%, transparent), transparent 54%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--lesson-surface, #ffffff) 92%, #faf7f2));
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--lesson-wash, #faf7f2) 38%, transparent),
+      transparent 54%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.96),
+      color-mix(in srgb, var(--lesson-surface, #ffffff) 92%, #faf7f2)
+    );
 }
 
 .lesson-card--compact {
@@ -1144,7 +1156,7 @@
 }
 
 .lesson-card__duration,
-.lesson-card__state {
+.lesson-card__availability {
   display: inline-flex;
   min-height: 28px;
   align-items: center;
@@ -1158,7 +1170,7 @@
   line-height: 1;
 }
 
-.lesson-card__state {
+.lesson-card__availability {
   color: var(--color-slate, #6f7a8c);
 }
 
@@ -1185,11 +1197,12 @@
   text-align: left;
 }
 
+.lesson-card__visual,
 .lesson-card__media {
   flex: 0 0 auto;
 }
 
-.lesson-card--standard .lesson-card__media {
+.lesson-card--standard .lesson-card__visual {
   position: relative;
   width: clamp(72px, 20vw, 104px);
   min-height: 92px;
@@ -1199,32 +1212,235 @@
   background: var(--color-navy, #0b1d3a);
 }
 
-.lesson-card__mark {
-  display: flex;
-  flex: 0 0 auto;
-  width: 54px;
-  align-items: center;
-  justify-content: center;
+.lesson-card--compact .lesson-card__visual {
+  width: 46px;
+  min-height: 58px;
 }
 
-.lesson-card__mark span {
-  display: inline-flex;
-  height: 42px;
-  width: 42px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--lesson-accent, #d4af6a) 42%, transparent);
+.lesson-card__art-tile {
+  position: relative;
+  display: grid;
+  height: 100%;
+  min-height: 82px;
+  width: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(212, 175, 106, 0.16), transparent 22%),
+    linear-gradient(145deg, #ffffff 0%, var(--lesson-wash, #faf7f2) 100%);
+}
+
+.lesson-card__hero-art .lesson-card__art-tile {
+  min-height: 100%;
+  border-radius: 0;
+}
+
+.lesson-card__art-tile::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(212, 175, 106, 0.26);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--lesson-wash, #faf7f2) 72%, white);
-  color: var(--color-navy, #0b1d3a);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0;
+}
+
+.lesson-card__art-tile svg {
+  position: relative;
+  z-index: 1;
+  width: min(74%, 86px);
+  height: auto;
+}
+
+.lesson-card__art-tile--compact {
+  min-height: 54px;
+}
+
+.motif {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.2;
+}
+
+.motif-primary {
+  stroke: #0b1d3a;
+}
+
+.motif-soft {
+  stroke: #6f7a8c;
+  opacity: 0.46;
+}
+
+.motif-gold {
+  stroke: #d4af6a;
+}
+
+.motif-rect {
+  stroke-width: 2.4;
+}
+
+.motif-soft-fill {
+  fill: #faf7f2;
+  stroke: #e8dfd1;
+}
+
+.motif-dot {
+  fill: #d4af6a;
+}
+
+.lesson-card__hero-art {
+  background:
+    radial-gradient(circle at 80% 18%, rgba(212, 175, 106, 0.16), transparent 24%),
+    linear-gradient(135deg, #ffffff, #faf7f2 58%, #e8dfd1);
 }
 
 .class-card-photo {
   border-radius: 8px 8px 0 0;
   background: var(--color-navy, #0b1d3a);
+}
+
+.lesson-detail {
+  color: #0b1d3a;
+}
+
+.lesson-detail__summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.25rem 4.25rem 1rem 1.25rem;
+  background: linear-gradient(180deg, #ffffff 0%, #faf7f2 100%), #faf7f2;
+  border-bottom: 1px solid rgba(212, 175, 106, 0.22);
+  text-align: start;
+}
+
+[dir="rtl"] .lesson-detail__summary {
+  padding-inline: 1.25rem 4.25rem;
+  text-align: right;
+}
+
+[dir="ltr"] .lesson-detail__summary {
+  text-align: left;
+}
+
+.lesson-detail__meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+[dir="rtl"] .lesson-detail__meta-line {
+  justify-content: flex-end;
+}
+
+.lesson-detail__time {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 1px solid rgba(212, 175, 106, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 0.32rem 0.7rem;
+  color: #0b1d3a;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.lesson-detail__title {
+  max-width: 100%;
+  letter-spacing: 0;
+}
+
+.lesson-detail__visual {
+  position: relative;
+  height: clamp(118px, 22vw, 190px);
+  overflow: hidden;
+  border-bottom: 1px solid rgba(212, 175, 106, 0.18);
+  background: #faf7f2;
+}
+
+.lesson-detail__visual > .lesson-card__art-tile {
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0;
+}
+
+.lesson-detail__image {
+  height: 100%;
+}
+
+.lesson-detail__body {
+  max-height: calc(100dvh - 17rem);
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), #faf7f2);
+  padding: 1rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
+
+.lesson-detail__key-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.lesson-detail__stat {
+  min-width: 0;
+  border: 1px solid rgba(212, 175, 106, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.8rem;
+  box-shadow: 0 12px 26px -24px rgba(11, 29, 58, 0.46);
+}
+
+.lesson-detail__section {
+  margin-top: 0.85rem;
+  border: 1px solid rgba(212, 175, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 0.95rem;
+  text-align: start;
+}
+
+[dir="rtl"] .lesson-detail__section {
+  text-align: right;
+}
+
+.lesson-detail__notes {
+  background: linear-gradient(180deg, rgba(232, 223, 209, 0.34), rgba(250, 247, 242, 0.84));
+  color: #6f7a8c;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.lesson-detail__cta {
+  position: sticky;
+  bottom: 0;
+  margin-top: 0.85rem;
+  border-top: 1px solid rgba(212, 175, 106, 0.22);
+  background: linear-gradient(180deg, rgba(250, 247, 242, 0.82), #faf7f2);
+  padding-top: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .lesson-detail__summary {
+    padding: 1.5rem 4.5rem 1.2rem 1.5rem;
+  }
+
+  [dir="rtl"] .lesson-detail__summary {
+    padding-inline: 1.5rem 4.5rem;
+  }
+
+  .lesson-detail__body {
+    max-height: 58vh;
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  .lesson-detail__key-card {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .class-time-badge {
@@ -1457,19 +1673,14 @@
     padding: 0.9rem;
   }
 
-  .lesson-card--standard .lesson-card__media {
+  .lesson-card--standard .lesson-card__visual {
     width: 74px;
     min-height: 82px;
   }
 
-  .lesson-card__mark {
-    width: 44px;
-  }
-
-  .lesson-card__mark span {
-    height: 36px;
-    width: 36px;
-    font-size: 9px;
+  .lesson-card--compact .lesson-card__visual {
+    width: 42px;
+    min-height: 54px;
   }
 
   .lesson-card__time-row {
@@ -1477,7 +1688,7 @@
   }
 
   .lesson-card__duration,
-  .lesson-card__state {
+  .lesson-card__availability {
     max-width: 100%;
     white-space: normal;
     line-height: 1.2;

@@ -45,3 +45,28 @@ if (typeof window !== "undefined" && typeof Node !== "undefined") {
     return originalReplaceChild.call(this, newChild, oldChild) as T;
   };
 }
+
+if (typeof window !== "undefined" && typeof Window !== "undefined") {
+  const originalPostMessage = Window.prototype.postMessage;
+  Window.prototype.postMessage = function (
+    message: any,
+    targetOrigin: string,
+    transfer?: any[],
+  ): void {
+    try {
+      return originalPostMessage.call(this, message, targetOrigin, transfer);
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        (e.message.includes("target origin") || e.message.includes("origin"))
+      ) {
+        console.warn(
+          "DOM Patch [postMessage]: Suppressed origin mismatch error to prevent app crash.",
+          e,
+        );
+        return;
+      }
+      throw e;
+    }
+  } as any;
+}

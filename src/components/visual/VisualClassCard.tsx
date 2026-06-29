@@ -18,6 +18,7 @@ import {
   getLessonProgramAccent,
   getLessonVisualMode,
   shouldShowRoomOnLessonCard,
+  type LessonCardContext,
   type LessonCardVariant,
 } from "@/lib/lesson-card-variants";
 
@@ -62,6 +63,74 @@ type VisualClassCardClass = {
   program_type?: Record<string, unknown> | null;
   [key: string]: unknown;
 };
+
+export function ClassArtTile({
+  programType,
+  tone,
+  lang: _lang,
+  compact = false,
+}: {
+  programType?: Record<string, unknown> | null;
+  tone?: string | null;
+  lang?: string;
+  compact?: boolean;
+}) {
+  const accent = getLessonProgramAccent({
+    program_type: programType ?? null,
+    energy: tone ?? null,
+  });
+  const key = accent.key;
+  return (
+    <div
+      className={`lesson-card__art-tile lesson-card__art-tile--${key} ${
+        compact ? "lesson-card__art-tile--compact" : ""
+      }`}
+      style={
+        {
+          "--lesson-accent": accent.rail,
+          "--lesson-wash": accent.wash,
+          "--lesson-surface": accent.surface,
+        } as React.CSSProperties
+      }
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 96 96" role="img" focusable="false">
+        {key === "aerial" ? (
+          <>
+            <path className="motif motif-primary" d="M18 31c15-14 45-14 60 0" />
+            <path className="motif motif-soft" d="M26 31c2 23 10 34 22 34s20-11 22-34" />
+            <path className="motif motif-gold" d="M35 67c8 7 18 7 26 0" />
+          </>
+        ) : key === "hot" ? (
+          <>
+            <path className="motif motif-primary" d="M27 66c12-11 8-23 21-36 16 15 21 25 13 38" />
+            <path className="motif motif-soft" d="M38 68c8-7 6-14 14-23 9 10 10 17 4 24" />
+            <path className="motif motif-gold" d="M24 74h48" />
+          </>
+        ) : key === "mat" ? (
+          <>
+            <rect
+              className="motif-rect motif-soft-fill"
+              x="24"
+              y="28"
+              width="48"
+              height="40"
+              rx="10"
+            />
+            <path className="motif motif-primary" d="M31 39h34M31 49h34M31 59h22" />
+            <path className="motif motif-gold" d="M22 72h52" />
+          </>
+        ) : (
+          <>
+            <path className="motif motif-primary" d="M22 55c13-24 40-24 52 0" />
+            <path className="motif motif-soft" d="M28 63c12 10 28 10 40 0" />
+            <circle className="motif-dot" cx="48" cy="35" r="3" />
+          </>
+        )}
+      </svg>
+    </div>
+  );
+}
 
 function toneFor(state: ClassState): {
   tone: Tone;
@@ -346,6 +415,7 @@ export function VisualClassCard({
   index = 0,
   previousLesson = null,
   roomCount = 1,
+  context = "memberSchedule",
 }: {
   cls: VisualClassCardClass;
   state: ClassState;
@@ -357,6 +427,7 @@ export function VisualClassCard({
   index?: number;
   previousLesson?: VisualClassCardClass | null;
   roomCount?: number;
+  context?: LessonCardContext;
 }) {
   const { dir, lang } = useI18n();
   const isRtl = dir === "rtl";
@@ -375,10 +446,11 @@ export function VisualClassCard({
     lesson: cls,
     previousLesson,
     variant: resolvedVariant,
+    context,
   });
   const accent = getLessonProgramAccent(cls);
-  const isFeatured = resolvedVariant === "featured" && visualMode === "featured-image";
-  const showThumbnail = visualMode === "thumbnail";
+  const isHero = resolvedVariant === "hero";
+  const useHeroImage = isHero && visualMode === "image";
   const roomName =
     typeof cls.room_ref === "object" && cls.room_ref && "name" in cls.room_ref
       ? String(cls.room_ref.name ?? "")
@@ -393,7 +465,7 @@ export function VisualClassCard({
     isRtl ? "is-rtl" : "is-ltr"
   } relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5`;
 
-  if (!isFeatured) {
+  if (!isHero) {
     return (
       <button
         type="button"
@@ -422,7 +494,7 @@ export function VisualClassCard({
                 <span className="lesson-card__duration" dir="auto">
                   <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
                 </span>
-                <span className="lesson-card__state">{chipLabel}</span>
+                <span className="lesson-card__availability">{chipLabel}</span>
               </div>
 
               <MixedLessonTitle
@@ -430,7 +502,7 @@ export function VisualClassCard({
                 brand={titleParts.brand}
                 program={titleParts.program}
                 dir={dir}
-                className="lesson-card-title mt-2 font-sans text-[18px] sm:text-[20px] font-semibold leading-[1.15] tracking-normal text-navy"
+                className="lesson-card__title lesson-card-title mt-2 font-sans text-[18px] sm:text-[20px] font-semibold leading-[1.15] tracking-normal text-navy"
               />
 
               <div className="lesson-card__chips lesson-chip-row mt-2">
@@ -460,24 +532,14 @@ export function VisualClassCard({
               </div>
             </div>
 
-            {showThumbnail ? (
-              <div className="lesson-card__media" aria-hidden="true">
-                <ClassMoodImage
-                  title={title}
-                  programTypeName={localizedProgramName(cls?.program_type)}
-                  imageUrl={resolveClassImageSrc(cls, "thumb")}
-                  variant="thumb"
-                  imageFit="cover"
-                  imagePosition="center center"
-                  className="!absolute inset-0 h-full w-full"
-                  eager={eager}
-                />
-              </div>
-            ) : (
-              <div className="lesson-card__mark" aria-hidden="true">
-                <span>{accent.icon === "heat" ? "HOT" : accent.icon === "mat" ? "MAT" : "CC"}</span>
-              </div>
-            )}
+            <div className="lesson-card__visual">
+              <ClassArtTile
+                programType={cls.program_type}
+                tone={typeof cls.energy === "string" ? cls.energy : null}
+                lang={lang}
+                compact={resolvedVariant === "compact" || visualMode === "minimal"}
+              />
+            </div>
           </div>
           <span className="sr-only">{chipLabel}</span>
         </article>
@@ -495,37 +557,46 @@ export function VisualClassCard({
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
       <article dir={dir} className={cardShell}>
         <div
-          className={`lesson-card__media class-card-photo relative overflow-hidden ${
-            compact ? "member-class-media" : "schedule-class-media"
-          }`}
+          className={`lesson-card__visual ${
+            useHeroImage ? "lesson-card__media class-card-photo" : "lesson-card__hero-art"
+          } relative overflow-hidden ${compact ? "member-class-media" : "schedule-class-media"}`}
         >
-          <ClassMoodImage
-            title={title}
-            programTypeName={localizedProgramName(cls?.program_type)}
-            imageUrl={resolveClassImageSrc(cls, "card")}
-            variant="card"
-            imageFit="cover"
-            imagePosition="center center"
-            className="!absolute inset-0 h-full w-full"
-            eager={eager}
-          />
+          {useHeroImage ? (
+            <>
+              <ClassMoodImage
+                title={title}
+                programTypeName={localizedProgramName(cls?.program_type)}
+                imageUrl={resolveClassImageSrc(cls, "card")}
+                variant="card"
+                imageFit="cover"
+                imagePosition="center center"
+                className="!absolute inset-0 h-full w-full"
+                eager={eager}
+              />
 
-          {ovr.desaturate && (
-            <div
-              className="absolute inset-0 z-[2] bg-navy/25 mix-blend-luminosity pointer-events-none"
-              aria-hidden
+              {ovr.desaturate && (
+                <div
+                  className="absolute inset-0 z-[2] bg-navy/25 mix-blend-luminosity pointer-events-none"
+                  aria-hidden
+                />
+              )}
+
+              <div
+                className="absolute inset-0 z-[2] pointer-events-none"
+                aria-hidden
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(11,29,58,0.16) 0%, rgba(11,29,58,0.02) 44%, rgba(11,29,58,0.20) 100%)",
+                }}
+              />
+            </>
+          ) : (
+            <ClassArtTile
+              programType={cls.program_type}
+              tone={typeof cls.energy === "string" ? cls.energy : null}
+              lang={lang}
             />
           )}
-
-          {/* A soft readability wash only; class details live below the image. */}
-          <div
-            className="absolute inset-0 z-[2] pointer-events-none"
-            aria-hidden
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(11,29,58,0.16) 0%, rgba(11,29,58,0.02) 44%, rgba(11,29,58,0.20) 100%)",
-            }}
-          />
 
           <div
             className="class-time-badge"
@@ -573,7 +644,7 @@ export function VisualClassCard({
               brand={titleParts.brand}
               program={titleParts.program}
               dir={dir}
-              className="lesson-card-title font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-normal text-navy"
+              className="lesson-card__title lesson-card-title font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-normal text-navy"
             />
             <div className="lesson-chip-row mt-2">
               {metaChips.map((chip) => (
@@ -583,7 +654,7 @@ export function VisualClassCard({
               ))}
             </div>
             <p
-              className="lesson-card-instructor mt-2 text-[13px] sm:text-[14px] text-slate leading-snug"
+              className="lesson-card__instructor lesson-card-instructor mt-2 text-[13px] sm:text-[14px] text-slate leading-snug"
               dir="auto"
             >
               {instructor ?? t("member.locationStudio")}

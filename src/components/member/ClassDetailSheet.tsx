@@ -25,6 +25,13 @@ import {
 } from "@/lib/localized-content";
 import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
 import { buildIcs, downloadIcs } from "@/lib/messageTemplate";
+import { ClassArtTile } from "@/components/visual/VisualClassCard";
+import {
+  formatDuration,
+  formatSpots,
+  getFriendlyStudioLocation,
+  getLessonVisualMode,
+} from "@/lib/lesson-card-variants";
 
 type BookClassResult =
   | { status: "booked"; booking_id: string; remaining_credits?: number | null }
@@ -125,6 +132,17 @@ export function ClassDetailSheet({
   const metaChips = cls ? localizedClassMetadataChips(cls) : [];
   const programDescription = cls ? localizedProgramDescription(cls.program_type) : null;
   const spotsLeft = cls ? Math.max(0, cls.capacity - cls.booked_count) : 0;
+  const detailVisualMode = cls
+    ? getLessonVisualMode({ index: 0, lesson: cls, variant: "hero", context: "detail" })
+    : "artTile";
+  const locationLabel = getFriendlyStudioLocation(lang);
+  const durationLabel = cls ? formatDuration(cls.duration_minutes, lang) : "";
+  const spotsLabel = cls ? formatSpots(spotsLeft, cls.capacity, lang) : "";
+  const creditLabel = cls
+    ? cls.credit_cost === 1
+      ? t("member.oneCredit")
+      : `${cls.credit_cost} ${t("common.credits")}`
+    : "";
   const state = cls
     ? deriveClassState(cls, {
         booked: data?.myBooking?.status === "booked",
@@ -143,7 +161,7 @@ export function ClassDetailSheet({
     >
       <DialogContent
         dir={dir}
-        className="w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]"
+        className="lesson-detail w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]"
       >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
         <DialogDescription className="sr-only">{t("booking.bring")}</DialogDescription>
@@ -169,62 +187,51 @@ export function ClassDetailSheet({
           <div className="h-80 skeleton-brand" />
         ) : (
           <>
-            <ClassImage
-              cls={cls}
-              variant="hero"
-              eager
-              className="h-[210px] min-[390px]:h-[235px] sm:h-[320px]"
-            >
-              <div
-                className="absolute inset-x-0 bottom-0 top-1/3 z-[2] bg-linear-to-t from-navy/84 via-navy/28 to-transparent pointer-events-none"
-                aria-hidden
-              />
-              <div className="absolute bottom-5 inset-x-5 text-ivory z-10 text-start">
-                <p className="text-xs font-medium opacity-90 tabular-nums">
-                  <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
-                  <span aria-hidden="true"> · </span>
-                  <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
-                </p>
+            <div className="lesson-detail__summary">
+              <div className="min-w-0">
+                <div className="lesson-detail__meta-line">
+                  <span className="lesson-detail__time" dir="ltr">
+                    <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
+                    <span aria-hidden="true"> · </span>
+                    <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
+                  </span>
+                  {metaChips[0] ? (
+                    <span className="member-class-meta-chip" dir="auto">
+                      <bdi>{metaChips[0]}</bdi>
+                    </span>
+                  ) : null}
+                </div>
                 <MixedLessonTitle
                   as="h2"
                   brand={titleParts?.brand ?? null}
                   program={titleParts?.program ?? title}
                   dir={dir}
-                  className="member-mixed-title mt-1 text-[clamp(1.75rem,8vw,2.6rem)] leading-[1] text-ivory drop-shadow-[0_2px_5px_rgba(11,29,58,0.7)] text-balance"
+                  className="lesson-detail__title member-mixed-title mt-3 text-[clamp(1.75rem,7vw,2.55rem)] leading-[1.02] text-navy text-balance"
                 />
-                <div className="lesson-chip-row lesson-chip-row-hero mt-3">
-                  {metaChips.map((chip) => (
-                    <span
-                      key={chip}
-                      className="member-class-meta-chip member-class-meta-chip-hero"
-                      dir="auto"
-                    >
-                      <bdi>{chip}</bdi>
-                    </span>
-                  ))}
-                </div>
               </div>
-            </ClassImage>
+              {state && <StateBadge state={state} />}
+            </div>
 
-            <div className="space-y-4 overflow-y-auto max-h-[calc(100dvh-15rem)] sm:max-h-[62vh] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(250,247,242,0.98))] p-4 sm:p-6">
-              <div className="member-card grid gap-3 p-3 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4 text-xs text-slate">
-                  <span className="tabular-nums text-navy">
-                    <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
-                    <span aria-hidden="true"> · </span>
-                    <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
-                  </span>
-                  <span>{t("member.durationMinutes", { count: cls.duration_minutes })}</span>
-                  <span>
-                    {cls.credit_cost === 1
-                      ? t("member.oneCredit")
-                      : `${cls.credit_cost} ${t("common.credits")}`}
-                  </span>
-                </div>
-                {state && <StateBadge state={state} />}
-              </div>
+            <div className="lesson-detail__visual">
+              {detailVisualMode === "image" ? (
+                <ClassImage cls={cls} variant="hero" eager className="lesson-detail__image">
+                  <div
+                    className="absolute inset-0 z-[2] bg-linear-to-t from-navy/45 via-transparent to-transparent pointer-events-none"
+                    aria-hidden
+                  />
+                </ClassImage>
+              ) : (
+                <ClassArtTile programType={cls.program_type} tone={cls.energy} lang={lang} />
+              )}
+            </div>
 
-              <div className="grid gap-3 text-xs sm:grid-cols-3">
+            <div className="lesson-detail__body">
+              <div className="lesson-detail__key-card">
+                <Stat
+                  icon={<Clock className="h-3 w-3 text-gold" />}
+                  label={t("common.when")}
+                  value={`${formatTime(cls.starts_at)} · ${durationLabel}`}
+                />
                 {instructor && (
                   <Stat
                     icon={<Sparkles className="h-3 w-3 text-gold" />}
@@ -235,20 +242,34 @@ export function ClassDetailSheet({
                 <Stat
                   icon={<MapPin className="h-3 w-3 text-gold" />}
                   label={t("common.where")}
-                  value={t("member.locationStudio")}
+                  value={locationLabel}
                 />
                 <Stat
                   icon={<Users className="h-3 w-3 text-gold" />}
                   label={t("common.spots")}
-                  value={t("member.spotsOpen", { count: spotsLeft })}
+                  value={spotsLabel}
+                />
+                <Stat
+                  icon={<Sparkles className="h-3 w-3 text-gold" />}
+                  label={t("common.credits")}
+                  value={creditLabel}
                 />
               </div>
 
-              {programDescription && (
-                <p className="text-sm text-slate leading-relaxed">{programDescription}</p>
-              )}
+              <section className="lesson-detail__section">
+                <div className="lesson-chip-row lesson-chip-row-hero">
+                  {metaChips.map((chip) => (
+                    <span key={chip} className="member-class-meta-chip" dir="auto">
+                      <bdi>{chip}</bdi>
+                    </span>
+                  ))}
+                </div>
+                {programDescription && (
+                  <p className="mt-3 text-sm text-slate leading-relaxed">{programDescription}</p>
+                )}
+              </section>
 
-              <div className="member-panel-sand border border-gold/20 p-4 text-xs text-slate space-y-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+              <div className="lesson-detail__section lesson-detail__notes">
                 <p className="member-eyebrow">{t("booking.notes")}</p>
                 <p className="flex items-center gap-2">
                   <Clock className="h-3 w-3 text-gold" />{" "}
@@ -257,7 +278,7 @@ export function ClassDetailSheet({
                 <p>{t("booking.bring")}</p>
               </div>
 
-              <div className="pt-2 border-t hairline">
+              <div className="lesson-detail__cta">
                 {data?.myBooking?.status === "booked" ? (
                   <Link to="/member/bookings" className="btn-navy w-full hover:btn-navy-hover">
                     {t("booking.viewMine")}{" "}
@@ -306,7 +327,7 @@ export function ClassDetailSheet({
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="member-card p-3">
+    <div className="lesson-detail__stat">
       <p className="member-eyebrow flex items-center gap-1">
         {icon}
         {label}

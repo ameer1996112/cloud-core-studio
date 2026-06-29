@@ -178,8 +178,9 @@ function MemberHome() {
               remainingCredits: data?.member?.remaining_credits ?? 0,
             })}
             onOpen={() => setOpenClass(featuredClass.id)}
-            variant="featured"
+            variant="hero"
             index={0}
+            context="memberHome"
             eager
           />
         </section>
@@ -239,6 +240,7 @@ function MemberHome() {
                 variant="standard"
                 index={index + 1}
                 previousLesson={index > 0 ? list[index - 1] : featuredClass}
+                context="memberHome"
               />
             ))}
           </div>

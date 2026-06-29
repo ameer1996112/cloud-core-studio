@@ -8,8 +8,9 @@ import {
   type LocalizedProgramSource,
 } from "@/lib/localized-content";
 
-export type LessonCardVariant = "featured" | "standard" | "compact";
-export type LessonVisualMode = "featured-image" | "thumbnail" | "accent";
+export type LessonCardVariant = "hero" | "standard" | "compact";
+export type LessonVisualMode = "image" | "artTile" | "accent" | "minimal";
+export type LessonCardContext = "memberHome" | "memberSchedule" | "adminSchedule" | "detail";
 
 export type LessonVisualSource = LocalizedClassSource & {
   id?: string | null;
@@ -28,20 +29,21 @@ type VisualDecisionParams = {
   lesson: LessonVisualSource | null | undefined;
   previousLesson?: LessonVisualSource | null;
   variant?: LessonCardVariant;
+  context?: LessonCardContext;
 };
 
 const PROGRAM_ACCENTS = {
   aerial: {
     key: "aerial",
     rail: "#0B1D3A",
-    wash: "#B7CCE6",
+    wash: "#FAF7F2",
     surface: "#FAF7F2",
     icon: "cloud",
   },
   mat: {
     key: "mat",
-    rail: "#E8DFD1",
-    wash: "#FAF7F2",
+    rail: "#D4AF6A",
+    wash: "#E8DFD1",
     surface: "#FFFFFF",
     icon: "mat",
   },
@@ -88,20 +90,24 @@ export function getLessonVisualMode({
   lesson,
   previousLesson,
   variant = "standard",
+  context = "memberSchedule",
 }: VisualDecisionParams): LessonVisualMode {
-  if (!hasLessonImage(lesson) || variant === "compact") return "accent";
+  if (variant === "compact") return "minimal";
   const currentImage = lessonImageKey(lesson);
   const previousImage = lessonImageKey(previousLesson);
 
-  if (variant === "featured" && index === 0) return "featured-image";
-  if (previousImage && currentImage === previousImage) return "accent";
-  if (index > 0 && index % 4 === 0) return "thumbnail";
-  return variant === "featured" ? "featured-image" : "accent";
+  if (variant === "hero") {
+    if (hasLessonImage(lesson) && (!previousImage || currentImage !== previousImage))
+      return "image";
+    return "artTile";
+  }
+
+  if (context === "memberSchedule" || context === "adminSchedule") return "accent";
+  return "artTile";
 }
 
 export function shouldUseImageCard(params: VisualDecisionParams) {
-  const mode = getLessonVisualMode(params);
-  return mode === "featured-image" || mode === "thumbnail";
+  return getLessonVisualMode(params) === "image";
 }
 
 export function getLocalizedProgramName(
@@ -109,9 +115,13 @@ export function getLocalizedProgramName(
   lang: Lang,
 ) {
   const direct = program?.[`name_${lang}` as keyof LocalizedProgramSource];
-  if (hasText(direct)) return direct.trim();
-  if (lang === "en" && hasText(program?.name)) return program.name.trim();
-  return localizedProgramNameBase(program, lang) ?? fallbackByLang(lang, "Class", "שיעור", "حصة");
+  if (hasText(direct)) return normalizeProgramLabel(direct.trim(), lang);
+  if (lang === "en" && hasText(program?.name))
+    return normalizeProgramLabel(program.name.trim(), lang);
+  return normalizeProgramLabel(
+    localizedProgramNameBase(program, lang) ?? fallbackByLang(lang, "Class", "שיעור", "حصة"),
+    lang,
+  );
 }
 
 export function getLocalizedLessonTitle(
@@ -215,4 +225,9 @@ function fallbackByLang(lang: Lang, en: string, he: string, ar: string) {
 
 function normalizeToken(value: string | null | undefined) {
   return hasText(value) ? value.trim().replace(/_/g, " ") : value;
+}
+
+function normalizeProgramLabel(value: string, lang: Lang) {
+  if (lang === "en" && /^pilates mat$/i.test(value.trim())) return "Mat Pilates";
+  return value;
 }
