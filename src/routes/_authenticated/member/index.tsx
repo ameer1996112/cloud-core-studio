@@ -217,10 +217,10 @@ function MemberHome() {
         ) : recommendedList.length === 0 ? (
           <MemberEmptyState
             variant="schedule"
-            align="start"
+            align="center"
             title={t("member.empty.schedule.title")}
             body={t("member.empty.schedule.body")}
-            secondaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
+            primaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
           />
         ) : (
           <div className="space-y-2.5">
