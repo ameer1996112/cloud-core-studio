@@ -4087,7 +4087,7 @@ select.input:focus {
 }
 
 [dir="rtl"] .member-empty-state-start {
-  align-items: flex-end;
+  align-items: flex-start;
   text-align: right;
 }
 
