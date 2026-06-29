@@ -95,7 +95,7 @@ function ReceiptPage() {
           variant="payments"
           title={t("receipt.notFound")}
           body={t("receipt.notFoundBody")}
-          secondaryAction={{ label: t("common.back"), onClick: () => router.history.back() }}
+          primaryAction={{ label: t("common.back"), onClick: () => router.history.back() }}
         />
       </div>
     );
@@ -107,7 +107,7 @@ function ReceiptPage() {
           variant="payments"
           title={t("receipt.unavailable")}
           body={friendlyErrorMessage(error, t("receipt.unavailableBody"))}
-          secondaryAction={{ label: t("common.back"), onClick: () => router.history.back() }}
+          primaryAction={{ label: t("common.back"), onClick: () => router.history.back() }}
         />
       </div>
     );

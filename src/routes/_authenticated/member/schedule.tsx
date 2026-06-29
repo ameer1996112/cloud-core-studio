@@ -172,7 +172,7 @@ function MemberSchedule() {
           variant="schedule"
           title={classes.length === 0 ? t("member.empty.schedule.title") : t("member.noSessions")}
           body={classes.length === 0 ? t("member.empty.schedule.body") : t("member.clearFilters")}
-          secondaryAction={
+          primaryAction={
             classes.length === 0 ? { label: t("legal.support"), to: "/support" } : undefined
           }
         />
