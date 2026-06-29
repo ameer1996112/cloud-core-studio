@@ -106,9 +106,7 @@ export function AppShell({ role, children }: Props) {
       <div className="fixed inset-0 flex items-center justify-center bg-ivory text-foreground">
         <div className="text-center">
           <p className="eyebrow">Cloud &amp; Core</p>
-          <h1 className="mt-3 font-display text-[clamp(2rem,5vw,2.75rem)] leading-none font-semibold">
-            {t("shell.signingOut")}
-          </h1>
+          <h1 className="cc-page-title mt-3">{t("shell.signingOut")}</h1>
           <div className="mx-auto mt-6 h-px w-16 bg-gold/70" />
         </div>
       </div>
@@ -208,11 +206,11 @@ export function AppShell({ role, children }: Props) {
           >
             <div className="min-w-0">
               <p className="eyebrow">{eyebrowFor(role)}</p>
-              <h1 className="mt-2 font-display text-[clamp(1.95rem,4vw,2.75rem)] leading-[1.08] font-semibold text-foreground truncate">
+              <h1 className="cc-page-title mt-2 truncate">
                 {currentSectionLabel(pathname, groups)}
               </h1>
             </div>
-            <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-display text-slate md:flex">
+            <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
               {useBottomNav ? <BrandHeaderWordmark className="scale-[0.95]" /> : null}
             </div>
           </div>
@@ -363,7 +361,7 @@ function SidebarPanel({
         {groups.map((group) => (
           <div key={group.label}>
             <p
-              className={`text-start font-semibold uppercase text-gold ${isMobileDrawer ? "mobile-sidebar-group-label" : "mb-1.5 mt-4 px-0 text-[11px] tracking-[0.12em]"}`}
+              className={`text-start font-semibold text-gold ${isMobileDrawer ? "mobile-sidebar-group-label" : "mb-1.5 mt-4 px-0 text-[12px] tracking-normal"}`}
             >
               {group.label}
             </p>
@@ -481,7 +479,7 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
       {open && (
         <div
           role="menu"
-          className="absolute end-0 z-50 mt-2 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[var(--color-surface-warm)] p-1 shadow-[var(--shadow-elevated)] backdrop-blur-xl"
+          className="absolute bottom-full end-0 z-50 mb-2 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[var(--color-surface-warm)] p-1 shadow-[var(--shadow-elevated)] backdrop-blur-xl"
         >
           {codes.map((code) => (
             <button
@@ -528,11 +526,34 @@ function BrandMark({
   className?: string;
   tone?: "gold" | "navy";
 }) {
+  const strokeColor = tone === "gold" ? "#C59B4E" : "var(--color-navy)";
+  const goldColor = "#C59B4E";
+  const fillColor = tone === "gold" ? "rgba(197, 155, 78, 0.08)" : "rgba(11, 29, 58, 0.03)";
+
   return (
-    <span
+    <svg
+      viewBox="0 0 160 112"
       aria-hidden="true"
-      className={`inline-block shrink-0 bg-current [mask-image:url('/brand/cloud-core-mark.svg')] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] ${tone === "gold" ? "text-gold" : "text-[var(--color-text-primary)]"} ${className}`.trim()}
-    />
+      className={`inline-block shrink-0 overflow-visible ${className}`}
+    >
+      {/* Cloud path */}
+      <path
+        d="M38.7 72.8h80.1c13.5 0 24.4-10.2 24.4-22.8 0-12.2-10.1-22.2-22.9-22.8C115.8 13.5 102.1 4 86.1 4 70.8 4 57.6 12.8 51.5 25.5c-2.4-.7-4.9-1-7.5-1-15 0-27.2 11.4-27.2 25.5 0 12.6 9.7 22.8 21.9 22.8Z"
+        fill={fillColor}
+        stroke={strokeColor}
+        strokeWidth="6.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Core line (gold/bronze bar below representing pilates/reformer bar) */}
+      <path
+        d="M51.7 86.7h56.6"
+        fill="none"
+        stroke={goldColor}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

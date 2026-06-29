@@ -4,11 +4,16 @@ import * as React from "react";
 export function AdminPageShell({
   children,
   className = "",
+  ...props
 }: {
   children: React.ReactNode;
   className?: string;
-}) {
-  return <div className={`admin-page-shell ${className}`}>{children}</div>;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`admin-page-shell ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
 
 export function AdminPage({
@@ -39,9 +44,7 @@ export function AdminPageHeader({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div className="min-w-0">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-          <h2 className="font-display mt-2 text-2xl sm:text-3xl font-semibold leading-tight text-navy">
-            {title}
-          </h2>
+          <h2 className="cc-page-title mt-2">{title}</h2>
           {description && (
             <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate">{description}</p>
           )}
@@ -90,11 +93,7 @@ export function AdminSection({
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 border-b border-gold/20 pb-3">
           <div className="min-w-0">
             {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-            {title && (
-              <h3 className="font-display mt-1 text-xl font-semibold leading-tight text-navy">
-                {title}
-              </h3>
-            )}
+            {title && <h3 className="cc-section-title mt-1">{title}</h3>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -112,6 +111,7 @@ export function Empty({
   primaryAction,
   secondaryAction,
   dir,
+  visual = "default",
 }: {
   children?: React.ReactNode;
   action?: React.ReactNode;
@@ -120,6 +120,7 @@ export function Empty({
   primaryAction?: React.ReactNode;
   secondaryAction?: React.ReactNode;
   dir?: "rtl" | "ltr";
+  visual?: "default" | "attendance";
 }) {
   const isRich = Boolean(title || body || primaryAction || secondaryAction);
 
@@ -127,11 +128,15 @@ export function Empty({
     <div
       className={`admin-empty-state editorial-panel ${
         isRich ? "admin-empty-state-rich" : "admin-empty-state-simple"
-      }`}
+      } ${visual === "attendance" ? "admin-empty-state-attendance" : ""}`}
       dir={dir}
     >
       <div className="admin-empty-visual" aria-hidden="true">
-        <StudioDayIllustration />
+        {visual === "attendance" ? (
+          <AttendanceEmptyIllustration />
+        ) : (
+          <AdminDefaultEmptyIllustration />
+        )}
       </div>
       <div className="admin-empty-copy">
         {title ? (
@@ -155,26 +160,173 @@ export function Empty({
   );
 }
 
-function StudioDayIllustration() {
+function AttendanceEmptyIllustration() {
   return (
-    <div className="admin-empty-studio-day">
-      <svg viewBox="0 0 210 150" focusable="false">
-        <path
-          className="admin-empty-studio-cloud"
-          d="M48.9 83.2h87.8c15.4 0 27.9-11.6 27.9-25.9 0-13.9-11.6-25.3-26.1-25.9C133.5 15.7 117.8 4.8 99.4 4.8c-17.6 0-32.8 10.1-39.7 24.7a33.7 33.7 0 0 0-8.6-1.1c-17.2 0-31.2 13-31.2 29 0 14.3 11.1 25.8 29 25.8Z"
-        />
-        <path className="admin-empty-studio-accent" d="M66 101.2h61.6" />
+    <svg
+      viewBox="6 0 306 204"
+      focusable="false"
+      className="admin-empty-attendance-illustration"
+      role="img"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <filter id="attendanceSoftShadow" x="-16%" y="-24%" width="132%" height="152%">
+          <feDropShadow dx="0" dy="14" stdDeviation="13" floodColor="#0B1D3A" floodOpacity="0.08" />
+        </filter>
+        <linearGradient id="attendanceGold" x1="248" y1="142" x2="304" y2="198">
+          <stop offset="0" stopColor="#DAB86F" />
+          <stop offset="1" stopColor="#B88B3D" />
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M85 131H52c-20 0-36-15-36-34 0-17 13-31 30-33 3-28 27-49 56-49 14 0 27 5 37 13"
+        fill="none"
+        stroke="var(--color-gold, #d4af6a)"
+        strokeWidth="9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.95"
+      />
+
+      <g filter="url(#attendanceSoftShadow)">
         <rect
-          className="admin-empty-studio-calendar"
-          x="128"
-          y="80"
-          width="52"
-          height="43"
-          rx="14"
+          x="84"
+          y="26"
+          width="188"
+          height="140"
+          rx="24"
+          fill="none"
+          stroke="var(--color-navy, #0b1d3a)"
+          strokeWidth="8"
         />
-        <path className="admin-empty-studio-calendar-line" d="M140.5 95.5h27" />
-        <path className="admin-empty-studio-calendar-line" d="M140.5 106h22" />
-        <path className="admin-empty-studio-calendar-line" d="M140.5 116.5h14" />
+        {[0, 1, 2].map((row) => {
+          const y = 64 + row * 39;
+          return (
+            <g key={row}>
+              <circle
+                cx="118"
+                cy={y}
+                r="13"
+                fill="none"
+                stroke="var(--color-navy, #0b1d3a)"
+                strokeWidth="5"
+              />
+              <path
+                d={`M146 ${y - 5}h55`}
+                fill="none"
+                stroke="var(--color-navy, #0b1d3a)"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+              <path
+                d={`M222 ${y - 5}h13M248 ${y - 5}h13`}
+                fill="none"
+                stroke="var(--color-navy, #0b1d3a)"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+            </g>
+          );
+        })}
+      </g>
+
+      <circle cx="268" cy="164" r="31" fill="var(--color-surface, #fffaf3)" />
+      <circle cx="268" cy="164" r="30" fill="none" stroke="url(#attendanceGold)" strokeWidth="7" />
+      <path
+        d="m253 164 10 10 22-25"
+        fill="none"
+        stroke="url(#attendanceGold)"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AdminDefaultEmptyIllustration() {
+  return (
+    <div className="admin-empty-default-visual relative flex items-center justify-center">
+      <svg
+        viewBox="0 0 210 150"
+        focusable="false"
+        className="w-full h-auto overflow-visible"
+        role="img"
+      >
+        <defs>
+          <filter id="adminDefaultEmptyShadow" x="-18%" y="-24%" width="136%" height="152%">
+            <feDropShadow
+              dx="0"
+              dy="13"
+              stdDeviation="11"
+              floodColor="#0B1D3A"
+              floodOpacity="0.08"
+            />
+          </filter>
+        </defs>
+
+        <g filter="url(#adminDefaultEmptyShadow)">
+          <path
+            d="M41 40h88c12 0 22 10 22 22v54H63c-12 0-22-10-22-22V40Z"
+            fill="var(--color-surface-warm, #fffaf3)"
+            stroke="var(--color-navy, #0b1d3a)"
+            strokeWidth="5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M59 63h52M59 82h64M59 101h40"
+            fill="none"
+            stroke="var(--color-navy, #0b1d3a)"
+            strokeWidth="5"
+            strokeLinecap="round"
+            opacity="0.86"
+          />
+          <circle
+            cx="143"
+            cy="48"
+            r="23"
+            fill="var(--color-surface-warm, #fffaf3)"
+            stroke="var(--color-gold, #d4af6a)"
+            strokeWidth="5"
+          />
+          <path
+            d="m158 63 17 17"
+            fill="none"
+            stroke="var(--color-gold, #d4af6a)"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <g
+            fill="var(--color-surface-warm, #fffaf3)"
+            stroke="var(--color-navy, #0b1d3a)"
+            strokeWidth="4"
+          >
+            <circle cx="39" cy="62" r="12" />
+            <circle cx="39" cy="99" r="12" />
+          </g>
+          <g fill="none" stroke="var(--color-gold, #d4af6a)" strokeLinecap="round" strokeWidth="4">
+            <path d="M35 62h8M39 58v8" />
+            <path d="m34 98 4 4 8-10" />
+          </g>
+          <g transform="translate(130 96)">
+            <circle
+              cx="16"
+              cy="16"
+              r="16"
+              fill="var(--color-surface-warm, #fffaf3)"
+              stroke="var(--color-gold, #d4af6a)"
+              strokeWidth="4"
+            />
+            <path
+              d="M9 16h14M16 9v14"
+              fill="none"
+              stroke="var(--color-navy, #0b1d3a)"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          </g>
+        </g>
       </svg>
     </div>
   );
@@ -189,7 +341,7 @@ export function SectionTitle({
 }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 mb-6 border-b border-gold/20 pb-3">
-      <h2 className="font-display text-xl font-semibold leading-tight text-navy">{children}</h2>
+      <h2 className="cc-section-title">{children}</h2>
       {action && <div className="shrink-0">{action}</div>}
     </div>
   );
@@ -229,7 +381,7 @@ export function Stat({
   return (
     <div>
       <p className="eyebrow">{label}</p>
-      <p className="numeric-display text-3xl leading-none mt-2">{value}</p>
+      <p className="cc-metric-value text-3xl mt-2">{value}</p>
       <div className="h-px w-full bg-gold/25 mt-3" />
       {hint && <p className="text-slate mt-2">{hint}</p>}
     </div>

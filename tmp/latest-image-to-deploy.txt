@@ -1,1 +1,1 @@
-me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260628210358
+me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260629104552

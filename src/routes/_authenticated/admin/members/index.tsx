@@ -109,8 +109,8 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display text-lg truncate group-hover:text-gold transition-colors">
-            {m.name}
+          <p className="cc-card-title truncate group-hover:text-gold transition-colors">
+            <bdi>{m.name}</bdi>
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate">
             {m.phone && (
@@ -128,7 +128,7 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
           </div>
         </div>
         <div className="text-end shrink-0">
-          <p className="font-display text-[28px] leading-none font-light">{m.remaining_credits}</p>
+          <p className="cc-metric-value text-[28px]">{m.remaining_credits}</p>
           <p className="mt-0.5 text-xs font-medium text-slate">{t("common.credits")}</p>
         </div>
       </div>

@@ -3,11 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Activity,
   AlertTriangle,
   ArrowRight,
+  CalendarDays,
   Clock,
   MapPin,
+  Plus,
   Sparkles,
   Users,
   UserPlus,
@@ -18,7 +19,6 @@ import { studioPulse } from "@/lib/admin.functions";
 import { ClassRosterDrawer } from "@/components/admin/ClassRosterDrawer";
 import { getLocale, t, useI18n } from "@/lib/i18n";
 import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
-import { AdminToolbar, Empty, AdminPageHeader } from "@/components/admin-shared";
 
 type Scope = "next" | "today" | "tomorrow" | "all";
 
@@ -60,7 +60,7 @@ export function StudioPulse({
   mineOnly?: boolean;
   showHeader?: boolean;
 }) {
-  useI18n();
+  const { dir } = useI18n();
   const fn = useServerFn(studioPulse);
   const { data, isLoading, dataUpdatedAt } = useQuery({
     queryKey: ["studio-pulse", { mineOnly }],
@@ -97,47 +97,52 @@ export function StudioPulse({
       })
     : "—";
 
+  const scopes = [
+    { k: "next", label: t("pulse.nextUp") },
+    { k: "today", label: t("pulse.today") },
+    { k: "tomorrow", label: t("pulse.tomorrow") },
+    { k: "all", label: t("pulse.all72") },
+  ] as const;
+
   return (
-    <section className="space-y-6 pb-12">
+    <section className="space-y-5 pb-12" dir={dir}>
       {showHeader && (
-        <AdminPageHeader
-          eyebrow={t("pulse.live")}
-          title={heading ?? t("pulse.heading")}
-          description={subheading}
-          action={
-            <div className="flex items-center gap-2 text-xs font-medium text-slate">
-              <span className="relative inline-flex h-2 w-2">
-                <span className="absolute inset-0 rounded-full bg-gold opacity-60 animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
-              </span>
-              {t("pulse.updated", { time: updatedLabel })}
-            </div>
-          }
-        />
+        <header className="pulse-page-header">
+          <div className="min-w-0">
+            <p className="eyebrow">{heading ? t("pulse.live") : t("pulse.eyebrow")}</p>
+            <h1 className="cc-page-title mt-2">{heading ?? t("pulse.heading")}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate">
+              {subheading ?? t("pulse.subheading")}
+            </p>
+          </div>
+          <div className="pulse-updated-pill" aria-live="polite">
+            <span className="pulse-live-dot" />
+            {t("pulse.updated", { time: updatedLabel })}
+          </div>
+        </header>
       )}
 
-      <AdminToolbar className="overflow-x-auto">
-        {(
-          [
-            { k: "next", label: t("pulse.nextUp") },
-            { k: "today", label: t("pulse.today") },
-            { k: "tomorrow", label: t("pulse.tomorrow") },
-            { k: "all", label: t("pulse.all72") },
-          ] as const
-        ).map((s) => (
-          <button
-            key={s.k}
-            onClick={() => setScope(s.k as Scope)}
-            className={
-              scope === s.k
-                ? "px-3 py-1.5 border border-navy bg-navy text-ivory rounded-full text-xs font-medium"
-                : "px-3 py-1.5 border border-gold/40 text-navy rounded-full text-xs font-medium hover:bg-gold/8"
-            }
-          >
-            {s.label}
-          </button>
-        ))}
-      </AdminToolbar>
+      <div className="pulse-filter-row">
+        <div
+          className="pulse-segmented-control"
+          role="tablist"
+          aria-label={t("pulse.filterSummary")}
+        >
+          {scopes.map((s) => (
+            <button
+              key={s.k}
+              type="button"
+              role="tab"
+              aria-selected={scope === s.k}
+              onClick={() => setScope(s.k as Scope)}
+              className={scope === s.k ? "pulse-segment is-active" : "pulse-segment"}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <p className="pulse-filter-summary">{t("pulse.filterSummary")}</p>
+      </div>
 
       {isLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -147,13 +152,7 @@ export function StudioPulse({
         </div>
       )}
 
-      {!isLoading && filtered.length === 0 && (
-        <Empty>
-          <Activity className="h-6 w-6 text-gold/70 mx-auto mb-3" />
-          <span className="block font-semibold text-navy">{t("pulse.emptyTitle")}</span>
-          <span className="mt-2 block">{t("pulse.emptyBody")}</span>
-        </Empty>
-      )}
+      {!isLoading && filtered.length === 0 && <PulseEmptyState />}
 
       {!isLoading && filtered.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -165,6 +164,106 @@ export function StudioPulse({
 
       <ClassRosterDrawer classId={openClassId} onClose={() => setOpenClassId(null)} />
     </section>
+  );
+}
+
+function PulseEmptyState() {
+  const { dir } = useI18n();
+
+  return (
+    <div className="pulse-empty-state" dir={dir}>
+      <div className="pulse-empty-copy">
+        <h2>{t("pulse.emptyTitle")}</h2>
+        <p>{t("pulse.emptyBody")}</p>
+        <div className="pulse-empty-actions">
+          <Link
+            to="/admin/classes/new"
+            className="btn-navy inline-flex items-center gap-2 px-5 py-3 hover:btn-navy-hover"
+          >
+            <Plus className="h-4 w-4" />
+            {t("pulse.emptyPrimary")}
+          </Link>
+          <Link
+            to="/admin/calendar"
+            className="btn-outline inline-flex items-center gap-2 px-5 py-3 hover:btn-outline-hover"
+          >
+            <CalendarDays className="h-4 w-4" />
+            {t("pulse.emptySecondary")}
+          </Link>
+        </div>
+      </div>
+      <div className="pulse-empty-visual" aria-hidden="true">
+        <PulseEmptyIllustration />
+      </div>
+    </div>
+  );
+}
+
+function PulseEmptyIllustration() {
+  return (
+    <svg
+      className="pulse-empty-illustration"
+      viewBox="0 0 320 220"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M58 126.5c-17.5 0-31.5-13.2-31.5-29.5 0-14.9 11.8-27.3 27.2-29.2C58.9 47 78.2 32 101.1 32c20.9 0 38.9 12.4 46.1 30.1"
+        stroke="var(--color-gold)"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="99" y="47" width="166" height="126" rx="25" fill="var(--color-ivory)" />
+      <rect
+        x="99"
+        y="47"
+        width="166"
+        height="126"
+        rx="25"
+        stroke="var(--color-navy)"
+        strokeWidth="7"
+      />
+      {[78, 111, 144].map((y) => (
+        <g key={y}>
+          <circle cx="127" cy={y} r="10" stroke="var(--color-navy)" strokeWidth="4" />
+          <path
+            d={`M151 ${y}h51`}
+            stroke="var(--color-navy)"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M220 ${y}h11M244 ${y}h11`}
+            stroke="var(--color-navy)"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        </g>
+      ))}
+      <path
+        d="M120 186h103"
+        stroke="var(--color-gold)"
+        strokeWidth="4"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+      <circle
+        cx="260"
+        cy="162"
+        r="27"
+        fill="var(--color-ivory)"
+        stroke="var(--color-gold)"
+        strokeWidth="6"
+      />
+      <path
+        d="m247 162 9 9 18-22"
+        stroke="var(--color-gold)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

@@ -1,18 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search, Sparkles, UserRound } from "lucide-react";
+import { BookOpenText, ImagePlus, Plus, Search, Sparkles, UserRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { listInstructors, upsertInstructor } from "@/lib/admin.functions";
-import {
-  AdminPageShell,
-  AdminPageHeader,
-  AdminMetricCard,
-  Empty,
-  Field,
-  CardSkeleton,
-} from "@/components/admin-shared";
+import { AdminPageShell, Empty, Field, CardSkeleton } from "@/components/admin-shared";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedInstructorBio, localizedInstructorName } from "@/lib/localized-content";
@@ -32,7 +26,7 @@ type InstructorForm = {
 const emptyForm: InstructorForm = { name: "", bio_short: "", avatar_url: "", active: true };
 
 function Page() {
-  const { lang, t } = useI18n();
+  const { dir, lang, t } = useI18n();
   useDocumentTitle("page.instructors.title");
   const fn = useServerFn(listInstructors);
   const upFn = useServerFn(upsertInstructor);
@@ -40,6 +34,8 @@ function Page() {
   const { data, isLoading } = useQuery({ queryKey: ["admin-instructors"], queryFn: () => fn() });
   const [editing, setEditing] = useState<InstructorForm | null>(null);
   const [search, setSearch] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
 
   const instructors = useMemo(
     () =>
@@ -64,6 +60,7 @@ function Page() {
   });
 
   const activeCount = instructors.filter((i: any) => i.active).length;
+  const inactiveCount = Math.max(instructors.length - activeCount, 0);
 
   const save = useMutation({
     mutationFn: (v: InstructorForm) =>
@@ -83,42 +80,102 @@ function Page() {
     },
   });
 
-  return (
-    <AdminPageShell>
-      <AdminPageHeader
-        eyebrow={t("admin.instructors.roster")}
-        title={t("admin.instructors.title")}
-        description={t("admin.instructors.hint")}
-        action={
-          <button onClick={() => setEditing(emptyForm)} className="btn-navy hover:btn-navy-hover">
-            <Plus className="h-3.5 w-3.5" /> {t("admin.instructors.add")}
-          </button>
-        }
-      />
+  async function onPickAvatar(file: File) {
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `instructors/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("studio-media").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (upErr) throw upErr;
 
-      {/* Compact metrics + search */}
-      <div className="grid gap-4 sm:grid-cols-[1fr_1fr_minmax(0,2fr)]">
-        <AdminMetricCard label={t("admin.instructors.total")} value={instructors.length} />
-        <AdminMetricCard label={t("admin.instructors.active")} value={activeCount} />
-        <div className="flex items-end">
-          <div className="relative w-full">
-            <Search className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("studio-media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signErr) throw signErr;
+
+      setEditing((current) => (current ? { ...current, avatar_url: signed.signedUrl } : current));
+      toast.success(t("admin.instructors.avatarUploaded"));
+    } catch (err: any) {
+      toast.error(err?.message ?? t("admin.instructors.avatarUploadFailed"));
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarFileRef.current) avatarFileRef.current.value = "";
+    }
+  }
+
+  return (
+    <AdminPageShell className="admin-instructors-page" dir={dir}>
+      <header className="admin-instructors-hero">
+        <div className="admin-instructors-hero__copy">
+          <p className="eyebrow">{t("admin.instructors.eyebrow")}</p>
+          <h1 className="cc-page-title">{t("admin.instructors.title")}</h1>
+          <p>{t("admin.instructors.subtitle")}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setEditing(emptyForm)}
+          className="btn-navy admin-instructors-primary-cta hover:btn-navy-hover"
+        >
+          <Plus className="h-4 w-4" />
+          {t("admin.instructors.add")}
+        </button>
+      </header>
+
+      <section className="admin-instructors-control-panel">
+        <div className="admin-instructors-stats" aria-label={t("admin.instructors.summary")}>
+          <InstructorStatCard label={t("admin.instructors.total")} value={instructors.length} />
+          <InstructorStatCard label={t("admin.instructors.active")} value={activeCount} accent />
+          <InstructorStatCard label={t("admin.instructors.inactive")} value={inactiveCount} />
+        </div>
+
+        <div className="admin-instructors-tools">
+          <label className="admin-instructors-search">
+            <Search className="admin-instructors-search__icon" aria-hidden="true" />
+            <span className="sr-only">{t("admin.instructors.search")}</span>
             <input
-              className="editorial-input ps-11"
-              placeholder={t("admin.instructors.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("admin.instructors.search")}
             />
+          </label>
+          <div className="admin-instructors-result-pill">
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("admin.instructors.showing", { count: filtered.length })}
           </div>
         </div>
-      </div>
+      </section>
 
       {isLoading ? (
         <CardSkeleton rows={3} />
+      ) : instructors.length === 0 ? (
+        <Empty
+          dir={dir}
+          title={t("admin.instructors.emptyTitle")}
+          body={t("admin.instructors.emptyBody")}
+          primaryAction={
+            <button
+              type="button"
+              onClick={() => setEditing(emptyForm)}
+              className="btn-navy hover:btn-navy-hover"
+            >
+              <Plus className="h-4 w-4" />
+              {t("admin.instructors.emptyPrimary")}
+            </button>
+          }
+          secondaryAction={
+            <span className="btn-outline cursor-default select-none">
+              {t("admin.instructors.emptySecondary")}
+            </span>
+          }
+        />
       ) : filtered.length === 0 ? (
         <Empty>{t("admin.instructors.empty")}</Empty>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <section className="admin-instructors-grid" aria-label={t("admin.instructors.title")}>
           {filtered.map((i: any) => (
             <InstructorCard
               key={i.id}
@@ -143,7 +200,7 @@ function Page() {
               }
             />
           ))}
-        </div>
+        </section>
       )}
 
       {editing && (
@@ -156,7 +213,7 @@ function Page() {
             }}
           >
             <header className="flex items-center justify-between border-b border-gold/20 p-6">
-              <h3 className="font-display text-2xl italic text-navy">
+              <h3 className="cc-section-title">
                 {editing.id ? t("admin.instructors.edit") : t("admin.instructors.add")}
               </h3>
               <button
@@ -184,11 +241,41 @@ function Page() {
                 />
               </Field>
               <Field label={t("admin.instructors.avatar")}>
-                <input
-                  className="editorial-input"
-                  value={editing.avatar_url}
-                  onChange={(e) => setEditing({ ...editing, avatar_url: e.target.value })}
-                />
+                <div className="flex items-center gap-4 rounded-[var(--radius-sm)] border border-gold/25 bg-sand/25 p-3">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold/35 bg-ivory text-navy">
+                    {editing.avatar_url ? (
+                      <img src={editing.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <UserRound className="h-7 w-7" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <input
+                      ref={avatarFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void onPickAvatar(file);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarFileRef.current?.click()}
+                      disabled={uploadingAvatar}
+                      className="btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs hover:btn-outline-hover disabled:opacity-50"
+                    >
+                      <ImagePlus className="h-3.5 w-3.5" />
+                      {uploadingAvatar
+                        ? t("admin.instructors.uploadingAvatar")
+                        : t("admin.instructors.uploadAvatar")}
+                    </button>
+                    <p className="text-xs leading-relaxed text-slate">
+                      {t("admin.instructors.avatarHelp")}
+                    </p>
+                  </div>
+                </div>
               </Field>
               <label className="inline-flex items-center gap-2 text-sm text-navy">
                 <input
@@ -209,16 +296,33 @@ function Page() {
               </button>
               <button
                 type="submit"
-                disabled={save.isPending}
+                disabled={save.isPending || uploadingAvatar}
                 className="btn-navy hover:btn-navy-hover"
               >
-                {save.isPending ? t("common.saving") : t("common.save")}
+                {save.isPending || uploadingAvatar ? t("common.saving") : t("common.save")}
               </button>
             </footer>
           </form>
         </div>
       )}
     </AdminPageShell>
+  );
+}
+
+function InstructorStatCard({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: number;
+  accent?: boolean;
+}) {
+  return (
+    <div className={accent ? "admin-instructors-stat is-accent" : "admin-instructors-stat"}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 
@@ -232,58 +336,48 @@ function InstructorCard({
   onToggle: () => void;
 }) {
   return (
-    <article className="editorial-card overflow-hidden p-5 transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-gold/45 hover:shadow-[0_18px_42px_-30px_rgba(11,29,58,0.55)]">
-      <div className="flex items-start gap-4">
-        <div className="relative shrink-0">
+    <article className="admin-instructor-card">
+      <div className="admin-instructor-card__header">
+        <div className="admin-instructor-avatar">
           {instructor.avatar_url ? (
-            <img
-              src={instructor.avatar_url}
-              alt=""
-              className="h-16 w-16 rounded-full border border-gold/40 object-cover"
-            />
+            <img src={instructor.avatar_url} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-gold/35 bg-sand/70 text-navy">
-              <UserRound className="h-6 w-6" />
-            </div>
+            <UserRound className="h-7 w-7" />
           )}
           {instructor.active && (
-            <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-ivory bg-gold" />
+            <span className="admin-instructor-avatar__status" aria-hidden="true" />
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="truncate font-display text-xl leading-tight text-navy">
-                {instructor.displayName}
-              </h3>
-              <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate">
-                {instructor.displayBio ?? t("admin.instructors.noBio")}
-              </p>
-            </div>
-            <StatusBadge active={instructor.active} />
+        <div className="admin-instructor-card__identity">
+          <div>
+            <h3>
+              <bdi>{instructor.displayName}</bdi>
+            </h3>
+            <p>{instructor.displayBio ?? t("admin.instructors.noBio")}</p>
           </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-gold/15 pt-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 px-2.5 py-1 text-xs font-medium text-slate">
-              <Sparkles className="h-3 w-3 text-gold" />
-              {t("admin.instructors.scheduleReady")}
-            </span>
-            <div className="ms-auto flex items-center gap-2">
-              <button onClick={onEdit} className="btn-ghost text-xs hover:btn-ghost-hover">
-                {t("common.edit")}
-              </button>
-              <button
-                onClick={onToggle}
-                className="btn-outline px-3 py-2 text-xs hover:btn-outline-hover"
-              >
-                {instructor.active
-                  ? t("admin.instructors.deactivate")
-                  : t("admin.instructors.activate")}
-              </button>
-            </div>
-          </div>
+          <StatusBadge active={instructor.active} />
         </div>
+      </div>
+
+      <div className="admin-instructor-chip-row">
+        <span>
+          <Sparkles className="h-3.5 w-3.5" />
+          {t("admin.instructors.scheduleReady")}
+        </span>
+        <span>
+          <BookOpenText className="h-3.5 w-3.5" />
+          {t("admin.instructors.profileReady")}
+        </span>
+      </div>
+
+      <div className="admin-instructor-card__actions">
+        <button type="button" onClick={onEdit} className="btn-outline hover:btn-outline-hover">
+          {t("common.edit")}
+        </button>
+        <button type="button" onClick={onToggle} className="btn-ghost hover:btn-ghost-hover">
+          {instructor.active ? t("admin.instructors.deactivate") : t("admin.instructors.activate")}
+        </button>
       </div>
     </article>
   );
@@ -291,11 +385,7 @@ function InstructorCard({
 
 function StatusBadge({ active }: { active: boolean }) {
   return (
-    <span
-      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
-        active ? "border-gold/60 bg-gold/10 text-navy" : "border-slate/30 bg-slate/5 text-slate"
-      }`}
-    >
+    <span className={active ? "admin-instructor-status is-active" : "admin-instructor-status"}>
       {active ? t("admin.instructors.active") : t("admin.instructors.inactive")}
     </span>
   );

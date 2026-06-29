@@ -147,6 +147,8 @@ const getInitialShellLang = createIsomorphicFn()
     return readLangCookie(cookieHeader) ?? DEFAULT_LOCALE;
   })
   .client(() => {
+    const storedLang = getStoredLang();
+    if (storedLang === "he" || storedLang === "ar" || storedLang === "en") return storedLang;
     const bootLang =
       typeof window !== "undefined" && "__ccBootLang" in window
         ? (window as typeof window & { __ccBootLang?: unknown }).__ccBootLang

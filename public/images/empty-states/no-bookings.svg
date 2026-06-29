@@ -1,10 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="No bookings">
-  <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#FAF7F2"/><stop offset="1" stop-color="#E8DFD1"/></linearGradient></defs>
-  <rect width="320" height="200" rx="14" fill="url(#g)"/>
-  <g fill="none" stroke="#0B1D3A" stroke-width="1.25" stroke-linecap="round" opacity="0.7">
-    <path d="M70 130 q20 -28 50 -28 q10 -22 36 -22 q28 0 36 24 q24 0 30 22 z"/>
-    <path d="M180 150 q22 -22 46 -22"/>
-    <circle cx="244" cy="78" r="9"/>
+  <defs>
+    <filter id="bookingShadow" x="-14%" y="-18%" width="128%" height="142%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#0B1D3A" flood-opacity=".08"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M78 132H46c-18 0-32-13-32-30 0-15 12-28 28-30 3-25 24-43 50-43 12 0 23 4 32 11" stroke="#D4AF6A" stroke-width="7"/>
+    <g filter="url(#bookingShadow)" stroke="#0B1D3A">
+      <rect x="92" y="32" width="178" height="126" rx="22" stroke-width="7"/>
+      <path d="M121 63h38M121 92h98M121 121h74" stroke-width="6"/>
+      <path d="M232 64h18M232 93h18M232 122h18" stroke-width="4.5"/>
+      <circle cx="104" cy="171" r="23" fill="#FAF7F2" stroke="#D4AF6A" stroke-width="6"/>
+      <path d="m93 171 8 8 18-21" stroke="#D4AF6A" stroke-width="6"/>
+    </g>
   </g>
-  <g stroke="#D4AF6A" stroke-width="1" opacity="0.8"><path d="M40 170 h240" stroke-dasharray="2 6"/></g>
 </svg>

@@ -184,7 +184,9 @@ function PaymentsPage() {
                     <td className="text-slate whitespace-nowrap">
                       {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)}
                     </td>
-                    <td className="font-display">{p.member?.name ?? "—"}</td>
+                    <td className="font-semibold">
+                      {p.member?.name ? <bdi>{p.member.name}</bdi> : "—"}
+                    </td>
                     <td className="text-xs font-medium text-slate">{labelForMethod(p.method)}</td>
                     <td className="text-slate">
                       {p.plan ? getPlanDisplay(p.plan, lang).name : "—"}

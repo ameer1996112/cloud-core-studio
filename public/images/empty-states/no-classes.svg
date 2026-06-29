@@ -1,12 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="No classes">
-  <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FAF7F2"/><stop offset="1" stop-color="#B7CCE6" stop-opacity="0.6"/></linearGradient></defs>
-  <rect width="320" height="200" rx="14" fill="url(#g)"/>
-  <g fill="none" stroke="#0B1D3A" stroke-width="1.25" opacity="0.75">
-    <rect x="80" y="60" width="160" height="100" rx="8"/>
-    <path d="M80 88 h160"/>
-    <path d="M110 60 v-12 M210 60 v-12" stroke-linecap="round"/>
-    <circle cx="160" cy="124" r="14"/>
-    <path d="M160 116 v10 l6 4" stroke-linecap="round"/>
+  <defs>
+    <filter id="softShadow" x="-12%" y="-18%" width="124%" height="140%">
+      <feDropShadow dx="0" dy="13" stdDeviation="12" flood-color="#0B1D3A" flood-opacity=".08"/>
+    </filter>
+    <linearGradient id="goldStroke" x1="248" y1="143" x2="303" y2="198" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DAB86F"/>
+      <stop offset="1" stop-color="#B88B3D"/>
+    </linearGradient>
+  </defs>
+  <path d="M88 128H53c-20 0-36-15-36-34 0-17 13-31 31-33 3-28 27-48 55-48 14 0 27 5 37 13" fill="none" stroke="#D4AF6A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <g filter="url(#softShadow)" fill="none" stroke="#0B1D3A" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="84" y="26" width="188" height="140" rx="24" stroke-width="8"/>
+    <circle cx="118" cy="64" r="13" stroke-width="5"/>
+    <path d="M146 59h55M222 59h13M248 59h13" stroke-width="5"/>
+    <circle cx="118" cy="103" r="13" stroke-width="5"/>
+    <path d="M146 98h55M222 98h13M248 98h13" stroke-width="5"/>
+    <circle cx="118" cy="142" r="13" stroke-width="5"/>
+    <path d="M146 137h55M222 137h13M248 137h13" stroke-width="5"/>
   </g>
-  <path d="M60 178 h200" stroke="#D4AF6A" stroke-dasharray="2 6"/>
+  <circle cx="268" cy="164" r="31" fill="#FAF7F2"/>
+  <circle cx="268" cy="164" r="30" fill="none" stroke="url(#goldStroke)" stroke-width="7"/>
+  <path d="m253 164 10 10 22-25" fill="none" stroke="url(#goldStroke)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

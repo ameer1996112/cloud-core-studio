@@ -102,7 +102,7 @@ function OverviewPage() {
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Panel title={t("admin.overview.todayClasses")} className="lg:col-span-2">
           {d.todayClasses.length === 0 ? (
-            <p className="text-sm text-slate font-display">
+            <p className="text-sm text-slate">
               {t("admin.overview.noClassesToday")}{" "}
               <Link to="/admin/calendar" className="underline">
                 {t("admin.overview.openCalendar")}
@@ -122,7 +122,7 @@ function OverviewPage() {
                       className="flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-gold/5"
                     >
                       <div className="w-16 text-center pe-3 border-e border-gold/20">
-                        <p className="font-display text-xl leading-none">
+                        <p className="cc-metric-value text-xl">
                           {startsAt.toLocaleTimeString(locale, {
                             hour: "numeric",
                             minute: "2-digit",
@@ -130,14 +130,16 @@ function OverviewPage() {
                         </p>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-display text-lg truncate" dir="auto">
+                        <p className="cc-card-title truncate" dir="auto">
                           <bdi>{localizedClassTitle(c, lang)}</bdi>
                         </p>
                         <p className="mt-0.5 text-xs font-medium text-slate">
                           {localizedRoomName(c.room_ref?.name ?? c.room, lang)} ·{" "}
-                          {c.instructor?.name
-                            ? localizedInstructorName(c.instructor.name, lang)
-                            : t("common.unassigned")}
+                          {c.instructor?.name ? (
+                            <bdi>{localizedInstructorName(c.instructor.name, lang)}</bdi>
+                          ) : (
+                            t("common.unassigned")
+                          )}
                         </p>
                       </div>
                       <span className="shrink-0 text-xs font-medium text-slate">
@@ -174,9 +176,9 @@ function OverviewPage() {
                       <Link
                         to="/admin/members/$id"
                         params={{ id: m.id }}
-                        className="font-display truncate hover:underline"
+                        className="font-semibold truncate hover:underline"
                       >
-                        {m.name}
+                        <bdi>{m.name}</bdi>
                       </Link>
                       <span className="text-xs text-slate">
                         {t("admin.overview.creditsLeft", { count: m.remaining_credits })}
@@ -193,7 +195,7 @@ function OverviewPage() {
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Panel title={t("admin.overview.upcomingWeek")}>
           {d.upcoming.length === 0 ? (
-            <p className="text-sm text-slate font-display">{t("admin.overview.noUpcoming")}</p>
+            <p className="text-sm text-slate">{t("admin.overview.noUpcoming")}</p>
           ) : (
             <ul className="divide-y divide-gold/15">
               {d.upcoming.slice(0, 6).map((c: any) => {
@@ -201,7 +203,7 @@ function OverviewPage() {
                 return (
                   <li key={c.id} className="py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-display truncate" dir="auto">
+                      <p className="font-semibold text-navy truncate" dir="auto">
                         <bdi>{localizedClassTitle(c, lang)}</bdi>
                       </p>
                       <p className="mt-0.5 text-xs font-medium text-slate">
@@ -230,9 +232,7 @@ function OverviewPage() {
 
         <Panel title={t("admin.overview.recentActivity")}>
           {d.recentLog.length === 0 ? (
-            <p className="text-sm text-slate font-display">
-              {t("admin.overview.noRecentActivity")}
-            </p>
+            <p className="text-sm text-slate">{t("admin.overview.noRecentActivity")}</p>
           ) : (
             <ul className="divide-y divide-gold/15">
               {d.recentLog.map((l: any) => (
@@ -316,7 +316,7 @@ function Panel({
       className={`editorial-panel p-5 sm:p-6 ${tone === "sand" ? "bg-sand/35" : ""} ${className}`}
     >
       <header className="flex items-baseline justify-between mb-5 pb-2 border-b border-gold/25">
-        <h3 className="font-display text-xl font-semibold">{title}</h3>
+        <h3 className="cc-section-title">{title}</h3>
         <Sparkles className="h-3.5 w-3.5 text-gold/70" />
       </header>
       {children}

@@ -16,6 +16,7 @@ import { Plus, Pencil, Trash2, ImagePlus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { studioImages } from "@/lib/image-assets";
+import { Button, CardActionRow, IconButton } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/admin/rooms")({
   component: RoomsPage,
@@ -113,9 +114,9 @@ function RoomsPage() {
       <AdminPageHeader
         title={t("admin.rooms.title")}
         action={
-          <button onClick={() => setEditing(empty)} className="btn-navy hover:btn-navy-hover">
+          <Button onClick={() => setEditing(empty)}>
             <Plus className="h-3.5 w-3.5" /> {t("admin.rooms.add")}
-          </button>
+          </Button>
         }
       />
 
@@ -164,24 +165,31 @@ function RoomsPage() {
                       {r.description}
                     </p>
                   )}
-                  <div className="mt-auto flex items-center justify-end gap-2 pt-3 border-t border-gold/20">
-                    <button
+                  <CardActionRow>
+                    <IconButton
+                      type="button"
+                      aria-label={t("admin.rooms.editAction")}
+                      title={t("admin.rooms.editAction")}
                       onClick={() => setEditing(r)}
-                      className="btn-ghost inline-flex items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
+                      variant="secondary"
                     >
-                      <Pencil className="h-3.5 w-3.5" /> {t("common.edit")}
-                    </button>
-                    <button
+                      <Pencil className="h-4 w-4" />
+                    </IconButton>
+                    <IconButton
+                      type="button"
+                      aria-label={t("admin.rooms.deleteAction")}
+                      title={t("admin.rooms.deleteAction")}
                       onClick={() => {
                         if (confirm(t("admin.rooms.removeConfirm", { name: r.name }))) {
                           del.mutate(r.id);
                         }
                       }}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-slate hover:text-destructive"
+                      variant="destructive"
+                      data-tone="destructive"
                     >
-                      <Trash2 className="h-3.5 w-3.5" /> {t("common.delete")}
-                    </button>
-                  </div>
+                      <Trash2 className="h-4 w-4" />
+                    </IconButton>
+                  </CardActionRow>
                 </div>
               </article>
             );
@@ -196,12 +204,14 @@ function RoomsPage() {
               <h3 className="font-display text-2xl">
                 {editing.id ? t("admin.rooms.edit") : t("admin.rooms.add")}
               </h3>
-              <button
+              <IconButton
+                type="button"
+                aria-label={t("admin.rooms.close")}
                 onClick={() => setEditing(null)}
-                className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+                variant="ghost"
               >
                 ×
-              </button>
+              </IconButton>
             </header>
             <form
               className="p-6 space-y-5"
@@ -236,15 +246,16 @@ function RoomsPage() {
                       if (f) void onPickImage(f);
                     }}
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
-                    className="btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs hover:btn-outline-hover disabled:opacity-50"
+                    variant="outline"
+                    size="sm"
                   >
                     <ImagePlus className="h-3.5 w-3.5" />{" "}
                     {uploading ? t("admin.rooms.uploading") : t("admin.rooms.uploadImage")}
-                  </button>
+                  </Button>
                   <p className="text-xs text-slate">{t("admin.rooms.imageHelp")}</p>
                 </div>
               </div>
@@ -336,21 +347,13 @@ function RoomsPage() {
                 {t("admin.rooms.active")}
               </label>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gold/20">
-                <button
-                  type="button"
-                  onClick={() => setEditing(null)}
-                  className="text-xs font-medium text-slate transition-colors hover:text-navy"
-                >
+              <div className="cc-card-action-row">
+                <Button type="button" onClick={() => setEditing(null)} variant="secondary">
                   {t("common.cancel")}
-                </button>
-                <button
-                  type="submit"
-                  disabled={save.isPending}
-                  className="inline-flex items-center rounded-xl bg-navy px-5 py-2 text-xs font-medium text-ivory transition-colors hover:bg-navy/90 disabled:opacity-60"
-                >
+                </Button>
+                <Button type="submit" disabled={save.isPending}>
                   {save.isPending ? t("common.saving") : t("admin.rooms.save")}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

@@ -1,9 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="No payments">
-  <rect width="320" height="200" rx="14" fill="#FAF7F2"/>
-  <g fill="none" stroke="#0B1D3A" stroke-width="1.25" opacity="0.7">
-    <rect x="70" y="70" width="180" height="80" rx="10"/>
-    <path d="M70 96 h180"/>
-    <path d="M90 124 h40 M150 124 h60"/>
+  <defs>
+    <filter id="receiptShadow" x="-14%" y="-18%" width="128%" height="142%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#0B1D3A" flood-opacity=".08"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#receiptShadow)">
+    <path d="M88 32h144c10 0 18 8 18 18v118l-20-12-20 12-20-12-20 12-20-12-20 12-20-12-20 12V50c0-10 8-18 18-18Z" stroke="#0B1D3A" stroke-width="7"/>
+    <path d="M118 72h86M118 101h64M118 130h92" stroke="#0B1D3A" stroke-width="6"/>
+    <circle cx="238" cy="134" r="29" fill="#FAF7F2" stroke="#D4AF6A" stroke-width="7"/>
+    <path d="m224 134 9 9 21-24" stroke="#D4AF6A" stroke-width="7"/>
   </g>
-  <path d="M70 170 h180" stroke="#D4AF6A" stroke-dasharray="2 6"/>
 </svg>

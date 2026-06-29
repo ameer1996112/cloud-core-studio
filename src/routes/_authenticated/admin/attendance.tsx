@@ -58,6 +58,7 @@ function ClassesList({ onOpen, lang }: { onOpen: (id: string) => void; lang: "en
           title={t("attendance.empty.title")}
           body={t("attendance.empty.body")}
           dir={dir}
+          visual="attendance"
           primaryAction={
             <Link to="/admin/classes/new" className="btn-navy hover:btn-navy-hover">
               <Plus className="h-4 w-4" />
@@ -104,14 +105,16 @@ function ClassCard({
         <p className="mt-1.5 text-xs font-medium text-slate">{c.duration_minutes}m</p>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-display text-lg text-navy truncate" dir="auto">
+        <p className="cc-card-title truncate" dir="auto">
           <bdi>{localizedClassTitle(c, lang)}</bdi>
         </p>
         <p className="mt-1 truncate text-xs font-medium text-slate">
           {localizedRoomName(c.room, lang)} ·{" "}
-          {c.instructor?.name
-            ? localizedInstructorName(c.instructor.name, lang)
-            : t("common.unassigned")}
+          {c.instructor?.name ? (
+            <bdi>{localizedInstructorName(c.instructor.name, lang)}</bdi>
+          ) : (
+            t("common.unassigned")
+          )}
         </p>
         <div className="flex gap-2 mt-3">
           <span className="rounded-full border border-gold/30 px-2.5 py-1 text-xs font-medium text-slate">
@@ -226,7 +229,7 @@ function CheckInScreen({
 function KStat({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <p className="font-display text-3xl font-light text-navy">{value}</p>
+      <p className="cc-metric-value text-3xl">{value}</p>
       <p className="eyebrow mt-1">{label}</p>
     </div>
   );
@@ -248,7 +251,9 @@ function KioskRow({
     <div className={`editorial-card p-4 ${checked ? "bg-gold/5" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="font-display text-lg text-navy truncate">{m.name}</p>
+          <p className="cc-card-title truncate">
+            <bdi>{m.name}</bdi>
+          </p>
           <div className="flex flex-wrap items-center gap-2 mt-1.5">
             <span className="text-xs font-medium text-slate">
               {m.remaining_credits ?? 0} {t("common.credits")}

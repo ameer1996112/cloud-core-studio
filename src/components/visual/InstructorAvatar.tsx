@@ -32,7 +32,7 @@ export function InstructorAvatar({
       : tone === "sand"
         ? "bg-sand text-navy border-gold/30"
         : "bg-ivory text-navy border-gold/40";
-  const cls = `inline-flex items-center justify-center rounded-full border font-display ${toneCls} ${SIZES[size]} ${className}`;
+  const cls = `inline-flex items-center justify-center rounded-full border font-sans font-semibold ${toneCls} ${SIZES[size]} ${className}`;
   if (photoUrl) {
     return (
       <img

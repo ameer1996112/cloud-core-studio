@@ -260,7 +260,7 @@ export const studioImages = {
 
 export const emptyStateImages = {
   noBookings: {
-    src: "/images/empty-states/no-bookings.jpg",
+    src: "/images/empty-states/no-bookings.svg",
     alt: { he: "אין הזמנות פעילות", en: "No active bookings", ar: "لا توجد حجوزات نشطة" },
     tone: "empty" as const,
   },
@@ -275,7 +275,7 @@ export const emptyStateImages = {
     tone: "empty" as const,
   },
   cloudCardEmpty: {
-    src: "/images/empty-states/cloud-card-empty.jpg",
+    src: "/images/empty-states/cloud-card-empty.svg",
     alt: { he: "Cloud Card מחכה לך", en: "Your Cloud Card awaits", ar: "بطاقتك بانتظارك" },
     tone: "empty" as const,
   },
