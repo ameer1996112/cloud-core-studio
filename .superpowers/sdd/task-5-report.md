@@ -54,3 +54,13 @@ Implemented Task 5 draft wiring only in:
 - FAIL in sandbox: `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs` with `listen EPERM` on the `tsx` IPC pipe under `/var/folders/...`.
 - PASS with escalated permissions: `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs`
 - PASS: `/Users/ameeramer/.bun/bin/bunx tsc --noEmit`
+
+## Task 5 Waitlist Offer Fix
+
+- Wired `src/lib/messages.functions.ts` `waitlistOffer` to prepare `waitlist_spot_available` drafts only when `admin_waitlist_offer` returns `status === "offered"`.
+- Reused `buildNotificationDraftRows` with `notification_logs` idempotent upsert on `idempotency_key`, loading the waitlist entry, member, class, and studio settings needed for template variables.
+- Kept notification draft preparation non-blocking with a dedicated `try/catch` that logs `waitlist_offer_draft_prepare_failed` and preserves the original RPC result for `offered`, `not_found`, `forbidden`, and other statuses.
+
+## Task 5 Waitlist Offer Verification
+
+- PASS: `/Users/ameeramer/.bun/bin/bunx tsc --noEmit`

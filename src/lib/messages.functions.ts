@@ -11,6 +11,26 @@ async function ensureStaff(supabase: any, userId: string, level: "admin" | "staf
   return role;
 }
 
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
+}
+
+function buildClassVariables(cls: any) {
+  return {
+    class_name: cls.title,
+    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
+    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    instructor_name: cls.instructor?.name ?? "",
+  };
+}
+
 // ===== Templates =====
 export const listMessageTemplates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -570,5 +590,40 @@ export const waitlistOffer = createServerFn({ method: "POST" })
       p_entry_id: data.entryId,
     });
     if (error) throw error;
+    try {
+      const status = (r as any)?.status;
+      if (status === "offered") {
+        const [entryRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("waitlist_entries")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.entryId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (entryRes.error) throw entryRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const entry = entryRes.data as any;
+        if (entry?.member && entry?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "waitlist_spot_available",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: entry.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
+              variables: buildClassVariables(entry.class),
+            }),
+          );
+        }
+      }
+    } catch (draftError) {
+      console.error("waitlist_offer_draft_prepare_failed", draftError);
+    }
     return r;
   });
