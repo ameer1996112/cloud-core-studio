@@ -1,0 +1,876 @@
+[
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/auth",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-auth.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-_member.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "בוקר טוב\n\nשלום,\nNora\n\nברוך שובך לסטודיו.\n\nקרדיטים\n\n1\n\nהזמנות\n\n1\n\nשיעורים זמינים\n\n1\n\nפתיחה רשמית 1.7.2026\n\nלוח השיעורים יתעדכן בהדרגה לקראת הפתיחה.\n\nהשיעור הבא שלך\n\nההרשמה הקרובה שלך\nצפייה בהרשמה\n←\n\nCloud Card שלך\n\nמתחיל בעוד 3 ימים\n\nיום ד׳, 1 ביולי · 12:00\n\nEl"
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-_member_schedule.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "לוח תרגול\n\nלוח שיעורים\n\nמצאו את השיעור הנכון, סננו לפי חדר או מדריכה, ושמרו על הביקור הבא ברור.\n\nשיעורים זמינים\n\n1\n\nקרדיטים\n\n1\n\nהיום\nמחר\nהשבוע\nהכול\nרמה\nיוגה אווירית · מתחילות–בינוניות · שיעור זורם\nאנרגיה\nשיעור זורם\nעם\nיארין שובאש\nיום רביעי\n· 1.7\n12:00\n·\n45 דק׳"
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-_member_packages.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": null,
+    "chipJustify": null,
+    "bodyText": "קרדיטים וחבילות\n\nחבילות\n\nעקבו אחרי החבילה הפעילה, שלחו בקשה לחבילה חדשה ושמרו את היסטוריית התשלומים קרובה.\n\nקרדיטים\n\n1\n\nתשלומים ממתינים\n\n0\n\nחבילה פעילה\n\nשיעור בודד · נשארו 1\n\nבתוקף עד 26 ביולי 2026\n\nחבילות זמינות\n\nשיעור בודד\n\nכניסה חד־פעמית לשיעור אחד בסטודיו."
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-admin-_admin.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "ניהול סטודיו\n\nתפעול\n\nמרכז תפעול\n\nמה צריך תשומת לב היום\n\nיום ראשון, 28 ביוני · 0 שיעורים בלוח · 0 ברשימת המתנה\n\nהוספת שיעור\nלוח שיעורים\nרישום תשלום\nלקוחות\nדוחות\n\nלקוחות\n\n5\n\nהזמנות פעילות\n\n1\n\nרשימת המתנה\n\n0\n\nהכנסות החודש\n\n‏80 ‏₪\n\nשיעורי היום\n\nאין שיעורים להיום. "
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-admin-_admin_settings.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "ניהול סטודיו\n\nהגדרות\n\nניהול · הגדרות\n\nהגדרות סטודיו\n\nניהול פרטי הסטודיו, אפליקציית החברים, קישורים ותשלומים בצורה נקייה וברורה לפני הפתיחה.\n\nפרטי הסטודיו\n\nפרטי הקשר שהחברות והחברים רואים כשהם צריכים לפנות לסטודיו.\n\nשם הסטודיו *\nטלפון ללקוחות\nמוצג באפליקציית הח"
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-he-admin-_admin_classes.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "ניהול סטודיו\n\nCloud & Core\nכל השיעורים\nשיעור חדש\n\nElevate Flow — יוגה אווירית\n\nמתוזמן\n\nיום ד׳, 1 ביולי, 12:00 · הסטודיו הראשי · יארין שובאש\n\n1 מוזמנים/8 · 7 פנויים · 0 ממתינים"
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/auth",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-auth.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nالأعضاء\n\nدخول الاستوديو\nالبريد الإلكتروني\nكلمة المرور\nدخول الاستوديو\nنسيت كلمة المرور؟\nجديد هنا؟ أنشئ حساباً\nالخصوصية\nالشروط\nالدعم"
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-_member.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "صباح الخير\n\nأهلاً،\nNora\n\nأهلاً بعودتك للاستوديو.\n\nالأرصدة\n\n1\n\nالحجوزات\n\n1\n\nحصص متاحة\n\n1\n\nالافتتاح الرسمي 1.7.2026\n\nسيتم تحديث جدول الحصص تدريجيًا قبل الافتتاح.\n\nحصتك القادمة\n\nالحجز القادم\nعرض الحجز\n←\n\nبطاقة Cloud Card الخاصة بك\n\nتبدأ بعد 3 يوم\n\nالأربعاء، 1 يول"
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-_member_schedule.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "تقويم التمرين\n\nجدول الحصص\n\nابحث عن الحصة المناسبة، صفّ حسب الغرفة أو المدرّبة، وحافظ على وضوح زيارتك القادمة.\n\nحصص متاحة\n\n1\n\nالأرصدة\n\n1\n\nاليوم\nغداً\nهذا الأسبوع\nالكل\nالمستوى\nيوغا هوائية · مبتدئات–متوسط · حصة انسيابية\nالطاقة\nحصة انسيابية\nمع\nيارين شوباش\nالأربعاء\n"
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-_member_packages.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": null,
+    "chipJustify": null,
+    "bodyText": "الأرصدة والباقات\n\nالباقات\n\nتابع باقتك النشطة، اطلب باقة جديدة، واحتفظ بسجل الدفع قريباً.\n\nالأرصدة\n\n1\n\nقيد الانتظار\n\n0\n\nالباقة النشطة\n\nحصة واحدة · تبقى 1\n\nتنتهي 26 يوليو 2026\n\nالباقات المتاحة\n\nحصة واحدة\n\nدخول لمرة واحدة لحصة واحدة في الاستوديو.\n\n₪80\n\nدخول واحد "
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-admin-_admin.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "إدارة الاستوديو\n\nالتشغيل\n\nمركز التشغيل\n\nما الذي يحتاج إلى اهتمام اليوم\n\nالأحد، 28 يونيو · 0 حصص في الجدول · 0 في قائمة الانتظار\n\nإضافة حصة\nجدول الحصص\nتسجيل دفعة\nالعملاء\nالتقارير\n\nالعملاء\n\n5\n\nالحجوزات النشطة\n\n1\n\nقائمة الانتظار\n\n0\n\nإيراد الشهر\n\n‏80 ₪\n\nحصص اليوم\n"
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-admin-_admin_settings.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "إدارة الاستوديو\n\nالإعدادات\n\nالإدارة · الإعدادات\n\nإعدادات الاستوديو\n\nإدارة تفاصيل الاستوديو، تطبيق الأعضاء، الروابط والمدفوعات بشكل واضح قبل الافتتاح.\n\nتفاصيل الاستوديو\n\nبيانات التواصل التي يراها الأعضاء عندما يحتاجون للتواصل مع الاستوديو.\n\nاسم الاستوديو *\nهاتف"
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-ar-admin-_admin_classes.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "إدارة الاستوديو\n\nCloud & Core\nكل الحصص\nحصة جديدة\n\nElevate Flow — يوغا هوائية\n\nمجدولة\n\nالأربعاء، 1 يوليو، 12:00 م · الاستوديو الرئيسي · يارين شوباش\n\n1 محجوز/8 · 7 متاح · 0 في الانتظار"
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/auth",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-auth.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nMembers\n\nEnter the studio\nEmail\nPassword\nEnter the studio\nForgot your password?\nNew here? Create a member account\nPrivacy\nTerms\nSupport"
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-_member.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "statsDir": "ltr",
+    "classDir": "ltr",
+    "chipJustify": "flex-start",
+    "bodyText": "GOOD MORNING\n\nWelcome back,\nNora\n\nYour studio rhythm is ready.\n\nCredits\n\n1\n\nBookings\n\n1\n\nAvailable classes\n\n1\n\nOfficial opening 1.7.2026\n\nThe schedule will be updated gradually before launch.\n\nBOOK NEXT\n\nYour next class\nVIEW BOOKING\n→\n\nYour Cloud Card\n\nStarts "
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-_member_schedule.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "ltr",
+    "classDir": "ltr",
+    "chipJustify": "flex-start",
+    "bodyText": "PRACTICE CALENDAR\n\nSchedule\n\nFind the right class, filter by room or teacher, and keep your next visit clear.\n\nAvailable classes\n\n1\n\nCredits\n\n1\n\nTODAY\nTOMORROW\nTHIS WEEK\nALL\nLEVEL\nAERIAL YOGA · BEGINNER–INTERMEDIATE · FLOW\nENERGY\nFLOW\nWITH\nYAREEN SHOBASH\nWedne"
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-_member_packages.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "ltr",
+    "classDir": null,
+    "chipJustify": null,
+    "bodyText": "CREDITS AND PLANS\n\nPackages\n\nTrack your active package, request a new plan, and keep payment history close.\n\nCredits\n\n1\n\nPending payments\n\n0\n\nACTIVE PACKAGE\n\nSingle Class · 1 left\n\nExpires July 26, 2026\n\nAvailable packages\n\nSingle Class\n\nOne-time entry for a s"
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-admin-_admin.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": {
+      "left": 0,
+      "right": 352,
+      "width": 352
+    },
+    "panelRect": {
+      "left": 0,
+      "right": 352,
+      "width": 352
+    },
+    "bodyText": "STUDIO\n\nOverview\nStudio Pulse\nSchedule\nAttendance\nRooms\n\nPEOPLE\n\nClients\nInstructors\nPrograms\nPackages\nPayments\n\nSYSTEM\n\nReports\nMessages\nSettings\n\nSettings\n\nEnglish\nSign out\n\nSTUDIO ADMIN\n\nOperations\n\nOPERATIONS CENTER\n\nWhat needs attention today\n\nSunday, Jun"
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-admin-_admin_settings.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "STUDIO ADMIN\n\nSettings\n\nAdmin · configuration\n\nStudio configuration\n\nKeep the studio details, member app, links, and payment setup clear before launch.\n\nStudio details\n\nThe contact details members see when they need to reach the studio.\n\nStudio name *\nCustomer"
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/mobile390-en-admin-_admin_classes.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "STUDIO ADMIN\n\nCloud & Core\nAll classes\nNew class\n\nElevate Flow — Aerial Yoga\n\nScheduled\n\nWed, Jul 1, 12:00 PM · Main Studio · Yareen Shobash\n\n1 booked/8 · 7 open · 0 waiting"
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/auth",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-auth.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-_member.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "התרגול שלך\n\nבית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nבוקר טוב\n\nשלום,\nNora\n\nברוך שובך לסטודיו.\n\nקרדיטים\n\n1\n\nהזמנות\n\n1\n\nשיעורים זמינים\n\n1\n\nפתיחה רשמית 1.7.2026\n\nלוח השיעורים יתעדכן בהדרגה לקראת הפתיחה.\n\nהשיעור הבא שלך\n\nההרשמה הקרובה שלך\nצפייה בהרשמה\n←\n\nClo"
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-_member_schedule.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "התרגול שלך\n\nלוח שיעורים\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nלוח תרגול\n\nלוח שיעורים\n\nמצאו את השיעור הנכון, סננו לפי חדר או מדריכה, ושמרו על הביקור הבא ברור.\n\nשיעורים זמינים\n\n1\n\nקרדיטים\n\n1\n\nהיום\nמחר\nהשבוע\nהכול\nרמה\nיוגה אווירית · מתחילות–בינוניות · שיעור ז"
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-_member_packages.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": null,
+    "chipJustify": null,
+    "bodyText": "התרגול שלך\n\nחבילות\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nקרדיטים וחבילות\n\nחבילות\n\nעקבו אחרי החבילה הפעילה, שלחו בקשה לחבילה חדשה ושמרו את היסטוריית התשלומים קרובה.\n\nקרדיטים\n\n1\n\nתשלומים ממתינים\n\n0\n\nחבילה פעילה\n\nשיעור בודד · נשארו 1\n\nבתוקף עד 26 ביולי 2026\n"
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-admin-_admin.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "סטודיו\n\nסקירה\nמצב הסטודיו\nלוח שיעורים\nנוכחות\nחדרים\n\nאנשים\n\nלקוחות\nמדריכים\nתוכניות\nחבילות\nתשלומים\n\nמערכת\n\nדוחות\nהודעות\nהגדרות\n\nהגדרות\n\nעברית\nיציאה\n\nניהול סטודיו\n\nתפעול\n\nמרכז תפעול\n\nמה צריך תשומת לב היום\n\nיום ראשון, 28 ביוני · 0 שיעורים בלוח · 0 ברשימת המתנה\n\nהו"
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-admin-_admin_settings.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "סטודיו\n\nסקירה\nמצב הסטודיו\nלוח שיעורים\nנוכחות\nחדרים\n\nאנשים\n\nלקוחות\nמדריכים\nתוכניות\nחבילות\nתשלומים\n\nמערכת\n\nדוחות\nהודעות\nהגדרות\n\nהגדרות\n\nעברית\nיציאה\n\nניהול סטודיו\n\nהגדרות\n\nניהול · הגדרות\n\nהגדרות סטודיו\n\nניהול פרטי הסטודיו, אפליקציית החברים, קישורים ותשלומים בצורה"
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-he-admin-_admin_classes.png",
+    "consoleErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "סטודיו\n\nסקירה\nמצב הסטודיו\nלוח שיעורים\nנוכחות\nחדרים\n\nאנשים\n\nלקוחות\nמדריכים\nתוכניות\nחבילות\nתשלומים\n\nמערכת\n\nדוחות\nהודעות\nהגדרות\n\nהגדרות\n\nעברית\nיציאה\n\nניהול סטודיו\n\nCloud & Core\nכל השיעורים\nשיעור חדש\n\nElevate Flow — יוגה אווירית\n\nמתוזמן\n\nיום ד׳, 1 ביולי, 12:00 · ה"
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/auth",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-auth.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nالأعضاء\n\nدخول الاستوديو\nالبريد الإلكتروني\nكلمة المرور\nدخول الاستوديو\nنسيت كلمة المرور؟\nجديد هنا؟ أنشئ حساباً\nالخصوصية\nالشروط\nالدعم"
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-_member.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "ممارستك\n\nالرئيسية\nالرئيسية\nجدول الحصص\nحجوزاتي\nالباقات\nالملف الشخصي\n\nصباح الخير\n\nأهلاً،\nNora\n\nأهلاً بعودتك للاستوديو.\n\nالأرصدة\n\n1\n\nالحجوزات\n\n1\n\nحصص متاحة\n\n1\n\nالافتتاح الرسمي 1.7.2026\n\nسيتم تحديث جدول الحصص تدريجيًا قبل الافتتاح.\n\nحصتك القادمة\n\nالحجز القادم\nعرض "
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-_member_schedule.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": "rtl",
+    "chipJustify": "flex-end",
+    "bodyText": "ممارستك\n\nجدول الحصص\nالرئيسية\nجدول الحصص\nحجوزاتي\nالباقات\nالملف الشخصي\n\nتقويم التمرين\n\nجدول الحصص\n\nابحث عن الحصة المناسبة، صفّ حسب الغرفة أو المدرّبة، وحافظ على وضوح زيارتك القادمة.\n\nحصص متاحة\n\n1\n\nالأرصدة\n\n1\n\nاليوم\nغداً\nهذا الأسبوع\nالكل\nالمستوى\nيوغا هوائية · مبت"
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-_member_packages.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "rtl",
+    "classDir": null,
+    "chipJustify": null,
+    "bodyText": "ممارستك\n\nالباقات\nالرئيسية\nجدول الحصص\nحجوزاتي\nالباقات\nالملف الشخصي\n\nالأرصدة والباقات\n\nالباقات\n\nتابع باقتك النشطة، اطلب باقة جديدة، واحتفظ بسجل الدفع قريباً.\n\nالأرصدة\n\n1\n\nقيد الانتظار\n\n0\n\nالباقة النشطة\n\nحصة واحدة · تبقى 1\n\nتنتهي 26 يوليو 2026\n\nالباقات المتاحة\n\nح"
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-admin-_admin.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "الاستوديو\n\nنظرة عامة\nنبض الاستوديو\nجدول الحصص\nالحضور\nالغرف\n\nالأعضاء\n\nالعملاء\nالمدرّبون\nالبرامج\nالباقات\nالمدفوعات\n\nالنظام\n\nالتقارير\nالرسائل\nالإعدادات\n\nالإعدادات\n\nالعربية\nتسجيل الخروج\n\nإدارة الاستوديو\n\nالتشغيل\n\nمركز التشغيل\n\nما الذي يحتاج إلى اهتمام اليوم\n\nالأحد"
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-admin-_admin_settings.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "الاستوديو\n\nنظرة عامة\nنبض الاستوديو\nجدول الحصص\nالحضور\nالغرف\n\nالأعضاء\n\nالعملاء\nالمدرّبون\nالبرامج\nالباقات\nالمدفوعات\n\nالنظام\n\nالتقارير\nالرسائل\nالإعدادات\n\nالإعدادات\n\nالعربية\nتسجيل الخروج\n\nإدارة الاستوديو\n\nالإعدادات\n\nالإدارة · الإعدادات\n\nإعدادات الاستوديو\n\nإدارة تفا"
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-ar-admin-_admin_classes.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "الاستوديو\n\nنظرة عامة\nنبض الاستوديو\nجدول الحصص\nالحضور\nالغرف\n\nالأعضاء\n\nالعملاء\nالمدرّبون\nالبرامج\nالباقات\nالمدفوعات\n\nالنظام\n\nالتقارير\nالرسائل\nالإعدادات\n\nالإعدادات\n\nالعربية\nتسجيل الخروج\n\nإدارة الاستوديو\n\nCloud & Core\nكل الحصص\nحصة جديدة\n\nElevate Flow — يوغا هوائية\n"
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/auth",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-auth.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nMembers\n\nEnter the studio\nEmail\nPassword\nEnter the studio\nForgot your password?\nNew here? Create a member account\nPrivacy\nTerms\nSupport"
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-_member.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "statsDir": "ltr",
+    "classDir": "ltr",
+    "chipJustify": "flex-start",
+    "bodyText": "YOUR PRACTICE\n\nHome\nHome\nSchedule\nMy Bookings\nPackages\nProfile\n\nGOOD MORNING\n\nWelcome back,\nNora\n\nYour studio rhythm is ready.\n\nCredits\n\n1\n\nBookings\n\n1\n\nAvailable classes\n\n1\n\nOfficial opening 1.7.2026\n\nThe schedule will be updated gradually before launch.\n\nBOO"
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-_member_schedule.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "ltr",
+    "classDir": "ltr",
+    "chipJustify": "flex-start",
+    "bodyText": "YOUR PRACTICE\n\nSchedule\nHome\nSchedule\nMy Bookings\nPackages\nProfile\n\nPRACTICE CALENDAR\n\nSchedule\n\nFind the right class, filter by room or teacher, and keep your next visit clear.\n\nAvailable classes\n\n1\n\nCredits\n\n1\n\nTODAY\nTOMORROW\nTHIS WEEK\nALL\nLEVEL\nAERIAL YOGA "
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-_member_packages.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "statsDir": "ltr",
+    "classDir": null,
+    "chipJustify": null,
+    "bodyText": "YOUR PRACTICE\n\nPackages\nHome\nSchedule\nMy Bookings\nPackages\nProfile\n\nCREDITS AND PLANS\n\nPackages\n\nTrack your active package, request a new plan, and keep payment history close.\n\nCredits\n\n1\n\nPending payments\n\n0\n\nACTIVE PACKAGE\n\nSingle Class · 1 left\n\nExpires Jul"
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-admin-_admin.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "STUDIO\n\nOverview\nStudio Pulse\nSchedule\nAttendance\nRooms\n\nPEOPLE\n\nClients\nInstructors\nPrograms\nPackages\nPayments\n\nSYSTEM\n\nReports\nMessages\nSettings\n\nSettings\n\nEnglish\nSign out\n\nSTUDIO ADMIN\n\nOperations\n\nOPERATIONS CENTER\n\nWhat needs attention today\n\nSunday, Jun"
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-admin-_admin_settings.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "STUDIO\n\nOverview\nStudio Pulse\nSchedule\nAttendance\nRooms\n\nPEOPLE\n\nClients\nInstructors\nPrograms\nPackages\nPayments\n\nSYSTEM\n\nReports\nMessages\nSettings\n\nSettings\n\nEnglish\nSign out\n\nSTUDIO ADMIN\n\nSettings\n\nAdmin · configuration\n\nStudio configuration\n\nKeep the studio"
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/global-rtl-loop-iter1-authenticated/desktop1440-en-admin-_admin_classes.png",
+    "consoleErrors": [
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      },
+      {
+        "type": "pageerror",
+        "text": "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      }
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "headerAlign": "start",
+    "drawerRect": null,
+    "panelRect": null,
+    "bodyText": "STUDIO\n\nOverview\nStudio Pulse\nSchedule\nAttendance\nRooms\n\nPEOPLE\n\nClients\nInstructors\nPrograms\nPackages\nPayments\n\nSYSTEM\n\nReports\nMessages\nSettings\n\nSettings\n\nEnglish\nSign out\n\nSTUDIO ADMIN\n\nCloud & Core\nAll classes\nNew class\n\nElevate Flow — Aerial Yoga\n\nSchedu"
+  }
+]

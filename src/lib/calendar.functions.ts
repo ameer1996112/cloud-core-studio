@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { hasTestClassRecord, isTestRecord } from "@/lib/test-records";
 
 async function ensureStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -17,7 +18,7 @@ export const calendarRange = createServerFn({ method: "GET" })
       context.supabase
         .from("classes")
         .select(
-          "id, title, starts_at, duration_minutes, capacity, booked_count, waitlist_count, status, room, room_id, image_url, instructor:instructors(id,name,avatar_url), program:program_types(id,label:name_en,color:color_tag)",
+          "id, title, starts_at, duration_minutes, capacity, booked_count, waitlist_count, status, room, room_id, image_url, instructor:instructors(id,name,avatar_url), room_ref:rooms(id,name,color,capacity), program:program_types(id,name_en,name_he,name_ar,color:color_tag)",
         )
         .gte("starts_at", data.fromIso)
         .lte("starts_at", data.toIso)
@@ -26,5 +27,8 @@ export const calendarRange = createServerFn({ method: "GET" })
     ]);
     if (classesRes.error) throw classesRes.error;
     if (roomsRes.error) throw roomsRes.error;
-    return { classes: classesRes.data ?? [], rooms: roomsRes.data ?? [] };
+    return {
+      classes: (classesRes.data ?? []).filter((c: any) => !hasTestClassRecord(c)),
+      rooms: (roomsRes.data ?? []).filter((r: any) => !isTestRecord(r.name)),
+    };
   });

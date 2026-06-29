@@ -5,6 +5,6 @@
     <path d="M40 150 q24 -34 60 -34 q12 -26 42 -26 q34 0 42 28 q28 0 34 26"/>
     <path d="M40 168 h240" stroke-dasharray="2 6"/>
   </g>
-  <text x="40" y="60" font-family="Georgia, serif" font-style="italic" font-size="22" fill="#FAF7F2">Cloud Card</text>
-  <text x="40" y="82" font-family="system-ui, sans-serif" font-size="10" letter-spacing="3" fill="#D4AF6A">CLOUD &amp; CORE</text>
+  <text x="40" y="60" font-family="Assistant, system-ui, sans-serif" font-weight="600" font-size="22" fill="#FAF7F2">Cloud Card</text>
+  <text x="40" y="82" font-family="Assistant, system-ui, sans-serif" font-size="10" letter-spacing="2" fill="#D4AF6A">CLOUD &amp; CORE</text>
 </svg>

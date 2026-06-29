@@ -1,0 +1,86 @@
+[
+  {
+    "lang": "he",
+    "consoleErrors": [],
+    "metrics": {
+      "path": "/member",
+      "dir": "rtl",
+      "overflowX": false,
+      "navTop": 747,
+      "navHeight": 97,
+      "primaryBottom": 1790,
+      "viewportHeight": 844,
+      "obscured": true,
+      "stats": [
+        {
+          "label": "קרדיטים",
+          "value": "1"
+        },
+        {
+          "label": "הזמנות",
+          "value": "1"
+        },
+        {
+          "label": "שיעורים פתוחים",
+          "value": "1"
+        }
+      ]
+    }
+  },
+  {
+    "lang": "ar",
+    "consoleErrors": [],
+    "metrics": {
+      "path": "/member",
+      "dir": "rtl",
+      "overflowX": false,
+      "navTop": 747,
+      "navHeight": 97,
+      "primaryBottom": 1790,
+      "viewportHeight": 844,
+      "obscured": true,
+      "stats": [
+        {
+          "label": "الأرصدة",
+          "value": "1"
+        },
+        {
+          "label": "الحجوزات",
+          "value": "1"
+        },
+        {
+          "label": "حصص مفتوحة",
+          "value": "1"
+        }
+      ]
+    }
+  },
+  {
+    "lang": "en",
+    "consoleErrors": [],
+    "metrics": {
+      "path": "/member",
+      "dir": "ltr",
+      "overflowX": false,
+      "navTop": 747,
+      "navHeight": 97,
+      "primaryBottom": 1826,
+      "viewportHeight": 844,
+      "obscured": true,
+      "stats": [
+        {
+          "label": "Credits",
+          "value": "1"
+        },
+        {
+          "label": "Bookings",
+          "value": "1"
+        },
+        {
+          "label": "Open classes",
+          "value": "1"
+        }
+      ]
+    }
+  }
+]

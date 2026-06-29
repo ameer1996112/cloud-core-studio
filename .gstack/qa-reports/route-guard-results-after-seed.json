@@ -1,0 +1,140 @@
+[
+  {
+    "case": "signed-out /admin",
+    "pass": true,
+    "path": "/auth",
+    "body": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+  },
+  {
+    "case": "signed-out /member",
+    "pass": true,
+    "path": "/auth",
+    "body": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+  },
+  {
+    "case": "signed-out /instructor",
+    "pass": true,
+    "path": "/auth",
+    "body": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+  },
+  {
+    "case": "admin / landing",
+    "pass": true,
+    "path": "/admin",
+    "body": ""
+  },
+  {
+    "case": "instructor / landing",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "member / landing",
+    "pass": true,
+    "path": "/member",
+    "body": "התרגול שלך\n\nבית\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nערב טוב\n\nחבר/ה.\n\nברוכים השבים לסטודיו.\n\nקרדיטים\n\n0\n\nהזמנות\n\n0\n\nזמינים\n\n0\n\nחבילה פעילה\n\nאין חבילה פעילה\n\n0\n\nקרדיטים שנותרו\n\nפעולות מהירות\n\nהזמנת שיעור\nרכישת חבילה\nיצירת קשר עם הסטודיו\nבשבילך השבוע\nכל השיעורים →"
+  },
+  {
+    "case": "member blocked /admin",
+    "pass": true,
+    "path": "/member",
+    "body": ""
+  },
+  {
+    "case": "member blocked /admin/reports",
+    "pass": true,
+    "path": "/member",
+    "body": ""
+  },
+  {
+    "case": "member blocked /admin/payments",
+    "pass": true,
+    "path": "/member",
+    "body": ""
+  },
+  {
+    "case": "member blocked /admin/messages",
+    "pass": true,
+    "path": "/member",
+    "body": ""
+  },
+  {
+    "case": "member blocked /admin/settings",
+    "pass": true,
+    "path": "/member",
+    "body": ""
+  },
+  {
+    "case": "member blocked /admin/members",
+    "pass": true,
+    "path": "/member",
+    "body": ""
+  },
+  {
+    "case": "instructor blocked /admin",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "instructor blocked /admin/reports",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "instructor blocked /admin/payments",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "instructor blocked /admin/messages",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "instructor blocked /admin/settings",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "instructor blocked /admin/members",
+    "pass": true,
+    "path": "/instructor",
+    "body": ""
+  },
+  {
+    "case": "legacy /schedule",
+    "pass": true,
+    "path": "/member/schedule",
+    "body": "התרגול שלך\n\nלוח שיעורים\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nלוח תרגול\n\nלוח שיעורים\n\nמצאו את השיעור הנכון, סננו לפי חדר או מדריכה, ושמרו על הביקור הבא ברור.\n\nזמינים\n\n0\n\nקרדיטים\n\n0\n\nהיום\nמחר\nהשבוע\nהכול"
+  },
+  {
+    "case": "legacy /bookings",
+    "pass": true,
+    "path": "/member/bookings",
+    "body": "התרגול שלך\n\nההזמנות שלי\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nיומן הסטודיו שלך\n\nההזמנות שלי\n\nצפו בשיעורים קרובים, רשימות המתנה, ביקורים קודמים וביטולים במקום אחד.\n\nקרובות\n\n0\n\nרשימת המתנה\n\n0\n\nעבר\n\n0\n\nקרובות · 0\nרשימת המתנה · 0\nעבר · 0\nבוטלו · 0\nC\n&\nC\n\nעדיין אין שיעור ביומן.\n\nההזמנות שלך יופיעו כאן.\n\nלעיון בלוח השיעורים"
+  },
+  {
+    "case": "legacy /plans",
+    "pass": true,
+    "path": "/member/packages",
+    "body": "התרגול שלך\n\nחבילות\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nקרדיטים וחבילות\n\nחבילות\n\nעקבו אחרי החבילה הפעילה, שלחו בקשה לחבילה חדשה ושמרו את היסטוריית התשלומים קרובה.\n\nקרדיטים\n\n12\n\nבקשות\n\n0\n\nחבילה פעילה\n\nE2E 10 Credits\n\nבתוקף עד July 24, 2026\n\nחבילות זמינות\n\nחודשי · כניסה אחת בשבוע\n\n4 כניסות בכל 30 יום\n\n4 קרדיטים לשיעורים\n\nבתוקף 30 ימים\n\nכל תכניות הסטודיו\n\n280\n\nILS\n\nבקשה\n\nחודשי · שתי כניסות בשבוע\n\n8 כניסות בכל 30 יום\n\n8 קרדיטים לשיעורים\n\nבתוקף 30 ימים\n\nכל תכניות הסטודיו\n\n350\n\nILS\n\nבקשה\n\nכרטיסייה · 10 כניסות\n\n10 כניסות ללא התחייבות חודשית\n\n10 קרדיטים לשיעורים\n\nללא תוקף\n\nכל תכניות הסטודיו\n\n700\n\nILS\n\nבקשה\nהיסטוריית קרדיטים\n\nbooking\n\n6/24/2026\n\n-1\n\nplan paid: E2E 10 Credits\n\n6/24/2026\n\n+10\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nmember self cancel refund\n\n6/24/2026\n\n+1\n\n"
+  },
+  {
+    "case": "legacy /admin/planner",
+    "pass": true,
+    "path": "/admin/calendar",
+    "body": ""
+  },
+  {
+    "case": "legacy /admin/templates",
+    "pass": true,
+    "path": "/admin/messages",
+    "body": ""
+  }
+]

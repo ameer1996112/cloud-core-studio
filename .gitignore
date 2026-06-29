@@ -10,6 +10,7 @@ lerna-debug.log*
 .env
 .env.*
 !.env.example
+!.env.staging.example
 
 node_modules
 dist
@@ -18,7 +19,12 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+__pycache__/
+*.py[cod]
 *.local
+.openwa/
+supabase/.temp/
+supabase/backups/
 
 # Wrangler / Cloudflare
 .wrangler/

@@ -1,21 +1,25 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { applyLang, getStoredLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
+import {
+  clearSupabaseAccessTokenCookie,
+  writeSupabaseAccessTokenCookie,
+} from "@/integrations/supabase/session-cookie";
+import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { homeForCurrentUser, roleHome, getCurrentRole } from "@/lib/auth-redirect";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
-import { studioImages } from "@/lib/image-assets";
-const BG_SRC = studioImages.loginHero.src;
+import { authImages } from "@/lib/image-assets";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "כניסה — Cloud & Core" }] }),
   component: AuthPage,
 });
 
 function AuthPage() {
-  const { lang } = useI18n();
+  const { lang, dir } = useI18n();
+  useDocumentTitle("page.auth.title");
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
@@ -24,10 +28,10 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
+  const [formVersion, setFormVersion] = useState(0);
 
   useEffect(() => {
-    const initial = getStoredLang();
-    applyLang(initial);
     supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         const to = await homeForCurrentUser();
@@ -36,6 +40,21 @@ function AuthPage() {
     });
   }, [navigate]);
 
+  useEffect(() => {
+    const clearTransientAuthFields = () => {
+      setName("");
+      setEmail("");
+      setPassword("");
+      setShowPassword(false);
+    };
+    const frame = window.requestAnimationFrame(clearTransientAuthFields);
+    const delay = window.setTimeout(clearTransientAuthFields, 150);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(delay);
+    };
+  }, [mode, formVersion]);
+
   function changeLang(next: Lang) {
     applyLang(next);
   }
@@ -43,6 +62,7 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
+    setFormSuccess("");
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -52,10 +72,18 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin, data: { name } },
         });
         if (error) throw error;
-        toast.success(t("auth.welcome"));
-        const uid = signed.user?.id;
-        const role = uid ? await getCurrentRole(uid) : "member";
-        navigate({ to: roleHome(role), replace: true });
+        if (signed.session) {
+          await supabase.auth.signOut();
+          clearSupabaseAccessTokenCookie();
+        }
+        setMode("signin");
+        setName("");
+        setEmail("");
+        setPassword("");
+        setShowPassword(false);
+        setFormVersion((version) => version + 1);
+        setFormSuccess(t("auth.signupComplete"));
+        toast.success(t("auth.signupComplete"));
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -63,16 +91,21 @@ function AuthPage() {
         if (error) throw error;
         toast.success(t("auth.resetSent"));
         setMode("signin");
+        setPassword("");
+        setFormVersion((version) => version + 1);
       } else {
         const { data: signed, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (signed.session?.access_token) {
+          writeSupabaseAccessTokenCookie(signed.session.access_token, signed.session.expires_in);
+        }
         const uid = signed.user?.id;
         const role = uid ? await getCurrentRole(uid) : "member";
         navigate({ to: roleHome(role), replace: true });
       }
     } catch (err) {
       const { friendlyErrorMessage } = await import("@/lib/error-messages");
-      const message = friendlyErrorMessage(err, t("auth.tryAgain"));
+      const message = localizedAuthError(err) ?? friendlyErrorMessage(err, t("auth.tryAgain"));
       setFormError(message);
     } finally {
       setBusy(false);
@@ -81,6 +114,18 @@ function AuthPage() {
 
   function clearError() {
     if (formError) setFormError("");
+    if (formSuccess) setFormSuccess("");
+  }
+
+  function switchMode(next: "signin" | "signup" | "forgot") {
+    setMode(next);
+    setFormError("");
+    setFormSuccess("");
+    setEmail("");
+    setPassword("");
+    setName("");
+    setShowPassword(false);
+    setFormVersion((version) => version + 1);
   }
 
   const eyebrow =
@@ -98,164 +143,247 @@ function AuthPage() {
 
   return (
     <main
-      className="auth-bg min-h-[100dvh] text-navy flex flex-col relative"
-      style={{ backgroundImage: `url(${BG_SRC})` }}
+      dir={dir}
+      className="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col"
     >
-      <div className="auth-bg-overlay" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <img
+          src={authImages.hero.src}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover opacity-[0.56] md:opacity-[0.72]"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(250,247,242,0.44)_0%,rgba(250,247,242,0.78)_34%,rgba(250,247,242,0.98)_100%)] md:bg-[linear-gradient(90deg,rgba(250,247,242,0.98)_0%,rgba(250,247,242,0.90)_44%,rgba(250,247,242,0.36)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(212,175,106,0.18),transparent_34%)]" />
+      </div>
 
-      <div className="auth-shell relative z-10 flex flex-col min-h-[100dvh]">
-        <header className="auth-topbar auth-topbar-on-image" dir="ltr">
-          <span className="font-display text-xl text-ivory drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)]">
-            Cloud &amp; Core
-          </span>
-          <div
-            className="auth-lang-switch auth-lang-switch-on-image"
-            role="group"
-            aria-label="Language"
-          >
-            {(Object.keys(LANG_META) as Lang[]).map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => changeLang(code)}
-                aria-pressed={lang === code}
-                className={`auth-lang-btn ${lang === code ? "is-active" : ""}`}
+      <header className="auth-mobile-topbar">
+        <AuthLanguageSwitcher lang={lang} onChange={changeLang} />
+      </header>
+
+      <div className="relative z-10 flex-1 overflow-y-auto">
+        <div className="auth-mobile-stage">
+          <div className="auth-mobile-panel">
+            <div className="auth-brand-lockup">
+              <img
+                src="/brand/cloud-core-logo-full.png"
+                alt="Cloud & Core Studio"
+                width={220}
+                height={124}
+                className="auth-brand-logo"
+              />
+            </div>
+
+            <div className="auth-form-card member-card relative">
+              <p className="member-eyebrow">{eyebrow}</p>
+              <h1 className="auth-form-title font-semibold text-navy mt-2 text-balance">
+                {headline}
+              </h1>
+              <div className="mt-3 h-px w-10 bg-gold" />
+
+              <form
+                key={`${mode}-${formVersion}`}
+                onSubmit={submit}
+                className="auth-form mt-4 sm:mt-5"
+                dir={dir}
+                autoComplete={mode === "signin" ? "on" : "off"}
               >
-                {LANG_META[code].label}
-              </button>
-            ))}
-          </div>
-        </header>
-
-        <section className="flex-1 flex items-center justify-center px-4 py-8">
-          <div className="auth-card auth-card-glass">
-            <p className="member-eyebrow">{eyebrow}</p>
-            <h1 className="font-display italic text-[2.1rem] leading-[1.05] text-navy mt-3 text-start">
-              {headline}
-            </h1>
-            <div className="mt-4 h-px w-12 bg-gold" />
-
-            <form onSubmit={submit} className="space-y-4 mt-7" dir="auto">
-              {mode === "signup" && (
-                <Field label={t("auth.name")}>
-                  <input
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      clearError();
-                    }}
-                    required
-                    className="editorial-input focus:editorial-input-focus"
-                    autoComplete="name"
-                  />
-                </Field>
-              )}
-              <Field label={t("auth.email")}>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    clearError();
-                  }}
-                  required
-                  className="editorial-input focus:editorial-input-focus"
-                  autoComplete="email"
-                  dir="ltr"
-                />
-              </Field>
-              {mode !== "forgot" && (
-                <Field label={t("auth.password")}>
-                  <div className="relative">
+                {mode === "signup" && (
+                  <Field label={t("auth.name")}>
                     <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
+                      name={`signup-name-${formVersion}`}
+                      value={name}
                       onChange={(e) => {
-                        setPassword(e.target.value);
+                        setName(e.target.value);
                         clearError();
                       }}
                       required
-                      minLength={6}
-                      className="editorial-input focus:editorial-input-focus pr-10"
-                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                      dir="ltr"
+                      className="auth-text-input editorial-input focus:editorial-input-focus"
+                      autoComplete="off"
+                      autoCapitalize="words"
+                      autoCorrect="off"
+                      spellCheck={false}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center text-slate hover:text-navy"
-                      aria-label={showPassword ? t("auth.hideSecret") : t("auth.showSecret")}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  {mode === "signup" && <PasswordStrength password={password} />}
+                  </Field>
+                )}
+                <Field label={t("auth.email")}>
+                  <input
+                    type="email"
+                    name={mode === "signup" ? `signup-email-${formVersion}` : "username"}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      clearError();
+                    }}
+                    required
+                    className="auth-ltr-input editorial-input focus:editorial-input-focus"
+                    autoComplete={mode === "signin" ? "username" : "off"}
+                    dir="ltr"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
                 </Field>
-              )}
+                {mode !== "forgot" && (
+                  <Field label={t("auth.password")}>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name={
+                          mode === "signup" ? `signup-password-${formVersion}` : "current-password"
+                        }
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          clearError();
+                        }}
+                        required
+                        minLength={6}
+                        className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus"
+                        autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                        dir="ltr"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
+                        aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {mode === "signup" && <PasswordStrength password={password} />}
+                  </Field>
+                )}
 
-              {formError && (
-                <p className="auth-form-error" role="alert" aria-live="polite">
-                  {formError}
-                </p>
-              )}
+                {formError && (
+                  <p
+                    className="auth-form-error"
+                    role="alert"
+                    aria-live="polite"
+                    dir={lang === "en" ? "ltr" : "rtl"}
+                  >
+                    {formError}
+                  </p>
+                )}
+                {formSuccess && (
+                  <p className="auth-form-success" role="status" aria-live="polite">
+                    {formSuccess}
+                  </p>
+                )}
 
-              <button
-                type="submit"
-                disabled={busy}
-                className={
-                  busy ? "cta-navy cta-navy-disabled mt-3" : "cta-navy hover:cta-navy-hover mt-3"
-                }
-              >
-                {busy
-                  ? t("auth.busy")
-                  : mode === "signin"
-                    ? t("auth.enter")
-                    : mode === "signup"
-                      ? t("auth.reserve")
-                      : t("auth.reset")}
-              </button>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className={busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"}
+                >
+                  {busy
+                    ? t("auth.busy")
+                    : mode === "signin"
+                      ? t("auth.enter")
+                      : mode === "signup"
+                        ? t("auth.reserve")
+                        : t("auth.reset")}
+                </button>
 
-              {mode === "signin" && (
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => switchMode("forgot")}
+                    className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
+                  >
+                    {t("auth.forgot")}
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => {
-                    setMode("forgot");
-                    setFormError("");
-                  }}
-                  className="flex min-h-11 w-full items-center justify-center text-center text-[12px] text-slate hover:text-navy"
+                  onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
+                  className="auth-switch-action block w-full text-center text-navy hover:text-gold pt-2 border-t hairline"
                 >
-                  {t("auth.forgot")}
+                  {mode === "signin"
+                    ? t("auth.create")
+                    : mode === "signup"
+                      ? t("auth.already")
+                      : t("auth.back")}
                 </button>
-              )}
+              </form>
+            </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMode(mode === "signin" ? "signup" : "signin");
-                  setFormError("");
-                }}
-                className="flex min-h-11 w-full items-center justify-center border-t hairline text-center text-[12px] text-gold hover:text-navy"
-              >
-                {mode === "signin"
-                  ? t("auth.create")
-                  : mode === "signup"
-                    ? t("auth.already")
-                    : t("auth.back")}
-              </button>
-            </form>
+            <div className="auth-legal-links flex justify-center gap-6 mt-6 pb-6">
+              <Link to="/privacy" className="auth-legal-link text-slate hover:text-navy">
+                {t("legal.privacy")}
+              </Link>
+              <Link to="/terms" className="auth-legal-link text-slate hover:text-navy">
+                {t("legal.terms")}
+              </Link>
+              <Link to="/support" className="auth-legal-link text-slate hover:text-navy">
+                {t("legal.support")}
+              </Link>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
     </main>
   );
 }
 
+function isInvalidCredentialsError(err: unknown) {
+  const anyErr = err as { message?: string; error_description?: string };
+  const message = (anyErr?.message ?? anyErr?.error_description ?? String(err)).toString();
+  return /invalid login|invalid credentials|invalid_grant/i.test(message);
+}
+
+function localizedAuthError(err: unknown) {
+  const anyErr = err as { message?: string; error_description?: string };
+  const message = (anyErr?.message ?? anyErr?.error_description ?? String(err)).toString();
+
+  if (isInvalidCredentialsError(err)) return t("auth.error.invalidCredentials");
+  if (/email not confirmed/i.test(message)) return t("auth.error.emailNotConfirmed");
+  if (/user already registered|already exists/i.test(message)) {
+    return t("auth.error.emailAlreadyExists");
+  }
+  if (/password.*(short|6|weak)/i.test(message)) return t("auth.error.passwordTooShort");
+  if (/rate limit|too many requests/i.test(message)) return t("auth.error.rateLimit");
+  if (/network|fetch failed|failed to fetch|timeout/i.test(message)) return t("auth.error.network");
+
+  return null;
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block text-start">
-      <span className="field-label">{label}</span>
+    <label className="auth-field block text-start">
+      <span className="auth-field-label field-label">{label}</span>
       {children}
     </label>
+  );
+}
+
+function AuthLanguageSwitcher({ lang, onChange }: { lang: Lang; onChange: (next: Lang) => void }) {
+  const codes: Lang[] = ["he", "en", "ar"];
+
+  return (
+    <div className="auth-language-switcher" role="group" aria-label={t("profile.language")}>
+      {codes.map((code) => (
+        <button
+          key={code}
+          type="button"
+          data-active={lang === code}
+          aria-pressed={lang === code}
+          lang={code}
+          dir={LANG_META[code].dir}
+          onClick={() => onChange(code)}
+        >
+          {LANG_META[code].label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -276,33 +404,33 @@ function PasswordStrength({ password }: { password: string }) {
     "auth.level.4",
     "auth.level.5",
   ] as const;
+  const strengthClass =
+    score <= 1
+      ? "auth-strength-weak"
+      : score <= 3
+        ? "auth-strength-medium"
+        : "auth-strength-strong";
   return (
-    <div className="mt-3">
-      <div className="flex gap-1 mb-2">
+    <div className={`auth-password-strength ${strengthClass}`}>
+      <div className="auth-strength-meter" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className={`h-px flex-1 transition-colors ${i < score ? "bg-gold" : "bg-[rgba(11,29,58,0.12)]"}`}
-          />
+          <div key={i} data-active={i < score} />
         ))}
       </div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] text-slate">{t("auth.strength")}</span>
-        <span className="text-[11px] text-navy">{password ? t(levels[score]) : ""}</span>
+      <div className="auth-strength-header">
+        <span>{t("auth.strength")}</span>
+        <strong>{password ? t(levels[score]) : t(levels[0])}</strong>
       </div>
-      <ul className="space-y-1">
-        {checks.map((c) => (
-          <li
-            key={c.label}
-            className={`text-[11px] flex items-center gap-2 ${c.ok ? "text-navy" : "text-slate"}`}
-          >
-            <span aria-hidden className={c.ok ? "text-gold" : ""}>
-              {c.ok ? "✓" : "○"}
-            </span>
-            {c.label}
-          </li>
-        ))}
-      </ul>
+      {password.length > 0 && (
+        <ul className="auth-strength-checks">
+          {checks.map((c) => (
+            <li key={c.label} data-ok={c.ok}>
+              <span aria-hidden>{c.ok ? "✓" : "○"}</span>
+              {c.label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

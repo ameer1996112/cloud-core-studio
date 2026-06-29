@@ -1,14 +1,22 @@
 import { Link } from "@tanstack/react-router";
-import { Clock, MapPin, Sparkles } from "lucide-react";
+import { Clock, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
-import { getLocale, t } from "@/lib/i18n";
+import { getLocale, t, useI18n } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
-import { resolveClassImageSrc, type ImageVariant } from "@/lib/image-assets";
+import {
+  emptyStateImages,
+  resolveClassImageSrc,
+  type ClassImageSource,
+  type ImageVariant,
+} from "@/lib/image-assets";
+import { EmptyIllustration } from "@/components/visual/EmptyIllustration";
 import {
   localizedClassTitle,
-  localizedInstructorName,
+  localizedClassTitleParts,
+  localizedOptionalInstructorName,
   localizedProgramName,
 } from "@/lib/localized-content";
+import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString(getLocale(), {
@@ -25,6 +33,21 @@ function formatDate(iso: string) {
   });
 }
 
+export function formatDurationLabel(minutes: number) {
+  return t("member.durationMinutes", { count: minutes });
+}
+
+export type PremiumClassCardClass = ClassImageSource & {
+  starts_at: string;
+  duration_minutes: number;
+  capacity?: number | null;
+  booked_count?: number | null;
+  credit_cost?: number | null;
+  cancellation_window_hours?: number | null;
+  status?: string | null;
+  instructor?: { name?: string | null } | null;
+};
+
 export function ClassImage({
   cls,
   variant = "card",
@@ -34,7 +57,7 @@ export function ClassImage({
   imagePosition = "center center",
   eager = false,
 }: {
-  cls: any;
+  cls: ClassImageSource | null | undefined;
   variant?: ImageVariant;
   className?: string;
   children?: ReactNode;
@@ -72,7 +95,7 @@ export type ClassState =
   | { kind: "cancelled" };
 
 export function deriveClassState(
-  cls: any,
+  cls: PremiumClassCardClass,
   ctx: { booked: boolean; waiting: boolean; remainingCredits: number },
 ): ClassState {
   if (cls.status === "cancelled") return { kind: "cancelled" };
@@ -88,11 +111,11 @@ export function deriveClassState(
 export function StateBadge({ state }: { state: ClassState }) {
   const map: Record<string, { label: string; cls: string }> = {
     available: {
-      label: t("state.available", { count: state.kind === "available" ? state.spotsLeft : "" }),
+      label: t("member.spotsOpen", { count: state.kind === "available" ? state.spotsLeft : "" }),
       cls: "bg-white/85 text-navy border-gold/40",
     },
     almost: {
-      label: t("state.almost", { count: state.kind === "almost" ? state.spotsLeft : "" }),
+      label: t("member.spotsOpen", { count: state.kind === "almost" ? state.spotsLeft : "" }),
       cls: "bg-gold/15 text-navy border-gold/60",
     },
     full: { label: t("state.full"), cls: "bg-navy/10 text-navy border-navy/20" },
@@ -100,8 +123,8 @@ export function StateBadge({ state }: { state: ClassState }) {
       label: t("state.waitlist_available"),
       cls: "bg-powder/40 text-navy border-powder",
     },
-    booked: { label: t("state.booked"), cls: "bg-navy text-ivory border-navy" },
-    waiting: { label: t("state.waiting"), cls: "bg-powder/60 text-navy border-powder" },
+    booked: { label: t("bookings.confirmed"), cls: "bg-navy text-ivory border-navy" },
+    waiting: { label: t("bookings.waitlisted"), cls: "bg-powder/60 text-navy border-powder" },
     package_required: { label: t("state.package_required"), cls: "bg-sand text-navy border-sand" },
     low_credits: { label: t("state.low_credits"), cls: "bg-sand text-navy border-sand" },
     closed: { label: t("state.closed"), cls: "bg-navy/10 text-slate border-navy/20" },
@@ -110,7 +133,7 @@ export function StateBadge({ state }: { state: ClassState }) {
   const c = map[state.kind] ?? map.available;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] tracking-[0.2em] uppercase border rounded-full ${c.cls}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${c.cls}`}
     >
       {c.label}
     </span>
@@ -122,17 +145,19 @@ export function PremiumClassCard({
   state,
   onOpen,
 }: {
-  cls: any;
+  cls: PremiumClassCardClass;
   state: ClassState;
   onOpen: () => void;
 }) {
-  const title = localizedClassTitle(cls);
-  const instructor = localizedInstructorName(cls.instructor?.name);
+  const { dir, lang } = useI18n();
+  const title = localizedClassTitleParts(cls, lang);
+  const instructor = localizedOptionalInstructorName(cls.instructor?.name);
 
   return (
     <button
       onClick={onOpen}
-      className="member-card hover:member-card-hover text-left w-full overflow-hidden flex flex-col group"
+      dir={dir}
+      className="member-card hover:member-card-hover text-start w-full overflow-hidden flex flex-col group"
     >
       <ClassImage cls={cls} className="member-class-media">
         <div
@@ -140,83 +165,268 @@ export function PremiumClassCard({
           aria-hidden
           style={{
             background:
-              "linear-gradient(0deg, rgba(11,29,58,0.78) 0%, rgba(11,29,58,0.28) 48%, rgba(11,29,58,0.08) 100%)",
+              "linear-gradient(0deg, rgba(28,43,69,0.78) 0%, rgba(28,43,69,0.28) 48%, rgba(28,43,69,0.08) 100%)",
           }}
         />
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 end-3 z-10">
           <StateBadge state={state} />
         </div>
-        <div className="absolute bottom-3 left-4 right-4 z-10 text-ivory">
-          <p className="text-[10px] uppercase tracking-[0.25em] opacity-90">
-            {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
+        <div className="absolute bottom-3 inset-x-4 z-10 text-ivory text-start">
+          <p className="text-xs font-medium opacity-90">
+            <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
+            <span aria-hidden="true"> · </span>
+            <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
           </p>
-          <p className="font-display text-2xl leading-tight mt-1 text-ivory drop-shadow-sm">
-            {title}
-          </p>
+          <MixedLessonTitle
+            as="p"
+            brand={title.brand}
+            program={title.program}
+            dir={dir}
+            className="member-mixed-title mt-1 text-2xl leading-tight text-ivory drop-shadow-sm"
+          />
         </div>
       </ClassImage>
-      <div className="px-4 py-3 flex items-center gap-3 text-xs text-slate">
+      <div className="px-4 py-3 flex flex-wrap items-center gap-3 text-xs text-slate">
         <span className="inline-flex items-center gap-1.5">
           <Clock className="h-3 w-3 text-gold" />
-          {cls.duration_minutes}
-          {t("common.minutes")}
+          <bdi>{formatDurationLabel(cls.duration_minutes)}</bdi>
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <MapPin className="h-3 w-3 text-gold" />
-          {cls.room_ref?.name ?? cls.room ?? "—"}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <Sparkles className="h-3 w-3 text-gold" />
-          {instructor}
-        </span>
+        {instructor && (
+          <span className="inline-flex items-center gap-1.5">
+            <Sparkles className="h-3 w-3 text-gold" />
+            {instructor}
+          </span>
+        )}
       </div>
     </button>
   );
 }
 
-export function MemberEmptyState({
-  title,
-  body,
-  cta,
-  illustration = "noBookings",
-}: {
-  title: string;
-  body: string;
-  cta?: { label: string; to: string };
-  illustration?: "noBookings" | "noClasses" | "cloudCardEmpty" | "paymentEmpty" | null;
-}) {
+export function PremiumLogoMark({ className = "" }: { className?: string }) {
   return (
     <div
-      className="member-card relative overflow-hidden px-6 py-8 sm:px-10 sm:py-12 text-center"
-      style={{
-        background: "linear-gradient(180deg, #F6F1E7 0%, #EDE4D2 100%)",
-        borderColor: "color-mix(in oklab, var(--color-gold, #C9A24B) 35%, transparent)",
-      }}
+      className={`flex flex-col items-center justify-center py-2 ${className}`}
+      aria-label="Cloud & Core Logo"
     >
-      {/* subtle gold hairline accent */}
-      <span aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gold/40" />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gold/25"
-      />
+      <h2
+        dir="ltr"
+        className="text-[#0B1D3A] tracking-wide text-[28px] sm:text-[32px] leading-none"
+        style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontWeight: 600,
+        }}
+      >
+        Cloud &amp; Core
+      </h2>
+      <div className="flex items-center gap-2 mt-3">
+        <div className="h-[1px] w-12 sm:w-16 bg-[#0B1D3A]"></div>
+        <div className="w-[3px] h-[3px] rounded-full bg-[#0B1D3A]"></div>
+        <div className="h-[1px] w-12 sm:w-16 bg-[#0B1D3A]"></div>
+      </div>
+      <div className="w-36 sm:w-48 h-[1px] bg-[#D4AF6A]/50 mt-2"></div>
+    </div>
+  );
+}
 
-      {illustration && (
-        <div className="premium-cloud-mark mx-auto mb-6" aria-hidden="true">
-          <span className="premium-cloud-mark__ring" />
-          <span className="premium-cloud-mark__monogram">
-            <span>C</span>
-            <span className="premium-cloud-mark__amp">&amp;</span>
-            <span>C</span>
-          </span>
+export type MemberEmptyStateVariant =
+  | "bookings"
+  | "schedule"
+  | "packages"
+  | "payments"
+  | "profile"
+  | "cloudCard";
+
+type MemberEmptyStateTone = "ivory" | "sand" | "powder";
+type MemberEmptyStateAction = { label: string; to?: string; onClick?: () => void };
+type MemberEmptyStateIllustration =
+  | keyof typeof emptyStateImages
+  | "cloudCardPreview"
+  | ReactNode
+  | null;
+type MemberEmptyTextField = "eyebrow" | "title" | "body";
+
+const defaultEmptyIllustration: Record<MemberEmptyStateVariant, MemberEmptyStateIllustration> = {
+  bookings: "cloudCardPreview",
+  schedule: "noClasses",
+  packages: "paymentEmpty",
+  payments: "paymentEmpty",
+  profile: "cloudCardEmpty",
+  cloudCard: "cloudCardPreview",
+};
+
+const defaultEmptyTone: Record<MemberEmptyStateVariant, MemberEmptyStateTone> = {
+  bookings: "ivory",
+  schedule: "sand",
+  packages: "ivory",
+  payments: "ivory",
+  profile: "powder",
+  cloudCard: "ivory",
+};
+
+const defaultEmptyTextKeys = {
+  bookings: {
+    eyebrow: "member.empty.bookings.eyebrow",
+    title: "member.empty.bookings.title",
+    body: "member.empty.bookings.body",
+  },
+  schedule: {
+    eyebrow: "member.empty.schedule.eyebrow",
+    title: "member.empty.schedule.title",
+    body: "member.empty.schedule.body",
+  },
+  packages: {
+    eyebrow: "member.empty.packages.eyebrow",
+    title: "member.empty.packages.title",
+    body: "member.empty.packages.body",
+  },
+  payments: {
+    eyebrow: "member.empty.payments.eyebrow",
+    title: "member.empty.payments.title",
+    body: "member.empty.payments.body",
+  },
+  profile: {
+    eyebrow: "member.empty.profile.eyebrow",
+    title: "member.empty.profile.title",
+    body: "member.empty.profile.body",
+  },
+  cloudCard: {
+    eyebrow: "member.empty.bookings.eyebrow",
+    title: "member.empty.bookings.title",
+    body: "member.empty.bookings.body",
+  },
+} as const satisfies Record<
+  MemberEmptyStateVariant,
+  Record<MemberEmptyTextField, Parameters<typeof t>[0]>
+>;
+
+function defaultEmptyTextKey(variant: MemberEmptyStateVariant, field: MemberEmptyTextField) {
+  return defaultEmptyTextKeys[variant][field];
+}
+
+function EmptyAction({
+  action,
+  variant,
+}: {
+  action: MemberEmptyStateAction;
+  variant: "primary" | "secondary";
+}) {
+  const className =
+    variant === "primary" ? "btn-navy hover:btn-navy-hover" : "btn-ghost hover:btn-ghost-hover";
+  if (action.to) {
+    return (
+      <Link to={action.to} className={className}>
+        {action.label}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={action.onClick} className={className}>
+      {action.label}
+    </button>
+  );
+}
+
+function MemberEmptyVisual({
+  illustration,
+  variant,
+}: {
+  illustration: MemberEmptyStateIllustration;
+  variant: MemberEmptyStateVariant;
+}) {
+  if (!illustration) return null;
+  if (illustration === "cloudCardPreview") {
+    return (
+      <div className="member-empty-cloud-card" aria-hidden="true">
+        <div className="member-empty-cloud-mark">
+          <svg viewBox="0 0 64 34" role="img" aria-hidden="true">
+            <path
+              d="M9.4 29h44.8c4.2 0 7.6-3.3 7.6-7.4s-3.4-7.4-7.6-7.4c-1.4 0-2.8.4-3.9 1.1C48.2 7.2 40.7 2 32 2 24.4 2 17.8 6 14.8 12 7.7 12.3 2.2 17.8 2.2 24.5 2.2 27 5.4 29 9.4 29Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
-      )}
+        <div className="member-empty-card-lines">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    );
+  }
+  if (typeof illustration === "string") {
+    return (
+      <div className="member-empty-illustration" aria-hidden="true">
+        <EmptyIllustration
+          name={illustration as keyof typeof emptyStateImages}
+          className={variant === "schedule" ? "opacity-90" : "opacity-95"}
+          maxWidth={variant === "packages" || variant === "payments" ? 180 : 210}
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="member-empty-illustration" aria-hidden="true">
+      {illustration}
+    </div>
+  );
+}
 
-      <p className="font-display text-2xl sm:text-[26px] text-navy leading-snug">{title}</p>
-      <p className="text-sm text-slate mt-2 leading-relaxed max-w-sm mx-auto">{body}</p>
-      {cta && (
-        <Link to={cta.to} className="btn-navy hover:btn-navy-hover mt-6 inline-flex">
-          {cta.label}
-        </Link>
+export function MemberEmptyState({
+  variant = "cloudCard",
+  eyebrow,
+  title,
+  body,
+  primaryAction,
+  secondaryAction,
+  cta,
+  illustration,
+  align = "center",
+  tone,
+}: {
+  variant?: MemberEmptyStateVariant;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  primaryAction?: MemberEmptyStateAction;
+  secondaryAction?: MemberEmptyStateAction;
+  cta?: { label: string; to: string };
+  illustration?: MemberEmptyStateIllustration;
+  align?: "center" | "start";
+  tone?: MemberEmptyStateTone;
+}) {
+  const { dir } = useI18n();
+  const resolvedEyebrow = eyebrow ?? t(defaultEmptyTextKey(variant, "eyebrow"));
+  const resolvedTitle = title ?? t(defaultEmptyTextKey(variant, "title"));
+  const resolvedBody = body ?? t(defaultEmptyTextKey(variant, "body"));
+  const resolvedPrimaryAction = primaryAction ?? cta;
+  const resolvedIllustration =
+    illustration === undefined ? defaultEmptyIllustration[variant] : illustration;
+  const resolvedTone = tone ?? defaultEmptyTone[variant];
+
+  return (
+    <div
+      dir={dir}
+      className={`member-empty-state member-empty-state-${resolvedTone} member-empty-state-${align}`}
+    >
+      <span aria-hidden className="member-empty-hairline member-empty-hairline-top" />
+      <span aria-hidden className="member-empty-hairline member-empty-hairline-bottom" />
+      <MemberEmptyVisual illustration={resolvedIllustration} variant={variant} />
+      <div className="member-empty-copy">
+        {resolvedEyebrow && <p className="member-empty-eyebrow">{resolvedEyebrow}</p>}
+        <h2 className="member-empty-title">{resolvedTitle}</h2>
+        <p className="member-empty-body">{resolvedBody}</p>
+      </div>
+      {(resolvedPrimaryAction || secondaryAction) && (
+        <div className="member-empty-actions">
+          {resolvedPrimaryAction && (
+            <EmptyAction action={resolvedPrimaryAction} variant="primary" />
+          )}
+          {secondaryAction && <EmptyAction action={secondaryAction} variant="secondary" />}
+        </div>
       )}
     </div>
   );

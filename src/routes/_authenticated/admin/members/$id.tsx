@@ -27,13 +27,17 @@ import {
   Save,
   X,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getPlanDisplay } from "@/lib/planDisplay";
 
 export const Route = createFileRoute("/_authenticated/admin/members/$id")({
-  head: () => ({ meta: [{ title: "Member — Studio Admin" }] }),
   component: Page,
 });
 
 function Page() {
+  const { lang, t } = useI18n();
+  useDocumentTitle("page.memberDetail.title");
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const fn = useServerFn(getMemberDetail);
@@ -168,7 +172,7 @@ function Page() {
     <div className="space-y-6">
       <Link
         to="/admin/members"
-        className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-slate hover:text-navy"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-slate transition-colors hover:text-navy"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> All members
       </Link>
@@ -177,7 +181,7 @@ function Page() {
       <div className="editorial-panel p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <p className="eyebrow text-[10px]">Member</p>
+            <p className="eyebrow">Member</p>
             <h2 className="font-display text-4xl font-light text-navy mt-2">{m.name}</h2>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-slate">
               {m.phone && (
@@ -215,13 +219,13 @@ function Page() {
           <div className="flex gap-2 shrink-0">
             <button
               onClick={() => toggleStatus.mutate(m.status === "active" ? "inactive" : "active")}
-              className="px-3 py-2 border border-gold/40 rounded-[2px] text-[11px] uppercase tracking-[0.18em] text-slate hover:bg-gold/10"
+              className="btn-outline px-3 py-2 text-xs hover:btn-outline-hover"
             >
               Mark {m.status === "active" ? "inactive" : "active"}
             </button>
             <button
               onClick={startEdit}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-navy text-ivory rounded-[2px] text-[11px] uppercase tracking-[0.18em] hover:opacity-90"
+              className="btn-navy inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-navy-hover"
             >
               <Pencil className="h-3.5 w-3.5" /> Edit profile
             </button>
@@ -247,14 +251,14 @@ function Page() {
         {(m.care_notes || m.emergency_contact) && (
           <div className="mt-6 pt-6 border-t border-gold/20 grid sm:grid-cols-2 gap-4">
             {m.care_notes && (
-              <div className="rounded-[2px] border border-gold/50 bg-gold/10 p-3">
-                <p className="eyebrow text-[10px] text-navy">Care notes</p>
+              <div className="rounded-xl border border-gold/50 bg-gold/10 p-3">
+                <p className="eyebrow text-navy">Care notes</p>
                 <p className="text-sm text-navy mt-1 whitespace-pre-line">{m.care_notes}</p>
               </div>
             )}
             {m.emergency_contact && (
               <div>
-                <p className="eyebrow text-[10px]">Emergency contact</p>
+                <p className="eyebrow">Emergency contact</p>
                 <p className="text-sm text-navy mt-1">{m.emergency_contact}</p>
               </div>
             )}
@@ -276,7 +280,7 @@ function Page() {
             <button
               type="button"
               onClick={() => setEditProfile(false)}
-              className="p-2 text-slate hover:text-navy"
+              className="btn-ghost p-2 hover:btn-ghost-hover"
             >
               <X className="h-4 w-4" />
             </button>
@@ -295,8 +299,8 @@ function Page() {
                 value={profileForm.status}
                 onChange={(e) => setProfileForm({ ...profileForm, status: e.target.value })}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">{t("admin.statusActive")}</option>
+                <option value="inactive">{t("admin.statusInactive")}</option>
               </select>
             </Field>
             <Field label="Phone">
@@ -335,7 +339,7 @@ function Page() {
                   setProfileForm({ ...profileForm, energy_preference: e.target.value })
                 }
               >
-                <option value="">No preference</option>
+                <option value="">{t("admin.noPreference")}</option>
                 <option value="calm">calm</option>
                 <option value="grounding">grounding</option>
                 <option value="uplifting">uplifting</option>
@@ -374,14 +378,14 @@ function Page() {
             <button
               type="submit"
               disabled={saveProfile.isPending}
-              className="inline-flex items-center gap-2 bg-navy text-ivory px-4 py-2.5 text-xs uppercase tracking-[0.18em] rounded-[2px] disabled:opacity-60"
+              className="btn-navy inline-flex items-center gap-2 px-4 py-2.5 text-xs hover:btn-navy-hover disabled:opacity-60"
             >
               <Save className="h-3.5 w-3.5" /> Save
             </button>
             <button
               type="button"
               onClick={() => setEditProfile(false)}
-              className="px-4 py-2.5 border border-gold/40 rounded-[2px] text-xs uppercase tracking-[0.18em] text-slate"
+              className="btn-outline px-4 py-2.5 text-xs hover:btn-outline-hover"
             >
               Cancel
             </button>
@@ -395,8 +399,10 @@ function Page() {
         {activePlan ? (
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-display text-xl text-navy">{activePlan.plan?.name}</p>
-              <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-1">
+              <p className="font-display text-xl text-navy">
+                {activePlan.plan ? getPlanDisplay(activePlan.plan, lang).name : "—"}
+              </p>
+              <p className="mt-1 text-xs font-medium text-slate">
                 {activePlan.credits_granted} credits granted ·{" "}
                 {activePlan.expires_at
                   ? `expires ${new Date(activePlan.expires_at).toLocaleDateString()}`
@@ -405,13 +411,13 @@ function Page() {
             </div>
             <Link
               to="/admin/plans"
-              className="text-[11px] uppercase tracking-[0.18em] text-gold hover:underline"
+              className="text-xs font-medium text-navy transition-colors hover:text-gold"
             >
               Manage plans →
             </Link>
           </div>
         ) : (
-          <Empty>No active package.</Empty>
+          <Empty>{t("admin.noActivePackage")}</Empty>
         )}
       </section>
 
@@ -427,7 +433,7 @@ function Page() {
             onChange={(e) => setNoteBody(e.target.value)}
           />
           <div className="flex items-center justify-between">
-            <label className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] text-slate">
+            <label className="inline-flex items-center gap-2 text-xs font-medium text-slate">
               <input
                 type="checkbox"
                 checked={noteImportant}
@@ -438,18 +444,18 @@ function Page() {
             <button
               onClick={() => (noteBody.trim() ? addNote.mutate() : toast.error("Empty note"))}
               disabled={addNote.isPending}
-              className="px-4 py-2 bg-navy text-ivory rounded-[2px] text-[11px] uppercase tracking-[0.18em] disabled:opacity-60"
+              className="btn-navy px-4 py-2 text-xs hover:btn-navy-hover disabled:opacity-60"
             >
               Add note
             </button>
           </div>
         </div>
-        {(data.notes ?? []).length === 0 && <Empty>No notes yet.</Empty>}
+        {(data.notes ?? []).length === 0 && <Empty>{t("admin.noNotes")}</Empty>}
         <div className="space-y-2">
           {(data.notes ?? []).map((n: any) => (
             <div
               key={n.id}
-              className={`p-4 rounded-[2px] border ${n.important ? "border-gold/50 bg-gold/10" : "border-gold/25 bg-ivory"}`}
+              className={`rounded-xl border p-4 ${n.important ? "border-gold/50 bg-gold/10" : "border-gold/25 bg-ivory"}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm text-navy whitespace-pre-line">{n.body}</p>
@@ -460,7 +466,7 @@ function Page() {
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-slate mt-2">
+              <p className="mt-2 text-xs font-medium text-slate">
                 {new Date(n.created_at).toLocaleString()}
                 {n.important && " · important"}
               </p>
@@ -492,7 +498,7 @@ function Page() {
         <button
           onClick={() => (reason.trim() ? adjust.mutate() : toast.error("Reason required"))}
           disabled={adjust.isPending}
-          className="px-4 py-2 bg-navy text-ivory rounded-[2px] text-[11px] uppercase tracking-[0.18em] disabled:opacity-60"
+          className="btn-navy px-4 py-2 text-xs hover:btn-navy-hover disabled:opacity-60"
         >
           Apply
         </button>
@@ -534,7 +540,7 @@ function Page() {
         {data.payments.map((p: any) => (
           <Row
             key={p.id}
-            primary={p.plan?.name ?? p.notes ?? p.method}
+            primary={p.plan ? getPlanDisplay(p.plan, lang).name : (p.notes ?? p.method)}
             meta={`${new Date(p.paid_at).toLocaleDateString()} · ${p.method} · ${p.status}`}
             right={`${p.currency === "ILS" ? "₪" : p.currency + " "}${Number(p.amount).toFixed(2)}${Number(p.refunded_amount) > 0 ? ` (-${Number(p.refunded_amount).toFixed(2)})` : ""}`}
           />
@@ -564,7 +570,7 @@ function Page() {
         <button
           onClick={() => sendReset.mutate()}
           disabled={sendReset.isPending}
-          className="w-full px-4 py-2.5 border border-gold/40 rounded-[2px] text-xs uppercase tracking-[0.18em] text-slate hover:bg-gold/10 disabled:opacity-60"
+          className="btn-outline w-full px-4 py-2.5 text-xs hover:btn-outline-hover disabled:opacity-60"
         >
           {sendReset.isPending ? "Sending…" : "Email reset link to member"}
         </button>
@@ -587,7 +593,7 @@ function Page() {
               setPw.mutate();
             }}
             disabled={setPw.isPending}
-            className="px-4 py-2.5 bg-navy text-ivory rounded-[2px] text-[11px] uppercase tracking-[0.18em] disabled:opacity-60"
+            className="btn-navy px-4 py-2.5 text-xs hover:btn-navy-hover disabled:opacity-60"
           >
             Set
           </button>
@@ -599,10 +605,7 @@ function Page() {
         <h3 className="section-title mb-3">Activity log</h3>
         <div className="space-y-1.5">
           {(audit ?? []).slice(0, 10).map((a: any) => (
-            <div
-              key={a.id}
-              className="text-[11px] uppercase tracking-[0.15em] text-slate editorial-card px-3 py-2"
-            >
+            <div key={a.id} className="editorial-card px-3 py-2 text-xs font-medium text-slate">
               {a.action} · {new Date(a.created_at).toLocaleString()}
             </div>
           ))}
@@ -615,7 +618,7 @@ function Page() {
 function Stat({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <p className="eyebrow text-[10px]">{label}</p>
+      <p className="eyebrow">{label}</p>
       <p className="font-display text-2xl font-light mt-1">{value}</p>
     </div>
   );
@@ -630,7 +633,7 @@ function Pill({ tone, children }: { tone: "gold" | "amber" | "quiet"; children: 
         : "text-slate border-gold/25";
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] px-1.5 py-0.5 rounded-[2px] border ${cls}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium ${cls}`}
     >
       {children}
     </span>
@@ -638,10 +641,11 @@ function Pill({ tone, children }: { tone: "gold" | "amber" | "quiet"; children: 
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "inactive") return <Pill tone="quiet">Inactive</Pill>;
+  const { t } = useI18n();
+  if (status === "inactive") return <Pill tone="quiet">{t("admin.statusInactive")}</Pill>;
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] px-1.5 py-0.5 rounded-[2px] bg-navy text-ivory">
-      Active
+    <span className="inline-flex items-center gap-1 rounded-full bg-navy px-2 py-1 text-xs font-medium text-ivory">
+      {t("admin.statusActive")}
     </span>
   );
 }
@@ -681,9 +685,9 @@ function Row({
     <div className="editorial-card p-3 flex items-center justify-between text-sm">
       <div className="min-w-0">
         <p className="text-navy truncate">{primary}</p>
-        <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-0.5">{meta}</p>
+        <p className="mt-0.5 text-xs font-medium text-slate">{meta}</p>
       </div>
-      <span className="font-display text-base text-navy shrink-0 ml-3">{right}</span>
+      <span className="font-display text-base text-navy shrink-0 ms-3">{right}</span>
     </div>
   );
 }

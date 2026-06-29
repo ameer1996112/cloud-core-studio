@@ -1,0 +1,133 @@
+{
+  "@type": "type.googleapis.com/google.cloud.run.v1.Service",
+  "apiVersion": "serving.knative.dev/v1",
+  "kind": "Service",
+  "metadata": {
+    "annotations": {
+      "run.googleapis.com/client-name": "gcloud",
+      "run.googleapis.com/client-version": "574.0.0",
+      "run.googleapis.com/ingress": "all",
+      "run.googleapis.com/ingress-status": "all",
+      "run.googleapis.com/maxScale": "3",
+      "run.googleapis.com/operation-id": "ec82a219-9249-405e-aac2-38e0157a6c6a",
+      "run.googleapis.com/urls": "[\"https://cloud-core-studio-190584124070.me-west1.run.app\",\"https://cloud-core-studio-6uthbm2yyq-zf.a.run.app\"]",
+      "serving.knative.dev/creator": "cloudandcorestudio@gmail.com",
+      "serving.knative.dev/lastModifier": "cloudandcorestudio@gmail.com"
+    },
+    "creationTimestamp": "2026-06-23T20:43:21.790820Z",
+    "generation": 75,
+    "labels": {
+      "cloud.googleapis.com/location": "me-west1",
+      "run.googleapis.com/satisfiesPzs": "true"
+    },
+    "name": "cloud-core-studio",
+    "namespace": "190584124070",
+    "resourceVersion": "AAZVTOldk2g",
+    "selfLink": "/apis/serving.knative.dev/v1/namespaces/190584124070/services/cloud-core-studio",
+    "uid": "16e2a8b6-9e31-44f4-bd3a-9951a2a0dac6"
+  },
+  "spec": {
+    "template": {
+      "metadata": {
+        "annotations": {
+          "autoscaling.knative.dev/maxScale": "3",
+          "run.googleapis.com/client-name": "gcloud",
+          "run.googleapis.com/client-version": "574.0.0",
+          "run.googleapis.com/startup-cpu-boost": "true"
+        },
+        "labels": {
+          "client.knative.dev/nonce": "ulxeknnlkv",
+          "run.googleapis.com/startupProbeType": "Default"
+        }
+      },
+      "spec": {
+        "containerConcurrency": 80,
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "SUPABASE_URL",
+                "value": "https://banjmspemvzrqckajvwo.supabase.co"
+              },
+              {
+                "name": "SUPABASE_PUBLISHABLE_KEY",
+                "value": "sb_publishable_teQmj60vBGsYCVxVWFHlVg_i4zawbJJ"
+              },
+              {
+                "name": "SUPABASE_SERVICE_ROLE_KEY",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "latest",
+                    "name": "SUPABASE_SERVICE_ROLE_KEY"
+                  }
+                }
+              }
+            ],
+            "image": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260628092150",
+            "ports": [
+              {
+                "containerPort": 8080,
+                "name": "http1"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "1000m",
+                "memory": "512Mi"
+              }
+            },
+            "startupProbe": {
+              "failureThreshold": 1,
+              "periodSeconds": 240,
+              "tcpSocket": {
+                "port": 8080
+              },
+              "timeoutSeconds": 240
+            }
+          }
+        ],
+        "serviceAccountName": "cloud-core-runner@cloudandcorestudio.iam.gserviceaccount.com",
+        "timeoutSeconds": 300
+      }
+    },
+    "traffic": [
+      {
+        "latestRevision": true,
+        "percent": 100
+      }
+    ]
+  },
+  "status": {
+    "address": {
+      "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app"
+    },
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-06-28T09:24:41.363304Z",
+        "status": "True",
+        "type": "Ready"
+      },
+      {
+        "lastTransitionTime": "2026-06-28T09:24:36.250916Z",
+        "status": "True",
+        "type": "ConfigurationsReady"
+      },
+      {
+        "lastTransitionTime": "2026-06-28T09:24:41.329519Z",
+        "status": "True",
+        "type": "RoutesReady"
+      }
+    ],
+    "latestCreatedRevisionName": "cloud-core-studio-00075-rxr",
+    "latestReadyRevisionName": "cloud-core-studio-00075-rxr",
+    "observedGeneration": 75,
+    "traffic": [
+      {
+        "latestRevision": true,
+        "percent": 100,
+        "revisionName": "cloud-core-studio-00075-rxr"
+      }
+    ],
+    "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app"
+  }
+}

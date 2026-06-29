@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.git
+.github
+.openwa
+.supabase
+.tanstack
+.vinxi
+android
+dist
+ios
+node_modules
+supabase/.temp
+supabase/backups
+supabase/migrations_archive

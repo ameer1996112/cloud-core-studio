@@ -1,0 +1,50 @@
+[
+  {
+    "device": "mobile390",
+    "lang": "he",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "dir": "rtl",
+    "title": "דוחות"
+  },
+  {
+    "device": "mobile390",
+    "lang": "ar",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "dir": "rtl",
+    "title": "التقارير"
+  },
+  {
+    "device": "mobile390",
+    "lang": "en",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "dir": "ltr",
+    "title": "Reports"
+  },
+  {
+    "device": "desktop1440",
+    "lang": "he",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "dir": "rtl",
+    "title": "דוחות"
+  },
+  {
+    "device": "desktop1440",
+    "lang": "ar",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "dir": "rtl",
+    "title": "التقارير"
+  },
+  {
+    "device": "desktop1440",
+    "lang": "en",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "dir": "ltr",
+    "title": "Reports"
+  }
+]

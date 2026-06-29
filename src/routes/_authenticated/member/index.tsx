@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Calendar,
   CreditCard,
   MessageCircle,
   Sparkles,
   Clock,
-  MapPin,
   ArrowRight,
   Megaphone,
 } from "lucide-react";
@@ -18,6 +18,7 @@ import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
 import {
   ClassImage,
   formatDate,
+  formatDurationLabel,
   formatRelative,
   formatTime,
   deriveClassState,
@@ -25,17 +26,24 @@ import {
 } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, VisualClassCardMini } from "@/components/visual/VisualClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
-import { t, getLocale, useI18n } from "@/lib/i18n";
+import { LANG_META, t, getLocale, useI18n } from "@/lib/i18n";
 import { studioImages, localizedAlt } from "@/lib/image-assets";
-import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
+import {
+  localizedClassTitle,
+  localizedClassTitleParts,
+  localizedOptionalInstructorName,
+} from "@/lib/localized-content";
+import { getPlanDisplay } from "@/lib/planDisplay";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { AutoInline, LtrInline } from "@/components/ui/bidi";
 
 export const Route = createFileRoute("/_authenticated/member/")({
-  head: () => ({ meta: [{ title: "בית — Cloud & Core" }] }),
   component: MemberHome,
 });
 
 function MemberHome() {
-  useI18n();
+  const { lang, dir } = useI18n();
+  useDocumentTitle("page.home.title");
   const fetchHome = useServerFn(getMemberHome);
   const fetchSettings = useServerFn(getPublicStudioSettings);
   const { data, isLoading } = useQuery({ queryKey: ["member-home"], queryFn: () => fetchHome() });
@@ -45,7 +53,7 @@ function MemberHome() {
   });
   const [openClass, setOpenClass] = useState<string | null>(null);
 
-  const greetingName = data?.member?.name?.split(" ")[0] ?? t("member.friend");
+  const greetingName = data?.member?.name?.trim().split(/\s+/)[0] ?? t("member.friend");
   const hour = new Date().getHours();
   const greeting =
     hour < 12
@@ -54,25 +62,50 @@ function MemberHome() {
         ? t("member.goodAfternoon")
         : t("member.goodEvening");
 
-  // Hide internal E2E seed classes/instructors from the user-facing UI.
-  const isDemoNoise = (c: any) =>
-    !c || /^E2E\s/i.test(c.title ?? "") || /^E2E\s/i.test(c.instructor?.name ?? "");
-  const recommended = (data?.recommended ?? []).filter((c: any) => !isDemoNoise(c));
-  const upcomingBookings = (data?.upcoming ?? []).filter((b: any) => !isDemoNoise(b.class));
+  const isRtl = LANG_META[lang].dir === "rtl";
+  const recommended = data?.recommended ?? [];
+  const upcomingBookings = data?.upcoming ?? [];
   const nextBooking = upcomingBookings[0] ?? null;
   const featuredClass = !nextBooking ? recommended[0] : null;
   const recommendedList = featuredClass ? recommended.slice(1) : recommended;
+  const announcement = localizeAnnouncement(settings?.announcement_text) ?? {
+    title: t("admin.classes.launchOpening"),
+    body: t("member.launchOpeningBody"),
+  };
 
   return (
-    <section className="space-y-6 sm:space-y-8 max-w-5xl mx-auto pb-6">
-      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="member-page-copy p-6 sm:p-8 md:p-10">
+    <section
+      dir={dir}
+      className="member-home-page member-page member-home-primary flex w-full flex-col space-y-0"
+    >
+      <div className="member-page-panel member-hero-panel grid overflow-hidden">
+        <div className="member-page-copy member-hero-content p-5 sm:p-8 md:p-10">
           <p className="member-eyebrow">{greeting}</p>
-          <h1 className="member-page-title mt-3 capitalize">{greetingName}.</h1>
+          <h1 className="member-page-title member-hero-title mt-3" dir={dir}>
+            {lang === "en" ? (
+              <span className="member-hero-greeting-line" dir="ltr">
+                <span className="member-hero-greeting-prefix" dir="ltr">
+                  {t("member.welcomeBackName")}{" "}
+                </span>
+                <AutoInline className="member-hero-greeting-name">
+                  <bdi>{greetingName}</bdi>
+                </AutoInline>
+              </span>
+            ) : (
+              <span className="member-hero-greeting-stack" dir="rtl">
+                <span className="member-hero-greeting-prefix" dir="rtl">
+                  {t("member.helloName")}
+                </span>
+                <AutoInline className="member-hero-greeting-name">
+                  <bdi>{greetingName}</bdi>
+                </AutoInline>
+              </span>
+            )}
+          </h1>
           <p className="member-page-body mt-3">
-            {settings?.welcome_text ?? t("member.welcomeBack")}
+            {settings?.welcome_text ?? t("member.welcomeBackStudio")}
           </p>
-          <div className="member-stat-strip mt-6">
+          <div className="member-stat-strip member-hero-stat-strip mt-6" dir={dir}>
             <StatCell
               label={t("member.stat.credits")}
               value={data?.member?.remaining_credits ?? 0}
@@ -81,7 +114,7 @@ function MemberHome() {
             <StatCell label={t("member.stat.available")} value={recommended.length} />
           </div>
         </div>
-        <div className="relative min-h-[220px] border-t border-gold/20 md:border-s md:border-t-0">
+        <div className="member-hero-media relative min-h-[160px] sm:min-h-[190px] md:min-h-[220px]">
           <img
             src={(settings as any)?.hero_image_url || studioImages.atmosphere.src}
             alt={localizedAlt(studioImages.atmosphere, getLocale())}
@@ -96,32 +129,46 @@ function MemberHome() {
         </div>
       </div>
 
-      {settings?.announcement_text && (
-        <div className="member-card member-panel-powder p-5 flex gap-3 items-start">
+      {announcement && (
+        <div className="member-card member-panel-powder member-announcement-card p-4 sm:p-5 flex gap-3 items-start">
           <Megaphone className="h-4 w-4 text-gold shrink-0 mt-1" />
-          <p className="text-sm text-navy leading-relaxed">{settings.announcement_text}</p>
+          <div className="member-announcement-copy space-y-1.5">
+            <p className="text-sm font-semibold text-navy leading-snug">{announcement.title}</p>
+            <p className="text-sm text-slate leading-relaxed">{announcement.body}</p>
+          </div>
         </div>
       )}
 
       {/* Next booking — Cloud Card */}
       {isLoading ? (
-        <div className="h-56 skeleton-brand rounded-[8px]" />
+        <div className="h-56 skeleton-brand rounded-[var(--cc-radius-card)]" />
       ) : nextBooking ? (
-        <NextBookingCard
-          booking={nextBooking}
-          studioName={settings?.studio_name ?? null}
-          address={settings?.address ?? null}
-        />
-      ) : featuredClass ? (
-        <section className="member-card member-panel-sand p-5 sm:p-6 space-y-4">
+        <section className="space-y-4">
           <div className="member-section-heading">
             <div>
               <p className="member-eyebrow">{t("member.bookNext")}</p>
+              <h2 className="member-section-title mt-1">{t("member.yourNextClass")}</h2>
+            </div>
+            <DirectionalMemberLink to="/member/bookings">
+              {t("member.viewBooking")}
+            </DirectionalMemberLink>
+          </div>
+          <NextBookingCard
+            booking={nextBooking}
+            studioName={settings?.studio_name ?? null}
+            address={settings?.address ?? null}
+          />
+        </section>
+      ) : featuredClass ? (
+        <section className="member-card member-panel-sand p-4 sm:p-6 space-y-4">
+          <div className="member-section-heading">
+            <div>
+              <p className="member-eyebrow">{t("member.recommendedForYou")}</p>
               <h2 className="member-section-title mt-1">{t("member.keepPracticeMoving")}</h2>
             </div>
-            <Link to="/member/schedule" className="member-eyebrow member-link-action">
-              {t("member.allSessions")} →
-            </Link>
+            <DirectionalMemberLink to="/member/schedule">
+              {t("member.allSessions")}
+            </DirectionalMemberLink>
           </div>
           <VisualClassCard
             cls={featuredClass}
@@ -136,9 +183,10 @@ function MemberHome() {
         </section>
       ) : (
         <MemberEmptyState
-          title={t("member.home.emptyTitle")}
-          body={t("member.home.emptyBody")}
-          cta={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
+          variant="schedule"
+          title={t("member.empty.schedule.title")}
+          body={t("member.empty.schedule.body")}
+          primaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
         />
       )}
 
@@ -156,18 +204,25 @@ function MemberHome() {
       <div className="space-y-4">
         <div className="member-section-heading">
           <h2 className="member-section-title">{t("member.forYou")}</h2>
-          <Link to="/member/schedule" className="member-eyebrow member-link-action">
-            {t("member.allSessions")} →
-          </Link>
+          <DirectionalMemberLink to="/member/schedule">
+            {t("member.allSessions")}
+          </DirectionalMemberLink>
         </div>
         {isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-[128px] skeleton-brand rounded-[18px]" />
+              <div key={i} className="h-[128px] skeleton-brand rounded-[var(--cc-radius-card)]" />
             ))}
           </div>
         ) : recommendedList.length === 0 ? (
-          <p className="text-sm italic text-slate">{t("member.noCalendar")}</p>
+          <MemberEmptyState
+            variant="schedule"
+            title={t("member.empty.schedule.title")}
+            body={t("member.empty.schedule.body")}
+            align="start"
+            illustration={null}
+            secondaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
+          />
         ) : (
           <div className="space-y-2.5">
             {recommendedList.slice(0, 3).map((c: any) => (
@@ -219,12 +274,48 @@ function MemberHome() {
   );
 }
 
+function localizeAnnouncement(value: string | null | undefined) {
+  const text = value?.trim();
+  if (!text) return null;
+  if (/^official opening:? 1\.7\.2026$/i.test(text)) {
+    return {
+      title: t("admin.classes.launchOpening"),
+      body: t("member.launchOpeningBody"),
+    };
+  }
+  return {
+    title: t("admin.classes.launchOpening"),
+    body: text,
+  };
+}
+
 function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="member-stat-cell">
       <p className="member-eyebrow text-slate">{label}</p>
       <p className="numeric-display numeric-display-md mt-2">{value}</p>
     </div>
+  );
+}
+
+function DirectionalMemberLink({
+  to,
+  children,
+}: {
+  to: "/member/schedule" | "/member/bookings";
+  children: React.ReactNode;
+}) {
+  const { lang } = useI18n();
+  const isRtl = LANG_META[lang].dir === "rtl";
+  const arrow = isRtl ? "←" : "→";
+
+  return (
+    <Link to={to} className="member-eyebrow member-link-action">
+      <span>{children}</span>
+      <span aria-hidden="true" className="shrink-0 text-sm leading-none">
+        {arrow}
+      </span>
+    </Link>
   );
 }
 
@@ -237,9 +328,22 @@ function NextBookingCard({
   studioName: string | null;
   address: string | null;
 }) {
+  const { lang, dir } = useI18n();
   const cls = booking.class;
   const title = localizedClassTitle(cls);
-  const instructor = localizedInstructorName(cls.instructor?.name);
+  const titleParts = localizedClassTitleParts(cls, lang);
+  const heroTitle = titleParts.brand || title;
+  const programName = titleParts.program || title;
+  const instructor =
+    localizedOptionalInstructorName(cls.instructor?.name) ?? t("member.noInstructor");
+  const creditCost = cls.credit_cost ?? 1;
+  const creditLabel =
+    creditCost === 1
+      ? t("member.oneCredit")
+      : t("admin.classes.creditValue", { count: creditCost });
+  const dateLabel = formatDate(cls.starts_at);
+  const timeLabel = formatTime(cls.starts_at);
+  const durationLabel = formatDurationLabel(cls.duration_minutes);
 
   function addToCalendar(e: React.MouseEvent) {
     e.preventDefault();
@@ -249,16 +353,21 @@ function NextBookingCard({
       title,
       startsAt: cls.starts_at,
       durationMinutes: cls.duration_minutes,
-      location: [cls.room_ref?.name ?? cls.room, address].filter(Boolean).join(" · "),
-      description: `Cancel up to ${cls.cancellation_window_hours}h before. Instructor: ${instructor}.`,
+      location: [t("member.locationStudio"), address].filter(Boolean).join(" · "),
+      description: t("member.calendarDescription", {
+        hours: cls.cancellation_window_hours,
+        instructor,
+      }),
       studioName,
     });
     void downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    toast.success(t("member.calendarReady"));
   }
   return (
-    <Link
-      to="/member/bookings"
-      className="block member-card overflow-hidden hover:member-card-hover"
+    <article
+      dir={dir}
+      className="member-cloud-card member-card overflow-hidden"
+      aria-label={t("member.yourCloudCard")}
     >
       <ClassImage cls={cls} className="member-class-media">
         <div
@@ -266,50 +375,79 @@ function NextBookingCard({
           aria-hidden
           style={{
             background:
-              "linear-gradient(0deg, rgba(11,29,58,0.78) 0%, rgba(11,29,58,0.28) 48%, rgba(11,29,58,0.08) 100%)",
+              "linear-gradient(0deg, rgba(11,29,58,0.82) 0%, rgba(11,29,58,0.38) 46%, rgba(11,29,58,0.08) 100%)",
           }}
         />
-        <div className="absolute top-4 left-5 right-5 z-10 text-ivory flex items-center justify-between">
-          <p className="text-[10px] uppercase tracking-[0.3em]">{t("member.yourCloudCard")}</p>
-          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-[11px] font-semibold tracking-normal text-ivory shadow-[0_16px_30px_-24px_rgba(11,29,58,0.95)] backdrop-blur-md">
+        <div
+          dir={dir}
+          className="absolute top-4 inset-x-5 z-10 flex items-start justify-between gap-3 text-ivory"
+        >
+          <div className="text-start">
+            <p className="text-xs font-semibold">{t("member.yourCloudCard")}</p>
+            <p className="mt-0.5 text-[11px] font-medium text-ivory/78">
+              {t("member.cloudCardHelper")}
+            </p>
+          </div>
+          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-xs font-semibold tracking-normal text-ivory shadow-[0_16px_30px_-24px_rgba(11,29,58,0.95)] backdrop-blur-md">
             <Clock className="h-3.5 w-3.5 text-gold" />
             {formatRelative(cls.starts_at)}
           </span>
         </div>
-        <div className="absolute bottom-4 left-5 right-5 z-10 text-ivory">
-          <p className="text-xs uppercase tracking-[0.25em] opacity-90">
-            {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
+        <div dir={dir} className="absolute bottom-5 inset-x-5 z-10 text-ivory text-start">
+          <p className="text-xs font-semibold opacity-90">
+            <LtrInline>{dateLabel}</LtrInline>
+            <span aria-hidden="true"> · </span>
+            <LtrInline>{timeLabel}</LtrInline>
           </p>
-          <p className="font-display text-3xl mt-1 leading-tight text-ivory drop-shadow-[0_1px_2px_rgba(11,29,58,0.65)]">
-            {title}
-          </p>
+          <h3 className="member-cloud-card-title mt-1 text-ivory">
+            <bdi>{heroTitle}</bdi>
+          </h3>
         </div>
       </ClassImage>
-      <div className="px-5 py-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate">
-        <span className="inline-flex items-center gap-1.5">
-          <MapPin className="h-3 w-3 text-gold" />
-          {cls.room_ref?.name ?? cls.room ?? "—"}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <Sparkles className="h-3 w-3 text-gold" />
-          {instructor}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <Clock className="h-3 w-3 text-gold" />
-          {t("booking.cancelWindow", { hours: cls.cancellation_window_hours }).replace(/\.$/, "")}
-        </span>
-        <button
-          onClick={addToCalendar}
-          className="ml-auto member-eyebrow text-gold hover:text-navy"
-        >
-          {t("member.addCalendar")}
-        </button>
+
+      <div className="member-cloud-card-body">
+        <div className="member-cloud-card-summary">
+          <span className="member-chip">{programName}</span>
+          <span className="member-cloud-card-detail">
+            <Sparkles className="h-3.5 w-3.5 text-gold" />
+            {t("common.with")} <bdi>{instructor}</bdi>
+          </span>
+          <span className="member-cloud-card-detail" dir="ltr">
+            <LtrInline>{timeLabel}</LtrInline>
+            <span aria-hidden="true"> · </span>
+            <bdi>{durationLabel}</bdi>
+          </span>
+          <span className="member-cloud-card-detail">{creditLabel}</span>
+        </div>
+
+        <div className="member-cloud-card-note">
+          <Clock className="h-3.5 w-3.5 text-gold" />
+          <p>{t("booking.cancelWindow", { hours: cls.cancellation_window_hours })}</p>
+        </div>
+
+        <div className="member-cloud-card-actions">
+          <button onClick={addToCalendar} className="btn-navy min-h-11 px-5">
+            <Calendar className="h-4 w-4" aria-hidden="true" />
+            {t("member.addCalendar")}
+          </button>
+          <Link to="/member/bookings" className="btn-ghost min-h-11 px-5">
+            {t("booking.viewBookings")}
+          </Link>
+        </div>
+        <p className="member-cloud-card-helper">{t("member.calendarHelp")}</p>
       </div>
-    </Link>
+    </article>
   );
 }
 
 function PackageMini({ activePlan, credits }: { activePlan: any; credits: number }) {
+  const { lang, locale } = useI18n();
+  const planName = activePlan?.plan ? getPlanDisplay(activePlan.plan, lang).name : null;
+  const summary = planName
+    ? t("member.planWithCredits", { plan: planName, count: credits })
+    : credits > 0
+      ? t("member.creditsAvailable", { count: credits })
+      : t("member.noActivePackage");
   return (
     <Link
       to="/member/packages"
@@ -317,21 +455,23 @@ function PackageMini({ activePlan, credits }: { activePlan: any; credits: number
     >
       <span aria-hidden className="absolute inset-y-0 start-0 w-[3px] bg-gold/80" />
       <p className="member-eyebrow">{t("member.activePackage")}</p>
-      <p className="font-display text-xl text-navy mt-1.5 leading-tight truncate">
-        {activePlan?.plan?.name ?? t("member.noActivePackage")}
-      </p>
+      <p className="font-display text-xl text-navy mt-1.5 leading-tight truncate">{summary}</p>
       <div className="mt-3 flex items-baseline justify-between gap-3">
         <div className="min-w-0">
           <p className="numeric-display text-3xl font-display text-navy">{credits}</p>
-          <p className="text-[11px] text-slate mt-0.5">{t("member.creditsRemaining")}</p>
+          <p className="mt-0.5 text-xs text-slate">{t("member.creditsRemaining")}</p>
         </div>
         {activePlan?.expires_at && (
-          <p className="text-[11px] text-slate text-end shrink-0">
+          <p className="shrink-0 text-end text-xs text-slate">
             {t("member.expires")}
             <br />
-            <span className="text-navy">
-              {new Date(activePlan.expires_at).toLocaleDateString()}
-            </span>
+            <LtrInline className="text-navy">
+              {new Date(activePlan.expires_at).toLocaleDateString(locale, {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </LtrInline>
           </p>
         )}
       </div>
@@ -348,7 +488,10 @@ function QuickActions({
   studioName: string | null;
   memberName: string | null;
 }) {
-  const text = `Hi ${studioName ?? "the studio"} 👋\nThis is ${memberName ?? "a member"}.`;
+  const text = t("member.contactMessage", {
+    studio: studioName ?? "Cloud & Core",
+    member: memberName ?? t("member.friend"),
+  });
   const url = waUrl({ to: waNumber, text });
   return (
     <div className="member-card p-5 space-y-3">
@@ -360,7 +503,7 @@ function QuickActions({
         <span className="inline-flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gold" /> {t("member.bookClass")}
         </span>
-        <ArrowRight className="h-3 w-3 text-gold" />
+        <ArrowRight className="h-3 w-3 text-gold directional-icon-forward" />
       </Link>
       <Link
         to="/member/packages"
@@ -369,7 +512,7 @@ function QuickActions({
         <span className="inline-flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-gold" /> {t("member.buyPackage")}
         </span>
-        <ArrowRight className="h-3 w-3 text-gold" />
+        <ArrowRight className="h-3 w-3 text-gold directional-icon-forward" />
       </Link>
       <a
         href={url}
@@ -380,7 +523,7 @@ function QuickActions({
         <span className="inline-flex items-center gap-2">
           <MessageCircle className="h-4 w-4 text-gold" /> {t("member.contactStudio")}
         </span>
-        <ArrowRight className="h-3 w-3 text-gold" />
+        <ArrowRight className="h-3 w-3 text-gold directional-icon-forward" />
       </a>
     </div>
   );

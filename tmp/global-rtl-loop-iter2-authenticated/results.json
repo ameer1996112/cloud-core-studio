@@ -1,0 +1,1198 @@
+[
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/auth",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "קרדיטים1",
+        "align": "right"
+      },
+      {
+        "text": "הזמנות1",
+        "align": "right"
+      },
+      {
+        "text": "שיעורים זמינים1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": "שלום,Nora",
+    "drawerRect": null
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "שיעורים זמינים1",
+        "align": "right"
+      },
+      {
+        "text": "קרדיטים1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": "rtl",
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "קרדיטים1",
+        "align": "right"
+      },
+      {
+        "text": "תשלומים ממתינים0",
+        "align": "right"
+      }
+    ],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "he",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/auth",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "الأرصدة1",
+        "align": "right"
+      },
+      {
+        "text": "الحجوزات1",
+        "align": "right"
+      },
+      {
+        "text": "حصص متاحة1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": "أهلاً،Nora",
+    "drawerRect": null
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "حصص متاحة1",
+        "align": "right"
+      },
+      {
+        "text": "الأرصدة1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": "rtl",
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "الأرصدة1",
+        "align": "right"
+      },
+      {
+        "text": "قيد الانتظار0",
+        "align": "right"
+      }
+    ],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "ar",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/auth",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member",
+    "console": [],
+    "pageErrors": [],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "heroItems": "flex-start",
+    "statsDir": "ltr",
+    "stats": [
+      {
+        "text": "Credits1",
+        "align": "left"
+      },
+      {
+        "text": "Bookings1",
+        "align": "left"
+      },
+      {
+        "text": "Available classes1",
+        "align": "left"
+      }
+    ],
+    "classAlign": "left",
+    "classItems": "flex-start",
+    "chipJustify": "flex-start",
+    "chipFlexDirection": "row",
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": "Welcome back, Nora",
+    "drawerRect": null
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "console": [],
+    "pageErrors": [],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "heroItems": "flex-start",
+    "statsDir": "ltr",
+    "stats": [
+      {
+        "text": "Available classes1",
+        "align": "left"
+      },
+      {
+        "text": "Credits1",
+        "align": "left"
+      }
+    ],
+    "classAlign": "left",
+    "classItems": "flex-start",
+    "chipJustify": "flex-start",
+    "chipFlexDirection": "row",
+    "searchDir": "ltr",
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "console": [],
+    "pageErrors": [],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "heroItems": "flex-start",
+    "statsDir": "ltr",
+    "stats": [
+      {
+        "text": "Credits1",
+        "align": "left"
+      },
+      {
+        "text": "Pending payments0",
+        "align": "left"
+      }
+    ],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "en",
+    "device": "mobile390",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/auth",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "קרדיטים1",
+        "align": "right"
+      },
+      {
+        "text": "הזמנות1",
+        "align": "right"
+      },
+      {
+        "text": "שיעורים זמינים1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": "שלום,Nora",
+    "drawerRect": null
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "שיעורים זמינים1",
+        "align": "right"
+      },
+      {
+        "text": "קרדיטים1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": "rtl",
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "קרדיטים1",
+        "align": "right"
+      },
+      {
+        "text": "תשלומים ממתינים0",
+        "align": "right"
+      }
+    ],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "he",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/auth",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "الأرصدة1",
+        "align": "right"
+      },
+      {
+        "text": "الحجوزات1",
+        "align": "right"
+      },
+      {
+        "text": "حصص متاحة1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": "أهلاً،Nora",
+    "drawerRect": null
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "حصص متاحة1",
+        "align": "right"
+      },
+      {
+        "text": "الأرصدة1",
+        "align": "right"
+      }
+    ],
+    "classAlign": "right",
+    "classItems": "flex-end",
+    "chipJustify": "flex-end",
+    "chipFlexDirection": "row-reverse",
+    "searchDir": "rtl",
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "console": [],
+    "pageErrors": [],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": "right",
+    "heroItems": "flex-end",
+    "statsDir": "rtl",
+    "stats": [
+      {
+        "text": "الأرصدة1",
+        "align": "right"
+      },
+      {
+        "text": "قيد الانتظار0",
+        "align": "right"
+      }
+    ],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "ar",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "rtl",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/auth",
+    "role": "guest",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/auth",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member",
+    "role": "member",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member",
+    "console": [],
+    "pageErrors": [],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "heroItems": "flex-start",
+    "statsDir": "ltr",
+    "stats": [
+      {
+        "text": "Credits1",
+        "align": "left"
+      },
+      {
+        "text": "Bookings1",
+        "align": "left"
+      },
+      {
+        "text": "Available classes1",
+        "align": "left"
+      }
+    ],
+    "classAlign": "left",
+    "classItems": "flex-start",
+    "chipJustify": "flex-start",
+    "chipFlexDirection": "row",
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": "Welcome back, Nora",
+    "drawerRect": null
+  },
+  {
+    "route": "/member/schedule",
+    "role": "member",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "console": [],
+    "pageErrors": [],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "heroItems": "flex-start",
+    "statsDir": "ltr",
+    "stats": [
+      {
+        "text": "Available classes1",
+        "align": "left"
+      },
+      {
+        "text": "Credits1",
+        "align": "left"
+      }
+    ],
+    "classAlign": "left",
+    "classItems": "flex-start",
+    "chipJustify": "flex-start",
+    "chipFlexDirection": "row",
+    "searchDir": "ltr",
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/member/packages",
+    "role": "member",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/member/packages",
+    "console": [],
+    "pageErrors": [],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": "left",
+    "heroItems": "flex-start",
+    "statsDir": "ltr",
+    "stats": [
+      {
+        "text": "Credits1",
+        "align": "left"
+      },
+      {
+        "text": "Pending payments0",
+        "align": "left"
+      }
+    ],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": "start",
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin",
+    "role": "admin",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/settings",
+    "role": "admin",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/settings",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  },
+  {
+    "route": "/admin/classes",
+    "role": "admin",
+    "lang": "en",
+    "device": "desktop1440",
+    "url": "http://127.0.0.1:4174/admin/classes",
+    "console": [],
+    "pageErrors": [
+      "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "dir": "ltr",
+    "overflow": false,
+    "heroAlign": null,
+    "heroItems": null,
+    "statsDir": null,
+    "stats": [],
+    "classAlign": null,
+    "classItems": null,
+    "chipJustify": null,
+    "chipFlexDirection": null,
+    "searchDir": null,
+    "sectionAlign": null,
+    "greetingText": null,
+    "drawerRect": null
+  }
+]

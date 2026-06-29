@@ -2,16 +2,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import { listAvailableClasses } from "@/lib/member.functions";
-import { deriveClassState } from "@/components/member/PremiumClassCard";
+import { deriveClassState, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, ScheduleDaySection } from "@/components/visual/VisualClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
+import {
+  MemberScheduleFilterPanel,
+  type DateScope,
+} from "@/components/member/MemberScheduleFilterPanel";
 import { t, useI18n } from "@/lib/i18n";
-import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import {
+  localizedClassTitle,
+  localizedFilterLabel,
+  localizedInstructorName,
+  localizedRoomName,
+  localizedToneName,
+} from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/schedule")({
-  head: () => ({ meta: [{ title: "לוח שיעורים — Cloud & Core" }] }),
   component: MemberSchedule,
 });
 
@@ -22,7 +31,8 @@ function startOfDay(d: Date) {
 }
 
 function MemberSchedule() {
-  useI18n();
+  const { lang, dir } = useI18n();
+  useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
   const { data, isLoading } = useQuery({
     queryKey: ["member-schedule"],
@@ -36,13 +46,10 @@ function MemberSchedule() {
     instructor?: string;
     room?: string;
   }>({});
-  const [dateScope, setDateScope] = useState<"today" | "tomorrow" | "week" | "all">("all");
+  const [dateScope, setDateScope] = useState<DateScope>("all");
   const [openClass, setOpenClass] = useState<string | null>(null);
 
-  // Hide internal E2E seed classes/instructors from the user-facing UI.
-  const classes = (data?.classes ?? []).filter(
-    (c: any) => !/^E2E\s/i.test(c.title ?? "") && !/^E2E\s/i.test(c.instructor?.name ?? ""),
-  );
+  const classes = useMemo(() => data?.classes ?? [], [data?.classes]);
   const member = data?.member;
   const booked = data?.bookingsByClass ?? {};
   const waiting = data?.waitlistByClass ?? {};
@@ -92,98 +99,83 @@ function MemberSchedule() {
   }
 
   return (
-    <section className="space-y-6 pb-10 max-w-4xl mx-auto">
-      <div className="member-page-panel p-6 sm:p-8">
+    <section dir={dir} className="member-page w-full space-y-6 pb-10">
+      <div className="member-page-panel p-5 sm:p-8">
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end">
           <div className="member-page-copy">
             <p className="member-eyebrow">{t("member.schedule.kicker")}</p>
             <h1 className="member-page-title mt-3">{t("nav.schedule")}</h1>
             <p className="member-page-body mt-3">{t("member.schedule.body")}</p>
           </div>
-          <div className="member-stat-strip">
+          <div className="member-stat-strip" dir={dir}>
             <StatCell label={t("member.stat.available")} value={filtered.length} />
             <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
           </div>
         </div>
       </div>
 
-      <div className="member-control-panel member-search-suite">
-        <div className="member-search-field">
-          <span className="member-search-icon" aria-hidden="true">
-            <Search className="h-4 w-4" />
-          </span>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("member.search")}
-            className="member-search-input"
-          />
-        </div>
-
-        <div className="member-date-segment no-scrollbar">
-          {(["today", "tomorrow", "week", "all"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setDateScope(s)}
-              className={
-                dateScope === s
-                  ? "member-date-pill member-date-pill-active capitalize"
-                  : "member-date-pill capitalize"
-              }
-            >
-              {s === "week"
-                ? t("common.thisWeek")
-                : s === "today"
-                  ? t("common.today")
-                  : s === "tomorrow"
-                    ? t("common.tomorrow")
-                    : t("common.all")}
-            </button>
-          ))}
-        </div>
-
-        <div className="member-filter-shelf">
-          <FilterGroup
-            label={t("member.filter.level")}
-            options={levels}
-            value={filter.level}
-            onChange={(v) => setFilter({ ...filter, level: v })}
-          />
-          <FilterGroup
-            label={t("member.filter.energy")}
-            options={energies}
-            value={filter.energy}
-            onChange={(v) => setFilter({ ...filter, energy: v })}
-          />
-          <FilterGroup
-            label={t("common.room")}
-            options={rooms}
-            value={filter.room}
-            onChange={(v) => setFilter({ ...filter, room: v })}
-          />
-          <FilterGroup
-            label={t("common.with")}
-            options={instructors}
-            formatOption={(o) => localizedInstructorName(o)}
-            value={filter.instructor}
-            onChange={(v) => setFilter({ ...filter, instructor: v })}
-          />
-        </div>
-      </div>
+      <MemberScheduleFilterPanel
+        dir={dir}
+        lang={lang}
+        search={search}
+        onSearchChange={setSearch}
+        dateScope={dateScope}
+        onDateScopeChange={setDateScope}
+        filters={[
+          {
+            key: "level",
+            label: t("member.filter.level"),
+            options: levels,
+            value: filter.level,
+            formatOption: (value) => localizedFilterLabel(value, lang),
+          },
+          {
+            key: "energy",
+            label: t("member.filter.energy"),
+            options: energies,
+            value: filter.energy,
+            formatOption: (value) => localizedToneName(value, undefined, lang),
+          },
+          ...(rooms.length > 1
+            ? [
+                {
+                  key: "room" as const,
+                  label: t("common.room"),
+                  options: rooms,
+                  value: filter.room,
+                  formatOption: (value: string) =>
+                    localizedRoomName({ name: value }, value) ?? value,
+                },
+              ]
+            : []),
+          {
+            key: "instructor",
+            label: t("common.with"),
+            options: instructors,
+            value: filter.instructor,
+            formatOption: (value) => localizedInstructorName(value),
+          },
+        ]}
+        onFilterChange={(key, value) => setFilter((current) => ({ ...current, [key]: value }))}
+      />
 
       {isLoading && (
         <div className="space-y-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-[148px] skeleton-brand rounded-[22px]" />
+            <div key={i} className="h-[148px] skeleton-brand rounded-[var(--cc-radius-card)]" />
           ))}
         </div>
       )}
 
       {!isLoading && filtered.length === 0 && (
-        <div className="member-card p-8 text-center">
-          <p className="font-display text-xl text-navy">{t("member.noSessions")}</p>
-          <p className="text-sm text-slate mt-2">{t("member.clearFilters")}</p>
-        </div>
+        <MemberEmptyState
+          variant="schedule"
+          title={classes.length === 0 ? t("member.empty.schedule.title") : t("member.noSessions")}
+          body={classes.length === 0 ? t("member.empty.schedule.body") : t("member.clearFilters")}
+          secondaryAction={
+            classes.length === 0 ? { label: t("legal.support"), to: "/support" } : undefined
+          }
+        />
       )}
 
       {!isLoading &&
@@ -218,40 +210,6 @@ function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="member-stat-cell">
       <p className="member-eyebrow text-slate">{label}</p>
       <p className="numeric-display numeric-display-md mt-2">{value}</p>
-    </div>
-  );
-}
-
-function FilterGroup({
-  label,
-  options,
-  value,
-  onChange,
-  formatOption,
-}: {
-  label: string;
-  options: any[];
-  value?: string;
-  onChange: (v?: string) => void;
-  formatOption?: (value: string) => string;
-}) {
-  if (options.length === 0) return null;
-  return (
-    <div className="member-filter-group">
-      <span className="member-filter-label">{label}</span>
-      {options.map((o) => (
-        <button
-          key={o}
-          onClick={() => onChange(value === o ? undefined : o)}
-          className={
-            value === o
-              ? "member-filter-pill member-filter-pill-active capitalize"
-              : "member-filter-pill capitalize"
-          }
-        >
-          {formatOption ? formatOption(o) : o}
-        </button>
-      ))}
     </div>
   );
 }

@@ -1,0 +1,659 @@
+{
+  "cases": [
+    {
+      "lang": "he",
+      "vp": "mobile",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "כניסה לסטודיו",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "54.1406px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "mobile",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "הגדרות",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "auto"
+          },
+          {
+            "text": "שמירת הגדרות",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "mobile",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "ביטול",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "יצירת שיעור",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "ipad",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "כניסה לסטודיו",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "54.1406px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "ipad",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "הגדרות",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "auto"
+          },
+          {
+            "text": "שמירת הגדרות",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "ipad",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "ביטול",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "יצירת שיעור",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "desktop",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "כניסה לסטודיו",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "54.1406px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "desktop",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "הגדרות",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "שמירת הגדרות",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "he",
+      "vp": "desktop",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "he",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "ביטול",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "יצירת שיעור",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "mobile",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "دخول الاستوديو",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "54.1406px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "mobile",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "الإعدادات",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "auto"
+          },
+          {
+            "text": "حفظ الإعدادات",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "mobile",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "إلغاء",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "إنشاء حصة",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "ipad",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "دخول الاستوديو",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "54.1406px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "ipad",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "الإعدادات",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "auto"
+          },
+          {
+            "text": "حفظ الإعدادات",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "ipad",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "إلغاء",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "إنشاء حصة",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "desktop",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "دخول الاستوديو",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "54.1406px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "desktop",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "الإعدادات",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "حفظ الإعدادات",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "ar",
+      "vp": "desktop",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "ar",
+        "dir": "rtl",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "إلغاء",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          },
+          {
+            "text": "إنشاء حصة",
+            "radius": "14px",
+            "direction": "rtl",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "mobile",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Enter the studio",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "57.25px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "mobile",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Settings",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "auto"
+          },
+          {
+            "text": "Save settings",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "mobile",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Cancel",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          },
+          {
+            "text": "Create session",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "ipad",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Enter the studio",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "57.25px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "ipad",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Settings",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "auto"
+          },
+          {
+            "text": "Save settings",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "ipad",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Cancel",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          },
+          {
+            "text": "Create session",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "desktop",
+      "route": "/auth",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Enter the studio",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "57.25px"
+          }
+        ],
+        "url": "http://localhost:8080/auth"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "desktop",
+      "route": "/admin/settings",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Settings",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          },
+          {
+            "text": "Save settings",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "50.4062px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/settings"
+      }
+    },
+    {
+      "lang": "en",
+      "vp": "desktop",
+      "route": "/admin/classes/new",
+      "console": [],
+      "metrics": {
+        "htmlLang": "en",
+        "dir": "ltr",
+        "overflow": 0,
+        "interactive": [
+          {
+            "text": "Cancel",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          },
+          {
+            "text": "Create session",
+            "radius": "14px",
+            "direction": "ltr",
+            "height": "46px"
+          }
+        ],
+        "url": "http://localhost:8080/admin/classes/new"
+      }
+    }
+  ],
+  "summary": {
+    "total": 27,
+    "consoleErrors": 0,
+    "overflow": [],
+    "dirs": ["ar:ar:rtl", "en:en:ltr", "he:he:rtl"],
+    "radii": ["14px"]
+  }
+}

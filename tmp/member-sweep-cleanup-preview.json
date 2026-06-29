@@ -1,0 +1,114 @@
+{
+  "tag": "QA_MEMBER_SWEEP_20260625T224605Z",
+  "email": "qa.member.sweep+20260625t224605z@example.com",
+  "records": [
+    {
+      "table": "attendance_records",
+      "id": "6bbb8812-0319-4caf-b959-080225434642",
+      "reason": "temporary member sweep booking attendance row",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "booking_id": "691a2f1f-82cc-41d6-888e-7cf6949ac45c"
+    },
+    {
+      "table": "bookings",
+      "id": "691a2f1f-82cc-41d6-888e-7cf6949ac45c",
+      "reason": "temporary member sweep real booking row",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "class_id": "08710f92-6a4d-4807-b41f-b06cac8e8ba0"
+    },
+    {
+      "table": "receipts",
+      "id": "362b425b-917e-49ed-b9c1-d173428152a2",
+      "reason": "temporary member sweep confirmed payment receipt",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "payment_id": "0520e649-e22d-4ae8-ad89-7941c1d4c051",
+      "receipt_number": "CC-2026-01008"
+    },
+    {
+      "table": "credit_transactions",
+      "id": "0c3b3320-354d-4a18-ad19-ed379b8f783b",
+      "reason": "temporary member sweep plan activation credit grant",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865"
+    },
+    {
+      "table": "credit_transactions",
+      "id": "4435850a-c0bc-4e4c-b9e8-c223065b50ef",
+      "reason": "temporary member sweep booking credit deduction",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865"
+    },
+    {
+      "table": "credit_transactions",
+      "id": "ecba3d87-e40c-4499-a7eb-62f82799c238",
+      "reason": "temporary member sweep manual credit grant",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865"
+    },
+    {
+      "table": "payments",
+      "id": "0520e649-e22d-4ae8-ad89-7941c1d4c051",
+      "reason": "temporary member sweep manual cash payment",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "plan_id": "d837ec67-d6b6-4547-9147-bc39a336ad11"
+    },
+    {
+      "table": "member_plans",
+      "id": "64802333-b6bd-46bd-95d7-f2df06de0f7d",
+      "reason": "temporary member sweep auto-activated plan from confirmed payment",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "plan_id": "d837ec67-d6b6-4547-9147-bc39a336ad11"
+    },
+    {
+      "table": "member_plans",
+      "id": "d3aa59e1-78dc-4a96-993b-34545dc09db1",
+      "reason": "temporary member sweep active single-class plan",
+      "member_id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "plan_id": "d837ec67-d6b6-4547-9147-bc39a336ad11"
+    },
+    {
+      "table": "members",
+      "id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "reason": "temporary member sweep row",
+      "email": "qa.member.sweep+20260625t224605z@example.com"
+    },
+    {
+      "table": "members",
+      "id": "f458fbb3-91f0-4612-9713-673429b4428b",
+      "reason": "temporary non-owner receipt RLS member row",
+      "email": "qa.member.rls+qa_member_sweep_rls_20260626t085419z@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "reason": "temporary member sweep role row",
+      "email": "qa.member.sweep+20260625t224605z@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "f458fbb3-91f0-4612-9713-673429b4428b",
+      "reason": "temporary non-owner receipt RLS role row",
+      "email": "qa.member.rls+qa_member_sweep_rls_20260626t085419z@example.com"
+    },
+    {
+      "table": "auth.users",
+      "id": "95dff3d3-6cc5-428d-a29c-72d977f82865",
+      "reason": "temporary member sweep auth user",
+      "email": "qa.member.sweep+20260625t224605z@example.com"
+    },
+    {
+      "table": "auth.users",
+      "id": "f458fbb3-91f0-4612-9713-673429b4428b",
+      "reason": "temporary non-owner receipt RLS auth user",
+      "email": "qa.member.rls+qa_member_sweep_rls_20260626t085419z@example.com"
+    }
+  ],
+  "delete_order": [
+    "attendance_records",
+    "bookings",
+    "receipts",
+    "credit_transactions",
+    "payments",
+    "member_plans",
+    "members",
+    "profiles",
+    "auth.users"
+  ]
+}

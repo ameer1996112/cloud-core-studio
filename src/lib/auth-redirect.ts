@@ -18,8 +18,9 @@ export async function getCurrentRole(userId: string): Promise<AppRole> {
 }
 
 export async function homeForCurrentUser(): Promise<RoleHome> {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return "/member";
-  const role = await getCurrentRole(data.user.id);
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user;
+  if (!user) return "/member";
+  const role = await getCurrentRole(user.id);
   return roleHome(role);
 }

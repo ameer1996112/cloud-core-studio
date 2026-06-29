@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { hasTestClassRecord, hasTestPlanRecord, isTestRecord } from "@/lib/test-records";
 
 const classSelect =
   "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
@@ -46,13 +47,16 @@ export const getMemberHome = createServerFn({ method: "GET" })
         .maybeSingle(),
     ]);
 
-    const upcoming = (nextBookingRes.data ?? []).filter((b: any) => b.class) as any[];
+    const upcoming = (nextBookingRes.data ?? []).filter(
+      (b: any) => b.class && !hasTestClassRecord(b),
+    ) as any[];
     return {
       member: memberRes.data,
       upcoming,
       nextBooking: upcoming[0] ?? null,
-      recommended: recentClassesRes.data ?? [],
-      activePlan: activePlanRes.data,
+      recommended: (recentClassesRes.data ?? []).filter((c: any) => !hasTestClassRecord(c)),
+      activePlan:
+        activePlanRes.data && !hasTestPlanRecord(activePlanRes.data) ? activePlanRes.data : null,
     };
   });
 
@@ -104,7 +108,7 @@ export const listAvailableClasses = createServerFn({ method: "GET" })
         waitlistByClass[w.class_id as string] = { id: w.id as string, status: w.status as string };
     }
     return {
-      classes: classes ?? [],
+      classes: (classes ?? []).filter((c: any) => !hasTestClassRecord(c)),
       bookingsByClass,
       waitlistByClass,
       member: memberRes.data,
@@ -211,8 +215,8 @@ export const getMyBookingsAll = createServerFn({ method: "GET" })
       };
     }
     return {
-      bookings: bookingsRes.data ?? [],
-      waitlist: waitlistRes.data ?? [],
+      bookings: (bookingsRes.data ?? []).filter((b: any) => !hasTestClassRecord(b)),
+      waitlist: (waitlistRes.data ?? []).filter((w: any) => !hasTestClassRecord(w)),
       attendanceByBooking: attMap,
     };
   });
@@ -244,18 +248,18 @@ export const getMyPackages = createServerFn({ method: "GET" })
       supabase
         .from("payments")
         .select(
-          "id,amount,currency,method,status,provider,paid_at,notes,plan:plans(name),receipt:receipts(id,receipt_number)",
+          "id,amount,currency,method,status,provider,paid_at,created_at,notes,plan:plans(id,name,description,credits,duration_days,price_cents,currency),receipt:receipts(id,receipt_number)",
         )
         .eq("member_id", userId)
-        .order("paid_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(50),
     ]);
     return {
       member: memberRes.data,
-      mine: mineRes.data ?? [],
-      plans: plansRes.data ?? [],
-      ledger: ledgerRes.data ?? [],
-      payments: paymentsRes.data ?? [],
+      mine: (mineRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
+      plans: (plansRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
+      ledger: (ledgerRes.data ?? []).filter((row: any) => !isTestRecord(row.reason)),
+      payments: (paymentsRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
     };
   });
 
@@ -277,4 +281,41 @@ export const updateMyProfile = createServerFn({ method: "POST" })
     const { error } = await supabase.from("members").update(data).eq("id", userId);
     if (error) throw error;
     return { ok: true };
+  });
+
+export const requestMyAccountDeletion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        reason: z.string().max(1000).nullable().optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: member } = await supabase
+      .from("members")
+      .select("email")
+      .eq("id", userId)
+      .maybeSingle();
+    const { data: existing, error: existingError } = await (supabase as any)
+      .from("account_deletion_requests")
+      .select("id,status")
+      .eq("member_id", userId)
+      .in("status", ["requested", "reviewing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingError) throw existingError;
+    if (existing?.id) return { ok: true, status: existing.status, duplicate: true };
+
+    const { error } = await (supabase as any).from("account_deletion_requests").insert({
+      member_id: userId,
+      email: member?.email ?? null,
+      reason: data.reason?.trim() || null,
+      status: "requested",
+    });
+    if (error) throw error;
+    return { ok: true, status: "requested", duplicate: false };
   });

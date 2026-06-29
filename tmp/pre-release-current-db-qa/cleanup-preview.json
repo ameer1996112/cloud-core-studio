@@ -1,0 +1,267 @@
+{
+  "projectId": "banjmspemvzrqckajvwo",
+  "tag": "QA_PRE_RELEASE_20260624T210916Z",
+  "createdAt": "2026-06-24T21:27:43.064Z",
+  "destructiveExecuted": false,
+  "records": {
+    "auth.users": [
+      {
+        "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+        "email": "qa_pre_release_20260624t210916z.othermember@example.com",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z"
+      },
+      {
+        "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+        "email": "qa_pre_release_20260624t210916z.nocredits@example.com",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z"
+      },
+      {
+        "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "email": "qa_pre_release_20260624t210916z.member@example.com",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z"
+      },
+      {
+        "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+        "email": "qa_pre_release_20260624t210916z.instructor@example.com",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z"
+      },
+      {
+        "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+        "email": "qa_pre_release_20260624t210916z.admin@example.com",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z"
+      }
+    ],
+    "members": [
+      {
+        "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Member With Credits",
+        "email": "qa_pre_release_20260624t210916z.member@example.com"
+      },
+      {
+        "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_admin",
+        "email": null
+      },
+      {
+        "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_instructor",
+        "email": null
+      },
+      {
+        "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Other Member",
+        "email": "qa_pre_release_20260624t210916z.othermember@example.com"
+      },
+      {
+        "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Member No Credits",
+        "email": "qa_pre_release_20260624t210916z.nocredits@example.com"
+      }
+    ],
+    "instructors": [
+      {
+        "id": "8180a421-a5db-4865-80cb-78993337e080",
+        "user_id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Instructor"
+      }
+    ],
+    "rooms": [
+      {
+        "id": "51d1095a-29f8-4247-b1af-4e939aa05223",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Room"
+      }
+    ],
+    "program_types": [
+      {
+        "id": "606d2347-49ef-4dcd-8fbb-c7e0793ede4c",
+        "slug": "qa-pre-release-20260624t210916z",
+        "name_en": "QA_PRE_RELEASE_20260624T210916Z Program"
+      }
+    ],
+    "classes": [
+      {
+        "id": "82eb7bd6-e926-4195-9695-4f1b1063dbaa",
+        "title": "QA_PRE_RELEASE_20260624T210916Z_Cancel_Class",
+        "status": "scheduled"
+      },
+      {
+        "id": "70f70337-aec5-44e1-b458-fdc6257acf29",
+        "title": "QA_PRE_RELEASE_20260624T210916Z_Class_Main_Edited",
+        "status": "scheduled"
+      },
+      {
+        "id": "cc6639d9-8f87-49fe-8ee6-45c6262dda5e",
+        "title": "QA_PRE_RELEASE_20260624T210916Z_Cancel_Class_Completion_1782335762573",
+        "status": "scheduled"
+      }
+    ],
+    "plans": [
+      {
+        "id": "258b8ebd-9909-4a63-b0d5-e26d9376c472",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Plan"
+      },
+      {
+        "id": "e9f966af-0540-4e1f-bb80-87a1c242a5ca",
+        "name": "QA_PRE_RELEASE_20260624T210916Z_Plan"
+      }
+    ],
+    "bookings": [
+      {
+        "id": "2427d254-d48a-422d-919a-44bca3d42996",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "class_id": "70f70337-aec5-44e1-b458-fdc6257acf29",
+        "status": "booked"
+      },
+      {
+        "id": "1b363f8f-ee43-48ce-aa2d-75f1a1691f27",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "class_id": "cc6639d9-8f87-49fe-8ee6-45c6262dda5e",
+        "status": "cancelled"
+      }
+    ],
+    "payments": [
+      {
+        "id": "f07888d0-9760-4647-a883-dd1ce9b70bae",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "plan_id": "e9f966af-0540-4e1f-bb80-87a1c242a5ca",
+        "status": "paid",
+        "reference": "QA_PRE_RELEASE_20260624T210916Z"
+      },
+      {
+        "id": "24a1076d-64db-48fc-802f-fd36fb375ebf",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "plan_id": "e9f966af-0540-4e1f-bb80-87a1c242a5ca",
+        "status": "paid",
+        "reference": "QA_PRE_RELEASE_20260624T210916Z_COMPLETION_1782335749501"
+      }
+    ],
+    "receipts": [
+      {
+        "id": "eb1c2c58-ea4a-4e4a-8b0f-f5178b8a59a5",
+        "payment_id": "f07888d0-9760-4647-a883-dd1ce9b70bae",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "receipt_number": "CC-2026-01005"
+      },
+      {
+        "id": "01dae582-1beb-40ec-83a9-214a3671778a",
+        "payment_id": "24a1076d-64db-48fc-802f-fd36fb375ebf",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "receipt_number": "CC-2026-01006"
+      }
+    ],
+    "attendance_records": [
+      {
+        "id": "8fc9115b-771e-43c5-b9ff-5d87ba0efe4b",
+        "booking_id": "1b363f8f-ee43-48ce-aa2d-75f1a1691f27",
+        "status": "cancelled"
+      },
+      {
+        "id": "58d38722-6216-4bab-9395-4a69e1c83e5c",
+        "booking_id": "2427d254-d48a-422d-919a-44bca3d42996",
+        "status": "attended"
+      }
+    ],
+    "member_plans": [
+      {
+        "id": "a3e21528-6c82-4a97-b8bf-0eca630f7630",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "plan_id": "e9f966af-0540-4e1f-bb80-87a1c242a5ca",
+        "status": "active"
+      },
+      {
+        "id": "9ba2b6f1-1032-47ac-8637-6db45ea09203",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "plan_id": "e9f966af-0540-4e1f-bb80-87a1c242a5ca",
+        "status": "active"
+      }
+    ],
+    "package_requests": [
+      {
+        "id": "d96c697d-55f5-46a9-bcb5-dea18adea9d0",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "plan_id": "e9f966af-0540-4e1f-bb80-87a1c242a5ca",
+        "status": "pending"
+      }
+    ],
+    "notification_logs": [
+      {
+        "id": "5f934f73-742c-4a93-8cb3-8b51044aaca4",
+        "template_key": "QA_PRE_RELEASE_20260624T210916Z_whatsapp",
+        "status": "sent"
+      }
+    ],
+    "credit_transactions": [
+      {
+        "id": "26127ef0-784b-46cf-b106-e773423a5c7a",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "reason": "plan paid: QA_PRE_RELEASE_20260624T210916Z_Plan"
+      },
+      {
+        "id": "a94d8106-d693-46bb-845e-bf8de37c22b6",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "reason": "plan paid: QA_PRE_RELEASE_20260624T210916Z_Plan"
+      },
+      {
+        "id": "c55e77bb-1f61-4681-9dde-7f520b153b9b",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "reason": "booking"
+      },
+      {
+        "id": "877dd3c5-6180-41b1-8334-a6c2af55138a",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "reason": "booking"
+      },
+      {
+        "id": "d950d9ff-2b36-4ea4-85a0-f69c7edca06c",
+        "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "reason": "member self cancel refund"
+      }
+    ],
+    "profiles": [
+      {
+        "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z",
+        "notes": "profile for tagged QA auth user"
+      },
+      {
+        "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z",
+        "notes": "profile for tagged QA auth user"
+      },
+      {
+        "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z",
+        "notes": "profile for tagged QA auth user"
+      },
+      {
+        "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z",
+        "notes": "profile for tagged QA auth user"
+      },
+      {
+        "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+        "qa_tag": "QA_PRE_RELEASE_20260624T210916Z",
+        "notes": "profile for tagged QA auth user"
+      }
+    ]
+  },
+  "deleteOrder": [
+    "notification_logs",
+    "attendance_records",
+    "package_requests",
+    "receipts",
+    "payments",
+    "member_plans",
+    "credit_transactions",
+    "bookings",
+    "classes",
+    "plans",
+    "program_types",
+    "rooms",
+    "instructors",
+    "members",
+    "profiles",
+    "auth.users"
+  ],
+  "sqlPreview": "-- PREVIEW ONLY. DO NOT RUN WITHOUT APPROVAL.\n-- Project: banjmspemvzrqckajvwo\n-- QA tag: QA_PRE_RELEASE_20260624T210916Z\nBEGIN;\nDELETE FROM public.notification_logs WHERE id IN ('5f934f73-742c-4a93-8cb3-8b51044aaca4');\nDELETE FROM public.attendance_records WHERE id IN ('8fc9115b-771e-43c5-b9ff-5d87ba0efe4b', '58d38722-6216-4bab-9395-4a69e1c83e5c');\nDELETE FROM public.package_requests WHERE id IN ('d96c697d-55f5-46a9-bcb5-dea18adea9d0');\nDELETE FROM public.receipts WHERE id IN ('eb1c2c58-ea4a-4e4a-8b0f-f5178b8a59a5', '01dae582-1beb-40ec-83a9-214a3671778a');\nDELETE FROM public.payments WHERE id IN ('f07888d0-9760-4647-a883-dd1ce9b70bae', '24a1076d-64db-48fc-802f-fd36fb375ebf');\nDELETE FROM public.member_plans WHERE id IN ('a3e21528-6c82-4a97-b8bf-0eca630f7630', '9ba2b6f1-1032-47ac-8637-6db45ea09203');\nDELETE FROM public.credit_transactions WHERE id IN ('26127ef0-784b-46cf-b106-e773423a5c7a', 'a94d8106-d693-46bb-845e-bf8de37c22b6', 'c55e77bb-1f61-4681-9dde-7f520b153b9b', '877dd3c5-6180-41b1-8334-a6c2af55138a', 'd950d9ff-2b36-4ea4-85a0-f69c7edca06c');\nDELETE FROM public.bookings WHERE id IN ('2427d254-d48a-422d-919a-44bca3d42996', '1b363f8f-ee43-48ce-aa2d-75f1a1691f27');\nDELETE FROM public.classes WHERE id IN ('82eb7bd6-e926-4195-9695-4f1b1063dbaa', '70f70337-aec5-44e1-b458-fdc6257acf29', 'cc6639d9-8f87-49fe-8ee6-45c6262dda5e');\nDELETE FROM public.plans WHERE id IN ('258b8ebd-9909-4a63-b0d5-e26d9376c472', 'e9f966af-0540-4e1f-bb80-87a1c242a5ca');\nDELETE FROM public.program_types WHERE id IN ('606d2347-49ef-4dcd-8fbb-c7e0793ede4c');\nDELETE FROM public.rooms WHERE id IN ('51d1095a-29f8-4247-b1af-4e939aa05223');\nDELETE FROM public.instructors WHERE id IN ('8180a421-a5db-4865-80cb-78993337e080');\nDELETE FROM public.members WHERE id IN ('c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c', 'ec526875-a620-4808-9fbc-02ca0ae98185', '1dbce5ae-0cab-4a55-8015-39391131a141', '5ee58596-2e4f-440e-b15b-3899f67a67b5', '718f2318-c3e0-404b-8283-e1697d3e4c31');\nDELETE FROM public.profiles WHERE id IN ('5ee58596-2e4f-440e-b15b-3899f67a67b5', '718f2318-c3e0-404b-8283-e1697d3e4c31', 'c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c', '1dbce5ae-0cab-4a55-8015-39391131a141', 'ec526875-a620-4808-9fbc-02ca0ae98185');\nDELETE FROM auth.users WHERE id IN ('5ee58596-2e4f-440e-b15b-3899f67a67b5', '718f2318-c3e0-404b-8283-e1697d3e4c31', 'c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c', '1dbce5ae-0cab-4a55-8015-39391131a141', 'ec526875-a620-4808-9fbc-02ca0ae98185');\n-- COMMIT; -- intentionally commented until approved\nROLLBACK;"
+}

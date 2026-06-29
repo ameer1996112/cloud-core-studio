@@ -1,0 +1,85 @@
+{
+  "recordedAt": "2026-06-24T20:17:24.992Z",
+  "projectId": "banjmspemvzrqckajvwo",
+  "supabaseUrl": "https://banjmspemvzrqckajvwo.supabase.co",
+  "authUsers": {
+    "count": 11
+  },
+  "tableCounts": [
+    {
+      "table": "profiles",
+      "count": 11,
+      "error": null
+    },
+    {
+      "table": "rooms",
+      "count": 2,
+      "error": null
+    },
+    {
+      "table": "instructors",
+      "count": 2,
+      "error": null
+    },
+    {
+      "table": "program_types",
+      "count": 3,
+      "error": null
+    },
+    {
+      "table": "classes",
+      "count": 8,
+      "error": null
+    },
+    {
+      "table": "bookings",
+      "count": 9,
+      "error": null
+    },
+    {
+      "table": "members",
+      "count": 11,
+      "error": null
+    },
+    {
+      "table": "plans",
+      "count": 6,
+      "error": null
+    },
+    {
+      "table": "member_plans",
+      "count": 3,
+      "error": null
+    },
+    {
+      "table": "payments",
+      "count": 15,
+      "error": null
+    },
+    {
+      "table": "receipts",
+      "count": 5,
+      "error": null
+    },
+    {
+      "table": "attendance_records",
+      "count": 9,
+      "error": null
+    },
+    {
+      "table": "notification_logs",
+      "count": 1,
+      "error": null
+    },
+    {
+      "table": "notification_templates",
+      "count": 8,
+      "error": null
+    },
+    {
+      "table": "waitlist_entries",
+      "count": 1,
+      "error": null
+    }
+  ]
+}

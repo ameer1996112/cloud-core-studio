@@ -1,32 +1,58 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { friendlyErrorMessage } from "@/lib/error-messages";
-import { LogOut, Save } from "lucide-react";
-import { getMyPackages, updateMyProfile } from "@/lib/member.functions";
+import { LogOut, Save, Trash2 } from "lucide-react";
+import { getMyPackages, requestMyAccountDeletion, updateMyProfile } from "@/lib/member.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { flushSync } from "react-dom";
-import { t, useI18n, getLocale } from "@/lib/i18n";
+import { applyLang, labelForStatus, t, useI18n, getLocale, type Lang } from "@/lib/i18n";
 import { studioImages, localizedAlt } from "@/lib/image-assets";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { LtrInline } from "@/components/ui/bidi";
+
+type ProfileForm = {
+  name?: string;
+  phone?: string | null;
+  preferred_language?: Lang;
+  emergency_contact?: string | null;
+  energy_preference?: string | null;
+};
+
+type MemberProfile = {
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  preferred_language?: Lang | null;
+  emergency_contact?: string | null;
+  energy_preference?: string | null;
+};
+
+type DeletionResult = {
+  duplicate?: boolean;
+};
 
 export const Route = createFileRoute("/_authenticated/member/account")({
-  head: () => ({ meta: [{ title: "פרופיל — Cloud & Core" }] }),
   component: MemberAccount,
 });
 
 function MemberAccount() {
-  useI18n();
+  const { lang, dir } = useI18n();
+  useDocumentTitle("page.profile.title");
   const fetchPkg = useServerFn(getMyPackages);
   const updateFn = useServerFn(updateMyProfile);
+  const deleteFn = useServerFn(requestMyAccountDeletion);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
   const { data } = useQuery({ queryKey: ["member-packages"], queryFn: () => fetchPkg() });
-  const me = data?.member as any;
+  const me = data?.member as MemberProfile | undefined;
 
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<ProfileForm>({});
+  const [deletionReason, setDeletionReason] = useState("");
   const [signingOut, setSigningOut] = useState(false);
 
   const update = useMutation({
@@ -40,8 +66,28 @@ function MemberAccount() {
     onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.saveError"))),
   });
 
-  const val = (k: string) => (form[k] !== undefined ? form[k] : (me?.[k] ?? ""));
-  const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
+  const deletion = useMutation({
+    mutationFn: () => deleteFn({ data: { reason: deletionReason } }),
+    onSuccess: (result: DeletionResult) => {
+      setDeletionReason("");
+      toast.success(
+        result?.duplicate ? t("profile.deleteAlreadyRequested") : t("profile.deleteRequestSent"),
+      );
+    },
+    onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.deleteRequestError"))),
+  });
+
+  const val = <K extends keyof ProfileForm>(k: K) =>
+    form[k] !== undefined ? form[k] : (me?.[k] ?? "");
+  const set = <K extends keyof ProfileForm>(k: K, v: NonNullable<ProfileForm[K]>) =>
+    setForm((f) => ({ ...f, [k]: v }));
+  const selectedLanguage = (form.preferred_language ?? lang) as Lang;
+
+  function setLanguage(value: string) {
+    const next: Lang = value === "en" || value === "ar" || value === "he" ? value : "he";
+    applyLang(next);
+    set("preferred_language", next);
+  }
 
   async function signOut() {
     flushSync(() => setSigningOut(true));
@@ -52,20 +98,24 @@ function MemberAccount() {
   }
 
   return (
-    <section className="space-y-8 max-w-4xl mx-auto pb-10">
+    <section dir={dir} className="member-page w-full space-y-6 sm:space-y-8 pb-10">
       <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="member-page-copy p-6 sm:p-8">
+        <div className="member-page-copy p-5 sm:p-8">
           <p className="member-eyebrow">{t("member.account.kicker")}</p>
           <h1 className="member-page-title mt-3 capitalize">{me?.name ?? t("nav.profile")}</h1>
-          <p className="member-page-body mt-3">{me?.email ?? t("member.account.body")}</p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="member-chip">{me?.status ?? "active"}</span>
-            {me?.preferred_language && (
-              <span className="member-chip">{me.preferred_language.toUpperCase()}</span>
+          <p className="member-page-body mt-3">
+            {me?.email ? (
+              <LtrInline className="inline-block">{me.email}</LtrInline>
+            ) : (
+              t("member.account.body")
             )}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="member-chip">{labelForStatus(me?.status ?? "active")}</span>
+            <span className="member-chip">{selectedLanguage.toUpperCase()}</span>
           </div>
         </div>
-        <div className="relative min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
+        <div className="relative min-h-[150px] sm:min-h-[180px] md:min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
           <img
             src={studioImages.logoWall.src}
             alt={localizedAlt(studioImages.logoWall, getLocale())}
@@ -75,7 +125,7 @@ function MemberAccount() {
         </div>
       </div>
 
-      <div className="member-card p-6 space-y-4">
+      <div className="member-card p-5 sm:p-6 space-y-4">
         <div className="member-section-heading">
           <div>
             <p className="member-eyebrow">{t("profile.memberSince")}</p>
@@ -86,13 +136,17 @@ function MemberAccount() {
         <Field label={t("profile.name")}>
           <input
             className="editorial-input"
+            dir="auto"
             value={val("name")}
             onChange={(e) => set("name", e.target.value)}
           />
         </Field>
         <Field label={t("profile.phone")}>
           <input
-            className="editorial-input"
+            className="editorial-input member-ltr-value"
+            dir="ltr"
+            inputMode="tel"
+            autoComplete="tel"
             value={val("phone") ?? ""}
             onChange={(e) => set("phone", e.target.value)}
           />
@@ -100,8 +154,8 @@ function MemberAccount() {
         <Field label={t("profile.language")}>
           <select
             className="editorial-input"
-            value={val("preferred_language") || "he"}
-            onChange={(e) => set("preferred_language", e.target.value)}
+            value={selectedLanguage}
+            onChange={(e) => setLanguage(e.target.value)}
           >
             <option value="en">English</option>
             <option value="he">עברית</option>
@@ -111,6 +165,7 @@ function MemberAccount() {
         <Field label={t("profile.emergency")}>
           <input
             className="editorial-input"
+            dir="auto"
             value={val("emergency_contact") ?? ""}
             onChange={(e) => set("emergency_contact", e.target.value)}
             placeholder={t("profile.emergencyPlaceholder")}
@@ -119,13 +174,14 @@ function MemberAccount() {
         <Field label={t("profile.energy")}>
           <input
             className="editorial-input"
+            dir="auto"
             value={val("energy_preference") ?? ""}
             onChange={(e) => set("energy_preference", e.target.value)}
             placeholder={t("profile.energyPlaceholder")}
           />
         </Field>
 
-        <div className="pt-3 border-t hairline flex justify-end">
+        <div className="pt-3 border-t hairline flex justify-start">
           <button
             disabled={update.isPending || Object.keys(form).length === 0}
             onClick={() => update.mutate()}
@@ -136,14 +192,56 @@ function MemberAccount() {
         </div>
       </div>
 
-      <div className="member-card p-6 flex items-center justify-between">
-        <div>
-          <p className="font-display italic text-xl text-navy">{t("shell.signOut")}</p>
+      <div className="member-card p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
           <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
         </div>
         <button onClick={signOut} disabled={signingOut} className="btn-ghost hover:btn-ghost-hover">
           <LogOut className="h-3 w-3" /> {t("shell.signOut")}
         </button>
+      </div>
+
+      <div className="member-card p-5 sm:p-6 space-y-4">
+        <div className="member-section-heading">
+          <div>
+            <p className="member-eyebrow">{t("profile.privacyKicker")}</p>
+            <h2 className="member-section-title mt-1">{t("profile.privacyTitle")}</h2>
+          </div>
+        </div>
+        <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Link to="/privacy" className="btn-ghost hover:btn-ghost-hover justify-center">
+            {t("legal.privacy")}
+          </Link>
+          <Link to="/terms" className="btn-ghost hover:btn-ghost-hover justify-center">
+            {t("legal.terms")}
+          </Link>
+          <Link to="/support" className="btn-ghost hover:btn-ghost-hover justify-center">
+            {t("legal.support")}
+          </Link>
+        </div>
+        <div className="border-t hairline pt-4">
+          <Field label={t("profile.deleteReason")}>
+            <textarea
+              className="editorial-input min-h-24 resize-y"
+              dir="auto"
+              value={deletionReason}
+              onChange={(e) => setDeletionReason(e.target.value)}
+              placeholder={t("profile.deleteReasonPlaceholder")}
+            />
+          </Field>
+          <div className="mt-3 flex justify-start">
+            <button
+              disabled={deletion.isPending}
+              onClick={() => deletion.mutate()}
+              className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3 w-3" />
+              {deletion.isPending ? t("common.saving") : t("profile.deleteRequest")}
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );

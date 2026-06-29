@@ -1,0 +1,61 @@
+:root {
+  /* Colors */
+  --color-ivory: #faf7f2;
+  --color-gold: #d4af6a;
+  --color-navy: #0b1d3a;
+  --color-sand: #e8dfd1;
+  --color-blue: #e8dfd1;
+  --color-text-primary: #0b1d3a;
+  --color-text-secondary: #6f7a8c;
+  --color-text-muted: #6f7a8c;
+  --color-surface: #ffffff;
+  --color-surface-warm: #faf7f2;
+  --color-border: rgba(212, 175, 106, 0.34);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Typography */
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 21px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 8px rgba(11, 29, 58, 0.06);
+  --shadow-sidebar: -4px 0 24px rgba(11, 29, 58, 0.08);
+  --shadow-elevated: 0 4px 20px rgba(11, 29, 58, 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+
+  /* Local UI aliases */
+  --font-ui-he: "Assistant", system-ui, -apple-system, sans-serif;
+  --font-ui-ar: "Noto Sans Arabic", system-ui, -apple-system, sans-serif;
+  --font-ui-latin: "Assistant", system-ui, -apple-system, sans-serif;
+  --color-powder: var(--color-sand);
+  --color-slate: var(--color-text-secondary);
+  --color-gold-soft: color-mix(in srgb, var(--color-gold) 58%, var(--color-surface));
+  --color-navy-strong: #07162d;
+  --color-navy-elevated: #173057;
+  --color-success: #4f6b57;
+  --color-danger: #8d4d52;
+}

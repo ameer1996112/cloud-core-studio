@@ -1,0 +1,2979 @@
+---
+triple: "arm64-apple-darwin"
+binary-path: "/Users/ameeramer/Library/Developer/Xcode/DerivedData/App-giqfkheeiqwlqlcacpvsbxkqtcys/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/App"
+relocations:
+  - {
+      offset: 0x110E05,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC6windowSo8UIWindowCSgvgTo",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100004000,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x110FF3,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo7NSArrayCSgIeyBy_SaySo23UIUserActivityRestoring_pGSgIegg_TR",
+      symObjAddr: 0x24C,
+      symBinAddr: 0x10000424C,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x11100B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateCfETo",
+      symObjAddr: 0x320,
+      symBinAddr: 0x100004320,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x11103A,
+      size: 0x8,
+      addend: 0x0,
+      symName: _main,
+      symObjAddr: 0x330,
+      symBinAddr: 0x100004330,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x111058,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateCMa",
+      symObjAddr: 0x38C,
+      symBinAddr: 0x10000438C,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x11106C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo7NSArrayCSgIeyBy_SaySo23UIUserActivityRestoring_pGSgIegg_TRTA",
+      symObjAddr: 0x3D0,
+      symBinAddr: 0x1000043D0,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x111080,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_instantiateConcreteTypeFromMangledNameV2,
+      symObjAddr: 0x3D8,
+      symBinAddr: 0x1000043D8,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x111094,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaMa",
+      symObjAddr: 0x428,
+      symBinAddr: 0x100004428,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x111100,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas20_SwiftNewtypeWrapperSCSYWb",
+      symObjAddr: 0x7F4,
+      symBinAddr: 0x1000047F4,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x111114,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas20_SwiftNewtypeWrapperSCs35_HasCustomAnyHashableRepresentationPWb",
+      symObjAddr: 0x818,
+      symBinAddr: 0x100004818,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x111128,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSHSCSQWb",
+      symObjAddr: 0x83C,
+      symBinAddr: 0x10000483C,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x11133B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSQSCSQ2eeoiySbx_xtFZTW",
+      symObjAddr: 0x698,
+      symBinAddr: 0x100004698,
+      symSize: 0x84,
+    }
+  - {
+      offset: 0x1114A7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC6windowSo8UIWindowCSgvgTo",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100004000,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1114BF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC6windowSo8UIWindowCSgvgTo",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100004000,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x11150A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC6windowSo8UIWindowCSgvsTo",
+      symObjAddr: 0x10,
+      symBinAddr: 0x100004010,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x11155B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC11application_29didFinishLaunchingWithOptionsSbSo13UIApplicationC_SDySo0i6LaunchH3KeyaypGSgtFTo",
+      symObjAddr: 0x44,
+      symBinAddr: 0x100004044,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11156F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC27applicationWillResignActiveyySo13UIApplicationCFTo",
+      symObjAddr: 0x4C,
+      symBinAddr: 0x10000404C,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x111583,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC29applicationDidEnterBackgroundyySo13UIApplicationCFTo",
+      symObjAddr: 0x50,
+      symBinAddr: 0x100004050,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x111597,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC30applicationWillEnterForegroundyySo13UIApplicationCFTo",
+      symObjAddr: 0x54,
+      symBinAddr: 0x100004054,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x1115AB,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC26applicationDidBecomeActiveyySo13UIApplicationCFTo",
+      symObjAddr: 0x58,
+      symBinAddr: 0x100004058,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x1115BF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC24applicationWillTerminateyySo13UIApplicationCFTo",
+      symObjAddr: 0x5C,
+      symBinAddr: 0x10000405C,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x11167F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC11application_4open7optionsSbSo13UIApplicationC_10Foundation3URLVSDySo0F17OpenURLOptionsKeyaypGtFTo",
+      symObjAddr: 0x60,
+      symBinAddr: 0x100004060,
+      symSize: 0x124,
+    }
+  - {
+      offset: 0x11170B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateC11application_8continue18restorationHandlerSbSo13UIApplicationC_So14NSUserActivityCySaySo06UIUserI9Restoring_pGSgctFTo",
+      symObjAddr: 0x184,
+      symBinAddr: 0x100004184,
+      symSize: 0xC8,
+    }
+  - {
+      offset: 0x111760,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateCACycfcTo",
+      symObjAddr: 0x2A8,
+      symBinAddr: 0x1000042A8,
+      symSize: 0x48,
+    }
+  - {
+      offset: 0x111795,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App0A8DelegateCfD",
+      symObjAddr: 0x2F0,
+      symBinAddr: 0x1000042F0,
+      symSize: 0x30,
+    }
+  - {
+      offset: 0x1117CD,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas21_ObjectiveCBridgeableSCsACP09_bridgeToE1C01_E5CTypeQzyFTW",
+      symObjAddr: 0x478,
+      symBinAddr: 0x100004478,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11182B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas21_ObjectiveCBridgeableSCsACP016_forceBridgeFromE1C_6resulty01_E5CTypeQz_xSgztFZTW",
+      symObjAddr: 0x480,
+      symBinAddr: 0x100004480,
+      symSize: 0x74,
+    }
+  - {
+      offset: 0x11184C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas21_ObjectiveCBridgeableSCsACP024_conditionallyBridgeFromE1C_6resultSb01_E5CTypeQz_xSgztFZTW",
+      symObjAddr: 0x4F4,
+      symBinAddr: 0x1000044F4,
+      symSize: 0x7C,
+    }
+  - {
+      offset: 0x11186D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas21_ObjectiveCBridgeableSCsACP026_unconditionallyBridgeFromE1Cyx01_E5CTypeQzSgFZTW",
+      symObjAddr: 0x570,
+      symBinAddr: 0x100004570,
+      symSize: 0x40,
+    }
+  - {
+      offset: 0x11189D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSHSCSH9hashValueSivgTW",
+      symObjAddr: 0x5B0,
+      symBinAddr: 0x1000045B0,
+      symSize: 0x38,
+    }
+  - {
+      offset: 0x11190B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSHSCSH4hash4intoys6HasherVz_tFTW",
+      symObjAddr: 0x5E8,
+      symBinAddr: 0x1000045E8,
+      symSize: 0x40,
+    }
+  - {
+      offset: 0x111979,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSHSCSH13_rawHashValue4seedS2i_tFTW",
+      symObjAddr: 0x628,
+      symBinAddr: 0x100004628,
+      symSize: 0x70,
+    }
+  - {
+      offset: 0x111A04,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSYSCSY8rawValuexSg03RawF0Qz_tcfCTW",
+      symObjAddr: 0x71C,
+      symBinAddr: 0x10000471C,
+      symSize: 0x44,
+    }
+  - {
+      offset: 0x111A2F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyaSYSCSY8rawValue03RawF0QzvgTW",
+      symObjAddr: 0x760,
+      symBinAddr: 0x100004760,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x111A58,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo30UIApplicationOpenURLOptionsKeyas35_HasCustomAnyHashableRepresentationSCsACP03_tofgH0s0gH0VSgyFTW",
+      symObjAddr: 0x788,
+      symBinAddr: 0x100004788,
+      symSize: 0x6C,
+    }
+  - {
+      offset: 0x111B43,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App19ResourceBundleClass33_F7158B72C9BBE77223A1208D6EDC39F1LLCfD",
+      symObjAddr: 0x0,
+      symBinAddr: 0x1000048A0,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x111B85,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App19ResourceBundleClass33_F7158B72C9BBE77223A1208D6EDC39F1LLCMa",
+      symObjAddr: 0x10,
+      symBinAddr: 0x1000048B0,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x111BA5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s3App19ResourceBundleClass33_F7158B72C9BBE77223A1208D6EDC39F1LLCfD",
+      symObjAddr: 0x0,
+      symBinAddr: 0x1000048A0,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x111CA8,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s10CapApp_SPM011isCapacitorB0Sbvau",
+      symObjAddr: 0x0,
+      symBinAddr: 0x1000048D0,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x111CCC,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s10CapApp_SPM011isCapacitorB0Sbvp",
+      symObjAddr: 0x18,
+      symBinAddr: 0x1000175F4,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111CDA,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s10CapApp_SPM011isCapacitorB0Sbvau",
+      symObjAddr: 0x0,
+      symBinAddr: 0x1000048D0,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x111D74,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin currentKeyWindow]",
+      symObjAddr: 0x0,
+      symBinAddr: 0x1000048DC,
+      symSize: 0x1FC,
+    }
+  - {
+      offset: 0x111DDB,
+      size: 0x8,
+      addend: 0x0,
+      symName: _hideTimer,
+      symBinAddr: 0x1000231E8,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111DF6,
+      size: 0x8,
+      addend: 0x0,
+      symName: _UIClassString,
+      symBinAddr: 0x1000231D0,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111E11,
+      size: 0x8,
+      addend: 0x0,
+      symName: _WKClassString,
+      symBinAddr: 0x1000231E0,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111E27,
+      size: 0x8,
+      addend: 0x0,
+      symName: _UITraitsClassString,
+      symBinAddr: 0x1000231D8,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111E3D,
+      size: 0x8,
+      addend: 0x0,
+      symName: _stageManagerOffset,
+      symBinAddr: 0x1000231F0,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111E5C,
+      size: 0x8,
+      addend: 0x0,
+      symName: _UIOriginalImp,
+      symObjAddr: 0xC5B8,
+      symBinAddr: 0x100023120,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111E79,
+      size: 0x8,
+      addend: 0x0,
+      symName: _WKOriginalImp,
+      symObjAddr: 0xC5C0,
+      symBinAddr: 0x100023128,
+      symSize: 0x0,
+    }
+  - {
+      offset: 0x111F9E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin currentKeyWindow]",
+      symObjAddr: 0x0,
+      symBinAddr: 0x1000048DC,
+      symSize: 0x1FC,
+    }
+  - {
+      offset: 0x112010,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin forceBackdropColor:]",
+      symObjAddr: 0x1FC,
+      symBinAddr: 0x100004AD8,
+      symSize: 0xBC,
+    }
+  - {
+      offset: 0x11208C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___37-[KeyboardPlugin forceBackdropColor:]_block_invoke",
+      symObjAddr: 0x2B8,
+      symBinAddr: 0x100004B94,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1120D7,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___copy_helper_block_e8_32s40s,
+      symObjAddr: 0x2C0,
+      symBinAddr: 0x100004B9C,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x112100,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___destroy_helper_block_e8_32s40s,
+      symObjAddr: 0x2E8,
+      symBinAddr: 0x100004BC4,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x11211F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin isIPad]",
+      symObjAddr: 0x310,
+      symBinAddr: 0x100004BEC,
+      symSize: 0x48,
+    }
+  - {
+      offset: 0x112152,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin shouldIgnoreResizeForHeight:]",
+      symObjAddr: 0x358,
+      symBinAddr: 0x100004C34,
+      symSize: 0x78,
+    }
+  - {
+      offset: 0x1121A9,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin colorFromCssColorString:]",
+      symObjAddr: 0x3D0,
+      symBinAddr: 0x100004CAC,
+      symSize: 0x33C,
+    }
+  - {
+      offset: 0x1122F0,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin updateBackdropColor]",
+      symObjAddr: 0x70C,
+      symBinAddr: 0x100004FE8,
+      symSize: 0x140,
+    }
+  - {
+      offset: 0x112333,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin updateBackdropColorFromDOM]",
+      symObjAddr: 0x84C,
+      symBinAddr: 0x100005128,
+      symSize: 0x98,
+    }
+  - {
+      offset: 0x112366,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___44-[KeyboardPlugin updateBackdropColorFromDOM]_block_invoke",
+      symObjAddr: 0x8E4,
+      symBinAddr: 0x1000051C0,
+      symSize: 0x98,
+    }
+  - {
+      offset: 0x1123E4,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___copy_helper_block_e8_32s,
+      symObjAddr: 0x97C,
+      symBinAddr: 0x100005258,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11240B,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___destroy_helper_block_e8_32s,
+      symObjAddr: 0x984,
+      symBinAddr: 0x100005260,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11242A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin load]",
+      symObjAddr: 0x98C,
+      symBinAddr: 0x100005268,
+      symSize: 0x3C8,
+    }
+  - {
+      offset: 0x1124D1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin resetScrollView]",
+      symObjAddr: 0xD54,
+      symBinAddr: 0x100005630,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x112514,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin onKeyboardWillHide:]",
+      symObjAddr: 0xDB0,
+      symBinAddr: 0x10000568C,
+      symSize: 0xD8,
+    }
+  - {
+      offset: 0x112553,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___37-[KeyboardPlugin onKeyboardWillHide:]_block_invoke",
+      symObjAddr: 0xE88,
+      symBinAddr: 0x100005764,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x11259E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin onKeyboardWillShow:]",
+      symObjAddr: 0xEE4,
+      symBinAddr: 0x1000057C0,
+      symSize: 0x394,
+    }
+  - {
+      offset: 0x11266D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin onKeyboardDidShow:]",
+      symObjAddr: 0x1278,
+      symBinAddr: 0x100005B54,
+      symSize: 0x2F8,
+    }
+  - {
+      offset: 0x112731,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin onKeyboardDidHide:]",
+      symObjAddr: 0x1570,
+      symBinAddr: 0x100005E4C,
+      symSize: 0x70,
+    }
+  - {
+      offset: 0x112772,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setKeyboardHeight:delay:]",
+      symObjAddr: 0x15E0,
+      symBinAddr: 0x100005EBC,
+      symSize: 0x158,
+    }
+  - {
+      offset: 0x1127EA,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin resizeElement:withPaddingBottom:withScreenHeight:]",
+      symObjAddr: 0x1738,
+      symBinAddr: 0x100006014,
+      symSize: 0x9C,
+    }
+  - {
+      offset: 0x112862,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin _updateFrame]",
+      symObjAddr: 0x17D4,
+      symBinAddr: 0x1000060B0,
+      symSize: 0x164,
+    }
+  - {
+      offset: 0x1128C9,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setHideFormAccessoryBar:]",
+      symObjAddr: 0x1938,
+      symBinAddr: 0x100006214,
+      symSize: 0xF0,
+    }
+  - {
+      offset: 0x112AD7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___42-[KeyboardPlugin setHideFormAccessoryBar:]_block_invoke",
+      symObjAddr: 0x1A28,
+      symBinAddr: 0x100006304,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x112B11,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setDisableScroll:]",
+      symObjAddr: 0x1A30,
+      symBinAddr: 0x10000630C,
+      symSize: 0x8C,
+    }
+  - {
+      offset: 0x112B6C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___35-[KeyboardPlugin setDisableScroll:]_block_invoke",
+      symObjAddr: 0x1ABC,
+      symBinAddr: 0x100006398,
+      symSize: 0xCC,
+    }
+  - {
+      offset: 0x112BBF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin scrollViewDidScroll:]",
+      symObjAddr: 0x1B88,
+      symBinAddr: 0x100006464,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x112C00,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setAccessoryBarVisible:]",
+      symObjAddr: 0x1B9C,
+      symBinAddr: 0x100006478,
+      symSize: 0x78,
+    }
+  - {
+      offset: 0x112C64,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin hide:]",
+      symObjAddr: 0x1C14,
+      symBinAddr: 0x1000064F0,
+      symSize: 0x7C,
+    }
+  - {
+      offset: 0x112CBF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___23-[KeyboardPlugin hide:]_block_invoke",
+      symObjAddr: 0x1C90,
+      symBinAddr: 0x10000656C,
+      symSize: 0x38,
+    }
+  - {
+      offset: 0x112D01,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin show:]",
+      symObjAddr: 0x1CC8,
+      symBinAddr: 0x1000065A4,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x112D42,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setStyle:]",
+      symObjAddr: 0x1CD0,
+      symBinAddr: 0x1000065AC,
+      symSize: 0x9C,
+    }
+  - {
+      offset: 0x112D87,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setResizeMode:]",
+      symObjAddr: 0x1D6C,
+      symBinAddr: 0x100006648,
+      symSize: 0xB8,
+    }
+  - {
+      offset: 0x112DDD,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin getResizeMode:]",
+      symObjAddr: 0x1E24,
+      symBinAddr: 0x100006700,
+      symSize: 0xB8,
+    }
+  - {
+      offset: 0x112E44,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setScroll:]",
+      symObjAddr: 0x1EDC,
+      symBinAddr: 0x1000067B8,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x112E89,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin changeKeyboardStyle:]",
+      symObjAddr: 0x1F30,
+      symBinAddr: 0x10000680C,
+      symSize: 0x1E8,
+    }
+  - {
+      offset: 0x112FCF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___38-[KeyboardPlugin changeKeyboardStyle:]_block_invoke",
+      symObjAddr: 0x2118,
+      symBinAddr: 0x1000069F4,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x113009,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___38-[KeyboardPlugin changeKeyboardStyle:]_block_invoke_2",
+      symObjAddr: 0x2120,
+      symBinAddr: 0x1000069FC,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x113043,
+      size: 0x8,
+      addend: 0x0,
+      symName: "___38-[KeyboardPlugin changeKeyboardStyle:]_block_invoke_3",
+      symObjAddr: 0x2128,
+      symBinAddr: 0x100006A04,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11307D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin dealloc]",
+      symObjAddr: 0x2130,
+      symBinAddr: 0x100006A0C,
+      symSize: 0x68,
+    }
+  - {
+      offset: 0x1130B1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin disableScroll]",
+      symObjAddr: 0x2198,
+      symBinAddr: 0x100006A74,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1130E8,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin hideFormAccessoryBar]",
+      symObjAddr: 0x21A8,
+      symBinAddr: 0x100006A84,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x11311F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin keyboardIsVisible]",
+      symObjAddr: 0x21B8,
+      symBinAddr: 0x100006A94,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x113156,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setKeyboardIsVisible:]",
+      symObjAddr: 0x21C8,
+      symBinAddr: 0x100006AA4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x113191,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin keyboardResizes]",
+      symObjAddr: 0x21D8,
+      symBinAddr: 0x100006AB4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1131C8,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setKeyboardResizes:]",
+      symObjAddr: 0x21E8,
+      symBinAddr: 0x100006AC4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x113205,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin keyboardStyle]",
+      symObjAddr: 0x21F8,
+      symBinAddr: 0x100006AD4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x11323C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setKeyboardStyle:]",
+      symObjAddr: 0x2208,
+      symBinAddr: 0x100006AE4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x113279,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin paddingBottom]",
+      symObjAddr: 0x2218,
+      symBinAddr: 0x100006AF4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1132B0,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin setPaddingBottom:]",
+      symObjAddr: 0x2228,
+      symBinAddr: 0x100006B04,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1137D4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin(CAPPluginCategory) pluginMethods]",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100006B14,
+      symSize: 0x190,
+    }
+  - {
+      offset: 0x1137E2,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin(CAPPluginCategory) pluginMethods]",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100006B14,
+      symSize: 0x190,
+    }
+  - {
+      offset: 0x113825,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin(CAPPluginCategory) identifier]",
+      symObjAddr: 0x190,
+      symBinAddr: 0x100006CA4,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x113858,
+      size: 0x8,
+      addend: 0x0,
+      symName: "-[KeyboardPlugin(CAPPluginCategory) jsName]",
+      symObjAddr: 0x19C,
+      symBinAddr: 0x100006CB0,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x113A5E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C14viewControllerSo06UIViewE0Cvpfi",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100006CBC,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x113AA2,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C7spinnerSo23UIActivityIndicatorViewCvpfi",
+      symObjAddr: 0x1C,
+      symBinAddr: 0x100006CD8,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x113AE6,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C6configAA0aB6ConfigVvpfi",
+      symObjAddr: 0x38,
+      symBinAddr: 0x100006CF4,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x113AFE,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C8hideTaskypSgvpfi",
+      symObjAddr: 0x60,
+      symBinAddr: 0x100006D1C,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x113B16,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C9isVisibleSbvpfi",
+      symObjAddr: 0x6C,
+      symBinAddr: 0x100006D28,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x113DC9,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sIeg_IeyB_TR",
+      symObjAddr: 0x9A4,
+      symBinAddr: 0x100007660,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x113DE1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSbIegy_SbIeyBy_TR",
+      symObjAddr: 0xD10,
+      symBinAddr: 0x1000079CC,
+      symSize: 0x3C,
+    }
+  - {
+      offset: 0x113FD2,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04hideA033_D535F2A6C8884F9FCF2EA898AB511D6DLL15fadeOutDuration08isLaunchA0ySi_SbtFyyScMYccfU_TA",
+      symObjAddr: 0x1BD0,
+      symBinAddr: 0x10000888C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x113FE6,
+      size: 0x8,
+      addend: 0x0,
+      symName: _block_copy_helper,
+      symObjAddr: 0x1BD8,
+      symBinAddr: 0x100008894,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x113FFA,
+      size: 0x8,
+      addend: 0x0,
+      symName: _block_destroy_helper,
+      symObjAddr: 0x1BEC,
+      symBinAddr: 0x1000088A8,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11400E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s8Dispatch0A13WorkItemFlagsVACs10SetAlgebraAAWl",
+      symObjAddr: 0x1BF4,
+      symBinAddr: 0x1000088B0,
+      symSize: 0x44,
+    }
+  - {
+      offset: 0x114022,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSay8Dispatch0A13WorkItemFlagsVGSayxGSTsWl",
+      symObjAddr: 0x1C88,
+      symBinAddr: 0x1000088F4,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x114036,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_instantiateConcreteTypeFromMangledNameAbstractV2,
+      symObjAddr: 0x1CD8,
+      symBinAddr: 0x100008944,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x114060,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0CMa",
+      symObjAddr: 0x1E50,
+      symBinAddr: 0x100008A90,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x114074,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0CfETo",
+      symObjAddr: 0x1E70,
+      symBinAddr: 0x100008AB0,
+      symSize: 0x78,
+    }
+  - {
+      offset: 0x1140A3,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sypSgWOh",
+      symObjAddr: 0x1EE8,
+      symBinAddr: 0x100008B28,
+      symSize: 0x48,
+    }
+  - {
+      offset: 0x1140B7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigV15backgroundColorSo7UIColorCSgvpfi",
+      symObjAddr: 0x1F30,
+      symBinAddr: 0x100008B70,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1140CF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigV12spinnerStyleSo023UIActivityIndicatorViewF0VSgvpfi",
+      symObjAddr: 0x1F38,
+      symBinAddr: 0x100008B78,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x1140E7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigV18launchShowDurationSivpfi",
+      symObjAddr: 0x1F54,
+      symBinAddr: 0x100008B84,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1140FF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigV14launchAutoHideSbvpfi",
+      symObjAddr: 0x1F5C,
+      symBinAddr: 0x100008B8C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x114117,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC10identifierSSvpfi",
+      symObjAddr: 0x1F6C,
+      symBinAddr: 0x100008B94,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x114133,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC10identifierSSvpfi",
+      symObjAddr: 0x1F6C,
+      symBinAddr: 0x100008B94,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x114145,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC6jsNameSSvpfi",
+      symObjAddr: 0x1F88,
+      symBinAddr: 0x100008BB0,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x11417E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC13pluginMethodsSaySo15CAPPluginMethodCGvpfi",
+      symObjAddr: 0x1FA8,
+      symBinAddr: 0x100008BD0,
+      symSize: 0x154,
+    }
+  - {
+      offset: 0x11424D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB8SettingsV12showDurationSivpfi",
+      symObjAddr: 0x2104,
+      symBinAddr: 0x100008D24,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x114265,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB8SettingsV14fadeInDurationSivpfi",
+      symObjAddr: 0x210C,
+      symBinAddr: 0x100008D2C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x114288,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss22__RawDictionaryStorageC4findys10_HashTableV6BucketV6bucket_Sb5foundtxSHRzlFSS_Tg5",
+      symObjAddr: 0x2124,
+      symBinAddr: 0x100008D34,
+      symSize: 0x64,
+    }
+  - {
+      offset: 0x1142D6,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss22__RawDictionaryStorageC4find_9hashValues10_HashTableV6BucketV6bucket_Sb5foundtx_SitSHRzlFSS_Tg5",
+      symObjAddr: 0x2188,
+      symBinAddr: 0x100008D98,
+      symSize: 0xAC,
+    }
+  - {
+      offset: 0x11432D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo28UIActivityIndicatorViewStyleVMa",
+      symObjAddr: 0x22D0,
+      symBinAddr: 0x100008EE0,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x114341,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss15ContiguousArrayV16_createNewBuffer14bufferIsUnique15minimumCapacity13growForAppendySb_SiSbtFSo8UIWindowC_Tg5",
+      symObjAddr: 0x2320,
+      symBinAddr: 0x100008F30,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x1143A6,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss22_ContiguousArrayBufferV20_consumeAndCreateNew14bufferIsUnique15minimumCapacity13growForAppendAByxGSb_SiSbtFSo8UIWindowC_Tg5",
+      symObjAddr: 0x233C,
+      symBinAddr: 0x100008F4C,
+      symSize: 0x154,
+    }
+  - {
+      offset: 0x11449D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss12_ArrayBufferV19_getElementSlowPathyyXlSiFSo8UIWindowC_Tg5",
+      symObjAddr: 0x2490,
+      symBinAddr: 0x1000090A0,
+      symSize: 0x1C4,
+    }
+  - {
+      offset: 0x11454A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sShyxSh5IndexVyx_GcigSo7UISceneC_Tg5",
+      symObjAddr: 0x2654,
+      symBinAddr: 0x100009264,
+      symSize: 0x218,
+    }
+  - {
+      offset: 0x1145F3,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVWOc",
+      symObjAddr: 0x2984,
+      symBinAddr: 0x100009594,
+      symSize: 0x3C,
+    }
+  - {
+      offset: 0x114607,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVWOh",
+      symObjAddr: 0x29C0,
+      symBinAddr: 0x1000095D0,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x11461B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo7UISceneCSo8NSObjectCSH10ObjectiveCWl",
+      symObjAddr: 0x29F4,
+      symBinAddr: 0x100009604,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x11462F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSh5IndexV8_VariantOySo7UISceneC__GWOe",
+      symObjAddr: 0x2A88,
+      symBinAddr: 0x100009698,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x114643,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04hideA033_D535F2A6C8884F9FCF2EA898AB511D6DLL15fadeOutDuration08isLaunchA0ySi_SbtFyyScMYccfU_yycfU_TA",
+      symObjAddr: 0x2AC0,
+      symBinAddr: 0x1000096D0,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x114657,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04hideA033_D535F2A6C8884F9FCF2EA898AB511D6DLL15fadeOutDuration08isLaunchA0ySi_SbtFyyScMYccfU_ySbcfU0_TA",
+      symObjAddr: 0x2AC8,
+      symBinAddr: 0x1000096D8,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x114689,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_TA",
+      symObjAddr: 0x2B38,
+      symBinAddr: 0x100009748,
+      symSize: 0x18,
+    }
+  - {
+      offset: 0x11469D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_yycfU_TA",
+      symObjAddr: 0x2B50,
+      symBinAddr: 0x100009760,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1146B1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_ySbcfU0_TA",
+      symObjAddr: 0x2B5C,
+      symBinAddr: 0x10000976C,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x1146C5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_ySbcfU0_yyScMYccfU_TA",
+      symObjAddr: 0x2BBC,
+      symBinAddr: 0x1000097CC,
+      symSize: 0x40,
+    }
+  - {
+      offset: 0x11470D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sypSgWOd",
+      symObjAddr: 0x2BFC,
+      symBinAddr: 0x10000980C,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x114721,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sS2SSysWl",
+      symObjAddr: 0x2C4C,
+      symBinAddr: 0x10000985C,
+      symSize: 0x40,
+    }
+  - {
+      offset: 0x114735,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sypWOc",
+      symObjAddr: 0x2C8C,
+      symBinAddr: 0x10000989C,
+      symSize: 0x3C,
+    }
+  - {
+      offset: 0x114787,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C12showOnLaunchyyF",
+      symObjAddr: 0x74,
+      symBinAddr: 0x100006D30,
+      symSize: 0x4C,
+    }
+  - {
+      offset: 0x11481E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C12showOnLaunchyyFyycfU_",
+      symObjAddr: 0xC0,
+      symBinAddr: 0x100006D7C,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x114845,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C4show8settings10completionyAA0aB8SettingsV_yyctF",
+      symObjAddr: 0xC4,
+      symBinAddr: 0x100006D80,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x114CE8,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C4hide8settingsyAA0aB8SettingsV_tF",
+      symObjAddr: 0xCC,
+      symBinAddr: 0x100006D88,
+      symSize: 0x200,
+    }
+  - {
+      offset: 0x114D7D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtF",
+      symObjAddr: 0x2CC,
+      symBinAddr: 0x100006F88,
+      symSize: 0x24C,
+    }
+  - {
+      offset: 0x114DFB,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_",
+      symObjAddr: 0x518,
+      symBinAddr: 0x1000071D4,
+      symSize: 0x408,
+    }
+  - {
+      offset: 0x1150D1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_yycfU_",
+      symObjAddr: 0x920,
+      symBinAddr: 0x1000075DC,
+      symSize: 0x84,
+    }
+  - {
+      offset: 0x11516A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04showA033_D535F2A6C8884F9FCF2EA898AB511D6DLL8settings10completion08isLaunchA0yAA0aB8SettingsV_yycSbtFyyScMYccfU_ySbcfU0_",
+      symObjAddr: 0x9D0,
+      symBinAddr: 0x10000768C,
+      symSize: 0x340,
+    }
+  - {
+      offset: 0x1153A6,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C10buildViews33_D535F2A6C8884F9FCF2EA898AB511D6DLLyyF",
+      symObjAddr: 0xD4C,
+      symBinAddr: 0x100007A08,
+      symSize: 0x330,
+    }
+  - {
+      offset: 0x1154F7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C8tearDown33_D535F2A6C8884F9FCF2EA898AB511D6DLLyyF",
+      symObjAddr: 0x107C,
+      symBinAddr: 0x100007D38,
+      symSize: 0x98,
+    }
+  - {
+      offset: 0x1155DF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C06updateA11ImageBounds33_D535F2A6C8884F9FCF2EA898AB511D6DLLyyF",
+      symObjAddr: 0x1114,
+      symBinAddr: 0x100007DD0,
+      symSize: 0x4E0,
+    }
+  - {
+      offset: 0x115AA2,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSlsE5first7ElementQzSgvgShySo7UISceneCG_Tg5",
+      symObjAddr: 0x15F4,
+      symBinAddr: 0x1000082B0,
+      symSize: 0x114,
+    }
+  - {
+      offset: 0x115B93,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C12observeValue10forKeyPath2of6change7contextySSSg_ypSgSDySo05NSKeye6ChangeG0aypGSgSvSgtF",
+      symObjAddr: 0x1708,
+      symBinAddr: 0x1000083C4,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x115C1B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C12observeValue10forKeyPath2of6change7contextySSSg_ypSgSDySo05NSKeye6ChangeG0aypGSgSvSgtFTo",
+      symObjAddr: 0x170C,
+      symBinAddr: 0x1000083C8,
+      symSize: 0x74,
+    }
+  - {
+      offset: 0x115C50,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C04hideA033_D535F2A6C8884F9FCF2EA898AB511D6DLL15fadeOutDuration08isLaunchA0ySi_SbtF",
+      symObjAddr: 0x1780,
+      symBinAddr: 0x10000843C,
+      symSize: 0x29C,
+    }
+  - {
+      offset: 0x115D57,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0CACycfC",
+      symObjAddr: 0x1DB0,
+      symBinAddr: 0x100008A1C,
+      symSize: 0x18,
+    }
+  - {
+      offset: 0x115D6B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0CACycfc",
+      symObjAddr: 0x1DC8,
+      symBinAddr: 0x10001157C,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x115DC4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0CACycfcTo",
+      symObjAddr: 0x1DF4,
+      symBinAddr: 0x100008A34,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x115E23,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0CfD",
+      symObjAddr: 0x1E20,
+      symBinAddr: 0x100008A60,
+      symSize: 0x30,
+    }
+  - {
+      offset: 0x115EFB,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB0C10parentView6configACSo6UIViewC_AA0aB6ConfigVtcfcTf4ggn_n",
+      symObjAddr: 0x286C,
+      symBinAddr: 0x10000947C,
+      symSize: 0x118,
+    }
+  - {
+      offset: 0x1160E4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwCP",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100009924,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x1160FC,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwCP",
+      symObjAddr: 0x0,
+      symBinAddr: 0x100009924,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x116110,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwxx",
+      symObjAddr: 0x2C,
+      symBinAddr: 0x100009950,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x116124,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwcp",
+      symObjAddr: 0x54,
+      symBinAddr: 0x100009978,
+      symSize: 0x64,
+    }
+  - {
+      offset: 0x116138,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwca",
+      symObjAddr: 0xB8,
+      symBinAddr: 0x1000099DC,
+      symSize: 0x8C,
+    }
+  - {
+      offset: 0x11614C,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_memcpy64_8,
+      symObjAddr: 0x144,
+      symBinAddr: 0x100009A68,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x116160,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwta",
+      symObjAddr: 0x158,
+      symBinAddr: 0x100009A7C,
+      symSize: 0x74,
+    }
+  - {
+      offset: 0x116174,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwet",
+      symObjAddr: 0x1CC,
+      symBinAddr: 0x100009AF0,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x116188,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVwst",
+      symObjAddr: 0x228,
+      symBinAddr: 0x100009B4C,
+      symSize: 0x64,
+    }
+  - {
+      offset: 0x11619C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB6ConfigVMa",
+      symObjAddr: 0x28C,
+      symBinAddr: 0x100009BB0,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x11657C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAACfETo",
+      symObjAddr: 0xDF0,
+      symBinAddr: 0x10000A998,
+      symSize: 0x60,
+    }
+  - {
+      offset: 0x1165AB,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4showyySo13CAPPluginCallCFyycfU_TA",
+      symObjAddr: 0x1014,
+      symBinAddr: 0x10000AB88,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1165DD,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAACMa",
+      symObjAddr: 0x101C,
+      symBinAddr: 0x10000AB90,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x11664B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC10identifierSSvg",
+      symObjAddr: 0xC,
+      symBinAddr: 0x100009BCC,
+      symSize: 0x38,
+    }
+  - {
+      offset: 0x116670,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC6jsNameSSvg",
+      symObjAddr: 0x98,
+      symBinAddr: 0x100009C58,
+      symSize: 0x38,
+    }
+  - {
+      offset: 0x1166E5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC13pluginMethodsSaySo15CAPPluginMethodCGvgTo",
+      symObjAddr: 0xD0,
+      symBinAddr: 0x100009C90,
+      symSize: 0x60,
+    }
+  - {
+      offset: 0x116718,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC13pluginMethodsSaySo15CAPPluginMethodCGvg",
+      symObjAddr: 0x130,
+      symBinAddr: 0x100009CF0,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1167DC,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4loadyyF",
+      symObjAddr: 0x140,
+      symBinAddr: 0x100009D00,
+      symSize: 0x134,
+    }
+  - {
+      offset: 0x1168BE,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4loadyyFTo",
+      symObjAddr: 0x274,
+      symBinAddr: 0x100009E34,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x116958,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4showyySo13CAPPluginCallCF",
+      symObjAddr: 0x29C,
+      symBinAddr: 0x100009E5C,
+      symSize: 0x10C,
+    }
+  - {
+      offset: 0x116A43,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4showyySo13CAPPluginCallCFTo",
+      symObjAddr: 0x3A8,
+      symBinAddr: 0x100009F68,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x116A57,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4hideyySo13CAPPluginCallCF",
+      symObjAddr: 0x3F8,
+      symBinAddr: 0x100009FB8,
+      symSize: 0x8C,
+    }
+  - {
+      offset: 0x116B0E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC4hideyySo13CAPPluginCallCFTo",
+      symObjAddr: 0x484,
+      symBinAddr: 0x10000A044,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x116B22,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC06splashB6Config33_6FB40EA941007F116D791EF2E6E53586LLAA0abE0VyF",
+      symObjAddr: 0x4D4,
+      symBinAddr: 0x10000A094,
+      symSize: 0x39C,
+    }
+  - {
+      offset: 0x116C08,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC6bridge8pluginId0E4NameAB9Capacitor17CAPBridgeProtocol_p_S2StcfC",
+      symObjAddr: 0x870,
+      symBinAddr: 0x10000A430,
+      symSize: 0xAC,
+    }
+  - {
+      offset: 0x116C47,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC6bridge8pluginId0E4NameAB9Capacitor17CAPBridgeProtocol_p_S2Stcfc",
+      symObjAddr: 0x91C,
+      symBinAddr: 0x10000A4DC,
+      symSize: 0x238,
+    }
+  - {
+      offset: 0x116D62,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC6bridge8pluginId0E4NameAB9Capacitor17CAPBridgeProtocol_p_S2StcfcTo",
+      symObjAddr: 0xB54,
+      symBinAddr: 0x10000A714,
+      symSize: 0x74,
+    }
+  - {
+      offset: 0x116D76,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAACABycfc",
+      symObjAddr: 0xBE0,
+      symBinAddr: 0x10000A788,
+      symSize: 0x1C0,
+    }
+  - {
+      offset: 0x116E67,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAACABycfcTo",
+      symObjAddr: 0xDA0,
+      symBinAddr: 0x10000A948,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x116E7B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAACfD",
+      symObjAddr: 0xDC0,
+      symBinAddr: 0x10000A968,
+      symSize: 0x30,
+    }
+  - {
+      offset: 0x116E9E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPluginAAC06splashB8Settings33_6FB40EA941007F116D791EF2E6E53586LL4fromAA0abE0VSo13CAPPluginCallC_tFTf4nd_n",
+      symObjAddr: 0xE84,
+      symBinAddr: 0x10000A9F8,
+      symSize: 0x16C,
+    }
+  - {
+      offset: 0x116F93,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_noop_void_return,
+      symObjAddr: 0x2C,
+      symBinAddr: 0x10000ABB0,
+      symSize: 0x4,
+    }
+  - {
+      offset: 0x116FA7,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_memcpy25_8,
+      symObjAddr: 0x30,
+      symBinAddr: 0x10000ABB4,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x116FBB,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB8SettingsVwet",
+      symObjAddr: 0x44,
+      symBinAddr: 0x10000ABC8,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x116FCF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB8SettingsVwst",
+      symObjAddr: 0x98,
+      symBinAddr: 0x10000AC1C,
+      symSize: 0x48,
+    }
+  - {
+      offset: 0x116FE3,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s18SplashScreenPlugin0aB8SettingsVMa",
+      symObjAddr: 0xE0,
+      symBinAddr: 0x10000AC64,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1170C7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C15backgroundColor33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLSo7UIColorCvpfi",
+      symObjAddr: 0x8,
+      symBinAddr: 0x10000AC74,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x1170DF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C9observers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLSaySo8NSObject_pGvpfi",
+      symObjAddr: 0x34,
+      symBinAddr: 0x10000AC98,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x117397,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s10Foundation12NotificationVIeghn_So14NSNotificationCIeyBhy_TR",
+      symObjAddr: 0x624,
+      symBinAddr: 0x10000B288,
+      symSize: 0xA4,
+    }
+  - {
+      offset: 0x1173E6,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV8overlaysSbSgvpfi",
+      symObjAddr: 0x1D1C,
+      symBinAddr: 0x10000C970,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1173FE,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5styleSSSgvpfi",
+      symObjAddr: 0x1D2C,
+      symBinAddr: 0x10000C978,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x117416,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC10identifierSSvpfi",
+      symObjAddr: 0x1D50,
+      symBinAddr: 0x10000C984,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x11742E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC6jsNameSSvpfi",
+      symObjAddr: 0x1D74,
+      symBinAddr: 0x10000C9A8,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x117467,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC13pluginMethodsSaySo15CAPPluginMethodCGvpfi",
+      symObjAddr: 0x1D90,
+      symBinAddr: 0x10000C9C4,
+      symSize: 0x2D8,
+    }
+  - {
+      offset: 0x1175EC,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC06statusB17VisibilityChanged33_F6916C47523108A405A9487AE53546C9LLSSvpfi",
+      symObjAddr: 0x2070,
+      symBinAddr: 0x10000CC9C,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x117608,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC06statusB17VisibilityChanged33_F6916C47523108A405A9487AE53546C9LLSSvpfi",
+      symObjAddr: 0x2070,
+      symBinAddr: 0x10000CC9C,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x11761A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC06statusB14OverlayChanged33_F6916C47523108A405A9487AE53546C9LLSSvpfi",
+      symObjAddr: 0x208C,
+      symBinAddr: 0x10000CCB8,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x117636,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC06statusB14OverlayChanged33_F6916C47523108A405A9487AE53546C9LLSSvpfi",
+      symObjAddr: 0x208C,
+      symBinAddr: 0x10000CCB8,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x117648,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss29getContiguousArrayStorageType3fors01_bcD0CyxGmxm_tlFSo8NSObject_p_Ttg5",
+      symObjAddr: 0x20A8,
+      symBinAddr: 0x10000CCD4,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x11766B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss29getContiguousArrayStorageType3fors01_bcD0CyxGmxm_tlFSo15CAPPluginMethodC_Ttg5",
+      symObjAddr: 0x20BC,
+      symBinAddr: 0x10000CCE8,
+      symSize: 0x6C,
+    }
+  - {
+      offset: 0x1176AE,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSa034_makeUniqueAndReserveCapacityIfNotB0yyFSo8NSObject_p_Tg5",
+      symObjAddr: 0x2128,
+      symBinAddr: 0x10000CD54,
+      symSize: 0x70,
+    }
+  - {
+      offset: 0x117775,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss12_ArrayBufferV20_consumeAndCreateNew14bufferIsUnique15minimumCapacity13growForAppendAByxGSb_SiSbtFSo8NSObject_p_Tg5",
+      symObjAddr: 0x2198,
+      symBinAddr: 0x10000CDC4,
+      symSize: 0x128,
+    }
+  - {
+      offset: 0x117897,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss22_ContiguousArrayBufferV19_uninitializedCount15minimumCapacityAByxGSi_SitcfCSo8NSObject_p_Tt1g5",
+      symObjAddr: 0x22C0,
+      symBinAddr: 0x10000CEEC,
+      symSize: 0x80,
+    }
+  - {
+      offset: 0x11791A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss12_ArrayBufferV13_copyContents8subRange12initializingSpyxGSnySiG_AFtFSo8NSObject_p_Tg5",
+      symObjAddr: 0x2340,
+      symBinAddr: 0x10000CF6C,
+      symSize: 0x124,
+    }
+  - {
+      offset: 0x117A05,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss12_ArrayBufferV19_getElementSlowPathyyXlSiFSo8NSObject_p_Tg5",
+      symObjAddr: 0x2464,
+      symBinAddr: 0x10000D090,
+      symSize: 0x1A4,
+    }
+  - {
+      offset: 0x117A86,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0CMa",
+      symObjAddr: 0x2608,
+      symBinAddr: 0x10000D234,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x117A9A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSo16UIStatusBarStyleVMa",
+      symObjAddr: 0x2628,
+      symBinAddr: 0x10000D254,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x117AAE,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C4show9animationySS_tFyyScMYccfU_TA",
+      symObjAddr: 0x26C8,
+      symBinAddr: 0x10000D2A4,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x117AC2,
+      size: 0x8,
+      addend: 0x0,
+      symName: _block_copy_helper,
+      symObjAddr: 0x26D0,
+      symBinAddr: 0x10000D2AC,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x117AD6,
+      size: 0x8,
+      addend: 0x0,
+      symName: _block_destroy_helper,
+      symObjAddr: 0x26E4,
+      symBinAddr: 0x10000D2C0,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x117AEA,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s8Dispatch0A13WorkItemFlagsVACs10SetAlgebraAAWl",
+      symObjAddr: 0x26EC,
+      symBinAddr: 0x10000D2C8,
+      symSize: 0x44,
+    }
+  - {
+      offset: 0x117AFE,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSay8Dispatch0A13WorkItemFlagsVGSayxGSTsWl",
+      symObjAddr: 0x2730,
+      symBinAddr: 0x10000D30C,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x117B12,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C4hide9animationySS_tFyyScMYccfU_TA",
+      symObjAddr: 0x27F8,
+      symBinAddr: 0x10000D380,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x117B26,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C24handleViewWillTransition33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLyyFyyScMYccfU_TA",
+      symObjAddr: 0x2800,
+      symBinAddr: 0x10000D388,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x117B3A,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tFy10Foundation12NotificationVYbcfU_TA",
+      symObjAddr: 0x2834,
+      symBinAddr: 0x10000D3BC,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x117B4E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tFy10Foundation12NotificationVYbcfU0_TA",
+      symObjAddr: 0x2844,
+      symBinAddr: 0x10000D3CC,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x117B62,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tFy10Foundation12NotificationVYbcfU1_TA",
+      symObjAddr: 0x284C,
+      symBinAddr: 0x10000D3D4,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x117D5C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0Cfd",
+      symObjAddr: 0x40,
+      symBinAddr: 0x10000ACA4,
+      symSize: 0x150,
+    }
+  - {
+      offset: 0x117E97,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0CfD",
+      symObjAddr: 0x190,
+      symBinAddr: 0x10000ADF4,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x117EC1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tF",
+      symObjAddr: 0x1B0,
+      symBinAddr: 0x10000AE14,
+      symSize: 0x3FC,
+    }
+  - {
+      offset: 0x118114,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tFy10Foundation12NotificationVYbcfU_",
+      symObjAddr: 0x5AC,
+      symBinAddr: 0x10000B210,
+      symSize: 0x78,
+    }
+  - {
+      offset: 0x11815B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tFy10Foundation12NotificationVYbcfU0_",
+      symObjAddr: 0x6C8,
+      symBinAddr: 0x10000B32C,
+      symSize: 0xC4,
+    }
+  - {
+      offset: 0x118192,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C14setupObservers33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL4withyAA0aB6ConfigV_tFy10Foundation12NotificationVYbcfU1_",
+      symObjAddr: 0x78C,
+      symBinAddr: 0x10000B3F0,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x118286,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C19handleViewDidAppear33_BF638A807C29B84BB7C7BD6E0ADC6CB2LL6configyAA0aB6ConfigV_tF",
+      symObjAddr: 0x7E0,
+      symBinAddr: 0x10000B444,
+      symSize: 0x60,
+    }
+  - {
+      offset: 0x11830F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C24handleViewWillTransition33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLyyF",
+      symObjAddr: 0x840,
+      symBinAddr: 0x10000B4A4,
+      symSize: 0x27C,
+    }
+  - {
+      offset: 0x11835D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C24handleViewWillTransition33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLyyFyyScMYccfU_",
+      symObjAddr: 0xABC,
+      symBinAddr: 0x10000B720,
+      symSize: 0xAC,
+    }
+  - {
+      offset: 0x1183B6,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C12setAnimationyySSF",
+      symObjAddr: 0xB68,
+      symBinAddr: 0x10000B7CC,
+      symSize: 0xAC,
+    }
+  - {
+      offset: 0x11843F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C4hide9animationySS_tF",
+      symObjAddr: 0xC14,
+      symBinAddr: 0x10000B878,
+      symSize: 0x2AC,
+    }
+  - {
+      offset: 0x11849D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C4hide9animationySS_tFyyScMYccfU_",
+      symObjAddr: 0xEC0,
+      symBinAddr: 0x10000BB24,
+      symSize: 0xFC,
+    }
+  - {
+      offset: 0x1184C5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C4show9animationySS_tF",
+      symObjAddr: 0xFBC,
+      symBinAddr: 0x10000BC20,
+      symSize: 0x294,
+    }
+  - {
+      offset: 0x118523,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C4show9animationySS_tFyyScMYccfU_",
+      symObjAddr: 0x1250,
+      symBinAddr: 0x10000BEB4,
+      symSize: 0xC0,
+    }
+  - {
+      offset: 0x118581,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C7getInfoAA0abE0VyF",
+      symObjAddr: 0x1310,
+      symBinAddr: 0x10000BF74,
+      symSize: 0x108,
+    }
+  - {
+      offset: 0x118637,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s9Capacitor0A20ExtensionTypeWrapperV15StatusBarPluginSo7UIColorCRbzlE3hex9fromColorSSSgAF_tFZAF_Tt0g5",
+      symObjAddr: 0x1418,
+      symBinAddr: 0x10000C07C,
+      symSize: 0x428,
+    }
+  - {
+      offset: 0x118A6E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C18setOverlaysWebViewyySbF",
+      symObjAddr: 0x1840,
+      symBinAddr: 0x10000C4A4,
+      symSize: 0x174,
+    }
+  - {
+      offset: 0x118B41,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C13resizeWebView33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLyyF",
+      symObjAddr: 0x19B4,
+      symBinAddr: 0x10000C618,
+      symSize: 0x240,
+    }
+  - {
+      offset: 0x118C24,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB0C03getaB5Frame33_BF638A807C29B84BB7C7BD6E0ADC6CB2LLSo6CGRectVyF",
+      symObjAddr: 0x1BF4,
+      symBinAddr: 0x10000C858,
+      symSize: 0x118,
+    }
+  - {
+      offset: 0x118E94,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB6ConfigVwxx",
+      symObjAddr: 0x34,
+      symBinAddr: 0x10000D43C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x118EA8,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB6ConfigVwca",
+      symObjAddr: 0x3C,
+      symBinAddr: 0x10000D444,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x118EBC,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_memcpy24_8,
+      symObjAddr: 0x90,
+      symBinAddr: 0x10000D498,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x118ED0,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB6ConfigVwta",
+      symObjAddr: 0xA4,
+      symBinAddr: 0x10000D4AC,
+      symSize: 0x44,
+    }
+  - {
+      offset: 0x118EE4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB6ConfigVwet",
+      symObjAddr: 0xE8,
+      symBinAddr: 0x10000D4F0,
+      symSize: 0x48,
+    }
+  - {
+      offset: 0x118EF8,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB6ConfigVwst",
+      symObjAddr: 0x130,
+      symBinAddr: 0x10000D538,
+      symSize: 0x40,
+    }
+  - {
+      offset: 0x118F0C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB6ConfigVMa",
+      symObjAddr: 0x170,
+      symBinAddr: 0x10000D578,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x118FD4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV8overlaysSbSgvg",
+      symObjAddr: 0x0,
+      symBinAddr: 0x10000D58C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1191A1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVwxx",
+      symObjAddr: 0x188,
+      symBinAddr: 0x10000D6D4,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x1191B5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVwcp",
+      symObjAddr: 0x1B0,
+      symBinAddr: 0x10000D6FC,
+      symSize: 0x54,
+    }
+  - {
+      offset: 0x1191C9,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVwca",
+      symObjAddr: 0x204,
+      symBinAddr: 0x10000D750,
+      symSize: 0x8C,
+    }
+  - {
+      offset: 0x1191DD,
+      size: 0x8,
+      addend: 0x0,
+      symName: ___swift_memcpy49_8,
+      symObjAddr: 0x290,
+      symBinAddr: 0x10000D7DC,
+      symSize: 0x1C,
+    }
+  - {
+      offset: 0x1191F1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVwta",
+      symObjAddr: 0x2AC,
+      symBinAddr: 0x10000D7F8,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x119205,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVwet",
+      symObjAddr: 0x308,
+      symBinAddr: 0x10000D854,
+      symSize: 0x5C,
+    }
+  - {
+      offset: 0x119219,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVwst",
+      symObjAddr: 0x364,
+      symBinAddr: 0x10000D8B0,
+      symSize: 0x64,
+    }
+  - {
+      offset: 0x11922D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVMa",
+      symObjAddr: 0x3C8,
+      symBinAddr: 0x10000D914,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x119272,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV8overlaysSbSgvg",
+      symObjAddr: 0x0,
+      symBinAddr: 0x10000D58C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x119291,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV8overlaysSbSgvs",
+      symObjAddr: 0x8,
+      symBinAddr: 0x10000D594,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1192A5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV8overlaysSbSgvM",
+      symObjAddr: 0x10,
+      symBinAddr: 0x10000D59C,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1192B9,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV7visibleSbSgvg",
+      symObjAddr: 0x24,
+      symBinAddr: 0x10000D5AC,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1192CD,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV7visibleSbSgvs",
+      symObjAddr: 0x2C,
+      symBinAddr: 0x10000D5B4,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x1192E1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV7visibleSbSgvM",
+      symObjAddr: 0x34,
+      symBinAddr: 0x10000D5BC,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x1192F5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5styleSSSgvg",
+      symObjAddr: 0x48,
+      symBinAddr: 0x10000D5CC,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x119309,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5styleSSSgvs",
+      symObjAddr: 0x74,
+      symBinAddr: 0x10000D5F8,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x11931D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5styleSSSgvM",
+      symObjAddr: 0xA8,
+      symBinAddr: 0x10000D62C,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x119331,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5colorSSSgvg",
+      symObjAddr: 0xBC,
+      symBinAddr: 0x10000D63C,
+      symSize: 0x2C,
+    }
+  - {
+      offset: 0x119345,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5colorSSSgvs",
+      symObjAddr: 0xE8,
+      symBinAddr: 0x10000D668,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x119359,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV5colorSSSgvM",
+      symObjAddr: 0x11C,
+      symBinAddr: 0x10000D69C,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x11936D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV6height12CoreGraphics7CGFloatVSgvg",
+      symObjAddr: 0x130,
+      symBinAddr: 0x10000D6AC,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x119381,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV6height12CoreGraphics7CGFloatVSgvs",
+      symObjAddr: 0x13C,
+      symBinAddr: 0x10000D6B8,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x119395,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoV6height12CoreGraphics7CGFloatVSgvM",
+      symObjAddr: 0x148,
+      symBinAddr: 0x10000D6C4,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x119866,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAACfETo",
+      symObjAddr: 0x22B4,
+      symBinAddr: 0x10000FAA0,
+      symSize: 0x88,
+    }
+  - {
+      offset: 0x119895,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAACMa",
+      symObjAddr: 0x233C,
+      symBinAddr: 0x10000FB28,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x1198B4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss22__RawDictionaryStorageC4findys10_HashTableV6BucketV6bucket_Sb5foundtxSHRzlFs11AnyHashableV_Tg5",
+      symObjAddr: 0x23C0,
+      symBinAddr: 0x10000FB48,
+      symSize: 0x30,
+    }
+  - {
+      offset: 0x1198E1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss11AnyHashableVWOh",
+      symObjAddr: 0x23F0,
+      symBinAddr: 0x10000FB78,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x1198F5,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sypSgWOh",
+      symObjAddr: 0x2424,
+      symBinAddr: 0x10000FBAC,
+      symSize: 0x48,
+    }
+  - {
+      offset: 0x119909,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setOverlaysWebViewyySo13CAPPluginCallCFyyScMYccfU_TA",
+      symObjAddr: 0x2504,
+      symBinAddr: 0x10000FC3C,
+      symSize: 0xC,
+    }
+  - {
+      offset: 0x11991D,
+      size: 0x8,
+      addend: 0x0,
+      symName: _block_copy_helper,
+      symObjAddr: 0x2510,
+      symBinAddr: 0x10000FC48,
+      symSize: 0x14,
+    }
+  - {
+      offset: 0x119931,
+      size: 0x8,
+      addend: 0x0,
+      symName: _block_destroy_helper,
+      symObjAddr: 0x2524,
+      symBinAddr: 0x10000FC5C,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x11995B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss22__RawDictionaryStorageC4find_9hashValues10_HashTableV6BucketV6bucket_Sb5foundtx_SitSHRzlFs11AnyHashableV_Tg5",
+      symObjAddr: 0x26FC,
+      symBinAddr: 0x10000FC64,
+      symSize: 0xBC,
+    }
+  - {
+      offset: 0x119A43,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPlugin0aB4InfoVWOh",
+      symObjAddr: 0x2C44,
+      symBinAddr: 0x1000101AC,
+      symSize: 0x34,
+    }
+  - {
+      offset: 0x119A57,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sypWOb",
+      symObjAddr: 0x2CC0,
+      symBinAddr: 0x100010228,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x119A6B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$ss11AnyHashableVWOc",
+      symObjAddr: 0x2CD0,
+      symBinAddr: 0x100010238,
+      symSize: 0x3C,
+    }
+  - {
+      offset: 0x119A7F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC7getInfoyySo13CAPPluginCallCFyyScMYccfU_TA",
+      symObjAddr: 0x2D10,
+      symBinAddr: 0x100010278,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x119A93,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC4showyySo13CAPPluginCallCFyyScMYccfU_TA",
+      symObjAddr: 0x2D1C,
+      symBinAddr: 0x100010284,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x119AA7,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC4hideyySo13CAPPluginCallCFyyScMYccfU_TA",
+      symObjAddr: 0x2D6C,
+      symBinAddr: 0x1000102D4,
+      symSize: 0x24,
+    }
+  - {
+      offset: 0x119ABB,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setBackgroundColoryySo13CAPPluginCallCFyyScMYccfU_TA",
+      symObjAddr: 0x2DBC,
+      symBinAddr: 0x100010324,
+      symSize: 0x8,
+    }
+  - {
+      offset: 0x119C72,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC10identifierSSvg",
+      symObjAddr: 0x38,
+      symBinAddr: 0x10000D930,
+      symSize: 0x38,
+    }
+  - {
+      offset: 0x119C97,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC6jsNameSSvg",
+      symObjAddr: 0xC4,
+      symBinAddr: 0x10000D974,
+      symSize: 0x38,
+    }
+  - {
+      offset: 0x119D0C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC13pluginMethodsSaySo15CAPPluginMethodCGvgTo",
+      symObjAddr: 0xFC,
+      symBinAddr: 0x10000D9AC,
+      symSize: 0x60,
+    }
+  - {
+      offset: 0x119D3F,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC13pluginMethodsSaySo15CAPPluginMethodCGvg",
+      symObjAddr: 0x15C,
+      symBinAddr: 0x10000DA0C,
+      symSize: 0x10,
+    }
+  - {
+      offset: 0x119DF4,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC4loadyyF",
+      symObjAddr: 0x16C,
+      symBinAddr: 0x10000DA1C,
+      symSize: 0xF0,
+    }
+  - {
+      offset: 0x119E8C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC4loadyyFTo",
+      symObjAddr: 0x25C,
+      symBinAddr: 0x10000DB0C,
+      symSize: 0x28,
+    }
+  - {
+      offset: 0x119EFF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC06statusB6Config33_F6916C47523108A405A9487AE53546C9LLAA0abE0VyF",
+      symObjAddr: 0x284,
+      symBinAddr: 0x10000DB34,
+      symSize: 0x1AC,
+    }
+  - {
+      offset: 0x11A06B,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC8setStyleyySo13CAPPluginCallCF",
+      symObjAddr: 0x430,
+      symBinAddr: 0x10000DCE0,
+      symSize: 0x1D8,
+    }
+  - {
+      offset: 0x11A188,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC8setStyleyySo13CAPPluginCallCFTo",
+      symObjAddr: 0x608,
+      symBinAddr: 0x10000DEB8,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x11A1B1,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setBackgroundColoryySo13CAPPluginCallCF",
+      symObjAddr: 0x658,
+      symBinAddr: 0x10000DF08,
+      symSize: 0x378,
+    }
+  - {
+      offset: 0x11A288,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setBackgroundColoryySo13CAPPluginCallCFyyScMYccfU_",
+      symObjAddr: 0x9D0,
+      symBinAddr: 0x10000E280,
+      symSize: 0xB8,
+    }
+  - {
+      offset: 0x11A325,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setBackgroundColoryySo13CAPPluginCallCFTo",
+      symObjAddr: 0xA88,
+      symBinAddr: 0x10000E338,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x11A339,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC4hideyySo13CAPPluginCallCFTo",
+      symObjAddr: 0xAF4,
+      symBinAddr: 0x10000E3A4,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x11A34D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC4showyySo13CAPPluginCallCFTo",
+      symObjAddr: 0x1008,
+      symBinAddr: 0x10000E8B8,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x11A361,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC7getInfoyySo13CAPPluginCallCF",
+      symObjAddr: 0x1058,
+      symBinAddr: 0x10000E908,
+      symSize: 0x210,
+    }
+  - {
+      offset: 0x11A3BF,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC7getInfoyySo13CAPPluginCallCFyyScMYccfU_",
+      symObjAddr: 0x1268,
+      symBinAddr: 0x10000EB18,
+      symSize: 0x114,
+    }
+  - {
+      offset: 0x11A461,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC7getInfoyySo13CAPPluginCallCFTo",
+      symObjAddr: 0x137C,
+      symBinAddr: 0x10000EC2C,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x11A475,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setOverlaysWebViewyySo13CAPPluginCallCF",
+      symObjAddr: 0x13CC,
+      symBinAddr: 0x10000EC7C,
+      symSize: 0x320,
+    }
+  - {
+      offset: 0x11A531,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setOverlaysWebViewyySo13CAPPluginCallCFyyScMYccfU_",
+      symObjAddr: 0x16EC,
+      symBinAddr: 0x10000EF9C,
+      symSize: 0x220,
+    }
+  - {
+      offset: 0x11A603,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC18setOverlaysWebViewyySo13CAPPluginCallCFTo",
+      symObjAddr: 0x190C,
+      symBinAddr: 0x10000F1BC,
+      symSize: 0x50,
+    }
+  - {
+      offset: 0x11A66E,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC6bridge8pluginId0E4NameAB9Capacitor17CAPBridgeProtocol_p_S2Stcfc",
+      symObjAddr: 0x1A08,
+      symBinAddr: 0x10000F20C,
+      symSize: 0x424,
+    }
+  - {
+      offset: 0x11A84C,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC6bridge8pluginId0E4NameAB9Capacitor17CAPBridgeProtocol_p_S2StcfcTo",
+      symObjAddr: 0x1E2C,
+      symBinAddr: 0x10000F630,
+      symSize: 0x74,
+    }
+  - {
+      offset: 0x11A860,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAACABycfc",
+      symObjAddr: 0x1EB8,
+      symBinAddr: 0x10000F6A4,
+      symSize: 0x3AC,
+    }
+  - {
+      offset: 0x11AA14,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAACABycfcTo",
+      symObjAddr: 0x2264,
+      symBinAddr: 0x10000FA50,
+      symSize: 0x20,
+    }
+  - {
+      offset: 0x11AA28,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAACfD",
+      symObjAddr: 0x2284,
+      symBinAddr: 0x10000FA70,
+      symSize: 0x30,
+    }
+  - {
+      offset: 0x11AA52,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC5style33_F6916C47523108A405A9487AE53546C9LL10fromStringSo08UIStatusB5StyleVSS_tFTf4nd_n",
+      symObjAddr: 0x27B8,
+      symBinAddr: 0x10000FD20,
+      symSize: 0x178,
+    }
+  - {
+      offset: 0x11AB62,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$sSD17dictionaryLiteralSDyxq_Gx_q_td_tcfCSS_ypTt0g5Tf4g_n",
+      symObjAddr: 0x2930,
+      symBinAddr: 0x10000FE98,
+      symSize: 0x12C,
+    }
+  - {
+      offset: 0x11AC7D,
+      size: 0x8,
+      addend: 0x0,
+      symName: "_$s15StatusBarPluginAAC6toDict33_F6916C47523108A405A9487AE53546C9LLySDySSypGAA0aB4InfoVFTf4nd_n",
+      symObjAddr: 0x2A5C,
+      symBinAddr: 0x10000FFC4,
+      symSize: 0x1E8,
+    }
+...

@@ -7,10 +7,10 @@ import { Plus, Search, Sparkles, UserRound } from "lucide-react";
 import { listInstructors, upsertInstructor } from "@/lib/admin.functions";
 import { Empty, SectionTitle, Field, CardSkeleton } from "@/components/admin-shared";
 import { t, useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedInstructorBio, localizedInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/admin/instructors")({
-  head: () => ({ meta: [{ title: "Instructors — Studio Admin" }] }),
   component: Page,
 });
 
@@ -25,7 +25,8 @@ type InstructorForm = {
 const emptyForm: InstructorForm = { name: "", bio_short: "", avatar_url: "", active: true };
 
 function Page() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
+  useDocumentTitle("page.instructors.title");
   const fn = useServerFn(listInstructors);
   const upFn = useServerFn(upsertInstructor);
   const qc = useQueryClient();
@@ -79,10 +80,7 @@ function Page() {
     <div className="space-y-7">
       <SectionTitle
         action={
-          <button
-            onClick={() => setEditing(emptyForm)}
-            className="btn-navy hover:bg-transparent hover:text-navy"
-          >
+          <button onClick={() => setEditing(emptyForm)} className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("admin.instructors.add")}
           </button>
         }
@@ -93,23 +91,21 @@ function Page() {
       <section className="editorial-panel overflow-hidden">
         <div className="grid gap-0 md:grid-cols-[1fr_320px]">
           <div className="p-5 sm:p-6">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-gold">
-              {t("admin.instructors.roster")}
-            </p>
+            <p className="text-xs font-medium text-slate">{t("admin.instructors.roster")}</p>
             <h2 className="mt-2 font-display text-[28px] leading-tight text-navy">
               {t("admin.instructors.headline")}
             </h2>
             <div className="relative mt-5 max-w-xl">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+              <Search className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
               <input
-                className="editorial-input pl-11"
+                className="editorial-input ps-11"
                 placeholder={t("admin.instructors.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </div>
-          <div className="border-t border-gold/20 bg-sand/35 p-5 sm:p-6 md:border-l md:border-t-0">
+          <div className="border-t border-gold/20 bg-sand/35 p-5 sm:p-6 md:border-s md:border-t-0">
             <div className="grid grid-cols-2 gap-3">
               <Stat label={t("admin.instructors.total")} value={instructors.length} />
               <Stat label={t("admin.instructors.active")} value={activeCount} />
@@ -155,7 +151,7 @@ function Page() {
       {editing && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/40 p-0 backdrop-blur-sm md:items-center md:p-6">
           <form
-            className="w-full max-w-2xl rounded-t-[6px] border border-gold/30 bg-ivory shadow-xl md:rounded-[6px]"
+            className="w-full max-w-2xl rounded-t-2xl border border-gold/30 bg-ivory shadow-[0_30px_60px_-28px_rgba(11,29,58,0.32)] md:rounded-2xl"
             onSubmit={(e) => {
               e.preventDefault();
               save.mutate(editing);
@@ -168,9 +164,9 @@ function Page() {
               <button
                 type="button"
                 onClick={() => setEditing(null)}
-                className="text-[11px] uppercase tracking-[0.18em] text-slate hover:text-navy"
+                className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
               >
-                {t("common.close")}
+                ×
               </button>
             </header>
             <div className="space-y-5 p-6">
@@ -271,20 +267,17 @@ function InstructorCard({
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-gold/15 pt-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-slate">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 px-2.5 py-1 text-xs font-medium text-slate">
               <Sparkles className="h-3 w-3 text-gold" />
               {t("admin.instructors.scheduleReady")}
             </span>
             <div className="ms-auto flex items-center gap-2">
-              <button
-                onClick={onEdit}
-                className="text-[10px] uppercase tracking-[0.18em] text-slate hover:text-navy"
-              >
+              <button onClick={onEdit} className="btn-ghost text-xs hover:btn-ghost-hover">
                 {t("common.edit")}
               </button>
               <button
                 onClick={onToggle}
-                className="rounded-[2px] border border-gold/45 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-navy transition-colors hover:bg-gold hover:text-ivory"
+                className="btn-outline px-3 py-2 text-xs hover:btn-outline-hover"
               >
                 {instructor.active
                   ? t("admin.instructors.deactivate")
@@ -301,7 +294,7 @@ function InstructorCard({
 function StatusBadge({ active }: { active: boolean }) {
   return (
     <span
-      className={`shrink-0 rounded-[2px] border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
         active ? "border-gold/60 bg-gold/10 text-navy" : "border-slate/30 bg-slate/5 text-slate"
       }`}
     >
@@ -314,7 +307,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="border border-gold/25 bg-ivory/65 p-3">
       <p className="font-display text-3xl leading-none text-navy">{value}</p>
-      <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate">{label}</p>
+      <p className="mt-1 text-xs font-medium text-slate">{label}</p>
     </div>
   );
 }

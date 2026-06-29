@@ -1,0 +1,16 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --no-cache
+      - --build-arg
+      - VITE_SUPABASE_PROJECT_ID=${_VITE_SUPABASE_PROJECT_ID}
+      - --build-arg
+      - VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}
+      - --build-arg
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${_VITE_SUPABASE_PUBLISHABLE_KEY}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}

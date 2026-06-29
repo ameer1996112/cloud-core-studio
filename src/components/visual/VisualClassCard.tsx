@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { getLocale, t } from "@/lib/i18n";
+import { getLocale, t, useI18n } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { initialsFor, resolveClassImageSrc } from "@/lib/image-assets";
-import type { ClassState } from "@/components/member/PremiumClassCard";
+import { formatDurationLabel, type ClassState } from "@/components/member/PremiumClassCard";
 import {
+  localizedClassMetadataChips,
   localizedClassTitle,
-  localizedInstructorName,
+  localizedClassTitleParts,
+  localizedOptionalInstructorName,
   localizedProgramName,
 } from "@/lib/localized-content";
+import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
 
 /**
  * Cloud & Core schedule card — typography-led, image-accented.
@@ -18,9 +21,9 @@ import {
  *
  * New rules:
  * - One small square photo/motif tile (no giant background art).
- * - Information dominates: title, instructor · room, capacity, CTA.
+ * - Information dominates: title, instructor, capacity, CTA.
  * - State drives a 4px inline-start accent stripe + chip tone, not background.
- * - Clean DM Sans for all functional text (titles use Cormorant Garamond).
+ * - Clean Assistant for all functional text.
  * - RTL-native via CSS logical props (ps-/pe-/start/end).
  */
 
@@ -39,6 +42,16 @@ type Tone = {
   cta: string;
   /** disable image tile? */
   desaturate?: boolean;
+};
+
+type VisualClassCardClass = {
+  starts_at: string;
+  duration_minutes: number;
+  capacity?: number | null;
+  booked_count?: number | null;
+  instructor?: { name?: string | null } | null;
+  program_type?: Record<string, unknown> | null;
+  [key: string]: unknown;
 };
 
 function toneFor(state: ClassState): {
@@ -214,12 +227,18 @@ export function ParticipantChip({
 
 export function ScheduleDaySection({ date, children }: { date: Date; children: React.ReactNode }) {
   const weekday = date.toLocaleDateString(getLocale(), { weekday: "long" });
-  const dm = date.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" });
+  const locale = getLocale();
+  const dm =
+    locale === "en"
+      ? date.toLocaleDateString(locale, { month: "short", day: "numeric" })
+      : `${date.getDate()}.${date.getMonth() + 1}`;
   return (
     <div className="space-y-3">
       <div className="flex items-baseline gap-3">
         <h2 className="font-sans text-[15px] font-semibold tracking-normal text-navy">{weekday}</h2>
-        <span className="text-[12px] text-slate tabular-nums">· {dm}</span>
+        <span className="text-[12px] text-slate tabular-nums">
+          · <LtrInline>{dm}</LtrInline>
+        </span>
         <span className="flex-1 h-px bg-gold/30" />
       </div>
       <div className="space-y-2.5">{children}</div>
@@ -315,35 +334,38 @@ export function VisualClassCard({
   compact = false,
   eager = false,
 }: {
-  cls: any;
+  cls: VisualClassCardClass;
   state: ClassState;
   onOpen: () => void;
   participants?: string[];
   compact?: boolean;
   eager?: boolean;
 }) {
+  const { dir, lang } = useI18n();
+  const isRtl = dir === "rtl";
   const { chipLabel } = toneFor(state);
   const ovr = overlayFor(state);
   const title = localizedClassTitle(cls);
-  const instructor = localizedInstructorName(cls.instructor?.name);
-  const room = cls.room_ref?.name ?? cls.room ?? null;
+  const titleParts = localizedClassTitleParts(cls, lang);
+  const metaChips = localizedClassMetadataChips(cls);
+  const instructor = localizedOptionalInstructorName(cls.instructor?.name);
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
   const time = formatTimeParts(cls.starts_at);
-  const isRtl =
-    typeof document !== "undefined"
-      ? document.documentElement.dir === "rtl"
-      : ["he", "ar"].includes(getLocale());
-
   return (
     <button
       type="button"
-      dir="ltr"
+      dir={dir}
       onClick={onOpen}
       className="group block w-full min-w-0 text-start"
     >
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
-      <article className="visual-class-card class-card-shell relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5">
+      <article
+        dir={dir}
+        className={`visual-class-card class-card-shell ${
+          isRtl ? "is-rtl" : "is-ltr"
+        } relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5`}
+      >
         <div
           className={`class-card-photo relative overflow-hidden ${
             compact ? "member-class-media" : "schedule-class-media"
@@ -380,16 +402,18 @@ export function VisualClassCard({
           <div
             className="class-time-badge"
             dir="ltr"
-            aria-label={`${time.weekday} ${time.hour}:${time.minute}, ${cls.duration_minutes}${t(
-              "common.minutes",
+            aria-label={`${time.weekday} ${time.hour}:${time.minute}, ${formatDurationLabel(
+              cls.duration_minutes,
             )}`}
           >
             <span className="class-time-badge__time">
               {time.hour}:{time.minute}
             </span>
-            <span className="class-time-badge__duration">
-              {cls.duration_minutes}
-              {t("common.minutes")}
+            <span className="class-time-badge__separator" aria-hidden="true">
+              ·
+            </span>
+            <span className="class-time-badge__duration" dir="auto">
+              <bdi>{formatDurationLabel(cls.duration_minutes)}</bdi>
             </span>
           </div>
 
@@ -403,11 +427,7 @@ export function VisualClassCard({
 
           {/* Participants — bottom inline-end, only when present */}
           {participants.length > 0 && (
-            <div
-              dir={isRtl ? "rtl" : "ltr"}
-              className="absolute bottom-3 z-[3] flex items-center gap-1"
-              style={{ right: "14px" }}
-            >
+            <div dir={dir} className="absolute bottom-3 end-3 z-[3] flex items-center gap-1">
               {participants.slice(0, 3).map((n, i) => (
                 <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
               ))}
@@ -418,14 +438,27 @@ export function VisualClassCard({
           )}
         </div>
 
-        <div className="class-card-copy">
-          <div className="class-card-main" dir={isRtl ? "rtl" : "ltr"}>
-            <h3 className="font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-tight text-navy">
-              {title}
-            </h3>
-            <p className="text-[13px] sm:text-[14px] text-slate leading-snug line-clamp-1">
-              {instructor}
-              {room ? ` · ${room}` : " · Cloud & Core"}
+        <div className="class-card-copy" dir={dir}>
+          <div className="class-card-main" dir={dir}>
+            <MixedLessonTitle
+              as="h3"
+              brand={titleParts.brand}
+              program={titleParts.program}
+              dir={dir}
+              className="lesson-card-title font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-normal text-navy"
+            />
+            <div className="lesson-chip-row mt-2">
+              {metaChips.map((chip) => (
+                <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
+                  <bdi>{chip}</bdi>
+                </span>
+              ))}
+            </div>
+            <p
+              className="lesson-card-instructor mt-2 text-[13px] sm:text-[14px] text-slate leading-snug"
+              dir="auto"
+            >
+              {instructor ?? t("member.locationStudio")}
             </p>
           </div>
         </div>
@@ -443,26 +476,35 @@ export function VisualClassCardMini({
   state,
   to,
 }: {
-  cls: any;
+  cls: VisualClassCardClass;
   state: ClassState;
   to: string;
 }) {
+  const { dir, lang } = useI18n();
+  const isRtl = dir === "rtl";
   const { tone, chipLabel } = toneFor(state);
-  const title = localizedClassTitle(cls);
-  const instructor = localizedInstructorName(cls.instructor?.name);
+  const title = localizedClassTitleParts(cls, lang);
+  const metaChips = localizedClassMetadataChips(cls);
+  const instructor = localizedOptionalInstructorName(cls.instructor?.name);
   return (
     <Link
       to={to}
-      className={`relative block overflow-hidden rounded-[14px] border border-gold/25 ${tone.card}`}
+      dir={dir}
+      className={`relative block overflow-hidden rounded-[14px] border border-gold/25 ${
+        isRtl ? "is-rtl" : "is-ltr"
+      } ${tone.card}`}
     >
-      <span className={`absolute inset-y-0 start-0 w-[3px] ${tone.rail}`} aria-hidden />
-      <div className={`flex items-center gap-3 p-2.5 ${tone.text}`}>
+      <span
+        className={`absolute inset-y-0 ${isRtl ? "end-0" : "start-0"} w-[3px] ${tone.rail}`}
+        aria-hidden
+      />
+      <div className={`flex items-center gap-3 p-2.5 text-start ${tone.text}`}>
         <div
           className="relative shrink-0 overflow-hidden rounded-[12px] border border-gold/25"
           style={{ width: 52, height: 52 }}
         >
           <ClassMoodImage
-            title={title}
+            title={title.full}
             programTypeName={localizedProgramName(cls?.program_type)}
             imageUrl={resolveClassImageSrc(cls, "thumb")}
             variant="thumb"
@@ -473,12 +515,28 @@ export function VisualClassCardMini({
             <div className="absolute inset-0 bg-sand/40 mix-blend-luminosity" aria-hidden />
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-sans text-[14px] font-semibold leading-tight tracking-normal truncate">
-            {title}
-          </p>
+        <div dir={dir} className="min-w-0 flex-1 text-start">
+          <MixedLessonTitle
+            as="p"
+            brand={title.brand}
+            program={title.program}
+            dir={dir}
+            className="truncate font-sans text-[14px] font-semibold leading-tight tracking-normal"
+          />
           <p className={`text-[11px] truncate ${tone.soft} tabular-nums`}>
-            {formatTime(cls.starts_at)} · {instructor}
+            <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
+            {metaChips[0] ? <span aria-hidden="true"> · </span> : null}
+            {metaChips[0] ? (
+              <span dir="auto">
+                <bdi>{metaChips[0]}</bdi>
+              </span>
+            ) : null}
+            {instructor ? <span aria-hidden="true"> · </span> : null}
+            {instructor ? (
+              <span dir="auto">
+                <bdi>{instructor}</bdi>
+              </span>
+            ) : null}
           </p>
         </div>
         <span

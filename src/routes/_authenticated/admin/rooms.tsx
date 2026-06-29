@@ -7,9 +7,11 @@ import { listRooms, upsertRoom, deleteRoom } from "@/lib/rooms.functions";
 import { Empty, SectionTitle, Field, CardSkeleton } from "@/components/admin-shared";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ImagePlus } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { studioImages } from "@/lib/image-assets";
 
 export const Route = createFileRoute("/_authenticated/admin/rooms")({
-  head: () => ({ meta: [{ title: "Rooms — Studio Admin" }] }),
   component: RoomsPage,
 });
 
@@ -35,12 +37,14 @@ const empty: Partial<Room> = {
   equipment_count: 0,
   setup_minutes_before: 10,
   setup_minutes_after: 10,
-  color: "#B7CCE6",
+  color: "#E8DFD1",
   notes: "",
   active: true,
 };
 
 function RoomsPage() {
+  const { t } = useI18n();
+  useDocumentTitle("page.rooms.title");
   const list = useServerFn(listRooms);
   const upsert = useServerFn(upsertRoom);
   const remove = useServerFn(deleteRoom);
@@ -58,20 +62,20 @@ function RoomsPage() {
   const save = useMutation({
     mutationFn: (r: Partial<Room>) => upsert({ data: r as any }),
     onSuccess: () => {
-      toast.success("Room saved");
+      toast.success(t("admin.rooms.saved"));
       qc.invalidateQueries({ queryKey: ["admin-rooms"] });
       setEditing(null);
     },
-    onError: (e: any) => toast.error(e?.message ?? "Could not save"),
+    onError: (e: any) => toast.error(e?.message ?? t("admin.rooms.couldNotSave")),
   });
 
   const del = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
     onSuccess: () => {
-      toast.success("Room removed");
+      toast.success(t("admin.rooms.removed"));
       qc.invalidateQueries({ queryKey: ["admin-rooms"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Could not delete"),
+    onError: (e: any) => toast.error(e?.message ?? t("admin.rooms.couldNotDelete")),
   });
 
   async function onPickImage(file: File) {
@@ -90,9 +94,9 @@ function RoomsPage() {
         .createSignedUrl(path, 60 * 60 * 24 * 365);
       if (sErr) throw sErr;
       setEditing((e) => ({ ...(e ?? {}), image_url: signed.signedUrl }));
-      toast.success("Image uploaded");
+      toast.success(t("admin.rooms.imageUploaded"));
     } catch (err: any) {
-      toast.error(err?.message ?? "Upload failed");
+      toast.error(err?.message ?? t("admin.rooms.uploadFailed"));
     } finally {
       setUploading(false);
     }
@@ -104,96 +108,97 @@ function RoomsPage() {
         action={
           <button
             onClick={() => setEditing(empty)}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gold text-[11px] uppercase tracking-[0.18em] rounded-[2px] hover:bg-gold hover:text-ivory transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl border border-gold px-4 py-2 text-xs font-medium text-navy transition-colors hover:bg-gold hover:text-ivory"
           >
-            <Plus className="h-3.5 w-3.5" /> Add room
+            <Plus className="h-3.5 w-3.5" /> {t("admin.rooms.add")}
           </button>
         }
       >
-        Rooms
+        {t("admin.rooms.title")}
       </SectionTitle>
 
       {isLoading ? (
         <CardSkeleton rows={3} />
       ) : (data ?? []).length === 0 ? (
-        <Empty>No rooms yet. Add your first studio space to start scheduling classes.</Empty>
+        <Empty>{t("admin.noRooms")}</Empty>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {(data as Room[]).map((r) => (
-            <article
-              key={r.id}
-              className="editorial-card overflow-hidden flex flex-col"
-              style={{ borderLeft: `3px solid ${r.color}` }}
-            >
-              {r.image_url ? (
+          {(data as Room[]).map((r) => {
+            const imageSrc = r.image_url || studioImages.studioInterior.src;
+            return (
+              <article
+                key={r.id}
+                className="editorial-card overflow-hidden flex flex-col"
+                style={{ borderInlineStart: `3px solid ${r.color}` }}
+              >
                 <img
-                  src={r.image_url}
+                  src={imageSrc}
                   alt={r.name}
                   loading="lazy"
                   width={640}
                   height={360}
                   className="w-full aspect-[16/9] object-cover"
                 />
-              ) : (
-                <div className="w-full aspect-[16/9] bg-[#E8DFD1]/40 flex items-center justify-center text-slate font-display italic text-sm">
-                  No image yet
-                </div>
-              )}
-              <div className="p-5 flex-1 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-display text-xl truncate">{r.name}</h3>
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-1">
-                      Cap {r.capacity} · {r.equipment_count} setups
-                    </p>
+                {!r.image_url && <span className="sr-only">{t("admin.rooms.noImageYet")}</span>}
+                <div className="p-5 flex-1 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-display text-xl truncate">{r.name}</h3>
+                      <p className="mt-1 text-xs font-medium text-slate">
+                        {t("admin.rooms.capacitySetup", {
+                          capacity: r.capacity,
+                          setups: r.equipment_count,
+                        })}
+                      </p>
+                    </div>
+                    {!r.active && (
+                      <span className="rounded-full border border-slate/40 px-2.5 py-1 text-xs font-medium text-slate">
+                        {t("admin.rooms.off")}
+                      </span>
+                    )}
                   </div>
-                  {!r.active && (
-                    <span className="text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 border border-slate/40 text-slate rounded-[2px]">
-                      Off
-                    </span>
+                  {r.description && (
+                    <p className="text-sm text-slate leading-relaxed line-clamp-3">
+                      {r.description}
+                    </p>
                   )}
+                  <div className="mt-auto flex items-center justify-end gap-2 pt-3 border-t border-gold/20">
+                    <button
+                      onClick={() => setEditing(r)}
+                      className="btn-ghost inline-flex items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> {t("common.edit")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(t("admin.rooms.removeConfirm", { name: r.name }))) {
+                          del.mutate(r.id);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-slate hover:text-destructive"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> {t("common.delete")}
+                    </button>
+                  </div>
                 </div>
-                {r.description && (
-                  <p className="text-sm text-slate leading-relaxed line-clamp-3">{r.description}</p>
-                )}
-                <div className="mt-auto flex items-center justify-end gap-2 pt-3 border-t border-gold/20">
-                  <button
-                    onClick={() => setEditing(r)}
-                    className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.15em] text-slate hover:text-navy"
-                  >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (
-                        confirm(`Remove "${r.name}"? Existing classes will keep their text room.`)
-                      ) {
-                        del.mutate(r.id);
-                      }
-                    }}
-                    className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.15em] text-slate hover:text-destructive"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Delete
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
       {editing && (
         <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6">
-          <div className="bg-ivory w-full md:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-[6px] md:rounded-[6px] border border-gold/30 shadow-xl">
+          <div className="w-full max-h-[92vh] overflow-y-auto rounded-t-2xl border border-gold/30 bg-ivory shadow-[0_30px_60px_-28px_rgba(11,29,58,0.32)] md:max-w-2xl md:rounded-2xl">
             <header className="flex items-center justify-between p-6 border-b border-gold/20">
-              <h3 className="font-display italic text-2xl">
-                {editing.id ? "Edit room" : "Add room"}
+              <h3 className="font-display text-2xl">
+                {editing.id ? t("admin.rooms.edit") : t("admin.rooms.add")}
               </h3>
               <button
                 onClick={() => setEditing(null)}
-                className="text-slate hover:text-navy text-sm uppercase tracking-[0.18em]"
+                className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
               >
-                Close
+                ×
               </button>
             </header>
             <form
@@ -205,7 +210,7 @@ function RoomsPage() {
             >
               <div className="flex items-start gap-4">
                 <div
-                  className="w-32 aspect-[4/3] shrink-0 rounded-[4px] overflow-hidden border border-gold/30 bg-[#E8DFD1]/40 flex items-center justify-center"
+                  className="bg-sand/40 flex aspect-[4/3] w-32 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-gold/30"
                   style={
                     editing.image_url
                       ? { backgroundImage: `url(${editing.image_url})`, backgroundSize: "cover" }
@@ -213,8 +218,8 @@ function RoomsPage() {
                   }
                 >
                   {!editing.image_url && (
-                    <span className="text-[10px] uppercase tracking-[0.15em] text-slate">
-                      No image
+                    <span className="text-xs font-medium text-slate">
+                      {t("admin.rooms.noImage")}
                     </span>
                   )}
                 </div>
@@ -233,19 +238,17 @@ function RoomsPage() {
                     type="button"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
-                    className="inline-flex items-center gap-2 px-3 py-2 border border-gold/50 text-[11px] uppercase tracking-[0.18em] rounded-[2px] hover:bg-gold/10 disabled:opacity-50"
+                    className="btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs hover:btn-outline-hover disabled:opacity-50"
                   >
                     <ImagePlus className="h-3.5 w-3.5" />{" "}
-                    {uploading ? "Uploading…" : "Upload image"}
+                    {uploading ? t("admin.rooms.uploading") : t("admin.rooms.uploadImage")}
                   </button>
-                  <p className="text-[11px] text-slate">
-                    Stored privately in studio-media; signed for one year on use.
-                  </p>
+                  <p className="text-xs text-slate">{t("admin.rooms.imageHelp")}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Name">
+                <Field label={t("admin.rooms.name")}>
                   <input
                     className="editorial-input"
                     required
@@ -253,15 +256,15 @@ function RoomsPage() {
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                   />
                 </Field>
-                <Field label="Accent colour">
+                <Field label={t("admin.rooms.accentColour")}>
                   <input
                     type="color"
                     className="editorial-input h-11"
-                    value={editing.color ?? "#B7CCE6"}
+                    value={editing.color ?? "#E8DFD1"}
                     onChange={(e) => setEditing({ ...editing, color: e.target.value })}
                   />
                 </Field>
-                <Field label="Capacity">
+                <Field label={t("admin.rooms.capacity")}>
                   <input
                     type="number"
                     min={1}
@@ -271,7 +274,7 @@ function RoomsPage() {
                     onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })}
                   />
                 </Field>
-                <Field label="Equipment / hammocks">
+                <Field label={t("admin.rooms.equipment")}>
                   <input
                     type="number"
                     min={0}
@@ -283,7 +286,7 @@ function RoomsPage() {
                     }
                   />
                 </Field>
-                <Field label="Setup before (min)">
+                <Field label={t("admin.rooms.setupBefore")}>
                   <input
                     type="number"
                     min={0}
@@ -295,7 +298,7 @@ function RoomsPage() {
                     }
                   />
                 </Field>
-                <Field label="Setup after (min)">
+                <Field label={t("admin.rooms.setupAfter")}>
                   <input
                     type="number"
                     min={0}
@@ -308,14 +311,14 @@ function RoomsPage() {
                   />
                 </Field>
               </div>
-              <Field label="Description">
+              <Field label={t("admin.rooms.description")}>
                 <textarea
                   className="editorial-input min-h-24"
                   value={editing.description ?? ""}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                 />
               </Field>
-              <Field label="Internal notes">
+              <Field label={t("admin.rooms.internalNotes")}>
                 <textarea
                   className="editorial-input min-h-16"
                   value={editing.notes ?? ""}
@@ -328,23 +331,23 @@ function RoomsPage() {
                   checked={editing.active ?? true}
                   onChange={(e) => setEditing({ ...editing, active: e.target.checked })}
                 />
-                Active (available for scheduling)
+                {t("admin.rooms.active")}
               </label>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-gold/20">
                 <button
                   type="button"
                   onClick={() => setEditing(null)}
-                  className="text-[11px] uppercase tracking-[0.18em] text-slate hover:text-navy"
+                  className="text-xs font-medium text-slate transition-colors hover:text-navy"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={save.isPending}
-                  className="inline-flex items-center px-5 py-2 bg-navy text-ivory text-[11px] uppercase tracking-[0.2em] rounded-[2px] disabled:opacity-60 hover:bg-navy/90"
+                  className="inline-flex items-center rounded-xl bg-navy px-5 py-2 text-xs font-medium text-ivory transition-colors hover:bg-navy/90 disabled:opacity-60"
                 >
-                  {save.isPending ? "Saving…" : "Save room"}
+                  {save.isPending ? t("common.saving") : t("admin.rooms.save")}
                 </button>
               </div>
             </form>

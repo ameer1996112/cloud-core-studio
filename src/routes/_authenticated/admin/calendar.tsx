@@ -19,9 +19,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { ClassRosterDrawer } from "@/components/admin/ClassRosterDrawer";
+import { getLocale, t, useI18n, type Lang } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/admin/calendar")({
-  head: () => ({ meta: [{ title: "Calendar — Studio Admin" }] }),
   component: CalendarPage,
 });
 
@@ -38,10 +40,41 @@ function sameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString();
 }
 function fmtTime(d: Date) {
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function fmtDate(d: Date, opts: Intl.DateTimeFormatOptions) {
+  return d.toLocaleDateString(getLocale(), opts);
+}
+
+function classCountLabel(count: number) {
+  return t("calendar.classCount", { count });
+}
+
+function localizedRoomName(name: string | null | undefined, lang: Lang) {
+  if (!name) return "—";
+  const normalized = name.trim();
+  const aliases: Record<string, Record<Lang, string>> = {
+    "Cloud Studio": { en: "Cloud Studio", he: "סטודיו קלאוד", ar: "استوديو كلاود" },
+    "E2E Studio": { en: "E2E Studio", he: "סטודיו E2E", ar: "استوديو E2E" },
+  };
+  return aliases[normalized]?.[lang] ?? normalized;
+}
+
+function classMeta(cls: any, lang: Lang, room?: any) {
+  const normalizedClass = cls.program_type ? cls : { ...cls, program_type: cls.program };
+  return {
+    title: localizedClassTitle(normalizedClass, lang),
+    room: localizedRoomName(room?.name ?? cls.room_ref?.name ?? cls.room, lang),
+    instructor: cls.instructor?.name
+      ? localizedInstructorName(cls.instructor.name, lang)
+      : t("common.unassigned"),
+  };
 }
 
 function CalendarPage() {
+  useDocumentTitle("page.calendar.title");
+  useI18n();
   const fn = useServerFn(calendarRange);
   const [view, setView] = useState<ViewMode>("week");
   const [openClassId, setOpenClassId] = useState<string | null>(null);
@@ -66,8 +99,8 @@ function CalendarPage() {
       fn({ data: { fromIso: range.from.toISOString(), toIso: range.to.toISOString() } }),
   });
 
-  const rooms = data?.rooms ?? [];
-  const classes = data?.classes ?? [];
+  const rooms = useMemo(() => data?.rooms ?? [], [data?.rooms]);
+  const classes = useMemo(() => data?.classes ?? [], [data?.classes]);
 
   const days = useMemo(() => {
     const arr: Date[] = [];
@@ -109,9 +142,9 @@ function CalendarPage() {
 
   const headerLabel =
     view === "day"
-      ? anchor.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })
-      : `Week of ${range.from.toLocaleDateString(undefined, { month: "long", day: "numeric" })}`;
-  const headerEyebrow = view === "day" ? "Day view" : "Week view";
+      ? fmtDate(anchor, { weekday: "long", month: "long", day: "numeric" })
+      : t("calendar.weekOf", { date: fmtDate(range.from, { month: "long", day: "numeric" }) });
+  const headerEyebrow = view === "day" ? t("calendar.dayView") : t("calendar.weekView");
 
   return (
     <div className="space-y-7">
@@ -119,8 +152,8 @@ function CalendarPage() {
       <header className="space-y-5 pb-5 border-b border-gold/25">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
           <div className="min-w-0">
-            <p className="eyebrow text-[10px]">{headerEyebrow}</p>
-            <h2 className="font-display italic text-2xl sm:text-3xl mt-1.5 text-navy truncate">
+            <p className="eyebrow">{headerEyebrow}</p>
+            <h2 className="mt-1.5 truncate font-display text-2xl text-navy sm:text-3xl">
               {headerLabel}
             </h2>
           </div>
@@ -128,17 +161,17 @@ function CalendarPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <NavBtn onClick={() => shift(view === "day" ? -1 : -7)} aria-label="Previous">
-            <ChevronLeft className="h-4 w-4" />
+          <NavBtn onClick={() => shift(view === "day" ? -1 : -7)} aria-label={t("common.back")}>
+            <ChevronLeft className="h-4 w-4 directional-icon-back" />
           </NavBtn>
           <button
             onClick={today}
-            className="h-10 px-4 inline-flex items-center text-[11px] uppercase tracking-[0.2em] border border-gold/40 rounded-[2px] text-navy hover:bg-gold/10"
+            className="btn-outline inline-flex h-10 items-center px-4 text-xs hover:btn-outline-hover"
           >
-            Today
+            {t("common.today")}
           </button>
-          <NavBtn onClick={() => shift(view === "day" ? 1 : 7)} aria-label="Next">
-            <ChevronRight className="h-4 w-4" />
+          <NavBtn onClick={() => shift(view === "day" ? 1 : 7)} aria-label={t("common.next")}>
+            <ChevronRight className="h-4 w-4 directional-icon-forward" />
           </NavBtn>
           <div className="hidden sm:block h-6 w-px bg-gold/30 mx-1" />
           <QuickActions />
@@ -149,19 +182,19 @@ function CalendarPage() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Kpi
           icon={CalIcon}
-          label={view === "day" ? "Classes today" : "Today · classes"}
+          label={view === "day" ? t("calendar.classesToday") : t("calendar.todayClasses")}
           value={kpi.classes}
         />
-        <Kpi icon={Users} label="Booked spots" value={kpi.bookedSpots} />
+        <Kpi icon={Users} label={t("calendar.bookedSpots")} value={kpi.bookedSpots} />
         <Kpi
           icon={Clock}
-          label="Waitlist pressure"
+          label={t("calendar.waitlistPressure")}
           value={kpi.waiting}
           tone={kpi.waiting > 0 ? "gold" : "default"}
         />
         <Kpi
           icon={MapPin}
-          label="Rooms in use"
+          label={t("calendar.roomsInUse")}
           value={`${kpi.roomsInUse}${rooms.length ? ` / ${rooms.length}` : ""}`}
         />
       </section>
@@ -173,11 +206,11 @@ function CalendarPage() {
         <CalendarSkeleton />
       ) : rooms.length === 0 ? (
         <Empty>
-          Add at least one room from{" "}
+          {t("calendar.addRoomPrompt")}{" "}
           <Link to="/admin/rooms" className="underline underline-offset-4">
-            Rooms
+            {t("common.room")}
           </Link>{" "}
-          to see the calendar.
+          {t("calendar.addRoomSuffix")}
         </Empty>
       ) : view === "day" ? (
         <DayLayout day={anchor} rooms={rooms} classes={classes} onOpen={setOpenClassId} />
@@ -195,12 +228,15 @@ function CalendarPage() {
       {/* Room legend */}
       {rooms.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 border-t border-gold/20">
-          <span className="eyebrow text-[10px]">Rooms</span>
+          <span className="eyebrow">{t("calendar.rooms")}</span>
           {rooms.map((r: any) => (
-            <span key={r.id} className="inline-flex items-center gap-2 text-[11px] text-slate">
+            <span key={r.id} className="inline-flex items-center gap-2 text-xs text-slate">
               <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: r.color }} />
               <span className="truncate">
-                {r.name} <span className="text-slate/60">· cap {r.capacity}</span>
+                {localizedRoomName(r.name, getLocale() as Lang)}{" "}
+                <span className="text-slate/60">
+                  · {t("calendar.capacityShort", { count: r.capacity })}
+                </span>
               </span>
             </span>
           ))}
@@ -215,17 +251,21 @@ function CalendarPage() {
 /* ============= Shared chrome ============= */
 
 function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
+  const labels: Record<ViewMode, string> = {
+    day: t("calendar.day"),
+    week: t("calendar.week"),
+  };
   return (
-    <div className="inline-flex border border-gold/40 rounded-[2px] overflow-hidden shrink-0">
+    <div className="inline-flex shrink-0 overflow-hidden rounded-full border border-gold/40 bg-ivory">
       {(["day", "week"] as const).map((v) => (
         <button
           key={v}
           onClick={() => onChange(v)}
-          className={`px-3.5 h-10 text-[11px] uppercase tracking-[0.2em] transition ${
-            view === v ? "bg-navy text-ivory" : "text-slate hover:text-navy bg-ivory"
+          className={`h-10 px-4 text-xs font-medium transition ${
+            view === v ? "bg-navy text-ivory" : "bg-ivory text-slate hover:text-navy/85"
           }`}
         >
-          {v}
+          {labels[v]}
         </button>
       ))}
     </div>
@@ -236,7 +276,7 @@ function NavBtn({ children, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement
   return (
     <button
       {...p}
-      className="h-10 w-10 inline-flex items-center justify-center border border-gold/40 rounded-[2px] text-navy hover:bg-gold/10"
+      className="btn-outline inline-flex h-10 w-10 items-center justify-center p-0 hover:btn-outline-hover"
     >
       {children}
     </button>
@@ -245,10 +285,10 @@ function NavBtn({ children, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement
 
 function QuickActions() {
   const items = [
-    { to: "/admin/classes/new", icon: Plus, label: "Add class" },
-    { to: "/admin/classes/new", icon: UserPlus, label: "Private session" },
-    { to: "/admin/rooms", icon: Lock, label: "Block room time" },
-    { to: "/admin/attendance", icon: ClipboardCheck, label: "Attendance" },
+    { to: "/admin/classes/new", icon: Plus, label: t("calendar.addClass") },
+    { to: "/admin/classes/new", icon: UserPlus, label: t("calendar.privateSession") },
+    { to: "/admin/rooms", icon: Lock, label: t("calendar.blockRoom") },
+    { to: "/admin/attendance", icon: ClipboardCheck, label: t("nav.attendance") },
   ] as const;
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -256,7 +296,7 @@ function QuickActions() {
         <Link
           key={i.label}
           to={i.to}
-          className="inline-flex items-center gap-1.5 h-10 px-3 border border-gold/30 rounded-[2px] text-[11px] uppercase tracking-[0.18em] text-navy bg-ivory hover:bg-gold/10"
+          className="btn-outline inline-flex h-10 items-center gap-1.5 bg-ivory px-3 text-xs hover:btn-outline-hover"
         >
           <i.icon className="h-3.5 w-3.5 text-gold" />{" "}
           <span className="hidden sm:inline">{i.label}</span>
@@ -279,10 +319,10 @@ function Kpi({
 }) {
   return (
     <div
-      className={`editorial-card px-4 py-3.5 sm:p-5 ${tone === "gold" ? "border-l-4 border-l-gold" : ""}`}
+      className={`editorial-card px-4 py-3.5 sm:p-5 ${tone === "gold" ? "border-s-4 border-s-gold" : ""}`}
     >
       <div className="flex items-center justify-between">
-        <p className="eyebrow text-[9px] sm:text-[10px] truncate">{label}</p>
+        <p className="truncate text-xs font-medium text-slate">{label}</p>
         <Icon className="h-3.5 w-3.5 text-gold/70 shrink-0" />
       </div>
       <p className="numeric-display mt-2 text-2xl sm:text-3xl">{value}</p>
@@ -307,10 +347,10 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="editorial-panel p-10 text-center space-y-4">
       <AlertCircle className="h-6 w-6 text-gold mx-auto" />
-      <p className="font-display italic text-xl text-navy">The calendar couldn't load.</p>
-      <p className="text-sm text-slate">Check your connection, then try again.</p>
+      <p className="font-display text-xl text-navy">{t("calendar.loadErrorTitle")}</p>
+      <p className="text-sm text-slate">{t("calendar.loadErrorBody")}</p>
       <button onClick={onRetry} className="btn-navy mx-auto hover:btn-navy-hover">
-        Retry
+        {t("common.retry")}
       </button>
     </div>
   );
@@ -385,9 +425,11 @@ function DayTimeline({
             className="sticky top-0 z-10 bg-ivory border-b border-gold/25 px-4 py-3"
             style={{ boxShadow: `inset 0 3px 0 ${r.color}` }}
           >
-            <p className="font-display text-base text-navy truncate leading-tight">{r.name}</p>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-slate mt-0.5">
-              Cap {r.capacity}
+            <p className="font-display text-base text-navy truncate leading-tight">
+              {localizedRoomName(r.name, getLocale() as Lang)}
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-slate">
+              {t("calendar.capacityShort", { count: r.capacity })}
             </p>
           </div>
         ))}
@@ -397,7 +439,7 @@ function DayTimeline({
           {Array.from({ length: totalHours }).map((_, i) => (
             <div
               key={i}
-              className="text-[10px] uppercase tracking-[0.18em] text-slate pl-2 pt-1 border-t border-gold/15"
+              className="border-t border-gold/15 ps-2 pt-1 text-xs font-medium text-slate"
               style={{ height: HOUR_PX }}
             >
               {String(startHour + i).padStart(2, "0")}:00
@@ -409,7 +451,7 @@ function DayTimeline({
         {rooms.map((r) => (
           <div
             key={r.id}
-            className="relative border-l border-gold/15"
+            className="relative border-s border-gold/15"
             style={{ height: HOUR_PX * totalHours }}
           >
             {Array.from({ length: totalHours }).map((_, i) => (
@@ -419,12 +461,13 @@ function DayTimeline({
             {showNow && (
               <div className="absolute inset-x-0 z-20 pointer-events-none" style={{ top: nowTop }}>
                 <div className="h-px bg-gold relative">
-                  <span className="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-gold" />
+                  <span className="absolute -start-1 -top-1 h-2 w-2 rounded-full bg-gold" />
                 </div>
               </div>
             )}
             {itemsFor(r).map((c: any) => {
               const start = new Date(c.starts_at);
+              const meta = classMeta(c, getLocale() as Lang, r);
               const offsetMin = (start.getHours() - startHour) * 60 + start.getMinutes();
               const top = (offsetMin / 60) * HOUR_PX;
               const height = Math.max(38, (c.duration_minutes / 60) * HOUR_PX - 4);
@@ -432,18 +475,18 @@ function DayTimeline({
                 <button
                   key={c.id}
                   onClick={() => onOpen(c.id)}
-                  className="absolute inset-x-1.5 rounded-[4px] px-3 py-2 text-left overflow-hidden bg-white border border-gold/30 hover:border-gold transition-shadow shadow-[0_1px_0_rgba(11,29,58,0.04)] hover:shadow-[0_6px_18px_-8px_rgba(11,29,58,0.18)]"
-                  style={{ top, height, borderLeft: `3px solid ${r.color}` }}
-                  aria-label={`${c.title} at ${fmtTime(start)}`}
+                  className="absolute inset-x-1.5 rounded-[4px] px-3 py-2 text-start overflow-hidden bg-white border border-gold/30 hover:border-gold transition-shadow shadow-[0_1px_0_rgba(11,29,58,0.04)] hover:shadow-[0_6px_18px_-8px_rgba(11,29,58,0.18)]"
+                  style={{ top, height, borderInlineStart: `3px solid ${r.color}` }}
+                  aria-label={`${meta.title} ${fmtTime(start)}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-display text-[14px] leading-tight text-navy truncate flex-1">
-                      {c.title}
+                      {meta.title}
                     </p>
                     <StatusBadge cls={c} />
                   </div>
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-slate mt-1 truncate">
-                    {fmtTime(start)} · {c.instructor?.name ?? "—"} · {c.booked_count}/{c.capacity}
+                  <p className="mt-1 truncate text-xs font-medium text-slate">
+                    {fmtTime(start)} · {meta.instructor} · {c.booked_count}/{c.capacity}
                     {c.waitlist_count > 0 ? ` · +${c.waitlist_count}` : ""}
                   </p>
                 </button>
@@ -476,9 +519,9 @@ function DayAgenda({
   );
 
   const buckets: { label: string; items: any[] }[] = [
-    { label: "Morning", items: [] },
-    { label: "Afternoon", items: [] },
-    { label: "Evening", items: [] },
+    { label: t("calendar.morning"), items: [] },
+    { label: t("calendar.afternoon"), items: [] },
+    { label: t("calendar.evening"), items: [] },
   ];
   items.forEach((c: any) => {
     const h = new Date(c.starts_at).getHours();
@@ -501,9 +544,9 @@ function DayAgenda({
         .map((b) => (
           <div key={b.label} className="space-y-3">
             <div className="flex items-baseline justify-between">
-              <h3 className="font-display italic text-xl text-navy">{b.label}</h3>
-              <span className="text-[10px] uppercase tracking-[0.2em] text-slate">
-                {b.items.length} class{b.items.length === 1 ? "" : "es"}
+              <h3 className="font-display text-xl text-navy">{b.label}</h3>
+              <span className="text-xs font-medium text-slate">
+                {classCountLabel(b.items.length)}
               </span>
             </div>
             <div className="space-y-2.5">
@@ -525,27 +568,29 @@ function DayAgenda({
 function AgendaCard({ cls, room, onOpen }: { cls: any; room: any; onOpen: () => void }) {
   const start = new Date(cls.starts_at);
   const color = room?.color ?? cls.program?.color ?? "#D4AF6A";
+  const meta = classMeta(cls, getLocale() as Lang, room);
   return (
     <button
       onClick={onOpen}
-      className="w-full text-left bg-white border border-gold/30 hover:border-gold rounded-[6px] p-4 flex gap-4 items-center transition-shadow shadow-[0_1px_0_rgba(11,29,58,0.04)] hover:shadow-[0_8px_22px_-10px_rgba(11,29,58,0.18)]"
-      style={{ borderLeft: `4px solid ${color}` }}
+      className="flex w-full items-center gap-4 rounded-xl border border-gold/30 bg-white p-4 text-start shadow-[0_1px_0_rgba(11,29,58,0.04)] transition-shadow hover:border-gold hover:shadow-[0_8px_22px_-10px_rgba(11,29,58,0.18)]"
+      style={{ borderInlineStart: `4px solid ${color}` }}
     >
-      <div className="text-right pr-4 border-r border-gold/25 min-w-[64px]">
+      <div className="text-end pe-4 border-e border-gold/25 min-w-[64px]">
         <p className="font-display text-xl text-navy leading-none">{fmtTime(start)}</p>
-        <p className="text-[10px] uppercase tracking-[0.18em] text-slate mt-1">
-          {cls.duration_minutes}m
+        <p className="mt-1 text-xs font-medium text-slate">
+          {cls.duration_minutes}
+          {t("common.minutes")}
         </p>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-display text-lg text-navy leading-tight truncate">{cls.title}</p>
+          <p className="font-display text-lg text-navy leading-tight truncate">{meta.title}</p>
           <StatusBadge cls={cls} />
         </div>
-        <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-1 truncate">
-          {room?.name ?? cls.room ?? "—"} · {cls.instructor?.name ?? "Unassigned"}
+        <p className="mt-1 truncate text-xs font-medium text-slate">
+          {meta.room} · {meta.instructor}
         </p>
-        <p className="text-[11px] text-slate mt-1.5 flex items-center gap-3">
+        <p className="mt-1.5 flex items-center gap-3 text-xs text-slate">
           <span className="inline-flex items-center gap-1">
             <Users className="h-3 w-3 text-gold" />
             {cls.booked_count}/{cls.capacity}
@@ -553,7 +598,7 @@ function AgendaCard({ cls, room, onOpen }: { cls: any; room: any; onOpen: () => 
           {cls.waitlist_count > 0 && (
             <span className="inline-flex items-center gap-1 text-navy">
               <Clock className="h-3 w-3 text-gold" />
-              {cls.waitlist_count} waiting
+              {t("calendar.waitingCount", { count: cls.waitlist_count })}
             </span>
           )}
         </p>
@@ -566,8 +611,8 @@ function EmptyDay() {
   return (
     <div className="editorial-panel p-10 text-center space-y-3">
       <Sparkles className="h-5 w-5 text-gold mx-auto" />
-      <p className="font-display italic text-xl text-navy">A calm day at the studio.</p>
-      <p className="text-sm text-slate">No classes scheduled. Use Add class to plan one.</p>
+      <p className="font-display text-xl text-navy">{t("calendar.emptyDayTitle")}</p>
+      <p className="text-sm text-slate">{t("calendar.emptyDayBody")}</p>
     </div>
   );
 }
@@ -621,14 +666,14 @@ function WeekDesktop({
           const pressure = cap === 0 ? 0 : Math.round((booked / cap) * 100);
           const isToday = sameDay(d, today);
           return (
-            <div key={+d} className="border-l border-gold/15 first:border-l-0 min-h-[24rem]">
+            <div key={+d} className="border-s border-gold/15 first:border-s-0 min-h-[24rem]">
               <div
                 className={`px-3 py-3 border-b border-gold/25 ${isToday ? "bg-[rgba(212,175,106,0.10)]" : ""}`}
               >
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate">
-                      {d.toLocaleDateString(undefined, { weekday: "short" })}
+                    <p className="text-xs font-medium text-slate">
+                      {fmtDate(d, { weekday: "short" })}
                     </p>
                     <p
                       className={`font-display text-2xl leading-none mt-1 ${isToday ? "text-navy" : "text-navy/85"}`}
@@ -636,12 +681,12 @@ function WeekDesktop({
                       {d.getDate()}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate">
-                      {items.length} {items.length === 1 ? "class" : "classes"}
+                  <div className="text-end">
+                    <p className="text-xs font-medium text-slate">
+                      {classCountLabel(items.length)}
                     </p>
                     {cap > 0 && (
-                      <div className="mt-1.5 h-1 w-16 bg-sand rounded-full overflow-hidden ml-auto">
+                      <div className="mt-1.5 h-1 w-16 bg-sand rounded-full overflow-hidden ms-auto">
                         <div
                           className="h-full bg-gold"
                           style={{ width: `${Math.min(100, pressure)}%` }}
@@ -653,7 +698,7 @@ function WeekDesktop({
               </div>
               <div className="p-2 space-y-1.5">
                 {items.length === 0 ? (
-                  <p className="text-[10px] text-slate/60 italic text-center py-6">—</p>
+                  <p className="py-6 text-xs text-slate/60 italic text-center">—</p>
                 ) : (
                   items.map((c: any) => (
                     <WeekBlock key={c.id} cls={c} onOpen={() => onOpen(c.id)} />
@@ -671,21 +716,22 @@ function WeekDesktop({
 function WeekBlock({ cls, onOpen }: { cls: any; onOpen: () => void }) {
   const start = new Date(cls.starts_at);
   const color = cls.program?.color ?? "#D4AF6A";
+  const meta = classMeta(cls, getLocale() as Lang);
   return (
     <button
       onClick={onOpen}
-      className="w-full text-left bg-white border border-gold/25 hover:border-gold rounded-[4px] px-2.5 py-2 transition-shadow hover:shadow-[0_4px_14px_-6px_rgba(11,29,58,0.18)]"
-      style={{ borderLeft: `3px solid ${color}` }}
+      className="w-full text-start bg-white border border-gold/25 hover:border-gold rounded-[4px] px-2.5 py-2 transition-shadow hover:shadow-[0_4px_14px_-6px_rgba(11,29,58,0.18)]"
+      style={{ borderInlineStart: `3px solid ${color}` }}
     >
       <div className="flex items-center justify-between gap-1">
-        <p className="text-[10px] uppercase tracking-[0.16em] text-slate">{fmtTime(start)}</p>
+        <p className="text-xs font-medium text-slate">{fmtTime(start)}</p>
         <StatusBadge cls={cls} compact />
       </div>
       <p className="font-display text-[13px] leading-tight text-navy mt-0.5 line-clamp-2">
-        {cls.title}
+        {meta.title}
       </p>
-      <p className="text-[10px] text-slate mt-0.5 truncate">
-        {cls.room} · {cls.booked_count}/{cls.capacity}
+      <p className="mt-0.5 truncate text-xs text-slate">
+        {meta.room} · {cls.booked_count}/{cls.capacity}
         {cls.waitlist_count > 0 ? ` · +${cls.waitlist_count}` : ""}
       </p>
     </button>
@@ -739,14 +785,12 @@ function WeekMobile({
                       : "bg-white border-gold/30 text-navy hover:border-gold"
                 }`}
               >
-                <p
-                  className={`text-[9px] uppercase tracking-[0.2em] ${isSelected ? "text-ivory/80" : "text-slate"}`}
-                >
-                  {d.toLocaleDateString(undefined, { weekday: "short" })}
+                <p className={`text-xs font-medium ${isSelected ? "text-ivory/80" : "text-slate"}`}>
+                  {fmtDate(d, { weekday: "short" })}
                 </p>
                 <p className="font-display text-xl leading-none mt-1">{d.getDate()}</p>
                 <p
-                  className={`text-[9px] uppercase tracking-[0.18em] mt-1 ${isSelected ? "text-ivory/70" : "text-slate"}`}
+                  className={`mt-1 text-xs font-medium ${isSelected ? "text-ivory/70" : "text-slate"}`}
                 >
                   {count}
                 </p>
@@ -763,26 +807,26 @@ function WeekMobile({
 /* ============= Status badge ============= */
 
 function StatusBadge({ cls, compact = false }: { cls: any; compact?: boolean }) {
-  let label = "Open";
+  let label = t("common.open");
   let cls2 = "border-gold/40 text-navy bg-white";
   if (cls.status === "cancelled") {
-    label = "Cancelled";
+    label = t("state.cancelled");
     cls2 = "border-slate/30 text-slate bg-sand line-through decoration-slate/50";
   } else if (cls.status === "closed") {
-    label = "Closed";
+    label = t("state.closed");
     cls2 = "border-slate/30 text-slate bg-sand";
   } else if (cls.booked_count >= cls.capacity) {
     if (cls.waitlist_count > 0) {
-      label = "Waitlist";
+      label = t("roster.waitlist");
       cls2 = "border-gold text-navy bg-gold/15";
     } else {
-      label = "Full";
+      label = t("common.full");
       cls2 = "bg-navy text-ivory border-navy";
     }
   }
   return (
     <span
-      className={`inline-flex items-center shrink-0 rounded-[2px] border ${compact ? "px-1.5 py-0 text-[9px]" : "px-2 py-0.5 text-[10px]"} uppercase tracking-[0.14em] ${cls2}`}
+      className={`inline-flex shrink-0 items-center rounded-full border font-medium ${compact ? "px-1.5 py-0 text-xs" : "px-2 py-0.5 text-xs"} ${cls2}`}
     >
       {label}
     </span>

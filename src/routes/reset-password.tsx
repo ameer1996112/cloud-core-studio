@@ -3,13 +3,16 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Reset password — Cloud & Core" }] }),
   component: ResetPasswordPage,
 });
 
 function ResetPasswordPage() {
+  const { dir, t } = useI18n();
+  useDocumentTitle("page.resetPassword.title");
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -31,42 +34,42 @@ function ResetPasswordPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) {
-      toast("Passwords don't match.");
+      toast(t("reset.mismatch"));
       return;
     }
     if (password.length < 6) {
-      toast("Use at least 6 characters.");
+      toast(t("reset.tooShort"));
       return;
     }
     setBusy(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success("Password updated.");
+      toast.success(t("reset.success"));
       await supabase.auth.signOut();
       navigate({ to: "/auth", replace: true });
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Could not update password.");
+      toast(err instanceof Error ? err.message : t("reset.error"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <main className="min-h-[100dvh] member-shell flex items-center justify-center px-6">
+    <main dir={dir} className="min-h-[100dvh] member-shell flex items-center justify-center px-6">
       <div className="w-full max-w-sm member-card p-8">
-        <p className="member-eyebrow">Recover access</p>
-        <h1 className="font-display italic text-[2.25rem] leading-[1.05] text-navy mt-3">
-          A new <span className="italic">password</span>
+        <p className="member-eyebrow">{t("reset.eyebrow")}</p>
+        <h1 className="font-display text-[2.25rem] leading-[1.05] text-navy mt-3">
+          {t("reset.headline")}
         </h1>
         <div className="mt-4 h-px w-12 bg-gold" />
         <p className="text-sm text-slate mt-4">
-          {ready ? "Choose something memorable." : "Validating your reset link…"}
+          {ready ? t("reset.hint.ready") : t("reset.hint.loading")}
         </p>
 
         <form onSubmit={submit} className="space-y-4 mt-7">
           <label className="block">
-            <span className="field-label">New password</span>
+            <span className="field-label">{t("reset.newPassword")}</span>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -76,21 +79,24 @@ function ResetPasswordPage() {
                 minLength={6}
                 disabled={!ready}
                 autoComplete="new-password"
-                className="editorial-input focus:editorial-input-focus pr-10 disabled:opacity-60"
+                dir="ltr"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                className="editorial-input focus:editorial-input-focus pe-10 disabled:opacity-60"
               />
               <button
                 type="button"
-                tabIndex={-1}
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate hover:text-navy"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-slate hover:text-navy"
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </label>
           <label className="block">
-            <span className="field-label">Confirm password</span>
+            <span className="field-label">{t("reset.confirmPassword")}</span>
             <div className="relative">
               <input
                 type={showConfirm ? "text" : "password"}
@@ -100,14 +106,17 @@ function ResetPasswordPage() {
                 minLength={6}
                 disabled={!ready}
                 autoComplete="new-password"
-                className="editorial-input focus:editorial-input-focus pr-10 disabled:opacity-60"
+                dir="ltr"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                className="editorial-input focus:editorial-input-focus pe-10 disabled:opacity-60"
               />
               <button
                 type="button"
-                tabIndex={-1}
                 onClick={() => setShowConfirm((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate hover:text-navy"
-                aria-label={showConfirm ? "Hide password" : "Show password"}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-slate hover:text-navy"
+                aria-label={showConfirm ? t("auth.hidePassword") : t("auth.showPassword")}
               >
                 {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -122,7 +131,7 @@ function ResetPasswordPage() {
                 : "cta-navy hover:cta-navy-hover mt-3"
             }
           >
-            {busy ? "Saving…" : "Update password"}
+            {busy ? t("reset.saving") : t("reset.submit")}
           </button>
         </form>
       </div>

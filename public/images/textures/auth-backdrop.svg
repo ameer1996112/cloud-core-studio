@@ -13,6 +13,6 @@
     <circle cx="450" cy="180" r="70"/>
     <circle cx="450" cy="180" r="110"/>
   </g>
-  <text x="50" y="100" font-family="Georgia, serif" font-style="italic" font-size="36" fill="#FAF7F2">Cloud &amp; Core</text>
-  <text x="50" y="128" font-family="system-ui, sans-serif" font-size="11" letter-spacing="6" fill="#D4AF6A">BOUTIQUE STUDIO</text>
+  <text x="50" y="100" font-family="Cormorant Garamond, Georgia, serif" font-weight="600" font-size="36" fill="#FAF7F2">Cloud &amp; Core</text>
+  <text x="50" y="128" font-family="Assistant, system-ui, sans-serif" font-size="11" letter-spacing="4" fill="#D4AF6A">BOUTIQUE STUDIO</text>
 </svg>

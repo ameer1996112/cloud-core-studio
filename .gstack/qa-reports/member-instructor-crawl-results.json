@@ -1,0 +1,194 @@
+[
+  {
+    "role": "member",
+    "viewport": {
+      "width": 1366,
+      "height": 820
+    },
+    "path": "/member",
+    "url": "http://127.0.0.1:5173/member",
+    "finalPath": "/member",
+    "bodyLen": 432,
+    "body": "התרגול שלך\n\nבית\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nערב טוב\n\nE2E.\n\nברוכים השבים לסטודיו.\n\nקרדיטים\n\n3\n\nהזמנות\n\n0\n\nזמינים\n\n1\n\nהשיעור הבא שלך\n\nלהמשיך את התרגול\nכל השיעורים →\n17:34\n60דק׳\n10 מקומות פנויים\nיוגה אווירית\n\n— · Cloud Room\n\n10 פנויים\n\nחבילה פעילה\n\nE2E 10 Credits\n\n3\n\nקרדיטים שנותרו\n\nבתוקף עד\n7/24/2026\n\nפעולות מהירות\n\nהזמנת שיעור\nרכישת חבילה\nיצירת קשר עם הסטודיו\nבשבילך השבוע\nכל השיעורים →\n\nאין שיעורים בלוח כרגע.",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-1366-member.png",
+    "pass": true
+  },
+  {
+    "role": "member",
+    "viewport": {
+      "width": 1366,
+      "height": 820
+    },
+    "path": "/member/schedule",
+    "url": "http://127.0.0.1:5173/member/schedule",
+    "finalPath": "/member/schedule",
+    "bodyLen": 341,
+    "body": "התרגול שלך\n\nלוח שיעורים\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nלוח תרגול\n\nלוח שיעורים\n\nמצאו את השיעור הנכון, סננו לפי חדר או מדריכה, ושמרו על הביקור הבא ברור.\n\nזמינים\n\n1\n\nקרדיטים\n\n3\n\nהיום\nמחר\nהשבוע\nהכול\nרמה\nall-levels\nאנרגיה\ncalm\nחדר\nCloud Room\nיום חמישי\n· 25.06\n17:34\n60דק׳\n10 מקומות פנויים\nיוגה אווירית\n\n— · Cloud Room\n\n10 פנויים",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-1366-member-schedule.png",
+    "pass": true
+  },
+  {
+    "role": "member",
+    "viewport": {
+      "width": 1366,
+      "height": 820
+    },
+    "path": "/member/bookings",
+    "url": "http://127.0.0.1:5173/member/bookings",
+    "finalPath": "/member/bookings",
+    "bodyLen": 330,
+    "body": "התרגול שלך\n\nההזמנות שלי\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nיומן הסטודיו שלך\n\nההזמנות שלי\n\nצפו בשיעורים קרובים, רשימות המתנה, ביקורים קודמים וביטולים במקום אחד.\n\nקרובות\n\n0\n\nרשימת המתנה\n\n0\n\nעבר\n\n0\n\nקרובות · 0\nרשימת המתנה · 0\nעבר · 0\nבוטלו · 0\nC\n&\nC\n\nעדיין אין שיעור ביומן.\n\nההזמנות שלך יופיעו כאן.\n\nלעיון בלוח השיעורים",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-1366-member-bookings.png",
+    "pass": true
+  },
+  {
+    "role": "member",
+    "viewport": {
+      "width": 1366,
+      "height": 820
+    },
+    "path": "/member/packages",
+    "url": "http://127.0.0.1:5173/member/packages",
+    "finalPath": "/member/packages",
+    "bodyLen": 1318,
+    "body": "התרגול שלך\n\nחבילות\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nקרדיטים וחבילות\n\nחבילות\n\nעקבו אחרי החבילה הפעילה, שלחו בקשה לחבילה חדשה ושמרו את היסטוריית התשלומים קרובה.\n\nקרדיטים\n\n3\n\nבקשות\n\n0\n\nחבילה פעילה\n\nE2E 10 Credits\n\nבתוקף עד July 24, 2026\n\nחבילות זמינות\n\nחודשי · כניסה אחת בשבוע\n\n4 כניסות בכל 30 יום\n\n4 קרדיטים לשיעורים\n\nבתוקף 30 ימים\n\nכל תכניות הסטודיו\n\n280\n\nILS\n\nבקשה\n\nחודשי · שתי כניסות בשבוע\n\n8 כניסות בכל 30 יום\n\n8 קרדיטים לשיעורים\n\nבתוקף 30 ימים\n\nכל תכניות הסטודיו\n\n350\n\nILS\n\nבקשה\n\nכרטיסייה · 10 כניסות\n\n10 כניסות ללא התחייבות חודשית\n\n10 קרדיטים לשיעורים\n\nללא תוקף\n\nכל תכניות הסטודיו\n\n700\n\nILS\n\nבקשה\nהיסטוריית קרדיטים\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nmember self cancel refund\n\n6/24/2026\n\n+1\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nmember self cancel refund\n\n6/24/2026\n\n+1\n\nadmin booking\n\n6/24/2026\n\n-1\n\nplan paid: E2E 10 Credits\n\n6/24/2026\n\n+10\n\nbooking\n\n6/24/2026\n\n-1\nהיסטוריית תשלומים\n\nתשלום לסטודיו\n\n6/24/2026 · מזומן · ממתין\n\n0 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · נכשל\n\n100 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · הוחזר\n\n100 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · מאושר\n\n100 ILS\n\nCC-2026-01000\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · ממתין\n\n100 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · ממתין\n\n100 ILS",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-1366-member-packages.png",
+    "pass": true
+  },
+  {
+    "role": "member",
+    "viewport": {
+      "width": 1366,
+      "height": 820
+    },
+    "path": "/member/account",
+    "url": "http://127.0.0.1:5173/member/account",
+    "finalPath": "/member/account",
+    "bodyLen": 505,
+    "body": "התרגול שלך\n\nפרופיל\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\n\nפרופיל חבר/ה\n\nE2E Member\n\nעדכנו פרטי קשר והעדפות סטודיו.\n\nactive\nHE\n\nחבר/ה מאז\n\nהפרטים שלך\nשם\nטלפון\nשפה מועדפת\nEnglish\nעברית\nالعربية\nאיש קשר לשעת חירום\nהעדפת אנרגיה\nשמירת שינויים\n\nיציאה\n\nסיום הסשן במכשיר הזה.\n\nיציאה\n\nפרטיות ותמיכה\n\nשליטה בחשבון\n\nאפשר לקרוא את מדיניות הסטודיו או לשלוח בקשת מחיקת חשבון. בקשות מחיקה נבדקות על ידי הסטודיו כדי לטפל נכון בהזמנות, תשלומים ורשומות חוקיות.\n\nפרטיות\nתנאים\nתמיכה\nהערה לבקשת מחיקה\nבקשת מחיקת חשבון",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-1366-member-account.png",
+    "pass": true
+  },
+  {
+    "role": "member-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "path": "/member",
+    "url": "http://127.0.0.1:5173/member",
+    "finalPath": "/member",
+    "bodyLen": 414,
+    "body": "HE\n\nערב טוב\n\nE2E.\n\nברוכים השבים לסטודיו.\n\nקרדיטים\n\n3\n\nהזמנות\n\n0\n\nזמינים\n\n1\n\nהשיעור הבא שלך\n\nלהמשיך את התרגול\nכל השיעורים →\n17:34\n60דק׳\n10 מקומות פנויים\nיוגה אווירית\n\n— · Cloud Room\n\n10 פנויים\n\nחבילה פעילה\n\nE2E 10 Credits\n\n3\n\nקרדיטים שנותרו\n\nבתוקף עד\n7/24/2026\n\nפעולות מהירות\n\nהזמנת שיעור\nרכישת חבילה\nיצירת קשר עם הסטודיו\nבשבילך השבוע\nכל השיעורים →\n\nאין שיעורים בלוח כרגע.\n\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-mobile-390-member.png",
+    "pass": true
+  },
+  {
+    "role": "member-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "path": "/member/schedule",
+    "url": "http://127.0.0.1:5173/member/schedule",
+    "finalPath": "/member/schedule",
+    "bodyLen": 314,
+    "body": "HE\n\nלוח תרגול\n\nלוח שיעורים\n\nמצאו את השיעור הנכון, סננו לפי חדר או מדריכה, ושמרו על הביקור הבא ברור.\n\nזמינים\n\n1\n\nקרדיטים\n\n3\n\nהיום\nמחר\nהשבוע\nהכול\nרמה\nall-levels\nאנרגיה\ncalm\nחדר\nCloud Room\nיום חמישי\n· 25.06\n17:34\n60דק׳\n10 מקומות פנויים\nיוגה אווירית\n\n— · Cloud Room\n\n10 פנויים\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-mobile-390-member-schedule.png",
+    "pass": true
+  },
+  {
+    "role": "member-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "path": "/member/bookings",
+    "url": "http://127.0.0.1:5173/member/bookings",
+    "finalPath": "/member/bookings",
+    "bodyLen": 303,
+    "body": "HE\n\nיומן הסטודיו שלך\n\nההזמנות שלי\n\nצפו בשיעורים קרובים, רשימות המתנה, ביקורים קודמים וביטולים במקום אחד.\n\nקרובות\n\n0\n\nרשימת המתנה\n\n0\n\nעבר\n\n0\n\nקרובות · 0\nרשימת המתנה · 0\nעבר · 0\nבוטלו · 0\nC\n&\nC\n\nעדיין אין שיעור ביומן.\n\nההזמנות שלך יופיעו כאן.\n\nלעיון בלוח השיעורים\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-mobile-390-member-bookings.png",
+    "pass": true
+  },
+  {
+    "role": "member-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "path": "/member/packages",
+    "url": "http://127.0.0.1:5173/member/packages",
+    "finalPath": "/member/packages",
+    "bodyLen": 1297,
+    "body": "HE\n\nקרדיטים וחבילות\n\nחבילות\n\nעקבו אחרי החבילה הפעילה, שלחו בקשה לחבילה חדשה ושמרו את היסטוריית התשלומים קרובה.\n\nקרדיטים\n\n3\n\nבקשות\n\n0\n\nחבילה פעילה\n\nE2E 10 Credits\n\nבתוקף עד July 24, 2026\n\nחבילות זמינות\n\nחודשי · כניסה אחת בשבוע\n\n4 כניסות בכל 30 יום\n\n4 קרדיטים לשיעורים\n\nבתוקף 30 ימים\n\nכל תכניות הסטודיו\n\n280\n\nILS\n\nבקשה\n\nחודשי · שתי כניסות בשבוע\n\n8 כניסות בכל 30 יום\n\n8 קרדיטים לשיעורים\n\nבתוקף 30 ימים\n\nכל תכניות הסטודיו\n\n350\n\nILS\n\nבקשה\n\nכרטיסייה · 10 כניסות\n\n10 כניסות ללא התחייבות חודשית\n\n10 קרדיטים לשיעורים\n\nללא תוקף\n\nכל תכניות הסטודיו\n\n700\n\nILS\n\nבקשה\nהיסטוריית קרדיטים\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nmember self cancel refund\n\n6/24/2026\n\n+1\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nadmin booking\n\n6/24/2026\n\n-1\n\nbooking\n\n6/24/2026\n\n-1\n\nmember self cancel refund\n\n6/24/2026\n\n+1\n\nadmin booking\n\n6/24/2026\n\n-1\n\nplan paid: E2E 10 Credits\n\n6/24/2026\n\n+10\n\nbooking\n\n6/24/2026\n\n-1\nהיסטוריית תשלומים\n\nתשלום לסטודיו\n\n6/24/2026 · מזומן · ממתין\n\n0 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · נכשל\n\n100 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · הוחזר\n\n100 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · מאושר\n\n100 ILS\n\nCC-2026-01000\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · ממתין\n\n100 ILS\n\nE2E 10 Credits\n\n6/24/2026 · מזומן · ממתין\n\n100 ILS\n\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-mobile-390-member-packages.png",
+    "pass": true
+  },
+  {
+    "role": "member-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "path": "/member/account",
+    "url": "http://127.0.0.1:5173/member/account",
+    "finalPath": "/member/account",
+    "bodyLen": 483,
+    "body": "HE\n\nפרופיל חבר/ה\n\nE2E Member\n\nעדכנו פרטי קשר והעדפות סטודיו.\n\nactive\nHE\n\nחבר/ה מאז\n\nהפרטים שלך\nשם\nטלפון\nשפה מועדפת\nEnglish\nעברית\nالعربية\nאיש קשר לשעת חירום\nהעדפת אנרגיה\nשמירת שינויים\n\nיציאה\n\nסיום הסשן במכשיר הזה.\n\nיציאה\n\nפרטיות ותמיכה\n\nשליטה בחשבון\n\nאפשר לקרוא את מדיניות הסטודיו או לשלוח בקשת מחיקת חשבון. בקשות מחיקה נבדקות על ידי הסטודיו כדי לטפל נכון בהזמנות, תשלומים ורשומות חוקיות.\n\nפרטיות\nתנאים\nתמיכה\nהערה לבקשת מחיקה\nבקשת מחיקת חשבון\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-member-mobile-390-member-account.png",
+    "pass": true
+  },
+  {
+    "role": "instructor",
+    "viewport": {
+      "width": 1366,
+      "height": 820
+    },
+    "path": "/instructor",
+    "url": "http://127.0.0.1:5173/instructor",
+    "finalPath": "/instructor",
+    "bodyLen": 220,
+    "body": "מדריך/ה\n\nמצב הסטודיו\nיציאה\n\nמצב הסטודיו\n\nמצב הסטודיו\nעברית\n\nתמונת מצב חיה\n\nברוך/ה הבא/ה, E2E Instructor.\n\nמבט חי על השיעורים הקרובים שלך — מי מגיע, מה הם מביאים, ואיפה לשים לב קודם.\n\nעודכן —\nהבא בתור\nהיום\nמחר\nכל 72 השעות",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-instructor-1366-instructor.png",
+    "pass": true
+  },
+  {
+    "role": "instructor-mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "path": "/instructor",
+    "url": "http://127.0.0.1:5173/instructor",
+    "finalPath": "/instructor",
+    "bodyLen": 190,
+    "body": "HE\n\nמצב הסטודיו\n\nמצב הסטודיו\n\nתמונת מצב חיה\n\nברוך/ה הבא/ה, E2E Instructor.\n\nמבט חי על השיעורים הקרובים שלך — מי מגיע, מה הם מביאים, ואיפה לשים לב קודם.\n\nעודכן —\nהבא בתור\nהיום\nמחר\nכל 72 השעות",
+    "events": [],
+    "httpErrors": [],
+    "screenshot": ".gstack/qa-reports/screenshots/lovable-instructor-mobile-390-instructor.png",
+    "pass": true
+  }
+]

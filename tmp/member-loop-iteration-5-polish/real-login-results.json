@@ -1,0 +1,29 @@
+[
+  {
+    "lang": "he",
+    "route": "/member/schedule",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "consoleErrors": [],
+    "pageErrors": [],
+    "showsExpected": true,
+    "excerpt": "עברית\n\nלוח תרגול\n\nלוח שיעורים\n\nמצאו את השיעור הנכון, סננו לפי חדר או מדריכה, ושמרו על הביקור הבא ברור.\n\nזמינים\n\n1\n\nקרדיטים\n\n1\n\nהיום\nמחר\nהשבוע\nהכול\nרמה\nיוגה אווירית · מתחילות–בינוניות · שיעור זורם\nאנרגיה\nשיעור זורם\nעם\nיארין שובאש\nיום רביעי\n· 1.7\n12:00\n45דק׳\n7 מקומות פנויים\nElevate Flow — יוגה אווירית\nיוגה אווירית\nמתחילות–בינוניות\nשיעור זורם\n\nיארין שובאש\n\nאת/ה בפנים\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל"
+  },
+  {
+    "lang": "ar",
+    "route": "/member/schedule",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "consoleErrors": [],
+    "pageErrors": [],
+    "showsExpected": true,
+    "excerpt": "العربية\n\nتقويم التمرين\n\nجدول الحصص\n\nابحث عن الحصة المناسبة، صفّ حسب الغرفة أو المدرّبة، وحافظ على وضوح زيارتك القادمة.\n\nالمتاح\n\n1\n\nالأرصدة\n\n1\n\nاليوم\nغداً\nهذا الأسبوع\nالكل\nالمستوى\nيوغا هوائية · مبتدئات–متوسط · حصة انسيابية\nالطاقة\nحصة انسيابية\nمع\nيارين شوباش\nالأربعاء\n· 1.7\n12:00\n45د\n7 أماكن متبقية\nElevate Flow — يوغا هوائية\nيوغا هوائية\nمبتدئات–متوسط\nحصة انسيابية\n\nيارين شوباش\n\nمحجوز\nالرئيسية\nجدول الحصص\nحجوزاتي\nالباقات\nالملف الشخصي"
+  },
+  {
+    "lang": "en",
+    "route": "/receipts/362b425b-917e-49ed-b9c1-d173428152a2",
+    "url": "http://127.0.0.1:4174/receipts/362b425b-917e-49ed-b9c1-d173428152a2",
+    "consoleErrors": [],
+    "pageErrors": [],
+    "showsExpected": true,
+    "excerpt": "English\nBack\nPrint\n\nPAYMENT RECEIPT\n\nCloud & Core Studio\n\nReceipt no.\n\nCC-2026-01008\n\n6/26/2026\n\nIssued\n\nISSUED TO\n\nNora Hale\n\nPAYMENT METHOD\n\nCash\n\nSingle Class\n\n1 class credit granted\n\n₪80\n\nTOTAL PAID\n\n₪80\n\nThis is a studio payment receipt for your records. It is not a legal Israeli tax invoice (חשבונית מס). For a formal tax invoice, please contact the studio directly.\n\nHome\nSchedule\nMy Bookings\nPackages\nProfile"
+  }
+]

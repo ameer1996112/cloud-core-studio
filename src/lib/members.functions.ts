@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { hasTestClassRecord, isTestRecord } from "@/lib/test-records";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -45,7 +46,8 @@ export const listMembers = createServerFn({ method: "GET" })
 
     const { data: members, error } = await q;
     if (error) throw error;
-    const ids = (members ?? []).map((m: any) => m.id);
+    const visibleMembers = (members ?? []).filter((m: any) => !isTestRecord(m.name));
+    const ids = visibleMembers.map((m: any) => m.id);
     if (ids.length === 0) return [];
 
     const nowIso = new Date().toISOString();
@@ -54,7 +56,7 @@ export const listMembers = createServerFn({ method: "GET" })
     const [plans, upcoming, spend] = await Promise.all([
       supabase
         .from("member_plans")
-        .select("member_id, expires_at, status, plan:plans(name,credits)")
+        .select("member_id, expires_at, status, plan:plans(name,description,credits)")
         .in("member_id", ids)
         .eq("status", "active"),
       supabase
@@ -88,12 +90,12 @@ export const listMembers = createServerFn({ method: "GET" })
       spendByMember.set(p.member_id, (spendByMember.get(p.member_id) ?? 0) + v);
     });
 
-    let enriched = (members ?? []).map((m: any) => {
+    let enriched = visibleMembers.map((m: any) => {
       const plan = planByMember.get(m.id);
       const next = nextByMember.get(m.id);
       return {
         ...m,
-        active_plan: plan ? { name: plan.plan?.name, expires_at: plan.expires_at } : null,
+        active_plan: plan ? { ...plan.plan, expires_at: plan.expires_at } : null,
         next_booking: next ? { title: next.class?.title, starts_at: next.class?.starts_at } : null,
         total_spend: Number((spendByMember.get(m.id) ?? 0).toFixed(2)),
         is_first_timer: (m.attendance_count ?? 0) === 0,
@@ -146,13 +148,13 @@ export const getMemberDetail = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
       supabase
         .from("payments")
-        .select("*, plan:plans(name)")
+        .select("*, plan:plans(name,description)")
         .eq("member_id", data.memberId)
         .order("paid_at", { ascending: false })
         .limit(40),
       supabase
         .from("member_plans")
-        .select("*, plan:plans(name, credits, duration_days)")
+        .select("*, plan:plans(name, description, credits, duration_days)")
         .eq("member_id", data.memberId)
         .order("created_at", { ascending: false }),
     ]);
@@ -161,12 +163,12 @@ export const getMemberDetail = createServerFn({ method: "GET" })
       .reduce((a: number, p: any) => a + Number(p.amount) - Number(p.refunded_amount ?? 0), 0);
     return {
       member: member.data,
-      bookings: bookings.data ?? [],
+      bookings: (bookings.data ?? []).filter((b: any) => !hasTestClassRecord(b)),
       ledger: ledger.data ?? [],
-      attendance: attendance.data ?? [],
+      attendance: (attendance.data ?? []).filter((a: any) => !hasTestClassRecord(a)),
       notes: notes.data ?? [],
-      payments: payments.data ?? [],
-      plans: plans.data ?? [],
+      payments: (payments.data ?? []).filter((p: any) => !isTestRecord(p.plan?.name)),
+      plans: (plans.data ?? []).filter((p: any) => !isTestRecord(p.plan?.name)),
       total_spend: Number(totalSpend.toFixed(2)),
     };
   });
@@ -266,7 +268,7 @@ export const getClassRoster = createServerFn({ method: "GET" })
     if (memberIds.length > 0) {
       const { data: plans } = await supabase
         .from("member_plans")
-        .select("member_id, plan:plans(name)")
+        .select("member_id, plan:plans(name,description)")
         .in("member_id", memberIds)
         .eq("status", "active");
       (plans ?? []).forEach((p: any) => activePlanByMember.set(p.member_id, p.plan));
@@ -287,9 +289,9 @@ export const getClassRoster = createServerFn({ method: "GET" })
     }));
 
     return {
-      class: cls.data,
-      bookings: roster,
-      waitlist: waitlist.data ?? [],
+      class: hasTestClassRecord(cls.data) ? null : cls.data,
+      bookings: roster.filter((b: any) => !isTestRecord(b.member?.name)),
+      waitlist: (waitlist.data ?? []).filter((w: any) => !isTestRecord(w.member?.name)),
       checked_in_count: roster.filter(
         (b) => b.attendance_state === "checked_in" || b.attendance_state === "attended",
       ).length,
@@ -324,5 +326,5 @@ export const searchMembersForClass = createServerFn({ method: "GET" })
     }
     if (excluded.length) q = q.not("id", "in", `(${excluded.join(",")})`);
     const { data: rows } = await q;
-    return rows ?? [];
+    return (rows ?? []).filter((m: any) => !isTestRecord(m.name));
   });

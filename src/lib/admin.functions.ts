@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { hasTestClassRecord, isTestRecord } from "@/lib/test-records";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -36,13 +37,17 @@ export const adminOverview = createServerFn({ method: "GET" })
     ] = await Promise.all([
       supabase
         .from("classes")
-        .select("id, title, starts_at, capacity, booked_count, status, room")
+        .select(
+          "id, title, starts_at, capacity, booked_count, status, room, instructor:instructors(id,name), room_ref:rooms(id,name), program_type:program_types(id,name_en,name_he,name_ar,level)",
+        )
         .gte("starts_at", now.toISOString())
         .order("starts_at")
         .limit(8),
       supabase
         .from("classes")
-        .select("id, title, starts_at, capacity, booked_count, room, instructor:instructors(name)")
+        .select(
+          "id, title, starts_at, capacity, booked_count, room, instructor:instructors(id,name), room_ref:rooms(id,name), program_type:program_types(id,name_en,name_he,name_ar,level)",
+        )
         .gte("starts_at", dayStart.toISOString())
         .lte("starts_at", dayEnd.toISOString())
         .order("starts_at"),
@@ -81,16 +86,21 @@ export const adminOverview = createServerFn({ method: "GET" })
       (a: number, r: any) => a + Number(r.amount) - Number(r.refunded_amount ?? 0),
       0,
     );
+    const visibleUpcoming = (classes.data ?? []).filter((c: any) => !hasTestClassRecord(c));
+    const visibleTodayClasses = (todayClasses.data ?? []).filter(
+      (c: any) => !hasTestClassRecord(c),
+    );
+    const visibleLowCredit = (lowCredit.data ?? []).filter((m: any) => !isTestRecord(m.name));
     return {
-      upcoming: classes.data ?? [],
-      todayClasses: todayClasses.data ?? [],
+      upcoming: visibleUpcoming,
+      todayClasses: visibleTodayClasses,
       memberCount: members.count ?? 0,
       activeBookings: bookings.count ?? 0,
       waitingCount: waitlist.count ?? 0,
       recentLog: log.data ?? [],
       monthRevenueIls,
       roomCount: rooms.count ?? 0,
-      membersLowCredit: lowCredit.data ?? [],
+      membersLowCredit: visibleLowCredit,
       firstTimerCount: firstTimers.count ?? 0,
     };
   });
@@ -102,10 +112,12 @@ export const listClasses = createServerFn({ method: "GET" })
     await ensureStaff(context.supabase, context.userId, "staff");
     const { data } = await context.supabase
       .from("classes")
-      .select("*, instructor:instructors(id,name)")
+      .select(
+        "*, instructor:instructors(id,name), room_ref:rooms(id,name,color,capacity), program_type:program_types(id,name_en,name_he,name_ar,level,image_url)",
+      )
       .order("starts_at", { ascending: false })
       .limit(200);
-    return data ?? [];
+    return (data ?? []).filter((c: any) => !hasTestClassRecord(c));
   });
 
 const classInput = z.object({
@@ -115,6 +127,7 @@ const classInput = z.object({
   duration_minutes: z.number().int().positive(),
   capacity: z.number().int().positive(),
   room: z.string().min(1),
+  room_id: z.string().uuid().nullable().optional(),
   energy: z.string().min(1),
   cancellation_window_hours: z.number().int().min(0),
   credit_cost: z.number().int().min(0),
@@ -198,7 +211,7 @@ export const listTemplates = createServerFn({ method: "GET" })
       .from("class_templates")
       .select("*, instructor:instructors(id,name)")
       .order("title");
-    return data ?? [];
+    return (data ?? []).filter((t: any) => !isTestRecord(t.title));
   });
 
 export const upsertTemplate = createServerFn({ method: "POST" })
@@ -273,7 +286,7 @@ export const listInstructors = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
     const { data } = await context.supabase.from("instructors").select("*").order("name");
-    return data ?? [];
+    return (data ?? []).filter((i: any) => !isTestRecord(i.name));
   });
 
 export const upsertInstructor = createServerFn({ method: "POST" })
@@ -315,7 +328,7 @@ export const listMembers = createServerFn({ method: "GET" })
     let q = context.supabase.from("members").select("*").order("name");
     if (data.search) q = q.ilike("name", `%${data.search}%`);
     const { data: rows } = await q.limit(200);
-    return rows ?? [];
+    return (rows ?? []).filter((m: any) => !isTestRecord(m.name));
   });
 
 export const getMemberDetail = createServerFn({ method: "GET" })
@@ -346,9 +359,9 @@ export const getMemberDetail = createServerFn({ method: "GET" })
     ]);
     return {
       member: member.data,
-      bookings: bookings.data ?? [],
+      bookings: (bookings.data ?? []).filter((b: any) => !hasTestClassRecord(b)),
       ledger: ledger.data ?? [],
-      attendance: attendance.data ?? [],
+      attendance: (attendance.data ?? []).filter((a: any) => !hasTestClassRecord(a)),
     };
   });
 
@@ -420,7 +433,7 @@ export const listBookings = createServerFn({ method: "GET" })
     if (data.memberId) q = q.eq("member_id", data.memberId);
     if (data.status) q = q.eq("status", data.status);
     const { data: rows } = await q;
-    return rows ?? [];
+    return (rows ?? []).filter((b: any) => !isTestRecord(b.member?.name) && !hasTestClassRecord(b));
   });
 
 export const adminCreateBooking = createServerFn({ method: "POST" })
@@ -484,7 +497,10 @@ export const getRoster = createServerFn({ method: "GET" })
         .eq("class_id", data.classId)
         .order("created_at"),
     ]);
-    return { cls: cls.data, bookings: bookings.data ?? [] };
+    return {
+      cls: hasTestClassRecord(cls.data) ? null : cls.data,
+      bookings: (bookings.data ?? []).filter((b: any) => !isTestRecord(b.member?.name)),
+    };
   });
 
 export const markAttendance = createServerFn({ method: "POST" })
@@ -522,7 +538,7 @@ export const todaysClasses = createServerFn({ method: "GET" })
       .gte("starts_at", start.toISOString())
       .lte("starts_at", end.toISOString())
       .order("starts_at");
-    return data ?? [];
+    return (data ?? []).filter((c: any) => !hasTestClassRecord(c));
   });
 
 // ===== Waitlist =====
@@ -536,7 +552,7 @@ export const listWaitlist = createServerFn({ method: "GET" })
       .select("*, member:members(id,name)")
       .eq("class_id", data.classId)
       .order("created_at");
-    return rows ?? [];
+    return (rows ?? []).filter((w: any) => !isTestRecord(w.member?.name));
   });
 
 export const waitlistAdd = createServerFn({ method: "POST" })
@@ -660,7 +676,7 @@ export const listPlans = createServerFn({ method: "GET" })
       .from("plans")
       .select("*")
       .order("created_at", { ascending: false });
-    return data ?? [];
+    return (data ?? []).filter((p: any) => !isTestRecord(p.name_en) && !isTestRecord(p.name));
   });
 
 export const upsertPlan = createServerFn({ method: "POST" })
@@ -730,7 +746,7 @@ export const listMemberPlans = createServerFn({ method: "GET" })
     await ensureStaff(context.supabase, context.userId, "staff");
     let q = context.supabase
       .from("member_plans")
-      .select("*, plan:plans(name,credits,duration_days), member:members(id,name)")
+      .select("*, plan:plans(name,description,credits,duration_days), member:members(id,name)")
       .order("created_at", { ascending: false })
       .limit(200);
     if (data.memberId) q = q.eq("member_id", data.memberId);
@@ -912,7 +928,7 @@ export const studioPulse = createServerFn({ method: "GET" })
     let q = supabase
       .from("classes")
       .select(
-        "id, title, starts_at, duration_minutes, capacity, booked_count, waitlist_count, room, status, image_url, energy, credit_cost, cancellation_window_hours, instructor:instructors(id,name,avatar_url), room_ref:rooms(id,name,color), program_type:program_types(id,name_en,level,image_url)",
+        "id, title, starts_at, duration_minutes, capacity, booked_count, waitlist_count, room, status, image_url, energy, credit_cost, cancellation_window_hours, instructor:instructors(id,name,avatar_url), room_ref:rooms(id,name,color), program_type:program_types(id,name_en,name_he,name_ar,level,image_url)",
       )
       .gte("starts_at", new Date(now.getTime() - 30 * 60_000).toISOString())
       .lte("starts_at", end.toISOString())
@@ -922,7 +938,8 @@ export const studioPulse = createServerFn({ method: "GET" })
     if (mineOnlyEffective && myInstructorId) q = q.eq("instructor_id", myInstructorId);
     const { data: classes } = await q;
 
-    const classIds = (classes ?? []).map((c: any) => c.id);
+    const visibleClasses = (classes ?? []).filter((c: any) => !hasTestClassRecord(c));
+    const classIds = visibleClasses.map((c: any) => c.id);
     if (classIds.length === 0) {
       return {
         generated_at: now.toISOString(),
@@ -947,7 +964,7 @@ export const studioPulse = createServerFn({ method: "GET" })
       rosterByClass.set((b as any).class_id, arr);
     }
 
-    const enriched = (classes ?? []).map((c: any) => {
+    const enriched = visibleClasses.map((c: any) => {
       const roster = rosterByClass.get(c.id) ?? [];
       const members = roster.map((b: any) => b.member).filter(Boolean);
       const firstTimers = members.filter((m: any) => (m.attendance_count ?? 0) === 0).length;

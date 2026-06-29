@@ -1,0 +1,3952 @@
+{
+  "loggedIn": true,
+  "adminLoginConsole": [],
+  "results": [
+    {
+      "area": "guest",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/auth",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/auth",
+        "title": "כניסה — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "כניסה לסטודיו",
+            "radius": "14px",
+            "minHeight": "50px",
+            "height": "54.1406px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/privacy",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/privacy",
+        "title": "Privacy Policy — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/terms",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/terms",
+        "title": "Terms — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/support",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/support",
+        "title": "Support — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin",
+        "title": "Studio Command Center — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "סקירה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "הוספת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "לוח שיעורים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "רישום תשלום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "לקוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "דוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/pulse",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/pulse",
+        "title": "מצב הסטודיו — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "מצב הסטודיו",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הבא בתור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "מחר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "כל 72 השעות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/classes",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/classes",
+        "title": "Classes — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "שיעור חדש",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/classes/new",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/classes/new",
+        "title": "New class — Studio Admin",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "ביטול",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(255, 255, 255, 0.76)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgba(212, 175, 106, 0.35)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יצירת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(111, 122, 140, 0.52)",
+            "color": "rgba(250, 247, 242, 0.9)",
+            "borderColor": "rgba(111, 122, 140, 0.45)",
+            "disabled": true
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/calendar",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/calendar",
+        "title": "Calendar — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "לוח שיעורים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שבוע",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "הוספת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "שיעור פרטי",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "חסימת חדר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "נוכחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ב׳220",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ג׳230",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ד׳240",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ה׳250",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ו׳260",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שבת270",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום א׳280",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "77.875px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/attendance",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/attendance",
+        "title": "נוכחות — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "נוכחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/rooms",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/rooms",
+        "title": "Rooms — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "חדרים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הוספת חדר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/members",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/members",
+        "title": "Members — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "לקוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הכול",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פעילים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פעם ראשונה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "קרדיטים נמוכים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פג בקרוב",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "אין הזמנה קרובה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "לא פעילים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/instructors",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/instructors",
+        "title": "Instructors — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "מדריכים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הוספת מדריך",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "השבתה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.45)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/programs",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/programs",
+        "title": "Program types — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "תוכניות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "תוכנית חדשה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/plans",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/plans",
+        "title": "Packages — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "חבילות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "חבילה חדשה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/payments",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/payments",
+        "title": "תשלומים — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "תשלומים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "רישום תשלום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/reports",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/reports",
+        "title": "Reports & Insights — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "דוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "השבוע",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "החודש",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "חודש קודם",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "מותאם",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא הכנסותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא נוכחותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא חבריםCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא חבילותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא המתנהCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/messages",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/messages",
+        "title": "Messages — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "הודעות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "כתיבה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "route": "/admin/settings",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/settings",
+        "title": "Studio settings — Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "הגדרות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שמירת הגדרות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "50.4062px",
+            "bg": "rgba(111, 122, 140, 0.42)",
+            "color": "rgba(250, 247, 242, 0.88)",
+            "borderColor": "rgba(111, 122, 140, 0.32)",
+            "disabled": true
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/auth",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/auth",
+        "title": "כניסה — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "כניסה לסטודיו",
+            "radius": "14px",
+            "minHeight": "50px",
+            "height": "54.1406px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/privacy",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/privacy",
+        "title": "Privacy Policy — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/terms",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/terms",
+        "title": "Terms — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/support",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/support",
+        "title": "Support — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin",
+        "title": "Studio Command Center — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "סקירה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "הוספת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "לוח שיעורים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "רישום תשלום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "לקוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "דוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/pulse",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/pulse",
+        "title": "מצב הסטודיו — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "מצב הסטודיו",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הבא בתור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "מחר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "כל 72 השעות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/classes",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/classes",
+        "title": "Classes — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "שיעור חדש",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/classes/new",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/classes/new",
+        "title": "New class — Studio Admin",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "ביטול",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(255, 255, 255, 0.76)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgba(212, 175, 106, 0.35)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יצירת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(111, 122, 140, 0.52)",
+            "color": "rgba(250, 247, 242, 0.9)",
+            "borderColor": "rgba(111, 122, 140, 0.45)",
+            "disabled": true
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/calendar",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/calendar",
+        "title": "Calendar — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "לוח שיעורים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שבוע",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "הוספת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "שיעור פרטי",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "חסימת חדר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "נוכחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ב׳220",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ג׳230",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ד׳240",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ה׳250",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ו׳260",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שבת270",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום א׳280",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/attendance",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/attendance",
+        "title": "נוכחות — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "נוכחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/rooms",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/rooms",
+        "title": "Rooms — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "חדרים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הוספת חדר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/members",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/members",
+        "title": "Members — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "לקוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הכול",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פעילים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פעם ראשונה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "קרדיטים נמוכים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פג בקרוב",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "אין הזמנה קרובה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "לא פעילים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/instructors",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/instructors",
+        "title": "Instructors — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "מדריכים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הוספת מדריך",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "השבתה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.45)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/programs",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/programs",
+        "title": "Program types — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "תוכניות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "תוכנית חדשה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/plans",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/plans",
+        "title": "Packages — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "חבילות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "חבילה חדשה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/payments",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/payments",
+        "title": "תשלומים — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "תשלומים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "רישום תשלום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/reports",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/reports",
+        "title": "Reports & Insights — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "דוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "השבוע",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "החודש",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "חודש קודם",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "מותאם",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא הכנסותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא נוכחותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא חבריםCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא חבילותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא המתנהCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/messages",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/messages",
+        "title": "Messages — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "הודעות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "כתיבה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "ipad",
+        "width": 820,
+        "height": 1180
+      },
+      "route": "/admin/settings",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/settings",
+        "title": "Studio settings — Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "הגדרות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שמירת הגדרות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "50.4062px",
+            "bg": "rgba(111, 122, 140, 0.42)",
+            "color": "rgba(250, 247, 242, 0.88)",
+            "borderColor": "rgba(111, 122, 140, 0.32)",
+            "disabled": true
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/auth",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/auth",
+        "title": "כניסה — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "כניסה לסטודיו",
+            "radius": "14px",
+            "minHeight": "50px",
+            "height": "54.1406px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/privacy",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/privacy",
+        "title": "Privacy Policy — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/terms",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/terms",
+        "title": "Terms — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "guest",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/support",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/support",
+        "title": "Support — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "עברית",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin",
+        "title": "Studio Command Center — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "סקירה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "הוספת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "לוח שיעורים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "רישום תשלום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "לקוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "דוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/pulse",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/pulse",
+        "title": "מצב הסטודיו — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "מצב הסטודיו",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הבא בתור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "מחר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "כל 72 השעות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/classes",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/classes",
+        "title": "Classes — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "שיעור חדש",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/classes/new",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/classes/new",
+        "title": "New class — Studio Admin",
+        "buttons": [
+          {
+            "tag": "button",
+            "text": "ביטול",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(255, 255, 255, 0.76)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgba(212, 175, 106, 0.35)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יצירת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(111, 122, 140, 0.52)",
+            "color": "rgba(250, 247, 242, 0.9)",
+            "borderColor": "rgba(111, 122, 140, 0.45)",
+            "disabled": true
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/calendar",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/calendar",
+        "title": "Calendar — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "לוח שיעורים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שבוע",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgba(11, 29, 58, 0.1)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "הוספת שיעור",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "שיעור פרטי",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "חסימת חדר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "a",
+            "text": "נוכחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ב׳220",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ג׳230",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ד׳240",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ה׳250",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום ו׳260",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שבת270",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "יום א׳280",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "auto",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/attendance",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/attendance",
+        "title": "נוכחות — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "נוכחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/rooms",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/rooms",
+        "title": "Rooms — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "חדרים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הוספת חדר",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/members",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/members",
+        "title": "Members — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "לקוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הכול",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פעילים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פעם ראשונה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "קרדיטים נמוכים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "פג בקרוב",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "אין הזמנה קרובה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "לא פעילים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.3)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/instructors",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/instructors",
+        "title": "Instructors — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "מדריכים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "הוספת מדריך",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "השבתה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.45)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/programs",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/programs",
+        "title": "Program types — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "תוכניות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "תוכנית חדשה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(250, 247, 242)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/plans",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/plans",
+        "title": "Packages — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "חבילות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "חבילה חדשה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(111, 122, 140)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.25)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/payments",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/payments",
+        "title": "תשלומים — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "תשלומים",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "רישום תשלום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/reports",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/reports",
+        "title": "Reports & Insights — Cloud & Core",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "דוחות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "היום",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "השבוע",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "החודש",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(11, 29, 58)",
+            "color": "rgb(250, 247, 242)",
+            "borderColor": "rgb(11, 29, 58)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "חודש קודם",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "מותאם",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא הכנסותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא נוכחותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא חבריםCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא חבילותCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "ייצוא המתנהCSV",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "oklab(0.772085 0.013519 0.0966185 / 0.4)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/messages",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/messages",
+        "title": "Messages — Studio Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "הודעות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "כתיבה",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          }
+        ]
+      },
+      "console": []
+    },
+    {
+      "area": "admin",
+      "device": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/admin/settings",
+      "metrics": {
+        "overflow": 0,
+        "url": "http://localhost:8080/admin/settings",
+        "title": "Studio settings — Admin",
+        "buttons": [
+          {
+            "tag": "a",
+            "text": "הגדרות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "46px",
+            "bg": "rgb(255, 255, 255)",
+            "color": "rgb(11, 29, 58)",
+            "borderColor": "rgb(212, 175, 106)",
+            "disabled": false
+          },
+          {
+            "tag": "button",
+            "text": "שמירת הגדרות",
+            "radius": "14px",
+            "minHeight": "46px",
+            "height": "50.4062px",
+            "bg": "rgba(111, 122, 140, 0.42)",
+            "color": "rgba(250, 247, 242, 0.88)",
+            "borderColor": "rgba(111, 122, 140, 0.32)",
+            "disabled": true
+          }
+        ]
+      },
+      "console": []
+    }
+  ],
+  "summary": {
+    "totalRoutes": 57,
+    "consoleErrors": 0,
+    "overflow": [],
+    "failedNavigation": [],
+    "buttonRadii": ["14px"]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "final_url": "http://127.0.0.1:4174/receipts/362b425b-917e-49ed-b9c1-d173428152a2",
+  "stayed_on_receipt_route": true,
+  "shows_not_found_or_unavailable": false,
+  "shows_target_receipt_number": false,
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "log",
+      "text": "TypeError: Failed to fetch\n    at http://127.0.0.1:4174/node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=9bdf74ee:84:39\n    at getResponse (http://127.0.0.1:4174/node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=9bdf74ee:131:20)\n    at serverFnFetcher (http://127.0.0.1:4174/node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=9bdf74ee:84:15)\n    at async client (http://127.0.0.1:4174/node_modules/@tanstack/start-client-core/dist/esm/createServerFn.js?v=9bdf74ee:185:17)\n    at async callNextMiddleware (http://127.0.0.1:4174/node_modules/@tanstack/start-client-core/dist/esm/createServerFn.js?v=9bdf74ee:116:20)"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    }
+  ],
+  "page_errors": [],
+  "excerpt": "עברית\nטוען קבלה…\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל"
+}

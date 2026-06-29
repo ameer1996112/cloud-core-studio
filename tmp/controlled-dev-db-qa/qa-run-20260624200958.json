@@ -1,0 +1,180 @@
+{
+  "runId": "20260624200958",
+  "prefix": "QA_TEST_20260624200958",
+  "projectId": "banjmspemvzrqckajvwo",
+  "url": "https://banjmspemvzrqckajvwo.supabase.co",
+  "password": "E2ePass!23",
+  "created": {
+    "auth_admin": {
+      "id": "ecb45ecc-b1de-4f9e-b70c-18cb86eae891",
+      "email": "qa.admin+cloudcore-20260624200958@example.com",
+      "name": "QA_TEST_20260624200958_Admin"
+    },
+    "auth_instructor": {
+      "id": "2a334120-280a-4bb6-80e4-614ec31c1641",
+      "email": "qa.instructor+cloudcore-20260624200958@example.com",
+      "name": "QA_TEST_20260624200958_Instructor"
+    },
+    "auth_member": {
+      "id": "5916c40d-ff39-4b6d-b4a5-496d7cc97078",
+      "email": "qa.member2+cloudcore-20260624200958@example.com",
+      "name": "QA_TEST_20260624200958_OtherMember"
+    },
+    "instructor": {
+      "id": "2a334120-280a-4bb6-80e4-614ec31c1641",
+      "name": "QA_TEST_20260624200958_Instructor"
+    },
+    "room": {
+      "id": "e8e307f9-8119-46e7-ae5e-ca3121958e69",
+      "name": "QA_TEST_20260624200958_Room"
+    },
+    "program": {
+      "id": "22aa77ea-c667-4c31-b139-0ca793ce8637",
+      "name_en": "QA_TEST_20260624200958_Program_EN"
+    },
+    "class": {
+      "id": "91790a64-4813-4d78-afac-c8c44b8fa46a",
+      "title": "QA_TEST_20260624200958_Class",
+      "booked_count": 0,
+      "capacity": 3,
+      "credit_cost": 2,
+      "editedDurationMinutes": 50
+    },
+    "plan": {
+      "id": "9fec6591-17ec-444b-a460-1dd3356b2798",
+      "name": "QA_TEST_20260624200958_Plan",
+      "credits": 10
+    },
+    "payment": {
+      "id": "958ea375-fd6d-44bc-9871-a55ae9719671",
+      "status": "pending"
+    },
+    "receipt": {
+      "id": "264f731f-2031-4a4d-b7f9-1f099ad0199d",
+      "receipt_number": "CC-2026-01004"
+    },
+    "booking": {
+      "id": "fc47f9e3-0080-4732-95de-ca0d59869dfe"
+    },
+    "notification_log": {
+      "id": "fc660865-3286-4964-a33f-84812a5da6ab",
+      "status": "sent"
+    }
+  },
+  "checks": [
+    {
+      "name": "QA admin login",
+      "ok": true
+    },
+    {
+      "name": "QA member login",
+      "ok": true
+    },
+    {
+      "name": "QA instructor login",
+      "ok": true
+    },
+    {
+      "name": "admin confirms QA payment",
+      "ok": true,
+      "confirmRes": {
+        "status": "confirmed",
+        "payment_id": "958ea375-fd6d-44bc-9871-a55ae9719671",
+        "receipt_id": "264f731f-2031-4a4d-b7f9-1f099ad0199d",
+        "member_plan_id": "8a2b271e-dcc1-44bb-bad6-2620dfb79148",
+        "receipt_number": "CC-2026-01004"
+      }
+    },
+    {
+      "name": "QA credits granted by payment confirmation",
+      "ok": true,
+      "beforeCredits": 0,
+      "afterPaymentCredits": 10,
+      "planCredits": 10
+    },
+    {
+      "name": "QA member books QA class",
+      "ok": true,
+      "bookingRes": {
+        "status": "booked",
+        "booking_id": "fc47f9e3-0080-4732-95de-ca0d59869dfe",
+        "remaining_credits": 8
+      }
+    },
+    {
+      "name": "QA credits decrease after booking",
+      "ok": true,
+      "beforeBookCredits": 10,
+      "afterBookCredits": 8,
+      "cost": 2
+    },
+    {
+      "name": "QA class capacity/booked count updates",
+      "ok": true,
+      "beforeClass": {
+        "booked_count": 0,
+        "capacity": 3
+      },
+      "afterClass": {
+        "booked_count": 1,
+        "capacity": 3
+      }
+    },
+    {
+      "name": "booking appears in member bookings data",
+      "ok": true
+    },
+    {
+      "name": "booking appears in admin roster data",
+      "ok": true
+    },
+    {
+      "name": "instructor sees QA roster safely",
+      "ok": true
+    },
+    {
+      "name": "instructor admin-only payment data hidden",
+      "ok": true
+    },
+    {
+      "name": "attendance attended persists",
+      "ok": true,
+      "attPersist": {
+        "status": "attended",
+        "marked_by": "ecb45ecc-b1de-4f9e-b70c-18cb86eae891"
+      }
+    },
+    {
+      "name": "attendance no-show persists after refresh-equivalent read",
+      "ok": true,
+      "attPersist2": {
+        "status": "no_show",
+        "marked_by": "ecb45ecc-b1de-4f9e-b70c-18cb86eae891"
+      }
+    },
+    {
+      "name": "member can view own QA receipt",
+      "ok": true
+    },
+    {
+      "name": "another member cannot view QA receipt",
+      "ok": true
+    },
+    {
+      "name": "notification log persists",
+      "ok": true
+    },
+    {
+      "name": "QA class appears in admin schedule data",
+      "ok": true
+    },
+    {
+      "name": "QA class booking appears in Studio Pulse data source",
+      "ok": true
+    },
+    {
+      "name": "QA member can see QA class schedule data",
+      "ok": true
+    }
+  ]
+}

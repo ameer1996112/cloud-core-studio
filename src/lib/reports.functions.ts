@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isTestRecord } from "@/lib/test-records";
 
 async function ensureAdmin(supabase: any, userId: string) {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -174,18 +175,22 @@ export const getReportsBundle = createServerFn({ method: "POST" })
     const prevPayments = (prevPaymentsRes.data ?? []) as Payment[] | null;
     const bookings = (bookingsRes.data ?? []) as Booking[];
     const prevBookings = (prevBookingsRes.data ?? []) as Booking[] | null;
-    const classes = (classesRes.data ?? []) as Klass[];
-    const prevClasses = (prevClassesRes.data ?? []) as Klass[] | null;
+    const classes = ((classesRes.data ?? []) as Klass[]).filter((c) => !isTestRecord(c.title));
+    const prevClasses = prevClassesRes.data
+      ? ((prevClassesRes.data ?? []) as Klass[]).filter((c) => !isTestRecord(c.title))
+      : null;
     const attendance = (attendanceRes.data ?? []) as Attendance[];
     const waitlist = (waitlistRes.data ?? []) as Waitlist[];
-    const members = (membersRes.data ?? []) as any[];
-    const plans = (plansRes.data ?? []) as any[];
+    const members = ((membersRes.data ?? []) as any[]).filter((m) => !isTestRecord(m.name));
+    const plans = ((plansRes.data ?? []) as any[]).filter((p) => !isTestRecord(p.name));
     const memberPlans = (memberPlansRes.data ?? []) as any[];
     const packageRequests = (packageReqRes.data ?? []) as any[];
     const notifLogs = (notifLogsRes.data ?? []) as any[];
-    const rooms = (roomsRes.data ?? []) as any[];
-    const instructors = (instructorsRes.data ?? []) as any[];
-    const upcomingClasses = (upcomingClassesRes.data ?? []) as any[];
+    const rooms = ((roomsRes.data ?? []) as any[]).filter((r) => !isTestRecord(r.name));
+    const instructors = ((instructorsRes.data ?? []) as any[]).filter((i) => !isTestRecord(i.name));
+    const upcomingClasses = ((upcomingClassesRes.data ?? []) as any[]).filter(
+      (c) => !isTestRecord(c.title),
+    );
 
     const memberById = new Map(members.map((m) => [m.id, m]));
     const planById = new Map(plans.map((p) => [p.id, p]));
@@ -218,12 +223,15 @@ export const getReportsBundle = createServerFn({ method: "POST" })
         (revenueByMethod[m] ?? 0) + Number(p.amount) - Number(p.refunded_amount ?? 0);
     });
 
-    const revenueByPlan: Record<string, { name: string; amount: number; count: number }> = {};
+    const revenueByPlan: Record<
+      string,
+      { id: string; name: string; amount: number; count: number }
+    > = {};
     paid.forEach((p) => {
       const plan = p.plan_id ? planById.get(p.plan_id) : null;
       const key = p.plan_id ?? "other";
       const name = plan?.name ?? "Other / manual";
-      const cur = revenueByPlan[key] ?? { name, amount: 0, count: 0 };
+      const cur = revenueByPlan[key] ?? { id: key, name, amount: 0, count: 0 };
       cur.amount += Number(p.amount) - Number(p.refunded_amount ?? 0);
       cur.count += 1;
       revenueByPlan[key] = cur;

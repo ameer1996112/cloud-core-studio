@@ -2,28 +2,31 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { StudioPulse } from "@/components/admin/StudioPulse";
-import { t } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export const Route = createFileRoute("/_authenticated/instructor/")({
-  head: () => ({ meta: [{ title: "מצב הסטודיו — Cloud & Core" }] }),
   component: InstructorHome,
 });
 
 function InstructorHome() {
+  const { t } = useI18n();
+  useDocumentTitle("page.instructor.title");
   const { data: name } = useQuery({
     queryKey: ["instructor-display-name"],
     queryFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      const meta = u.user?.user_metadata as { name?: string; full_name?: string } | undefined;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      const meta = user?.user_metadata as { name?: string; full_name?: string } | undefined;
       const fromMeta = meta?.name ?? meta?.full_name;
       if (fromMeta) return fromMeta;
-      if (!u.user) return t("pulse.instructorFallback");
+      if (!user) return t("pulse.instructorFallback");
       const { data: inst } = await supabase
         .from("instructors")
         .select("name")
-        .eq("user_id", u.user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
-      return inst?.name ?? u.user.email?.split("@")[0] ?? t("pulse.instructorFallback");
+      return inst?.name ?? user.email?.split("@")[0] ?? t("pulse.instructorFallback");
     },
   });
 

@@ -12,9 +12,11 @@ import {
   Mail,
   Calendar as CalendarIcon,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getPlanDisplay } from "@/lib/planDisplay";
 
 export const Route = createFileRoute("/_authenticated/admin/members/")({
-  head: () => ({ meta: [{ title: "Members — Studio Admin" }] }),
   component: Page,
 });
 
@@ -27,17 +29,19 @@ type FilterKey =
   | "no_upcoming"
   | "inactive";
 
-const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "active", label: "Active" },
-  { key: "first_timer", label: "First timers" },
-  { key: "low_credits", label: "Low credits" },
-  { key: "expiring_soon", label: "Expiring soon" },
-  { key: "no_upcoming", label: "No upcoming" },
-  { key: "inactive", label: "Inactive" },
+const FILTERS: { key: FilterKey; labelKey: Parameters<ReturnType<typeof useI18n>["t"]>[0] }[] = [
+  { key: "all", labelKey: "admin.members.filter.all" },
+  { key: "active", labelKey: "admin.members.filter.active" },
+  { key: "first_timer", labelKey: "admin.members.filter.firstTimer" },
+  { key: "low_credits", labelKey: "admin.members.filter.lowCredits" },
+  { key: "expiring_soon", labelKey: "admin.members.filter.expiringSoon" },
+  { key: "no_upcoming", labelKey: "admin.members.filter.noUpcoming" },
+  { key: "inactive", labelKey: "admin.members.filter.inactive" },
 ];
 
 function Page() {
+  const { lang, t } = useI18n();
+  useDocumentTitle("page.members.title");
   const fn = useServerFn(listMembers);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -48,14 +52,14 @@ function Page() {
 
   return (
     <div className="space-y-6">
-      <SectionTitle>Members</SectionTitle>
+      <SectionTitle>{t("admin.membersTitle")}</SectionTitle>
 
       <div className="space-y-3">
         <div className="relative max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate" />
+          <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate" />
           <input
-            className="editorial-input pl-11"
-            placeholder="Search by name, email or phone…"
+            className="editorial-input ps-11"
+            placeholder={t("admin.members.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -65,31 +69,32 @@ function Page() {
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] rounded-[2px] border transition-colors ${
+              className={`rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === f.key
                   ? "bg-navy border-navy text-ivory"
                   : "border-gold/30 text-slate hover:border-gold hover:text-navy"
               }`}
             >
-              {f.label}
+              {t(f.labelKey)}
             </button>
           ))}
         </div>
       </div>
 
       {isLoading && <CardSkeleton rows={4} />}
-      {!isLoading && (data?.length ?? 0) === 0 && <Empty>No members match these filters.</Empty>}
+      {!isLoading && (data?.length ?? 0) === 0 && <Empty>{t("admin.noMembersFilter")}</Empty>}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {data?.map((m: any) => (
-          <MemberCard key={m.id} m={m} />
+          <MemberCard key={m.id} m={m} lang={lang} />
         ))}
       </div>
     </div>
   );
 }
 
-function MemberCard({ m }: { m: any }) {
+function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
+  const { t } = useI18n();
   const lastVisit = m.last_visit_at ? new Date(m.last_visit_at) : null;
   const next = m.next_booking ? new Date(m.next_booking.starts_at) : null;
   const expiringSoon =
@@ -107,7 +112,7 @@ function MemberCard({ m }: { m: any }) {
           <p className="font-display text-lg truncate group-hover:text-gold transition-colors">
             {m.name}
           </p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-slate">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate">
             {m.phone && (
               <span className="inline-flex items-center gap-1">
                 <Phone className="h-3 w-3" />
@@ -122,29 +127,29 @@ function MemberCard({ m }: { m: any }) {
             )}
           </div>
         </div>
-        <div className="text-right shrink-0">
+        <div className="text-end shrink-0">
           <p className="font-display text-[28px] leading-none font-light">{m.remaining_credits}</p>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-slate mt-0.5">credits</p>
+          <p className="mt-0.5 text-xs font-medium text-slate">{t("common.credits")}</p>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        {m.status === "inactive" && <Badge tone="muted">Inactive</Badge>}
+        {m.status === "inactive" && <Badge tone="muted">{t("admin.statusInactive")}</Badge>}
         {m.is_first_timer && (
           <Badge tone="gold">
-            <Sparkles className="h-2.5 w-2.5" /> First-timer
+            <Sparkles className="h-2.5 w-2.5" /> {t("admin.members.badgeFirstTimer")}
           </Badge>
         )}
         {m.remaining_credits <= 1 && m.status !== "inactive" && (
-          <Badge tone="amber">Low credits</Badge>
+          <Badge tone="amber">{t("admin.badgeLowCredits")}</Badge>
         )}
-        {expiringSoon && <Badge tone="amber">Plan expiring</Badge>}
+        {expiringSoon && <Badge tone="amber">{t("admin.badgeExpiring")}</Badge>}
         {m.has_care_notes && (
           <Badge tone="amber">
-            <AlertTriangle className="h-2.5 w-2.5" /> Care notes
+            <AlertTriangle className="h-2.5 w-2.5" /> {t("admin.members.badgeCareNotes")}
           </Badge>
         )}
-        {m.active_plan && <Badge tone="quiet">{m.active_plan.name}</Badge>}
+        {m.active_plan && <Badge tone="quiet">{getPlanDisplay(m.active_plan, lang).name}</Badge>}
         {(m.tags ?? []).slice(0, 3).map((t: string) => (
           <Badge key={t} tone="quiet">
             {t}
@@ -152,9 +157,9 @@ function MemberCard({ m }: { m: any }) {
         ))}
       </div>
 
-      <div className="pt-3 border-t border-gold/15 grid grid-cols-2 gap-2 text-[11px] text-slate">
+      <div className="grid grid-cols-2 gap-2 border-t border-gold/15 pt-3 text-xs text-slate">
         <div>
-          <p className="uppercase tracking-[0.15em] text-[10px]">Last visit</p>
+          <p className="text-xs font-medium">{t("admin.members.lastVisit")}</p>
           <p className="text-navy mt-0.5">
             {lastVisit
               ? lastVisit.toLocaleDateString(undefined, { month: "short", day: "numeric" })
@@ -162,7 +167,7 @@ function MemberCard({ m }: { m: any }) {
           </p>
         </div>
         <div>
-          <p className="uppercase tracking-[0.15em] text-[10px]">Next</p>
+          <p className="text-xs font-medium">{t("admin.members.next")}</p>
           <p className="text-navy mt-0.5 truncate">
             {next ? (
               <span className="inline-flex items-center gap-1">
@@ -175,11 +180,11 @@ function MemberCard({ m }: { m: any }) {
           </p>
         </div>
         <div>
-          <p className="uppercase tracking-[0.15em] text-[10px]">Visits</p>
+          <p className="text-xs font-medium">{t("admin.members.visits")}</p>
           <p className="text-navy mt-0.5">{m.attendance_count ?? 0}</p>
         </div>
         <div>
-          <p className="uppercase tracking-[0.15em] text-[10px]">Spent</p>
+          <p className="text-xs font-medium">{t("admin.members.spent")}</p>
           <p className="text-navy mt-0.5">₪{Math.round(m.total_spend ?? 0)}</p>
         </div>
       </div>
@@ -204,7 +209,7 @@ function Badge({
           : "text-slate border-gold/25";
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] px-1.5 py-0.5 rounded-[2px] border ${cls}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium ${cls}`}
     >
       {children}
     </span>

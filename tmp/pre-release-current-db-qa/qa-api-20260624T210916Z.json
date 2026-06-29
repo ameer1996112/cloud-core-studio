@@ -1,0 +1,318 @@
+{
+  "stamp": "20260624T210916Z",
+  "tag": "QA_PRE_RELEASE_20260624T210916Z",
+  "target": {
+    "PROJECT_ID": "banjmspemvzrqckajvwo",
+    "SUPABASE_URL": "https://banjmspemvzrqckajvwo.supabase.co"
+  },
+  "destructiveOps": false,
+  "migrationsRun": false,
+  "created": [
+    {
+      "table": "auth.users",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.admin@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "admin"
+    },
+    {
+      "table": "auth.users",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.instructor@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "instructor"
+    },
+    {
+      "table": "auth.users",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.member@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member"
+    },
+    {
+      "table": "auth.users",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.nocredits@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member"
+    },
+    {
+      "table": "auth.users",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.othermember@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member"
+    },
+    {
+      "table": "rooms",
+      "id": "51d1095a-29f8-4247-b1af-4e939aa05223",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "room"
+    },
+    {
+      "table": "program_types",
+      "id": "606d2347-49ef-4dcd-8fbb-c7e0793ede4c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "program"
+    },
+    {
+      "table": "plans",
+      "id": "258b8ebd-9909-4a63-b0d5-e26d9376c472",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "credit package"
+    }
+  ],
+  "checks": [
+    {
+      "name": "created tagged QA auth users/profiles",
+      "result": "PASS"
+    },
+    {
+      "name": "login works for admin/member/instructor",
+      "result": "PASS",
+      "admin": "qa_pre_release_20260624t210916z.admin@example.com",
+      "member": "qa_pre_release_20260624t210916z.member@example.com",
+      "instructor": "qa_pre_release_20260624t210916z.instructor@example.com"
+    },
+    {
+      "name": "wrong password is rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "session persists after refresh-equivalent getUser",
+      "result": "PASS"
+    },
+    {
+      "name": "duplicate account handling rejects duplicate signup/create",
+      "result": "PASS"
+    },
+    {
+      "name": "admin creates tagged members and instructor records",
+      "result": "FAIL",
+      "error": "member insert: duplicate key value violates unique constraint \"members_pkey\""
+    },
+    {
+      "name": "admin creates/edits tagged room/program/class",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "admin creates tagged plan/payment and confirms receipt once",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "member books class and booking reflects credits/capacity/rosters",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "duplicate booking is idempotent and no double charge",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "member without credits cannot book",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "member cancellation refunds credits/capacity",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "attendance marking persists",
+      "result": "FAIL",
+      "error": "Could not find the function public.mark_attendance_v2(p_actor_id, p_status) in the schema cache"
+    },
+    {
+      "name": "package request flow creates tagged request",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "messages notification log persists",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "receipt RLS: owner can read, other member cannot",
+      "result": "FAIL",
+      "error": "own receipt: invalid input syntax for type uuid: \"undefined\""
+    },
+    {
+      "name": "role/RLS: member cannot access admin payments/class writes",
+      "result": "PASS"
+    },
+    {
+      "name": "role/RLS: instructor cannot confirm payments or create admin resources",
+      "result": "FAIL",
+      "error": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "name": "role/RLS: admin can read created receipt and member history",
+      "result": "FAIL",
+      "error": "admin receipt: invalid input syntax for type uuid: \"undefined\""
+    }
+  ],
+  "bugs": [
+    {
+      "id": "API-01",
+      "severity": "High",
+      "name": "admin creates tagged members and instructor records",
+      "actual": "member insert: duplicate key value violates unique constraint \"members_pkey\""
+    },
+    {
+      "id": "API-02",
+      "severity": "High",
+      "name": "admin creates/edits tagged room/program/class",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-03",
+      "severity": "High",
+      "name": "admin creates tagged plan/payment and confirms receipt once",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-04",
+      "severity": "High",
+      "name": "member books class and booking reflects credits/capacity/rosters",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-05",
+      "severity": "High",
+      "name": "duplicate booking is idempotent and no double charge",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-06",
+      "severity": "High",
+      "name": "member without credits cannot book",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-07",
+      "severity": "High",
+      "name": "member cancellation refunds credits/capacity",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-08",
+      "severity": "High",
+      "name": "attendance marking persists",
+      "actual": "Could not find the function public.mark_attendance_v2(p_actor_id, p_status) in the schema cache"
+    },
+    {
+      "id": "API-09",
+      "severity": "High",
+      "name": "package request flow creates tagged request",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-10",
+      "severity": "High",
+      "name": "messages notification log persists",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-11",
+      "severity": "High",
+      "name": "receipt RLS: owner can read, other member cannot",
+      "actual": "own receipt: invalid input syntax for type uuid: \"undefined\""
+    },
+    {
+      "id": "API-12",
+      "severity": "High",
+      "name": "role/RLS: instructor cannot confirm payments or create admin resources",
+      "actual": "Cannot read properties of undefined (reading 'id')"
+    },
+    {
+      "id": "API-13",
+      "severity": "High",
+      "name": "role/RLS: admin can read created receipt and member history",
+      "actual": "admin receipt: invalid input syntax for type uuid: \"undefined\""
+    }
+  ],
+  "cleanupPreview": [
+    {
+      "table": "auth.users",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185"
+    },
+    {
+      "table": "profiles",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185"
+    },
+    {
+      "table": "auth.users",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141"
+    },
+    {
+      "table": "profiles",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141"
+    },
+    {
+      "table": "auth.users",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c"
+    },
+    {
+      "table": "profiles",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c"
+    },
+    {
+      "table": "auth.users",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31"
+    },
+    {
+      "table": "profiles",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31"
+    },
+    {
+      "table": "auth.users",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5"
+    },
+    {
+      "table": "profiles",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5"
+    },
+    {
+      "table": "rooms",
+      "id": "51d1095a-29f8-4247-b1af-4e939aa05223"
+    },
+    {
+      "table": "program_types",
+      "id": "606d2347-49ef-4dcd-8fbb-c7e0793ede4c"
+    },
+    {
+      "table": "plans",
+      "id": "258b8ebd-9909-4a63-b0d5-e26d9376c472"
+    }
+  ]
+}

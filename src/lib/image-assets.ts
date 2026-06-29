@@ -6,10 +6,7 @@
 //   - hero:  21:9  (class detail modal, top-of-page hero)
 //   - thumb: 1:1   (admin pulse, mini rows, capsule thumbs)
 
-// Static asset imports — bundler hashes them and emits the right URL.
-import studioInterior from "@/assets/studio-interior.webp";
-import logoWall from "@/assets/logo-wall.webp";
-import brandBannerNavy from "@/assets/brand-banner-navy.webp";
+// Class-detail crops are still imported because the app needs multiple card/hero/thumb ratios.
 import matDetail from "@/assets/mat-detail.webp";
 import plantDetail from "@/assets/plant-detail.webp";
 import hammockDetail from "@/assets/hammock-detail.webp";
@@ -32,6 +29,28 @@ export type ImageVariants = {
   thumb: string;
 };
 
+type VariantImageUrlKey = `image_${ImageVariant}_url`;
+type VariantImageSource = Partial<Record<VariantImageUrlKey, string | null>>;
+
+export type ClassImageProgramSource = VariantImageSource & {
+  name?: string | null;
+  name_en?: string | null;
+  name_he?: string | null;
+  name_ar?: string | null;
+  label?: string | null;
+  image_url?: string | null;
+  cover_image_url?: string | null;
+  [key: string]: unknown;
+};
+
+export type ClassImageSource = VariantImageSource & {
+  title?: string | null;
+  image_url?: string | null;
+  program_type?: ClassImageProgramSource | null;
+  program?: ClassImageProgramSource | null;
+  [key: string]: unknown;
+};
+
 export type ImageAsset = {
   src: string;
   variants?: ImageVariants;
@@ -42,6 +61,18 @@ export type ImageAsset = {
   /** CSS object-position value tuned per photo. */
   position?: string;
 };
+
+export const authImages = {
+  hero: {
+    src: "/images/auth/cloud-core-auth-hero.webp",
+    alt: {
+      he: "סטודיו Cloud & Core עם ערסלי יוגה אווירית",
+      en: "Cloud & Core aerial yoga studio",
+      ar: "استوديو Cloud & Core لليوغا الهوائية",
+    },
+    tone: "studio" as const,
+  },
+} satisfies Record<string, ImageAsset>;
 
 export type ClassMoodKey =
   | "core-balance"
@@ -60,7 +91,7 @@ export const PALETTE = {
   navy: "#0B1D3A",
   ivory: "#FAF7F2",
   gold: "#D4AF6A",
-  powder: "#B7CCE6",
+  powder: "#E8DFD1",
   sand: "#E8DFD1",
   slate: "#6F7A8C",
 } as const;
@@ -74,7 +105,7 @@ export const classMoods: Record<
   }
 > = {
   "core-balance": {
-    gradient: "linear-gradient(135deg,#B7CCE6 0%,#E8DFD1 60%,#D4AF6A33 100%)",
+    gradient: "linear-gradient(135deg,#E8DFD1 0%,#FAF7F2 60%,#D4AF6A33 100%)",
     motif: "circle",
     accent: PALETTE.gold,
   },
@@ -84,32 +115,32 @@ export const classMoods: Record<
     accent: PALETTE.gold,
   },
   "yin-reset": {
-    gradient: "linear-gradient(135deg,#0B1D3A 0%,#1B2F52 60%,#B7CCE640 100%)",
+    gradient: "linear-gradient(135deg,#0B1D3A 0%,#173057 60%,#E8DFD140 100%)",
     motif: "moon",
     accent: PALETTE.powder,
   },
   "pilates-sculpt": {
-    gradient: "linear-gradient(135deg,#E8DFD1 0%,#B7CCE6 70%)",
+    gradient: "linear-gradient(135deg,#E8DFD1 0%,#FAF7F2 70%)",
     motif: "spark",
     accent: PALETTE.navy,
   },
   "restorative-stretch": {
-    gradient: "linear-gradient(135deg,#FAF7F2 0%,#B7CCE6 80%)",
+    gradient: "linear-gradient(135deg,#FAF7F2 0%,#E8DFD1 80%)",
     motif: "wave",
     accent: PALETTE.navy,
   },
   "breath-mobility": {
-    gradient: "linear-gradient(135deg,#B7CCE6 0%,#FAF7F2 60%,#E8DFD1 100%)",
+    gradient: "linear-gradient(135deg,#E8DFD1 0%,#FAF7F2 60%,#FFFFFF 100%)",
     motif: "cloud",
     accent: PALETTE.navy,
   },
   "kids-aerial": {
-    gradient: "linear-gradient(135deg,#E8DFD1 0%,#D4AF6A55 50%,#B7CCE6 100%)",
+    gradient: "linear-gradient(135deg,#E8DFD1 0%,#D4AF6A55 50%,#FAF7F2 100%)",
     motif: "kite",
     accent: PALETTE.navy,
   },
   "private-session": {
-    gradient: "linear-gradient(135deg,#0B1D3A 0%,#1B2F52 60%,#D4AF6A55 100%)",
+    gradient: "linear-gradient(135deg,#0B1D3A 0%,#173057 60%,#D4AF6A55 100%)",
     motif: "spark",
     accent: PALETTE.gold,
   },
@@ -119,7 +150,7 @@ export const classMoods: Record<
     accent: PALETTE.gold,
   },
   default: {
-    gradient: "linear-gradient(135deg,#B7CCE6 0%,#E8DFD1 60%,#D4AF6A33 100%)",
+    gradient: "linear-gradient(135deg,#E8DFD1 0%,#FAF7F2 60%,#D4AF6A33 100%)",
     motif: "cloud",
     accent: PALETTE.gold,
   },
@@ -146,7 +177,7 @@ export function moodKeyFor(input?: string | null): ClassMoodKey {
 /** Studio atmosphere / boutique imagery. */
 export const studioImages = {
   loginHero: {
-    src: studioInterior,
+    src: "/images/studio/studio-interior.webp",
     alt: {
       he: "אווירת סטודיו Cloud & Core",
       en: "Cloud & Core studio atmosphere",
@@ -155,12 +186,12 @@ export const studioImages = {
     tone: "studio" as const,
   },
   atmosphere: {
-    src: studioInterior,
+    src: "/images/studio/studio-interior.webp",
     alt: { he: "סטודיו תנועה בוטיק", en: "Boutique movement studio", ar: "استوديو حركة بوتيك" },
     tone: "studio" as const,
   },
   studioInterior: {
-    src: studioInterior,
+    src: "/images/studio/studio-interior.webp",
     alt: {
       he: "חלל הסטודיו של Cloud & Core",
       en: "Cloud & Core studio space",
@@ -169,7 +200,7 @@ export const studioImages = {
     tone: "studio" as const,
   },
   logoWall: {
-    src: logoWall,
+    src: "/images/studio/studio-sign.webp",
     alt: {
       he: "קיר המותג של Cloud & Core",
       en: "Cloud & Core brand wall",
@@ -178,7 +209,7 @@ export const studioImages = {
     tone: "studio" as const,
   },
   brandBannerNavy: {
-    src: brandBannerNavy,
+    src: "/images/textures/cloud-core-soft-texture.webp",
     alt: {
       he: "Cloud & Core — באנר מותג",
       en: "Cloud & Core brand banner",
@@ -206,7 +237,7 @@ export const studioImages = {
     tone: "studio" as const,
   },
   authBackdrop: {
-    src: studioInterior,
+    src: authImages.hero.src,
     alt: { he: "אווירת סטודיו בוטיק", en: "Boutique studio atmosphere", ar: "أجواء استوديو بوتيك" },
     tone: "studio" as const,
   },
@@ -220,18 +251,22 @@ export const studioImages = {
     alt: { he: "", en: "", ar: "" },
     tone: "texture" as const,
   },
-  navyCloud: { src: brandBannerNavy, alt: { he: "", en: "", ar: "" }, tone: "texture" as const },
+  navyCloud: {
+    src: "/images/textures/cloud-core-soft-texture.webp",
+    alt: { he: "", en: "", ar: "" },
+    tone: "texture" as const,
+  },
 } satisfies Record<string, ImageAsset>;
 
 export const emptyStateImages = {
   noBookings: {
-    src: "/images/empty-states/no-bookings.svg",
+    src: "/images/empty-states/no-bookings.jpg",
     alt: { he: "אין הזמנות פעילות", en: "No active bookings", ar: "لا توجد حجوزات نشطة" },
     tone: "empty" as const,
   },
   noClasses: {
     src: "/images/empty-states/no-classes.svg",
-    alt: { he: "אין שיעורים בלוח", en: "No classes scheduled", ar: "لا توجد دروس مجدولة" },
+    alt: { he: "אין שיעורים בלוח", en: "No classes scheduled", ar: "لا توجد دروس مجדولة" },
     tone: "empty" as const,
   },
   paymentEmpty: {
@@ -240,7 +275,7 @@ export const emptyStateImages = {
     tone: "empty" as const,
   },
   cloudCardEmpty: {
-    src: "/images/empty-states/cloud-card-empty.svg",
+    src: "/images/empty-states/cloud-card-empty.jpg",
     alt: { he: "Cloud Card מחכה לך", en: "Your Cloud Card awaits", ar: "بطاقتك بانتظارك" },
     tone: "empty" as const,
   },
@@ -339,8 +374,11 @@ export function variantSrc(
  *   5. mapped boutique photo (by program name / title) — uses variant crop
  *   6. DEFAULT_CLASS_IMAGE         — variant crop
  */
-export function resolveClassImageSrc(cls: any, variant: ImageVariant = "card"): string {
-  const variantCol = `image_${variant}_url` as const;
+export function resolveClassImageSrc(
+  cls: ClassImageSource | null | undefined,
+  variant: ImageVariant = "card",
+): string {
+  const variantCol: VariantImageUrlKey = `image_${variant}_url`;
   const pt = cls?.program_type ?? cls?.program ?? null;
   const candidates: Array<string | null | undefined> = [
     cls?.[variantCol],

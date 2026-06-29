@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-06-24T21:42:26.673Z",
+  "projectId": "banjmspemvzrqckajvwo",
+  "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+  "destructive": false,
+  "migrations": false,
+  "cleanup": false,
+  "created": [
+    {
+      "table": "rooms",
+      "id": "a8fbf30a-ad37-49b9-918e-f9330d9a08b4",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun room"
+    },
+    {
+      "table": "program_types",
+      "id": "e5919f2c-47fd-4dce-95ca-1c1837fd5516",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun program"
+    },
+    {
+      "table": "plans",
+      "id": "95d247d9-03a6-410e-b83d-8e119b846dd5",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun plan"
+    },
+    {
+      "table": "classes",
+      "id": "827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun class"
+    },
+    {
+      "table": "payments",
+      "id": "a1d764c7-fdac-451b-823a-09c972833059",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun payment"
+    },
+    {
+      "table": "receipts",
+      "id": "428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun receipt"
+    },
+    {
+      "table": "bookings",
+      "id": "b7a75532-504e-417e-b80f-062535c08798",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun booking"
+    },
+    {
+      "table": "attendance_records",
+      "id": "ccd8a78c-e7dd-4ad4-8a2a-760a76bbb64c",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun attended"
+    },
+    {
+      "table": "notification_logs",
+      "id": "8c4a02cb-634a-425b-aff6-120f9d0b084f",
+      "tag": "QA_PRE_RELEASE_RERUN_20260624T214226Z",
+      "notes": "rerun notification"
+    }
+  ],
+  "checks": [
+    {
+      "name": "existing QA users can login",
+      "result": "PASS",
+      "emails": {
+        "admin": "qa_pre_release_20260624t210916z.admin@example.com",
+        "instructor": "qa_pre_release_20260624t210916z.instructor@example.com",
+        "member": "qa_pre_release_20260624t210916z.member@example.com",
+        "other": "qa_pre_release_20260624t210916z.othermember@example.com"
+      }
+    },
+    {
+      "name": "prepare rerun tagged studio records",
+      "result": "PASS",
+      "room": "a8fbf30a-ad37-49b9-918e-f9330d9a08b4",
+      "program": "e5919f2c-47fd-4dce-95ca-1c1837fd5516",
+      "plan": "95d247d9-03a6-410e-b83d-8e119b846dd5",
+      "class": "827e08e3-e592-4384-93d4-53fd2e33cf2f"
+    },
+    {
+      "name": "payment grants credits and receipt is idempotent",
+      "result": "PASS",
+      "receiptId": "428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "creditsBefore": 3,
+      "creditsAfter": 8
+    },
+    {
+      "name": "member booking updates credits/capacity and rosters",
+      "result": "PASS",
+      "bookingId": "b7a75532-504e-417e-b80f-062535c08798",
+      "creditsAfter": 6,
+      "bookedCount": 1
+    },
+    {
+      "name": "attendance persists",
+      "result": "PASS",
+      "attendanceId": "ccd8a78c-e7dd-4ad4-8a2a-760a76bbb64c"
+    },
+    {
+      "name": "receipt ownership RLS",
+      "result": "PASS"
+    },
+    {
+      "name": "notification log persists",
+      "result": "PASS"
+    }
+  ],
+  "bugs": []
+}

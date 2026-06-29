@@ -1,0 +1,8 @@
+{
+  "before": ["Yareen", "yareen@example.com", "Ameerk!ng1996112123"],
+  "after": ["", "", ""],
+  "names": ["signup-name-3", "signup-email-3", "signup-password-3"],
+  "autocomplete": ["off", "off", "new-password"],
+  "consoleErrors": [],
+  "result": "PASS"
+}

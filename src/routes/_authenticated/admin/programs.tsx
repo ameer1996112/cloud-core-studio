@@ -5,10 +5,11 @@ import { listProgramTypes, upsertProgramType, archiveProgramType } from "@/lib/a
 import { useState } from "react";
 import { Plus, Pencil, Archive, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
-import { Empty, Field, SectionTitle } from "@/components/admin-shared";
+import { Empty, Field } from "@/components/admin-shared";
+import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export const Route = createFileRoute("/_authenticated/admin/programs")({
-  head: () => ({ meta: [{ title: "Program types — Studio Admin" }] }),
   component: Page,
 });
 
@@ -54,6 +55,8 @@ const emptyForm: Omit<ProgramType, "id"> & { id?: string } = {
 };
 
 function Page() {
+  const { lang, t } = useI18n();
+  useDocumentTitle("page.programs.title");
   const listFn = useServerFn(listProgramTypes);
   const saveFn = useServerFn(upsertProgramType);
   const archiveFn = useServerFn(archiveProgramType);
@@ -69,95 +72,118 @@ function Page() {
     mutationFn: (v: any) => saveFn({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-program-types"] });
-      toast.success("Saved");
+      toast.success(t("common.saved"));
       setEditing(null);
     },
-    onError: (e: any) => toast.error(e.message ?? "Failed"),
+    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
   });
 
   const archiveMut = useMutation({
     mutationFn: (v: { id: string; active: boolean }) => archiveFn({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-program-types"] });
-      toast.success("Updated");
+      toast.success(t("admin.classes.updated"));
     },
-    onError: (e: any) => toast.error(e.message ?? "Failed"),
+    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
   });
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
-        action={
-          <button
-            onClick={() => setEditing("new")}
-            className="btn-navy hover:bg-transparent hover:text-navy"
-          >
-            <Plus className="h-3.5 w-3.5" /> New program
+    <div className="mx-auto w-full max-w-6xl space-y-7">
+      <div className="flex flex-col gap-5 border-b border-gold/25 pb-6 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl space-y-3">
+          <p className="eyebrow text-slate">{t("admin.programs.catalog")}</p>
+          <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
+            {t("admin.programs.title")}
+          </h1>
+          <p className="text-sm leading-7 text-slate">{t("admin.programs.description")}</p>
+        </div>
+        <div className="flex shrink-0">
+          <button onClick={() => setEditing("new")} className="btn-navy hover:btn-navy-hover">
+            <Plus className="h-3.5 w-3.5" /> {t("admin.programs.add")}
           </button>
-        }
-      >
-        Program types
-      </SectionTitle>
-      <p className="text-sm text-slate max-w-xl leading-relaxed -mt-4">
-        The catalogue of disciplines the studio teaches. Each session in the schedule belongs to one
-        of these programs. Content is stored separately in English, Hebrew, and Arabic — never
-        mixed.
-      </p>
+        </div>
+      </div>
 
       {isLoading && <div className="editorial-card h-32 skeleton-brand" />}
-      {data && data.length === 0 && (
-        <Empty>No programs yet. Add the studio's first discipline.</Empty>
-      )}
+      {data && data.length === 0 && <Empty>{t("admin.noPrograms")}</Empty>}
 
-      <div className="grid sm:grid-cols-2 gap-2">
-        {data?.map((p: ProgramType) => (
-          <div key={p.id} className="editorial-card overflow-hidden hover:editorial-card-hover">
-            <div className="h-1" style={{ backgroundColor: p.color_tag }} />
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-display text-lg leading-tight">{p.name_en}</p>
-                    {!p.active && (
-                      <span className="text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-[2px] border border-slate/30 text-slate">
-                        Archived
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {data?.map((p: ProgramType) => {
+          const display = getProgramDisplay(p, lang);
+          const category = displayCategory(p.level, lang);
+          return (
+            <article
+              key={p.id}
+              className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-[8px] border border-gold/20 bg-white shadow-[0_16px_38px_-30px_rgba(11,29,58,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_24px_50px_-34px_rgba(11,29,58,0.55)]"
+            >
+              <div className="h-1.5 bg-gold/80" />
+              <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-gold/25 bg-ivory px-3 py-1 text-xs font-medium text-slate">
+                        {category}
                       </span>
-                    )}
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${
+                          p.active
+                            ? "border border-powder/60 bg-powder/25 text-navy"
+                            : "border border-slate/20 bg-sand/40 text-slate"
+                        }`}
+                      >
+                        {p.active ? t("admin.programs.active") : t("admin.programs.inactive")}
+                      </span>
+                    </div>
+                    <h2 className="font-display text-2xl leading-tight text-navy">
+                      {display.name}
+                    </h2>
                   </div>
-                  <p className="text-[11px] uppercase tracking-[0.15em] text-slate mt-2">
-                    {p.name_he} · {p.name_ar}
-                  </p>
-                  <p className="text-xs text-slate mt-3">
-                    {p.default_duration_minutes}m · cap {p.default_capacity} ·{" "}
-                    {p.default_credit_cost} cr
-                    {p.level ? ` · ${p.level}` : ""}
-                  </p>
-                  {p.equipment.length > 0 && (
-                    <p className="text-[11px] text-slate mt-2 italic">
-                      Equipment: {p.equipment.join(", ")}
-                    </p>
-                  )}
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      onClick={() => setEditing(p)}
+                      aria-label={t("admin.programs.edit")}
+                      title={t("admin.programs.edit")}
+                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => archiveMut.mutate({ id: p.id, active: !p.active })}
+                      aria-label={
+                        p.active ? t("admin.programs.archive") : t("admin.programs.reactivate")
+                      }
+                      title={
+                        p.active ? t("admin.programs.archive") : t("admin.programs.reactivate")
+                      }
+                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+                    >
+                      {p.active ? (
+                        <Archive className="h-4 w-4" />
+                      ) : (
+                        <RotateCcw className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-1 shrink-0">
-                  <button
-                    onClick={() => setEditing(p)}
-                    aria-label="Edit"
-                    className="h-9 w-9 inline-flex items-center justify-center border border-gold/25 rounded-[2px] text-slate hover:text-navy hover:border-gold transition-colors"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => archiveMut.mutate({ id: p.id, active: !p.active })}
-                    aria-label={p.active ? "Archive" : "Reactivate"}
-                    className="h-9 w-9 inline-flex items-center justify-center border border-gold/25 rounded-[2px] text-slate hover:text-navy hover:border-gold transition-colors"
-                  >
-                    {p.active ? <Archive className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
-                  </button>
+
+                <p className="mt-5 min-h-[72px] text-sm leading-7 text-slate">
+                  {display.description || t("admin.programs.noDescription")}
+                </p>
+
+                <div className="mt-auto grid grid-cols-2 gap-3 pt-6">
+                  <ProgramMetric
+                    label={t("admin.programs.duration")}
+                    value={`${p.default_duration_minutes} ${t("common.minutes")}`}
+                  />
+                  <ProgramMetric
+                    label={t("admin.programs.credits")}
+                    value={formatCredits(p.default_credit_cost, lang, t)}
+                  />
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </article>
+          );
+        })}
       </div>
 
       {editing && (
@@ -183,6 +209,7 @@ function ProgramModal({
   onSave: (v: any) => void;
   saving: boolean;
 }) {
+  const { t } = useI18n();
   const [f, setF] = useState<typeof emptyForm>(() => ({
     ...emptyForm,
     ...(initial ?? {}),
@@ -196,21 +223,21 @@ function ProgramModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-2xl bg-ivory border border-gold/30 rounded-[4px] p-7 space-y-6 max-h-[90vh] overflow-y-auto shadow-[0_30px_60px_-30px_rgba(11,29,58,0.3)]">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_rgba(11,29,58,0.3)] space-y-6">
         <div className="flex items-center justify-between border-b border-gold/30 pb-4">
-          <h3 className="font-display italic text-xl">
-            {initial ? "Edit program" : "New program"}
+          <h3 className="font-display text-xl">
+            {initial ? t("admin.programs.edit") : t("admin.programs.add")}
           </h3>
           <button
             onClick={onClose}
-            className="h-8 w-8 inline-flex items-center justify-center text-slate hover:text-navy"
+            className="btn-ghost inline-flex h-8 w-8 items-center justify-center p-0 hover:btn-ghost-hover"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-          <Field label="Slug (URL-safe)">
+        <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+          <Field label={t("admin.programs.slug")}>
             <input
               className="editorial-input"
               value={f.slug}
@@ -219,11 +246,11 @@ function ProgramModal({
               }
             />
           </Field>
-          <Field label="Color tag">
+          <Field label={t("admin.programs.color")}>
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                className="h-10 w-12 cursor-pointer rounded-[2px] border border-gold/30"
+                className="h-10 w-12 cursor-pointer rounded-xl border border-gold/30 bg-ivory"
                 value={f.color_tag}
                 onChange={(e) => set({ color_tag: e.target.value })}
               />
@@ -237,8 +264,8 @@ function ProgramModal({
         </div>
 
         <div className="space-y-5">
-          <p className="eyebrow text-[10px]">Names (per language)</p>
-          <div className="grid grid-cols-3 gap-3">
+          <p className="eyebrow">{t("admin.programs.names")}</p>
+          <div className="grid gap-3 md:grid-cols-3">
             <Field label="English">
               <input
                 className="editorial-input"
@@ -266,7 +293,7 @@ function ProgramModal({
         </div>
 
         <div className="space-y-5">
-          <p className="eyebrow text-[10px]">Descriptions (per language)</p>
+          <p className="eyebrow">{t("admin.programs.descriptions")}</p>
           <Field label="English">
             <textarea
               className="editorial-input"
@@ -295,8 +322,8 @@ function ProgramModal({
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5">
-          <Field label="Duration (m)">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
+          <Field label={t("admin.programs.duration")}>
             <input
               type="number"
               className="editorial-input"
@@ -304,7 +331,7 @@ function ProgramModal({
               onChange={(e) => set({ default_duration_minutes: +e.target.value })}
             />
           </Field>
-          <Field label="Capacity">
+          <Field label={t("admin.programs.capacity")}>
             <input
               type="number"
               className="editorial-input"
@@ -312,7 +339,7 @@ function ProgramModal({
               onChange={(e) => set({ default_capacity: +e.target.value })}
             />
           </Field>
-          <Field label="Credit cost">
+          <Field label={t("admin.programs.creditCost")}>
             <input
               type="number"
               className="editorial-input"
@@ -320,7 +347,7 @@ function ProgramModal({
               onChange={(e) => set({ default_credit_cost: +e.target.value })}
             />
           </Field>
-          <Field label="Sort order">
+          <Field label={t("admin.programs.sortOrder")}>
             <input
               type="number"
               className="editorial-input"
@@ -330,19 +357,19 @@ function ProgramModal({
           </Field>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-x-6 gap-y-5">
-          <Field label="Level">
+        <div className="grid gap-x-6 gap-y-5 md:grid-cols-2">
+          <Field label={t("admin.programs.level")}>
             <input
               className="editorial-input"
-              placeholder="all-levels / beginner / advanced"
+              placeholder={t("admin.programs.levelPlaceholder")}
               value={f.level ?? ""}
               onChange={(e) => set({ level: e.target.value })}
             />
           </Field>
-          <Field label="Age groups (comma separated)">
+          <Field label={t("admin.programs.ageGroups")}>
             <input
               className="editorial-input"
-              placeholder="adults, teens, kids"
+              placeholder={t("admin.programs.ageGroupsPlaceholder")}
               value={f.age_groups.join(", ")}
               onChange={(e) =>
                 set({
@@ -354,22 +381,7 @@ function ProgramModal({
               }
             />
           </Field>
-          <Field label="Equipment (comma separated)">
-            <input
-              className="editorial-input"
-              placeholder="silk hammock, yoga mat"
-              value={f.equipment.join(", ")}
-              onChange={(e) =>
-                set({
-                  equipment: e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                })
-              }
-            />
-          </Field>
-          <Field label="Cover image URL">
+          <Field label={t("admin.programs.coverImage")}>
             <input
               className="editorial-input"
               value={f.cover_image_url ?? ""}
@@ -385,12 +397,12 @@ function ProgramModal({
             checked={f.active}
             onChange={(e) => set({ active: e.target.checked })}
           />
-          Active (visible in the catalogue)
+          {t("admin.programs.activeVisible")}
         </label>
 
         <div className="flex justify-end gap-3 pt-2 border-t border-gold/25">
           <button onClick={onClose} className="btn-ghost hover:btn-ghost-hover">
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             disabled={saving || !f.slug || !f.name_en || !f.name_he || !f.name_ar}
@@ -402,14 +414,62 @@ function ProgramModal({
                 description_ar: f.description_ar || null,
                 cover_image_url: f.cover_image_url || null,
                 level: f.level || null,
+                equipment: f.equipment ?? [],
               })
             }
-            className="btn-navy hover:bg-transparent hover:text-navy disabled:opacity-50"
+            className="btn-navy hover:btn-navy-hover disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Save program"}
+            {saving ? t("common.saving") : t("admin.programs.save")}
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+function getProgramDisplay(p: ProgramType, lang: "en" | "he" | "ar") {
+  if (lang === "he") {
+    return {
+      name: p.name_he || p.name_en,
+      description: p.description_he || p.description_en || "",
+    };
+  }
+  if (lang === "ar") {
+    return {
+      name: p.name_ar || p.name_en,
+      description: p.description_ar || p.description_en || "",
+    };
+  }
+  return { name: p.name_en, description: p.description_en || "" };
+}
+
+function ProgramMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-gold/20 bg-ivory/70 px-4 py-3">
+      <p className="text-xs font-medium text-slate">{label}</p>
+      <p className="mt-1 font-display text-lg leading-tight text-navy">{value}</p>
+    </div>
+  );
+}
+
+function displayCategory(level: string | null, lang: "en" | "he" | "ar") {
+  const normalized = String(level ?? "").toLowerCase();
+  if (normalized.includes("aerial")) {
+    return lang === "he" ? "אווירי / יוגה" : lang === "ar" ? "هوائي / يوغا" : "Aerial / Yoga";
+  }
+  if (normalized.includes("pilates")) {
+    return lang === "he" ? "פילאטיס" : lang === "ar" ? "بيلاتيس" : "Pilates";
+  }
+  if (normalized.includes("beginner")) {
+    return lang === "he" ? "מתחילים" : lang === "ar" ? "مبتدئات" : "Beginner";
+  }
+  if (normalized.includes("advanced")) {
+    return lang === "he" ? "מתקדמים" : lang === "ar" ? "متقدم" : "Advanced";
+  }
+  return lang === "he" ? "כל הרמות" : lang === "ar" ? "كل المستويات" : "All levels";
+}
+
+function formatCredits(count: number, _lang: "en" | "he" | "ar", translate: any) {
+  if (count === 1) return translate("admin.programs.oneCredit");
+  return translate("admin.programs.creditShort", { count });
 }

@@ -17,6 +17,8 @@ import {
 import { studioPulse } from "@/lib/admin.functions";
 import { ClassRosterDrawer } from "@/components/admin/ClassRosterDrawer";
 import { getLocale, t, useI18n } from "@/lib/i18n";
+import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
+import { AdminToolbar, Empty } from "@/components/admin-shared";
 
 type Scope = "next" | "today" | "tomorrow" | "all";
 
@@ -37,14 +39,26 @@ function startOfDay(d: Date) {
   return x;
 }
 
+function localizedRoomName(name: string | null | undefined, lang: string) {
+  if (!name) return "—";
+  const normalized = name.trim();
+  const aliases: Record<string, Record<string, string>> = {
+    "Cloud Studio": { en: "Cloud Studio", he: "סטודיו קלאוד", ar: "استوديو كلاود" },
+    "E2E Studio": { en: "E2E Studio", he: "סטודיו E2E", ar: "استوديو E2E" },
+  };
+  return aliases[normalized]?.[lang] ?? normalized;
+}
+
 export function StudioPulse({
   heading,
   subheading,
   mineOnly = false,
+  showHeader = true,
 }: {
   heading?: string;
   subheading?: string;
   mineOnly?: boolean;
+  showHeader?: boolean;
 }) {
   useI18n();
   const fn = useServerFn(studioPulse);
@@ -59,7 +73,7 @@ export function StudioPulse({
   const [scope, setScope] = useState<Scope>("next");
   const [openClassId, setOpenClassId] = useState<string | null>(null);
 
-  const classes = (data?.classes ?? []) as any[];
+  const classes = useMemo(() => (data?.classes ?? []) as any[], [data?.classes]);
   const filtered = useMemo(() => {
     const now = new Date();
     const today = startOfDay(now);
@@ -85,24 +99,26 @@ export function StudioPulse({
 
   return (
     <section className="space-y-6 pb-12">
-      <header className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-gold/30">
-        <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-gold">{t("pulse.live")}</p>
-          <h1 className="font-display italic text-3xl sm:text-4xl text-navy mt-2 leading-tight">
-            {heading ?? t("pulse.heading")}
-          </h1>
-          {subheading && <p className="text-slate text-sm mt-2 max-w-prose">{subheading}</p>}
-        </div>
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-slate">
-          <span className="relative inline-flex h-2 w-2">
-            <span className="absolute inset-0 rounded-full bg-gold opacity-60 animate-ping" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
-          </span>
-          {t("pulse.updated", { time: updatedLabel })}
-        </div>
-      </header>
+      {showHeader && (
+        <header className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-gold/30">
+          <div className="min-w-0">
+            <p className="eyebrow text-slate">{t("pulse.live")}</p>
+            <h1 className="text-3xl sm:text-4xl font-semibold text-navy mt-2 leading-tight">
+              {heading ?? t("pulse.heading")}
+            </h1>
+            {subheading && <p className="text-slate text-sm mt-2 max-w-prose">{subheading}</p>}
+          </div>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate">
+            <span className="relative inline-flex h-2 w-2">
+              <span className="absolute inset-0 rounded-full bg-gold opacity-60 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
+            </span>
+            {t("pulse.updated", { time: updatedLabel })}
+          </div>
+        </header>
+      )}
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <AdminToolbar className="overflow-x-auto">
         {(
           [
             { k: "next", label: t("pulse.nextUp") },
@@ -116,29 +132,29 @@ export function StudioPulse({
             onClick={() => setScope(s.k as Scope)}
             className={
               scope === s.k
-                ? "px-3 py-1.5 border border-navy bg-navy text-ivory rounded-full text-[10px] uppercase tracking-[0.2em]"
-                : "px-3 py-1.5 border border-gold/40 text-navy rounded-full text-[10px] uppercase tracking-[0.2em] hover:bg-gold/10"
+                ? "px-3 py-1.5 border border-navy bg-navy text-ivory rounded-full text-xs font-medium"
+                : "px-3 py-1.5 border border-gold/40 text-navy rounded-full text-xs font-medium hover:bg-gold/8"
             }
           >
             {s.label}
           </button>
         ))}
-      </div>
+      </AdminToolbar>
 
       {isLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="skeleton-brand h-56 rounded-[4px]" />
+            <div key={i} className="skeleton-brand h-56 rounded-xl" />
           ))}
         </div>
       )}
 
       {!isLoading && filtered.length === 0 && (
-        <div className="editorial-panel p-10 text-center bg-[#E8DFD1]/30">
-          <Activity className="h-8 w-8 text-gold/70 mx-auto mb-3" />
-          <p className="font-display italic text-2xl text-navy">{t("pulse.emptyTitle")}</p>
-          <p className="text-sm text-slate mt-2">{t("pulse.emptyBody")}</p>
-        </div>
+        <Empty>
+          <Activity className="h-6 w-6 text-gold/70 mx-auto mb-3" />
+          <span className="block font-semibold text-navy">{t("pulse.emptyTitle")}</span>
+          <span className="mt-2 block">{t("pulse.emptyBody")}</span>
+        </Empty>
       )}
 
       {!isLoading && filtered.length > 0 && (
@@ -155,6 +171,7 @@ export function StudioPulse({
 }
 
 function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
+  const { lang } = useI18n();
   const start = new Date(c.starts_at);
   const cap = Math.max(c.capacity ?? 0, 1);
   const booked = c.booked_count ?? 0;
@@ -162,21 +179,26 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
   const full = booked >= cap;
   const summary = c.roster_summary ?? { booked: 0, first_timers: 0, care_flags: 0, low_credits: 0 };
   const preview: any[] = c.roster_preview ?? [];
+  const title = localizedClassTitle(c, lang);
+  const instructor = c.instructor?.name
+    ? localizedInstructorName(c.instructor.name, lang)
+    : t("common.unassigned");
+  const room = localizedRoomName(c.room_ref?.name ?? c.room, lang);
 
   const tone =
     c.status === "cancelled"
-      ? "border-l-slate/40 opacity-70"
+      ? "border-s-slate/40 opacity-70"
       : full
-        ? "border-l-navy"
+        ? "border-s-navy"
         : pct >= 80
-          ? "border-l-gold"
-          : "border-l-powder";
+          ? "border-s-gold"
+          : "border-s-powder";
 
   return (
-    <article className={`editorial-card p-5 border-l-4 ${tone} flex flex-col gap-4`}>
+    <article className={`editorial-card p-5 border-s-4 ${tone} flex flex-col gap-4`}>
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-slate">
+          <p className="text-xs font-medium text-slate">
             {start.toLocaleDateString(getLocale(), {
               weekday: "short",
               month: "short",
@@ -188,15 +210,15 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
             {c.duration_minutes}
             {t("common.minutes")}
           </p>
-          <h3 className="font-display text-2xl text-navy mt-1 leading-tight truncate">{c.title}</h3>
+          <h3 className="font-display text-2xl text-navy mt-1 leading-tight truncate">{title}</h3>
           <p className="text-xs text-slate mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1">
               <MapPin className="h-3 w-3 text-gold" />
-              {c.room_ref?.name ?? c.room ?? "—"}
+              {room}
             </span>
             <span className="inline-flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-gold" />
-              {c.instructor?.name ?? t("common.unassigned")}
+              {instructor}
             </span>
             <span className="inline-flex items-center gap-1">
               <Wallet className="h-3 w-3 text-gold" />
@@ -207,15 +229,15 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
         <button
           onClick={onOpen}
           aria-label={t("pulse.openRoster")}
-          className="shrink-0 inline-flex items-center gap-1 h-9 px-3 border border-gold/40 rounded-[2px] text-[10px] uppercase tracking-[0.2em] text-navy hover:bg-gold/10"
+          className="btn-outline shrink-0 inline-flex h-9 items-center gap-1 px-3 text-xs hover:btn-outline-hover"
         >
-          {t("pulse.roster")} <ChevronRight className="h-3 w-3" />
+          {t("pulse.roster")} <ChevronRight className="h-3 w-3 directional-icon-forward" />
         </button>
       </header>
 
       {/* Capacity */}
       <div>
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate mb-1.5">
+        <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-slate">
           <span className="inline-flex items-center gap-1">
             <Users className="h-3 w-3 text-gold" /> {t("common.capacity")}
           </span>
@@ -231,7 +253,7 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
           />
         </div>
         {(c.waitlist_count ?? 0) > 0 && (
-          <p className="mt-1.5 text-[10px] uppercase tracking-[0.2em] text-gold">
+          <p className="mt-1.5 text-xs font-medium text-slate">
             {t("pulse.onWaitlist", { count: c.waitlist_count })}
           </p>
         )}
@@ -286,9 +308,9 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
               ]
                 .filter(Boolean)
                 .join(" · ")}
-              className="inline-flex items-center gap-1.5 px-2 py-1 bg-ivory border border-gold/25 rounded-full text-[11px] text-navy"
+              className="inline-flex items-center gap-1.5 rounded-full border border-gold/25 bg-ivory px-2 py-1 text-xs font-medium text-navy"
             >
-              <span className="relative inline-flex h-5 w-5 rounded-full bg-powder/60 items-center justify-center text-[9px] tracking-wider text-navy">
+              <span className="relative inline-flex h-5 w-5 rounded-full bg-powder/60 items-center justify-center font-semibold text-navy">
                 {initials(m.name)}
                 {m.has_care_notes && (
                   <span className="absolute -top-0.5 -end-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-ivory" />
@@ -299,13 +321,13 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
             </li>
           ))}
           {summary.booked > preview.length && (
-            <li className="text-[10px] uppercase tracking-[0.2em] text-slate">
+            <li className="text-xs font-medium text-slate">
               {t("pulse.more", { count: summary.booked - preview.length })}
             </li>
           )}
         </ul>
       ) : (
-        <p className="pt-3 border-t hairline text-[11px] italic text-slate font-display">
+        <p className="border-t hairline pt-3 text-xs italic text-slate font-display">
           {t("pulse.waitingFirst")}
         </p>
       )}
@@ -314,15 +336,15 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
         <Link
           to="/admin/classes/$id"
           params={{ id: c.id }}
-          className="text-[10px] uppercase tracking-[0.2em] text-gold hover:underline"
+          className="text-xs font-medium text-navy transition-colors hover:text-gold"
         >
           {t("pulse.classDetails")}
         </Link>
         <button
           onClick={onOpen}
-          className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.2em] text-navy hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-medium text-navy hover:underline"
         >
-          {t("pulse.openRoster")} <ArrowRight className="h-3 w-3" />
+          {t("pulse.openRoster")} <ArrowRight className="h-3 w-3 directional-icon-forward" />
         </button>
       </footer>
     </article>
@@ -346,7 +368,7 @@ function Signal({
   } as const;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 border rounded-full text-[10px] uppercase tracking-[0.18em] ${map[tone]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 border rounded-full text-xs font-medium ${map[tone]}`}
     >
       {icon}
       {label}

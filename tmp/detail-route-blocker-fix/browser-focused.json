@@ -1,0 +1,212 @@
+{
+  "timestamp": "2026-06-24T22:58:28.113Z",
+  "projectId": "banjmspemvzrqckajvwo",
+  "receiptId": "428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+  "classId": "827e08e3-e592-4384-93d4-53fd2e33cf2f",
+  "results": [
+    {
+      "name": "owner receipt 390",
+      "role": "member",
+      "viewport": "390x844",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "עברית\nחזרה\nהדפסה\n\nקבלת תשלום\n\nCloud & Core Studio\n\nמס׳ קבלה\n\nCC-2026-01007\n\n6/25/2026\n\nהונפק\n\nהונפק עבור\n\nQA_PRE_RELEASE_20260624T210916Z_Member With Credits\n\nא"
+    },
+    {
+      "name": "owner receipt 390 refresh",
+      "role": "member",
+      "viewport": "390x844",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "עברית\nחזרה\nהדפסה\n\nקבלת תשלום\n\nCloud & Core Studio\n\nמס׳ קבלה\n\nCC-2026-01007\n\n6/25/2026\n\nהונפק\n\nהונפק עבור\n\nQA_PRE_RELEASE_20260624T210916Z_Member With Credits\n\nא"
+    },
+    {
+      "name": "admin class detail 390",
+      "role": "admin",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "pass": true,
+      "textSample": "עברית\n\nניהול סטודיו\n\nCloud & Core\n← All classes\nQA_PRE_RELEASE_RERUN_20260624T214226Z_Class\n\nMonday, July 13 at 11:30 AM\n\nQA_PRE_RELEASE_RERUN_20260624T214226Z_"
+    },
+    {
+      "name": "admin class detail 390 refresh",
+      "role": "admin",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "pass": true,
+      "textSample": "עברית\n\nניהול סטודיו\n\nCloud & Core\n← All classes\nQA_PRE_RELEASE_RERUN_20260624T214226Z_Class\n\nMonday, July 13 at 11:30 AM\n\nQA_PRE_RELEASE_RERUN_20260624T214226Z_"
+    },
+    {
+      "name": "owner receipt 820",
+      "role": "member",
+      "viewport": "820x1180",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "עברית\n\nהתרגול שלך\n\nCloud & Core\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\nחזרה\nהדפסה\n\nקבלת תשלום\n\nCloud & Core Studio\n\nמס׳ קבלה\n\nCC-2026-01007\n\n6/25/2026\n"
+    },
+    {
+      "name": "owner receipt 820 refresh",
+      "role": "member",
+      "viewport": "820x1180",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "עברית\n\nהתרגול שלך\n\nCloud & Core\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\nחזרה\nהדפסה\n\nקבלת תשלום\n\nCloud & Core Studio\n\nמס׳ קבלה\n\nCC-2026-01007\n\n6/25/2026\n"
+    },
+    {
+      "name": "admin class detail 820",
+      "role": "admin",
+      "viewport": "820x1180",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "pass": true,
+      "textSample": "עברית\n\nניהול סטודיו\n\nCloud & Core\nעברית\n← All classes\nQA_PRE_RELEASE_RERUN_20260624T214226Z_Class\n\nMonday, July 13 at 11:30 AM\n\nQA_PRE_RELEASE_RERUN_20260624T21"
+    },
+    {
+      "name": "admin class detail 820 refresh",
+      "role": "admin",
+      "viewport": "820x1180",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "pass": true,
+      "textSample": "עברית\n\nניהול סטודיו\n\nCloud & Core\nעברית\n← All classes\nQA_PRE_RELEASE_RERUN_20260624T214226Z_Class\n\nMonday, July 13 at 11:30 AM\n\nQA_PRE_RELEASE_RERUN_20260624T21"
+    },
+    {
+      "name": "owner receipt 1440",
+      "role": "member",
+      "viewport": "1440x1000",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "התרגול שלך\n\nCloud & Core\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\nחזרה\nהדפסה\n\nקבלת תשלום\n\nCloud & Core Studio\n\nמס׳ קבלה\n\nCC-2026-01007\n\n6/25/2026\n\nהונפק\n"
+    },
+    {
+      "name": "owner receipt 1440 refresh",
+      "role": "member",
+      "viewport": "1440x1000",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "התרגול שלך\n\nCloud & Core\nעברית\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל\nחזרה\nהדפסה\n\nקבלת תשלום\n\nCloud & Core Studio\n\nמס׳ קבלה\n\nCC-2026-01007\n\n6/25/2026\n\nהונפק\n"
+    },
+    {
+      "name": "admin class detail 1440",
+      "role": "admin",
+      "viewport": "1440x1000",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "pass": true,
+      "textSample": "סטודיו\n\nסקירה\nמצב הסטודיו\nלוח שיעורים\nנוכחות\nחדרים\n\nאנשים\n\nלקוחות\nמדריכים\nתוכניות\nחבילות\nתשלומים\n\nמערכת\n\nדוחות\nהודעות\nהגדרות\nיציאה\n\nניהול סטודיו\n\nCloud & Core\nע"
+    },
+    {
+      "name": "admin class detail 1440 refresh",
+      "role": "admin",
+      "viewport": "1440x1000",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "pass": true,
+      "textSample": "סטודיו\n\nסקירה\nמצב הסטודיו\nלוח שיעורים\nנוכחות\nחדרים\n\nאנשים\n\nלקוחות\nמדריכים\nתוכניות\nחבילות\nתשלומים\n\nמערכת\n\nדוחות\nהודעות\nהגדרות\nיציאה\n\nניהול סטודיו\n\nCloud & Core\nע"
+    },
+    {
+      "name": "guest receipt auth",
+      "role": "guest",
+      "viewport": "390x844",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/auth",
+      "pass": true,
+      "textSample": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+    },
+    {
+      "name": "guest receipt auth refresh",
+      "role": "guest",
+      "viewport": "390x844",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/auth",
+      "pass": true,
+      "textSample": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+    },
+    {
+      "name": "other member receipt RLS stays",
+      "role": "other",
+      "viewport": "390x844",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "עברית\nטוען קבלה…\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל"
+    },
+    {
+      "name": "other member receipt RLS stays refresh",
+      "role": "other",
+      "viewport": "390x844",
+      "path": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "final": "/receipts/428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+      "pass": true,
+      "textSample": "עברית\nטוען קבלה…\nבית\nלוח שיעורים\nההזמנות שלי\nחבילות\nפרופיל"
+    },
+    {
+      "name": "guest admin class auth",
+      "role": "guest",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/auth",
+      "pass": true,
+      "textSample": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+    },
+    {
+      "name": "guest admin class auth refresh",
+      "role": "guest",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/auth",
+      "pass": true,
+      "textSample": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+    },
+    {
+      "name": "member admin class blocked",
+      "role": "member",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/member",
+      "pass": true,
+      "textSample": "עברית\n\nבוקר טוב\n\nQA_PRE_RELEASE_20260624T210916Z_Member.\n\nברוכים השבים לסטודיו.\n\nקרדיטים\n\n6\n\nהזמנות\n\n2\n\nזמינים\n\n2\n\nCloud Card שלך\n\nמתחיל בעוד 15 ימים\n\nיום ו׳, 1"
+    },
+    {
+      "name": "member admin class blocked refresh",
+      "role": "member",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/member",
+      "pass": true,
+      "textSample": "עברית\n\nבוקר טוב\n\nQA_PRE_RELEASE_20260624T210916Z_Member.\n\nברוכים השבים לסטודיו.\n\nקרדיטים\n\n6\n\nהזמנות\n\n2\n\nזמינים\n\n2\n\nCloud Card שלך\n\nמתחיל בעוד 15 ימים\n\nיום ו׳, 1"
+    },
+    {
+      "name": "instructor admin class blocked",
+      "role": "instructor",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/instructor",
+      "pass": true,
+      "textSample": "עברית\n\nמצב הסטודיו\n\nמצב הסטודיו\n\nתמונת מצב חיה\n\nברוך/ה הבא/ה, QA_PRE_RELEASE_20260624T210916Z_instructor.\n\nמבט חי על השיעורים הקרובים שלך — מי מגיע, מה הם מביאי"
+    },
+    {
+      "name": "instructor admin class blocked refresh",
+      "role": "instructor",
+      "viewport": "390x844",
+      "path": "/admin/classes/827e08e3-e592-4384-93d4-53fd2e33cf2f",
+      "final": "/instructor",
+      "pass": true,
+      "textSample": "עברית\n\nמצב הסטודיו\n\nמצב הסטודיו\n\nתמונת מצב חיה\n\nברוך/ה הבא/ה, QA_PRE_RELEASE_20260624T210916Z_instructor.\n\nמבט חי על השיעורים הקרובים שלך — מי מגיע, מה הם מביאי"
+    }
+  ],
+  "consoleEvents": [],
+  "summary": {
+    "pass": 22,
+    "fail": 0,
+    "console": 0
+  }
+}

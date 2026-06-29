@@ -37,6 +37,13 @@ assert.equal(t("nav.schedule"), "לוח שיעורים");
 assert.equal(t("nav.myBookings"), "ההזמנות שלי");
 assert.equal(t("nav.plans"), "חבילות");
 assert.equal(t("pulse.heading"), "מצב הסטודיו");
+assert.equal(t("attendance.empty.title"), "אין שיעורים היום");
+assert.equal(
+  t("attendance.empty.body"),
+  "היום אין שיעורים מתוכננים. אפשר לעבור ללוח השיעורים או ליצור שיעור חדש.",
+);
+assert.equal(t("attendance.empty.primary"), "יצירת שיעור");
+assert.equal(t("attendance.empty.secondary"), "מעבר ללוח השיעורים");
 
 applyLang("en");
 assert.equal(document.documentElement.lang, "en");
@@ -44,6 +51,13 @@ assert.equal(document.documentElement.dir, "ltr");
 assert.equal(window.localStorage.getItem(LANG_KEY), "en");
 assert.equal(t("nav.home"), "Home");
 assert.equal(t("nav.schedule"), "Schedule");
+assert.equal(t("attendance.empty.title"), "No classes today");
+assert.equal(
+  t("attendance.empty.body"),
+  "There are no classes scheduled for today. You can open the schedule or create a new class.",
+);
+assert.equal(t("attendance.empty.primary"), "Create class");
+assert.equal(t("attendance.empty.secondary"), "Open schedule");
 
 applyLang("ar");
 assert.equal(document.documentElement.lang, "ar");
@@ -51,5 +65,12 @@ assert.equal(document.documentElement.dir, "rtl");
 assert.equal(window.localStorage.getItem(LANG_KEY), "ar");
 assert.equal(t("nav.home"), "الرئيسية");
 assert.equal(t("nav.schedule"), "جدول الحصص");
+assert.equal(t("attendance.empty.title"), "لا توجد حصص اليوم");
+assert.equal(
+  t("attendance.empty.body"),
+  "لا توجد حصص مجدولة اليوم. يمكنك الانتقال إلى جدول الحصص أو إنشاء حصة جديدة.",
+);
+assert.equal(t("attendance.empty.primary"), "إنشاء حصة");
+assert.equal(t("attendance.empty.secondary"), "الانتقال للجدول");
 
 console.log("i18n defaults and catalogs OK");

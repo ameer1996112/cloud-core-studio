@@ -8,12 +8,27 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { createIsomorphicFn } from "@tanstack/react-start";
+import { getStartContext } from "@tanstack/start-storage-context";
 
 import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  clearSupabaseAccessTokenCookie,
+  writeSupabaseAccessTokenCookie,
+} from "@/integrations/supabase/session-cookie";
 import { Toaster } from "sonner";
-import { applyLang, getStoredLang, t } from "@/lib/i18n";
+import {
+  applyLang,
+  DEFAULT_LOCALE,
+  LANG_COOKIE,
+  getDirection,
+  getBootLangScript,
+  getStoredLang,
+  setActiveLang,
+  t,
+} from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -88,12 +103,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: "/favicon-32x32.png", sizes: "32x32" },
+      { rel: "icon", type: "image/png", href: "/favicon-16x16.png", sizes: "16x16" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Noto+Sans+Hebrew:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -104,9 +124,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const initialLang = getInitialShellLang();
+  setActiveLang(initialLang);
+
   return (
-    <html lang="he" dir="rtl">
+    <html lang={initialLang} dir={getDirection(initialLang)} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: getBootLangScript() }} />
         <HeadContent />
       </head>
       <body>
@@ -117,21 +141,74 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const getInitialShellLang = createIsomorphicFn()
+  .server(() => {
+    const cookieHeader = getStartContext().request.headers.get("cookie");
+    return readLangCookie(cookieHeader) ?? DEFAULT_LOCALE;
+  })
+  .client(() => {
+    const bootLang =
+      typeof window !== "undefined" && "__ccBootLang" in window
+        ? (window as typeof window & { __ccBootLang?: unknown }).__ccBootLang
+        : null;
+    const htmlLang = typeof document !== "undefined" ? document.documentElement.lang : null;
+    if (bootLang === "he" || bootLang === "ar" || bootLang === "en") return bootLang;
+    if (htmlLang === "he" || htmlLang === "ar" || htmlLang === "en") return htmlLang;
+    return DEFAULT_LOCALE;
+  });
+
+function readLangCookie(cookieHeader: string | null) {
+  if (!cookieHeader) return null;
+  const match = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${LANG_COOKIE}=`));
+  if (!match) return null;
+  const value = decodeURIComponent(match.slice(LANG_COOKIE.length + 1));
+  if (value === "en" || value === "he" || value === "ar") return value;
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
   useEffect(() => {
-    applyLang(getStoredLang());
+    if (typeof window !== "undefined") {
+      applyLang(getStoredLang());
+    }
+    void supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token;
+      if (token) writeSupabaseAccessTokenCookie(token, data.session?.expires_in ?? 3600);
+      else clearSupabaseAccessTokenCookie();
+    });
+    if (typeof window !== "undefined") {
+      void import("@capacitor/splash-screen")
+        .then(({ SplashScreen }) => SplashScreen.hide())
+        .catch(() => undefined);
+    }
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      if (
+        event !== "SIGNED_IN" &&
+        event !== "SIGNED_OUT" &&
+        event !== "USER_UPDATED" &&
+        event !== "TOKEN_REFRESHED"
+      ) {
+        return;
+      }
       if (event === "SIGNED_OUT") {
+        clearSupabaseAccessTokenCookie();
         void queryClient.cancelQueries().finally(() => queryClient.clear());
         void router.navigate({ to: "/auth", replace: true });
         return;
       }
+      void supabase.auth.getSession().then(({ data }) => {
+        const token = data.session?.access_token;
+        if (token) writeSupabaseAccessTokenCookie(token, data.session?.expires_in ?? 3600);
+      });
+      if (event === "SIGNED_IN") return;
       router.invalidate();
-      queryClient.invalidateQueries();
+      void queryClient.invalidateQueries();
     });
     return () => {
       sub.subscription.unsubscribe();
@@ -142,7 +219,14 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster
+        className="app-toaster"
         position="top-center"
+        offset={{ top: 24, right: 16, left: 16 }}
+        mobileOffset={{
+          top: "calc(env(safe-area-inset-top) + 152px)",
+          right: 16,
+          left: 16,
+        }}
         toastOptions={{
           style: {
             background: "var(--card)",

@@ -16,8 +16,18 @@ Two layers, both runnable from this sandbox:
 
 ## Seed
 
+Mutating E2E scripts are blocked unless all guardrails are explicit:
+
+- `ALLOW_E2E_MUTATION=true`
+- `APP_ENV=staging` or `APP_ENV=test`
+- `SUPABASE_PROJECT_ID` / `VITE_SUPABASE_PROJECT_ID` must not be a known blocked project
+- `VITE_SUPABASE_PROJECT_ID=local` is allowed only when `SUPABASE_URL` is localhost or `127.0.0.1`
+- `SUPABASE_URL` is printed before any mutation runs
+
+Known blocked project ids `banjmspemvzrqckajvwo` and `iuxxebonaamwpgiwqkeq` are hard-blocked.
+
 ```bash
-node scripts/e2e-seed.mjs
+APP_ENV=staging ALLOW_E2E_MUTATION=true node scripts/e2e-seed.mjs
 ```
 
 Idempotent. Creates 4 users (password `E2ePass!23`):
@@ -35,9 +45,11 @@ Plus a room, two plans (`E2E 10 Credits`, `E2E Unlimited`) and three classes
 ## Run
 
 ```bash
-node scripts/e2e-seed.mjs           # always reseed first
-node tests/e2e/rpc.spec.mjs         # integration matrix
-node tests/e2e/playwright-routing.mjs   # route guard matrix
+APP_ENV=staging ALLOW_E2E_MUTATION=true node scripts/e2e-seed.mjs
+APP_ENV=staging ALLOW_E2E_MUTATION=true node tests/e2e/rpc.spec.mjs
+APP_ENV=staging ALLOW_E2E_MUTATION=true node tests/e2e/core_balance_slice.spec.mjs
+APP_ENV=staging ALLOW_E2E_MUTATION=true node tests/e2e/payments_receipts.spec.mjs
+node tests/e2e/playwright-routing.mjs   # route guard matrix, after seed
 ```
 
 Each script exits non-zero on failure and prints `PASS`/`FAIL` per case.

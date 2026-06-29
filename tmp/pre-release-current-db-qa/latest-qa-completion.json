@@ -1,0 +1,108 @@
+{
+  "stamp": "20260624T210916Z",
+  "tag": "QA_PRE_RELEASE_20260624T210916Z",
+  "runTag": "QA_PRE_RELEASE_20260624T210916Z_COMPLETION_1782335749501",
+  "target": {
+    "PROJECT_ID": "banjmspemvzrqckajvwo",
+    "SUPABASE_URL": "https://banjmspemvzrqckajvwo.supabase.co"
+  },
+  "destructiveOps": false,
+  "migrationsRun": false,
+  "created": [
+    {
+      "table": "payments",
+      "id": "24a1076d-64db-48fc-802f-fd36fb375ebf",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "completion payment"
+    },
+    {
+      "table": "receipts",
+      "id": "01dae582-1beb-40ec-83a9-214a3671778a",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "completion receipt"
+    },
+    {
+      "table": "bookings",
+      "id": "2427d254-d48a-422d-919a-44bca3d42996",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "completion booked class"
+    },
+    {
+      "table": "classes",
+      "id": "cc6639d9-8f87-49fe-8ee6-45c6262dda5e",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "completion cancellation class"
+    },
+    {
+      "table": "bookings",
+      "id": "1b363f8f-ee43-48ce-aa2d-75f1a1691f27",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "completion cancelled booking"
+    }
+  ],
+  "checks": [
+    {
+      "name": "fresh tagged payment grants credits and issues single receipt",
+      "result": "PASS",
+      "receiptId": "01dae582-1beb-40ec-83a9-214a3671778a",
+      "creditsAfter": 5
+    },
+    {
+      "name": "member books class and credits/capacity/roster update",
+      "result": "PASS",
+      "bookingId": "2427d254-d48a-422d-919a-44bca3d42996"
+    },
+    {
+      "name": "duplicate booking no double charge",
+      "result": "PASS"
+    },
+    {
+      "name": "member without credits is blocked from booking",
+      "result": "PASS"
+    },
+    {
+      "name": "attendance marking persists",
+      "result": "FAIL",
+      "error": "{\"status\":\"error\",\"message\":\"invalid_status\"}"
+    },
+    {
+      "name": "member cancellation refunds credits/capacity",
+      "result": "PASS"
+    },
+    {
+      "name": "receipt RLS completion: owner yes other no",
+      "result": "PASS"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "COMP-01",
+      "severity": "High",
+      "name": "attendance marking persists",
+      "actual": "{\"status\":\"error\",\"message\":\"invalid_status\"}"
+    }
+  ],
+  "cleanupPreview": [
+    {
+      "table": "payments",
+      "id": "24a1076d-64db-48fc-802f-fd36fb375ebf"
+    },
+    {
+      "table": "receipts",
+      "id": "01dae582-1beb-40ec-83a9-214a3671778a"
+    },
+    {
+      "table": "bookings",
+      "id": "2427d254-d48a-422d-919a-44bca3d42996"
+    },
+    {
+      "table": "classes",
+      "id": "cc6639d9-8f87-49fe-8ee6-45c6262dda5e"
+    },
+    {
+      "table": "bookings",
+      "id": "1b363f8f-ee43-48ce-aa2d-75f1a1691f27"
+    }
+  ],
+  "notes": ["Focused completion after setup/credit sequencing issue."]
+}

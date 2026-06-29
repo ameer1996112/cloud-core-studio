@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isTestRecord } from "@/lib/test-records";
 
 async function ensureAdmin(supabase: any, userId: string) {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -12,7 +13,7 @@ export const listRooms = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase.from("rooms").select("*").order("name");
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).filter((r: any) => !isTestRecord(r.name));
   });
 
 const roomInput = z.object({

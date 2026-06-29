@@ -22,9 +22,9 @@ export const listPayments = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("payments")
       .select(
-        "*, member:members(id,name), plan:plans(id,name), receipt:receipts(id,receipt_number)",
+        "*, member:members(id,name), plan:plans(id,name,description,credits,duration_days,price_cents,currency), receipt:receipts(id,receipt_number)",
       )
-      .order("paid_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(300);
     if (data.memberId) q = q.eq("member_id", data.memberId);
     if (data.sinceDays) {

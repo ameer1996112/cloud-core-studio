@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { normalizePhoneForWa } from "@/lib/messageTemplate";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -308,6 +309,39 @@ const logSchema = z.object({
   relatedMemberPlanId: z.string().uuid().nullable().optional(),
 });
 
+function openWaConfig() {
+  const baseUrl = process.env.OPENWA_BASE_URL?.replace(/\/+$/, "");
+  const apiKey = process.env.OPENWA_API_KEY;
+  const sessionId = process.env.OPENWA_SESSION_ID;
+  if (!baseUrl || !apiKey || !sessionId) return null;
+  return { baseUrl, apiKey, sessionId };
+}
+
+async function getOpenWaSessionStatus(config: NonNullable<ReturnType<typeof openWaConfig>>) {
+  const res = await fetch(
+    `${config.baseUrl}/api/sessions/${encodeURIComponent(config.sessionId)}`,
+    {
+      headers: { "X-API-Key": config.apiKey },
+    },
+  );
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`OpenWA status check failed (${res.status})${body ? `: ${body}` : ""}`);
+  }
+
+  const session = await res.json();
+  return String(session?.status ?? "unknown");
+}
+
+function openWaConnectionMessage(status: string) {
+  if (status === "ready" || status === "connected") return null;
+  if (status === "qr_ready" || status === "authenticating" || status === "initializing") {
+    return "OpenWA is waiting for phone pairing. Scan the WhatsApp QR in the OpenWA dashboard, then try again.";
+  }
+  return `OpenWA is not connected yet (status: ${status}). Run bun run openwa:start, scan the QR, then try again.`;
+}
+
 export const logNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => logSchema.parse(d))
@@ -330,6 +364,107 @@ export const logNotification = createServerFn({ method: "POST" })
     });
     if (error) throw error;
     return { ok: true };
+  });
+
+const sendWhatsAppSchema = z.object({
+  templateId: z.string().uuid().nullable().optional(),
+  templateKey: z.string().nullable().optional(),
+  triggerType: z.string().min(1),
+  recipientMemberId: z.string().uuid(),
+  recipientPhone: z.string().nullable().optional(),
+  generatedText: z.string().min(1),
+  subject: z.string().nullable().optional(),
+  relatedClassId: z.string().uuid().nullable().optional(),
+  relatedBookingId: z.string().uuid().nullable().optional(),
+  relatedMemberPlanId: z.string().uuid().nullable().optional(),
+});
+
+export const sendWhatsAppMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => sendWhatsAppSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "staff");
+
+    const config = openWaConfig();
+    const phone = normalizePhoneForWa(data.recipientPhone);
+
+    const log = async (status: "marked_sent" | "failed", errorMessage?: string) => {
+      const { error } = await context.supabase.from("notification_logs").insert({
+        template_id: data.templateId ?? null,
+        template_key: data.templateKey ?? null,
+        trigger_type: data.triggerType,
+        channel: "whatsapp",
+        recipient_member_id: data.recipientMemberId,
+        generated_text: errorMessage
+          ? `${data.generatedText}\n\n[OpenWA error] ${errorMessage}`
+          : data.generatedText,
+        subject: data.subject ?? null,
+        status,
+        sent_by: context.userId,
+        related_class_id: data.relatedClassId ?? null,
+        related_booking_id: data.relatedBookingId ?? null,
+        related_member_plan_id: data.relatedMemberPlanId ?? null,
+        marked_sent_at: status === "marked_sent" ? new Date().toISOString() : null,
+      });
+      if (error) throw error;
+    };
+
+    if (!config) {
+      await log("failed", "OpenWA is not configured");
+      throw new Error(
+        "OpenWA is not configured. Add OPENWA_BASE_URL, OPENWA_API_KEY, and OPENWA_SESSION_ID.",
+      );
+    }
+
+    if (!phone) {
+      await log("failed", "Recipient has no valid WhatsApp phone number");
+      throw new Error("Recipient has no valid WhatsApp phone number.");
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+
+    try {
+      const status = await getOpenWaSessionStatus(config);
+      const connectionMessage = openWaConnectionMessage(status);
+      if (connectionMessage) throw new Error(connectionMessage);
+
+      const res = await fetch(
+        `${config.baseUrl}/api/sessions/${encodeURIComponent(config.sessionId)}/messages/send-text`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": config.apiKey,
+          },
+          body: JSON.stringify({
+            chatId: `${phone}@c.us`,
+            text: data.generatedText,
+          }),
+          signal: controller.signal,
+        },
+      );
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        const inactiveSession = body.includes("is not active") || body.includes("not active");
+        if (inactiveSession) {
+          throw new Error(
+            "OpenWA is not connected yet. Open the OpenWA dashboard, scan the WhatsApp QR, then try again.",
+          );
+        }
+        throw new Error(`OpenWA returned ${res.status}${body ? `: ${body.slice(0, 240)}` : ""}`);
+      }
+
+      await log("marked_sent");
+      return { ok: true, provider: "openwa" as const };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "OpenWA send failed";
+      await log("failed", message);
+      throw new Error(message);
+    } finally {
+      clearTimeout(timeout);
+    }
   });
 
 export const markNotificationSent = createServerFn({ method: "POST" })

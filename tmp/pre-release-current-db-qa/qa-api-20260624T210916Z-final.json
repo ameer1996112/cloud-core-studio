@@ -1,0 +1,367 @@
+{
+  "stamp": "20260624T210916Z",
+  "tag": "QA_PRE_RELEASE_20260624T210916Z",
+  "target": {
+    "PROJECT_ID": "banjmspemvzrqckajvwo",
+    "SUPABASE_URL": "https://banjmspemvzrqckajvwo.supabase.co"
+  },
+  "destructiveOps": false,
+  "migrationsRun": false,
+  "created": [
+    {
+      "table": "auth.users",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.admin@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "admin"
+    },
+    {
+      "table": "auth.users",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.instructor@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "instructor"
+    },
+    {
+      "table": "auth.users",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.member@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member"
+    },
+    {
+      "table": "auth.users",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.nocredits@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member"
+    },
+    {
+      "table": "auth.users",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "qa_pre_release_20260624t210916z.othermember@example.com"
+    },
+    {
+      "table": "profiles",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member"
+    },
+    {
+      "table": "members",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member with credits"
+    },
+    {
+      "table": "members",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "member without credits"
+    },
+    {
+      "table": "members",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "receipt RLS other member"
+    },
+    {
+      "table": "instructors",
+      "id": "8180a421-a5db-4865-80cb-78993337e080",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "linked instructor"
+    },
+    {
+      "table": "rooms",
+      "id": "51d1095a-29f8-4247-b1af-4e939aa05223",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "room existing"
+    },
+    {
+      "table": "program_types",
+      "id": "606d2347-49ef-4dcd-8fbb-c7e0793ede4c",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "program existing"
+    },
+    {
+      "table": "classes",
+      "id": "70f70337-aec5-44e1-b458-fdc6257acf29",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "class"
+    },
+    {
+      "table": "plans",
+      "id": "258b8ebd-9909-4a63-b0d5-e26d9376c472",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "credit package existing"
+    },
+    {
+      "table": "payments",
+      "id": "f07888d0-9760-4647-a883-dd1ce9b70bae",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "payment existing"
+    },
+    {
+      "table": "receipts",
+      "id": "eb1c2c58-ea4a-4e4a-8b0f-f5178b8a59a5",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "receipt"
+    },
+    {
+      "table": "classes",
+      "id": "82eb7bd6-e926-4195-9695-4f1b1063dbaa",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "cancellation class"
+    },
+    {
+      "table": "package_requests",
+      "id": "d96c697d-55f5-46a9-bcb5-dea18adea9d0",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "package request existing"
+    },
+    {
+      "table": "notification_logs",
+      "id": "5f934f73-742c-4a93-8cb3-8b51044aaca4",
+      "tag": "QA_PRE_RELEASE_20260624T210916Z",
+      "notes": "WhatsApp/log message"
+    }
+  ],
+  "checks": [
+    {
+      "name": "QA auth users/profiles available",
+      "result": "PASS"
+    },
+    {
+      "name": "login/session/auth boundaries",
+      "result": "PASS"
+    },
+    {
+      "name": "admin creates/updates tagged members/instructor",
+      "result": "PASS",
+      "member": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+      "instructor": "8180a421-a5db-4865-80cb-78993337e080"
+    },
+    {
+      "name": "admin creates/edits tagged room/program/class",
+      "result": "PASS",
+      "room": "51d1095a-29f8-4247-b1af-4e939aa05223",
+      "program": "606d2347-49ef-4dcd-8fbb-c7e0793ede4c",
+      "class": "70f70337-aec5-44e1-b458-fdc6257acf29"
+    },
+    {
+      "name": "admin creates tagged plan/payment and confirms receipt once",
+      "result": "FAIL",
+      "error": "returned false"
+    },
+    {
+      "name": "member books class and booking reflects credits/capacity/rosters",
+      "result": "FAIL",
+      "error": "{\"status\":\"insufficient_credits\",\"remaining_credits\":0}"
+    },
+    {
+      "name": "duplicate booking is idempotent and no double charge",
+      "result": "FAIL",
+      "error": "{\"status\":\"insufficient_credits\",\"remaining_credits\":0}"
+    },
+    {
+      "name": "member without credits cannot book",
+      "result": "FAIL",
+      "error": "returned false"
+    },
+    {
+      "name": "member cancellation refunds credits/capacity",
+      "result": "FAIL",
+      "error": "{\"status\":\"insufficient_credits\",\"remaining_credits\":0}"
+    },
+    {
+      "name": "attendance marking persists",
+      "result": "FAIL",
+      "error": "Could not find the function public.mark_attendance_v2(p_actor_id, p_status) in the schema cache"
+    },
+    {
+      "name": "package request flow creates/reads tagged request",
+      "result": "PASS"
+    },
+    {
+      "name": "messages notification log persists",
+      "result": "PASS"
+    },
+    {
+      "name": "receipt RLS: owner can read, other member cannot",
+      "result": "PASS"
+    },
+    {
+      "name": "role/RLS: member payment history limited to own records and cannot create class",
+      "result": "PASS"
+    },
+    {
+      "name": "role/RLS: instructor cannot confirm payments or create admin resources",
+      "result": "PASS"
+    },
+    {
+      "name": "role/RLS: admin can read created receipt and member history",
+      "result": "FAIL",
+      "error": "returned false"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "API-01",
+      "severity": "High",
+      "name": "admin creates tagged plan/payment and confirms receipt once",
+      "actual": "returned false"
+    },
+    {
+      "id": "API-02",
+      "severity": "High",
+      "name": "member books class and booking reflects credits/capacity/rosters",
+      "actual": "{\"status\":\"insufficient_credits\",\"remaining_credits\":0}"
+    },
+    {
+      "id": "API-03",
+      "severity": "High",
+      "name": "duplicate booking is idempotent and no double charge",
+      "actual": "{\"status\":\"insufficient_credits\",\"remaining_credits\":0}"
+    },
+    {
+      "id": "API-04",
+      "severity": "High",
+      "name": "member without credits cannot book",
+      "actual": "returned false"
+    },
+    {
+      "id": "API-05",
+      "severity": "High",
+      "name": "member cancellation refunds credits/capacity",
+      "actual": "{\"status\":\"insufficient_credits\",\"remaining_credits\":0}"
+    },
+    {
+      "id": "API-06",
+      "severity": "High",
+      "name": "attendance marking persists",
+      "actual": "Could not find the function public.mark_attendance_v2(p_actor_id, p_status) in the schema cache"
+    },
+    {
+      "id": "API-07",
+      "severity": "High",
+      "name": "role/RLS: admin can read created receipt and member history",
+      "actual": "returned false"
+    }
+  ],
+  "cleanupPreview": [
+    {
+      "table": "auth.users",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185"
+    },
+    {
+      "table": "profiles",
+      "id": "ec526875-a620-4808-9fbc-02ca0ae98185"
+    },
+    {
+      "table": "auth.users",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141"
+    },
+    {
+      "table": "profiles",
+      "id": "1dbce5ae-0cab-4a55-8015-39391131a141"
+    },
+    {
+      "table": "auth.users",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c"
+    },
+    {
+      "table": "profiles",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c"
+    },
+    {
+      "table": "auth.users",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31"
+    },
+    {
+      "table": "profiles",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31"
+    },
+    {
+      "table": "auth.users",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5"
+    },
+    {
+      "table": "profiles",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5"
+    },
+    {
+      "table": "members",
+      "id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c"
+    },
+    {
+      "table": "members",
+      "id": "718f2318-c3e0-404b-8283-e1697d3e4c31"
+    },
+    {
+      "table": "members",
+      "id": "5ee58596-2e4f-440e-b15b-3899f67a67b5"
+    },
+    {
+      "table": "instructors",
+      "id": "8180a421-a5db-4865-80cb-78993337e080"
+    },
+    {
+      "table": "rooms",
+      "id": "51d1095a-29f8-4247-b1af-4e939aa05223"
+    },
+    {
+      "table": "program_types",
+      "id": "606d2347-49ef-4dcd-8fbb-c7e0793ede4c"
+    },
+    {
+      "table": "classes",
+      "id": "70f70337-aec5-44e1-b458-fdc6257acf29"
+    },
+    {
+      "table": "plans",
+      "id": "258b8ebd-9909-4a63-b0d5-e26d9376c472"
+    },
+    {
+      "table": "payments",
+      "id": "f07888d0-9760-4647-a883-dd1ce9b70bae"
+    },
+    {
+      "table": "receipts",
+      "id": "eb1c2c58-ea4a-4e4a-8b0f-f5178b8a59a5"
+    },
+    {
+      "table": "classes",
+      "id": "82eb7bd6-e926-4195-9695-4f1b1063dbaa"
+    },
+    {
+      "table": "package_requests",
+      "id": "d96c697d-55f5-46a9-bcb5-dea18adea9d0"
+    },
+    {
+      "table": "notification_logs",
+      "id": "5f934f73-742c-4a93-8cb3-8b51044aaca4"
+    }
+  ],
+  "notes": ["Final API retry uses find-or-create for partially created QA tag records."]
+}

@@ -29,7 +29,7 @@ export function CloudCardVisual({
         loading="lazy"
         decoding="async"
       />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF6A] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent" />
       <div className="relative">{children}</div>
     </div>
   );

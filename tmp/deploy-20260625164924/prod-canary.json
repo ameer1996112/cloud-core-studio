@@ -1,0 +1,27 @@
+{
+  "authStatus": 200,
+  "authLoadMs": 1019,
+  "authMetrics": {
+    "title": "כניסה — Cloud & Core",
+    "lang": "he",
+    "dir": "rtl",
+    "overflow": 0,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה",
+    "buttonRadii": ["0px", "14px", "999px"]
+  },
+  "adminUrl": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app/admin",
+  "adminMetrics": {
+    "title": "כניסה — Cloud & Core",
+    "overflow": 0,
+    "bodyText": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה",
+    "buttonRadii": []
+  },
+  "settingsMetrics": {
+    "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app/admin/settings",
+    "overflow": 0,
+    "bodyText": "עברית\n\nניהול סטודיו\n\nהגדרות\n\nניהול · הגדרות\n\nהגדרות סטודיו\n\nניהול פרטי הסטודיו, אפליקציית החברים, קישורים ותשלומים בצורה נקייה וברורה לפני הפתיחה.\n\nפרטי הסטודיו\n\nפרטי הקשר שהחברות והחברים רואים כשהם צריכים לפנות לסטודיו.\n\nשם הסטודיו *\nטלפון ללקוחות\nמ",
+    "buttonRadii": ["14px"]
+  },
+  "consoleErrors": [],
+  "screenshotDir": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/deploy-20260625164924"
+}

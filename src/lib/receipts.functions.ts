@@ -31,12 +31,12 @@ export const getReceiptById = createServerFn({ method: "GET" })
     const { data: r, error } = await context.supabase
       .from("receipts")
       .select(
-        "*, payment:payments(id, amount, currency, method, provider, provider_status, paid_at, confirmed_at, reference, notes, plan:plans(name, credits, duration_days))",
+        "*, payment:payments(id, amount, currency, method, provider, provider_status, paid_at, confirmed_at, reference, notes, plan:plans(name, description, credits, duration_days, price_cents, currency))",
       )
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;
-    if (!r) throw new Error("not_found");
+    if (!r) return null;
     return r;
   });
 

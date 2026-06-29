@@ -1,0 +1,268 @@
+[
+  {
+    "label": "auth-he-mobile",
+    "route": "/auth",
+    "url": "http://127.0.0.1:4174/auth",
+    "title": "\u05db\u05e0\u05d9\u05e1\u05d4 \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/images/auth/cloud-core-auth-hero.webp",
+        "alt": "",
+        "width": 390,
+        "height": 870
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 138,
+        "height": 85
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "auth-he-mobile.png"
+  },
+  {
+    "label": "auth-ar-mobile",
+    "route": "/auth",
+    "url": "http://127.0.0.1:4174/auth",
+    "title": "\u05db\u05e0\u05d9\u05e1\u05d4 \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/images/auth/cloud-core-auth-hero.webp",
+        "alt": "",
+        "width": 390,
+        "height": 870
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 138,
+        "height": 85
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "auth-ar-mobile.png"
+  },
+  {
+    "label": "auth-en-mobile",
+    "route": "/auth",
+    "url": "http://127.0.0.1:4174/auth",
+    "title": "\u05db\u05e0\u05d9\u05e1\u05d4 \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/images/auth/cloud-core-auth-hero.webp",
+        "alt": "",
+        "width": 390,
+        "height": 870
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 138,
+        "height": 85
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "auth-en-mobile.png"
+  },
+  {
+    "label": "/member-he-390",
+    "route": "/member",
+    "url": "http://127.0.0.1:4174/member",
+    "title": "\u05d1\u05d9\u05ea \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 132,
+        "height": 81
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 0,
+        "height": 0
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "member-he-390.png"
+  },
+  {
+    "label": "/member/schedule-he-390",
+    "route": "/member/schedule",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "title": "\u05dc\u05d5\u05d7 \u05e9\u05d9\u05e2\u05d5\u05e8\u05d9\u05dd \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 132,
+        "height": 81
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 0,
+        "height": 0
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "member-schedule-he-390.png"
+  },
+  {
+    "label": "/member-ar-390",
+    "route": "/member",
+    "url": "http://127.0.0.1:4174/member",
+    "title": "\u05d1\u05d9\u05ea \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 132,
+        "height": 81
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 0,
+        "height": 0
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "member-ar-390.png"
+  },
+  {
+    "label": "/member/schedule-ar-390",
+    "route": "/member/schedule",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "title": "\u05dc\u05d5\u05d7 \u05e9\u05d9\u05e2\u05d5\u05e8\u05d9\u05dd \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 132,
+        "height": 81
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 0,
+        "height": 0
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "member-schedule-ar-390.png"
+  },
+  {
+    "label": "/member-en-1440",
+    "route": "/member",
+    "url": "http://127.0.0.1:4174/member",
+    "title": "\u05d1\u05d9\u05ea \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 0,
+        "height": 0
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 144,
+        "height": 88
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "member-en-1440.png"
+  },
+  {
+    "label": "/member/schedule-en-1440",
+    "route": "/member/schedule",
+    "url": "http://127.0.0.1:4174/member/schedule",
+    "title": "\u05dc\u05d5\u05d7 \u05e9\u05d9\u05e2\u05d5\u05e8\u05d9\u05dd \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 0,
+        "height": 0
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 144,
+        "height": 88
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "member-schedule-en-1440.png"
+  },
+  {
+    "label": "admin-home-desktop",
+    "route": "/admin",
+    "url": "http://127.0.0.1:4174/auth",
+    "title": "\u05db\u05e0\u05d9\u05e1\u05d4 \u2014 Cloud & Core",
+    "consoleErrors": [
+      "TypeError: Failed to fetch\n    at http://127.0.0.1:4174/assets/client-Dsf1o8oW.js:21:2872\n    at mr (http://127.0.0.1:4174/assets/client-Dsf1o8oW.js:21:9412)\n    at Y (http://127.0.0.1:4174/assets/client-Dsf1o8oW.js:21:9154)\n    at Oi.signInWithPassword (http://127.0.0.1:4174/assets/client-Dsf1o8oW.js:23:19858)\n    at U (http://127.0.0.1:4174/assets/auth-DRcFYCct.js:2:1699)\n    at xd (http://127.0.0.1:4174/assets/index-BsNx7vYA.js:9:126154)\n    at http://127.0.0.1:4174/assets/index-BsNx7vYA.js:9:131147\n    at mn (http://127.0.0.1:4174/assets/index-BsNx7vYA.js:9:15081)\n    at Ed (http://127.0.0.1:4174/assets/index-BsNx7vYA.js:9:127381)\n    at dp (http://127.0.0.1:4174/assets/index-BsNx7vYA.js:10:28442)"
+    ],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/images/auth/cloud-core-auth-hero.webp",
+        "alt": "",
+        "width": 1440,
+        "height": 914
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 192,
+        "height": 117
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "admin-desktop.png"
+  },
+  {
+    "label": "admin-settings-desktop",
+    "route": "/admin/settings",
+    "url": "http://127.0.0.1:4174/auth",
+    "title": "\u05db\u05e0\u05d9\u05e1\u05d4 \u2014 Cloud & Core",
+    "consoleErrors": [],
+    "failedBrandRequests": [],
+    "logoSources": [
+      {
+        "src": "/images/auth/cloud-core-auth-hero.webp",
+        "alt": "",
+        "width": 1440,
+        "height": 914
+      },
+      {
+        "src": "/brand/cloud-core-logo-full.png",
+        "alt": "Cloud & Core Studio",
+        "width": 192,
+        "height": 117
+      }
+    ],
+    "horizontalOverflowPx": 0,
+    "screenshot": "admin-settings-desktop.png"
+  }
+]

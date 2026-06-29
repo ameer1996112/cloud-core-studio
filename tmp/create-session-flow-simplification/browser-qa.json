@@ -1,0 +1,317 @@
+{
+  "base": "http://127.0.0.1:4174",
+  "results": [
+    {
+      "flow": "admin login",
+      "result": "PASS",
+      "url": "http://127.0.0.1:4174/admin"
+    },
+    {
+      "flow": "create session page",
+      "lang": "he",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "before": {
+        "dir": "rtl",
+        "scrollWidth": 390,
+        "innerWidth": 390,
+        "hasOverflow": false,
+        "h2": "יצירת שיעור",
+        "selects": [
+          {
+            "index": 0,
+            "visible": true,
+            "value": "",
+            "options": [
+              "בחרי שיעור",
+              "יוגה אווירית",
+              "פילאטיס מזרן",
+              "הוט פילאטיס",
+              "Elevate Flow — יוגה אווירית",
+              "Aerial Restore — יוגה אווירית משקמת",
+              "Sky Core — יוגה אווירית",
+              "Float & Flow — יוגה אווירית"
+            ]
+          },
+          {
+            "index": 1,
+            "visible": true,
+            "value": "10",
+            "options": ["05", "06", "07", "08", "09", "10", "11", "12"]
+          },
+          {
+            "index": 2,
+            "visible": true,
+            "value": "00",
+            "options": ["00", "15", "30", "45"]
+          },
+          {
+            "index": 3,
+            "visible": true,
+            "value": "calm",
+            "options": ["רגוע", "מקרקע", "מרים", "משקם"]
+          }
+        ],
+        "hasUnassigned": false,
+        "hasMainStudio": true,
+        "hasYareen": true,
+        "disabledReasonVisible": true,
+        "createDisabled": true
+      },
+      "after": {
+        "h2": "יצירת שיעור",
+        "title": "יוגה אווירית",
+        "hasTemplateSummary": true,
+        "createDisabled": false,
+        "hasOverflow": false,
+        "hasMainStudio": true,
+        "hasYareen": true,
+        "hasUnassigned": false,
+        "visibleSelects": [
+          {
+            "index": 0,
+            "visible": true,
+            "value": "f0d24cf8-34d4-4443-8bfe-543dbef17737",
+            "options": [
+              "בחרי שיעור",
+              "יוגה אווירית",
+              "פילאטיס מזרן",
+              "הוט פילאטיס",
+              "Elevate Flow — יוגה אווירית",
+              "Aerial Restore — יוגה אווירית משקמת",
+              "Sky Core — יוגה אווירית",
+              "Float & Flow — יוגה אווירית"
+            ]
+          },
+          {
+            "index": 1,
+            "visible": true,
+            "value": "10",
+            "options": ["05", "06", "07", "08", "09", "10", "11", "12"]
+          },
+          {
+            "index": 2,
+            "visible": true,
+            "value": "00",
+            "options": ["00", "15", "30", "45"]
+          },
+          {
+            "index": 3,
+            "visible": true,
+            "value": "calm",
+            "options": ["רגוע", "מקרקע", "מרים", "משקם"]
+          }
+        ],
+        "roomSelectorVisible": false
+      },
+      "screenshot": "tmp/create-session-flow-simplification/screenshots/create-session-he-390.png"
+    },
+    {
+      "flow": "create session page",
+      "lang": "ar",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "before": {
+        "dir": "rtl",
+        "scrollWidth": 820,
+        "innerWidth": 820,
+        "hasOverflow": false,
+        "h2": "إنشاء حصة",
+        "selects": [
+          {
+            "index": 0,
+            "visible": true,
+            "value": "",
+            "options": [
+              "اختاري حصة",
+              "يوغا هوائية",
+              "بيلاتيس على الحصيرة",
+              "هوت بيلاتيس",
+              "Elevate Flow — يوغا هوائية",
+              "Aerial Restore — يوغا هوائية ترميمية",
+              "Sky Core — يوغا هوائية",
+              "Float & Flow — يوغا هوائية"
+            ]
+          },
+          {
+            "index": 1,
+            "visible": true,
+            "value": "10",
+            "options": ["05", "06", "07", "08", "09", "10", "11", "12"]
+          },
+          {
+            "index": 2,
+            "visible": true,
+            "value": "00",
+            "options": ["00", "15", "30", "45"]
+          },
+          {
+            "index": 3,
+            "visible": true,
+            "value": "calm",
+            "options": ["هادئ", "تثبيت", "منشط", "ترميمي"]
+          }
+        ],
+        "hasUnassigned": false,
+        "hasMainStudio": true,
+        "hasYareen": true,
+        "disabledReasonVisible": true,
+        "createDisabled": true
+      },
+      "after": {
+        "h2": "إنشاء حصة",
+        "title": "يوغا هوائية",
+        "hasTemplateSummary": true,
+        "createDisabled": false,
+        "hasOverflow": false,
+        "hasMainStudio": true,
+        "hasYareen": true,
+        "hasUnassigned": false,
+        "visibleSelects": [
+          {
+            "index": 0,
+            "visible": true,
+            "value": "f0d24cf8-34d4-4443-8bfe-543dbef17737",
+            "options": [
+              "اختاري حصة",
+              "يوغا هوائية",
+              "بيلاتيس على الحصيرة",
+              "هوت بيلاتيس",
+              "Elevate Flow — يوغا هوائية",
+              "Aerial Restore — يوغا هوائية ترميمية",
+              "Sky Core — يوغا هوائية",
+              "Float & Flow — يوغا هوائية"
+            ]
+          },
+          {
+            "index": 1,
+            "visible": true,
+            "value": "10",
+            "options": ["05", "06", "07", "08", "09", "10", "11", "12"]
+          },
+          {
+            "index": 2,
+            "visible": true,
+            "value": "00",
+            "options": ["00", "15", "30", "45"]
+          },
+          {
+            "index": 3,
+            "visible": true,
+            "value": "calm",
+            "options": ["هادئ", "تثبيت", "منشط", "ترميمي"]
+          }
+        ],
+        "roomSelectorVisible": false
+      },
+      "screenshot": "tmp/create-session-flow-simplification/screenshots/create-session-ar-820.png"
+    },
+    {
+      "flow": "create session page",
+      "lang": "en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "dir": "ltr",
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasOverflow": false,
+        "h2": "Create session",
+        "selects": [
+          {
+            "index": 0,
+            "visible": true,
+            "value": "",
+            "options": [
+              "Choose a lesson",
+              "Aerial Yoga",
+              "Pilates Mat",
+              "Hot Pilates",
+              "Elevate Flow — Aerial Yoga",
+              "Aerial Restore — Aerial Yoga",
+              "Sky Core — Aerial Yoga",
+              "Float & Flow — Aerial Yoga"
+            ]
+          },
+          {
+            "index": 1,
+            "visible": true,
+            "value": "10",
+            "options": ["05", "06", "07", "08", "09", "10", "11", "12"]
+          },
+          {
+            "index": 2,
+            "visible": true,
+            "value": "00",
+            "options": ["00", "15", "30", "45"]
+          },
+          {
+            "index": 3,
+            "visible": true,
+            "value": "calm",
+            "options": ["Calm", "Grounding", "Uplifting", "Restorative"]
+          }
+        ],
+        "hasUnassigned": false,
+        "hasMainStudio": true,
+        "hasYareen": true,
+        "disabledReasonVisible": true,
+        "createDisabled": true
+      },
+      "after": {
+        "h2": "Create session",
+        "title": "Aerial Yoga",
+        "hasTemplateSummary": true,
+        "createDisabled": false,
+        "hasOverflow": false,
+        "hasMainStudio": true,
+        "hasYareen": true,
+        "hasUnassigned": false,
+        "visibleSelects": [
+          {
+            "index": 0,
+            "visible": true,
+            "value": "f0d24cf8-34d4-4443-8bfe-543dbef17737",
+            "options": [
+              "Choose a lesson",
+              "Aerial Yoga",
+              "Pilates Mat",
+              "Hot Pilates",
+              "Elevate Flow — Aerial Yoga",
+              "Aerial Restore — Aerial Yoga",
+              "Sky Core — Aerial Yoga",
+              "Float & Flow — Aerial Yoga"
+            ]
+          },
+          {
+            "index": 1,
+            "visible": true,
+            "value": "10",
+            "options": ["05", "06", "07", "08", "09", "10", "11", "12"]
+          },
+          {
+            "index": 2,
+            "visible": true,
+            "value": "00",
+            "options": ["00", "15", "30", "45"]
+          },
+          {
+            "index": 3,
+            "visible": true,
+            "value": "calm",
+            "options": ["Calm", "Grounding", "Uplifting", "Restorative"]
+          }
+        ],
+        "roomSelectorVisible": false
+      },
+      "screenshot": "tmp/create-session-flow-simplification/screenshots/create-session-en-1440.png"
+    }
+  ],
+  "consoleErrors": []
+}

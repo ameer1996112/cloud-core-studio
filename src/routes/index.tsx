@@ -5,12 +5,13 @@ import { roleHome } from "@/lib/auth-redirect";
 export const Route = createFileRoute("/")({
   ssr: false,
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
+    if (!user) throw redirect({ to: "/auth" });
     const { data: p } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", data.user.id)
+      .eq("id", user.id)
       .maybeSingle();
     throw redirect({ to: roleHome(p?.role) });
   },

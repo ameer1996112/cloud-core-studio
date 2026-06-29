@@ -1,0 +1,161 @@
+{
+  "timestamp": "2026-06-24T23:05:43.635Z",
+  "projectId": "banjmspemvzrqckajvwo",
+  "destructive": false,
+  "migrations": false,
+  "cleanup": false,
+  "newDataCreated": false,
+  "tag": null,
+  "ids": {
+    "classId": "827e08e3-e592-4384-93d4-53fd2e33cf2f",
+    "receiptId": "428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+    "paymentId": "a1d764c7-fdac-451b-823a-09c972833059",
+    "bookingId": "b7a75532-504e-417e-b80f-062535c08798",
+    "attendanceId": "ccd8a78c-e7dd-4ad4-8a2a-760a76bbb64c",
+    "notificationId": "8c4a02cb-634a-425b-aff6-120f9d0b084f"
+  },
+  "emails": {
+    "admin": "qa_pre_release_20260624t210916z.admin@example.com",
+    "instructor": "qa_pre_release_20260624t210916z.instructor@example.com",
+    "member": "qa_pre_release_20260624t210916z.member@example.com",
+    "other": "qa_pre_release_20260624t210916z.othermember@example.com"
+  },
+  "checks": [
+    {
+      "name": "existing QA users can login",
+      "result": "PASS",
+      "actual": true
+    },
+    {
+      "name": "member booking persists",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "b7a75532-504e-417e-b80f-062535c08798",
+          "status": "booked",
+          "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+          "class_id": "827e08e3-e592-4384-93d4-53fd2e33cf2f"
+        }
+      }
+    },
+    {
+      "name": "credits decrease persisted",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "remaining_credits": 6
+      }
+    },
+    {
+      "name": "capacity/booked count updated",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "827e08e3-e592-4384-93d4-53fd2e33cf2f",
+          "title": "QA_PRE_RELEASE_RERUN_20260624T214226Z_Class",
+          "capacity": 4,
+          "booked_count": 1
+        }
+      }
+    },
+    {
+      "name": "admin roster shows booking",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "count": 1
+      }
+    },
+    {
+      "name": "instructor roster shows booking via RLS",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "count": 1
+      }
+    },
+    {
+      "name": "attendance persists",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "ccd8a78c-e7dd-4ad4-8a2a-760a76bbb64c",
+          "booking_id": "b7a75532-504e-417e-b80f-062535c08798",
+          "class_id": "827e08e3-e592-4384-93d4-53fd2e33cf2f",
+          "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+          "status": "attended"
+        }
+      }
+    },
+    {
+      "name": "payment confirmation persisted",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "a1d764c7-fdac-451b-823a-09c972833059",
+          "status": "paid",
+          "confirmed_at": "2026-06-24T21:42:36.026376+00:00",
+          "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+          "amount": 111
+        }
+      }
+    },
+    {
+      "name": "receipt issued for payment",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+          "payment_id": "a1d764c7-fdac-451b-823a-09c972833059",
+          "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+          "receipt_number": "CC-2026-01007",
+          "status": "issued"
+        }
+      }
+    },
+    {
+      "name": "receipt owner RLS allows own receipt",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "428a6702-dc16-48d9-a0de-5c5222fbbd6f",
+          "payment_id": "a1d764c7-fdac-451b-823a-09c972833059",
+          "member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c"
+        }
+      }
+    },
+    {
+      "name": "receipt RLS blocks other member",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": null
+      }
+    },
+    {
+      "name": "notification log persists",
+      "result": "PASS",
+      "actual": {
+        "pass": true,
+        "data": {
+          "id": "8c4a02cb-634a-425b-aff6-120f9d0b084f",
+          "recipient_member_id": "c4fc6ecc-cf7a-4025-a3c2-d7f049eed52c",
+          "status": "sent",
+          "channel": "whatsapp",
+          "template_key": "QA_PRE_RELEASE_RERUN_20260624T214226Z_whatsapp",
+          "related_class_id": "827e08e3-e592-4384-93d4-53fd2e33cf2f"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "pass": 12,
+    "fail": 0
+  }
+}

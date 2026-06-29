@@ -1,0 +1,112 @@
+{
+  "projectId": "banjmspemvzrqckajvwo",
+  "activeVisibleCount": 3,
+  "byLang": {
+    "he": [
+      {
+        "id": "d837ec67-d6b6-4547-9147-bc39a336ad11",
+        "slug": "single_class",
+        "name": "שיעור בודד",
+        "description": "כניסה חד־פעמית לשיעור אחד בסטודיו.",
+        "price": "₪80",
+        "details": "כניסה אחת · בתוקף ל־30 ימים",
+        "credits": 1,
+        "validityDays": 30,
+        "active": true
+      },
+      {
+        "id": "c5c9e77a-9f79-41b4-9cfc-b5e8da1d61bd",
+        "slug": "monthly_once_week",
+        "name": "מנוי חודשי — פעם בשבוע",
+        "description": "מנוי חודשי הכולל 4 כניסות בחודש, מתאים למי שרוצה להגיע פעם בשבוע.",
+        "price": "₪280",
+        "details": "4 כניסות בחודש · מתאים לפעם בשבוע",
+        "credits": 4,
+        "validityDays": 30,
+        "active": true
+      },
+      {
+        "id": "9ccd255a-2891-4dd4-a7fd-48f153d610df",
+        "slug": "monthly_twice_week",
+        "name": "מנוי חודשי — פעמיים בשבוע",
+        "description": "מנוי חודשי הכולל 8 כניסות בחודש, מתאים למי שרוצה להגיע פעמיים בשבוע.",
+        "price": "₪350",
+        "details": "8 כניסות בחודש · מתאים לפעמיים בשבוע",
+        "credits": 8,
+        "validityDays": 30,
+        "active": true
+      }
+    ],
+    "ar": [
+      {
+        "id": "d837ec67-d6b6-4547-9147-bc39a336ad11",
+        "slug": "single_class",
+        "name": "حصة واحدة",
+        "description": "دخول لمرة واحدة لحصة واحدة في الاستوديو.",
+        "price": "₪80",
+        "details": "دخول واحد · صالح لمدة 30 يوم",
+        "credits": 1,
+        "validityDays": 30,
+        "active": true
+      },
+      {
+        "id": "c5c9e77a-9f79-41b4-9cfc-b5e8da1d61bd",
+        "slug": "monthly_once_week",
+        "name": "اشتراك شهري — مرة بالأسبوع",
+        "description": "اشتراك شهري يشمل 4 حصص بالشهر، مناسب للي بدها تيجي مرة بالأسبوع.",
+        "price": "₪280",
+        "details": "4 حصص بالشهر · مناسب لمرة بالأسبوع",
+        "credits": 4,
+        "validityDays": 30,
+        "active": true
+      },
+      {
+        "id": "9ccd255a-2891-4dd4-a7fd-48f153d610df",
+        "slug": "monthly_twice_week",
+        "name": "اشتراك شهري — مرتين بالأسبوع",
+        "description": "اشتراك شهري يشمل 8 حصص بالشهر، مناسب للي بدها تيجي مرتين بالأسبوع.",
+        "price": "₪350",
+        "details": "8 حصص بالشهر · مناسب لمرتين بالأسبوع",
+        "credits": 8,
+        "validityDays": 30,
+        "active": true
+      }
+    ],
+    "en": [
+      {
+        "id": "d837ec67-d6b6-4547-9147-bc39a336ad11",
+        "slug": "single_class",
+        "name": "Single Class",
+        "description": "One-time entry for a single studio class.",
+        "price": "₪80",
+        "details": "1 credit · valid for 30 days",
+        "credits": 1,
+        "validityDays": 30,
+        "active": true
+      },
+      {
+        "id": "c5c9e77a-9f79-41b4-9cfc-b5e8da1d61bd",
+        "slug": "monthly_once_week",
+        "name": "Monthly Membership — Once a Week",
+        "description": "Monthly plan with 4 class credits, perfect for attending once a week.",
+        "price": "₪280",
+        "details": "4 credits per month · once a week",
+        "credits": 4,
+        "validityDays": 30,
+        "active": true
+      },
+      {
+        "id": "9ccd255a-2891-4dd4-a7fd-48f153d610df",
+        "slug": "monthly_twice_week",
+        "name": "Monthly Membership — Twice a Week",
+        "description": "Monthly plan with 8 class credits, ideal for attending twice a week.",
+        "price": "₪350",
+        "details": "8 credits per month · twice a week",
+        "credits": 8,
+        "validityDays": 30,
+        "active": true
+      }
+    ]
+  },
+  "packageRequestsReadable": true
+}

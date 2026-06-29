@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Cloud and Core">
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="#D4AF6A" />
+  <rect x="9" y="9" width="110" height="110" rx="26" fill="#FAF7F2" />
+  <g fill="#0B1D3A">
+    <circle cx="46" cy="68" r="17" />
+    <circle cx="66" cy="58" r="23" />
+    <circle cx="88" cy="68" r="17" />
+    <rect x="36" y="68" width="62" height="18" rx="9" />
+  </g>
+  <g fill="#FAF7F2">
+    <circle cx="46" cy="68" r="11" />
+    <circle cx="66" cy="58" r="16" />
+    <circle cx="88" cy="68" r="11" />
+    <rect x="41" y="68" width="52" height="11" rx="6" />
+  </g>
+  <rect x="43" y="92" width="42" height="5" rx="2.5" fill="#D4AF6A" />
+</svg>

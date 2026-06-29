@@ -2,6 +2,9 @@
 // Verifies the booking → credits/capacity → roster reflection loop the Studio Pulse depends on.
 // Requires `node scripts/e2e-seed.mjs` first.
 import { createClient } from "@supabase/supabase-js";
+import { requireE2eMutationTarget } from "../../scripts/e2e-env-guard.mjs";
+
+requireE2eMutationTarget("tests/e2e/core_balance_slice.spec.mjs");
 
 const URL = process.env.SUPABASE_URL;
 const ANON = process.env.SUPABASE_PUBLISHABLE_KEY;

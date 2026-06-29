@@ -1,0 +1,159 @@
+{
+  "generatedAt": "2026-06-27T21:25:41.059Z",
+  "base": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app",
+  "results": [
+    {
+      "lang": "he",
+      "result": "PASS",
+      "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/member-home-stats-rtl/prod-smoke/he-phone390-member-prod.png",
+      "state": {
+        "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app/member",
+        "authStatus": null,
+        "authHttpStatus": null,
+        "htmlLang": "he",
+        "htmlDir": "rtl",
+        "stripDir": "rtl",
+        "overflow": false,
+        "cells": [
+          {
+            "text": "קרדיטים",
+            "value": "1",
+            "align": "right",
+            "items": "flex-end",
+            "labelAlign": "right",
+            "valueAlign": "right",
+            "left": 247.34375,
+            "right": 352
+          },
+          {
+            "text": "הזמנות",
+            "value": "1",
+            "align": "right",
+            "items": "flex-end",
+            "labelAlign": "right",
+            "valueAlign": "right",
+            "left": 142.671875,
+            "right": 247.34375
+          },
+          {
+            "text": "שיעורים זמינים",
+            "value": "1",
+            "align": "right",
+            "items": "flex-end",
+            "labelAlign": "right",
+            "valueAlign": "right",
+            "left": 38.015625,
+            "right": 142.671875
+          }
+        ],
+        "firstVisualRight": true,
+        "firstVisualLeft": false,
+        "alignmentOk": true,
+        "orderOk": true
+      },
+      "consoleEvents": []
+    },
+    {
+      "lang": "ar",
+      "result": "PASS",
+      "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/member-home-stats-rtl/prod-smoke/ar-phone390-member-prod.png",
+      "state": {
+        "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app/member",
+        "authStatus": null,
+        "authHttpStatus": null,
+        "htmlLang": "ar",
+        "htmlDir": "rtl",
+        "stripDir": "rtl",
+        "overflow": false,
+        "cells": [
+          {
+            "text": "الأرصدة",
+            "value": "1",
+            "align": "right",
+            "items": "flex-end",
+            "labelAlign": "right",
+            "valueAlign": "right",
+            "left": 247.34375,
+            "right": 352
+          },
+          {
+            "text": "الحجوزات",
+            "value": "1",
+            "align": "right",
+            "items": "flex-end",
+            "labelAlign": "right",
+            "valueAlign": "right",
+            "left": 142.671875,
+            "right": 247.34375
+          },
+          {
+            "text": "حصص متاحة",
+            "value": "1",
+            "align": "right",
+            "items": "flex-end",
+            "labelAlign": "right",
+            "valueAlign": "right",
+            "left": 38.015625,
+            "right": 142.671875
+          }
+        ],
+        "firstVisualRight": true,
+        "firstVisualLeft": false,
+        "alignmentOk": true,
+        "orderOk": true
+      },
+      "consoleEvents": []
+    },
+    {
+      "lang": "en",
+      "result": "PASS",
+      "screenshot": "/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/tmp/member-home-stats-rtl/prod-smoke/en-phone390-member-prod.png",
+      "state": {
+        "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app/member",
+        "authStatus": null,
+        "authHttpStatus": null,
+        "htmlLang": "en",
+        "htmlDir": "ltr",
+        "stripDir": "ltr",
+        "overflow": false,
+        "cells": [
+          {
+            "text": "Credits",
+            "value": "1",
+            "align": "left",
+            "items": "flex-start",
+            "labelAlign": "left",
+            "valueAlign": "left",
+            "left": 38,
+            "right": 142.65625
+          },
+          {
+            "text": "Bookings",
+            "value": "1",
+            "align": "left",
+            "items": "flex-start",
+            "labelAlign": "left",
+            "valueAlign": "left",
+            "left": 142.65625,
+            "right": 247.328125
+          },
+          {
+            "text": "Available classes",
+            "value": "1",
+            "align": "left",
+            "items": "flex-start",
+            "labelAlign": "left",
+            "valueAlign": "left",
+            "left": 247.328125,
+            "right": 351.984375
+          }
+        ],
+        "firstVisualRight": false,
+        "firstVisualLeft": true,
+        "alignmentOk": true,
+        "orderOk": true
+      },
+      "consoleEvents": []
+    }
+  ]
+}

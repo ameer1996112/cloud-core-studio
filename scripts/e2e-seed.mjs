@@ -1,6 +1,10 @@
 // Idempotent seed for e2e tests. Creates users + minimal data.
 // Run: node scripts/e2e-seed.mjs   (needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env)
 import { createClient } from "@supabase/supabase-js";
+import { requireE2eMutationTarget } from "./e2e-env-guard.mjs";
+
+requireE2eMutationTarget("scripts/e2e-seed.mjs");
+
 const URL = process.env.SUPABASE_URL,
   SR = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!URL || !SR) {

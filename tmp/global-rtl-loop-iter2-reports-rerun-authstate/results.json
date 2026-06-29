@@ -1,0 +1,62 @@
+{
+  "total": 6,
+  "withConsoleErrors": 0,
+  "withPageErrors": 0,
+  "withOverflow": 0,
+  "results": [
+    {
+      "viewport": "mobile390",
+      "locale": "he",
+      "url": "http://127.0.0.1:4174/admin/reports",
+      "heading": "דוחות",
+      "overflow": false,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "viewport": "mobile390",
+      "locale": "ar",
+      "url": "http://127.0.0.1:4174/admin/reports",
+      "heading": "דוחות",
+      "overflow": false,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "viewport": "mobile390",
+      "locale": "en",
+      "url": "http://127.0.0.1:4174/admin/reports",
+      "heading": "דוחות",
+      "overflow": false,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "viewport": "desktop1440",
+      "locale": "he",
+      "url": "http://127.0.0.1:4174/admin/reports",
+      "heading": "דוחות",
+      "overflow": false,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "viewport": "desktop1440",
+      "locale": "ar",
+      "url": "http://127.0.0.1:4174/admin/reports",
+      "heading": "דוחות",
+      "overflow": false,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "viewport": "desktop1440",
+      "locale": "en",
+      "url": "http://127.0.0.1:4174/admin/reports",
+      "heading": "דוחות",
+      "overflow": false,
+      "consoleErrors": [],
+      "pageErrors": []
+    }
+  ]
+}

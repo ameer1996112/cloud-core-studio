@@ -1,0 +1,40 @@
+{
+  "base": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app",
+  "authLoaded": false,
+  "loginOk": true,
+  "createSession": {
+    "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app/admin/classes/new",
+    "h2": "יצירת שיעור",
+    "hasMainStudio": true,
+    "hasYareen": true,
+    "hasUnassigned": false,
+    "hasOverflow": false,
+    "roomSelectorVisible": false,
+    "visibleSelects": [
+      {
+        "visible": true,
+        "options": [
+          "בחרי שיעור",
+          "יוגה אווירית",
+          "פילאטיס מזרן",
+          "הוט פילאטיס",
+          "Elevate Flow — יוגה אווירית",
+          "Aerial Restore — יוגה אווירית משקמת"
+        ]
+      },
+      {
+        "visible": true,
+        "options": ["05", "06", "07", "08", "09", "10"]
+      },
+      {
+        "visible": true,
+        "options": ["00", "15", "30", "45"]
+      },
+      {
+        "visible": true,
+        "options": ["רגוע", "מקרקע", "מרים", "משקם"]
+      }
+    ]
+  },
+  "consoleErrors": []
+}

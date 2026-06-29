@@ -1,0 +1,24 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "image": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260628092150"
+          }
+        ]
+      }
+    }
+  },
+  "status": {
+    "latestReadyRevisionName": "cloud-core-studio-00075-rxr",
+    "traffic": [
+      {
+        "latestRevision": true,
+        "percent": 100,
+        "revisionName": "cloud-core-studio-00075-rxr"
+      }
+    ],
+    "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app"
+  }
+}

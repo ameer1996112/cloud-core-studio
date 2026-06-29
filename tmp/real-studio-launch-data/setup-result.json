@@ -1,0 +1,90 @@
+{
+  "projectId": "banjmspemvzrqckajvwo",
+  "instructor": {
+    "id": "609d6a68-f2d5-42d0-b048-8d66dc71018a",
+    "name": "Yareen Shobash",
+    "bio_short": "Aerial Yoga, Pilates Mat, Hot Pilates",
+    "active": true
+  },
+  "programs": [
+    {
+      "id": "f0d24cf8-34d4-4443-8bfe-543dbef17737",
+      "slug": "aerial-yoga",
+      "name_en": "Aerial Yoga",
+      "name_he": "יוגה אווירית",
+      "name_ar": "يوغا هوائية",
+      "active": true,
+      "sort_order": 1
+    },
+    {
+      "id": "9b786c16-81bc-4c3b-9ff5-8ef3c1f608ed",
+      "slug": "pilates-mat",
+      "name_en": "Pilates Mat",
+      "name_he": "פילאטיס מזרן",
+      "name_ar": "بيلاتيس على الحصيرة",
+      "active": true,
+      "sort_order": 2
+    },
+    {
+      "id": "804e48da-a907-43a1-8c05-94daf1c2a903",
+      "slug": "hot-pilates",
+      "name_en": "Hot Pilates",
+      "name_he": "הוט פילאטיס",
+      "name_ar": "هوت بيلاتيس",
+      "active": true,
+      "sort_order": 3
+    }
+  ],
+  "archivedProgramTypes": [],
+  "studioSettings": {
+    "id": 1,
+    "studio_name": "Cloud & Core Studio",
+    "announcement_text": "Official opening: 1.7.2026",
+    "default_language": "he",
+    "supported_languages": ["he", "ar", "en"]
+  },
+  "futureScheduledClassesCount": 0,
+  "futureScheduledClasses": [],
+  "activeProgramsAfter": [
+    {
+      "id": "f0d24cf8-34d4-4443-8bfe-543dbef17737",
+      "slug": "aerial-yoga",
+      "name_en": "Aerial Yoga",
+      "name_he": "יוגה אווירית",
+      "name_ar": "يوغا هوائية",
+      "description_he": "שיעור יוגה אווירית לחיזוק, גמישות, ביטחון ותנועה חופשית בעזרת ערסלים.",
+      "default_duration_minutes": 60,
+      "default_credit_cost": 1,
+      "level": "Aerial / Yoga",
+      "active": true,
+      "sort_order": 1
+    },
+    {
+      "id": "9b786c16-81bc-4c3b-9ff5-8ef3c1f608ed",
+      "slug": "pilates-mat",
+      "name_en": "Pilates Mat",
+      "name_he": "פילאטיס מזרן",
+      "name_ar": "بيلاتيس على الحصيرة",
+      "description_he": "שיעור פילאטיס מזרן לחיזוק הגוף, יציבה, שליטה ותנועה מדויקת.",
+      "default_duration_minutes": 60,
+      "default_credit_cost": 1,
+      "level": "Pilates",
+      "active": true,
+      "sort_order": 2
+    },
+    {
+      "id": "804e48da-a907-43a1-8c05-94daf1c2a903",
+      "slug": "hot-pilates",
+      "name_en": "Hot Pilates",
+      "name_he": "הוט פילאטיס",
+      "name_ar": "هوت بيلاتيس",
+      "description_he": "שיעור פילאטיס אנרגטי בסביבה חמה, לשילוב של כוח, סיבולת וחיטוב.",
+      "default_duration_minutes": 60,
+      "default_credit_cost": 1,
+      "level": "Pilates",
+      "active": true,
+      "sort_order": 3
+    }
+  ],
+  "sessionsCreated": 0
+}

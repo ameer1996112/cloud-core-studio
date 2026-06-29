@@ -1,10 +1,10 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Clock, MapPin, Sparkles, Users, X } from "lucide-react";
+import { ArrowRight, CalendarPlus, Clock, MapPin, Sparkles, Users, X } from "lucide-react";
 import { getClassDetail, joinWaitlist, leaveWaitlist } from "@/lib/member.functions";
 import { bookClass } from "@/lib/cloud-core.functions";
 import {
@@ -13,14 +13,35 @@ import {
   formatTime,
   formatDate,
   StateBadge,
+  type PremiumClassCardClass,
 } from "./PremiumClassCard";
-import { t } from "@/lib/i18n";
+import { t, useI18n } from "@/lib/i18n";
 import {
+  localizedClassMetadataChips,
   localizedClassTitle,
-  localizedInstructorName,
+  localizedClassTitleParts,
+  localizedOptionalInstructorName,
   localizedProgramDescription,
-  localizedProgramName,
 } from "@/lib/localized-content";
+import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
+import { buildIcs, downloadIcs } from "@/lib/messageTemplate";
+
+type BookClassResult =
+  | { status: "booked"; booking_id: string; remaining_credits?: number | null }
+  | {
+      status: "already_booked" | "full" | "insufficient_credits" | string;
+      booking_id?: string | null;
+      remaining_credits?: number | null;
+    };
+
+type JoinWaitlistResult = {
+  status: "waiting" | "already_waiting" | string;
+  position?: number | string | null;
+};
+
+function hasBookingId(res: BookClassResult): res is BookClassResult & { booking_id: string } {
+  return res.status === "booked" && typeof res.booking_id === "string" && res.booking_id.length > 0;
+}
 
 export function ClassDetailSheet({
   classId,
@@ -31,6 +52,7 @@ export function ClassDetailSheet({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { dir, lang } = useI18n();
   const fetchDetail = useServerFn(getClassDetail);
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -50,8 +72,8 @@ export function ClassDetailSheet({
 
   const book = useMutation({
     mutationFn: () => bookFn({ data: { classId: classId! } }),
-    onSuccess: (res: any) => {
-      if (res.status === "booked") {
+    onSuccess: (res: BookClassResult) => {
+      if (hasBookingId(res)) {
         toast.success(t("booking.toast.booked"));
         setConfirmation({ bookingId: res.booking_id, remaining: res.remaining_credits ?? 0 });
         qc.invalidateQueries({ queryKey: ["member-home"] });
@@ -76,7 +98,7 @@ export function ClassDetailSheet({
 
   const join = useMutation({
     mutationFn: () => joinFn({ data: { classId: classId! } }),
-    onSuccess: (res: any) => {
+    onSuccess: (res: JoinWaitlistResult) => {
       if (res.status === "waiting" || res.status === "already_waiting") {
         toast.success(t("booking.toast.waiting", { position: res.position }));
         qc.invalidateQueries({ queryKey: ["class-detail", classId] });
@@ -98,8 +120,9 @@ export function ClassDetailSheet({
 
   const cls = data?.cls;
   const title = cls ? localizedClassTitle(cls) : "";
-  const instructor = cls ? localizedInstructorName(cls.instructor?.name) : "—";
-  const programName = cls ? localizedProgramName(cls.program_type) : null;
+  const titleParts = cls ? localizedClassTitleParts(cls, lang) : null;
+  const instructor = cls ? localizedOptionalInstructorName(cls.instructor?.name) : null;
+  const metaChips = cls ? localizedClassMetadataChips(cls) : [];
   const programDescription = cls ? localizedProgramDescription(cls.program_type) : null;
   const spotsLeft = cls ? Math.max(0, cls.capacity - cls.booked_count) : 0;
   const state = cls
@@ -118,11 +141,16 @@ export function ClassDetailSheet({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]">
+      <DialogContent
+        dir={dir}
+        className="w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]"
+      >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
+        <DialogDescription className="sr-only">{t("booking.bring")}</DialogDescription>
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gold/35 bg-ivory/95 shadow-[0_18px_34px_-24px_rgba(11,29,58,0.75)] transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white"
+          aria-label={t("common.close")}
+          className="absolute top-4 end-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gold/35 bg-ivory/95 shadow-[0_18px_34px_-24px_rgba(11,29,58,0.75)] transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white"
         >
           <X className="h-4 w-4 text-navy" />
         </button>
@@ -141,54 +169,78 @@ export function ClassDetailSheet({
           <div className="h-80 skeleton-brand" />
         ) : (
           <>
-            <ClassImage cls={cls} variant="hero" eager className="h-[300px] sm:h-[340px]">
+            <ClassImage
+              cls={cls}
+              variant="hero"
+              eager
+              className="h-[210px] min-[390px]:h-[235px] sm:h-[320px]"
+            >
               <div
-                className="absolute inset-x-0 bottom-0 top-1/4 z-[2] bg-linear-to-t from-navy/88 via-navy/38 to-transparent pointer-events-none"
+                className="absolute inset-x-0 bottom-0 top-1/3 z-[2] bg-linear-to-t from-navy/84 via-navy/28 to-transparent pointer-events-none"
                 aria-hidden
               />
-              <div className="absolute left-5 top-5 z-10 rounded-full border border-ivory/20 bg-navy/55 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-ivory/90 backdrop-blur-md">
-                {cls.duration_minutes} {t("common.minutes")} · {cls.credit_cost}{" "}
-                {cls.credit_cost === 1 ? t("common.credit") : t("common.credits")}
-              </div>
-              <div className="absolute bottom-5 left-5 right-5 text-ivory z-10">
-                <p className="text-[10px] uppercase tracking-[0.26em] opacity-90 tabular-nums">
-                  {formatDate(cls.starts_at)} · {formatTime(cls.starts_at)}
+              <div className="absolute bottom-5 inset-x-5 text-ivory z-10 text-start">
+                <p className="text-xs font-medium opacity-90 tabular-nums">
+                  <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
+                  <span aria-hidden="true"> · </span>
+                  <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
                 </p>
-                <h2 className="font-display text-4xl mt-1 leading-[0.95] text-ivory drop-shadow-[0_2px_5px_rgba(11,29,58,0.7)]">
-                  {title}
-                </h2>
-                {programName && (
-                  <p className="text-xs opacity-90 mt-2">
-                    {programName} {cls.program_type?.level ? `· ${cls.program_type.level}` : ""}
-                  </p>
-                )}
+                <MixedLessonTitle
+                  as="h2"
+                  brand={titleParts?.brand ?? null}
+                  program={titleParts?.program ?? title}
+                  dir={dir}
+                  className="member-mixed-title mt-1 text-[clamp(1.75rem,8vw,2.6rem)] leading-[1] text-ivory drop-shadow-[0_2px_5px_rgba(11,29,58,0.7)] text-balance"
+                />
+                <div className="lesson-chip-row lesson-chip-row-hero mt-3">
+                  {metaChips.map((chip) => (
+                    <span
+                      key={chip}
+                      className="member-class-meta-chip member-class-meta-chip-hero"
+                      dir="auto"
+                    >
+                      <bdi>{chip}</bdi>
+                    </span>
+                  ))}
+                </div>
               </div>
             </ClassImage>
 
-            <div className="space-y-5 overflow-y-auto max-h-[62vh] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(250,247,242,0.98))] p-5 sm:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="space-y-4 overflow-y-auto max-h-[calc(100dvh-15rem)] sm:max-h-[62vh] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(250,247,242,0.98))] p-4 sm:p-6">
+              <div className="member-card grid gap-3 p-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4 text-xs text-slate">
+                  <span className="tabular-nums text-navy">
+                    <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
+                    <span aria-hidden="true"> · </span>
+                    <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
+                  </span>
+                  <span>{t("member.durationMinutes", { count: cls.duration_minutes })}</span>
+                  <span>
+                    {cls.credit_cost === 1
+                      ? t("member.oneCredit")
+                      : `${cls.credit_cost} ${t("common.credits")}`}
+                  </span>
+                </div>
                 {state && <StateBadge state={state} />}
-                <span className="rounded-full border border-gold/25 bg-sand/45 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-slate">
-                  {cls.duration_minutes} {t("common.minutes")} · {cls.credit_cost}{" "}
-                  {cls.credit_cost === 1 ? t("common.credit") : t("common.credits")}
-                </span>
               </div>
 
               <div className="grid gap-3 text-xs sm:grid-cols-3">
-                <Stat
-                  icon={<Sparkles className="h-3 w-3 text-gold" />}
-                  label={t("common.with")}
-                  value={instructor}
-                />
+                {instructor && (
+                  <Stat
+                    icon={<Sparkles className="h-3 w-3 text-gold" />}
+                    label={t("common.with")}
+                    value={instructor}
+                  />
+                )}
                 <Stat
                   icon={<MapPin className="h-3 w-3 text-gold" />}
-                  label={t("common.room")}
-                  value={cls.room_ref?.name ?? cls.room ?? "—"}
+                  label={t("common.where")}
+                  value={t("member.locationStudio")}
                 />
                 <Stat
                   icon={<Users className="h-3 w-3 text-gold" />}
                   label={t("common.spots")}
-                  value={`${spotsLeft}/${cls.capacity}`}
+                  value={t("member.spotsOpen", { count: spotsLeft })}
                 />
               </div>
 
@@ -208,7 +260,8 @@ export function ClassDetailSheet({
               <div className="pt-2 border-t hairline">
                 {data?.myBooking?.status === "booked" ? (
                   <Link to="/member/bookings" className="btn-navy w-full hover:btn-navy-hover">
-                    {t("booking.viewMine")} <ArrowRight className="h-3 w-3" />
+                    {t("booking.viewMine")}{" "}
+                    <ArrowRight className="h-3 w-3 directional-icon-forward" />
                   </Link>
                 ) : state?.kind === "waiting" && data?.myWaitlist?.id ? (
                   <button
@@ -239,11 +292,7 @@ export function ClassDetailSheet({
                     disabled={book.isPending}
                     className="btn-navy w-full hover:btn-navy-hover disabled:opacity-60"
                   >
-                    {book.isPending
-                      ? t("booking.saving")
-                      : t(cls.credit_cost === 1 ? "booking.bookCredit" : "booking.bookCredits", {
-                          count: cls.credit_cost,
-                        })}
+                    {book.isPending ? t("booking.saving") : t("booking.bookCredit")}
                   </button>
                 )}
               </div>
@@ -262,7 +311,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
         {icon}
         {label}
       </p>
-      <p className="mt-1 font-display italic text-base text-navy truncate">{value}</p>
+      <p className="mt-1 font-display text-base text-navy truncate">{value}</p>
     </div>
   );
 }
@@ -272,13 +321,30 @@ function ConfirmationView({
   confirmation,
   onDone,
 }: {
-  cls: any;
+  cls: PremiumClassCardClass;
   confirmation: { bookingId: string; remaining: number };
   onDone: () => void;
 }) {
   const code = confirmation.bookingId.slice(0, 6).toUpperCase();
   const title = localizedClassTitle(cls);
-  const instructor = localizedInstructorName(cls.instructor?.name);
+  const instructor = localizedOptionalInstructorName(cls.instructor?.name);
+
+  function addToCalendar() {
+    const ics = buildIcs({
+      uid: confirmation.bookingId,
+      title,
+      startsAt: cls.starts_at,
+      durationMinutes: cls.duration_minutes,
+      location: t("member.locationStudio"),
+      description: t("member.calendarDescription", {
+        hours: cls.cancellation_window_hours,
+        instructor: instructor ?? t("member.noInstructor"),
+      }),
+      studioName: "Cloud & Core",
+    });
+    void downloadIcs(`${title.replace(/\s+/g, "-").toLowerCase()}.ics`, ics);
+    toast.success(t("member.calendarReady"));
+  }
 
   return (
     <div className="p-6 sm:p-8 space-y-5">
@@ -286,15 +352,13 @@ function ConfirmationView({
         <div className="member-panel-powder mx-auto h-14 w-14 rounded-full flex items-center justify-center">
           <Sparkles className="h-6 w-6 text-gold" />
         </div>
-        <p className="text-[10px] uppercase tracking-[0.3em] text-gold">{t("booking.cloudCard")}</p>
-        <h2 className="font-display italic text-3xl text-navy leading-tight">
-          {t("booking.saved")}
-        </h2>
+        <p className="text-xs font-medium text-slate">{t("booking.cloudCard")}</p>
+        <h2 className="font-display text-3xl text-navy leading-tight">{t("booking.saved")}</h2>
       </div>
 
       {/* The card itself — premium, print-friendly look */}
       <div
-        className="relative overflow-hidden rounded-[6px] border border-gold/40 bg-ivory shadow-[0_1px_0_rgba(212,175,106,0.4),0_24px_60px_-30px_rgba(11,29,58,0.35)]"
+        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-ivory shadow-[0_1px_0_rgba(212,175,106,0.4),0_24px_60px_-30px_rgba(11,29,58,0.35)]"
         style={{
           backgroundImage:
             "linear-gradient(135deg, rgba(183,204,230,0.18), rgba(232,223,209,0.25) 60%, rgba(212,175,106,0.12))",
@@ -304,14 +368,14 @@ function ConfirmationView({
         <div className="px-5 sm:px-6 py-5 space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-slate">
-                {t("booking.confirmed")}
+              <p className="text-xs font-medium text-slate">{t("booking.confirmed")}</p>
+              <p className="font-display text-2xl text-navy mt-1 leading-tight truncate" dir="auto">
+                <bdi>{title}</bdi>
               </p>
-              <p className="font-display text-2xl text-navy mt-1 leading-tight truncate">{title}</p>
             </div>
             <div className="shrink-0 text-end">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-slate">{t("common.code")}</p>
-              <p className="font-mono text-sm tracking-[0.2em] text-navy mt-0.5">{code}</p>
+              <p className="text-xs font-medium text-slate">{t("common.code")}</p>
+              <p className="font-mono text-sm text-navy mt-0.5">{code}</p>
             </div>
           </div>
 
@@ -322,13 +386,13 @@ function ConfirmationView({
             />
             <CardField
               label={t("common.duration")}
-              value={`${cls.duration_minutes} ${t("common.minutes")}`}
+              value={t("member.durationMinutes", { count: cls.duration_minutes })}
             />
-            <CardField label={t("common.room")} value={cls.room_ref?.name ?? cls.room ?? "—"} />
-            <CardField label={t("common.with")} value={instructor} />
+            <CardField label={t("common.where")} value={t("member.locationStudio")} />
+            {instructor && <CardField label={t("common.with")} value={instructor} />}
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t hairline text-[11px] text-slate">
+          <div className="flex items-center justify-between border-t hairline pt-3 text-xs text-slate">
             <span className="inline-flex items-center gap-1.5">
               <Clock className="h-3 w-3 text-gold" />
               {t("booking.cancelWindow", { hours: cls.cancellation_window_hours }).replace(
@@ -344,13 +408,16 @@ function ConfirmationView({
         <div className="absolute inset-x-5 bottom-0 h-px bg-gold/30" />
       </div>
 
-      <p className="text-center text-[11px] text-slate font-display italic">
-        {t("booking.savedLine")}
-      </p>
+      <p className="text-center text-xs text-slate font-display">{t("booking.savedLine")}</p>
 
-      <button onClick={onDone} className="btn-navy w-full hover:btn-navy-hover">
-        {t("booking.viewBookings")} <ArrowRight className="h-3 w-3" />
-      </button>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button onClick={addToCalendar} className="btn-outline w-full justify-center">
+          <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
+        </button>
+        <button onClick={onDone} className="btn-navy w-full justify-center hover:btn-navy-hover">
+          {t("booking.myBookings")} <ArrowRight className="h-3 w-3 directional-icon-forward" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -358,7 +425,7 @@ function ConfirmationView({
 function CardField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[9px] uppercase tracking-[0.25em] text-slate">{label}</p>
+      <p className="text-xs font-medium text-slate">{label}</p>
       <p className="font-display text-sm text-navy mt-0.5 truncate">{value}</p>
     </div>
   );

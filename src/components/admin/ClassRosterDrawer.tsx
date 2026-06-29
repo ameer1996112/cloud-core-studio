@@ -36,14 +36,16 @@ import { Link } from "@tanstack/react-router";
 import { getLocale, labelForStatus, t, useI18n } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { InstructorAvatar } from "@/components/visual/InstructorAvatar";
+import {
+  localizedClassTitle,
+  localizedInstructorName,
+  localizedRoomName,
+} from "@/lib/localized-content";
 
 type Props = { classId: string | null; onClose: () => void };
 
 export function ClassRosterDrawer({ classId, onClose }: Props) {
   const open = !!classId;
-  // Mirror drawer side in RTL: open from the visually-correct end side.
-  const isRtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
-  const side = isRtl ? "left" : "right";
   return (
     <Sheet
       open={open}
@@ -51,7 +53,7 @@ export function ClassRosterDrawer({ classId, onClose }: Props) {
         if (!v) onClose();
       }}
     >
-      <SheetContent side={side} className="w-full sm:max-w-2xl overflow-y-auto bg-ivory p-0 h-dvh">
+      <SheetContent side="end" className="w-full sm:max-w-2xl overflow-y-auto bg-ivory p-0 h-dvh">
         {classId && <RosterBody classId={classId} />}
       </SheetContent>
     </Sheet>
@@ -59,7 +61,7 @@ export function ClassRosterDrawer({ classId, onClose }: Props) {
 }
 
 function RosterBody({ classId }: { classId: string }) {
-  useI18n();
+  const { lang } = useI18n();
   const qc = useQueryClient();
   const rosterFn = useServerFn(getClassRoster);
   const searchFn = useServerFn(searchMembersForClass);
@@ -84,12 +86,13 @@ function RosterBody({ classId }: { classId: string }) {
     queryKey: ["viewer-role"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return { role: null as string | null };
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!user) return { role: null as string | null };
       const { data: p } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", u.user.id)
+        .eq("id", user.id)
         .maybeSingle();
       return { role: (p?.role as string | null) ?? null };
     },
@@ -266,6 +269,11 @@ function RosterBody({ classId }: { classId: string }) {
   const c = data.class as any;
   const start = new Date(c.starts_at);
   const full = c.booked_count >= c.capacity;
+  const classTitle = localizedClassTitle(c, lang);
+  const roomName = localizedRoomName(c.room_obj?.name ?? c.room, lang);
+  const instructorName = c.instructor?.name
+    ? localizedInstructorName(c.instructor.name, lang)
+    : t("common.unassigned");
 
   return (
     <div className="flex flex-col h-full">
@@ -281,9 +289,11 @@ function RosterBody({ classId }: { classId: string }) {
 
       {/* Header */}
       <SheetHeader className="px-5 sm:px-6 pt-4 sm:pt-5 pb-5 border-b border-gold/20 bg-ivory shrink-0 text-start">
-        <p className="eyebrow text-[10px]">{t("roster.title")}</p>
+        <p className="eyebrow">{t("roster.title")}</p>
         <SheetTitle className="font-display text-2xl sm:text-3xl font-light text-navy leading-tight">
-          {c.title}
+          <span dir="auto">
+            <bdi>{classTitle}</bdi>
+          </span>
         </SheetTitle>
         <p className="text-sm text-slate mt-1">
           {start.toLocaleDateString(getLocale(), {
@@ -294,30 +304,32 @@ function RosterBody({ classId }: { classId: string }) {
           · {start.toLocaleTimeString(getLocale(), { hour: "numeric", minute: "2-digit" })} ·{" "}
           {c.duration_minutes} {t("common.minutes")}
         </p>
-        <div className="flex flex-wrap items-center gap-2 mt-3 text-[11px] uppercase tracking-[0.15em] text-slate">
-          <span className="px-2.5 py-1 border border-gold/30 rounded-[2px]">
-            {c.room_obj?.name ?? c.room}
-          </span>
-          <span className="inline-flex items-center gap-2 px-2.5 py-1 border border-gold/30 rounded-[2px]">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-slate">
+          <span className="btn-ghost px-2.5 py-1">{roomName}</span>
+          <span className="btn-ghost inline-flex items-center gap-2 px-2.5 py-1">
             <InstructorAvatar
               name={c.instructor?.name}
               photoUrl={c.instructor?.photo_url}
               size="xs"
             />
-            {c.instructor?.name ?? t("common.unassigned")}
+            {instructorName}
           </span>
           <span
-            className={`px-2.5 py-1 rounded-[2px] ${full ? "bg-navy text-ivory" : "border border-gold/30"}`}
+            className={`inline-flex min-h-9 items-center rounded-full px-2.5 py-1 ${
+              full ? "bg-navy text-ivory" : "border border-gold/30 bg-white/80 text-navy"
+            }`}
           >
             {c.booked_count}/{c.capacity} · {full ? t("common.full") : t("common.open")}
           </span>
           {c.waitlist_count > 0 && (
-            <span className="px-2.5 py-1 border border-gold bg-gold/10 text-navy rounded-[2px]">
+            <span className="inline-flex min-h-9 items-center rounded-full border border-gold bg-gold/10 px-2.5 py-1 text-navy">
               {c.waitlist_count} {t("common.waiting")}
             </span>
           )}
           {c.status !== "scheduled" && (
-            <span className="px-2.5 py-1 bg-sand text-slate rounded-[2px]">{c.status}</span>
+            <span className="inline-flex min-h-9 items-center rounded-full bg-sand px-2.5 py-1 text-slate">
+              {labelForStatus(c.status)}
+            </span>
           )}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -325,12 +337,12 @@ function RosterBody({ classId }: { classId: string }) {
             <Link
               to="/admin/classes/$id"
               params={{ id: classId }}
-              className="text-[11px] uppercase tracking-[0.18em] text-gold hover:underline"
+              className="btn-ghost text-xs hover:btn-ghost-hover"
             >
               {t("roster.editor")}
             </Link>
           ) : (
-            <span className="text-[10px] uppercase tracking-[0.2em] text-slate inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate">
               <Eye className="h-3 w-3" /> {t("roster.readOnly")}
             </span>
           )}
@@ -347,7 +359,7 @@ function RosterBody({ classId }: { classId: string }) {
                 );
                 toast.success(t("roster.prepared", { count: booked.length }));
               }}
-              className="inline-flex items-center gap-1.5 h-9 px-3 border border-gold/40 rounded-[2px] text-[10px] uppercase tracking-[0.18em] text-navy hover:bg-gold/10"
+              className="btn-outline inline-flex h-9 items-center gap-1.5 px-3 text-xs hover:btn-outline-hover"
             >
               <Bell className="h-3 w-3" /> {t("roster.prepareReminders")}
             </button>
@@ -361,23 +373,23 @@ function RosterBody({ classId }: { classId: string }) {
           {!adding ? (
             <button
               onClick={() => setAdding(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 border border-gold/40 rounded-[2px] text-[11px] uppercase tracking-[0.15em] text-navy hover:bg-gold/10"
+              className="btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs hover:btn-outline-hover"
             >
               <UserPlus className="h-3.5 w-3.5" /> {t("roster.addMember")}
             </button>
           ) : (
             <div className="space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate" />
+                <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
                 <input
                   autoFocus
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("roster.search")}
-                  className="editorial-input pl-10"
+                  className="editorial-input ps-10"
                 />
               </div>
-              <div className="max-h-56 overflow-y-auto rounded-[2px] border border-gold/20 divide-y divide-gold/10">
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-gold/20 divide-y divide-gold/10">
                 {(candidates ?? []).length === 0 && (
                   <p className="p-4 text-xs italic text-slate font-display">
                     {t("roster.noMatches")}
@@ -391,7 +403,7 @@ function RosterBody({ classId }: { classId: string }) {
                     className="w-full text-start p-3 flex items-center justify-between hover:bg-gold/5 disabled:opacity-50"
                   >
                     <span className="text-sm text-navy">{m.name}</span>
-                    <span className="text-[11px] uppercase tracking-[0.15em] text-slate">
+                    <span className="text-xs font-medium text-slate">
                       {m.remaining_credits}{" "}
                       {m.remaining_credits === 1 ? t("common.credit") : t("common.credits")}
                     </span>
@@ -403,7 +415,7 @@ function RosterBody({ classId }: { classId: string }) {
                   setAdding(false);
                   setSearch("");
                 }}
-                className="text-[11px] uppercase tracking-[0.15em] text-slate hover:text-navy"
+                className="btn-ghost text-xs hover:btn-ghost-hover"
               >
                 {t("common.cancel")}
               </button>
@@ -418,15 +430,13 @@ function RosterBody({ classId }: { classId: string }) {
           <h3 className="section-title">
             {t("roster.booked")} ({data.bookings.filter((b) => b.status === "booked").length})
           </h3>
-          <span className="text-[11px] uppercase tracking-[0.15em] text-slate">
+          <span className="text-xs font-medium text-slate">
             {t("roster.checkedIn", { count: data.checked_in_count })}
           </span>
         </div>
 
         {data.bookings.length === 0 && (
-          <p className="font-display italic text-slate text-center py-8">
-            {t("roster.noBookings")}
-          </p>
+          <p className="font-display text-slate text-center py-8">{t("roster.noBookings")}</p>
         )}
         <div className="space-y-2">
           {data.bookings.map((b: any) => (
@@ -461,7 +471,7 @@ function RosterBody({ classId }: { classId: string }) {
               >
                 <div className="min-w-0">
                   <p className="font-display text-base text-navy">{w.member?.name}</p>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-slate mt-1">
+                  <p className="mt-1 text-xs font-medium text-slate">
                     #{i + 1} · {labelForStatus(w.status)} · {w.member?.remaining_credits ?? 0}{" "}
                     {t("common.credits")}
                   </p>
@@ -472,7 +482,7 @@ function RosterBody({ classId }: { classId: string }) {
                       <button
                         onClick={() => offer.mutate(w.id)}
                         title="Mark as offered"
-                        className="h-9 px-2.5 inline-flex items-center gap-1 border border-gold/40 rounded-[2px] text-[10px] uppercase tracking-[0.15em] text-navy hover:bg-gold/10"
+                        className="btn-outline inline-flex h-9 items-center gap-1 px-2.5 text-xs hover:btn-outline-hover"
                       >
                         <Bell className="h-3.5 w-3.5" /> {t("roster.offer")}
                       </button>
@@ -482,21 +492,21 @@ function RosterBody({ classId }: { classId: string }) {
                         prepareWaitlistOffer(w.member.id, w.member.name, w.member.phone, i + 1)
                       }
                       title="Copy/open WhatsApp"
-                      className="h-9 w-9 inline-flex items-center justify-center border border-gold/40 rounded-[2px] text-navy hover:bg-gold/10"
+                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => promote.mutate(w.id)}
                       title="Promote to booking"
-                      className="h-9 w-9 inline-flex items-center justify-center border border-gold/40 rounded-[2px] text-navy hover:bg-gold/10"
+                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover"
                     >
                       <ArrowUpCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => removeWait.mutate(w.id)}
                       title="Remove from waitlist"
-                      className="h-9 w-9 inline-flex items-center justify-center border border-gold/40 rounded-[2px] text-slate hover:bg-gold/10"
+                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -539,7 +549,7 @@ function RosterRow({
               {m.name}
             </Link>
             {m.is_first_timer && (
-              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-gold border border-gold/40 px-1.5 py-0.5 rounded-[2px]">
+              <span className="btn-outline inline-flex min-h-7 items-center gap-1 px-1.5 py-0.5 text-xs">
                 <Sparkles className="h-2.5 w-2.5" /> {t("roster.first")}
               </span>
             )}
@@ -550,12 +560,12 @@ function RosterRow({
             )}
 
             {m.active_plan && (
-              <span className="text-[10px] uppercase tracking-[0.15em] text-slate border border-gold/30 px-1.5 py-0.5 rounded-[2px]">
+              <span className="inline-flex min-h-7 items-center rounded-full border border-gold/30 px-1.5 py-0.5 text-xs font-medium text-slate">
                 {m.active_plan.name}
               </span>
             )}
           </div>
-          <p className="text-[11px] text-slate mt-1 flex items-center gap-3">
+          <p className="mt-1 flex items-center gap-3 text-xs text-slate">
             {m.phone && (
               <span className="inline-flex items-center gap-1">
                 <Phone className="h-3 w-3" />
@@ -565,7 +575,7 @@ function RosterRow({
             <span>
               {m.remaining_credits ?? 0} {t("common.credits")}
             </span>
-            <span className="uppercase tracking-[0.15em]">· {labelForStatus(st)}</span>
+            <span className="font-medium">· {labelForStatus(st)}</span>
           </p>
         </div>
         <div className="flex gap-1 shrink-0">
@@ -594,7 +604,7 @@ function RosterRow({
             <button
               title={t("roster.prepareReminder")}
               onClick={onReminder}
-              className="h-9 w-9 inline-flex items-center justify-center border border-gold/25 rounded-[2px] text-slate hover:border-gold hover:text-navy"
+              className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
             >
               <MessageCircle className="h-4 w-4" />
             </button>
@@ -605,7 +615,7 @@ function RosterRow({
               onClick={() => {
                 if (confirm(t("roster.confirmRemove"))) onCancel();
               }}
-              className="h-9 w-9 inline-flex items-center justify-center border border-gold/25 rounded-[2px] text-slate hover:border-destructive/40 hover:text-destructive"
+              className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-destructive/80 hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -621,7 +631,7 @@ function AttBtn({ active, onClick, title, children }: any) {
     <button
       onClick={onClick}
       title={title}
-      className={`h-9 w-9 inline-flex items-center justify-center rounded-[2px] border transition-colors ${
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
         active
           ? "bg-navy border-navy text-ivory"
           : "border-gold/25 text-slate hover:border-gold hover:text-navy"

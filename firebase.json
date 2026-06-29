@@ -1,0 +1,15 @@
+{
+  "hosting": {
+    "public": "firebase-public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "cloud-core-studio",
+          "region": "me-west1"
+        }
+      }
+    ]
+  }
+}

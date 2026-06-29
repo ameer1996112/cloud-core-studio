@@ -1,0 +1,27 @@
+{
+  "stamp": "20260624T210916Z",
+  "tag": "QA_PRE_RELEASE_20260624T210916Z",
+  "target": {
+    "PROJECT_ID": "banjmspemvzrqckajvwo",
+    "URL": "https://banjmspemvzrqckajvwo.supabase.co"
+  },
+  "destructiveOps": false,
+  "migrationsRun": false,
+  "created": [],
+  "checks": [
+    {
+      "name": "attendance marking persists with app-valid attended status",
+      "result": "FAIL",
+      "error": "{\"status\":\"ok\"}"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "ATT-01",
+      "severity": "High",
+      "name": "attendance marking persists with app-valid attended status",
+      "actual": "{\"status\":\"ok\"}"
+    }
+  ],
+  "cleanupPreview": []
+}

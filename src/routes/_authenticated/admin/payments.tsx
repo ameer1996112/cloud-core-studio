@@ -13,8 +13,10 @@ import { listMembers, listPlans } from "@/lib/admin.functions";
 import { Empty, SectionTitle, Field, Stat } from "@/components/admin-shared";
 import { showApiError, showApiSuccess } from "@/lib/error-messages";
 import { toast } from "sonner";
-import { Plus, RotateCcw, CheckCircle2, FileText } from "lucide-react";
+import { Plus, RotateCcw, CheckCircle2, FileText, X } from "lucide-react";
 import { labelForMethod, labelForStatus, t, useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getPlanDisplay } from "@/lib/planDisplay";
 
 const STATUS_TONE: Record<string, string> = {
   paid: "border-gold/50 bg-gold/10 text-navy",
@@ -26,7 +28,6 @@ const STATUS_TONE: Record<string, string> = {
   cancelled: "border-slate/40 bg-sand/40 text-slate",
 };
 export const Route = createFileRoute("/_authenticated/admin/payments")({
-  head: () => ({ meta: [{ title: "תשלומים — Studio Admin" }] }),
   component: PaymentsPage,
 });
 
@@ -38,7 +39,8 @@ const ils = (n: number) =>
   }).format(n);
 
 function PaymentsPage() {
-  useI18n();
+  const { lang } = useI18n();
+  useDocumentTitle("page.payments.title");
   const list = useServerFn(listPayments);
   const sum = useServerFn(revenueSummary);
   const mem = useServerFn(listMembers);
@@ -120,7 +122,7 @@ function PaymentsPage() {
         action={
           <button
             onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gold text-[11px] uppercase tracking-[0.18em] rounded-[2px] hover:bg-gold hover:text-ivory transition-colors"
+            className="btn-outline inline-flex items-center gap-2 px-4 py-2 text-xs hover:btn-outline-hover"
           >
             <Plus className="h-3.5 w-3.5" /> {t("payments.record")}
           </button>
@@ -155,7 +157,7 @@ function PaymentsPage() {
         <div className="editorial-panel overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-slate border-b border-gold/20">
+              <tr className="border-b border-gold/20 text-xs font-medium text-slate">
                 <th className="text-start px-4 py-3">{t("common.date")}</th>
                 <th className="text-start px-4 py-3">{t("common.member")}</th>
                 <th className="text-start px-4 py-3">{t("common.method")}</th>
@@ -177,20 +179,22 @@ function PaymentsPage() {
                 return (
                   <tr key={p.id} className="border-b border-gold/10">
                     <td className="px-4 py-3 text-slate">
-                      {new Date(p.paid_at).toLocaleDateString()}
+                      {new Date(p.created_at ?? p.paid_at).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3 font-display">{p.member?.name ?? "—"}</td>
-                    <td className="px-4 py-3 uppercase text-[11px] tracking-[0.15em] text-slate">
+                    <td className="px-4 py-3 text-xs font-medium text-slate">
                       {labelForMethod(p.method)}
                     </td>
-                    <td className="px-4 py-3 text-[11px] uppercase tracking-[0.15em] text-slate">
+                    <td className="px-4 py-3 text-xs font-medium text-slate">
                       {p.provider ?? t("method.manual")}
                     </td>
-                    <td className="px-4 py-3 text-slate">{p.plan?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate">
+                      {p.plan ? getPlanDisplay(p.plan, lang).name : "—"}
+                    </td>
                     <td className="px-4 py-3 text-end numeric-display">{ils(Number(p.amount))}</td>
                     <td className="px-4 py-3 text-end">
                       <span
-                        className={`text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-[2px] border whitespace-nowrap ${STATUS_TONE[p.status] ?? "border-slate/30 text-slate"}`}
+                        className={`rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap ${STATUS_TONE[p.status] ?? "border-slate/30 text-slate"}`}
                       >
                         {labelForStatus(p.status)}
                       </span>
@@ -200,15 +204,13 @@ function PaymentsPage() {
                         <Link
                           to="/receipts/$id"
                           params={{ id: receipt.id }}
-                          className="inline-flex items-center gap-1 max-w-[140px] truncate text-[11px] uppercase tracking-[0.15em] text-navy hover:text-gold"
+                          className="inline-flex max-w-[140px] items-center gap-1 truncate text-xs font-medium text-navy hover:text-gold"
                         >
                           <FileText className="h-3.5 w-3.5 shrink-0" />{" "}
                           <span className="truncate">{receipt.receipt_number}</span>
                         </Link>
                       ) : (
-                        <span className="text-[10px] uppercase tracking-[0.18em] text-slate/50">
-                          —
-                        </span>
+                        <span className="text-xs text-slate/50">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-end whitespace-nowrap">
@@ -216,7 +218,7 @@ function PaymentsPage() {
                         <button
                           onClick={() => doConfirm.mutate(p.id)}
                           disabled={doConfirm.isPending}
-                          className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.15em] text-navy hover:text-gold disabled:opacity-50 mr-3"
+                          className="btn-outline me-3 inline-flex items-center gap-1 px-2.5 py-1.5 text-xs hover:btn-outline-hover disabled:opacity-50"
                           title={t("payments.confirmTitle")}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />{" "}
@@ -236,7 +238,7 @@ function PaymentsPage() {
                             if (a && !Number.isNaN(n) && n > 0)
                               doRefund.mutate({ id: p.id, amount: n });
                           }}
-                          className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.15em] text-slate hover:text-navy"
+                          className="btn-ghost inline-flex items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
                         >
                           <RotateCcw className="h-3.5 w-3.5" /> {t("payments.refund")}
                         </button>
@@ -257,16 +259,17 @@ function PaymentsPage() {
               e.preventDefault();
               save.mutate();
             }}
-            className="bg-ivory w-full md:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-[6px] md:rounded-[6px] border border-gold/30 shadow-xl p-6 space-y-5"
+            className="w-full max-h-[92vh] overflow-y-auto rounded-t-2xl border border-gold/30 bg-ivory p-6 shadow-[0_30px_60px_-28px_rgba(11,29,58,0.32)] md:max-w-lg md:rounded-2xl space-y-5"
           >
             <header className="flex items-center justify-between border-b border-gold/20 pb-4">
-              <h3 className="font-display italic text-2xl">{t("payments.record")}</h3>
+              <h3 className="font-display text-2xl">{t("payments.record")}</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-slate hover:text-navy text-sm uppercase tracking-[0.18em]"
+                className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+                aria-label={t("payments.close")}
               >
-                {t("payments.close")}
+                <X className="h-4 w-4" />
               </button>
             </header>
             <Field label={t("common.member")}>
@@ -328,7 +331,6 @@ function PaymentsPage() {
                 >
                   <option value="cash">{t("method.cash")}</option>
                   <option value="bit">Bit</option>
-                  <option value="card">{t("method.card")}</option>
                   <option value="transfer">{t("method.transfer")}</option>
                   <option value="other">{t("method.other")}</option>
                 </select>
@@ -353,14 +355,14 @@ function PaymentsPage() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-[11px] uppercase tracking-[0.18em] text-slate hover:text-navy"
+                className="btn-outline px-4 py-2 text-xs hover:btn-outline-hover"
               >
                 {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={save.isPending || !form.member_id || !form.amount}
-                className="px-5 py-2 bg-navy text-ivory text-[11px] uppercase tracking-[0.2em] rounded-[2px] disabled:opacity-60 hover:bg-navy/90"
+                className="btn-navy px-5 py-2 text-xs hover:btn-navy-hover disabled:opacity-60"
               >
                 {save.isPending ? t("common.saving") : t("payments.recordShort")}
               </button>
