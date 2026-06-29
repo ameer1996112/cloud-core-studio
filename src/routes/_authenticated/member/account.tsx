@@ -29,6 +29,7 @@ type MemberProfile = {
   preferred_language?: Lang | null;
   emergency_contact?: string | null;
   energy_preference?: string | null;
+  created_at?: string | null;
 };
 
 type DeletionResult = {
@@ -126,17 +127,27 @@ function MemberAccount() {
       </div>
 
       <div className="member-card p-5 sm:p-6 space-y-4">
-        <div className="member-section-heading">
+        <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
           <div>
-            <p className="member-eyebrow">{t("profile.memberSince")}</p>
-            <h2 className="member-section-title mt-1">{t("profile.details")}</h2>
+            <h2 className="member-section-title">{t("profile.details")}</h2>
           </div>
+          {me?.created_at && (
+            <div className="text-xs bg-gold/10 text-gold border border-gold/20 px-3 py-1 rounded-full font-medium tracking-wide">
+              {t("profile.memberSince")}{" "}
+              <span className="font-semibold">
+                {new Date(me.created_at).toLocaleDateString(getLocale() === "he" ? "he-IL" : "en-GB", {
+                  year: "numeric",
+                  month: "long",
+                })}
+              </span>
+            </div>
+          )}
         </div>
 
         <Field label={t("profile.name")}>
           <input
             className="editorial-input"
-            dir="auto"
+            dir={val("name") ? "auto" : undefined}
             value={val("name")}
             onChange={(e) => set("name", e.target.value)}
           />
@@ -165,7 +176,7 @@ function MemberAccount() {
         <Field label={t("profile.emergency")}>
           <input
             className="editorial-input"
-            dir="auto"
+            dir={val("emergency_contact") ? "auto" : undefined}
             value={val("emergency_contact") ?? ""}
             onChange={(e) => set("emergency_contact", e.target.value)}
             placeholder={t("profile.emergencyPlaceholder")}
@@ -174,7 +185,7 @@ function MemberAccount() {
         <Field label={t("profile.energy")}>
           <input
             className="editorial-input"
-            dir="auto"
+            dir={val("energy_preference") ? "auto" : undefined}
             value={val("energy_preference") ?? ""}
             onChange={(e) => set("energy_preference", e.target.value)}
             placeholder={t("profile.energyPlaceholder")}
@@ -197,7 +208,7 @@ function MemberAccount() {
           <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
           <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
         </div>
-        <button onClick={signOut} disabled={signingOut} className="btn-ghost hover:btn-ghost-hover">
+        <button onClick={signOut} disabled={signingOut} className="btn-outline hover:btn-outline-hover">
           <LogOut className="h-3 w-3" /> {t("shell.signOut")}
         </button>
       </div>
@@ -211,13 +222,13 @@ function MemberAccount() {
         </div>
         <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
         <div className="grid gap-2 sm:grid-cols-3">
-          <Link to="/privacy" className="btn-ghost hover:btn-ghost-hover justify-center">
+          <Link to="/privacy" className="btn-outline hover:btn-outline-hover justify-center">
             {t("legal.privacy")}
           </Link>
-          <Link to="/terms" className="btn-ghost hover:btn-ghost-hover justify-center">
+          <Link to="/terms" className="btn-outline hover:btn-outline-hover justify-center">
             {t("legal.terms")}
           </Link>
-          <Link to="/support" className="btn-ghost hover:btn-ghost-hover justify-center">
+          <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
             {t("legal.support")}
           </Link>
         </div>

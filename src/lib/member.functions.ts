@@ -320,7 +320,7 @@ export const getMyPackages = createServerFn({ method: "GET" })
       supabase
         .from("members")
         .select(
-          "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference",
+          "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference,created_at",
         )
         .eq("id", userId)
         .maybeSingle(),
