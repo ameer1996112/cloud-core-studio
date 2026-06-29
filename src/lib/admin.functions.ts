@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, isTestRecord } from "@/lib/test-records";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
@@ -9,6 +10,26 @@ async function ensureStaff(supabase: any, userId: string, level: "admin" | "staf
   if (level === "admin" && role !== "admin") throw new Error("forbidden");
   if (level === "staff" && role !== "admin" && role !== "instructor") throw new Error("forbidden");
   return role as "admin" | "instructor";
+}
+
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
+}
+
+function buildClassVariables(cls: any) {
+  return {
+    class_name: cls.title,
+    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
+    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    instructor_name: cls.instructor?.name ?? "",
+  };
 }
 
 // ===== Overview =====
@@ -457,6 +478,42 @@ export const adminCreateBooking = createServerFn({ method: "POST" })
       p_override: data.override ?? false,
     });
     if (error) throw error;
+    const status = (r as any)?.status;
+    const bookingId = (r as any)?.booking_id;
+    if (status === "booked" && bookingId) {
+      try {
+        const [bookingRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("bookings")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", bookingId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (bookingRes.error) throw bookingRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const booking = bookingRes.data as any;
+        if (booking?.member && booking?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "booking_confirmed",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            }),
+          );
+        }
+      } catch (draftError) {
+        console.error("admin_booking_confirmed_draft_prepare_failed", draftError);
+      }
+    }
     return r;
   });
 
@@ -474,6 +531,40 @@ export const adminCancelBooking = createServerFn({ method: "POST" })
       p_refund: data.refund ?? true,
     });
     if (error) throw error;
+    if ((r as any)?.status === "cancelled") {
+      try {
+        const [bookingRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("bookings")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.bookingId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (bookingRes.error) throw bookingRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const booking = bookingRes.data as any;
+        if (booking?.member && booking?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "booking_cancelled",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            }),
+          );
+        }
+      } catch (draftError) {
+        console.error("admin_booking_cancelled_draft_prepare_failed", draftError);
+      }
+    }
     return r;
   });
 
@@ -521,7 +612,81 @@ export const markAttendance = createServerFn({ method: "POST" })
       p_status: data.status,
     });
     if (error) throw error;
+    if (data.status === "no_show" && (r as any)?.status === "ok") {
+      try {
+        const [bookingRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("bookings")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.bookingId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (bookingRes.error) throw bookingRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const booking = bookingRes.data as any;
+        if (booking?.member && booking?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "no_show_followup",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            }),
+          );
+        }
+      } catch (draftError) {
+        console.error("no_show_followup_draft_prepare_failed", draftError);
+      }
+    }
     return r;
+  });
+
+export const prepareClassReminderDrafts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ classId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "staff");
+    const [bookingsRes, clsRes, settingsRes] = await Promise.all([
+      context.supabase
+        .from("bookings")
+        .select("id,member:members(id,name,phone,email,preferred_language)")
+        .eq("class_id", data.classId)
+        .eq("status", "booked"),
+      context.supabase
+        .from("classes")
+        .select("id,title,starts_at,instructor:instructors(name)")
+        .eq("id", data.classId)
+        .maybeSingle(),
+      context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+    ]);
+    if (bookingsRes.error) throw bookingsRes.error;
+    if (clsRes.error) throw clsRes.error;
+    if (settingsRes.error) throw settingsRes.error;
+    const cls = clsRes.data as any;
+    const rows = (bookingsRes.data ?? []).flatMap((booking: any) =>
+      booking.member && cls
+        ? buildNotificationDraftRows({
+            eventKey: "class_reminder_24h",
+            channels: ["whatsapp", "email"],
+            audience: "member",
+            member: booking.member,
+            appLanguage: null,
+            studioSettings: settingsRes.data ?? null,
+            relatedIds: { bookingId: booking.id, classId: data.classId },
+            variables: buildClassVariables(cls),
+          })
+        : [],
+    );
+    await insertNotificationDraftRows(context.supabase, rows);
+    return { prepared: rows.length };
   });
 
 export const todaysClasses = createServerFn({ method: "GET" })
@@ -579,6 +744,42 @@ export const waitlistAdd = createServerFn({ method: "POST" })
           ).count ?? 0,
       })
       .eq("id", data.classId);
+    try {
+      const [entryRes, settingsRes] = await Promise.all([
+        context.supabase
+          .from("waitlist_entries")
+          .select(
+            "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+          )
+          .eq("class_id", data.classId)
+          .eq("member_id", data.memberId)
+          .eq("status", "waiting")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+      ]);
+      if (entryRes.error) throw entryRes.error;
+      if (settingsRes.error) throw settingsRes.error;
+      const entry = entryRes.data as any;
+      if (entry?.member && entry?.class) {
+        await insertNotificationDraftRows(
+          context.supabase,
+          buildNotificationDraftRows({
+            eventKey: "waitlist_joined",
+            channels: ["whatsapp", "email"],
+            audience: "member",
+            member: entry.member,
+            appLanguage: null,
+            studioSettings: settingsRes.data ?? null,
+            relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
+            variables: buildClassVariables(entry.class),
+          }),
+        );
+      }
+    } catch (draftError) {
+      console.error("admin_waitlist_joined_draft_prepare_failed", draftError);
+    }
     return { ok: true };
   });
 
@@ -606,6 +807,71 @@ export const waitlistPromote = createServerFn({ method: "POST" })
       p_entry_id: data.entryId,
     });
     if (error) throw error;
+    try {
+      const status = (r as any)?.status;
+      const bookingId = (r as any)?.booking_id;
+      if (status === "booked" && bookingId) {
+        const [bookingRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("bookings")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", bookingId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (bookingRes.error) throw bookingRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const booking = bookingRes.data as any;
+        if (booking?.member && booking?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "booking_confirmed",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            }),
+          );
+        }
+      } else if (status === "offered") {
+        const [entryRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("waitlist_entries")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.entryId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (entryRes.error) throw entryRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const entry = entryRes.data as any;
+        if (entry?.member && entry?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "waitlist_spot_available",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: entry.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
+              variables: buildClassVariables(entry.class),
+            }),
+          );
+        }
+      }
+    } catch (draftError) {
+      console.error("waitlist_promote_draft_prepare_failed", draftError);
+    }
     return r;
   });
 

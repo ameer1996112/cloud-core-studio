@@ -1,10 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, hasTestPlanRecord, isTestRecord } from "@/lib/test-records";
 
 const classSelect =
   "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
+
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
+}
+
+function buildClassVariables(cls: any) {
+  return {
+    class_name: cls.title,
+    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
+    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    instructor_name: cls.instructor?.name ?? "",
+  };
+}
 
 export const getMemberHome = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -160,7 +181,42 @@ export const memberCancelBooking = createServerFn({ method: "POST" })
       p_booking_id: data.bookingId,
     });
     if (error) return { status: "error", message: error.message } as const;
-    return result as { status: string; message?: string; deadline?: string };
+    const typedResult = result as { status: string; message?: string; deadline?: string };
+    if (typedResult.status === "cancelled") {
+      try {
+        const [bookingRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("bookings")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.bookingId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (bookingRes.error) throw bookingRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const booking = bookingRes.data as any;
+        if (booking?.member && booking?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "booking_cancelled",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            }),
+          );
+        }
+      } catch (draftError) {
+        console.error("booking_cancelled_draft_prepare_failed", draftError);
+      }
+    }
+    return typedResult;
   });
 
 export const joinWaitlist = createServerFn({ method: "POST" })
@@ -173,7 +229,42 @@ export const joinWaitlist = createServerFn({ method: "POST" })
       p_class_id: data.classId,
     });
     if (error) return { status: "error", message: error.message } as const;
-    return result as { status: string; entry_id?: string; position?: number };
+    const typedResult = result as { status: string; entry_id?: string; position?: number };
+    if (typedResult.status === "waiting" && typedResult.entry_id) {
+      try {
+        const [entryRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("waitlist_entries")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", typedResult.entry_id)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (entryRes.error) throw entryRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const entry = entryRes.data as any;
+        if (entry?.member && entry?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "waitlist_joined",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: entry.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
+              variables: buildClassVariables(entry.class),
+            }),
+          );
+        }
+      } catch (draftError) {
+        console.error("waitlist_joined_draft_prepare_failed", draftError);
+      }
+    }
+    return typedResult;
   });
 
 export const leaveWaitlist = createServerFn({ method: "POST" })

@@ -1,13 +1,34 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { normalizePhoneForWa } from "@/lib/messageTemplate";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
   const role = data?.role;
   if (level === "admin" && role !== "admin") throw new Error("forbidden");
   if (level === "staff" && role !== "admin" && role !== "instructor") throw new Error("forbidden");
+  return role;
+}
+
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
+}
+
+function buildClassVariables(cls: any) {
+  return {
+    class_name: cls.title,
+    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
+    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    instructor_name: cls.instructor?.name ?? "",
+  };
 }
 
 // ===== Templates =====
@@ -303,43 +324,48 @@ const logSchema = z.object({
   recipientMemberId: z.string().uuid(),
   generatedText: z.string().min(1),
   subject: z.string().nullable().optional(),
-  status: z.enum(["generated", "copied", "opened", "marked_sent", "failed"]).default("generated"),
+  status: z
+    .enum([
+      "draft",
+      "queued",
+      "sent",
+      "failed",
+      "manually_sent",
+      "skipped",
+      "generated",
+      "copied",
+      "opened",
+      "marked_sent",
+    ])
+    .default("draft"),
+  language: z.string().nullable().optional(),
+  provider: z.string().nullable().optional(),
+  providerMessageId: z.string().nullable().optional(),
   relatedClassId: z.string().uuid().nullable().optional(),
   relatedBookingId: z.string().uuid().nullable().optional(),
   relatedMemberPlanId: z.string().uuid().nullable().optional(),
+  relatedPaymentId: z.string().uuid().nullable().optional(),
+  relatedReceiptId: z.string().uuid().nullable().optional(),
+  relatedPackageRequestId: z.string().uuid().nullable().optional(),
+  errorMessage: z.string().nullable().optional(),
+  idempotencyKey: z.string().nullable().optional(),
+  staffVisibility: z.enum(["operational", "admin_only"]).default("operational"),
 });
 
-function openWaConfig() {
-  const baseUrl = process.env.OPENWA_BASE_URL?.replace(/\/+$/, "");
-  const apiKey = process.env.OPENWA_API_KEY;
-  const sessionId = process.env.OPENWA_SESSION_ID;
-  if (!baseUrl || !apiKey || !sessionId) return null;
-  return { baseUrl, apiKey, sessionId };
+function normalizeLogStatus(status: string) {
+  if (status === "generated" || status === "copied" || status === "opened") return "draft";
+  if (status === "marked_sent") return "manually_sent";
+  return status;
 }
 
-async function getOpenWaSessionStatus(config: NonNullable<ReturnType<typeof openWaConfig>>) {
-  const res = await fetch(
-    `${config.baseUrl}/api/sessions/${encodeURIComponent(config.sessionId)}`,
-    {
-      headers: { "X-API-Key": config.apiKey },
-    },
-  );
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`OpenWA status check failed (${res.status})${body ? `: ${body}` : ""}`);
-  }
-
-  const session = await res.json();
-  return String(session?.status ?? "unknown");
-}
-
-function openWaConnectionMessage(status: string) {
-  if (status === "ready" || status === "connected") return null;
-  if (status === "qr_ready" || status === "authenticating" || status === "initializing") {
-    return "OpenWA is waiting for phone pairing. Scan the WhatsApp QR in the OpenWA dashboard, then try again.";
-  }
-  return `OpenWA is not connected yet (status: ${status}). Run bun run openwa:start, scan the QR, then try again.`;
+function getLogStatusFilter(status: string) {
+  if (status === "draft") return ["draft", "generated", "copied", "opened"];
+  if (status === "manually_sent") return ["manually_sent", "marked_sent"];
+  if (status === "sent") return ["sent"];
+  if (status === "failed") return ["failed"];
+  if (status === "skipped") return ["skipped"];
+  if (status === "queued") return ["queued"];
+  return [status];
 }
 
 export const logNotification = createServerFn({ method: "POST" })
@@ -347,6 +373,7 @@ export const logNotification = createServerFn({ method: "POST" })
   .inputValidator((d) => logSchema.parse(d))
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
+    const status = normalizeLogStatus(data.status);
     const { error } = await context.supabase.from("notification_logs").insert({
       template_id: data.templateId ?? null,
       template_key: data.templateKey ?? null,
@@ -355,15 +382,93 @@ export const logNotification = createServerFn({ method: "POST" })
       recipient_member_id: data.recipientMemberId,
       generated_text: data.generatedText,
       subject: data.subject ?? null,
-      status: data.status,
+      status,
       sent_by: context.userId,
       related_class_id: data.relatedClassId ?? null,
       related_booking_id: data.relatedBookingId ?? null,
       related_member_plan_id: data.relatedMemberPlanId ?? null,
-      marked_sent_at: data.status === "marked_sent" ? new Date().toISOString() : null,
+      language: data.language ?? null,
+      provider: data.provider ?? null,
+      provider_message_id: data.providerMessageId ?? null,
+      related_payment_id: data.relatedPaymentId ?? null,
+      related_receipt_id: data.relatedReceiptId ?? null,
+      related_package_request_id: data.relatedPackageRequestId ?? null,
+      sent_at: status === "sent" || status === "manually_sent" ? new Date().toISOString() : null,
+      error_message: data.errorMessage ?? null,
+      idempotency_key: data.idempotencyKey ?? null,
+      staff_visibility: data.staffVisibility,
+      marked_sent_at: status === "manually_sent" ? new Date().toISOString() : null,
     });
     if (error) throw error;
     return { ok: true };
+  });
+
+const draftSchema = z.object({
+  eventKey: z.enum([
+    "booking_confirmed",
+    "booking_cancelled",
+    "waitlist_joined",
+    "waitlist_spot_available",
+    "package_request_received",
+    "payment_confirmed",
+    "receipt_issued",
+    "class_reminder_24h",
+    "no_show_followup",
+  ]),
+  channels: z.array(z.enum(["whatsapp", "email"])).default(["whatsapp", "email"]),
+  audience: z.enum(["member", "admin"]).default("member"),
+  memberId: z.string().uuid(),
+  appLanguage: z.string().nullable().optional(),
+  relatedIds: z
+    .object({
+      bookingId: z.string().uuid().nullable().optional(),
+      classId: z.string().uuid().nullable().optional(),
+      memberPlanId: z.string().uuid().nullable().optional(),
+      packageRequestId: z.string().uuid().nullable().optional(),
+      paymentId: z.string().uuid().nullable().optional(),
+      receiptId: z.string().uuid().nullable().optional(),
+      waitlistEntryId: z.string().uuid().nullable().optional(),
+    })
+    .default({}),
+  variables: z.record(z.union([z.string(), z.number(), z.null()])).default({}),
+});
+
+export const prepareNotificationDrafts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => draftSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "staff");
+    const [memberRes, settingsRes] = await Promise.all([
+      context.supabase
+        .from("members")
+        .select("id,name,phone,email,preferred_language")
+        .eq("id", data.memberId)
+        .maybeSingle(),
+      context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+    ]);
+    if (memberRes.error) throw memberRes.error;
+    if (settingsRes.error) throw settingsRes.error;
+    if (!memberRes.data) return { inserted: 0, skipped: 0 };
+
+    const rows = buildNotificationDraftRows({
+      eventKey: data.eventKey,
+      channels: data.channels,
+      audience: data.audience,
+      member: memberRes.data,
+      appLanguage: data.appLanguage ?? null,
+      studioSettings: settingsRes.data ?? null,
+      relatedIds: data.relatedIds,
+      variables: data.variables,
+    });
+
+    const { error } = await context.supabase
+      .from("notification_logs")
+      .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+    if (error) throw error;
+    return {
+      inserted: rows.filter((row) => row.status === "draft").length,
+      skipped: rows.filter((row) => row.status === "skipped").length,
+    };
   });
 
 const sendWhatsAppSchema = z.object({
@@ -382,89 +487,11 @@ const sendWhatsAppSchema = z.object({
 export const sendWhatsAppMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => sendWhatsAppSchema.parse(d))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
-
-    const config = openWaConfig();
-    const phone = normalizePhoneForWa(data.recipientPhone);
-
-    const log = async (status: "marked_sent" | "failed", errorMessage?: string) => {
-      const { error } = await context.supabase.from("notification_logs").insert({
-        template_id: data.templateId ?? null,
-        template_key: data.templateKey ?? null,
-        trigger_type: data.triggerType,
-        channel: "whatsapp",
-        recipient_member_id: data.recipientMemberId,
-        generated_text: errorMessage
-          ? `${data.generatedText}\n\n[OpenWA error] ${errorMessage}`
-          : data.generatedText,
-        subject: data.subject ?? null,
-        status,
-        sent_by: context.userId,
-        related_class_id: data.relatedClassId ?? null,
-        related_booking_id: data.relatedBookingId ?? null,
-        related_member_plan_id: data.relatedMemberPlanId ?? null,
-        marked_sent_at: status === "marked_sent" ? new Date().toISOString() : null,
-      });
-      if (error) throw error;
-    };
-
-    if (!config) {
-      await log("failed", "OpenWA is not configured");
-      throw new Error(
-        "OpenWA is not configured. Add OPENWA_BASE_URL, OPENWA_API_KEY, and OPENWA_SESSION_ID.",
-      );
-    }
-
-    if (!phone) {
-      await log("failed", "Recipient has no valid WhatsApp phone number");
-      throw new Error("Recipient has no valid WhatsApp phone number.");
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15_000);
-
-    try {
-      const status = await getOpenWaSessionStatus(config);
-      const connectionMessage = openWaConnectionMessage(status);
-      if (connectionMessage) throw new Error(connectionMessage);
-
-      const res = await fetch(
-        `${config.baseUrl}/api/sessions/${encodeURIComponent(config.sessionId)}/messages/send-text`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": config.apiKey,
-          },
-          body: JSON.stringify({
-            chatId: `${phone}@c.us`,
-            text: data.generatedText,
-          }),
-          signal: controller.signal,
-        },
-      );
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        const inactiveSession = body.includes("is not active") || body.includes("not active");
-        if (inactiveSession) {
-          throw new Error(
-            "OpenWA is not connected yet. Open the OpenWA dashboard, scan the WhatsApp QR, then try again.",
-          );
-        }
-        throw new Error(`OpenWA returned ${res.status}${body ? `: ${body.slice(0, 240)}` : ""}`);
-      }
-
-      await log("marked_sent");
-      return { ok: true, provider: "openwa" as const };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "OpenWA send failed";
-      await log("failed", message);
-      throw new Error(message);
-    } finally {
-      clearTimeout(timeout);
-    }
+    throw new Error(
+      "Direct WhatsApp sending is disabled in V1. Use Open WhatsApp, then Mark manually sent.",
+    );
   });
 
 export const markNotificationSent = createServerFn({ method: "POST" })
@@ -474,7 +501,11 @@ export const markNotificationSent = createServerFn({ method: "POST" })
     await ensureStaff(context.supabase, context.userId, "staff");
     const { error } = await context.supabase
       .from("notification_logs")
-      .update({ status: "marked_sent", marked_sent_at: new Date().toISOString() })
+      .update({
+        status: "manually_sent",
+        marked_sent_at: new Date().toISOString(),
+        sent_at: new Date().toISOString(),
+      })
       .eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -483,15 +514,35 @@ export const markNotificationSent = createServerFn({ method: "POST" })
 export const listNotificationLogs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ limit: z.number().int().positive().max(200).default(50) }).parse(d ?? {}),
+    z
+      .object({
+        limit: z.number().int().positive().max(200).default(50),
+        channel: z.enum(["all", "whatsapp", "email", "in_app"]).default("all"),
+        status: z
+          .enum(["all", "draft", "queued", "sent", "failed", "manually_sent", "skipped"])
+          .default("all"),
+        triggerType: z.string().default("all"),
+        visibility: z.enum(["all", "operational", "admin_only"]).default("all"),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    await ensureStaff(context.supabase, context.userId, "staff");
-    const { data: rows } = await context.supabase
+    const role = await ensureStaff(context.supabase, context.userId, "staff");
+    if (role === "instructor" && data.visibility === "admin_only") return [];
+
+    let query = context.supabase
       .from("notification_logs")
-      .select("*, member:members(id,name)")
-      .order("created_at", { ascending: false })
-      .limit(data.limit);
+      .select("*, member:members(id,name,phone,email)")
+      .order("created_at", { ascending: false });
+    if (data.channel !== "all") query = query.eq("channel", data.channel);
+    if (data.status !== "all") query = query.in("status", getLogStatusFilter(data.status));
+    if (data.triggerType !== "all") query = query.eq("trigger_type", data.triggerType);
+    if (role === "admin") {
+      if (data.visibility !== "all") query = query.eq("staff_visibility", data.visibility);
+    } else {
+      query = query.eq("staff_visibility", "operational");
+    }
+    const { data: rows } = await query.limit(data.limit);
     return rows ?? [];
   });
 
@@ -539,5 +590,40 @@ export const waitlistOffer = createServerFn({ method: "POST" })
       p_entry_id: data.entryId,
     });
     if (error) throw error;
+    try {
+      const status = (r as any)?.status;
+      if (status === "offered") {
+        const [entryRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("waitlist_entries")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.entryId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (entryRes.error) throw entryRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const entry = entryRes.data as any;
+        if (entry?.member && entry?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "waitlist_spot_available",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: entry.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
+              variables: buildClassVariables(entry.class),
+            }),
+          );
+        }
+      }
+    } catch (draftError) {
+      console.error("waitlist_offer_draft_prepare_failed", draftError);
+    }
     return r;
   });

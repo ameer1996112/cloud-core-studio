@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestPlanRecord, isTestRecord } from "@/lib/test-records";
 
 const manualPaymentInput = z.object({
@@ -8,6 +9,14 @@ const manualPaymentInput = z.object({
   method: z.enum(["cash", "bit"]),
   messageText: z.string().max(2000).optional(),
 });
+
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
+}
 
 export const createMyPackageRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -31,6 +40,47 @@ export const createMyPackageRequest = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw error;
+    try {
+      const [memberRes, planRes, settingsRes] = await Promise.all([
+        context.supabase
+          .from("members")
+          .select("id,name,phone,email,preferred_language")
+          .eq("id", context.userId)
+          .maybeSingle(),
+        context.supabase.from("plans").select("id,name").eq("id", data.planId).maybeSingle(),
+        context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+      ]);
+      if (memberRes.error) throw memberRes.error;
+      if (planRes.error) throw planRes.error;
+      if (settingsRes.error) throw settingsRes.error;
+      if (memberRes.data && planRes.data) {
+        const rows = [
+          ...buildNotificationDraftRows({
+            eventKey: "package_request_received",
+            channels: ["whatsapp", "email"],
+            audience: "member",
+            member: memberRes.data,
+            appLanguage: null,
+            studioSettings: settingsRes.data ?? null,
+            relatedIds: { packageRequestId: row.id },
+            variables: { package_name: planRes.data.name ?? "" },
+          }),
+          ...buildNotificationDraftRows({
+            eventKey: "package_request_received",
+            channels: ["whatsapp", "email"],
+            audience: "admin",
+            member: memberRes.data,
+            appLanguage: null,
+            studioSettings: settingsRes.data ?? null,
+            relatedIds: { packageRequestId: row.id },
+            variables: { package_name: planRes.data.name ?? "" },
+          }),
+        ];
+        await insertNotificationDraftRows(context.supabase, rows);
+      }
+    } catch (draftError) {
+      console.error("package_request_received_draft_prepare_failed", draftError);
+    }
     return { id: row.id };
   });
 
@@ -71,6 +121,61 @@ export const createManualPackagePayment = createServerFn({ method: "POST" })
       .select("id,status,method,amount,currency,plan_id")
       .single();
     if (error) throw error;
+
+    try {
+      const [memberDraftRes, planDraftRes, requestRes, settingsRes] = await Promise.all([
+        context.supabase
+          .from("members")
+          .select("id,name,phone,email,preferred_language")
+          .eq("id", context.userId)
+          .maybeSingle(),
+        context.supabase.from("plans").select("id,name").eq("id", data.planId).maybeSingle(),
+        context.supabase
+          .from("package_requests")
+          .select("id")
+          .eq("member_id", context.userId)
+          .eq("plan_id", data.planId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+      ]);
+      if (memberDraftRes.error) throw memberDraftRes.error;
+      if (planDraftRes.error) throw planDraftRes.error;
+      if (requestRes.error) throw requestRes.error;
+      if (settingsRes.error) throw settingsRes.error;
+      if (memberDraftRes.data && planDraftRes.data) {
+        const packageRequestId = requestRes.data?.id ?? null;
+        let draftRows = buildNotificationDraftRows({
+          eventKey: "package_request_received",
+          channels: ["whatsapp", "email"],
+          audience: "admin",
+          member: memberDraftRes.data,
+          appLanguage: null,
+          studioSettings: settingsRes.data ?? null,
+          relatedIds: {
+            packageRequestId,
+            paymentId: row.id,
+          },
+          variables: {
+            package_name: planDraftRes.data.name ?? "",
+            payment_id: row.id,
+            payment_method: row.method,
+            amount: row.amount,
+            currency: row.currency,
+          },
+        });
+        if (!packageRequestId) {
+          draftRows = draftRows.map((draftRow: any) => ({
+            ...draftRow,
+            idempotency_key: `payment:${row.id}:package_request_received:${draftRow.channel}:admin`,
+          }));
+        }
+        await insertNotificationDraftRows(context.supabase, draftRows);
+      }
+    } catch (draftError) {
+      console.error("manual_package_payment_draft_prepare_failed", draftError);
+    }
 
     return row;
   });

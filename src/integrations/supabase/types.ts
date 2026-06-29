@@ -518,15 +518,25 @@ export type Database = {
         Row: {
           channel: string;
           created_at: string;
+          error_message: string | null;
           generated_text: string | null;
+          idempotency_key: string | null;
           id: string;
+          language: string | null;
           marked_sent_at: string | null;
           payload: Json;
           recipient_member_id: string | null;
           related_booking_id: string | null;
           related_class_id: string | null;
+          related_package_request_id: string | null;
+          related_payment_id: string | null;
+          related_receipt_id: string | null;
           related_member_plan_id: string | null;
+          provider: string | null;
+          provider_message_id: string | null;
           sent_by: string | null;
+          sent_at: string | null;
+          staff_visibility: string;
           status: string;
           subject: string | null;
           template_id: string | null;
@@ -536,15 +546,25 @@ export type Database = {
         Insert: {
           channel: string;
           created_at?: string;
+          error_message?: string | null;
           generated_text?: string | null;
+          idempotency_key?: string | null;
           id?: string;
+          language?: string | null;
           marked_sent_at?: string | null;
           payload?: Json;
           recipient_member_id?: string | null;
           related_booking_id?: string | null;
           related_class_id?: string | null;
+          related_package_request_id?: string | null;
+          related_payment_id?: string | null;
+          related_receipt_id?: string | null;
           related_member_plan_id?: string | null;
+          provider?: string | null;
+          provider_message_id?: string | null;
           sent_by?: string | null;
+          sent_at?: string | null;
+          staff_visibility?: string;
           status?: string;
           subject?: string | null;
           template_id?: string | null;
@@ -554,15 +574,25 @@ export type Database = {
         Update: {
           channel?: string;
           created_at?: string;
+          error_message?: string | null;
           generated_text?: string | null;
+          idempotency_key?: string | null;
           id?: string;
+          language?: string | null;
           marked_sent_at?: string | null;
           payload?: Json;
           recipient_member_id?: string | null;
           related_booking_id?: string | null;
           related_class_id?: string | null;
+          related_package_request_id?: string | null;
+          related_payment_id?: string | null;
+          related_receipt_id?: string | null;
           related_member_plan_id?: string | null;
+          provider?: string | null;
+          provider_message_id?: string | null;
           sent_by?: string | null;
+          sent_at?: string | null;
+          staff_visibility?: string;
           status?: string;
           subject?: string | null;
           template_id?: string | null;
@@ -589,6 +619,27 @@ export type Database = {
             columns: ["related_class_id"];
             isOneToOne: false;
             referencedRelation: "classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_logs_related_package_request_id_fkey";
+            columns: ["related_package_request_id"];
+            isOneToOne: false;
+            referencedRelation: "package_requests";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_logs_related_payment_id_fkey";
+            columns: ["related_payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_logs_related_receipt_id_fkey";
+            columns: ["related_receipt_id"];
+            isOneToOne: false;
+            referencedRelation: "receipts";
             referencedColumns: ["id"];
           },
           {

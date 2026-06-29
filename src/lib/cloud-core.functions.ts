@@ -1,8 +1,29 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 
 export type BookingStatus = "booked" | "already_booked" | "full" | "insufficient_credits" | "error";
+
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
+}
+
+function buildClassVariables(cls: any) {
+  return {
+    class_name: cls.title,
+    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
+    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    instructor_name: cls.instructor?.name ?? "",
+  };
+}
 
 export const getNextClass = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -89,12 +110,48 @@ export const bookClass = createServerFn({ method: "POST" })
       p_class_id: data.classId,
     });
     if (error) return { status: "error" as const, message: error.message };
-    return result as {
+    const typedResult = result as {
       status: BookingStatus;
       booking_id?: string;
       remaining_credits?: number;
       message?: string;
     };
+    const bookingId = (typedResult as any)?.booking_id;
+    if ((typedResult as any)?.status === "booked" && bookingId) {
+      try {
+        const [bookingRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("bookings")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", bookingId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (bookingRes.error) throw bookingRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const booking = bookingRes.data as any;
+        if (booking?.member && booking?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "booking_confirmed",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            }),
+          );
+        }
+      } catch (draftError) {
+        console.error("booking_confirmed_draft_prepare_failed", draftError);
+      }
+    }
+    return typedResult;
   });
 
 export const getMyBookings = createServerFn({ method: "GET" })

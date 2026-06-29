@@ -12,7 +12,6 @@ import {
   buildAudience,
   searchMembersBasic,
   logNotification,
-  sendWhatsAppMessage,
   listNotificationLogs,
   markNotificationSent,
   listPackageRequests,
@@ -833,11 +832,7 @@ function ComposerTab() {
     setSelectedMembers((members) => members.filter((m) => m.id !== memberId));
   }
 
-  async function logForMember(
-    member: any,
-    status: "copied" | "opened" | "marked_sent",
-    text: string,
-  ) {
+  async function logForMember(member: any, status: "draft" | "manually_sent", text: string) {
     const rendered = renderMemberMessage({
       member,
       templates: activeTemplates,
@@ -888,7 +883,7 @@ function ComposerTab() {
         messages.map((message) => message.text).join("\n\n---\n\n"),
       );
       await Promise.all(
-        messages.map((message) => logForMember(message.member, "copied", message.text)),
+        messages.map((message) => logForMember(message.member, "draft", message.text)),
       );
       toast.success(`Copied ${messages.length} messages to clipboard`);
     } catch {
@@ -918,7 +913,7 @@ function ComposerTab() {
         .map((message) => ({ ...message, text: editedMessages[message.member.id] ?? message.text }))
         .filter((message) => message.template && message.text);
       await Promise.all(
-        messages.map((message) => logForMember(message.member, "marked_sent", message.text)),
+        messages.map((message) => logForMember(message.member, "manually_sent", message.text)),
       );
       toast.success(`All ${messages.length} messages marked sent`);
     } catch {
@@ -1229,10 +1224,9 @@ function PreviewRow({
   uiCopy: Record<string, string>;
   settings: any;
   cls: any;
-  onLogged: (status: "copied" | "opened" | "marked_sent", text: string) => Promise<void>;
+  onLogged: (status: "draft" | "manually_sent", text: string) => Promise<void>;
   onTextChange?: (text: string | null) => void;
 }) {
-  const sendWaFn = useServerFn(sendWhatsAppMessage);
   const { template, ctxCls, text, subject } = renderMemberMessage({
     member,
     templates: allTemplates,
@@ -1248,33 +1242,13 @@ function PreviewRow({
   useEffect(() => {
     setEdited(null);
     onTextChange?.(null);
-  }, [member.id, template?.id, text]);
+  }, [member.id, onTextChange, template?.id, text]);
 
   const channel = template.channel as "whatsapp" | "email" | "in_app";
-  const sendWa = useMutation({
-    mutationFn: () =>
-      sendWaFn({
-        data: {
-          templateId: templateDbId(template),
-          templateKey: template.key,
-          triggerType: template.trigger_type,
-          recipientMemberId: member.id,
-          recipientPhone: member.phone,
-          generatedText: displayText,
-          subject,
-          relatedClassId: ctxCls?.id ?? null,
-          relatedBookingId: null,
-          relatedMemberPlanId: null,
-        },
-      }),
-    onSuccess: () => toast.success("Sent through OpenWA"),
-    onError: (e) => toast.error(e instanceof Error ? e.message : "OpenWA send failed"),
-  });
-
-  async function copy(kind: "copied" | "marked_sent") {
+  async function copy(kind: "draft" | "manually_sent") {
     try {
       await navigator.clipboard.writeText(displayText);
-      toast.success(kind === "marked_sent" ? "Copied & marked sent" : "Copied to clipboard");
+      toast.success(kind === "manually_sent" ? "Copied. Marked manually sent." : "Copied draft");
       await onLogged(kind, displayText);
     } catch {
       toast.error("Copy failed");
@@ -1284,7 +1258,6 @@ function PreviewRow({
   async function openWa() {
     const url = waUrl({ to: member.phone, text: displayText });
     window.open(url, "_blank", "noopener");
-    await onLogged("opened", displayText);
   }
 
   return (
@@ -1343,20 +1316,13 @@ function PreviewRow({
       )}
       <div className="flex flex-wrap gap-2 pt-1">
         <button
-          onClick={() => copy("copied")}
+          onClick={() => copy("draft")}
           className="btn-outline inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-outline-hover"
         >
           <Copy className="h-3 w-3" /> {uiCopy.copy}
         </button>
         {channel === "whatsapp" && (
           <>
-            <button
-              onClick={() => sendWa.mutate()}
-              disabled={!member.phone || sendWa.isPending}
-              className="btn-navy inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-navy-hover disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Send className="h-3 w-3" /> {sendWa.isPending ? uiCopy.sending : uiCopy.sendWhatsApp}
-            </button>
             <button
               onClick={openWa}
               className="btn-outline inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-outline-hover"
@@ -1368,14 +1334,13 @@ function PreviewRow({
         {channel === "email" && member.email && (
           <a
             href={`mailto:${member.email}?subject=${encodeURIComponent(subject ?? "")}&body=${encodeURIComponent(displayText)}`}
-            onClick={() => onLogged("opened", displayText)}
             className="btn-outline inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-outline-hover"
           >
             <Mail className="h-3 w-3" /> {uiCopy.openEmail}
           </a>
         )}
         <button
-          onClick={() => copy("marked_sent")}
+          onClick={() => copy("manually_sent")}
           className="btn-navy inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-navy-hover"
         >
           <Send className="h-3 w-3" /> {uiCopy.markSent}
@@ -1675,28 +1640,25 @@ function LogsTab() {
   const fn = useServerFn(listNotificationLogs);
   const markFn = useServerFn(markNotificationSent);
   const qc = useQueryClient();
-  const [logFilter, setLogFilter] = useState<{ channel: string; status: string }>({
+  const [logFilter, setLogFilter] = useState({
     channel: "all",
     status: "all",
+    triggerType: "all",
+    visibility: "all",
   });
   const { data, isLoading } = useQuery({
-    queryKey: ["notification-logs"],
-    queryFn: () => fn({ data: { limit: 100 } }),
+    queryKey: ["notification-logs", logFilter],
+    queryFn: () => fn({ data: { limit: 100, ...logFilter } }),
   });
   const mark = useMutation({
     mutationFn: (id: string) => markFn({ data: { id } }),
     onSuccess: () => {
-      toast.success("Marked sent");
+      toast.success("Marked manually sent");
       qc.invalidateQueries({ queryKey: ["notification-logs"] });
     },
   });
   if (isLoading) return <div className="skeleton-brand h-24 rounded-[8px]" />;
   if (!data?.length) return <Empty>{t("messages.noMessages")}</Empty>;
-  const filtered = (data ?? []).filter(
-    (l: any) =>
-      (logFilter.channel === "all" || l.channel === logFilter.channel) &&
-      (logFilter.status === "all" || l.status === logFilter.status),
-  );
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -1714,7 +1676,7 @@ function LogsTab() {
           </button>
         ))}
         <span className="border-s border-gold/20 mx-1" />
-        {["all", "marked_sent", "opened", "copied"].map((s) => (
+        {["all", "draft", "skipped", "failed", "manually_sent", "sent"].map((s) => (
           <button
             key={s}
             onClick={() => setLogFilter((f) => ({ ...f, status: s }))}
@@ -1727,11 +1689,47 @@ function LogsTab() {
             {s.replace("_", " ")}
           </button>
         ))}
+        <span className="border-s border-gold/20 mx-1" />
+        {["all", "operational", "admin_only"].map((v) => (
+          <button
+            key={v}
+            onClick={() => setLogFilter((f) => ({ ...f, visibility: v }))}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+              logFilter.visibility === v
+                ? "bg-navy text-ivory border-navy"
+                : "border-gold/30 text-slate hover:text-navy/85"
+            }`}
+          >
+            {v.replace("_", " ")}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {["all", ...TRIGGER_TYPES.map((trigger) => trigger.key)].map((triggerType) => (
+          <button
+            key={triggerType}
+            onClick={() => setLogFilter((f) => ({ ...f, triggerType }))}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+              logFilter.triggerType === triggerType
+                ? "bg-navy text-ivory border-navy"
+                : "border-gold/30 text-slate hover:text-navy/85"
+            }`}
+          >
+            {triggerType === "all"
+              ? "all"
+              : (TRIGGER_TYPES.find((trigger) => trigger.key === triggerType)?.label ??
+                triggerType)}
+          </button>
+        ))}
       </div>
       <div className="flex gap-6 pb-4 border-b border-gold/20">
         {[
           { label: "Total", value: data.length },
-          { label: "Sent", value: data.filter((l: any) => l.status === "marked_sent").length },
+          {
+            label: "Sent",
+            value: data.filter((l: any) => l.status === "manually_sent" || l.status === "sent")
+              .length,
+          },
           { label: "WhatsApp", value: data.filter((l: any) => l.channel === "whatsapp").length },
           { label: "Email", value: data.filter((l: any) => l.channel === "email").length },
         ].map(({ label, value }) => (
@@ -1742,7 +1740,7 @@ function LogsTab() {
         ))}
       </div>
       <ol className="relative border-s border-gold/30 ps-5 space-y-4">
-        {filtered.map((l: any) => (
+        {(data ?? []).map((l: any) => (
           <li key={l.id} className="relative">
             <span className="absolute -start-[26px] top-2 h-2.5 w-2.5 rounded-full bg-gold" />
             <article className="editorial-panel p-4">
@@ -1756,29 +1754,38 @@ function LogsTab() {
                 </div>
                 <span
                   className={`rounded-full px-2 py-1 text-xs font-medium ${
-                    l.status === "marked_sent"
+                    l.status === "manually_sent" || l.status === "sent"
                       ? "bg-navy text-ivory"
-                      : l.status === "opened" || l.status === "copied"
+                      : l.status === "draft"
                         ? "bg-powder text-navy"
                         : l.status === "failed"
                           ? "bg-destructive/10 text-destructive"
-                          : "bg-sand text-slate"
+                          : l.status === "skipped"
+                            ? "bg-sand text-slate"
+                            : "bg-sand text-slate"
                   }`}
                 >
                   {l.status}
                 </span>
               </header>
+              <div className="mt-2 space-y-1 text-xs text-slate">
+                {l.subject ? <p>Subject: {l.subject}</p> : null}
+                {l.language ? <p>Language: {l.language}</p> : null}
+                {l.staff_visibility ? <p>Visibility: {l.staff_visibility}</p> : null}
+                {l.idempotency_key ? <p>Idempotency: {l.idempotency_key}</p> : null}
+                {l.error_message ? <p>Error: {l.error_message}</p> : null}
+              </div>
               {l.generated_text && (
                 <pre className="text-xs text-slate whitespace-pre-wrap font-sans mt-2 line-clamp-4">
                   {l.generated_text}
                 </pre>
               )}
-              {l.status !== "marked_sent" && (
+              {l.status !== "manually_sent" && l.status !== "sent" && l.status !== "skipped" && (
                 <button
                   onClick={() => mark.mutate(l.id)}
                   className="btn-ghost mt-2 text-xs hover:btn-ghost-hover"
                 >
-                  Mark as sent →
+                  Mark manually sent
                 </button>
               )}
             </article>
