@@ -18,7 +18,7 @@ import { studioPulse } from "@/lib/admin.functions";
 import { ClassRosterDrawer } from "@/components/admin/ClassRosterDrawer";
 import { getLocale, t, useI18n } from "@/lib/i18n";
 import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
-import { AdminToolbar, Empty } from "@/components/admin-shared";
+import { AdminToolbar, Empty, AdminPageHeader } from "@/components/admin-shared";
 
 type Scope = "next" | "today" | "tomorrow" | "all";
 
@@ -100,22 +100,20 @@ export function StudioPulse({
   return (
     <section className="space-y-6 pb-12">
       {showHeader && (
-        <header className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-gold/30">
-          <div className="min-w-0">
-            <p className="eyebrow text-slate">{t("pulse.live")}</p>
-            <h1 className="text-3xl sm:text-4xl font-semibold text-navy mt-2 leading-tight">
-              {heading ?? t("pulse.heading")}
-            </h1>
-            {subheading && <p className="text-slate text-sm mt-2 max-w-prose">{subheading}</p>}
-          </div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inset-0 rounded-full bg-gold opacity-60 animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
-            </span>
-            {t("pulse.updated", { time: updatedLabel })}
-          </div>
-        </header>
+        <AdminPageHeader
+          eyebrow={t("pulse.live")}
+          title={heading ?? t("pulse.heading")}
+          description={subheading}
+          action={
+            <div className="flex items-center gap-2 text-xs font-medium text-slate">
+              <span className="relative inline-flex h-2 w-2">
+                <span className="absolute inset-0 rounded-full bg-gold opacity-60 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
+              </span>
+              {t("pulse.updated", { time: updatedLabel })}
+            </div>
+          }
+        />
       )}
 
       <AdminToolbar className="overflow-x-auto">
