@@ -839,6 +839,35 @@ export const waitlistPromote = createServerFn({ method: "POST" })
             }),
           );
         }
+      } else if (status === "offered") {
+        const [entryRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("waitlist_entries")
+            .select(
+              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+            )
+            .eq("id", data.entryId)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (entryRes.error) throw entryRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const entry = entryRes.data as any;
+        if (entry?.member && entry?.class) {
+          await insertNotificationDraftRows(
+            context.supabase,
+            buildNotificationDraftRows({
+              eventKey: "waitlist_spot_available",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: entry.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
+              variables: buildClassVariables(entry.class),
+            }),
+          );
+        }
       }
     } catch (draftError) {
       console.error("waitlist_promote_draft_prepare_failed", draftError);

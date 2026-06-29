@@ -34,3 +34,9 @@ Implemented Task 5 draft wiring only in:
 - Restricted waitlist promotion draft creation to the successful `booked` shape with a booking id and removed the unsupported `waitlist_spot_available` fallback path for no-booking results.
 - Added explicit admin-audience fallback copy for `package_request_received` templates and switched package-request admin draft wiring to use that admin-facing copy.
 - Added focused helper coverage for the admin package-request template fallback.
+
+## Re-review Fix
+
+- Updated `waitlistPromote` to keep `booking_confirmed` limited to `status === "booked"` with a `booking_id`.
+- Added a separate dormant `waitlist_spot_available` draft branch that only runs for an explicit successful offer-like status of `status === "offered"`, using `entryId` to load the waitlist entry, member, and class.
+- Confirmed no spot-available drafts are created for `error`, `not_found`, `already_booked`, or any other non-offer status.
