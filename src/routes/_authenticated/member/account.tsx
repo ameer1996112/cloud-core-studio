@@ -154,8 +154,7 @@ function MemberAccount() {
         </Field>
         <Field label={t("profile.phone")}>
           <input
-            className="editorial-input member-ltr-value"
-            dir="ltr"
+            className="editorial-input"
             inputMode="tel"
             autoComplete="tel"
             value={val("phone") ?? ""}

@@ -122,12 +122,12 @@ function MyBookings() {
             <StatCell label={t("bookings.past")} value={counts.past} />
           </div>
         </div>
-        <div className="relative min-h-[150px] sm:min-h-[180px] md:min-h-[190px] bg-navy md:border-s md:border-gold/20">
+        <div className="relative min-h-[150px] sm:min-h-[180px] md:min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
           <img
-            src={studioImages.brandBannerNavy.src}
-            alt={localizedAlt(studioImages.brandBannerNavy, getLocale())}
+            src={studioImages.atmosphere.src}
+            alt={localizedAlt(studioImages.atmosphere, getLocale())}
             loading="eager"
-            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-ivory/10"
+            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-navy/10"
           />
         </div>
       </div>
