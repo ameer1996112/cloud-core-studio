@@ -428,7 +428,7 @@ export const prepareNotificationDrafts = createServerFn({ method: "POST" })
     ]);
     if (memberRes.error) throw memberRes.error;
     if (settingsRes.error) throw settingsRes.error;
-    if (!memberRes.data) return { prepared: 0, draftCount: 0, skippedCount: 0 };
+    if (!memberRes.data) return { inserted: 0, skipped: 0 };
 
     const rows = buildNotificationDraftRows({
       eventKey: data.eventKey,
@@ -446,9 +446,8 @@ export const prepareNotificationDrafts = createServerFn({ method: "POST" })
       .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
     if (error) throw error;
     return {
-      prepared: rows.length,
-      draftCount: rows.filter((row) => row.status === "draft").length,
-      skippedCount: rows.filter((row) => row.status === "skipped").length,
+      inserted: rows.filter((row) => row.status === "draft").length,
+      skipped: rows.filter((row) => row.status === "skipped").length,
     };
   });
 
