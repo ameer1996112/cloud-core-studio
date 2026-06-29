@@ -22,3 +22,19 @@
 
 ## Concern
 - The repository still has many existing lint warnings, so the full lint script exits non-zero even though the new files are lint-clean.
+
+## Fix Update
+- Preserved all provided related IDs in `payload.related_ids` so waitlist linkage remains auditable without adding a DB column.
+- Added a compact waitlist-focused unit test covering idempotency, language fallback, and `payload.related_ids.waitlistEntryId`.
+
+## Verification Update
+- `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs`
+  - Sandbox attempt failed with `listen EPERM` on the `tsx` IPC pipe.
+  - Escalated rerun passed: `notification draft rows OK`.
+- `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationTemplates.test.mjs`
+  - Sandbox attempt failed with `listen EPERM` on the `tsx` IPC pipe.
+  - Escalated rerun passed: `notification template helpers OK`.
+- `bun run lint`
+  - Completed with the repository's existing 401 warnings and no errors.
+- `bun run build`
+  - Passed.

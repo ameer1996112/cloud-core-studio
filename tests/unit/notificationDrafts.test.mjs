@@ -44,6 +44,40 @@ assert.equal(rows[1].channel, "email");
 assert.equal(rows[1].status, "draft");
 assert.ok(rows[1].subject?.includes("Core Flow"));
 
+const waitlistRows = buildNotificationDraftRows({
+  eventKey: "waitlist_joined",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-4",
+    name: "Leah",
+    phone: "+972501112223",
+    email: null,
+    preferred_language: null,
+  },
+  appLanguage: "fr",
+  studioSettings: {
+    default_language: null,
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    waitlistEntryId: "waitlist-1",
+    classId: "class-7",
+  },
+  variables: {
+    class_name: "Core Flow",
+  },
+});
+
+assert.equal(waitlistRows[0].status, "draft");
+assert.equal(waitlistRows[0].language, "he");
+assert.equal(waitlistRows[0].idempotency_key, "waitlist:waitlist-1:waitlist_joined:whatsapp");
+assert.equal(waitlistRows[0].payload.related_ids.waitlistEntryId, "waitlist-1");
+assert.ok(waitlistRows[0].generated_text?.includes("Leah"));
+
 const skipped = buildNotificationDraftRows({
   eventKey: "booking_confirmed",
   channels: ["whatsapp", "email"],

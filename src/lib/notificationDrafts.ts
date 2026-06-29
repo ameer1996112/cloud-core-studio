@@ -51,7 +51,7 @@ export type NotificationLogInsertRow = {
   template_key: string;
   channel: NotificationChannel;
   recipient_member_id: string;
-  payload: Record<string, unknown>;
+  payload: NotificationDraftPayload;
   status: "draft" | "skipped";
   trigger_type: NotificationEventKey;
   related_class_id: string | null;
@@ -69,6 +69,13 @@ export type NotificationLogInsertRow = {
   error_message: string | null;
   idempotency_key: string;
   staff_visibility: "operational" | "admin_only";
+};
+
+type NotificationDraftPayload = {
+  event_key: NotificationEventKey;
+  audience: NotificationAudience;
+  variables: NotificationVariables;
+  related_ids: RelatedIds;
 };
 
 function skipReason(channel: NotificationChannel, member: DraftMember): string | null {
@@ -112,6 +119,7 @@ export function buildNotificationDraftRows(
         event_key: input.eventKey,
         audience,
         variables,
+        related_ids: input.relatedIds,
       },
       status: reason ? "skipped" : "draft",
       trigger_type: input.eventKey,
