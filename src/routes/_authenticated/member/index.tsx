@@ -219,8 +219,6 @@ function MemberHome() {
             variant="schedule"
             title={t("member.empty.schedule.title")}
             body={t("member.empty.schedule.body")}
-            align="start"
-            illustration={null}
             secondaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
           />
         ) : (
