@@ -94,7 +94,7 @@ const isUrl = (v: string) => !v || /^https?:\/\/.+\..+/.test(v.trim());
 const waDigits = (v?: string | null) => (v ?? "").replace(/[^0-9]/g, "");
 
 function Page() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   useDocumentTitle("page.settings.title");
   const getFn = useServerFn(getStudioSettingsFull);
   const upFn = useServerFn(updateStudioSettings);
@@ -153,7 +153,7 @@ function Page() {
   const packageMsg = t("settings.packageMsg", { studio: f.studio_name || "the studio" });
 
   return (
-    <AdminPageShell>
+    <AdminPageShell className="settings-page" dir={dir}>
       <AdminPageHeader
         eyebrow={t("settings.eyebrow")}
         title={t("settings.studioConfig")}
@@ -308,7 +308,8 @@ function Page() {
             </FieldRow>
             <FieldRow label={t("settings.defaultMessageLanguage")}>
               <select
-                className="settings-input"
+                dir="ltr"
+                className="settings-input settings-input-ltr"
                 value={f.default_language ?? "en"}
                 onChange={(e) => set({ default_language: e.target.value })}
               >
@@ -336,6 +337,7 @@ function Page() {
               hint={t("settings.paymentsProviderHint")}
             >
               <select
+                dir={dir}
                 className="settings-input"
                 value={f.payments_provider === "manual" ? "manual" : "none"}
                 onChange={(e) => set({ payments_provider: e.target.value })}
@@ -357,6 +359,7 @@ function Page() {
               hint={t("settings.invoiceProviderHint")}
             >
               <select
+                dir={dir}
                 className="settings-input"
                 value={f.invoice_provider ?? "none"}
                 onChange={(e) => set({ invoice_provider: e.target.value })}
@@ -587,9 +590,7 @@ function Section({
   return (
     <section className={`settings-card ${compact ? "settings-card-compact" : ""}`}>
       <header className="settings-card-header">
-        <h3 className="font-display text-xl md:text-2xl text-navy leading-tight text-balance mt-1">
-          {title}
-        </h3>
+        <h3 className="settings-card-title">{title}</h3>
         {helper && <p className="settings-card-helper">{helper}</p>}
       </header>
       <div className="settings-card-body">{children}</div>
@@ -624,9 +625,9 @@ function FieldRow({
       </span>
       {children}
       {error ? (
-        <span className="mt-2 block text-xs leading-relaxed text-destructive">{error}</span>
+        <span className="settings-field-error">{error}</span>
       ) : hint ? (
-        <span className="mt-2 block text-xs leading-relaxed text-slate text-pretty">{hint}</span>
+        <span className="settings-field-helper">{hint}</span>
       ) : null}
     </label>
   );
@@ -717,11 +718,9 @@ function Toggle({
         <span className="absolute inset-0 rounded-full bg-sand border border-gold/30 transition-colors peer-checked:bg-navy peer-checked:border-navy" />
         <span className="settings-toggle-knob" />
       </span>
-      <span className="flex-1 -mt-px">
-        <span className="block text-sm font-medium text-navy">{label}</span>
-        {hint && (
-          <span className="block text-xs text-slate mt-1 leading-relaxed text-pretty">{hint}</span>
-        )}
+      <span className="settings-toggle-copy">
+        <span className="settings-toggle-label">{label}</span>
+        {hint && <span className="settings-toggle-hint">{hint}</span>}
       </span>
     </label>
   );
@@ -730,7 +729,7 @@ function Toggle({
 function PreviewCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-h-[6rem] rounded-xl border border-gold/18 bg-ivory/70 p-4 shadow-[0_18px_40px_-34px_rgba(11,29,58,0.45)] space-y-2">
-      <p className="settings-label text-navy/70">{label}</p>
+      <p className="settings-label settings-preview-label">{label}</p>
       <div>{children}</div>
     </div>
   );

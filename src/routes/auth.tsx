@@ -10,6 +10,7 @@ import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { homeForCurrentUser, roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 
 import { authImages } from "@/lib/image-assets";
 
@@ -21,7 +22,7 @@ function AuthPage() {
   const { lang, dir } = useI18n();
   useDocumentTitle("page.auth.title");
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "check-email">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,29 +34,22 @@ function AuthPage() {
   const [formVersion, setFormVersion] = useState(0);
 
   useEffect(() => {
+    let requestedForgot = false;
+    if (typeof window !== "undefined") {
+      const requestedMode = new URL(window.location.href).searchParams.get("mode");
+      if (requestedMode === "forgot") {
+        requestedForgot = true;
+        setMode("forgot");
+        window.history.replaceState(null, document.title, window.location.pathname);
+      }
+    }
     supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session) {
+      if (data.session && !requestedForgot) {
         const to = await homeForCurrentUser();
         navigate({ to, replace: true });
       }
     });
   }, [navigate]);
-
-  useEffect(() => {
-    const clearTransientAuthFields = () => {
-      setName("");
-      setPhone("");
-      setEmail("");
-      setPassword("");
-      setShowPassword(false);
-    };
-    const frame = window.requestAnimationFrame(clearTransientAuthFields);
-    const delay = window.setTimeout(clearTransientAuthFields, 150);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearTimeout(delay);
-    };
-  }, [mode, formVersion]);
 
   function changeLang(next: Lang) {
     applyLang(next);
@@ -89,13 +83,16 @@ function AuthPage() {
         toast.success(t("auth.signupComplete"));
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: getPasswordResetRedirectUrl(window.location.origin),
         });
         if (error) throw error;
+        setFormSuccess(t("auth.resetSent"));
         toast.success(t("auth.resetSent"));
-        setMode("signin");
+        setMode("check-email");
         setPassword("");
         setFormVersion((version) => version + 1);
+      } else if (mode === "check-email") {
+        setMode("forgot");
       } else {
         const { data: signed, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -120,7 +117,7 @@ function AuthPage() {
     if (formSuccess) setFormSuccess("");
   }
 
-  function switchMode(next: "signin" | "signup" | "forgot") {
+  function switchMode(next: "signin" | "signup" | "forgot" | "check-email") {
     setMode(next);
     setFormError("");
     setFormSuccess("");
@@ -136,13 +133,17 @@ function AuthPage() {
       ? t("auth.members")
       : mode === "signup"
         ? t("auth.newHere")
-        : t("auth.recover");
+        : mode === "check-email"
+          ? t("auth.recover")
+          : t("auth.recover");
   const headline =
     mode === "signin"
       ? t("auth.signinHeadline")
       : mode === "signup"
         ? t("auth.signupHeadline")
-        : t("auth.forgotHeadline");
+        : mode === "check-email"
+          ? t("auth.checkEmailTitle")
+          : t("auth.forgotHeadline");
 
   return (
     <main
@@ -185,6 +186,11 @@ function AuthPage() {
                 {headline}
               </h1>
               <div className="mt-3 h-px w-10 bg-gold" />
+              {(mode === "forgot" || mode === "check-email") && (
+                <p className="auth-form-helper mt-3 text-sm text-slate text-start">
+                  {mode === "forgot" ? t("auth.forgotBody") : t("auth.resetSent")}
+                </p>
+              )}
 
               <form
                 key={`${mode}-${formVersion}`}
@@ -193,6 +199,12 @@ function AuthPage() {
                 dir={dir}
                 autoComplete={mode === "signin" ? "on" : "off"}
               >
+                {mode === "check-email" ? (
+                  <div className="auth-check-email-panel" role="status" aria-live="polite">
+                    <p>{t("auth.resetSent")}</p>
+                  </div>
+                ) : null}
+
                 {mode === "signup" && (
                   <>
                     <Field label={t("auth.name")}>
@@ -230,26 +242,28 @@ function AuthPage() {
                     </Field>
                   </>
                 )}
-                <Field label={t("auth.email")}>
-                  <input
-                    type="email"
-                    name={mode === "signup" ? `signup-email-${formVersion}` : "username"}
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      clearError();
-                    }}
-                    required
-                    className="auth-ltr-input editorial-input focus:editorial-input-focus"
-                    autoComplete={mode === "signin" ? "username" : "off"}
-                    dir="ltr"
-                    inputMode="email"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
-                </Field>
-                {mode !== "forgot" && (
+                {mode !== "check-email" && (
+                  <Field label={t("auth.email")}>
+                    <input
+                      type="email"
+                      name={mode === "signup" ? `signup-email-${formVersion}` : "username"}
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        clearError();
+                      }}
+                      required
+                      className="auth-ltr-input editorial-input focus:editorial-input-focus"
+                      autoComplete={mode === "signin" ? "username" : "off"}
+                      dir="ltr"
+                      inputMode="email"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </Field>
+                )}
+                {(mode === "signin" || mode === "signup") && (
                   <Field label={t("auth.password")}>
                     <div className="relative">
                       <input
@@ -300,19 +314,23 @@ function AuthPage() {
                   </p>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={busy}
-                  className={busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"}
-                >
-                  {busy
-                    ? t("auth.busy")
-                    : mode === "signin"
-                      ? t("auth.enter")
-                      : mode === "signup"
-                        ? t("auth.reserve")
-                        : t("auth.reset")}
-                </button>
+                {mode !== "check-email" && (
+                  <button
+                    type="submit"
+                    disabled={busy}
+                    className={
+                      busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"
+                    }
+                  >
+                    {busy
+                      ? t("auth.busy")
+                      : mode === "signin"
+                        ? t("auth.enter")
+                        : mode === "signup"
+                          ? t("auth.reserve")
+                          : t("auth.reset")}
+                  </button>
+                )}
 
                 {mode === "signin" && (
                   <button

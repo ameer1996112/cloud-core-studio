@@ -1985,7 +1985,8 @@
 
 /* Settings page: premium setup form with RTL-safe technical values */
 .settings-page {
-  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  text-align: start;
 }
 
 .settings-hero {
@@ -2015,11 +2016,16 @@
 }
 
 .settings-card {
-  overflow: hidden;
-  border: 1px solid rgba(212, 175, 106, 0.22);
+  overflow: clip;
+  border: 1px solid rgba(212, 175, 106, 0.2);
   border-radius: var(--cc-radius-card);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 20px 55px -46px rgba(11, 29, 58, 0.48);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 247, 242, 0.88)),
+    var(--color-surface);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.86) inset,
+    0 22px 48px -42px rgba(11, 29, 58, 0.44);
+  text-align: start;
 }
 
 .settings-card-compact {
@@ -2028,8 +2034,19 @@
 
 .settings-card-header {
   border-bottom: 1px solid rgba(212, 175, 106, 0.16);
-  background: rgba(250, 247, 242, 0.78);
-  padding: 1rem 1.1rem;
+  background: rgba(250, 247, 242, 0.58);
+  padding: 1rem 1.15rem 0.9rem;
+  text-align: start;
+}
+
+.settings-card-title {
+  color: var(--color-navy, #0b1d3a);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.2;
+  margin-block-start: 0.25rem;
+  text-align: start;
+  text-wrap: balance;
 }
 
 .settings-card-helper {
@@ -2037,23 +2054,30 @@
   font-size: 0.9rem;
   line-height: 1.7;
   max-width: 44rem;
-  margin-top: 0.45rem;
+  margin-top: 0.4rem;
+  text-align: start;
   text-wrap: pretty;
 }
 
 .settings-card-body {
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.8rem;
+  padding: 0.9rem;
 }
 
 .settings-field,
 .settings-toggle {
-  border: 1px solid rgba(212, 175, 106, 0.16);
+  border: 1px solid rgba(212, 175, 106, 0.17);
   border-radius: var(--cc-radius-input);
-  background: rgba(250, 247, 242, 0.58);
-  padding: 0.85rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(250, 247, 242, 0.72)),
+    var(--color-surface-warm);
+  padding: 0.78rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 14px 34px -32px rgba(11, 29, 58, 0.4);
+  min-width: 0;
+  text-align: start;
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -2062,8 +2086,10 @@
 
 .settings-field:focus-within,
 .settings-toggle:hover {
-  border-color: rgba(212, 175, 106, 0.52);
-  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(212, 175, 106, 0.58);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 247, 242, 0.84)),
+    var(--color-surface);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 16px 38px -34px rgba(11, 29, 58, 0.5);
@@ -2071,26 +2097,49 @@
 
 .settings-label {
   display: block;
-  color: var(--color-slate, #6f7a8c);
+  color: color-mix(in srgb, var(--color-navy, #0b1d3a) 62%, var(--color-slate, #6f7a8c));
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.35;
-  margin-bottom: 0.45rem;
-  letter-spacing: 0.01em;
+  margin-bottom: 0.48rem;
+  letter-spacing: 0;
+  text-align: start;
+}
+
+.settings-field-helper,
+.settings-field-error {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin-block-start: 0.5rem;
+  text-align: start;
+  text-wrap: pretty;
+}
+
+.settings-field-helper {
+  color: var(--color-slate, #6f7a8c);
+}
+
+.settings-field-error {
+  color: var(--destructive);
 }
 
 .settings-input {
   width: 100%;
   min-height: var(--cc-control-height-lg);
-  border: 1px solid rgba(11, 29, 58, 0.14);
-  border-bottom-color: rgba(11, 29, 58, 0.28);
+  border: 1px solid rgba(11, 29, 58, 0.12);
+  border-bottom-color: rgba(11, 29, 58, 0.24);
   border-radius: var(--cc-radius-input);
   background: var(--color-surface);
   color: var(--color-navy, #0b1d3a);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.45;
-  padding: 0.78rem 0.92rem;
+  padding: 0.82rem 0.95rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 10px 26px -30px rgba(11, 29, 58, 0.55);
+  text-align: start;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -2105,12 +2154,12 @@
 }
 
 .settings-input::placeholder {
-  color: rgba(111, 122, 140, 0.72);
+  color: rgba(111, 122, 140, 0.64);
 }
 
 .settings-input-ltr {
   direction: ltr;
-  text-align: left;
+  text-align: left !important;
   unicode-bidi: plaintext;
 }
 
@@ -2123,6 +2172,7 @@
   border-radius: var(--cc-radius-card);
   background: linear-gradient(135deg, rgba(232, 223, 209, 0.42), rgba(250, 247, 242, 0.88));
   padding: 1rem;
+  text-align: start;
 }
 
 .settings-payment-title {
@@ -2130,6 +2180,7 @@
   font-family: var(--font-display);
   font-size: 1.25rem;
   line-height: 1.2;
+  text-align: start;
 }
 
 .settings-payment-copy {
@@ -2137,6 +2188,7 @@
   font-size: 0.88rem;
   line-height: 1.65;
   margin-top: 0.3rem;
+  text-align: start;
 }
 
 .settings-status-pill {
@@ -2158,6 +2210,31 @@
   cursor: pointer;
 }
 
+.settings-toggle-copy {
+  flex: 1 1 auto;
+  margin-block-start: -1px;
+  min-width: 0;
+  text-align: start;
+}
+
+.settings-toggle-label {
+  display: block;
+  color: var(--color-navy, #0b1d3a);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: start;
+}
+
+.settings-toggle-hint {
+  display: block;
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin-block-start: 0.25rem;
+  text-align: start;
+  text-wrap: pretty;
+}
+
 .settings-toggle-knob {
   position: absolute;
   top: 0.125rem;
@@ -2177,13 +2254,17 @@
 
 .settings-save-bar {
   position: sticky;
-  bottom: 0;
+  bottom: 0.75rem;
   z-index: 20;
-  margin-inline: -0.75rem;
-  border-top: 1px solid rgba(212, 175, 106, 0.22);
-  background: rgba(250, 247, 242, 0.95);
+  margin-inline: 0;
+  border: 1px solid rgba(212, 175, 106, 0.24);
+  border-radius: var(--cc-radius-card);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 242, 0.96)),
+    var(--color-surface-warm);
   backdrop-filter: blur(14px);
-  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  box-shadow: 0 20px 48px -36px rgba(11, 29, 58, 0.42);
+  padding: 0.9rem;
 }
 
 .settings-save-inner {
@@ -2199,6 +2280,7 @@
   color: var(--color-slate, #6f7a8c);
   font-size: 0.82rem;
   line-height: 1.45;
+  text-align: start;
 }
 
 .settings-save-button {
@@ -2244,41 +2326,85 @@
 
 .settings-save-button:disabled {
   cursor: not-allowed;
-  border-color: rgba(111, 122, 140, 0.32);
-  background: rgba(111, 122, 140, 0.42);
-  color: rgba(250, 247, 242, 0.88);
-  opacity: 1;
+  border-color: color-mix(in srgb, var(--color-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 82%, var(--color-slate) 18%);
+  color: color-mix(in srgb, var(--color-navy, #0b1d3a) 52%, var(--color-slate, #6f7a8c));
+  opacity: 0.62;
 }
 
-:root[dir="rtl"] .settings-page .settings-label,
-:root[dir="rtl"] .settings-page label,
-:root[dir="rtl"] .settings-page .settings-kicker {
+[dir="rtl"].settings-page .settings-label,
+[dir="rtl"].settings-page label,
+[dir="rtl"].settings-page .settings-kicker,
+[dir="rtl"].settings-page .settings-card-title,
+[dir="rtl"].settings-page .settings-card-helper,
+[dir="rtl"].settings-page .settings-field-helper,
+[dir="rtl"].settings-page .settings-field-error,
+[dir="rtl"].settings-page .settings-toggle-label,
+[dir="rtl"].settings-page .settings-toggle-hint {
   letter-spacing: normal;
   text-transform: none;
+  text-align: right;
 }
 
-:root[dir="rtl"] .settings-page .settings-save-button {
+[dir="rtl"].settings-page .settings-input:not(.settings-input-ltr),
+[dir="rtl"].settings-page textarea.settings-input:not(.settings-input-ltr),
+[dir="rtl"].settings-page select.settings-input:not(.settings-input-ltr) {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="ltr"].settings-page .settings-label,
+[dir="ltr"].settings-page label,
+[dir="ltr"].settings-page .settings-kicker,
+[dir="ltr"].settings-page .settings-card-title,
+[dir="ltr"].settings-page .settings-card-helper,
+[dir="ltr"].settings-page .settings-field-helper,
+[dir="ltr"].settings-page .settings-field-error,
+[dir="ltr"].settings-page .settings-toggle-label,
+[dir="ltr"].settings-page .settings-toggle-hint,
+[dir="ltr"].settings-page .settings-input:not(.settings-input-ltr) {
+  text-align: left;
+}
+
+[dir="rtl"].settings-page .settings-save-button {
   font-size: 0.92rem;
+}
+
+[dir="rtl"].settings-page .settings-toggle input:checked ~ .settings-toggle-knob,
+[dir="rtl"].settings-page .settings-toggle .peer:checked ~ .settings-toggle-knob {
+  transform: translateX(-1.25rem);
 }
 
 @media (max-width: 640px) {
   .settings-page {
-    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
   }
 
   .settings-hero,
   .settings-card {
-    border-radius: var(--cc-radius-card);
+    border-radius: calc(var(--cc-radius-card) + 2px);
   }
 
   .settings-card-header,
   .settings-card-body {
-    padding: 1rem;
+    padding-inline: 0.92rem;
   }
 
   .settings-payment-state,
   .settings-save-inner {
     flex-direction: column;
+  }
+
+  .settings-field,
+  .settings-toggle {
+    padding: 0.82rem;
+  }
+
+  .settings-save-bar {
+    position: static;
+    margin-block-start: 1rem;
+    margin-block-end: calc(1.25rem + env(safe-area-inset-bottom));
+    padding: 0.92rem;
   }
 
   .settings-save-note {
@@ -4048,7 +4174,7 @@ select.input:focus {
     rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 
+  box-shadow:
     0 4px 24px -6px rgba(11, 29, 58, 0.08),
     0 1px 0 rgba(255, 255, 255, 0.8) inset;
   transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -4056,7 +4182,7 @@ select.input:focus {
 
 .member-empty-state:hover {
   transform: translateY(-2px);
-  box-shadow: 
+  box-shadow:
     0 8px 32px -8px rgba(11, 29, 58, 0.12),
     0 1px 0 rgba(255, 255, 255, 0.9) inset;
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -4928,6 +5054,39 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   text-align: start;
 }
 
+/* Settings has stricter product requirements than the broad guard above. */
+.settings-page[dir="rtl"]
+  :where(
+    .settings-label,
+    .settings-card-title,
+    .settings-card-helper,
+    .settings-field-helper,
+    .settings-field-error,
+    .settings-toggle-label,
+    .settings-toggle-hint,
+    .settings-payment-title,
+    .settings-payment-copy,
+    .settings-save-note
+  ):not([dir="ltr"]) {
+  text-align: right !important;
+}
+
+.settings-page[dir="ltr"]
+  :where(
+    .settings-label,
+    .settings-card-title,
+    .settings-card-helper,
+    .settings-field-helper,
+    .settings-field-error,
+    .settings-toggle-label,
+    .settings-toggle-hint,
+    .settings-payment-title,
+    .settings-payment-copy,
+    .settings-save-note
+  ):not([dir="rtl"]) {
+  text-align: left !important;
+}
+
 :root[dir="rtl"] :where(.class-card-main, .lesson-chip-row) {
   justify-content: flex-end;
 }
@@ -5307,6 +5466,25 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   direction: ltr;
   text-align: left;
   unicode-bidi: plaintext;
+}
+
+.auth-form-helper {
+  line-height: 1.65;
+}
+
+.auth-check-email-panel {
+  border: 1px solid rgba(212, 175, 106, 0.24);
+  border-radius: var(--cc-radius-card);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.92), rgba(250, 247, 242, 0.78)),
+    rgba(255, 255, 255, 0.72);
+  color: var(--color-navy);
+  line-height: 1.65;
+  padding: 0.95rem;
+  text-align: start;
+  box-shadow:
+    0 12px 34px rgba(11, 29, 58, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.92) inset;
 }
 
 .auth-form-card .auth-password-input {

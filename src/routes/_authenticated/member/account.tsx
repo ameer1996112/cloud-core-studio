@@ -135,10 +135,13 @@ function MemberAccount() {
             <div className="text-xs bg-gold/10 text-gold border border-gold/20 px-3 py-1 rounded-full font-medium tracking-wide">
               {t("profile.memberSince")}{" "}
               <span className="font-semibold">
-                {new Date(me.created_at).toLocaleDateString(getLocale() === "he" ? "he-IL" : "en-GB", {
-                  year: "numeric",
-                  month: "long",
-                })}
+                {new Date(me.created_at).toLocaleDateString(
+                  getLocale() === "he" ? "he-IL" : "en-GB",
+                  {
+                    year: "numeric",
+                    month: "long",
+                  },
+                )}
               </span>
             </div>
           )}
@@ -207,7 +210,11 @@ function MemberAccount() {
           <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
           <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
         </div>
-        <button onClick={signOut} disabled={signingOut} className="btn-outline hover:btn-outline-hover">
+        <button
+          onClick={signOut}
+          disabled={signingOut}
+          className="btn-outline hover:btn-outline-hover"
+        >
           <LogOut className="h-3 w-3" /> {t("shell.signOut")}
         </button>
       </div>

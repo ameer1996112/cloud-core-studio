@@ -40,17 +40,19 @@ export function AdminPageHeader({
   secondaryAction?: React.ReactNode;
 }) {
   return (
-    <header className="border-b border-gold/25 pb-6">
+    <header className="border-b border-gold/25 pb-6 text-start">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div className="min-w-0">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           <h2 className="cc-page-title mt-2">{title}</h2>
           {description && (
-            <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate">{description}</p>
+            <p className="mt-3 max-w-2xl text-start text-[15px] leading-relaxed text-slate">
+              {description}
+            </p>
           )}
         </div>
         {(action || secondaryAction) && (
-          <div className="shrink-0 flex items-center gap-2 flex-wrap">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             {secondaryAction}
             {action}
           </div>
@@ -391,7 +393,7 @@ export function Stat({
 /* Editorial form field wrapper */
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <label className="block text-start">
       <span className="field-label">{label}</span>
       {children}
     </label>

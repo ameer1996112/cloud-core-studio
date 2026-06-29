@@ -16,6 +16,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
@@ -88,6 +89,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetRoute = AuthResetRouteImport.update({
+  id: '/auth_/reset',
+  path: '/auth/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
@@ -327,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/plans': typeof AuthenticatedPlansRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
+  '/auth/reset': typeof AuthResetRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -371,6 +378,7 @@ export interface FileRoutesByTo {
   '/plans': typeof AuthenticatedPlansRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
+  '/auth/reset': typeof AuthResetRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
+  '/auth_/reset': typeof AuthResetRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/schedule'
     | '/studio'
+    | '/auth/reset'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/bookings'
@@ -513,6 +523,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/schedule'
     | '/studio'
+    | '/auth/reset'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/bookings'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/_authenticated/plans'
     | '/_authenticated/schedule'
     | '/_authenticated/studio'
+    | '/auth_/reset'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/bookings'
@@ -604,6 +616,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  AuthResetRoute: typeof AuthResetRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
 }
 
@@ -656,6 +669,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth_/reset': {
+      id: '/auth_/reset'
+      path: '/auth/reset'
+      fullPath: '/auth/reset'
+      preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studio': {
@@ -1064,6 +1084,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  AuthResetRoute: AuthResetRoute,
   ApiPublicWebhooksPaymentsProviderRoute:
     ApiPublicWebhooksPaymentsProviderRoute,
 }

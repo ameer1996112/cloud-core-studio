@@ -7,6 +7,13 @@ import { BookOpenText, ImagePlus, Plus, Search, Sparkles, UserRound } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { listInstructors, upsertInstructor } from "@/lib/admin.functions";
 import { AdminPageShell, Empty, Field, CardSkeleton } from "@/components/admin-shared";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedInstructorBio, localizedInstructorName } from "@/lib/localized-content";
@@ -24,6 +31,12 @@ type InstructorForm = {
 };
 
 const emptyForm: InstructorForm = { name: "", bio_short: "", avatar_url: "", active: true };
+const instructorHelpBulletKeys = [
+  "admin.instructors.helpBullet1",
+  "admin.instructors.helpBullet2",
+  "admin.instructors.helpBullet3",
+  "admin.instructors.helpBullet4",
+] as const;
 
 function Page() {
   const { dir, lang, t } = useI18n();
@@ -33,6 +46,7 @@ function Page() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["admin-instructors"], queryFn: () => fn() });
   const [editing, setEditing] = useState<InstructorForm | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarFileRef = useRef<HTMLInputElement>(null);
@@ -80,6 +94,11 @@ function Page() {
     },
   });
 
+  function openAddInstructor() {
+    setHelpOpen(false);
+    setEditing(emptyForm);
+  }
+
   async function onPickAvatar(file: File) {
     setUploadingAvatar(true);
     try {
@@ -117,7 +136,7 @@ function Page() {
         </div>
         <button
           type="button"
-          onClick={() => setEditing(emptyForm)}
+          onClick={openAddInstructor}
           className="btn-navy admin-instructors-primary-cta hover:btn-navy-hover"
         >
           <Plus className="h-4 w-4" />
@@ -159,7 +178,7 @@ function Page() {
           primaryAction={
             <button
               type="button"
-              onClick={() => setEditing(emptyForm)}
+              onClick={openAddInstructor}
               className="btn-navy hover:btn-navy-hover"
             >
               <Plus className="h-4 w-4" />
@@ -167,9 +186,13 @@ function Page() {
             </button>
           }
           secondaryAction={
-            <span className="btn-outline cursor-default select-none">
+            <button
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              className="btn-outline hover:btn-outline-hover"
+            >
               {t("admin.instructors.emptySecondary")}
-            </span>
+            </button>
           }
         />
       ) : filtered.length === 0 ? (
@@ -203,6 +226,47 @@ function Page() {
         </section>
       )}
 
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent dir={dir} className="max-w-xl border-gold/30 bg-ivory">
+          <DialogTitle className="font-display text-2xl text-navy">
+            {t("admin.instructors.helpTitle")}
+          </DialogTitle>
+          <DialogDescription className="text-sm leading-relaxed text-slate">
+            {t("admin.instructors.helpBody")}
+          </DialogDescription>
+          <ul className="space-y-3 text-sm leading-relaxed text-slate">
+            {instructorHelpBulletKeys.map((key, index) => (
+              <li key={index} className="flex gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[11px] font-semibold text-gold"
+                >
+                  {index + 1}
+                </span>
+                <span>{t(key)}</span>
+              </li>
+            ))}
+          </ul>
+          <DialogFooter className="gap-2 pt-2">
+            <button
+              type="button"
+              onClick={openAddInstructor}
+              className="btn-navy hover:btn-navy-hover"
+            >
+              <Plus className="h-4 w-4" />
+              {t("admin.instructors.emptyPrimary")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setHelpOpen(false)}
+              className="btn-outline hover:btn-outline-hover"
+            >
+              {t("common.close")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {editing && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/40 p-0 backdrop-blur-sm md:items-center md:p-6">
           <form
@@ -220,6 +284,7 @@ function Page() {
                 type="button"
                 onClick={() => setEditing(null)}
                 className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+                aria-label={t("common.close")}
               >
                 ×
               </button>

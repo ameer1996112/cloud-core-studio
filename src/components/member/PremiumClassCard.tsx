@@ -319,6 +319,7 @@ function EmptyAction({
       </Link>
     );
   }
+  if (!action.onClick) return null;
   return (
     <button type="button" onClick={action.onClick} className={className}>
       {action.label}
