@@ -243,7 +243,7 @@ export function findNotificationTemplate(input: {
     audience,
     subject:
       input.channel === "email"
-        ? adminSubject?.[input.language] ?? EMAIL_SUBJECTS[input.eventKey][input.language]
+        ? (adminSubject?.[input.language] ?? EMAIL_SUBJECTS[input.eventKey][input.language])
         : null,
     body: adminBody?.[input.language] ?? FALLBACK_BODIES[input.eventKey][input.language],
   };
