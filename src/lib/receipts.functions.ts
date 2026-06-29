@@ -1,10 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 
 async function isAdmin(supabase: any, userId: string) {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
   return data?.role === "admin";
+}
+
+async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await supabase
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("notification_draft_insert_failed", error.message);
 }
 
 /** Member: list my own receipts. RLS enforces ownership. */
@@ -70,13 +79,86 @@ export const confirmPaymentAndIssueReceipt = createServerFn({ method: "POST" })
     );
     if (error) throw error;
     if ((res as any)?.status === "error") throw new Error((res as any).message ?? "confirm_failed");
-    return res as {
+    const typedResult = res as {
       status: string;
       payment_id: string;
       receipt_id: string;
       receipt_number: string;
       member_plan_id?: string | null;
     };
+    if (
+      (typedResult.status === "confirmed" || typedResult.status === "already_confirmed") &&
+      typedResult.payment_id &&
+      typedResult.receipt_id
+    ) {
+      try {
+        const [paymentRes, receiptRes, settingsRes] = await Promise.all([
+          context.supabase
+            .from("payments")
+            .select(
+              "id,amount,currency,member:members(id,name,phone,email,preferred_language),plan:plans(name)",
+            )
+            .eq("id", typedResult.payment_id)
+            .maybeSingle(),
+          context.supabase
+            .from("receipts")
+            .select("id,receipt_number,plan_name_snapshot")
+            .eq("id", typedResult.receipt_id)
+            .maybeSingle(),
+          context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+        ]);
+        if (paymentRes.error) throw paymentRes.error;
+        if (receiptRes.error) throw receiptRes.error;
+        if (settingsRes.error) throw settingsRes.error;
+        const payment = paymentRes.data as any;
+        const receipt = receiptRes.data as any;
+        if (payment?.member) {
+          const packageName =
+            payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
+          const paymentRows = buildNotificationDraftRows({
+            eventKey: "payment_confirmed",
+            channels: ["whatsapp", "email"],
+            audience: "member",
+            member: payment.member,
+            appLanguage: null,
+            studioSettings: settingsRes.data ?? null,
+            relatedIds: {
+              paymentId: typedResult.payment_id,
+              receiptId: typedResult.receipt_id,
+              memberPlanId: typedResult.member_plan_id ?? null,
+            },
+            variables: {
+              package_name: packageName,
+              amount: payment.amount,
+              currency: payment.currency,
+            },
+          });
+          const receiptRows = receipt
+            ? buildNotificationDraftRows({
+                eventKey: "receipt_issued",
+                channels: ["whatsapp", "email"],
+                audience: "member",
+                member: payment.member,
+                appLanguage: null,
+                studioSettings: settingsRes.data ?? null,
+                relatedIds: {
+                  paymentId: typedResult.payment_id,
+                  receiptId: typedResult.receipt_id,
+                  memberPlanId: typedResult.member_plan_id ?? null,
+                },
+                variables: {
+                  package_name: packageName,
+                  receipt_number: receipt.receipt_number ?? typedResult.receipt_number,
+                },
+              })
+            : [];
+          await insertNotificationDraftRows(context.supabase, [...paymentRows, ...receiptRows]);
+        }
+      } catch (draftError) {
+        console.error("payment_receipt_draft_prepare_failed", draftError);
+      }
+    }
+    return typedResult;
   });
 
 /**
