@@ -33,6 +33,7 @@ export const listMembers = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
     const { supabase } = context;
+    await supabase.rpc("sweep_all_members_credits");
 
     let q = supabase.from("members").select("*").order("name").limit(500);
     if (data.search) {
@@ -121,6 +122,7 @@ export const getMemberDetail = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
     const { supabase } = context;
+    await supabase.rpc("sweep_member_credits", { p_member_id: data.memberId });
     const [member, bookings, ledger, attendance, notes, payments, plans] = await Promise.all([
       supabase.from("members").select("*").eq("id", data.memberId).maybeSingle(),
       supabase

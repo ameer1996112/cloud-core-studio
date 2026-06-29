@@ -11,6 +11,15 @@ import {
   localizedProgramName,
 } from "@/lib/localized-content";
 import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
+import {
+  formatDuration,
+  formatSpots,
+  getFriendlyStudioLocation,
+  getLessonProgramAccent,
+  getLessonVisualMode,
+  shouldShowRoomOnLessonCard,
+  type LessonCardVariant,
+} from "@/lib/lesson-card-variants";
 
 /**
  * Cloud & Core schedule card — typography-led, image-accented.
@@ -333,6 +342,10 @@ export function VisualClassCard({
   participants = [],
   compact = false,
   eager = false,
+  variant,
+  index = 0,
+  previousLesson = null,
+  roomCount = 1,
 }: {
   cls: VisualClassCardClass;
   state: ClassState;
@@ -340,6 +353,10 @@ export function VisualClassCard({
   participants?: string[];
   compact?: boolean;
   eager?: boolean;
+  variant?: LessonCardVariant;
+  index?: number;
+  previousLesson?: VisualClassCardClass | null;
+  roomCount?: number;
 }) {
   const { dir, lang } = useI18n();
   const isRtl = dir === "rtl";
@@ -352,6 +369,122 @@ export function VisualClassCard({
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
   const time = formatTimeParts(cls.starts_at);
+  const resolvedVariant: LessonCardVariant = variant ?? (compact ? "compact" : "standard");
+  const visualMode = getLessonVisualMode({
+    index,
+    lesson: cls,
+    previousLesson,
+    variant: resolvedVariant,
+  });
+  const accent = getLessonProgramAccent(cls);
+  const isFeatured = resolvedVariant === "featured" && visualMode === "featured-image";
+  const showThumbnail = visualMode === "thumbnail";
+  const roomName =
+    typeof cls.room_ref === "object" && cls.room_ref && "name" in cls.room_ref
+      ? String(cls.room_ref.name ?? "")
+      : typeof cls.room === "string"
+        ? cls.room
+        : "";
+  const locationLabel = shouldShowRoomOnLessonCard(roomCount, roomName)
+    ? roomName
+    : getFriendlyStudioLocation(lang);
+
+  const cardShell = `lesson-card lesson-card--${resolvedVariant} visual-class-card class-card-shell ${
+    isRtl ? "is-rtl" : "is-ltr"
+  } relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5`;
+
+  if (!isFeatured) {
+    return (
+      <button
+        type="button"
+        dir={dir}
+        onClick={onOpen}
+        className="group block w-full min-w-0 text-start"
+      >
+        <article
+          dir={dir}
+          className={cardShell}
+          style={
+            {
+              "--lesson-accent": accent.rail,
+              "--lesson-wash": accent.wash,
+              "--lesson-surface": accent.surface,
+            } as React.CSSProperties
+          }
+        >
+          <span className="lesson-card__accent" aria-hidden="true" />
+          <div className="lesson-card__content" dir={dir}>
+            <div className="lesson-card__main">
+              <div className="lesson-card__time-row">
+                <span className="lesson-card__time-badge" dir="ltr">
+                  {time.hour}:{time.minute}
+                </span>
+                <span className="lesson-card__duration" dir="auto">
+                  <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
+                </span>
+                <span className="lesson-card__state">{chipLabel}</span>
+              </div>
+
+              <MixedLessonTitle
+                as="h3"
+                brand={titleParts.brand}
+                program={titleParts.program}
+                dir={dir}
+                className="lesson-card-title mt-2 font-sans text-[18px] sm:text-[20px] font-semibold leading-[1.15] tracking-normal text-navy"
+              />
+
+              <div className="lesson-card__chips lesson-chip-row mt-2">
+                {metaChips.slice(0, resolvedVariant === "compact" ? 2 : 3).map((chip) => (
+                  <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
+                    <bdi>{chip}</bdi>
+                  </span>
+                ))}
+              </div>
+
+              <div className="lesson-card__meta" dir={dir}>
+                <span dir="auto">
+                  <bdi>{instructor ?? locationLabel}</bdi>
+                </span>
+                {instructor ? (
+                  <>
+                    <span aria-hidden="true"> · </span>
+                    <span dir="auto">
+                      <bdi>{locationLabel}</bdi>
+                    </span>
+                  </>
+                ) : null}
+                <span aria-hidden="true"> · </span>
+                <span dir="auto">
+                  <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
+                </span>
+              </div>
+            </div>
+
+            {showThumbnail ? (
+              <div className="lesson-card__media" aria-hidden="true">
+                <ClassMoodImage
+                  title={title}
+                  programTypeName={localizedProgramName(cls?.program_type)}
+                  imageUrl={resolveClassImageSrc(cls, "thumb")}
+                  variant="thumb"
+                  imageFit="cover"
+                  imagePosition="center center"
+                  className="!absolute inset-0 h-full w-full"
+                  eager={eager}
+                />
+              </div>
+            ) : (
+              <div className="lesson-card__mark" aria-hidden="true">
+                <span>{accent.icon === "heat" ? "HOT" : accent.icon === "mat" ? "MAT" : "CC"}</span>
+              </div>
+            )}
+          </div>
+          <span className="sr-only">{chipLabel}</span>
+        </article>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -360,14 +493,9 @@ export function VisualClassCard({
       className="group block w-full min-w-0 text-start"
     >
       {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
-      <article
-        dir={dir}
-        className={`visual-class-card class-card-shell ${
-          isRtl ? "is-rtl" : "is-ltr"
-        } relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5`}
-      >
+      <article dir={dir} className={cardShell}>
         <div
-          className={`class-card-photo relative overflow-hidden ${
+          className={`lesson-card__media class-card-photo relative overflow-hidden ${
             compact ? "member-class-media" : "schedule-class-media"
           }`}
         >

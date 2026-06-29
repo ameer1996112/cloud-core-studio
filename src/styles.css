@@ -1062,6 +1062,166 @@
     0 18px 38px -30px rgba(11, 29, 58, 0.68);
 }
 
+.lesson-card {
+  isolation: isolate;
+  border-radius: 8px;
+}
+
+.lesson-card--standard,
+.lesson-card--compact {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--lesson-wash, #faf7f2) 38%, transparent), transparent 54%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--lesson-surface, #ffffff) 92%, #faf7f2));
+}
+
+.lesson-card--compact {
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 106, 0.18),
+    0 12px 26px -24px rgba(11, 29, 58, 0.55);
+}
+
+.lesson-card__accent {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: 4px;
+  background: var(--lesson-accent, #d4af6a);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-accent, #d4af6a) 20%, transparent);
+}
+
+.lesson-card__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1rem;
+  text-align: start;
+}
+
+.lesson-card--compact .lesson-card__content {
+  padding: 0.78rem 0.9rem;
+}
+
+.lesson-card__main {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: start;
+}
+
+.lesson-card__time-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-slate, #6f7a8c);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+[dir="rtl"] .lesson-card__time-row {
+  justify-content: flex-end;
+}
+
+[dir="ltr"] .lesson-card__time-row {
+  justify-content: flex-start;
+}
+
+.lesson-card__time-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  background: var(--color-navy, #0b1d3a);
+  color: var(--color-ivory, #faf7f2);
+  padding: 0.28rem 0.62rem;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.lesson-card__duration,
+.lesson-card__state {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  border: 1px solid rgba(212, 175, 106, 0.26);
+  border-radius: 999px;
+  background: rgba(250, 247, 242, 0.78);
+  padding: 0.28rem 0.62rem;
+  color: var(--color-navy, #0b1d3a);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.lesson-card__state {
+  color: var(--color-slate, #6f7a8c);
+}
+
+.lesson-card__chips {
+  max-width: 100%;
+}
+
+.lesson-card__meta {
+  margin-top: 0.62rem;
+  color: var(--color-slate, #6f7a8c);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: start;
+  unicode-bidi: isolate;
+}
+
+[dir="rtl"] .lesson-card__meta,
+[dir="rtl"] .lesson-card__main {
+  text-align: right;
+}
+
+[dir="ltr"] .lesson-card__meta,
+[dir="ltr"] .lesson-card__main {
+  text-align: left;
+}
+
+.lesson-card__media {
+  flex: 0 0 auto;
+}
+
+.lesson-card--standard .lesson-card__media {
+  position: relative;
+  width: clamp(72px, 20vw, 104px);
+  min-height: 92px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 106, 0.26);
+  border-radius: 8px;
+  background: var(--color-navy, #0b1d3a);
+}
+
+.lesson-card__mark {
+  display: flex;
+  flex: 0 0 auto;
+  width: 54px;
+  align-items: center;
+  justify-content: center;
+}
+
+.lesson-card__mark span {
+  display: inline-flex;
+  height: 42px;
+  width: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--lesson-accent, #d4af6a) 42%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lesson-wash, #faf7f2) 72%, white);
+  color: var(--color-navy, #0b1d3a);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
 .class-card-photo {
   border-radius: 8px 8px 0 0;
   background: var(--color-navy, #0b1d3a);
@@ -1290,6 +1450,37 @@
 
   .member-class-hero-media {
     height: clamp(220px, 62vw, 300px);
+  }
+
+  .lesson-card__content {
+    gap: 0.7rem;
+    padding: 0.9rem;
+  }
+
+  .lesson-card--standard .lesson-card__media {
+    width: 74px;
+    min-height: 82px;
+  }
+
+  .lesson-card__mark {
+    width: 44px;
+  }
+
+  .lesson-card__mark span {
+    height: 36px;
+    width: 36px;
+    font-size: 9px;
+  }
+
+  .lesson-card__time-row {
+    gap: 0.34rem;
+  }
+
+  .lesson-card__duration,
+  .lesson-card__state {
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.2;
   }
 }
 

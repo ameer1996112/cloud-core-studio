@@ -31,6 +31,7 @@ export const getMemberHome = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    await supabase.rpc("sweep_member_credits", { p_member_id: userId });
     const now = new Date().toISOString();
 
     const [memberRes, nextBookingRes, recentClassesRes, activePlanRes] = await Promise.all([
@@ -316,6 +317,7 @@ export const getMyPackages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    await supabase.rpc("sweep_member_credits", { p_member_id: userId });
     const [memberRes, mineRes, plansRes, ledgerRes, paymentsRes] = await Promise.all([
       supabase
         .from("members")

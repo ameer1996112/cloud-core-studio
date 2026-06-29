@@ -1010,6 +1010,11 @@ export const listMemberPlans = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ memberId: z.string().uuid().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
+    if (data.memberId) {
+      await context.supabase.rpc("sweep_member_credits", { p_member_id: data.memberId });
+    } else {
+      await context.supabase.rpc("sweep_all_members_credits");
+    }
     let q = context.supabase
       .from("member_plans")
       .select("*, plan:plans(name,description,credits,duration_days), member:members(id,name)")

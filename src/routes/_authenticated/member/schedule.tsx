@@ -181,7 +181,7 @@ function MemberSchedule() {
       {!isLoading &&
         Array.from(groups.entries()).map(([key, items]) => (
           <ScheduleDaySection key={key} date={new Date(key)}>
-            {items.map((c: any) => (
+            {items.map((c: any, index: number) => (
               <VisualClassCard
                 key={c.id}
                 cls={c}
@@ -191,6 +191,11 @@ function MemberSchedule() {
                   remainingCredits: member?.remaining_credits ?? 0,
                 })}
                 onOpen={() => setOpenClass(c.id)}
+                variant={index === 0 ? "featured" : "standard"}
+                index={index}
+                previousLesson={index > 0 ? items[index - 1] : null}
+                roomCount={rooms.length}
+                eager={index === 0}
               />
             ))}
           </ScheduleDaySection>

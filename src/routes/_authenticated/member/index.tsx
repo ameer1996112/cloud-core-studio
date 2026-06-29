@@ -178,7 +178,9 @@ function MemberHome() {
               remainingCredits: data?.member?.remaining_credits ?? 0,
             })}
             onOpen={() => setOpenClass(featuredClass.id)}
-            compact
+            variant="featured"
+            index={0}
+            eager
           />
         </section>
       ) : (
@@ -224,7 +226,7 @@ function MemberHome() {
           />
         ) : (
           <div className="space-y-2.5">
-            {recommendedList.slice(0, 3).map((c: any) => (
+            {recommendedList.slice(0, 3).map((c: any, index: number, list: any[]) => (
               <VisualClassCard
                 key={c.id}
                 cls={c}
@@ -234,7 +236,9 @@ function MemberHome() {
                   remainingCredits: data?.member?.remaining_credits ?? 0,
                 })}
                 onOpen={() => setOpenClass(c.id)}
-                compact
+                variant="standard"
+                index={index + 1}
+                previousLesson={index > 0 ? list[index - 1] : featuredClass}
               />
             ))}
           </div>
