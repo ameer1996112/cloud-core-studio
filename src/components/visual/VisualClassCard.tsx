@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { getLocale, t, useI18n } from "@/lib/i18n";
+import { ArrowUpLeft, CalendarPlus, MapPin, Sparkles, Users } from "lucide-react";
+import { getLocale, t, useI18n, type Lang } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
-import { initialsFor, resolveClassImageSrc } from "@/lib/image-assets";
-import { formatDurationLabel, type ClassState } from "@/components/member/PremiumClassCard";
+import { initialsFor, resolveClassImagePosition, resolveClassImageSrc } from "@/lib/image-assets";
+import { type ClassState } from "@/components/member/PremiumClassCard";
 import {
   localizedClassMetadataChips,
   localizedClassTitle,
@@ -18,6 +19,7 @@ import {
   getFriendlyStudioLocation,
   getLessonProgramAccent,
   getLessonVisualMode,
+  normalizeLessonCardVariant,
   type ArtTileVariant,
   shouldShowRoomOnLessonCard,
   type LessonCardContext,
@@ -69,13 +71,13 @@ type VisualClassCardClass = {
 export function ClassArtTile({
   programType,
   tone,
-  lang: _lang,
+  lang = "en" as Lang,
   compact = false,
   variant = "a",
 }: {
   programType?: Record<string, unknown> | null;
   tone?: string | null;
-  lang?: string;
+  lang?: Lang;
   compact?: boolean;
   variant?: ArtTileVariant;
 }) {
@@ -84,6 +86,9 @@ export function ClassArtTile({
     energy: tone ?? null,
   });
   const key = accent.key;
+  const label = localizedProgramName(programType, lang);
+  const code = key === "aerial" ? "AIR" : key === "mat" ? "MAT" : key === "hot" ? "HOT" : "C&C";
+
   return (
     <div
       className={`lesson-card__art-tile lesson-card__art-tile--${key} ${
@@ -98,74 +103,18 @@ export function ClassArtTile({
       }
       aria-hidden="true"
     >
-      <svg viewBox="0 0 96 96" role="img" focusable="false">
-        {key === "aerial" ? (
-          <>
-            <path
-              className="motif motif-primary"
-              d={
-                variant === "b"
-                  ? "M17 38c17-18 44-18 62 0"
-                  : variant === "c"
-                    ? "M16 30c12-10 25-14 39-9 10 3 18 7 25 13"
-                    : "M18 31c15-14 45-14 60 0"
-              }
-            />
-            <path
-              className="motif motif-soft"
-              d={
-                variant === "c" ? "M28 31c5 25 15 36 30 31" : "M26 31c2 23 10 34 22 34s20-11 22-34"
-              }
-            />
-            <path
-              className="motif motif-gold"
-              d={variant === "b" ? "M31 69c10 5 24 5 34 0" : "M35 67c8 7 18 7 26 0"}
-            />
-          </>
-        ) : key === "hot" ? (
-          <>
-            <path
-              className="motif motif-primary"
-              d={
-                variant === "b"
-                  ? "M24 58c10-7 14-19 23-31 17 15 23 28 16 42"
-                  : "M27 66c12-11 8-23 21-36 16 15 21 25 13 38"
-              }
-            />
-            <path
-              className="motif motif-soft"
-              d={
-                variant === "c"
-                  ? "M31 50c9 5 20 5 31 0M30 61c10 5 22 5 33 0"
-                  : "M38 68c8-7 6-14 14-23 9 10 10 17 4 24"
-              }
-            />
-            <path className="motif motif-gold" d={variant === "b" ? "M28 74h40" : "M24 74h48"} />
-          </>
-        ) : key === "mat" ? (
-          <>
-            <rect
-              className="motif-rect motif-soft-fill"
-              x={variant === "b" ? "20" : "24"}
-              y={variant === "c" ? "32" : "28"}
-              width={variant === "b" ? "56" : "48"}
-              height={variant === "c" ? "34" : "40"}
-              rx="10"
-            />
-            <path
-              className="motif motif-primary"
-              d={variant === "b" ? "M29 39h38M29 50h30M29 61h38" : "M31 39h34M31 49h34M31 59h22"}
-            />
-            <path className="motif motif-gold" d={variant === "c" ? "M28 74h40" : "M22 72h52"} />
-          </>
-        ) : (
-          <>
-            <path className="motif motif-primary" d="M22 55c13-24 40-24 52 0" />
-            <path className="motif motif-soft" d="M28 63c12 10 28 10 40 0" />
-            <circle className="motif-dot" cx="48" cy="35" r="3" />
-          </>
-        )}
-      </svg>
+      <span className="lesson-card__plate-photo" />
+      <span className="lesson-card__plate-mark">
+        <img src="/brand/cloud-core-mark.svg" alt="" loading="lazy" decoding="async" />
+      </span>
+      <span className="lesson-card__plate-kicker">Cloud &amp; Core</span>
+      <span className="lesson-card__plate-label" dir="auto">
+        <bdi>{label}</bdi>
+      </span>
+      <span className="lesson-card__plate-code" dir="ltr">
+        {code}
+      </span>
+      <span className="lesson-card__plate-rule" />
     </div>
   );
 }
@@ -341,7 +290,15 @@ export function ParticipantChip({
   );
 }
 
-export function ScheduleDaySection({ date, children }: { date: Date; children: React.ReactNode }) {
+export function ScheduleDaySection({
+  date,
+  count,
+  children,
+}: {
+  date: Date;
+  count?: number;
+  children: React.ReactNode;
+}) {
   const weekday = date.toLocaleDateString(getLocale(), { weekday: "long" });
   const locale = getLocale();
   const dm =
@@ -349,17 +306,87 @@ export function ScheduleDaySection({ date, children }: { date: Date; children: R
       ? date.toLocaleDateString(locale, { month: "short", day: "numeric" })
       : `${date.getDate()}.${date.getMonth() + 1}`;
   return (
-    <div className="space-y-3">
-      <div className="flex items-baseline gap-3">
-        <h2 className="font-sans text-[15px] font-semibold tracking-normal text-navy">{weekday}</h2>
-        <span className="text-[12px] text-slate tabular-nums">
-          · <LtrInline>{dm}</LtrInline>
+    <section className="schedule-day-section">
+      <header className="schedule-day-header">
+        <div className="schedule-day-header__copy">
+          <p className="schedule-day-header__eyebrow">{t("nav.schedule")}</p>
+          <h2 className="schedule-day-header__title">{weekday}</h2>
+        </div>
+        <span className="schedule-day-header__date tabular-nums">
+          <LtrInline>{dm}</LtrInline>
         </span>
-        <span className="flex-1 h-px bg-gold/30" />
+        {typeof count === "number" ? (
+          <span className="schedule-day-header__count">{lessonCountLabel(count, getLocale())}</span>
+        ) : null}
+        <span className="schedule-day-header__rule" aria-hidden="true" />
+      </header>
+      <div className="schedule-day-section__cards">{children}</div>
+    </section>
+  );
+}
+
+function lessonCountLabel(count: number, locale: string) {
+  if (locale.startsWith("he")) return `${count} ${count === 1 ? "שיעור" : "שיעורים"}`;
+  if (locale.startsWith("ar")) return `${count} ${count === 1 ? "حصة" : "حصص"}`;
+  return `${count} ${count === 1 ? "lesson" : "lessons"}`;
+}
+
+function MetaItem({
+  icon,
+  label,
+  value,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="lesson-card__meta-item">
+      <div className="lesson-card__meta-icon" aria-hidden="true">
+        {icon}
       </div>
-      <div className="space-y-2.5">{children}</div>
+      <div className="lesson-card__meta-text w-full">
+        <span className="lesson-card__meta-label">{label}</span>
+        <span className="lesson-card__meta-value">{value}</span>
+        {children}
+      </div>
     </div>
   );
+}
+
+function CtaLabel({
+  label,
+  disabled = false,
+  strong = false,
+}: {
+  label: string;
+  disabled?: boolean;
+  strong?: boolean;
+}) {
+  return (
+    <span
+      className={`lesson-card__cta ${strong ? "lesson-card__cta--primary" : ""} ${
+        disabled ? "lesson-card__cta--disabled" : ""
+      }`}
+    >
+      <span>{label}</span>
+      {strong ? (
+        <CalendarPlus className="lesson-card__cta-icon" />
+      ) : (
+        <ArrowUpLeft className="lesson-card__cta-icon" />
+      )}
+    </span>
+  );
+}
+
+function availabilityText(spotsLeft: number, lang: Lang) {
+  if (spotsLeft <= 0) return t("capacity.full");
+  if (spotsLeft === 1) return t("capacity.left.one");
+  return lang === "he" || lang === "ar"
+    ? t("capacity.left.many", { count: spotsLeft })
+    : t("capacity.left.many", { count: spotsLeft });
 }
 
 function formatTime(iso: string) {
@@ -380,66 +407,6 @@ function formatTimeParts(iso: string) {
     minute,
     weekday: date.toLocaleDateString(getLocale(), { weekday: "short" }),
   };
-}
-
-/**
- * Overlay tone for the photo-led card. State drives overlay strength and the
- * CTA pill color; the photo is always the dominant visual layer.
- */
-function overlayFor(state: ClassState): {
-  overlay: string;
-  capacityBorder: string;
-  desaturate?: boolean;
-} {
-  switch (state.kind) {
-    case "booked":
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(11,29,58,0.05) 0%, rgba(11,29,58,0.35) 50%, rgba(11,29,58,0.75) 100%)",
-        capacityBorder: "border-gold/70",
-      };
-    case "waiting":
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(11,29,58,0.05) 0%, rgba(11,29,58,0.32) 50%, rgba(11,29,58,0.72) 100%)",
-        capacityBorder: "border-powder/70",
-      };
-    case "almost":
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(212,175,106,0.04) 0%, rgba(11,29,58,0.24) 50%, rgba(11,29,58,0.70) 100%)",
-        capacityBorder: "border-gold",
-      };
-    case "available":
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(183,204,230,0.04) 0%, rgba(11,29,58,0.26) 50%, rgba(11,29,58,0.70) 100%)",
-        capacityBorder: "border-gold/60",
-      };
-    case "waitlist_available":
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(183,204,230,0.06) 0%, rgba(11,29,58,0.30) 50%, rgba(11,29,58,0.72) 100%)",
-        capacityBorder: "border-powder",
-      };
-    case "low_credits":
-    case "package_required":
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(232,223,209,0.06) 0%, rgba(11,29,58,0.30) 50%, rgba(11,29,58,0.72) 100%)",
-        capacityBorder: "border-gold/70",
-      };
-    case "full":
-    case "cancelled":
-    case "closed":
-    default:
-      return {
-        overlay:
-          "linear-gradient(var(--ovr-dir), rgba(11,29,58,0.20) 0%, rgba(11,29,58,0.50) 50%, rgba(11,29,58,0.82) 100%)",
-        capacityBorder: "border-slate/50",
-        desaturate: true,
-      };
-  }
 }
 
 export function VisualClassCard({
@@ -469,8 +436,7 @@ export function VisualClassCard({
 }) {
   const { dir, lang } = useI18n();
   const isRtl = dir === "rtl";
-  const { chipLabel } = toneFor(state);
-  const ovr = overlayFor(state);
+  const { chipLabel, cta } = toneFor(state);
   const title = localizedClassTitle(cls);
   const titleParts = localizedClassTitleParts(cls, lang);
   const metaChips = localizedClassMetadataChips(cls);
@@ -478,18 +444,22 @@ export function VisualClassCard({
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
   const time = formatTimeParts(cls.starts_at);
-  const resolvedVariant: LessonCardVariant = variant ?? (compact ? "compact" : "standard");
+  const normalizedVariant = normalizeLessonCardVariant(variant, compact);
   const visualMode = getLessonVisualMode({
     index,
     lesson: cls,
     previousLesson,
-    variant: resolvedVariant,
+    variant: normalizedVariant,
     context,
   });
+  const isHomeFeature = normalizedVariant === "homeFeature";
+  const isHomeList = normalizedVariant === "homeList";
+  const isScheduleLead = normalizedVariant === "scheduleLead";
+  const isScheduleList = normalizedVariant === "scheduleList";
+  const isFeature = isHomeFeature || isScheduleLead;
   const accent = getLessonProgramAccent(cls);
   const tileVariant = getArtTileVariant(cls, index);
-  const isHero = resolvedVariant === "hero";
-  const useHeroImage = isHero && visualMode === "image";
+  const useHeroImage = isFeature && visualMode === "image";
   const roomName =
     typeof cls.room_ref === "object" && cls.room_ref && "name" in cls.room_ref
       ? String(cls.room_ref.name ?? "")
@@ -499,12 +469,15 @@ export function VisualClassCard({
   const locationLabel = shouldShowRoomOnLessonCard(roomCount, roomName)
     ? roomName
     : getFriendlyStudioLocation(lang);
+  const openSpotsText = availabilityText(spotsLeft, lang);
+  const listImageSrc = resolveClassImageSrc(cls, "thumb");
+  const featureImageSrc = resolveClassImageSrc(cls, "card");
 
-  const cardShell = `lesson-card lesson-card--${resolvedVariant} visual-class-card class-card-shell ${
+  const cardShell = `lesson-card lesson-card--${normalizedVariant} visual-class-card class-card-shell ${
     isRtl ? "is-rtl" : "is-ltr"
   } relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5`;
 
-  if (!isHero) {
+  if (!isFeature) {
     return (
       <button
         type="button"
@@ -514,6 +487,7 @@ export function VisualClassCard({
       >
         <article
           dir={dir}
+          data-lesson-variant={normalizedVariant}
           className={cardShell}
           style={
             {
@@ -524,8 +498,8 @@ export function VisualClassCard({
           }
         >
           <span className="lesson-card__accent" aria-hidden="true" />
-          <div className="lesson-card__content" dir={dir}>
-            <div className="lesson-card__main">
+          <div className="lesson-card__list-layout" dir={dir}>
+            <div className="lesson-card__list-copy">
               <div className="lesson-card__time-row">
                 <span className="lesson-card__time-badge" dir="ltr">
                   {time.hour}:{time.minute}
@@ -533,7 +507,9 @@ export function VisualClassCard({
                 <span className="lesson-card__duration" dir="auto">
                   <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
                 </span>
-                <span className="lesson-card__availability">{chipLabel}</span>
+                <span className="lesson-card__availability">
+                  <bdi>{openSpotsText}</bdi>
+                </span>
               </div>
 
               <MixedLessonTitle
@@ -541,44 +517,55 @@ export function VisualClassCard({
                 brand={titleParts.brand}
                 program={titleParts.program}
                 dir={dir}
-                className="lesson-card__title lesson-card-title mt-2 font-sans text-[18px] sm:text-[20px] font-semibold leading-[1.15] tracking-normal text-navy"
+                className="lesson-card__title lesson-card-title"
               />
-
-              <div className="lesson-card__chips lesson-chip-row mt-2">
-                {metaChips.slice(0, resolvedVariant === "compact" ? 2 : 3).map((chip) => (
+              <div className="lesson-card__chips lesson-chip-row">
+                {metaChips.slice(0, isHomeList ? 2 : 3).map((chip) => (
                   <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
                     <bdi>{chip}</bdi>
                   </span>
                 ))}
               </div>
-
-              <div className="lesson-card__meta" dir={dir}>
+              <div className="lesson-card__meta-inline">
                 <span dir="auto">
-                  <bdi>{instructor ?? locationLabel}</bdi>
+                  <bdi>{instructor ?? t("member.locationStudio")}</bdi>
                 </span>
-                {instructor ? (
-                  <>
-                    <span aria-hidden="true"> · </span>
-                    <span dir="auto">
-                      <bdi>{locationLabel}</bdi>
-                    </span>
-                  </>
-                ) : null}
-                <span aria-hidden="true"> · </span>
+                <span aria-hidden="true">·</span>
+                <span dir="auto">
+                  <bdi>{locationLabel}</bdi>
+                </span>
+                <span aria-hidden="true">·</span>
                 <span dir="auto">
                   <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
                 </span>
               </div>
+              <div className="lesson-card__footer">
+                <span className="lesson-card__state-copy">{chipLabel}</span>
+                {cta ? (
+                  <CtaLabel label={cta.label} disabled={cta.disabled} strong={isScheduleList} />
+                ) : null}
+              </div>
             </div>
-
-            <div className="lesson-card__visual">
-              <ClassArtTile
-                programType={cls.program_type}
-                tone={typeof cls.energy === "string" ? cls.energy : null}
-                lang={lang}
-                compact={resolvedVariant === "compact" || visualMode === "minimal"}
-                variant={tileVariant}
-              />
+            <div className="lesson-card__list-media" aria-hidden="true">
+              {listImageSrc ? (
+                <ClassMoodImage
+                  title={title}
+                  programTypeName={localizedProgramName(cls?.program_type)}
+                  imageUrl={listImageSrc}
+                  variant="thumb"
+                  imagePosition={resolveClassImagePosition(cls)}
+                  className="lesson-card__list-image"
+                  eager={eager}
+                />
+              ) : (
+                <ClassArtTile
+                  programType={cls.program_type}
+                  tone={typeof cls.energy === "string" ? cls.energy : null}
+                  lang={lang}
+                  compact
+                  variant={tileVariant}
+                />
+              )}
             </div>
           </div>
           <span className="sr-only">{chipLabel}</span>
@@ -594,116 +581,111 @@ export function VisualClassCard({
       onClick={onOpen}
       className="group block w-full min-w-0 text-start"
     >
-      {/* One image-led card. Taller native-photo ratio avoids forcing a panoramic crop. */}
-      <article dir={dir} className={cardShell}>
-        <div
-          className={`lesson-card__visual ${
-            useHeroImage ? "lesson-card__media class-card-photo" : "lesson-card__hero-art"
-          } relative overflow-hidden ${compact ? "member-class-media" : "schedule-class-media"}`}
-        >
-          {useHeroImage ? (
-            <>
-              <ClassMoodImage
-                title={title}
-                programTypeName={localizedProgramName(cls?.program_type)}
-                imageUrl={resolveClassImageSrc(cls, "card")}
-                variant="card"
-                imageFit="cover"
-                imagePosition="center center"
-                className="!absolute inset-0 h-full w-full"
-                eager={eager}
-              />
-
-              {ovr.desaturate && (
-                <div
-                  className="absolute inset-0 z-[2] bg-navy/25 mix-blend-luminosity pointer-events-none"
-                  aria-hidden
-                />
-              )}
-
-              <div
-                className="absolute inset-0 z-[2] pointer-events-none"
-                aria-hidden
-                style={{
-                  background:
-                    "linear-gradient(90deg, rgba(11,29,58,0.16) 0%, rgba(11,29,58,0.02) 44%, rgba(11,29,58,0.20) 100%)",
-                }}
-              />
-            </>
-          ) : (
-            <ClassArtTile
-              programType={cls.program_type}
-              tone={typeof cls.energy === "string" ? cls.energy : null}
-              lang={lang}
-              variant={tileVariant}
-            />
-          )}
-
-          <div
-            className="class-time-badge"
-            dir="ltr"
-            aria-label={`${time.weekday} ${time.hour}:${time.minute}, ${formatDurationLabel(
-              cls.duration_minutes,
-            )}`}
-          >
-            <span className="class-time-badge__time">
-              {time.hour}:{time.minute}
-            </span>
-            <span className="class-time-badge__separator" aria-hidden="true">
-              ·
-            </span>
-            <span className="class-time-badge__duration" dir="auto">
-              <bdi>{formatDurationLabel(cls.duration_minutes)}</bdi>
-            </span>
-          </div>
-
-          <span className={`class-card-capacity border ${ovr.capacityBorder}`}>
-            {spotsLeft === 0
-              ? t("capacity.full")
-              : spotsLeft === 1
-                ? t("capacity.left.one")
-                : t("capacity.left.many", { count: spotsLeft })}
-          </span>
-
-          {/* Participants — bottom inline-end, only when present */}
-          {participants.length > 0 && (
-            <div dir={dir} className="absolute bottom-3 end-3 z-[3] flex items-center gap-1">
-              {participants.slice(0, 3).map((n, i) => (
-                <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
-              ))}
-              {participants.length > 3 && (
-                <span className="text-[10px] text-ivory/90">+{participants.length - 3}</span>
-              )}
+      <article
+        dir={dir}
+        data-lesson-variant={normalizedVariant}
+        className={cardShell}
+        style={
+          {
+            "--lesson-accent": accent.rail,
+            "--lesson-wash": accent.wash,
+            "--lesson-surface": accent.surface,
+          } as React.CSSProperties
+        }
+      >
+        <span className="lesson-card__accent" aria-hidden="true" />
+        <div className="lesson-card__feature-layout" dir={dir}>
+          <div className="lesson-card__feature-copy">
+            <div className="lesson-card__time-row">
+              <span className="lesson-card__time-badge" dir="ltr">
+                {time.hour}:{time.minute}
+              </span>
+              <span className="lesson-card__duration" dir="auto">
+                <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
+              </span>
+              <span className="lesson-card__availability">
+                <bdi>{openSpotsText}</bdi>
+              </span>
             </div>
-          )}
-        </div>
-
-        <div className="class-card-copy" dir={dir}>
-          <div className="class-card-main" dir={dir}>
             <MixedLessonTitle
               as="h3"
               brand={titleParts.brand}
               program={titleParts.program}
               dir={dir}
-              className="lesson-card__title lesson-card-title font-sans text-[20px] sm:text-[24px] font-semibold leading-[1.1] tracking-normal text-navy"
+              className="lesson-card__title lesson-card-title"
             />
-            <div className="lesson-chip-row mt-2">
-              {metaChips.map((chip) => (
+            <div className="lesson-card__chips lesson-chip-row">
+              {metaChips.slice(0, 3).map((chip) => (
                 <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
                   <bdi>{chip}</bdi>
                 </span>
               ))}
             </div>
-            <p
-              className="lesson-card__instructor lesson-card-instructor mt-2 text-[13px] sm:text-[14px] text-slate leading-snug"
-              dir="auto"
-            >
-              {instructor ?? t("member.locationStudio")}
-            </p>
+            <div className="lesson-card__meta-grid" dir={dir}>
+              <MetaItem
+                icon={<Sparkles className="h-3.5 w-3.5" />}
+                label={t("common.with")}
+                value={
+                  <span dir="auto">
+                    <bdi>{instructor ?? t("member.locationStudio")}</bdi>
+                  </span>
+                }
+              />
+              <MetaItem
+                icon={<MapPin className="h-3.5 w-3.5" />}
+                label={t("common.where")}
+                value={
+                  <span dir="auto">
+                    <bdi>{locationLabel}</bdi>
+                  </span>
+                }
+              />
+              <MetaItem
+                icon={<Users className="h-3.5 w-3.5" />}
+                label={t("common.spots")}
+                value={
+                  <span dir="auto">
+                    <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
+                  </span>
+                }
+              />
+            </div>
+            <div className="lesson-card__footer">
+              <span className="lesson-card__state-copy">{chipLabel}</span>
+              {cta ? <CtaLabel label={cta.label} disabled={cta.disabled} strong /> : null}
+            </div>
+            {participants.length > 0 ? (
+              <div className="lesson-card__participant-row" dir={dir}>
+                {participants.slice(0, 3).map((n, i) => (
+                  <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
+                ))}
+                {participants.length > 3 && (
+                  <span className="lesson-card__participant-count">+{participants.length - 3}</span>
+                )}
+              </div>
+            ) : null}
+          </div>
+          <div className="lesson-card__feature-media">
+            {useHeroImage && featureImageSrc ? (
+              <ClassMoodImage
+                title={title}
+                programTypeName={localizedProgramName(cls?.program_type)}
+                imageUrl={featureImageSrc}
+                variant="card"
+                imagePosition={resolveClassImagePosition(cls)}
+                className="lesson-card__feature-image"
+                eager={eager}
+              />
+            ) : (
+              <ClassArtTile
+                programType={cls.program_type}
+                tone={typeof cls.energy === "string" ? cls.energy : null}
+                lang={lang}
+                variant={tileVariant}
+              />
+            )}
           </div>
         </div>
-
-        {/* Screen-reader only state label (visual chip removed to avoid duplicate capacity info) */}
         <span className="sr-only">{chipLabel}</span>
       </article>
     </button>
