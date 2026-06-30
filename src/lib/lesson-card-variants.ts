@@ -8,16 +8,16 @@ import {
   type LocalizedProgramSource,
 } from "@/lib/localized-content";
 
-export type LessonCardVariant =
-  | "homeFeature"
-  | "homeList"
-  | "scheduleLead"
-  | "scheduleList"
-  | "hero"
-  | "standard"
-  | "compact";
+export type LessonCardVariant = "featured" | "standard" | "compact" | "booking";
+export type LessonCardLayout = "homeFeature" | "homeList" | "scheduleLead" | "scheduleList";
 export type LessonVisualMode = "image" | "artTile" | "accent" | "minimal";
-export type LessonCardContext = "memberHome" | "memberSchedule" | "adminSchedule" | "detail";
+export type LessonCardContext =
+  | "memberHome"
+  | "memberSchedule"
+  | "memberBookings"
+  | "classDetail"
+  | "bookingConfirmation"
+  | "adminSchedule";
 export type ArtTileVariant = "a" | "b" | "c";
 
 export type LessonVisualSource = LocalizedClassSource & {
@@ -81,28 +81,30 @@ function normalize(value: unknown) {
 
 function lessonImageKey(lesson: LessonVisualSource | null | undefined) {
   const program = lesson?.program_type as (LocalizedProgramSource & { image_url?: string }) | null;
-  return (
+  const explicitImage =
     normalize(lesson?.image_url) ||
     normalize(lesson?.cover_image_url) ||
     normalize(program?.image_url) ||
-    normalize(program?.cover_image_url)
-  );
-}
+    normalize(program?.cover_image_url);
+  if (explicitImage) return explicitImage;
 
-function hasLessonImage(lesson: LessonVisualSource | null | undefined) {
-  return lessonImageKey(lesson).length > 0;
+  return normalize(
+    [program?.name, program?.name_en, program?.name_he, program?.name_ar, lesson?.title]
+      .filter(Boolean)
+      .join("|"),
+  );
 }
 
 export function normalizeLessonCardVariant(
   variant: LessonCardVariant | undefined,
   compact = false,
-): Exclude<LessonCardVariant, "hero" | "standard" | "compact"> {
-  if (variant === "homeFeature" || variant === "homeList") return variant;
-  if (variant === "scheduleLead" || variant === "scheduleList") return variant;
-  if (variant === "hero") return "scheduleLead";
-  if (variant === "compact") return "homeList";
-  if (variant === "standard") return "scheduleList";
-  return compact ? "homeList" : "scheduleList";
+  context: LessonCardContext = "memberSchedule",
+): LessonCardLayout {
+  if (variant === "featured") {
+    return context === "memberHome" ? "homeFeature" : "scheduleLead";
+  }
+  if (variant === "compact" || variant === "booking" || compact) return "homeList";
+  return context === "memberHome" ? "homeList" : "scheduleList";
 }
 
 export function getLessonVisualMode({
@@ -112,19 +114,32 @@ export function getLessonVisualMode({
   variant = "standard",
   context = "memberSchedule",
 }: VisualDecisionParams): LessonVisualMode {
-  const normalizedVariant = normalizeLessonCardVariant(variant, false);
+  if (variant === "compact") return "minimal";
+  if (variant === "booking") return "minimal";
+
+  const normalizedVariant = normalizeLessonCardVariant(variant, false, context);
   const isFeature = normalizedVariant === "homeFeature" || normalizedVariant === "scheduleLead";
-  const currentImage = lessonImageKey(lesson);
-  const previousImage = lessonImageKey(previousLesson);
+  const showThumbnail = shouldShowLessonThumbnail({ index, lesson, previousLesson, context });
 
   if (isFeature) {
-    if (hasLessonImage(lesson) && (!previousImage || currentImage !== previousImage))
-      return "image";
+    if (showThumbnail) return "image";
     return "artTile";
   }
 
+  if (showThumbnail) return "image";
+  if (context === "memberSchedule" && index > 0) return "minimal";
   if (context === "memberSchedule" || context === "adminSchedule") return "accent";
-  return "artTile";
+  return "accent";
+}
+
+export function shouldShowLessonThumbnail({
+  lesson,
+  variant = "standard",
+}: VisualDecisionParams): boolean {
+  if (variant === "compact" || variant === "booking") return false;
+  const currentImage = lessonImageKey(lesson);
+  if (!currentImage) return false;
+  return true;
 }
 
 export function shouldUseImageCard(params: VisualDecisionParams) {
@@ -189,6 +204,87 @@ export function formatSpots(
   if (lang === "he") return `${value} ${value === 1 ? "מקום פנוי" : "מקומות פנויים"}`;
   if (lang === "ar") return `${value} ${value === 1 ? "مكان متاح" : "أماكن متاحة"}`;
   return `${value} ${value === 1 ? "spot" : "spots"} open`;
+}
+
+export type LessonAvailabilityMeterModel = {
+  shouldRender: boolean;
+  spotsLeft: number;
+  capacity: number;
+  bookedCount: number;
+  bookedRatio: number;
+  fillPercent: number;
+  isLow: boolean;
+  label: string;
+  assistiveLabel: string;
+};
+
+export function getLessonAvailabilityMeter({
+  capacity,
+  bookedCount,
+  lang,
+}: {
+  capacity?: number | null;
+  bookedCount?: number | null;
+  lang: Lang;
+}): LessonAvailabilityMeterModel {
+  const safeCapacity = Math.max(0, Number(capacity ?? 0));
+  const safeBooked = Math.min(safeCapacity, Math.max(0, Number(bookedCount ?? 0)));
+  const spotsLeft = Math.max(0, safeCapacity - safeBooked);
+
+  if (safeCapacity <= 0) {
+    return {
+      shouldRender: false,
+      spotsLeft: 0,
+      capacity: 0,
+      bookedCount: 0,
+      bookedRatio: 0,
+      fillPercent: 0,
+      isLow: false,
+      label: formatSpots(0, 0, lang),
+      assistiveLabel: formatSpots(0, 0, lang),
+    };
+  }
+
+  const bookedRatio = safeBooked / safeCapacity;
+  const fillPercent = Math.round(bookedRatio * 100);
+  const isFull = spotsLeft === 0;
+  const isLow = isFull || spotsLeft <= 2 || bookedRatio >= 0.75;
+  const label = availabilityMeterLabel(spotsLeft, isLow, lang);
+  const assistiveLabel =
+    isFull && lang !== "en"
+      ? label
+      : lang === "he"
+        ? `${label} מתוך ${safeCapacity}`
+        : lang === "ar"
+          ? `${label} من ${safeCapacity}`
+          : isFull
+            ? label
+            : `${label} out of ${safeCapacity}`;
+
+  return {
+    shouldRender: true,
+    spotsLeft,
+    capacity: safeCapacity,
+    bookedCount: safeBooked,
+    bookedRatio: Number(bookedRatio.toFixed(3)),
+    fillPercent,
+    isLow,
+    label,
+    assistiveLabel,
+  };
+}
+
+function availabilityMeterLabel(spotsLeft: number, isLow: boolean, lang: Lang) {
+  if (spotsLeft <= 0) {
+    return fallbackByLang(lang, "Waitlist open", "רשימת המתנה פתוחה", "قائمة الانتظار مفتوحة");
+  }
+  if (!isLow) return formatSpots(spotsLeft, spotsLeft, lang);
+
+  if (lang === "he")
+    return spotsLeft === 1 ? "נותר מקום אחד בלבד" : `נותרו ${spotsLeft} מקומות בלבד`;
+  if (lang === "ar")
+    return spotsLeft === 1 ? "تبقى مكان واحد فقط" : `تبقى ${spotsLeft} أماكن فقط`;
+  return spotsLeft === 1 ? "Only 1 spot left" : `Only ${spotsLeft} spots left`;
 }
 
 export function formatTime(iso: string | Date, lang: Lang, timeZone?: string) {
