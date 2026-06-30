@@ -444,7 +444,14 @@ export function VisualClassCard({
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
   const time = formatTimeParts(cls.starts_at);
-  const normalizedVariant = normalizeLessonCardVariant(variant, compact);
+  const resolvedVariant =
+    context === "memberHome" &&
+    (variant === "hero" || variant === "standard" || variant === "compact")
+      ? variant === "hero"
+        ? "homeFeature"
+        : "homeList"
+      : variant;
+  const normalizedVariant = normalizeLessonCardVariant(resolvedVariant, compact);
   const visualMode = getLessonVisualMode({
     index,
     lesson: cls,

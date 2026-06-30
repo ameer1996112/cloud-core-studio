@@ -2493,6 +2493,10 @@
   min-height: clamp(236px, 26vw, 320px);
 }
 
+[dir="rtl"] .lesson-card__feature-layout {
+  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.05fr);
+}
+
 .lesson-card__feature-copy,
 .lesson-card__list-copy {
   min-width: 0;
