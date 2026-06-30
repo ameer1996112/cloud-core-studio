@@ -7581,6 +7581,27 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   justify-content: flex-start;
 }
 
+.premium-lesson-card[dir="rtl"] .lesson-chip-row,
+.lesson-detail[dir="rtl"] .lesson-chip-row {
+  direction: rtl;
+  justify-content: flex-start !important;
+  align-self: stretch;
+  text-align: right;
+}
+
+.premium-lesson-card[dir="ltr"] .lesson-chip-row,
+.lesson-detail[dir="ltr"] .lesson-chip-row {
+  direction: ltr;
+  justify-content: flex-start !important;
+  align-self: stretch;
+  text-align: left;
+}
+
+.premium-lesson-card[dir="rtl"] .member-class-meta-chip,
+.lesson-detail[dir="rtl"] .member-class-meta-chip {
+  text-align: right;
+}
+
 /* Global RTL safety net: any element that opted into uppercase + wide
    tracking gets normalized in Hebrew/Arabic. Catches inline utility classes
    (e.g. filter pills, tabs) that don't go through the named component classes

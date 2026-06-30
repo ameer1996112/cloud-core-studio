@@ -252,7 +252,7 @@ export function ClassDetailSheet({
                 ) : null}
                 <StudioLocationInline value="Cloud & Core Studio" />
               </div>
-              <div className="lesson-chip-row lesson-chip-row-hero">
+              <div dir={dir} className="lesson-chip-row lesson-chip-row-hero">
                 {metaChips.slice(0, 3).map((chip) => (
                   <span key={chip} className="member-class-meta-chip" dir="auto">
                     <bdi>{chip}</bdi>

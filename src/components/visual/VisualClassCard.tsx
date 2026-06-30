@@ -633,7 +633,7 @@ export function PremiumLessonReservationCard({
               <StudioLocationInline value={locationLabel} />
             </div>
 
-            <div className="lesson-card__chips lesson-chip-row">
+            <div dir={dir} className="lesson-card__chips lesson-chip-row">
               {metaChips.slice(0, 3).map((chip) => (
                 <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
                   <bdi>{chip}</bdi>
@@ -863,7 +863,7 @@ export function LessonReservationCard({
           ) : null}
           <StudioLocationInline value={studioName()} />
         </div>
-        <div className="lesson-card__chips lesson-chip-row">
+        <div dir={dir} className="lesson-card__chips lesson-chip-row">
           {metaChips.slice(0, 3).map((chip) => (
             <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
               <bdi>{chip}</bdi>
