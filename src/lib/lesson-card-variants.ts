@@ -8,7 +8,14 @@ import {
   type LocalizedProgramSource,
 } from "@/lib/localized-content";
 
-export type LessonCardVariant = "hero" | "standard" | "compact";
+export type LessonCardVariant =
+  | "homeFeature"
+  | "homeList"
+  | "scheduleLead"
+  | "scheduleList"
+  | "hero"
+  | "standard"
+  | "compact";
 export type LessonVisualMode = "image" | "artTile" | "accent" | "minimal";
 export type LessonCardContext = "memberHome" | "memberSchedule" | "adminSchedule" | "detail";
 export type ArtTileVariant = "a" | "b" | "c";
@@ -86,6 +93,18 @@ function hasLessonImage(lesson: LessonVisualSource | null | undefined) {
   return lessonImageKey(lesson).length > 0;
 }
 
+export function normalizeLessonCardVariant(
+  variant: LessonCardVariant | undefined,
+  compact = false,
+): Exclude<LessonCardVariant, "hero" | "standard" | "compact"> {
+  if (variant === "homeFeature" || variant === "homeList") return variant;
+  if (variant === "scheduleLead" || variant === "scheduleList") return variant;
+  if (variant === "hero") return "scheduleLead";
+  if (variant === "compact") return "homeList";
+  if (variant === "standard") return "scheduleList";
+  return compact ? "homeList" : "scheduleList";
+}
+
 export function getLessonVisualMode({
   index,
   lesson,
@@ -93,11 +112,13 @@ export function getLessonVisualMode({
   variant = "standard",
   context = "memberSchedule",
 }: VisualDecisionParams): LessonVisualMode {
-  if (variant === "compact") return "minimal";
+  const normalizedVariant = normalizeLessonCardVariant(variant, false);
+  const isFeature =
+    normalizedVariant === "homeFeature" || normalizedVariant === "scheduleLead";
   const currentImage = lessonImageKey(lesson);
   const previousImage = lessonImageKey(previousLesson);
 
-  if (variant === "hero") {
+  if (isFeature) {
     if (hasLessonImage(lesson) && (!previousImage || currentImage !== previousImage))
       return "image";
     return "artTile";
