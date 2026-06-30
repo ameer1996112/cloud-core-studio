@@ -3,7 +3,6 @@
 ## Files Changed
 
 - `docs/member-lesson-card-related-variants-report.md`
-- `.superpowers/sdd/task-4-report.md`
 
 ## What Changed
 
