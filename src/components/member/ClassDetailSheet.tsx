@@ -9,10 +9,10 @@ import { getClassDetail, joinWaitlist, leaveWaitlist } from "@/lib/member.functi
 import { bookClass } from "@/lib/cloud-core.functions";
 import {
   ClassImage,
+  StateBadge,
   deriveClassState,
   formatTime,
   formatDate,
-  StateBadge,
   type PremiumClassCardClass,
 } from "./PremiumClassCard";
 import { t, useI18n } from "@/lib/i18n";
@@ -33,6 +33,7 @@ import {
   getFriendlyStudioLocation,
   getLessonVisualMode,
 } from "@/lib/lesson-card-variants";
+import { resolveClassImagePosition } from "@/lib/image-assets";
 
 type BookClassResult =
   | { status: "booked"; booking_id: string; remaining_credits?: number | null }
@@ -49,6 +50,29 @@ type JoinWaitlistResult = {
 
 function hasBookingId(res: BookClassResult): res is BookClassResult & { booking_id: string } {
   return res.status === "booked" && typeof res.booking_id === "string" && res.booking_id.length > 0;
+}
+
+function StudioLocationInline({ value }: { value: string }) {
+  const match = value.match(/Cloud\s*&\s*Core/);
+  if (!match || match.index === undefined) {
+    return (
+      <span dir="auto">
+        <bdi>{value}</bdi>
+      </span>
+    );
+  }
+
+  const before = value.slice(0, match.index);
+  const after = value.slice(match.index + match[0].length);
+  return (
+    <span>
+      {before}
+      <bdi dir="ltr" style={{ unicodeBidi: "isolate" }}>
+        Cloud &amp; Core
+      </bdi>
+      {after}
+    </span>
+  );
 }
 
 export function ClassDetailSheet({
@@ -134,7 +158,7 @@ export function ClassDetailSheet({
   const programDescription = cls ? localizedProgramDescription(cls.program_type) : null;
   const spotsLeft = cls ? Math.max(0, cls.capacity - cls.booked_count) : 0;
   const detailVisualMode = cls
-    ? getLessonVisualMode({ index: 0, lesson: cls, variant: "hero", context: "detail" })
+    ? getLessonVisualMode({ index: 0, lesson: cls, variant: "featured", context: "classDetail" })
     : "artTile";
   const artTileVariant = cls ? getArtTileVariant(cls, 0) : "a";
   const locationLabel = getFriendlyStudioLocation(lang);
@@ -145,6 +169,13 @@ export function ClassDetailSheet({
       ? t("member.oneCredit")
       : `${cls.credit_cost} ${t("common.credits")}`
     : "";
+  const instructorDescriptor = instructor
+    ? lang === "he"
+      ? `בהנחיית ${instructor}`
+      : lang === "ar"
+        ? `مع ${instructor}`
+        : `With ${instructor}`
+    : null;
   const state = cls
     ? deriveClassState(cls, {
         booked: data?.myBooking?.status === "booked",
@@ -163,7 +194,7 @@ export function ClassDetailSheet({
     >
       <DialogContent
         dir={dir}
-        className="lesson-detail w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]"
+        className="lesson-detail w-[calc(100vw-1rem)] max-w-3xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]"
       >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
         <DialogDescription className="sr-only">{t("booking.bring")}</DialogDescription>
@@ -190,91 +221,118 @@ export function ClassDetailSheet({
         ) : (
           <>
             <div className="lesson-detail__summary">
-              <div className="min-w-0">
-                <div className="lesson-detail__meta-line">
-                  <span className="lesson-detail__time" dir="ltr">
-                    <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
-                    <span aria-hidden="true"> · </span>
-                    <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
-                  </span>
-                  {metaChips[0] ? (
-                    <span className="member-class-meta-chip" dir="auto">
-                      <bdi>{metaChips[0]}</bdi>
-                    </span>
-                  ) : null}
-                </div>
-                <MixedLessonTitle
-                  as="h2"
-                  brand={titleParts?.brand ?? null}
-                  program={titleParts?.program ?? title}
-                  dir={dir}
-                  className="lesson-detail__title member-mixed-title mt-3 text-[clamp(1.75rem,7vw,2.55rem)] leading-[1.02] text-navy text-balance"
-                />
+              <MixedLessonTitle
+                as="h2"
+                brand={titleParts?.brand ?? null}
+                program={titleParts?.program ?? title}
+                dir={dir}
+                className="lesson-detail__title member-mixed-title"
+              />
+              <div className="lesson-detail__meta-line">
+                <span className="lesson-detail__time" dir="ltr">
+                  <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
+                </span>
+                <span aria-hidden="true">·</span>
+                <span className="lesson-detail__time" dir="ltr">
+                  <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>{durationLabel}</span>
+                <span aria-hidden="true">·</span>
+                <span>{spotsLabel}</span>
               </div>
-              {state && <StateBadge state={state} />}
-            </div>
-
-            <div className="lesson-detail__visual">
-              {detailVisualMode === "image" ? (
-                <ClassImage cls={cls} variant="hero" eager className="lesson-detail__image">
-                  <div
-                    className="absolute inset-0 z-[2] bg-linear-to-t from-navy/45 via-transparent to-transparent pointer-events-none"
-                    aria-hidden
-                  />
-                </ClassImage>
-              ) : (
-                <ClassArtTile
-                  programType={cls.program_type}
-                  tone={cls.energy}
-                  lang={lang}
-                  variant={artTileVariant}
-                />
-              )}
+              <div className="lesson-detail__descriptor">
+                {instructorDescriptor ? (
+                  <>
+                    <span dir="auto">
+                      <bdi>{instructorDescriptor}</bdi>
+                    </span>
+                    <span aria-hidden="true">·</span>
+                  </>
+                ) : null}
+                <StudioLocationInline value="Cloud & Core Studio" />
+              </div>
+              <div className="lesson-chip-row lesson-chip-row-hero">
+                {metaChips.slice(0, 3).map((chip) => (
+                  <span key={chip} className="member-class-meta-chip" dir="auto">
+                    <bdi>{chip}</bdi>
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="lesson-detail__body">
-              <div className="lesson-detail__key-card">
-                <Stat
-                  icon={<Clock className="h-3 w-3 text-gold" />}
-                  label={t("common.when")}
-                  value={`${formatTime(cls.starts_at)} · ${durationLabel}`}
-                />
-                {instructor && (
-                  <Stat
-                    icon={<Sparkles className="h-3 w-3 text-gold" />}
-                    label={t("common.with")}
-                    value={instructor}
+              <div className="lesson-detail__visual">
+                {detailVisualMode === "image" ? (
+                  <>
+                    <ClassImage
+                      cls={cls}
+                      variant="hero"
+                      eager
+                      imagePosition={resolveClassImagePosition(cls)}
+                      className="lesson-detail__image"
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 z-10"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(11,29,58,0.42) 0%, transparent 42%)",
+                      }}
+                      aria-hidden
+                    />
+                    {state && (
+                      <div className="lesson-detail__visual-chip">
+                        <StateBadge state={state} />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <ClassArtTile
+                    programType={cls.program_type}
+                    tone={cls.energy}
+                    lang={lang}
+                    variant={artTileVariant}
                   />
                 )}
-                <Stat
-                  icon={<MapPin className="h-3 w-3 text-gold" />}
-                  label={t("common.where")}
-                  value={locationLabel}
-                />
-                <Stat
-                  icon={<Users className="h-3 w-3 text-gold" />}
-                  label={t("common.spots")}
-                  value={spotsLabel}
-                />
-                <Stat
-                  icon={<Sparkles className="h-3 w-3 text-gold" />}
-                  label={t("common.credits")}
-                  value={creditLabel}
-                />
               </div>
 
-              <section className="lesson-detail__section">
-                <div className="lesson-chip-row lesson-chip-row-hero">
-                  {metaChips.map((chip) => (
-                    <span key={chip} className="member-class-meta-chip" dir="auto">
-                      <bdi>{chip}</bdi>
-                    </span>
-                  ))}
+              <div className="lesson-detail__info-grid">
+                <div className="lesson-detail__key-card">
+                  <Stat
+                    icon={<Clock className="h-3 w-3 text-gold" />}
+                    label={t("common.when")}
+                    value={`${formatTime(cls.starts_at)} · ${durationLabel}`}
+                  />
+                  {instructor && (
+                    <Stat
+                      icon={<Sparkles className="h-3 w-3 text-gold" />}
+                      label={t("common.with")}
+                      value={instructor}
+                    />
+                  )}
+                  <Stat
+                    icon={<MapPin className="h-3 w-3 text-gold" />}
+                    label={t("common.where")}
+                    value={<StudioLocationInline value={locationLabel} />}
+                  />
+                  <Stat
+                    icon={<Users className="h-3 w-3 text-gold" />}
+                    label={t("common.spots")}
+                    value={spotsLabel}
+                  />
+                  <Stat
+                    icon={<Sparkles className="h-3 w-3 text-gold" />}
+                    label={t("common.credits")}
+                    value={creditLabel}
+                  />
                 </div>
+
                 {programDescription && (
-                  <p className="mt-3 text-sm text-slate leading-relaxed">{programDescription}</p>
+                  <section className="lesson-detail__section lesson-detail__program">
+                    <p>{programDescription}</p>
+                  </section>
                 )}
-              </section>
+              </div>
 
               <div className="lesson-detail__section lesson-detail__notes">
                 <p className="member-eyebrow">{t("booking.notes")}</p>
@@ -332,7 +390,15 @@ export function ClassDetailSheet({
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <div className="lesson-detail__stat">
       <p className="member-eyebrow flex items-center gap-1">

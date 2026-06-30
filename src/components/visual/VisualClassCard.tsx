@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpLeft, CalendarPlus, MapPin, Sparkles, Users } from "lucide-react";
+import { ArrowUpLeft, CalendarPlus, ChevronLeft } from "lucide-react";
 import { getLocale, t, useI18n, type Lang } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { initialsFor, resolveClassImagePosition, resolveClassImageSrc } from "@/lib/image-assets";
@@ -119,6 +119,72 @@ export function ClassArtTile({
   );
 }
 
+function fadeColorForCard(cardClass: string) {
+  if (cardClass.includes("bg-navy")) return "#0B1D3A";
+  if (cardClass.includes("bg-ivory")) return "#FAF7F2";
+  if (cardClass.includes("bg-[#F1EBE1]")) return "#F1EBE1";
+  if (cardClass.includes("bg-[#EDE5D8]")) return "#EDE5D8";
+  if (cardClass.includes("bg-[#F5F0E9]")) return "#F5F0E9";
+  if (cardClass.includes("bg-sand")) return "#E8DFD1";
+  if (cardClass.includes("bg-powder")) return "#B7CCE6";
+  return "#FAF7F2";
+}
+
+function PhotoPanel({
+  title,
+  imageUrl,
+  imagePosition,
+  desaturate,
+  fadeColor,
+  eager,
+  isRtl,
+  verticalFadeMobile = false,
+}: {
+  title?: string | null;
+  imageUrl?: string | null;
+  imagePosition?: string;
+  desaturate?: boolean;
+  fadeColor: string;
+  eager?: boolean;
+  isRtl: boolean;
+  verticalFadeMobile?: boolean;
+}) {
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      <ClassMoodImage
+        title={title ?? undefined}
+        imageUrl={imageUrl ?? null}
+        className="absolute inset-0 h-full w-full"
+        imagePosition={imagePosition}
+        eager={eager}
+      />
+      {desaturate && (
+        <div className="absolute inset-0 bg-sand/50 mix-blend-luminosity" aria-hidden />
+      )}
+
+      {/* Mobile: vertical fade (photo top, content below) */}
+      {verticalFadeMobile && (
+        <div
+          className="pointer-events-none absolute inset-0 md:hidden"
+          style={{ background: `linear-gradient(to bottom, transparent 55%, ${fadeColor} 100%)` }}
+          aria-hidden
+        />
+      )}
+
+      {/* Desktop: horizontal fade (photo left, content right in LTR; photo right, content left in RTL) */}
+      <div
+        className="pointer-events-none absolute inset-0 hidden md:block"
+        style={{
+          background: isRtl
+            ? `linear-gradient(to left, transparent 45%, ${fadeColor} 95%)`
+            : `linear-gradient(to right, transparent 45%, ${fadeColor} 95%)`,
+        }}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
 function toneFor(state: ClassState): {
   tone: Tone;
   chipLabel: string;
@@ -159,7 +225,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     waitlist_available: {
-      card: "bg-sand/40",
+      card: "bg-[#F1EBE1]",
       rail: "bg-powder",
       chip: "bg-powder text-navy",
       text: "text-navy",
@@ -167,7 +233,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     full: {
-      card: "bg-sand/40",
+      card: "bg-[#F1EBE1]",
       rail: "bg-slate/60",
       chip: "bg-navy/85 text-ivory",
       text: "text-navy",
@@ -176,7 +242,7 @@ function toneFor(state: ClassState): {
       desaturate: true,
     },
     low_credits: {
-      card: "bg-sand/50",
+      card: "bg-[#EDE5D8]",
       rail: "bg-gold",
       chip: "bg-gold/80 text-navy",
       text: "text-navy",
@@ -184,7 +250,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     package_required: {
-      card: "bg-sand/50",
+      card: "bg-[#EDE5D8]",
       rail: "bg-gold",
       chip: "bg-sand text-navy border border-gold/50",
       text: "text-navy",
@@ -192,7 +258,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     cancelled: {
-      card: "bg-sand/30",
+      card: "bg-[#F5F0E9]",
       rail: "bg-slate/50",
       chip: "bg-navy/10 text-slate",
       text: "text-slate",
@@ -320,7 +386,7 @@ export function ScheduleDaySection({
         ) : null}
         <span className="schedule-day-header__rule" aria-hidden="true" />
       </header>
-      <div className="schedule-day-section__cards">{children}</div>
+      <div className="schedule-day-section__cards grid gap-4 sm:gap-5">{children}</div>
     </section>
   );
 }
@@ -329,31 +395,6 @@ function lessonCountLabel(count: number, locale: string) {
   if (locale.startsWith("he")) return `${count} ${count === 1 ? "שיעור" : "שיעורים"}`;
   if (locale.startsWith("ar")) return `${count} ${count === 1 ? "حصة" : "حصص"}`;
   return `${count} ${count === 1 ? "lesson" : "lessons"}`;
-}
-
-function MetaItem({
-  icon,
-  label,
-  value,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="lesson-card__meta-item">
-      <div className="lesson-card__meta-icon" aria-hidden="true">
-        {icon}
-      </div>
-      <div className="lesson-card__meta-text w-full">
-        <span className="lesson-card__meta-label">{label}</span>
-        <span className="lesson-card__meta-value">{value}</span>
-        {children}
-      </div>
-    </div>
-  );
 }
 
 function CtaLabel({
@@ -381,12 +422,80 @@ function CtaLabel({
   );
 }
 
-function availabilityText(spotsLeft: number, lang: Lang) {
-  if (spotsLeft <= 0) return t("capacity.full");
-  if (spotsLeft === 1) return t("capacity.left.one");
-  return lang === "he" || lang === "ar"
-    ? t("capacity.left.many", { count: spotsLeft })
-    : t("capacity.left.many", { count: spotsLeft });
+function studioName() {
+  return "Cloud & Core Studio";
+}
+
+function StudioLocationInline({ value }: { value: string }) {
+  const match = value.match(/Cloud\s*&\s*Core/);
+  if (!match || match.index === undefined) {
+    return (
+      <span dir="auto">
+        <bdi>{value}</bdi>
+      </span>
+    );
+  }
+
+  const before = value.slice(0, match.index);
+  const after = value.slice(match.index + match[0].length);
+  return (
+    <span>
+      {before}
+      <bdi dir="ltr" style={{ unicodeBidi: "isolate" }}>
+        Cloud &amp; Core
+      </bdi>
+      {after}
+    </span>
+  );
+}
+
+function instructorDescriptor(instructor: string | null, lang: Lang) {
+  if (!instructor) return null;
+  if (lang === "he") return `בהנחיית ${instructor}`;
+  if (lang === "ar") return `مع ${instructor}`;
+  return `With ${instructor}`;
+}
+
+function supportTextFor(state: ClassState, chipLabel: string, lang: Lang) {
+  switch (state.kind) {
+    case "low_credits":
+    case "package_required":
+      if (lang === "he") return "נדרש חידוש קרדיטים כדי להשלים הזמנה.";
+      if (lang === "ar") return "يلزم تجديد الرصيد لإكمال الحجز.";
+      return "Credits are required to complete this reservation.";
+    case "available":
+    case "almost":
+      return "";
+    case "full":
+      if (lang === "he") return "השיעור מלא כרגע.";
+      if (lang === "ar") return "الحصة ممتلئة حاليا.";
+      return "This class is currently full.";
+    case "waitlist_available":
+      if (lang === "he") return "אפשר להצטרף לרשימת ההמתנה.";
+      if (lang === "ar") return "يمكن الانضمام إلى قائمة الانتظار.";
+      return "You can join the waitlist for this class.";
+    default:
+      return chipLabel;
+  }
+}
+
+function ctaLabelFor(state: ClassState, fallback: string, lang: Lang) {
+  if (state.kind === "low_credits" || state.kind === "package_required") {
+    if (lang === "he") return "חידוש קרדיטים";
+    if (lang === "ar") return "تجديد الرصيد";
+    return fallback;
+  }
+  if (state.kind === "available" || state.kind === "almost") {
+    if (lang === "he") return "פרטים והרשמה";
+    if (lang === "ar") return "التفاصيل والتسجيل";
+    return "Details & booking";
+  }
+  if (state.kind === "waitlist_available") {
+    if (lang === "he") return "הצטרפות לרשימת המתנה";
+    if (lang === "ar") return "الانضمام إلى قائمة الانتظار";
+    return "Join waitlist";
+  }
+  return fallback;
 }
 
 function formatTime(iso: string) {
@@ -409,7 +518,7 @@ function formatTimeParts(iso: string) {
   };
 }
 
-export function VisualClassCard({
+export function PremiumLessonReservationCard({
   cls,
   state,
   onOpen,
@@ -435,38 +544,13 @@ export function VisualClassCard({
   context?: LessonCardContext;
 }) {
   const { dir, lang } = useI18n();
-  const isRtl = dir === "rtl";
-  const { chipLabel, cta } = toneFor(state);
-  const title = localizedClassTitle(cls);
+  const { tone, chipLabel, cta } = toneFor(state);
   const titleParts = localizedClassTitleParts(cls, lang);
   const metaChips = localizedClassMetadataChips(cls);
   const instructor = localizedOptionalInstructorName(cls.instructor?.name);
   const totalCapacity = cls.capacity ?? 0;
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
   const time = formatTimeParts(cls.starts_at);
-  const resolvedVariant =
-    context === "memberHome" &&
-    (variant === "hero" || variant === "standard" || variant === "compact")
-      ? variant === "hero"
-        ? "homeFeature"
-        : "homeList"
-      : variant;
-  const normalizedVariant = normalizeLessonCardVariant(resolvedVariant, compact);
-  const visualMode = getLessonVisualMode({
-    index,
-    lesson: cls,
-    previousLesson,
-    variant: normalizedVariant,
-    context,
-  });
-  const isHomeFeature = normalizedVariant === "homeFeature";
-  const isHomeList = normalizedVariant === "homeList";
-  const isScheduleLead = normalizedVariant === "scheduleLead";
-  const isScheduleList = normalizedVariant === "scheduleList";
-  const isFeature = isHomeFeature || isScheduleLead;
-  const accent = getLessonProgramAccent(cls);
-  const tileVariant = getArtTileVariant(cls, index);
-  const useHeroImage = isFeature && visualMode === "image";
   const roomName =
     typeof cls.room_ref === "object" && cls.room_ref && "name" in cls.room_ref
       ? String(cls.room_ref.name ?? "")
@@ -476,122 +560,25 @@ export function VisualClassCard({
   const locationLabel = shouldShowRoomOnLessonCard(roomCount, roomName)
     ? roomName
     : getFriendlyStudioLocation(lang);
-  const openSpotsText = availabilityText(spotsLeft, lang);
-  const listImageSrc = resolveClassImageSrc(cls, "thumb");
-  const featureImageSrc = resolveClassImageSrc(cls, "card");
-
-  const cardShell = `lesson-card lesson-card--${normalizedVariant} visual-class-card class-card-shell ${
-    isRtl ? "is-rtl" : "is-ltr"
-  } relative min-w-0 max-w-full overflow-hidden transition-[transform,box-shadow] group-hover:-translate-y-0.5`;
-
-  if (!isFeature) {
-    return (
-      <button
-        type="button"
-        dir={dir}
-        onClick={onOpen}
-        className="group block w-full min-w-0 text-start"
-      >
-        <article
-          dir={dir}
-          data-lesson-variant={normalizedVariant}
-          className={cardShell}
-          style={
-            {
-              "--lesson-accent": accent.rail,
-              "--lesson-wash": accent.wash,
-              "--lesson-surface": accent.surface,
-            } as React.CSSProperties
-          }
-        >
-          <span className="lesson-card__accent" aria-hidden="true" />
-          <div className="lesson-card__list-layout" dir={dir}>
-            <div className="lesson-card__list-copy">
-              <div className="lesson-card__time-row">
-                <span className="lesson-card__time-badge" dir="ltr">
-                  {time.hour}:{time.minute}
-                </span>
-                <span className="lesson-card__duration" dir="auto">
-                  <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
-                </span>
-                <span className="lesson-card__availability">
-                  <bdi>{openSpotsText}</bdi>
-                </span>
-              </div>
-
-              <MixedLessonTitle
-                as="h3"
-                brand={titleParts.brand}
-                program={titleParts.program}
-                dir={dir}
-                className="lesson-card__title lesson-card-title"
-              />
-              <div className="lesson-card__chips lesson-chip-row">
-                {metaChips.slice(0, isHomeList ? 2 : 3).map((chip) => (
-                  <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
-                    <bdi>{chip}</bdi>
-                  </span>
-                ))}
-              </div>
-              <div className="lesson-card__meta-inline">
-                <span dir="auto">
-                  <bdi>{instructor ?? t("member.locationStudio")}</bdi>
-                </span>
-                <span aria-hidden="true">·</span>
-                <span dir="auto">
-                  <bdi>{locationLabel}</bdi>
-                </span>
-                <span aria-hidden="true">·</span>
-                <span dir="auto">
-                  <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
-                </span>
-              </div>
-              <div className="lesson-card__footer">
-                <span className="lesson-card__state-copy">{chipLabel}</span>
-                {cta ? (
-                  <CtaLabel label={cta.label} disabled={cta.disabled} strong={isScheduleList} />
-                ) : null}
-              </div>
-            </div>
-            <div className="lesson-card__list-media" aria-hidden="true">
-              {listImageSrc ? (
-                <ClassMoodImage
-                  title={title}
-                  programTypeName={localizedProgramName(cls?.program_type)}
-                  imageUrl={listImageSrc}
-                  variant="thumb"
-                  imagePosition={resolveClassImagePosition(cls)}
-                  className="lesson-card__list-image"
-                  eager={eager}
-                />
-              ) : (
-                <ClassArtTile
-                  programType={cls.program_type}
-                  tone={typeof cls.energy === "string" ? cls.energy : null}
-                  lang={lang}
-                  compact
-                  variant={tileVariant}
-                />
-              )}
-            </div>
-          </div>
-          <span className="sr-only">{chipLabel}</span>
-        </article>
-      </button>
-    );
-  }
+  const descriptor = instructorDescriptor(instructor, lang);
+  const stateCopy = supportTextFor(state, chipLabel, lang);
+  const fade = fadeColorForCard(tone.card);
+  const imageUrl = resolveClassImageSrc(cls, "card");
+  const imagePosition = resolveClassImagePosition(cls);
+  const layoutVariant = normalizeLessonCardVariant(variant, compact, context);
+  const accent = getLessonProgramAccent(cls);
 
   return (
     <button
       type="button"
       dir={dir}
       onClick={onOpen}
-      className="group block w-full min-w-0 text-start"
+      className="group block w-full text-start animate-fade-in premium-lesson-card-trigger"
     >
       <article
         dir={dir}
-        data-lesson-variant={normalizedVariant}
-        className={cardShell}
+        data-lesson-variant={layoutVariant}
+        className={`lesson-card premium-lesson-card premium-lesson-card--live class-card-shell transition-[transform,box-shadow] duration-300 ${tone.card}`}
         style={
           {
             "--lesson-accent": accent.rail,
@@ -601,17 +588,30 @@ export function VisualClassCard({
         }
       >
         <span className="lesson-card__accent" aria-hidden="true" />
-        <div className="lesson-card__feature-layout" dir={dir}>
-          <div className="lesson-card__feature-copy">
-            <div className="lesson-card__time-row">
+        <div className="premium-lesson-card__layout">
+          <div className="premium-lesson-card__media" aria-hidden="true">
+            <PhotoPanel
+              title={localizedClassTitle(cls)}
+              imageUrl={imageUrl}
+              imagePosition={imagePosition}
+              desaturate={tone.desaturate}
+              fadeColor={fade}
+              eager={eager}
+              isRtl={dir === "rtl"}
+              verticalFadeMobile
+            />
+          </div>
+
+          <div className={`premium-lesson-card__content ${tone.text}`}>
+            <div className="premium-lesson-card__meta lesson-card__time-row">
               <span className="lesson-card__time-badge" dir="ltr">
                 {time.hour}:{time.minute}
               </span>
               <span className="lesson-card__duration" dir="auto">
                 <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
               </span>
-              <span className="lesson-card__availability">
-                <bdi>{openSpotsText}</bdi>
+              <span className="lesson-card__availability" dir="auto">
+                <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
               </span>
             </div>
             <MixedLessonTitle
@@ -621,6 +621,18 @@ export function VisualClassCard({
               dir={dir}
               className="lesson-card__title lesson-card-title"
             />
+            <div className="premium-lesson-card__descriptor">
+              {descriptor ? (
+                <>
+                  <span dir="auto">
+                    <bdi>{descriptor}</bdi>
+                  </span>
+                  <span aria-hidden="true">·</span>
+                </>
+              ) : null}
+              <StudioLocationInline value={locationLabel} />
+            </div>
+
             <div className="lesson-card__chips lesson-chip-row">
               {metaChips.slice(0, 3).map((chip) => (
                 <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
@@ -628,76 +640,57 @@ export function VisualClassCard({
                 </span>
               ))}
             </div>
-            <div className="lesson-card__meta-grid" dir={dir}>
-              <MetaItem
-                icon={<Sparkles className="h-3.5 w-3.5" />}
-                label={t("common.with")}
-                value={
+
+            <div className="premium-lesson-card__actions lesson-card__footer">
+              {stateCopy ? (
+                <div className={`lesson-card__state-copy ${tone.soft}`}>
                   <span dir="auto">
-                    <bdi>{instructor ?? t("member.locationStudio")}</bdi>
+                    <bdi>{stateCopy}</bdi>
                   </span>
-                }
-              />
-              <MetaItem
-                icon={<MapPin className="h-3.5 w-3.5" />}
-                label={t("common.where")}
-                value={
-                  <span dir="auto">
-                    <bdi>{locationLabel}</bdi>
-                  </span>
-                }
-              />
-              <MetaItem
-                icon={<Users className="h-3.5 w-3.5" />}
-                label={t("common.spots")}
-                value={
-                  <span dir="auto">
-                    <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
-                  </span>
-                }
-              />
+                </div>
+              ) : null}
+              {participants.length > 0 && (
+                <div className="premium-lesson-card__participants">
+                  {participants.slice(0, 4).map((n, i) => (
+                    <ParticipantChip
+                      key={`${n}-${i}`}
+                      name={n}
+                      tone={tone.card.includes("navy") ? "ivory" : "navy"}
+                    />
+                  ))}
+                  {participants.length > 4 && (
+                    <span className={`text-[10px] ${tone.soft}`}>+{participants.length - 4}</span>
+                  )}
+                </div>
+              )}
+              {cta && !compact && (
+                <span
+                  className={`lesson-card__cta ${tone.cta}`}
+                  aria-disabled={cta.disabled || undefined}
+                >
+                  {ctaLabelFor(state, cta.label, lang)}
+                  {!cta.disabled && (
+                    <ChevronLeft className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
+                  )}
+                </span>
+              )}
             </div>
-            <div className="lesson-card__footer">
-              <span className="lesson-card__state-copy">{chipLabel}</span>
-              {cta ? <CtaLabel label={cta.label} disabled={cta.disabled} strong /> : null}
-            </div>
-            {participants.length > 0 ? (
-              <div className="lesson-card__participant-row" dir={dir}>
-                {participants.slice(0, 3).map((n, i) => (
-                  <ParticipantChip key={`${n}-${i}`} name={n} tone="ivory" />
-                ))}
-                {participants.length > 3 && (
-                  <span className="lesson-card__participant-count">+{participants.length - 3}</span>
-                )}
-              </div>
-            ) : null}
-          </div>
-          <div className="lesson-card__feature-media">
-            {useHeroImage && featureImageSrc ? (
-              <ClassMoodImage
-                title={title}
-                programTypeName={localizedProgramName(cls?.program_type)}
-                imageUrl={featureImageSrc}
-                variant="card"
-                imagePosition={resolveClassImagePosition(cls)}
-                className="lesson-card__feature-image"
-                eager={eager}
-              />
-            ) : (
-              <ClassArtTile
-                programType={cls.program_type}
-                tone={typeof cls.energy === "string" ? cls.energy : null}
-                lang={lang}
-                variant={tileVariant}
+            {compact && (
+              <ChevronLeft
+                className={`absolute bottom-4 end-4 h-4 w-4 ${tone.soft} rtl:-scale-x-100`}
+                aria-hidden
               />
             )}
           </div>
         </div>
-        <span className="sr-only">{chipLabel}</span>
       </article>
     </button>
   );
 }
+
+export const VisualClassCard = PremiumLessonReservationCard;
+export const PremiumReservationLessonCard = PremiumLessonReservationCard;
+export const LessonCard = PremiumLessonReservationCard;
 
 /** Mini variant — single-line row for home upcoming previews. */
 export function VisualClassCardMini({
@@ -727,10 +720,10 @@ export function VisualClassCardMini({
         className={`absolute inset-y-0 ${isRtl ? "end-0" : "start-0"} w-[3px] ${tone.rail}`}
         aria-hidden
       />
-      <div className={`flex items-center gap-3 p-2.5 text-start ${tone.text}`}>
+      <div className={`flex items-center gap-3.5 p-3 text-start ${tone.text}`}>
         <div
-          className="relative shrink-0 overflow-hidden rounded-[12px] border border-gold/25"
-          style={{ width: 52, height: 52 }}
+          className="relative shrink-0 overflow-hidden rounded-[14px] border border-gold/25"
+          style={{ width: 64, height: 64 }}
         >
           <ClassMoodImage
             title={title.full}
@@ -775,6 +768,125 @@ export function VisualClassCardMini({
         </span>
       </div>
     </Link>
+  );
+}
+
+export function LessonReservationCard({
+  cls,
+  state,
+  statusLabel,
+  onOpen,
+  children,
+  muted = false,
+}: {
+  cls: VisualClassCardClass;
+  state: ClassState;
+  statusLabel?: string;
+  onOpen: () => void;
+  children?: React.ReactNode;
+  muted?: boolean;
+}) {
+  const { dir, lang } = useI18n();
+  const { chipLabel, cta } = toneFor(state);
+  const titleParts = localizedClassTitleParts(cls, lang);
+  const metaChips = localizedClassMetadataChips(cls);
+  const instructor = localizedOptionalInstructorName(cls.instructor?.name);
+  const totalCapacity = cls.capacity ?? 0;
+  const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
+  const time = formatTimeParts(cls.starts_at);
+  const accent = getLessonProgramAccent(cls);
+  const tileVariant = getArtTileVariant(cls, 0);
+  const displayStatus = statusLabel ?? chipLabel;
+  const descriptor = instructorDescriptor(instructor, lang);
+
+  return (
+    <article
+      dir={dir}
+      role="button"
+      tabIndex={0}
+      data-lesson-variant="booking"
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+      className={`lesson-card premium-lesson-card lesson-reservation-card class-card-shell ${
+        muted ? "lesson-reservation-card--muted" : ""
+      }`}
+      style={
+        {
+          "--lesson-accent": accent.rail,
+          "--lesson-wash": accent.wash,
+          "--lesson-surface": accent.surface,
+        } as React.CSSProperties
+      }
+    >
+      <span className="lesson-card__accent" aria-hidden="true" />
+      <div className="lesson-reservation-card__media" aria-hidden="true">
+        <ClassArtTile
+          programType={cls.program_type}
+          tone={typeof cls.energy === "string" ? cls.energy : null}
+          lang={lang}
+          compact
+          variant={tileVariant}
+        />
+      </div>
+      <div className="lesson-reservation-card__copy">
+        <div className="premium-lesson-card__meta lesson-card__time-row">
+          <span className="lesson-card__time-badge" dir="ltr">
+            {time.hour}:{time.minute}
+          </span>
+          <span className="lesson-card__duration" dir="auto">
+            <bdi>{formatDuration(cls.duration_minutes, lang)}</bdi>
+          </span>
+          <span className="lesson-card__availability" dir="auto">
+            <bdi>{formatSpots(spotsLeft, totalCapacity, lang)}</bdi>
+          </span>
+        </div>
+        <MixedLessonTitle
+          as="h3"
+          brand={titleParts.brand}
+          program={titleParts.program}
+          dir={dir}
+          className="lesson-card__title lesson-card-title"
+        />
+        <div className="premium-lesson-card__descriptor">
+          {descriptor ? (
+            <>
+              <span dir="auto">
+                <bdi>{descriptor}</bdi>
+              </span>
+              <span aria-hidden="true">·</span>
+            </>
+          ) : null}
+          <StudioLocationInline value={studioName()} />
+        </div>
+        <div className="lesson-card__chips lesson-chip-row">
+          {metaChips.slice(0, 3).map((chip) => (
+            <span key={chip} className="member-class-meta-chip" dir="auto" title={chip}>
+              <bdi>{chip}</bdi>
+            </span>
+          ))}
+        </div>
+        <div className="lesson-card__meta-inline">
+          <span dir="auto">
+            <bdi>{displayStatus}</bdi>
+          </span>
+          <span aria-hidden="true">·</span>
+          <span dir="auto">
+            <bdi>{supportTextFor(state, chipLabel, lang)}</bdi>
+          </span>
+        </div>
+        {cta ? (
+          <div className="lesson-reservation-card__primary-action">
+            <CtaLabel label={ctaLabelFor(state, cta.label, lang)} disabled={cta.disabled} strong />
+          </div>
+        ) : null}
+        {children ? <div className="lesson-reservation-card__actions">{children}</div> : null}
+      </div>
+    </article>
   );
 }
 
