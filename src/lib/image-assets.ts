@@ -393,6 +393,14 @@ export function resolveClassImageSrc(
   return variantSrc(matched, variant) ?? matched.src;
 }
 
+/** Resolve the tuned object-position for mapped class photography. */
+export function resolveClassImagePosition(cls: ClassImageSource | null | undefined): string {
+  const pt = cls?.program_type ?? cls?.program ?? null;
+  const ptName = pt?.name_en ?? pt?.name_he ?? pt?.name ?? pt?.label ?? null;
+  const matched = classImageFor([ptName ?? "", cls?.title ?? ""]) ?? DEFAULT_CLASS_IMAGE;
+  return matched.position ?? "center center";
+}
+
 /** Helper: pick localized alt safely. */
 export function localizedAlt(asset: ImageAsset, lang: Lang | string): string {
   const l = (lang as Lang) in asset.alt ? (lang as Lang) : "en";
