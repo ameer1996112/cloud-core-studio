@@ -282,8 +282,7 @@ function availabilityMeterLabel(spotsLeft: number, isLow: boolean, lang: Lang) {
 
   if (lang === "he")
     return spotsLeft === 1 ? "נותר מקום אחד בלבד" : `נותרו ${spotsLeft} מקומות בלבד`;
-  if (lang === "ar")
-    return spotsLeft === 1 ? "تبقى مكان واحد فقط" : `تبقى ${spotsLeft} أماكن فقط`;
+  if (lang === "ar") return spotsLeft === 1 ? "تبقى مكان واحد فقط" : `تبقى ${spotsLeft} أماكن فقط`;
   return spotsLeft === 1 ? "Only 1 spot left" : `Only ${spotsLeft} spots left`;
 }
 

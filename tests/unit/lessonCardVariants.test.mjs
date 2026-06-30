@@ -173,53 +173,65 @@ assert.equal(formatSpots(1, 10, "en"), "1 spot open");
 assert.equal(formatSpots(0, 10, "ar"), "قائمة انتظار");
 assert.equal(formatTime("2026-07-01T07:30:00.000Z", "en", "UTC"), "07:30");
 
-assert.deepEqual(pickMeter(getLessonAvailabilityMeter({ capacity: 10, bookedCount: 3, lang: "he" })), {
-  shouldRender: true,
-  spotsLeft: 7,
-  capacity: 10,
-  bookedCount: 3,
-  bookedRatio: 0.3,
-  fillPercent: 30,
-  isLow: false,
-  label: "7 מקומות פנויים",
-  assistiveLabel: "7 מקומות פנויים מתוך 10",
-});
+assert.deepEqual(
+  pickMeter(getLessonAvailabilityMeter({ capacity: 10, bookedCount: 3, lang: "he" })),
+  {
+    shouldRender: true,
+    spotsLeft: 7,
+    capacity: 10,
+    bookedCount: 3,
+    bookedRatio: 0.3,
+    fillPercent: 30,
+    isLow: false,
+    label: "7 מקומות פנויים",
+    assistiveLabel: "7 מקומות פנויים מתוך 10",
+  },
+);
 
-assert.deepEqual(pickMeter(getLessonAvailabilityMeter({ capacity: 8, bookedCount: 6, lang: "he" })), {
-  shouldRender: true,
-  spotsLeft: 2,
-  capacity: 8,
-  bookedCount: 6,
-  bookedRatio: 0.75,
-  fillPercent: 75,
-  isLow: true,
-  label: "נותרו 2 מקומות בלבד",
-  assistiveLabel: "נותרו 2 מקומות בלבד מתוך 8",
-});
+assert.deepEqual(
+  pickMeter(getLessonAvailabilityMeter({ capacity: 8, bookedCount: 6, lang: "he" })),
+  {
+    shouldRender: true,
+    spotsLeft: 2,
+    capacity: 8,
+    bookedCount: 6,
+    bookedRatio: 0.75,
+    fillPercent: 75,
+    isLow: true,
+    label: "נותרו 2 מקומות בלבד",
+    assistiveLabel: "נותרו 2 מקומות בלבד מתוך 8",
+  },
+);
 
-assert.deepEqual(pickMeter(getLessonAvailabilityMeter({ capacity: 8, bookedCount: 7, lang: "en" })), {
-  shouldRender: true,
-  spotsLeft: 1,
-  capacity: 8,
-  bookedCount: 7,
-  bookedRatio: 0.875,
-  fillPercent: 88,
-  isLow: true,
-  label: "Only 1 spot left",
-  assistiveLabel: "Only 1 spot left out of 8",
-});
+assert.deepEqual(
+  pickMeter(getLessonAvailabilityMeter({ capacity: 8, bookedCount: 7, lang: "en" })),
+  {
+    shouldRender: true,
+    spotsLeft: 1,
+    capacity: 8,
+    bookedCount: 7,
+    bookedRatio: 0.875,
+    fillPercent: 88,
+    isLow: true,
+    label: "Only 1 spot left",
+    assistiveLabel: "Only 1 spot left out of 8",
+  },
+);
 
-assert.deepEqual(pickMeter(getLessonAvailabilityMeter({ capacity: 8, bookedCount: 8, lang: "ar" })), {
-  shouldRender: true,
-  spotsLeft: 0,
-  capacity: 8,
-  bookedCount: 8,
-  bookedRatio: 1,
-  fillPercent: 100,
-  isLow: true,
-  label: "قائمة الانتظار مفتوحة",
-  assistiveLabel: "قائمة الانتظار مفتوحة",
-});
+assert.deepEqual(
+  pickMeter(getLessonAvailabilityMeter({ capacity: 8, bookedCount: 8, lang: "ar" })),
+  {
+    shouldRender: true,
+    spotsLeft: 0,
+    capacity: 8,
+    bookedCount: 8,
+    bookedRatio: 1,
+    fillPercent: 100,
+    isLow: true,
+    label: "قائمة الانتظار مفتوحة",
+    assistiveLabel: "قائمة الانتظار مفتوحة",
+  },
+);
 
 assert.equal(
   getLessonAvailabilityMeter({ capacity: 0, bookedCount: 0, lang: "he" }).shouldRender,
