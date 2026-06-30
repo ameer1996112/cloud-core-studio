@@ -191,7 +191,7 @@ function MemberSchedule() {
                   remainingCredits: member?.remaining_credits ?? 0,
                 })}
                 onOpen={() => setOpenClass(c.id)}
-                variant={index === 0 ? "hero" : "standard"}
+                variant={index === 0 ? "scheduleLead" : "scheduleList"}
                 index={index}
                 previousLesson={index > 0 ? items[index - 1] : null}
                 roomCount={rooms.length}
