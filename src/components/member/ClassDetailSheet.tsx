@@ -25,7 +25,7 @@ import {
 } from "@/lib/localized-content";
 import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
 import { buildIcs, downloadIcs } from "@/lib/messageTemplate";
-import { ClassArtTile } from "@/components/visual/VisualClassCard";
+import { ClassArtTile, LessonAvailabilityMeter } from "@/components/visual/VisualClassCard";
 import {
   formatDuration,
   formatSpots,
@@ -259,6 +259,12 @@ export function ClassDetailSheet({
                   </span>
                 ))}
               </div>
+              <LessonAvailabilityMeter
+                capacity={cls.capacity}
+                bookedCount={cls.booked_count}
+                lang={lang}
+                dir={dir}
+              />
             </div>
 
             <div className="lesson-detail__body">

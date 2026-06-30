@@ -17,6 +17,7 @@ import {
   formatSpots,
   getArtTileVariant,
   getFriendlyStudioLocation,
+  getLessonAvailabilityMeter,
   getLessonProgramAccent,
   getLessonVisualMode,
   normalizeLessonCardVariant,
@@ -449,6 +450,48 @@ function StudioLocationInline({ value }: { value: string }) {
   );
 }
 
+export function LessonAvailabilityMeter({
+  capacity,
+  bookedCount,
+  lang,
+  dir,
+  compact = false,
+}: {
+  capacity?: number | null;
+  bookedCount?: number | null;
+  lang: Lang;
+  dir: "rtl" | "ltr";
+  compact?: boolean;
+}) {
+  const model = getLessonAvailabilityMeter({ capacity, bookedCount, lang });
+  if (!model.shouldRender) return null;
+
+  return (
+    <div
+      className={`lesson-availability-meter ${
+        model.isLow ? "lesson-availability-meter--low" : ""
+      } ${compact ? "lesson-availability-meter--compact" : ""}`}
+      dir={dir}
+      aria-label={model.assistiveLabel}
+    >
+      <div className="lesson-availability-meter__row">
+        <span className="lesson-availability-meter__label" dir="auto">
+          <bdi>{model.label}</bdi>
+        </span>
+        <span className="lesson-availability-meter__count" dir="ltr">
+          {model.bookedCount}/{model.capacity}
+        </span>
+      </div>
+      <div className="lesson-availability-meter__track" aria-hidden="true">
+        <span
+          className="lesson-availability-meter__fill"
+          style={{ inlineSize: `${model.fillPercent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function instructorDescriptor(instructor: string | null, lang: Lang) {
   if (!instructor) return null;
   if (lang === "he") return `בהנחיית ${instructor}`;
@@ -640,6 +683,13 @@ export function PremiumLessonReservationCard({
                 </span>
               ))}
             </div>
+
+            <LessonAvailabilityMeter
+              capacity={totalCapacity}
+              bookedCount={cls.booked_count}
+              lang={lang}
+              dir={dir}
+            />
 
             <div className="premium-lesson-card__actions lesson-card__footer">
               {stateCopy ? (
@@ -870,6 +920,13 @@ export function LessonReservationCard({
             </span>
           ))}
         </div>
+        <LessonAvailabilityMeter
+          capacity={totalCapacity}
+          bookedCount={cls.booked_count}
+          lang={lang}
+          dir={dir}
+          compact
+        />
         <div className="lesson-card__meta-inline">
           <span dir="auto">
             <bdi>{displayStatus}</bdi>
