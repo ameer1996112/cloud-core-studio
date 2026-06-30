@@ -113,8 +113,7 @@ export function getLessonVisualMode({
   context = "memberSchedule",
 }: VisualDecisionParams): LessonVisualMode {
   const normalizedVariant = normalizeLessonCardVariant(variant, false);
-  const isFeature =
-    normalizedVariant === "homeFeature" || normalizedVariant === "scheduleLead";
+  const isFeature = normalizedVariant === "homeFeature" || normalizedVariant === "scheduleLead";
   const currentImage = lessonImageKey(lesson);
   const previousImage = lessonImageKey(previousLesson);
 
