@@ -1,7 +1,16 @@
 # Member Lesson Card Related Variants Report
 
-## Files Changed
+## Task 4 Committed Artifact
 
+- `docs/member-lesson-card-related-variants-report.md`
+
+## Whole-Branch Files Changed
+
+- `src/lib/lesson-card-variants.ts`
+- `src/components/visual/VisualClassCard.tsx`
+- `src/styles.css`
+- `src/routes/_authenticated/member/index.tsx`
+- `src/routes/_authenticated/member/schedule.tsx`
 - `docs/member-lesson-card-related-variants-report.md`
 
 ## What Changed
@@ -10,7 +19,8 @@
 - Confirmed the current route wiring already matches the Task 4 brief:
   - `/member` uses `homeFeature` and `homeList`
   - `/member/schedule` uses `scheduleLead` and `scheduleList`
-- No additional source edits were made in this task pass because browser QA did not reach an authenticated member shell, and static inspection did not reveal a concrete card defect that justified touching `src/components/visual/VisualClassCard.tsx` or `src/styles.css`.
+- Applied the mobile RTL list-card grid fix so the copy column stays wide and the media column stays narrow on small screens.
+- Kept the report aligned with the branch-wide file set instead of only the Task 4 artifact.
 
 ## QA
 

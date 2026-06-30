@@ -2735,6 +2735,10 @@
     padding: 0.82rem;
   }
 
+  [dir="rtl"] .lesson-card__list-layout {
+    grid-template-columns: minmax(104px, 30vw) minmax(0, 1fr);
+  }
+
   .lesson-card__meta-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
