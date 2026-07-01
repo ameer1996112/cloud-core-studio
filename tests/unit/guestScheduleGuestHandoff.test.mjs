@@ -353,7 +353,9 @@ describe("guest schedule handoff", () => {
     expect(guestHtml).toContain("Open classes");
     expect(guestHtml).toContain(">1<");
 
-    renderedCardOpeners[0].onOpen();
+    const openClassCard = renderedCardOpeners.find(({ classId }) => classId === "open-class");
+    expect(openClassCard).toBeDefined();
+    openClassCard.onOpen();
     expect(selectedClassId).toBe("open-class");
 
     observedQueryKeys.length = 0;

@@ -17,11 +17,10 @@ What those tracked checks prove:
   - the real guest detail branch still has a focused supplemental check for the full-class guest message
   - it verifies `Sign in for booking options` plus the no-waitlist/package/top-up constraint for a full guest class
 
-Verified commands:
+Verified command:
 
 ```bash
-bun test tests/unit/guestScheduleGuestHandoff.test.mjs
-bun test tests/unit/guestDetailGuestBranch.test.mjs
+bun test tests/unit/guestScheduleGuestHandoff.test.mjs tests/unit/guestDetailGuestBranch.test.mjs
 ```
 
 Local live-preview blocker:

@@ -2,6 +2,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, mock, test } from "bun:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import * as actualRouter from "@tanstack/react-router";
+import * as actualReactStart from "@tanstack/react-start";
 
 const premiumClassCardPath = fileURLToPath(
   new URL("../../src/components/member/PremiumClassCard.tsx", import.meta.url),
@@ -46,6 +48,7 @@ mock.module("@/integrations/supabase/client", () => ({
 }));
 
 mock.module("@tanstack/react-start", () => ({
+  ...actualReactStart,
   useServerFn: () => () => Promise.resolve(null),
 }));
 
@@ -69,6 +72,7 @@ mock.module("@tanstack/react-query", () => ({
 }));
 
 mock.module("@tanstack/react-router", () => ({
+  ...actualRouter,
   Link: ({ to, children, ...props }) =>
     React.createElement("a", { href: String(to), ...props }, children),
   useNavigate: () => () => {},
@@ -85,9 +89,16 @@ mock.module("@/components/ui/dialog", () => ({
 }));
 
 mock.module("@/lib/member.functions", () => ({
+  listAvailableClasses: {},
+  getMyBookingsAll: {},
+  memberCancelBooking: {},
   getClassDetail: {},
   joinWaitlist: {},
   leaveWaitlist: {},
+}));
+
+mock.module("@/lib/studioSettings.functions", () => ({
+  getPublicStudioSettings: {},
 }));
 
 mock.module("@/lib/cloud-core.functions", () => ({
@@ -107,20 +118,39 @@ const premiumCardMock = {
   formatDate: () => "Thu, Jul 3",
 };
 
-mock.module("@/components/member/PremiumClassCard", () => premiumCardMock);
-mock.module(premiumClassCardPath, () => premiumCardMock);
+const MemberEmptyState = ({ title, body }) =>
+  React.createElement("div", { "data-testid": "empty-state" }, `${title} ${body}`);
+
+mock.module("@/components/member/PremiumClassCard", () => ({
+  ...premiumCardMock,
+  MemberEmptyState,
+}));
+mock.module(premiumClassCardPath, () => ({ ...premiumCardMock, MemberEmptyState }));
 
 mock.module("@/lib/i18n", () => ({
   t: (key, params) => {
     const map = {
+      "nav.schedule": "Schedule",
+      "legal.support": "Support",
+      "member.filter.level": "Level",
+      "member.filter.energy": "Energy",
       "booking.details": "Booking details",
       "booking.bring": "Bring water",
       "common.close": "Close",
       "common.when": "When",
       "common.with": "With",
       "common.where": "Where",
+      "common.room": "Room",
       "common.spots": "Spots",
       "common.credits": "Credits",
+      "member.stat.available": "Available",
+      "member.stat.credits": "Credits",
+      "member.schedule.kicker": "Schedule",
+      "member.schedule.body": "Body",
+      "member.empty.schedule.title": "No classes",
+      "member.empty.schedule.body": "No schedule yet",
+      "member.noSessions": "No sessions",
+      "member.clearFilters": "Clear filters",
       "booking.notes": "Notes",
       "booking.registrationClosed": "Registration closed",
       "booking.viewMine": "View my bookings",
@@ -136,6 +166,7 @@ mock.module("@/lib/i18n", () => ({
     if (key === "booking.cancelWindow") return `Cancel ${String(params?.hours ?? "")}`;
     return map[key] ?? key;
   },
+  getLocale: () => "en",
   useI18n: () => ({ lang: "en", dir: "ltr" }),
 }));
 
@@ -143,8 +174,12 @@ mock.module("@/lib/localized-content", () => ({
   localizedClassMetadataChips: () => ["Flow", "Studio"],
   localizedClassTitle: (cls) => cls.title,
   localizedClassTitleParts: (cls) => ({ brand: "Cloud & Core", program: cls.title }),
+  localizedFilterLabel: (value) => value,
+  localizedInstructorName: (value) => value,
   localizedOptionalInstructorName: (name) => name ?? null,
   localizedProgramDescription: () => "Program description",
+  localizedRoomName: ({ name }) => name,
+  localizedToneName: (value) => value,
 }));
 
 mock.module("@/components/ui/bidi", () => ({
@@ -155,9 +190,14 @@ mock.module("@/components/ui/bidi", () => ({
 mock.module("@/lib/messageTemplate", () => ({
   buildIcs: () => "",
   downloadIcs: () => Promise.resolve(),
+  waUrl: () => "https://wa.example.test",
 }));
 
 mock.module("@/components/visual/VisualClassCard", () => ({
+  LessonReservationCard: ({ title }) => React.createElement("div", {}, title ?? "reservation"),
+  VisualClassCard: ({ cls, onOpen }) =>
+    React.createElement("button", { type: "button", onClick: onOpen }, cls?.title ?? "Open"),
+  ScheduleDaySection: ({ children }) => React.createElement("section", {}, children),
   ClassArtTile: () => React.createElement("div", { "data-testid": "art-tile" }),
   LessonAvailabilityMeter: () =>
     React.createElement("div", { "data-testid": "availability-meter" }, "Availability"),
@@ -172,6 +212,10 @@ mock.module("@/lib/lesson-card-variants", () => ({
 }));
 
 mock.module("@/lib/image-assets", () => ({
+  studioImages: {
+    atmosphere: { src: "/studio-atmosphere.webp", alt_en: "Studio" },
+  },
+  localizedAlt: () => "Studio",
   resolveClassImagePosition: () => "center center",
 }));
 
