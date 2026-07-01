@@ -23,6 +23,7 @@ __pycache__/
 *.py[cod]
 *.local
 .openwa/
+.worktrees/
 supabase/.temp/
 supabase/backups/
 
