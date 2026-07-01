@@ -420,6 +420,166 @@ await check("admin can cancel booking with refund", async () => {
   return data?.status === "cancelled" && after === before + bk.credit_cost;
 });
 
+await check("admin can delete an empty mistake class", async () => {
+  const { data: cls } = await admin
+    .from("classes")
+    .insert({
+      title: "E2E Delete Empty",
+      starts_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+      duration_minutes: 45,
+      capacity: 8,
+      room: "E2E Studio",
+      credit_cost: 1,
+      cancellation_window_hours: 4,
+      status: "scheduled",
+      booked_count: 0,
+      waitlist_count: 0,
+      energy: "flow",
+    })
+    .select("id")
+    .single();
+
+  const { data } = await adminS.c.rpc("admin_delete_class", {
+    p_actor_id: adminS.uid,
+    p_class_id: cls.id,
+  });
+  const after = await admin.from("classes").select("id").eq("id", cls.id).maybeSingle();
+
+  return data?.status === "deleted" && !after.data;
+});
+
+await check("admin delete is blocked when bookings exist", async () => {
+  const { data: cls } = await admin
+    .from("classes")
+    .insert({
+      title: "E2E Delete Blocked",
+      starts_at: new Date(Date.now() + 5 * 86_400_000).toISOString(),
+      duration_minutes: 45,
+      capacity: 4,
+      room: "E2E Studio",
+      credit_cost: 1,
+      cancellation_window_hours: 4,
+      status: "scheduled",
+      booked_count: 0,
+      waitlist_count: 0,
+      energy: "flow",
+    })
+    .select("id")
+    .single();
+
+  await adminS.c.rpc("admin_create_booking", {
+    p_actor_id: adminS.uid,
+    p_class_id: cls.id,
+    p_member_id: m1.uid,
+    p_override: false,
+  });
+
+  const { data } = await adminS.c.rpc("admin_delete_class", {
+    p_actor_id: adminS.uid,
+    p_class_id: cls.id,
+  });
+
+  return data?.status === "blocked" && data?.reason === "has_bookings";
+});
+
+await check("admin can cancel a class and refund once", async () => {
+  const { data: cls } = await admin
+    .from("classes")
+    .insert({
+      title: "E2E Cancel Class",
+      starts_at: new Date(Date.now() + 6 * 86_400_000).toISOString(),
+      duration_minutes: 50,
+      capacity: 3,
+      room: "E2E Studio",
+      credit_cost: 1,
+      cancellation_window_hours: 4,
+      status: "scheduled",
+      booked_count: 0,
+      waitlist_count: 0,
+      energy: "flow",
+    })
+    .select("id")
+    .single();
+
+  await adminS.c.rpc("admin_create_booking", {
+    p_actor_id: adminS.uid,
+    p_class_id: cls.id,
+    p_member_id: m1.uid,
+    p_override: false,
+  });
+
+  await admin
+    .from("waitlist_entries")
+    .insert({ class_id: cls.id, member_id: m2.uid, status: "waiting", position: 1 });
+
+  const beforeCredits = (
+    await admin.from("members").select("remaining_credits").eq("id", m1.uid).single()
+  ).data.remaining_credits;
+
+  const { data } = await adminS.c.rpc("admin_cancel_class", {
+    p_actor_id: adminS.uid,
+    p_class_id: cls.id,
+    p_reason: "Studio event",
+    p_refund: true,
+  });
+
+  const afterCredits = (
+    await admin.from("members").select("remaining_credits").eq("id", m1.uid).single()
+  ).data.remaining_credits;
+  const cancelledBooking = await admin
+    .from("bookings")
+    .select("status")
+    .eq("class_id", cls.id)
+    .eq("member_id", m1.uid)
+    .maybeSingle();
+  const waitlistRow = await admin
+    .from("waitlist_entries")
+    .select("status")
+    .eq("class_id", cls.id)
+    .eq("member_id", m2.uid)
+    .maybeSingle();
+
+  return (
+    data?.status === "cancelled" &&
+    data?.bookings_cancelled === 1 &&
+    data?.credits_returned === 1 &&
+    afterCredits === beforeCredits + 1 &&
+    cancelledBooking.data?.status === "cancelled" &&
+    waitlistRow.data?.status === "cancelled"
+  );
+});
+
+await check("admin cancel class is idempotent", async () => {
+  const { data: cls } = await admin
+    .from("classes")
+    .select("id")
+    .eq("title", "E2E Cancel Class")
+    .single();
+
+  const beforeRefundRows = (
+    await admin
+      .from("credit_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("reason", "admin cancel refund")
+  ).count;
+
+  const { data } = await adminS.c.rpc("admin_cancel_class", {
+    p_actor_id: adminS.uid,
+    p_class_id: cls.id,
+    p_reason: "Studio event",
+    p_refund: true,
+  });
+
+  const afterRefundRows = (
+    await admin
+      .from("credit_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("reason", "admin cancel refund")
+  ).count;
+
+  return data?.status === "already_cancelled" && afterRefundRows === beforeRefundRows;
+});
+
 // ---------- INSTRUCTOR / ADMIN RPC FORBIDDEN ----------
 
 await check("non-admin cannot call admin_create_booking", async () => {

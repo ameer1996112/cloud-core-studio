@@ -951,6 +951,29 @@ export const MESSAGES = {
     "admin.classDetail.waitlistPromoted": "Moved from waitlist",
     "admin.classDetail.bookingCancelled": "Booking cancelled",
     "admin.classDetail.cancelBookingConfirm": "Cancel this booking and refund?",
+    "admin.classDetail.dangerZone": "Danger zone",
+    "admin.classDetail.dangerZoneBody":
+      "Use cancel for member-facing sessions. Delete is reserved for empty mistake classes.",
+    "admin.classDetail.cancelClass": "Cancel class",
+    "admin.classDetail.deleteClass": "Delete class",
+    "admin.classDetail.cancelDescription":
+      "This class will be canceled and members will be notified",
+    "admin.classDetail.deleteDescription":
+      "This class will be removed from the system. Use this only for a mistake class with no registrations.",
+    "admin.classDetail.deleteBlocked":
+      "You can’t delete a class with active bookings. Cancel it instead.",
+    "admin.classDetail.cancelClassConfirmCheckbox":
+      "I understand this class will be canceled and members will be notified.",
+    "admin.classDetail.cancelReasonPlaceholder": "Cancellation reason",
+    "admin.classDetail.cancelSummaryTitle": "Cancellation result",
+    "admin.classDetail.cancelSummaryBookings": "{count} bookings affected",
+    "admin.classDetail.cancelSummaryWaitlist": "{count} waitlist entries affected",
+    "admin.classDetail.cancelSummaryCredits": "{count} credits may be returned",
+    "admin.classDetail.cancelSummaryNotifications": "{count} member notifications will be prepared",
+    "admin.classDetail.cancelSuccess": "Class cancelled and members updated",
+    "admin.classDetail.notificationManualReview":
+      "One or more member notifications need manual review.",
+    "admin.classDetail.deleteSuccess": "Class deleted successfully",
     "admin.classStatus.scheduled": "Scheduled",
     "admin.classStatus.cancelled": "Cancelled",
     "admin.classStatus.archived": "Archived",
@@ -2103,6 +2126,27 @@ export const MESSAGES = {
     "admin.classDetail.waitlistPromoted": "החברה קודמה מרשימת ההמתנה",
     "admin.classDetail.bookingCancelled": "ההזמנה בוטלה",
     "admin.classDetail.cancelBookingConfirm": "לבטל את ההזמנה ולהחזיר את הקרדיט?",
+    "admin.classDetail.dangerZone": "אזור רגיש",
+    "admin.classDetail.dangerZoneBody":
+      "לביטול שיעור קיים השתמשו בביטול. מחיקה מיועדת רק לשיעור ריק שנוצר בטעות.",
+    "admin.classDetail.cancelClass": "ביטול שיעור",
+    "admin.classDetail.deleteClass": "מחיקת שיעור",
+    "admin.classDetail.cancelDescription": "השיעור יבוטל והמשתתפות יקבלו עדכון",
+    "admin.classDetail.deleteDescription":
+      "השיעור יימחק מהמערכת. פעולה זו מתאימה רק לשיעור שנוצר בטעות ואין לו הרשמות.",
+    "admin.classDetail.deleteBlocked":
+      "אי אפשר למחוק שיעור עם הרשמות פעילות. אפשר לבטל אותו במקום.",
+    "admin.classDetail.cancelClassConfirmCheckbox":
+      "אני מבין/ה שהשיעור יבוטל והמשתתפות יקבלו עדכון.",
+    "admin.classDetail.cancelReasonPlaceholder": "סיבת הביטול",
+    "admin.classDetail.cancelSummaryTitle": "סיכום הביטול",
+    "admin.classDetail.cancelSummaryBookings": "{count} הרשמות מושפעות",
+    "admin.classDetail.cancelSummaryWaitlist": "{count} מרשימת ההמתנה מושפעות",
+    "admin.classDetail.cancelSummaryCredits": "{count} קרדיטים עשויים לחזור",
+    "admin.classDetail.cancelSummaryNotifications": "{count} הודעות לחברות ייווצרו",
+    "admin.classDetail.cancelSuccess": "השיעור בוטל והמשתתפות עודכנו",
+    "admin.classDetail.notificationManualReview": "אחת או יותר מההודעות דורשות טיפול ידני.",
+    "admin.classDetail.deleteSuccess": "השיעור נמחק בהצלחה",
     "admin.classStatus.scheduled": "מתוזמן",
     "admin.classStatus.cancelled": "בוטל",
     "admin.classStatus.archived": "בארכיון",
@@ -3256,6 +3300,27 @@ export const MESSAGES = {
     "admin.classDetail.waitlistPromoted": "تمت الترقية من قائمة الانتظار",
     "admin.classDetail.bookingCancelled": "تم إلغاء الحجز",
     "admin.classDetail.cancelBookingConfirm": "إلغاء الحجز وإرجاع الرصيد؟",
+    "admin.classDetail.dangerZone": "منطقة حساسة",
+    "admin.classDetail.dangerZoneBody":
+      "استخدمي الإلغاء للحصص التي وصلت للعضوات. الحذف مخصص فقط للحصص الفارغة التي أُنشئت بالخطأ.",
+    "admin.classDetail.cancelClass": "إلغاء الحصة",
+    "admin.classDetail.deleteClass": "حذف الحصة",
+    "admin.classDetail.cancelDescription": "سيتم إلغاء الحصة وإبلاغ المشاركات",
+    "admin.classDetail.deleteDescription":
+      "ستُحذف الحصة من النظام. استخدمي هذا فقط لحصة أُنشئت بالخطأ ولا تحتوي على حجوزات.",
+    "admin.classDetail.deleteBlocked":
+      "لا يمكن حذف حصة فيها حجوزات نشطة. يمكنك إلغاءها بدلًا من ذلك.",
+    "admin.classDetail.cancelClassConfirmCheckbox":
+      "أفهم أن هذه الحصة ستُلغى وسيتم إبلاغ المشاركات.",
+    "admin.classDetail.cancelReasonPlaceholder": "سبب الإلغاء",
+    "admin.classDetail.cancelSummaryTitle": "ملخص الإلغاء",
+    "admin.classDetail.cancelSummaryBookings": "{count} حجوزات متأثرة",
+    "admin.classDetail.cancelSummaryWaitlist": "{count} من قائمة الانتظار متأثرة",
+    "admin.classDetail.cancelSummaryCredits": "قد تتم إعادة {count} أرصدة",
+    "admin.classDetail.cancelSummaryNotifications": "سيتم إعداد {count} إشعارات للعضوات",
+    "admin.classDetail.cancelSuccess": "تم إلغاء الحصة وإبلاغ المشاركات",
+    "admin.classDetail.notificationManualReview": "إشعار واحد أو أكثر يحتاج متابعة يدوية.",
+    "admin.classDetail.deleteSuccess": "تم حذف الحصة بنجاح",
     "admin.classStatus.scheduled": "مجدولة",
     "admin.classStatus.cancelled": "ألغيت",
     "admin.classStatus.archived": "مؤرشفة",

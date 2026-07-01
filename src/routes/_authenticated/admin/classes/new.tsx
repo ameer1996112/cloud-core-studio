@@ -251,25 +251,35 @@ export function SessionForm({
       {/* 1. Session Summary / Header Dashboard */}
       <div className="bg-white border border-gold/25 rounded-2xl p-5 shadow-[0_4px_16px_rgba(11,29,58,0.02)] grid grid-cols-2 md:grid-cols-4 gap-4 text-start">
         <div>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.time")}</span>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">
+            {t("admin.classes.time")}
+          </span>
           <p className="font-display text-sm font-semibold text-navy mt-1" dir="ltr">
-            {hasSelectedTime ? `${formatSessionDate(startDate, lang)} · ${formatSessionTime(startDate, lang)}` : t("admin.classes.timePending")}
+            {hasSelectedTime
+              ? `${formatSessionDate(startDate, lang)} · ${formatSessionTime(startDate, lang)}`
+              : t("admin.classes.timePending")}
           </p>
         </div>
         <div>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.lessonTemplate")}</span>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">
+            {t("admin.classes.lessonTemplate")}
+          </span>
           <p className="font-display text-sm font-semibold text-navy mt-1 truncate">
             {selectedProgram ? programName(selectedProgram, lang) : "—"}
           </p>
         </div>
         <div>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.capacityPlaces")}</span>
-          <p className="font-display text-sm font-semibold text-navy mt-1">
-            {form.capacity}
-          </p>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">
+            {t("admin.classes.capacityPlaces")}
+          </span>
+          <p className="font-display text-sm font-semibold text-navy mt-1">{form.capacity}</p>
         </div>
         <div>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.status" as any) === "admin.classes.status" ? "Status" : t("admin.classes.status" as any)}</span>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">
+            {t("admin.classes.status" as any) === "admin.classes.status"
+              ? "Status"
+              : t("admin.classes.status" as any)}
+          </span>
           <p className="font-display text-sm font-semibold text-navy mt-1">
             <span className="inline-flex items-center rounded-full bg-gold/10 px-2.5 py-0.5 text-xs text-navy font-semibold border border-gold/20">
               {form.status ? labelForStatus(form.status) : labelForStatus("scheduled")}
@@ -315,7 +325,9 @@ export function SessionForm({
 
           {selectedProgram && (
             <div className="session-template-summary border border-gold/15 bg-ivory/50 rounded-xl p-3.5 text-start">
-              <span className="font-semibold text-navy text-sm">{programName(selectedProgram, lang)}</span>
+              <span className="font-semibold text-navy text-sm">
+                {programName(selectedProgram, lang)}
+              </span>
               <p className="text-xs text-slate mt-1">
                 {localizedProgramDescription(selectedProgram, lang) ??
                   t("admin.classes.templateReady")}
@@ -340,9 +352,7 @@ export function SessionForm({
                 <PremiumSelect
                   required
                   value={form.instructor_id}
-                  onChange={(value) =>
-                    setForm((current) => ({ ...current, instructor_id: value }))
-                  }
+                  onChange={(value) => setForm((current) => ({ ...current, instructor_id: value }))}
                 >
                   <option value="">{t("admin.classes.selectInstructor")}</option>
                   {activeInstructors.map((instructor: any) => (
@@ -494,8 +504,12 @@ export function SessionForm({
           onClick={() => setShowAdvanced(!showAdvanced)}
           className="w-full flex items-center justify-between p-4 font-display text-sm font-medium text-navy hover:bg-gold/5 transition-colors cursor-pointer"
         >
-          <span>{lang === "he" ? "פרטים מתקדמים" : lang === "ar" ? "تفاصيل إضافية" : "Advanced Details"}</span>
-          <ChevronRight className={`h-4 w-4 text-gold transition-transform duration-205 ${showAdvanced ? "rotate-90" : ""}`} />
+          <span>
+            {lang === "he" ? "פרטים מתקדמים" : lang === "ar" ? "تفاصيل إضافية" : "Advanced Details"}
+          </span>
+          <ChevronRight
+            className={`h-4 w-4 text-gold transition-transform duration-205 ${showAdvanced ? "rotate-90" : ""}`}
+          />
         </button>
         {showAdvanced && (
           <div className="p-4 border-t border-gold/10 bg-white/30 space-y-4 animate-fadeIn">
@@ -523,11 +537,19 @@ export function SessionForm({
           {isDirty ? (
             <span className="text-xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
               <Info className="h-3.5 w-3.5" />
-              {lang === "he" ? "יש שינויים שלא נשמרו" : lang === "ar" ? "هناك تغييرات غير محفوظة" : "Unsaved changes"}
+              {lang === "he"
+                ? "יש שינויים שלא נשמרו"
+                : lang === "ar"
+                  ? "هناك تغييرات غير محفوظة"
+                  : "Unsaved changes"}
             </span>
           ) : (
             <span className="text-xs font-medium text-slate">
-              {lang === "he" ? "כל השינויים שמורים" : lang === "ar" ? "تم حفظ جميع التغييرات" : "All changes saved"}
+              {lang === "he"
+                ? "כל השינויים שמורים"
+                : lang === "ar"
+                  ? "تم حفظ جميع التغييرات"
+                  : "All changes saved"}
             </span>
           )}
           {disabledReason && (
