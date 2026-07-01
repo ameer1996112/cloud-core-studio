@@ -167,6 +167,10 @@ function AuthPage() {
         : mode === "check-email"
           ? t("auth.checkEmailTitle")
           : t("auth.forgotHeadline");
+  const guestEntryTitle = t("auth.guestTitle");
+  const guestEntryBody = t("auth.guestBody");
+  const browseScheduleLabel = t("auth.browseSchedule");
+  const guestSupportLabel = t("auth.guestSupport");
 
   return (
     <main
@@ -376,6 +380,28 @@ function AuthPage() {
                       ? t("auth.already")
                       : t("auth.back")}
                 </button>
+                <section className="mt-5 border-t hairline pt-5" aria-labelledby="auth-guest-entry">
+                  <p id="auth-guest-entry" className="member-eyebrow text-slate">
+                    {guestEntryTitle}
+                  </p>
+                  <p className="mt-3 text-sm leading-7 text-slate text-start">
+                    {guestEntryBody}
+                  </p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <Link
+                      to="/member/schedule"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
+                    >
+                      {browseScheduleLabel}
+                    </Link>
+                    <Link
+                      to="/support"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/12 bg-transparent px-5 text-sm font-medium text-slate transition-colors hover:border-gold/35 hover:text-navy"
+                    >
+                      {guestSupportLabel}
+                    </Link>
+                  </div>
+                </section>
               </form>
             </div>
 
