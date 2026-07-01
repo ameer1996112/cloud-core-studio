@@ -36,6 +36,8 @@ const classesById = {
   },
 };
 
+const observedQueryKeys = [];
+const observedQueryOptions = [];
 const invalidateCalls = [];
 const mutationConfigs = [];
 
@@ -56,7 +58,10 @@ mock.module("@tanstack/react-start", () => ({
 }));
 
 mock.module("@tanstack/react-query", () => ({
-  useQuery: ({ queryKey }) => {
+  useQuery: (options) => {
+    observedQueryOptions.push(options);
+    const { queryKey } = options;
+    observedQueryKeys.push(queryKey);
     const classId = queryKey.length >= 3 ? queryKey[2] : queryKey[1];
 
     return {
@@ -316,5 +321,30 @@ describe("guest detail CTA branch", () => {
       scheduleInvalidation.predicate({ queryKey: ["member-schedule", "member:member-1"] }),
     ).toBe(true);
     expect(scheduleInvalidation.predicate({ queryKey: ["member-schedule", "guest"] })).toBe(false);
+  });
+
+  test("authenticated detail keeps the shared member pending key disabled", async () => {
+    const detailModule = await import("../../src/components/member/ClassDetailSheet.tsx");
+
+    observedQueryKeys.length = 0;
+    observedQueryOptions.length = 0;
+
+    renderToStaticMarkup(
+      React.createElement(detailModule.ClassDetailSheet, {
+        classId: "open-class",
+        open: true,
+        onOpenChange: () => {},
+        viewerContext: "member",
+      }),
+    );
+
+    expect(observedQueryKeys).toContainEqual(["class-detail", "member:pending", "open-class"]);
+    expect(
+      observedQueryOptions.find(
+        (options) =>
+          JSON.stringify(options?.queryKey) ===
+          JSON.stringify(["class-detail", "member:pending", "open-class"]),
+      )?.enabled,
+    ).toBe(false);
   });
 });

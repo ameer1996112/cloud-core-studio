@@ -33,6 +33,7 @@ import {
   localizedClassTitleParts,
   localizedOptionalInstructorName,
 } from "@/lib/localized-content";
+import { getMemberViewerCacheKey } from "@/lib/memberQueryKeys";
 import { getPlanDisplay } from "@/lib/planDisplay";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { AutoInline, LtrInline } from "@/components/ui/bidi";
@@ -65,6 +66,7 @@ function MemberHome() {
   const isRtl = LANG_META[lang].dir === "rtl";
   const recommended = data?.recommended ?? [];
   const upcomingBookings = data?.upcoming ?? [];
+  const detailViewerCacheKey = getMemberViewerCacheKey(data?.member?.id);
   const nextBooking = upcomingBookings[0] ?? null;
   const featuredClass = !nextBooking ? recommended[0] : null;
   const recommendedList = featuredClass ? recommended.slice(1) : recommended;
@@ -277,6 +279,7 @@ function MemberHome() {
         classId={openClass}
         open={!!openClass}
         onOpenChange={(v) => !v && setOpenClass(null)}
+        viewerCacheKey={detailViewerCacheKey}
       />
     </section>
   );

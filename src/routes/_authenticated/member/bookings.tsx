@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MessageCircle, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { getMyBookingsAll, memberCancelBooking, leaveWaitlist } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
@@ -14,7 +15,10 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { t, useI18n, getLocale } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { isAuthenticatedMemberScheduleQueryKey } from "@/lib/memberQueryKeys";
+import {
+  getMemberViewerCacheKey,
+  isAuthenticatedMemberScheduleQueryKey,
+} from "@/lib/memberQueryKeys";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
@@ -40,6 +44,17 @@ function MyBookings() {
   const [tab, setTab] = useState<Tab>("upcoming");
   const [confirmCancel, setConfirmCancel] = useState<any | null>(null);
   const [openClass, setOpenClass] = useState<string | null>(null);
+  const [detailViewerCacheKey, setDetailViewerCacheKey] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: sessionData }) => {
+      setDetailViewerCacheKey(getMemberViewerCacheKey(sessionData.session?.user?.id));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setDetailViewerCacheKey(getMemberViewerCacheKey(session?.user?.id));
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const cancelFn = useServerFn(memberCancelBooking);
   const leaveFn = useServerFn(leaveWaitlist);
@@ -253,6 +268,7 @@ function MyBookings() {
         classId={openClass}
         open={!!openClass}
         onOpenChange={(v) => !v && setOpenClass(null)}
+        viewerCacheKey={detailViewerCacheKey}
       />
     </section>
   );

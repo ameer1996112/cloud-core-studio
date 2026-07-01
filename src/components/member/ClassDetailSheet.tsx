@@ -40,6 +40,7 @@ import {
   getClassDetailQueryKey,
   getFallbackViewerCacheKey,
   getMemberScheduleInvalidationTarget,
+  isConcreteMemberViewerCacheKey,
   type ViewerContext,
 } from "@/lib/memberQueryKeys";
 
@@ -200,6 +201,8 @@ export function ClassDetailSheet({
     viewerCacheKey,
     authViewerCacheKey,
   });
+  const detailQueryEnabled =
+    !!classId && open && (isGuestView || isConcreteMemberViewerCacheKey(resolvedViewerCacheKey));
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -220,7 +223,7 @@ export function ClassDetailSheet({
   const { data, isLoading } = useQuery({
     queryKey: getClassDetailQueryKey(classId, resolvedViewerCacheKey),
     queryFn: () => fetchDetail({ data: { classId: classId! } }),
-    enabled: !!classId && open,
+    enabled: detailQueryEnabled,
   });
 
   const bookFn = useServerFn(bookClass);

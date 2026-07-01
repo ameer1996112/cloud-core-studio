@@ -12,6 +12,10 @@ export function getFallbackViewerCacheKey(viewerContext: ViewerContext) {
   return viewerContext === "guest" ? "guest" : "member:pending";
 }
 
+export function getMemberViewerCacheKey(userId: string | null | undefined) {
+  return typeof userId === "string" && userId.length > 0 ? `member:${userId}` : undefined;
+}
+
 export function getMemberScheduleQueryKey(viewerCacheKey: string) {
   return ["member-schedule", viewerCacheKey] as const;
 }
@@ -28,6 +32,14 @@ export function isAuthenticatedMemberScheduleQueryKey(queryKey: readonly unknown
   );
 }
 
+export function isConcreteMemberViewerCacheKey(viewerCacheKey: string | null | undefined) {
+  return (
+    typeof viewerCacheKey === "string" &&
+    viewerCacheKey.startsWith("member:") &&
+    viewerCacheKey !== "member:pending"
+  );
+}
+
 export function getMemberScheduleInvalidationTarget(
   viewerContext: ViewerContext,
   viewerCacheKey?: string,
@@ -36,11 +48,7 @@ export function getMemberScheduleInvalidationTarget(
     return { queryKey: getMemberScheduleQueryKey("guest") };
   }
 
-  if (
-    typeof viewerCacheKey === "string" &&
-    viewerCacheKey.startsWith("member:") &&
-    viewerCacheKey !== "member:pending"
-  ) {
+  if (isConcreteMemberViewerCacheKey(viewerCacheKey)) {
     return { queryKey: getMemberScheduleQueryKey(viewerCacheKey) };
   }
 
