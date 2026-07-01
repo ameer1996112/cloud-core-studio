@@ -60,7 +60,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
     language: "he",
     audience: "member",
     subject: null,
-    body: "שלום {{member_name}}, ההרשמה שלך לשיעור {{class_name}} אושרה.\nתאריך: {{class_date}}\nשעה: {{class_time}}\nמדריכה: {{instructor_name}}\nנתראה ב-{{studio_name}}.",
+    body: "🕊️ ההזמנה שלך אושרה\n{{class_name}} · {{class_date}} · {{class_time}}\nעם {{instructor_name}}\nנשמח לראות אותך ב-{{studio_name}}",
   },
   {
     eventKey: "booking_confirmed",
@@ -106,7 +106,7 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplateDefinition[] = 
 
 const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage, string>> = {
   booking_confirmed: {
-    he: "שלום {{member_name}}, ההרשמה שלך לשיעור {{class_name}} אושרה.",
+    he: "🕊️ ההזמנה שלך אושרה\n{{class_name}} · {{class_date}} · {{class_time}}\nעם {{instructor_name}}\nנשמח לראות אותך ב-{{studio_name}}",
     ar: "مرحباً {{member_name}}، تم تأكيد حجزك لحصة {{class_name}}.",
     en: "Hi {{member_name}}, your booking for {{class_name}} is confirmed.",
   },
@@ -126,7 +126,7 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     en: "Hi {{member_name}}, you joined the waitlist for {{class_name}}.",
   },
   waitlist_spot_available: {
-    he: "שלום {{member_name}}, התפנה מקום בשיעור {{class_name}}.",
+    he: "🤍 התפנה מקום עבורך\n{{class_name}} · {{class_date}} · {{class_time}}\nאם זה מתאים לך, אפשר להשלים את ההזמנה עכשיו",
     ar: "مرحباً {{member_name}}، أصبح هناك مكان متاح في حصة {{class_name}}.",
     en: "Hi {{member_name}}, a spot is available in {{class_name}}.",
   },
@@ -136,7 +136,7 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     en: "Hi {{member_name}}, your payment request for {{package_name}} was received and is pending studio confirmation.",
   },
   payment_confirmed: {
-    he: "שלום {{member_name}}, התשלום עבור {{package_name}} אושר.",
+    he: "✨ התשלום שלך אושר\nעבור {{package_name}}\nנשמח להמשיך לארח אותך ב-{{studio_name}}",
     ar: "مرحباً {{member_name}}، تم تأكيد الدفع مقابل {{package_name}}.",
     en: "Hi {{member_name}}, your payment for {{package_name}} is confirmed.",
   },
@@ -146,17 +146,17 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     en: "Hi {{member_name}}, receipt {{receipt_number}} was issued and is available in your account.",
   },
   class_cancelled_by_admin: {
-    he: "שלום {{member_name}}, השיעור {{class_name}} בתאריך {{class_date}} בשעה {{class_time}} בוטל על ידי הסטודיו.",
+    he: "עדכון לגבי השיעור שלך\n{{class_name}} בתאריך {{class_date}} בשעה {{class_time}} לא יתקיים\nנעדכן אותך בכל אפשרות חלופית רלוונטית",
     ar: "مرحباً {{member_name}}، تم إلغاء حصة {{class_name}} بتاريخ {{class_date}} الساعة {{class_time}} من قبل الاستوديو.",
     en: "Hi {{member_name}}, {{class_name}} on {{class_date}} at {{class_time}} was cancelled by the studio.",
   },
   class_time_changed: {
-    he: "שלום {{member_name}}, השעה של {{class_name}} עודכנה. השעה החדשה: {{class_date}} בשעה {{class_time}}.",
+    he: "השעה של השיעור שלך עודכנה\n{{class_name}} · {{class_date}} · {{class_time}}\nנשמח לראות אותך ב-{{studio_name}}",
     ar: "مرحباً {{member_name}}، تم تحديث موعد حصة {{class_name}}. الموعد الجديد: {{class_date}} الساعة {{class_time}}.",
     en: "Hi {{member_name}}, the time for {{class_name}} has changed. New time: {{class_date}} at {{class_time}}.",
   },
   class_reminder_24h: {
-    he: "שלום {{member_name}}, תזכורת לשיעור {{class_name}} מחר בשעה {{class_time}}.",
+    he: "⏰ תזכורת עדינה לקראת השיעור שלך\n{{class_name}} · {{class_date}} · {{class_time}}\nעם {{instructor_name}}\nנשמח לראות אותך ב-{{studio_name}}",
     ar: "مرحباً {{member_name}}، تذكير بحصة {{class_name}} غداً الساعة {{class_time}}.",
     en: "Hi {{member_name}}, reminder: {{class_name}} is tomorrow at {{class_time}}.",
   },

@@ -59,7 +59,7 @@ const rendered = renderNotificationCopy(template, {
   studio_name: "Cloud & Core",
 });
 
-assert.ok(rendered.body.includes("נועה"));
+assert.ok(rendered.body.includes("ההזמנה שלך אושרה"));
 assert.ok(rendered.body.includes("Core Flow"));
 assert.equal(rendered.subject, null);
 
