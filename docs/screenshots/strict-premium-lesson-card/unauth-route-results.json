@@ -1,0 +1,52 @@
+{
+  "results": [
+    {
+      "lang": "he",
+      "route": "/member",
+      "width": 1440,
+      "height": 900,
+      "file": "unauth-member-he-desktop-1440x900.png",
+      "url": "http://127.0.0.1:8080/auth",
+      "path": "/auth",
+      "cards": 0,
+      "overflow": false,
+      "text": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+    },
+    {
+      "lang": "he",
+      "route": "/member/schedule",
+      "width": 390,
+      "height": 844,
+      "file": "unauth-schedule-he-mobile-390x844.png",
+      "url": "http://127.0.0.1:8080/auth",
+      "path": "/auth",
+      "cards": 0,
+      "overflow": false,
+      "text": "עברית\nEnglish\nالعربية\n\nחברות וחברים\n\nכניסה לסטודיו\nאימייל\nסיסמה\nכניסה לסטודיו\nשכחת סיסמה?\nחדשים כאן? יצירת חשבון\nפרטיות\nתנאים\nתמיכה"
+    },
+    {
+      "lang": "ar",
+      "route": "/member/schedule",
+      "width": 430,
+      "height": 932,
+      "file": "unauth-schedule-ar-mobile-430x932.png",
+      "url": "http://127.0.0.1:8080/auth",
+      "path": "/auth",
+      "cards": 0,
+      "overflow": false,
+      "text": "עברית\nEnglish\nالعربية\n\nالأعضاء\n\nدخول الاستوديو\nالبريد الإلكتروني\nكلمة المرور\nدخول الاستوديو\nنسيت كلمة المرور؟\nجديد هنا؟ أنشئ حساباً\nالخصوصية\nالشروط\nالدعم"
+    },
+    {
+      "lang": "en",
+      "route": "/member/schedule",
+      "width": 820,
+      "height": 1180,
+      "file": "unauth-schedule-en-ipad-820x1180.png",
+      "url": "http://127.0.0.1:8080/auth",
+      "path": "/auth",
+      "cards": 0,
+      "overflow": false,
+      "text": "עברית\nEnglish\nالعربية\n\nMembers\n\nEnter the studio\nEmail\nPassword\nEnter the studio\nForgot your password?\nNew here? Create a member account\nPrivacy\nTerms\nSupport"
+    }
+  ]
+}
