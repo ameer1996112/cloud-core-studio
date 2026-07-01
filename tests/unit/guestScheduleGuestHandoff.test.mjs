@@ -335,6 +335,15 @@ function renderPublicRoute(routeModule, { session, selectedClassId, onSelectedCl
 }
 
 describe("guest schedule handoff", () => {
+  test("renders the public schedule immediately before session probing completes", async () => {
+    const routeModule = await import("../../src/routes/member.schedule.tsx");
+
+    const html = renderToStaticMarkup(React.createElement(routeModule.Route.options.component));
+
+    expect(html).toContain("Guest schedule preview");
+    expect(html).not.toContain("animate-spin");
+  });
+
   test("separates guest and member schedule/detail query scopes across the real public route", async () => {
     const routeModule = await import("../../src/routes/member.schedule.tsx");
     let selectedClassId = null;
@@ -379,6 +388,9 @@ describe("guest schedule handoff", () => {
     expect(observedQueryKeys).toContainEqual(["class-detail", "guest", "open-class"]);
     expect(guestDetailHtml).toContain("Sign in to book");
     expect(guestDetailHtml).toContain("Guest browsing stays open");
+    expect(guestDetailHtml).toContain(
+      'href="/auth?returnTo=%2Fmember%2Fschedule%3FclassId%3Dopen-class"',
+    );
 
     observedQueryKeys.length = 0;
     const memberHtml = renderPublicRoute(routeModule, {

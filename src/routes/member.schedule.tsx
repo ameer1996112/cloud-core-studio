@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPABASE_ACCESS_TOKEN_COOKIE } from "@/integrations/supabase/session-cookie";
 import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, ScheduleDaySection } from "@/components/visual/VisualClassCard";
@@ -22,6 +23,13 @@ import {
   localizedRoomName,
   localizedToneName,
 } from "@/lib/localized-content";
+import {
+  buildAuthReturnToHref,
+  buildMemberScheduleReturnTo,
+  buildMemberScheduleUrl,
+  readMemberScheduleClassId,
+  syncGuestScheduleAuthIntent,
+} from "@/lib/guest-auth-intent";
 
 export const Route = createFileRoute("/member/schedule")({
   component: MemberSchedulePublic,
@@ -134,6 +142,15 @@ function startOfDay(d: Date) {
   return x;
 }
 
+function hasSupabaseAccessTokenCookie() {
+  if (typeof document === "undefined") return false;
+
+  return document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .some((part) => part.startsWith(`${SUPABASE_ACCESS_TOKEN_COOKIE}=`));
+}
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function getGuestOpenClassesCount(classes: ScheduleClass[]) {
   return classes.filter((cls) => {
@@ -150,8 +167,11 @@ function MemberSchedulePublic({
   const { lang, dir } = useI18n();
   const isAuthSnapshotInitialized = authSnapshot?.initialized === true;
   const [session, setSession] = useState<any>(authSnapshot?.session ?? null);
-  const [checkingSession, setCheckingSession] = useState(!isAuthSnapshotInitialized);
+  const [checkingSession, setCheckingSession] = useState(
+    !isAuthSnapshotInitialized && hasSupabaseAccessTokenCookie(),
+  );
   const guestCopy = GUEST_SCHEDULE_COPY[lang];
+  const authHref = buildAuthReturnToHref(buildMemberScheduleReturnTo(selectedClassId));
 
   useEffect(() => {
     if (isAuthSnapshotInitialized) return;
@@ -166,11 +186,35 @@ function MemberSchedulePublic({
     return () => sub.subscription.unsubscribe();
   }, [isAuthSnapshotInitialized]);
 
-  if (checkingSession) {
+  if (checkingSession && !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ivory">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
-      </div>
+      <section
+        dir={dir}
+        className="member-page w-full space-y-6 bg-ivory px-4 py-6 sm:px-6 lg:px-8"
+      >
+        <div className="member-page-panel p-5 sm:p-8">
+          <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end">
+            <div className="space-y-3">
+              <div className="h-3 w-28 skeleton-brand rounded-full" />
+              <div className="h-12 max-w-lg skeleton-brand rounded-[var(--cc-radius-chip)]" />
+              <div className="h-5 max-w-2xl skeleton-brand rounded-full" />
+            </div>
+            <div className="member-stat-strip">
+              {[0, 1].map((index) => (
+                <div
+                  key={index}
+                  className="h-[94px] skeleton-brand rounded-[var(--cc-radius-card)]"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="h-[148px] skeleton-brand rounded-[var(--cc-radius-card)]" />
+          ))}
+        </div>
+      </section>
     );
   }
 
@@ -206,7 +250,7 @@ function MemberSchedulePublic({
               {t("legal.support")}
             </Link>
             <Link
-              to="/auth"
+              to={authHref}
               className="inline-flex min-h-9 items-center justify-center rounded-full border border-gold/40 bg-white px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors hover:bg-gold/8"
             >
               {guestCopy.primaryCta}
@@ -222,7 +266,7 @@ function MemberSchedulePublic({
             <h1 className="member-page-title mt-3">{guestCopy.title}</h1>
             <p className="member-page-body mt-3 max-w-2xl">{guestCopy.body}</p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link to="/auth" className="btn-primary hover:btn-primary-hover justify-center">
+              <Link to={authHref} className="btn-primary hover:btn-primary-hover justify-center">
                 {guestCopy.primaryCta}
               </Link>
               <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
@@ -284,6 +328,10 @@ export function MemberScheduleContent({
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
   const resolvedViewerCacheKey = viewerCacheKey ?? getViewerCacheKey(session);
+  const initialSelectedClassId =
+    selectedClassId === undefined && typeof window !== "undefined"
+      ? readMemberScheduleClassId(window.location.href)
+      : null;
   const { data, isLoading } = useQuery({
     queryKey: getMemberScheduleQueryKey(resolvedViewerCacheKey),
     queryFn: () => fetchSchedule({ data: { days: 14 } }),
@@ -297,8 +345,11 @@ export function MemberScheduleContent({
     room?: string;
   }>({});
   const [dateScope, setDateScope] = useState<DateScope>("all");
-  const [uncontrolledOpenClass, setUncontrolledOpenClass] = useState<string | null>(null);
+  const [uncontrolledOpenClass, setUncontrolledOpenClass] = useState<string | null>(
+    initialSelectedClassId,
+  );
   const openClass = selectedClassId === undefined ? uncontrolledOpenClass : selectedClassId;
+  const guestAuthHref = buildAuthReturnToHref(buildMemberScheduleReturnTo(openClass));
   const setOpenClass = (classId: string | null) => {
     if (selectedClassId === undefined) {
       setUncontrolledOpenClass(classId);
@@ -306,6 +357,22 @@ export function MemberScheduleContent({
     }
     onSelectedClassChange?.(classId);
   };
+
+  useEffect(() => {
+    if (selectedClassId !== undefined || typeof window === "undefined") return;
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      buildMemberScheduleUrl(window.location.href, openClass),
+    );
+  }, [openClass, selectedClassId]);
+
+  useEffect(() => {
+    if (session || typeof window === "undefined") return;
+
+    syncGuestScheduleAuthIntent(window.sessionStorage, openClass);
+  }, [openClass, session]);
 
   const classes = useMemo(() => data?.classes ?? [], [data?.classes]);
   const member = data?.member;
@@ -378,10 +445,10 @@ export function MemberScheduleContent({
   const emptyStatePrimaryAction = hasNoClasses
     ? { label: t("legal.support"), to: "/support" as const }
     : !session
-      ? { label: guestCopy!.primaryCta, to: "/auth" as const }
+      ? { label: guestCopy!.primaryCta, to: guestAuthHref }
       : undefined;
   const emptyStateSecondaryAction =
-    hasNoClasses && !session ? { label: guestCopy!.primaryCta, to: "/auth" as const } : undefined;
+    hasNoClasses && !session ? { label: guestCopy!.primaryCta, to: guestAuthHref } : undefined;
   const cardStateFor = (cls: ScheduleClass) =>
     session
       ? deriveClassState(cls, {

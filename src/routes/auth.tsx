@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { homeForCurrentUser, roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
+import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
 
 import { authImages } from "@/lib/image-assets";
 
@@ -35,8 +36,11 @@ function AuthPage() {
 
   useEffect(() => {
     let requestedForgot = false;
+    let searchReturnTo: string | null = null;
     if (typeof window !== "undefined") {
-      const requestedMode = new URL(window.location.href).searchParams.get("mode");
+      const searchParams = new URL(window.location.href).searchParams;
+      const requestedMode = searchParams.get("mode");
+      searchReturnTo = searchParams.get("returnTo");
       if (requestedMode === "forgot") {
         requestedForgot = true;
         setMode("forgot");
@@ -45,7 +49,16 @@ function AuthPage() {
     }
     supabase.auth.getSession().then(async ({ data }) => {
       if (data.session && !requestedForgot) {
-        const to = await homeForCurrentUser();
+        const fallbackTo = await homeForCurrentUser();
+        const to =
+          typeof window === "undefined"
+            ? fallbackTo
+            : resolvePostAuthDestination({
+                fallbackTo,
+                origin: window.location.origin,
+                returnTo: searchReturnTo,
+                storage: window.sessionStorage,
+              });
         navigate({ to, replace: true });
       }
     });
@@ -101,7 +114,17 @@ function AuthPage() {
         }
         const uid = signed.user?.id;
         const role = uid ? await getCurrentRole(uid) : "member";
-        navigate({ to: roleHome(role), replace: true });
+        const fallbackTo = roleHome(role);
+        const to =
+          typeof window === "undefined"
+            ? fallbackTo
+            : resolvePostAuthDestination({
+                fallbackTo,
+                origin: window.location.origin,
+                returnTo: new URL(window.location.href).searchParams.get("returnTo"),
+                storage: window.sessionStorage,
+              });
+        navigate({ to, replace: true });
       }
     } catch (err) {
       const { friendlyErrorMessage } = await import("@/lib/error-messages");
