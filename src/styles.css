@@ -7865,7 +7865,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 /* Compact mobile auth polish. Scoped to the auth route so shared shells stay untouched. */
 .auth-page {
   min-height: 100dvh;
-  padding-top: max(env(safe-area-inset-top), 10px);
+  padding-top: max(calc(env(safe-area-inset-top) + 0.35rem), 1rem);
   padding-bottom: max(env(safe-area-inset-bottom), 18px);
 }
 
@@ -7912,7 +7912,11 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   z-index: 20;
   display: flex;
   justify-content: center;
-  padding: 0.15rem max(1rem, env(safe-area-inset-right)) 0.2rem max(1rem, env(safe-area-inset-left));
+  padding:
+    calc(env(safe-area-inset-top) + 0.45rem)
+    max(1rem, env(safe-area-inset-right))
+    0.35rem
+    max(1rem, env(safe-area-inset-left));
 }
 
 .auth-language-switcher {
@@ -7970,7 +7974,10 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   min-height: calc(100dvh - 2.75rem);
   align-items: flex-start;
   justify-content: center;
-  padding: 0.25rem max(1rem, env(safe-area-inset-right)) max(1.1rem, env(safe-area-inset-bottom))
+  padding:
+    0.5rem
+    max(1rem, env(safe-area-inset-right))
+    max(1.1rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
 }
 
@@ -7983,7 +7990,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 .auth-brand-lockup {
   display: flex;
   justify-content: center;
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.7rem;
 }
 
 .auth-brand-logo {
@@ -8238,6 +8245,28 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   font-weight: 650;
 }
 
+.public-safe-page {
+  min-height: 100dvh;
+  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+.public-safe-header {
+  padding:
+    calc(env(safe-area-inset-top) + 0.75rem)
+    max(1rem, env(safe-area-inset-right))
+    0.95rem
+    max(1rem, env(safe-area-inset-left));
+}
+
+.public-safe-main {
+  padding-top: 1rem;
+}
+
+.public-legal-header {
+  padding-top: calc(env(safe-area-inset-top) + 0.55rem);
+}
+
 @media (min-width: 768px) {
   .auth-mobile-stage {
     min-height: calc(100dvh - 56px);
@@ -8277,6 +8306,40 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
   .auth-strength-checks {
     gap: 0.3rem;
+  }
+
+  .public-safe-header {
+    padding-top: calc(env(safe-area-inset-top) + 0.6rem);
+    padding-bottom: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding-top: max(calc(env(safe-area-inset-top) + 1.25rem), 3.2rem);
+  }
+
+  .auth-mobile-topbar {
+    min-height: 3rem;
+    padding-top: 0;
+    padding-bottom: 0.65rem;
+  }
+
+  .auth-mobile-stage {
+    padding-top: 1rem;
+  }
+
+  .public-safe-header {
+    padding-top: max(calc(env(safe-area-inset-top) + 0.85rem), 3rem);
+    padding-bottom: 0.9rem;
+  }
+
+  .public-safe-main {
+    padding-top: 1.15rem;
+  }
+
+  .public-legal-header {
+    padding-top: max(calc(env(safe-area-inset-top) + 0.7rem), 2.75rem);
   }
 }
 

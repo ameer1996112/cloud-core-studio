@@ -68,9 +68,9 @@ function LegalPage({ kind, lang, data }: { kind: string; lang: Lang; data: (type
   const dir = LANG_META[lang].dir;
 
   return (
-    <main dir={dir} className="min-h-screen bg-ivory px-5 py-8 text-navy sm:px-8">
+    <main dir={dir} className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
           <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">
             Cloud &amp; Core
           </Link>

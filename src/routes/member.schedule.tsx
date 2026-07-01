@@ -232,12 +232,12 @@ function MemberSchedulePublic({
   }
 
   return (
-    <div dir={dir} className="relative min-h-screen overflow-x-hidden bg-ivory text-navy">
+    <div dir={dir} className="public-safe-page relative overflow-x-hidden bg-ivory text-navy">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(212,175,106,0.22),transparent_52%),linear-gradient(180deg,rgba(250,247,242,0.96)_0%,rgba(250,247,242,0.72)_42%,rgba(250,247,242,0)_100%)]"
       />
-      <header className="sticky top-0 z-40 w-full border-b border-navy/8 bg-ivory/95 backdrop-blur-md px-5 py-4">
+      <header className="public-safe-header sticky top-0 z-40 w-full border-b border-navy/8 bg-ivory/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link to="/auth" className="brand-wordmark text-xl text-navy" dir="ltr">
             Cloud &amp; Core
@@ -259,7 +259,7 @@ function MemberSchedulePublic({
         </div>
       </header>
 
-      <main className="relative mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <main className="public-safe-main relative mx-auto flex max-w-7xl flex-col gap-6 px-4 pb-6 sm:px-6 lg:px-8">
         <section className="member-page-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
           <div className="member-page-copy p-5 sm:p-8 md:p-10">
             <p className="member-eyebrow">{guestCopy.eyebrow}</p>

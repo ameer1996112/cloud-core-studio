@@ -8,7 +8,7 @@ import {
 } from "@/integrations/supabase/session-cookie";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { toast } from "sonner";
-import { homeForCurrentUser, roleHome, getCurrentRole } from "@/lib/auth-redirect";
+import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
@@ -35,34 +35,15 @@ function AuthPage() {
   const [formVersion, setFormVersion] = useState(0);
 
   useEffect(() => {
-    let requestedForgot = false;
-    let searchReturnTo: string | null = null;
     if (typeof window !== "undefined") {
       const searchParams = new URL(window.location.href).searchParams;
       const requestedMode = searchParams.get("mode");
-      searchReturnTo = searchParams.get("returnTo");
       if (requestedMode === "forgot") {
-        requestedForgot = true;
         setMode("forgot");
         window.history.replaceState(null, document.title, window.location.pathname);
       }
     }
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session && !requestedForgot) {
-        const fallbackTo = await homeForCurrentUser();
-        const to =
-          typeof window === "undefined"
-            ? fallbackTo
-            : resolvePostAuthDestination({
-                fallbackTo,
-                origin: window.location.origin,
-                returnTo: searchReturnTo,
-                storage: window.sessionStorage,
-              });
-        navigate({ to, replace: true });
-      }
-    });
-  }, [navigate]);
+  }, []);
 
   function changeLang(next: Lang) {
     applyLang(next);
