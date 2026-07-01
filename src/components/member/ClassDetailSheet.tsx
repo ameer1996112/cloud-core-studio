@@ -120,9 +120,8 @@ function guestNextStepLabel(lang: Lang) {
   return "Next step";
 }
 
-function getResolvedViewerCacheKey(viewerContext: "member" | "guest", viewerCacheKey?: string) {
-  if (viewerCacheKey) return viewerCacheKey;
-  return viewerContext === "guest" ? "guest" : "member";
+function getFallbackViewerCacheKey(viewerContext: "member" | "guest") {
+  return viewerContext === "guest" ? "guest" : "member:pending";
 }
 
 function getMemberScheduleCacheKey(viewerCacheKey: string) {
@@ -174,21 +173,32 @@ export function ClassDetailSheet({
   const fetchDetail = useServerFn(getClassDetail);
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const resolvedViewerCacheKey = getResolvedViewerCacheKey(viewerContext, viewerCacheKey);
   const [confirmation, setConfirmation] = useState<null | { bookingId: string; remaining: number }>(
     null,
   );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authViewerCacheKey, setAuthViewerCacheKey] = useState(
+    viewerCacheKey ?? getFallbackViewerCacheKey(viewerContext),
+  );
+  const resolvedViewerCacheKey = viewerCacheKey ?? authViewerCacheKey;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setIsAuthenticated(!!data.session);
+      setAuthViewerCacheKey(
+        data.session?.user?.id
+          ? `member:${data.session.user.id}`
+          : getFallbackViewerCacheKey(viewerContext),
+      );
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      setAuthViewerCacheKey(
+        session?.user?.id ? `member:${session.user.id}` : getFallbackViewerCacheKey(viewerContext),
+      );
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [viewerContext]);
 
   const { data, isLoading } = useQuery({
     queryKey: getClassDetailQueryKey(classId, resolvedViewerCacheKey),
