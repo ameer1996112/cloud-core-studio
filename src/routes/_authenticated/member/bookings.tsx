@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { t, useI18n, getLocale } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { isAuthenticatedMemberScheduleQueryKey } from "@/lib/memberQueryKeys";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
@@ -50,7 +51,9 @@ function MyBookings() {
         toast.success(t("booking.cancelled"));
         qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
         qc.invalidateQueries({ queryKey: ["member-home"] });
-        qc.invalidateQueries({ queryKey: ["member-schedule"] });
+        qc.invalidateQueries({
+          predicate: (query) => isAuthenticatedMemberScheduleQueryKey(query.queryKey),
+        });
       } else if (res.status === "window_passed") {
         toast(t("bookings.windowPassed"));
       } else {

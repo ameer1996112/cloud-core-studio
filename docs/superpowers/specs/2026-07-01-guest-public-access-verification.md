@@ -12,6 +12,7 @@ What those tracked checks prove:
   - the signed-out public render shows the guest schedule surface and the guest "Open classes" stat with sold-out classes excluded
   - invoking a real schedule card `onOpen` selects `open-class`, and the guest rerender uses guest-scoped schedule/detail query keys before rendering the real guest-safe detail CTA output
   - rerendering that same public route with a signed-in member auth snapshot and the same selected class proves the member branch switches to member-scoped schedule/detail query keys and no longer renders the guest CTA copy
+  - the same tracked file also verifies that member booking cancellation invalidates member-scoped schedule queries without targeting the guest schedule scope
 - `guestDetailGuestBranch.test.mjs`
   - the real guest detail branch still has a focused supplemental check for the full-class guest message
   - it verifies `Sign in for booking options` plus the no-waitlist/package/top-up constraint for a full guest class

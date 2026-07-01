@@ -36,6 +36,11 @@ import {
   getLessonVisualMode,
 } from "@/lib/lesson-card-variants";
 import { resolveClassImagePosition } from "@/lib/image-assets";
+import {
+  getClassDetailQueryKey,
+  getFallbackViewerCacheKey,
+  getMemberScheduleQueryKey,
+} from "@/lib/memberQueryKeys";
 
 type BookClassResult =
   | { status: "booked"; booking_id: string; remaining_credits?: number | null }
@@ -118,19 +123,6 @@ function guestNextStepLabel(lang: Lang) {
   if (lang === "he") return "השלב הבא";
   if (lang === "ar") return "الخطوة التالية";
   return "Next step";
-}
-
-function getFallbackViewerCacheKey(viewerContext: "member" | "guest") {
-  return viewerContext === "guest" ? "guest" : "member:pending";
-}
-
-function getMemberScheduleCacheKey(viewerCacheKey: string) {
-  return ["member-schedule", viewerCacheKey] as const;
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function getClassDetailQueryKey(classId: string | null, viewerCacheKey: string) {
-  return ["class-detail", viewerCacheKey, classId] as const;
 }
 
 function StudioLocationInline({ value }: { value: string }) {
@@ -217,7 +209,7 @@ export function ClassDetailSheet({
         toast.success(t("booking.confirmed"));
         setConfirmation({ bookingId: res.booking_id, remaining: res.remaining_credits ?? 0 });
         qc.invalidateQueries({ queryKey: ["member-home"] });
-        qc.invalidateQueries({ queryKey: getMemberScheduleCacheKey(resolvedViewerCacheKey) });
+        qc.invalidateQueries({ queryKey: getMemberScheduleQueryKey(resolvedViewerCacheKey) });
         qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
         qc.invalidateQueries({ queryKey: ["studio-pulse"] });
       } else if (res.status === "already_booked") {

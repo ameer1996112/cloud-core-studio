@@ -2,8 +2,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, mock, test } from "bun:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import * as actualRouter from "../../node_modules/@tanstack/react-router/dist/cjs/index.cjs";
-import * as actualReactStart from "../../node_modules/@tanstack/react-start/dist/esm/index.js";
+import * as actualRouter from "@tanstack/react-router";
+import * as actualReactStart from "@tanstack/react-start";
 
 const premiumClassCardPath = fileURLToPath(
   new URL("../../src/components/member/PremiumClassCard.tsx", import.meta.url),
@@ -38,6 +38,8 @@ const guestSession = null;
 const memberSession = { user: { id: "member-1" } };
 const observedQueryKeys = [];
 const renderedCardOpeners = [];
+const invalidateCalls = [];
+const mutationConfigs = [];
 
 const scheduleDataByScope = {
   guest: {
@@ -127,10 +129,32 @@ mock.module("@tanstack/react-query", () => ({
       };
     }
 
+    if (queryKey[0] === "my-bookings-all") {
+      return {
+        data: {
+          bookings: [],
+          attendanceByBooking: {},
+          waitlist: [],
+        },
+        isLoading: false,
+      };
+    }
+
+    if (queryKey[0] === "public-studio-settings") {
+      return { data: null, isLoading: false };
+    }
+
     return { data: null, isLoading: false };
   },
-  useMutation: () => ({ mutate() {}, isPending: false }),
-  useQueryClient: () => ({ invalidateQueries() {} }),
+  useMutation: (config) => {
+    mutationConfigs.push(config);
+    return { mutate() {}, isPending: false };
+  },
+  useQueryClient: () => ({
+    invalidateQueries: (options) => {
+      invalidateCalls.push(options);
+    },
+  }),
 }));
 
 mock.module("@/integrations/supabase/client", () => ({
@@ -156,9 +180,15 @@ mock.module("@/components/ui/dialog", () => ({
 
 mock.module("@/lib/member.functions", () => ({
   listAvailableClasses: {},
+  getMyBookingsAll: {},
+  memberCancelBooking: {},
   getClassDetail: {},
   joinWaitlist: {},
   leaveWaitlist: {},
+}));
+
+mock.module("@/lib/studioSettings.functions", () => ({
+  getPublicStudioSettings: {},
 }));
 
 mock.module("@/lib/cloud-core.functions", () => ({
@@ -194,6 +224,7 @@ mock.module("@/components/member/PremiumClassCard", () => ({
 mock.module(premiumClassCardPath, () => ({ ...premiumCardMock, MemberEmptyState }));
 
 mock.module("@/components/visual/VisualClassCard", () => ({
+  LessonReservationCard: ({ title }) => React.createElement("div", {}, title ?? "reservation"),
   VisualClassCard: ({ cls, onOpen }) => {
     renderedCardOpeners.push({ classId: cls.id, onOpen });
     return React.createElement("button", { type: "button", onClick: onOpen }, cls.title);
@@ -248,6 +279,7 @@ mock.module("@/lib/i18n", () => ({
     if (key === "booking.cancelWindow") return `Cancel ${String(params?.hours ?? "")}`;
     return map[key] ?? key;
   },
+  getLocale: () => "en",
   useI18n: () => ({ lang: "en", dir: "ltr" }),
 }));
 
@@ -271,6 +303,7 @@ mock.module("@/components/ui/bidi", () => ({
 mock.module("@/lib/messageTemplate", () => ({
   buildIcs: () => "",
   downloadIcs: () => Promise.resolve(),
+  waUrl: () => "https://wa.example.test",
 }));
 
 mock.module("@/lib/lesson-card-variants", () => ({
@@ -282,6 +315,10 @@ mock.module("@/lib/lesson-card-variants", () => ({
 }));
 
 mock.module("@/lib/image-assets", () => ({
+  studioImages: {
+    atmosphere: { src: "/studio-atmosphere.webp", alt_en: "Studio" },
+  },
+  localizedAlt: () => "Studio",
   resolveClassImagePosition: () => "center center",
 }));
 
@@ -349,5 +386,31 @@ describe("guest schedule handoff", () => {
     expect(memberHtml).toContain(">7<");
     expect(memberHtml).toContain("View my bookings");
     expect(memberHtml).not.toContain("Sign in to book");
+  });
+
+  test("member booking cancellation invalidates scoped member schedule queries", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+
+    invalidateCalls.length = 0;
+    mutationConfigs.length = 0;
+
+    renderToStaticMarkup(React.createElement(bookingsModule.Route.options.component));
+
+    expect(mutationConfigs.length).toBeGreaterThan(0);
+
+    mutationConfigs[0].onSuccess({ status: "cancelled" });
+
+    expect(invalidateCalls).toContainEqual({ queryKey: ["my-bookings-all"] });
+    expect(invalidateCalls).toContainEqual({ queryKey: ["member-home"] });
+
+    const scheduleInvalidation = invalidateCalls.find(
+      (call) => typeof call?.predicate === "function",
+    );
+
+    expect(scheduleInvalidation).toBeDefined();
+    expect(
+      scheduleInvalidation.predicate({ queryKey: ["member-schedule", "member:member-1"] }),
+    ).toBe(true);
+    expect(scheduleInvalidation.predicate({ queryKey: ["member-schedule", "guest"] })).toBe(false);
   });
 });

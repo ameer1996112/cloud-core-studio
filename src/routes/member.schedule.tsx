@@ -14,6 +14,7 @@ import {
 } from "@/components/member/MemberScheduleFilterPanel";
 import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getMemberScheduleQueryKey, getViewerCacheKey } from "@/lib/memberQueryKeys";
 import {
   localizedClassTitle,
   localizedFilterLabel,
@@ -131,16 +132,6 @@ function startOfDay(d: Date) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
-}
-
-function getViewerCacheKey(session: any) {
-  const userId = session?.user?.id;
-  return typeof userId === "string" && userId.length > 0 ? `member:${userId}` : "guest";
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function getMemberScheduleQueryKey(viewerCacheKey: string) {
-  return ["member-schedule", viewerCacheKey] as const;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
