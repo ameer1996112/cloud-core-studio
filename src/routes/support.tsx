@@ -2,6 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { Mail, Phone } from "lucide-react";
 
 export const Route = createFileRoute("/support")({
   head: () => ({
@@ -92,6 +93,56 @@ function SupportPage() {
           <p className="member-eyebrow">{data.kicker}</p>
           <h1 className="member-page-title mt-3">{data.title}</h1>
           <p className="mt-4 text-sm leading-7 text-slate">{data.intro}</p>
+
+          {/* Direct Support Channels */}
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <a
+              href="mailto:cloudandcorestudio@gmail.com"
+              className="flex items-center gap-4 rounded-xl border border-gold/30 bg-white/70 p-5 hover:bg-gold/5 transition-all group"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold group-hover:scale-110 transition-transform">
+                <Mail className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-navy">
+                  {lang === "he"
+                    ? "אימייל תמיכה"
+                    : lang === "ar"
+                      ? "البريد الإلكتروني للدعم"
+                      : "Email Support"}
+                </h3>
+                <p className="text-sm text-slate mt-1 font-mono">cloudandcorestudio@gmail.com</p>
+              </div>
+            </a>
+
+            <a
+              href="https://wa.me/972500000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-xl border border-gold/30 bg-white/70 p-5 hover:bg-gold/5 transition-all group"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold group-hover:scale-110 transition-transform">
+                <Phone className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-navy">
+                  {lang === "he"
+                    ? "תמיכה בוואטסאפ"
+                    : lang === "ar"
+                      ? "الدعم عبر الواتساب"
+                      : "WhatsApp Support"}
+                </h3>
+                <p className="text-sm text-slate mt-1">
+                  {lang === "he"
+                    ? "צ'אט ישיר עם הצוות"
+                    : lang === "ar"
+                      ? "دردشة مباشرة مع الفريق"
+                      : "Direct chat with our team"}
+                </p>
+              </div>
+            </a>
+          </div>
+
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {data.items.map((item) => (
               <section key={item.title} className="border hairline bg-white/70 p-4">

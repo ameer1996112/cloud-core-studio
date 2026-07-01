@@ -16,6 +16,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MemberScheduleRouteImport } from './routes/member.schedule'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
@@ -28,7 +29,6 @@ import { Route as AuthenticatedInstructorIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedBookingsIndexRouteImport } from './routes/_authenticated/bookings/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedReceiptsIdRouteImport } from './routes/_authenticated/receipts/$id'
-import { Route as AuthenticatedMemberScheduleRouteImport } from './routes/_authenticated/member/schedule'
 import { Route as AuthenticatedMemberPackagesRouteImport } from './routes/_authenticated/member/packages'
 import { Route as AuthenticatedMemberBookingsRouteImport } from './routes/_authenticated/member/bookings'
 import { Route as AuthenticatedMemberAccountRouteImport } from './routes/_authenticated/member/account'
@@ -89,6 +89,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MemberScheduleRoute = MemberScheduleRouteImport.update({
+  id: '/member/schedule',
+  path: '/member/schedule',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -156,12 +161,6 @@ const AuthenticatedReceiptsIdRoute = AuthenticatedReceiptsIdRouteImport.update({
   path: '/receipts/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMemberScheduleRoute =
-  AuthenticatedMemberScheduleRouteImport.update({
-    id: '/schedule',
-    path: '/schedule',
-    getParentRoute: () => AuthenticatedMemberRouteRoute,
-  } as any)
 const AuthenticatedMemberPackagesRoute =
   AuthenticatedMemberPackagesRouteImport.update({
     id: '/packages',
@@ -334,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/auth/reset': typeof AuthResetRoute
+  '/member/schedule': typeof MemberScheduleRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -355,7 +355,6 @@ export interface FileRoutesByFullPath {
   '/member/account': typeof AuthenticatedMemberAccountRoute
   '/member/bookings': typeof AuthenticatedMemberBookingsRoute
   '/member/packages': typeof AuthenticatedMemberPackagesRoute
-  '/member/schedule': typeof AuthenticatedMemberScheduleRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
@@ -379,6 +378,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/auth/reset': typeof AuthResetRoute
+  '/member/schedule': typeof MemberScheduleRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -400,7 +400,6 @@ export interface FileRoutesByTo {
   '/member/account': typeof AuthenticatedMemberAccountRoute
   '/member/bookings': typeof AuthenticatedMemberBookingsRoute
   '/member/packages': typeof AuthenticatedMemberPackagesRoute
-  '/member/schedule': typeof AuthenticatedMemberScheduleRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
@@ -429,6 +428,7 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/auth_/reset': typeof AuthResetRoute
+  '/member/schedule': typeof MemberScheduleRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
@@ -450,7 +450,6 @@ export interface FileRoutesById {
   '/_authenticated/member/account': typeof AuthenticatedMemberAccountRoute
   '/_authenticated/member/bookings': typeof AuthenticatedMemberBookingsRoute
   '/_authenticated/member/packages': typeof AuthenticatedMemberPackagesRoute
-  '/_authenticated/member/schedule': typeof AuthenticatedMemberScheduleRoute
   '/_authenticated/receipts/$id': typeof AuthenticatedReceiptsIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
@@ -479,6 +478,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/studio'
     | '/auth/reset'
+    | '/member/schedule'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/bookings'
@@ -500,7 +500,6 @@ export interface FileRouteTypes {
     | '/member/account'
     | '/member/bookings'
     | '/member/packages'
-    | '/member/schedule'
     | '/receipts/$id'
     | '/admin/'
     | '/bookings/'
@@ -524,6 +523,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/studio'
     | '/auth/reset'
+    | '/member/schedule'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/bookings'
@@ -545,7 +545,6 @@ export interface FileRouteTypes {
     | '/member/account'
     | '/member/bookings'
     | '/member/packages'
-    | '/member/schedule'
     | '/receipts/$id'
     | '/admin'
     | '/bookings'
@@ -573,6 +572,7 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/_authenticated/studio'
     | '/auth_/reset'
+    | '/member/schedule'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/bookings'
@@ -594,7 +594,6 @@ export interface FileRouteTypes {
     | '/_authenticated/member/account'
     | '/_authenticated/member/bookings'
     | '/_authenticated/member/packages'
-    | '/_authenticated/member/schedule'
     | '/_authenticated/receipts/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/bookings/'
@@ -617,6 +616,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
+  MemberScheduleRoute: typeof MemberScheduleRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
 }
 
@@ -669,6 +669,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/member/schedule': {
+      id: '/member/schedule'
+      path: '/member/schedule'
+      fullPath: '/member/schedule'
+      preLoaderRoute: typeof MemberScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth_/reset': {
@@ -754,13 +761,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/receipts/$id'
       preLoaderRoute: typeof AuthenticatedReceiptsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/member/schedule': {
-      id: '/_authenticated/member/schedule'
-      path: '/schedule'
-      fullPath: '/member/schedule'
-      preLoaderRoute: typeof AuthenticatedMemberScheduleRouteImport
-      parentRoute: typeof AuthenticatedMemberRouteRoute
     }
     '/_authenticated/member/packages': {
       id: '/_authenticated/member/packages'
@@ -1030,7 +1030,6 @@ interface AuthenticatedMemberRouteRouteChildren {
   AuthenticatedMemberAccountRoute: typeof AuthenticatedMemberAccountRoute
   AuthenticatedMemberBookingsRoute: typeof AuthenticatedMemberBookingsRoute
   AuthenticatedMemberPackagesRoute: typeof AuthenticatedMemberPackagesRoute
-  AuthenticatedMemberScheduleRoute: typeof AuthenticatedMemberScheduleRoute
   AuthenticatedMemberIndexRoute: typeof AuthenticatedMemberIndexRoute
 }
 
@@ -1039,7 +1038,6 @@ const AuthenticatedMemberRouteRouteChildren: AuthenticatedMemberRouteRouteChildr
     AuthenticatedMemberAccountRoute: AuthenticatedMemberAccountRoute,
     AuthenticatedMemberBookingsRoute: AuthenticatedMemberBookingsRoute,
     AuthenticatedMemberPackagesRoute: AuthenticatedMemberPackagesRoute,
-    AuthenticatedMemberScheduleRoute: AuthenticatedMemberScheduleRoute,
     AuthenticatedMemberIndexRoute: AuthenticatedMemberIndexRoute,
   }
 
@@ -1085,6 +1083,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
+  MemberScheduleRoute: MemberScheduleRoute,
   ApiPublicWebhooksPaymentsProviderRoute:
     ApiPublicWebhooksPaymentsProviderRoute,
 }

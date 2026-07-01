@@ -1,16 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, ScheduleDaySection } from "@/components/visual/VisualClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
+import { AppShell } from "@/components/app-shell/AppShell";
 import {
   MemberScheduleFilterPanel,
   type DateScope,
 } from "@/components/member/MemberScheduleFilterPanel";
-import { t, useI18n } from "@/lib/i18n";
+import { LANG_META, t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   localizedClassTitle,
@@ -20,8 +22,8 @@ import {
   localizedToneName,
 } from "@/lib/localized-content";
 
-export const Route = createFileRoute("/_authenticated/member/schedule")({
-  component: MemberSchedule,
+export const Route = createFileRoute("/member/schedule")({
+  component: MemberSchedulePublic,
 });
 
 function startOfDay(d: Date) {
@@ -30,7 +32,76 @@ function startOfDay(d: Date) {
   return x;
 }
 
-function MemberSchedule() {
+function MemberSchedulePublic() {
+  const [session, setSession] = useState<any>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setCheckingSession(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  if (checkingSession) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ivory">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (session) {
+    return (
+      <AppShell role="member">
+        <MemberScheduleContent session={session} />
+      </AppShell>
+    );
+  }
+
+  const signInLabel = {
+    en: "Sign In",
+    he: "התחברות",
+    ar: "تسجيل الدخول",
+  }[getLocaleFromCookie() || "he"];
+
+  return (
+    <div className="min-h-screen bg-ivory text-navy">
+      <header className="sticky top-0 z-40 w-full border-b border-navy/8 bg-ivory/95 backdrop-blur-md px-5 py-4">
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <Link to="/auth" className="brand-wordmark text-xl text-navy" dir="ltr">
+            Cloud &amp; Core
+          </Link>
+          <Link
+            to="/auth"
+            className="inline-flex min-h-9 items-center justify-center rounded-full border border-gold/40 bg-white hover:bg-gold/8 px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors"
+          >
+            {signInLabel}
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <MemberScheduleContent session={null} />
+      </main>
+    </div>
+  );
+}
+
+function getLocaleFromCookie() {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith("cc_lang="));
+  return match ? match.slice(8) : null;
+}
+
+function MemberScheduleContent({ session }: { session: any }) {
   const { lang, dir } = useI18n();
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
@@ -90,7 +161,6 @@ function MemberSchedule() {
     });
   }, [classes, dateScope, filter, search]);
 
-  // Group by date
   const groups = new Map<string, any[]>();
   for (const c of filtered) {
     const key = startOfDay(new Date(c.starts_at)).toISOString();
@@ -109,7 +179,9 @@ function MemberSchedule() {
           </div>
           <div className="member-stat-strip" dir={dir}>
             <StatCell label={t("member.stat.available")} value={filtered.length} />
-            <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
+            {session && (
+              <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
+            )}
           </div>
         </div>
       </div>

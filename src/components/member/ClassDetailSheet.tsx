@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowRight, CalendarPlus, Clock, MapPin, Sparkles, Users, X } from "lucide-react";
 import { getClassDetail, joinWaitlist, leaveWaitlist } from "@/lib/member.functions";
@@ -91,6 +92,17 @@ export function ClassDetailSheet({
   const [confirmation, setConfirmation] = useState<null | { bookingId: string; remaining: number }>(
     null,
   );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAuthenticated(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["class-detail", classId],
@@ -354,7 +366,18 @@ export function ClassDetailSheet({
               </div>
 
               <div className="lesson-detail__cta">
-                {data?.myBooking?.status === "booked" ? (
+                {!isAuthenticated ? (
+                  <Link
+                    to="/auth"
+                    className="btn-navy w-full hover:btn-navy-hover text-center justify-center flex items-center gap-2"
+                  >
+                    {lang === "he"
+                      ? "התחברי כדי להזמין"
+                      : lang === "ar"
+                        ? "سجل الدخول للحجز"
+                        : "Sign in to book"}
+                  </Link>
+                ) : data?.myBooking?.status === "booked" ? (
                   <Link to="/member/bookings" className="btn-navy w-full hover:btn-navy-hover">
                     {t("booking.viewMine")}{" "}
                     <ArrowRight className="h-3 w-3 directional-icon-forward" />

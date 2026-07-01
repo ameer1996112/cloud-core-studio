@@ -1,8 +1,74 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createMiddleware } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, hasTestPlanRecord, isTestRecord } from "@/lib/test-records";
+
+export const optionalSupabaseAuth = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      throw new Error("Missing Supabase environment variables");
+    }
+
+    const request = getRequest();
+    if (!request?.headers) {
+      const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false },
+      });
+      return next({ context: { supabase, userId: null } });
+    }
+
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false },
+      });
+      return next({ context: { supabase, userId: null } });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    if (!token) {
+      const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false },
+      });
+      return next({ context: { supabase, userId: null } });
+    }
+
+    const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+      auth: {
+        storage: undefined,
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+
+    const { data, error } = await supabase.auth.getClaims(token);
+    if (error || !data?.claims || !data.claims.sub) {
+      const supabaseAnon = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false },
+      });
+      return next({ context: { supabase: supabaseAnon, userId: null } });
+    }
+
+    return next({
+      context: {
+        supabase,
+        userId: data.claims.sub,
+      },
+    });
+  },
+);
 
 const classSelect =
   "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
@@ -92,7 +158,7 @@ export const getMemberHome = createServerFn({ method: "GET" })
   });
 
 export const listAvailableClasses = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .inputValidator((data) =>
     z.object({ days: z.number().min(1).max(60).default(14) }).parse(data ?? {}),
   )
@@ -111,26 +177,30 @@ export const listAvailableClasses = createServerFn({ method: "GET" })
 
     const ids = (classes ?? []).map((c) => c.id);
     const [bookingsRes, waitlistRes, memberRes, activePlansRes] = await Promise.all([
-      ids.length
+      ids.length && userId
         ? supabase
             .from("bookings")
             .select("id,class_id,status")
             .in("class_id", ids)
             .eq("member_id", userId)
         : Promise.resolve({ data: [] as any[] }),
-      ids.length
+      ids.length && userId
         ? supabase
             .from("waitlist_entries")
             .select("id,class_id,status")
             .in("class_id", ids)
             .eq("member_id", userId)
         : Promise.resolve({ data: [] as any[] }),
-      supabase.from("members").select("remaining_credits").eq("id", userId).maybeSingle(),
-      supabase
-        .from("member_plans")
-        .select("expires_at")
-        .eq("member_id", userId)
-        .eq("status", "active"),
+      userId
+        ? supabase.from("members").select("remaining_credits").eq("id", userId).maybeSingle()
+        : Promise.resolve({ data: null }),
+      userId
+        ? supabase
+            .from("member_plans")
+            .select("expires_at")
+            .eq("member_id", userId)
+            .eq("status", "active")
+        : Promise.resolve({ data: [] as any[] }),
     ]);
 
     const bookingsByClass: Record<string, { id: string; status: string }> = {};
@@ -155,7 +225,7 @@ export const listAvailableClasses = createServerFn({ method: "GET" })
   });
 
 export const getClassDetail = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .inputValidator((d) => z.object({ classId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -167,24 +237,32 @@ export const getClassDetail = createServerFn({ method: "GET" })
     if (error) throw error;
 
     const [bookingRes, waitlistRes, memberRes, activePlansRes] = await Promise.all([
-      supabase
-        .from("bookings")
-        .select("id,status,credit_cost")
-        .eq("class_id", data.classId)
-        .eq("member_id", userId)
-        .maybeSingle(),
-      supabase
-        .from("waitlist_entries")
-        .select("id,status,created_at")
-        .eq("class_id", data.classId)
-        .eq("member_id", userId)
-        .maybeSingle(),
-      supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle(),
-      supabase
-        .from("member_plans")
-        .select("expires_at")
-        .eq("member_id", userId)
-        .eq("status", "active"),
+      userId
+        ? supabase
+            .from("bookings")
+            .select("id,status,credit_cost")
+            .eq("class_id", data.classId)
+            .eq("member_id", userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      userId
+        ? supabase
+            .from("waitlist_entries")
+            .select("id,status,created_at")
+            .eq("class_id", data.classId)
+            .eq("member_id", userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      userId
+        ? supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle()
+        : Promise.resolve({ data: null }),
+      userId
+        ? supabase
+            .from("member_plans")
+            .select("expires_at")
+            .eq("member_id", userId)
+            .eq("status", "active")
+        : Promise.resolve({ data: [] as any[] }),
     ]);
     return {
       cls,
