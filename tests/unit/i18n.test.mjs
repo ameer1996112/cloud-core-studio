@@ -44,6 +44,12 @@ assert.equal(
 );
 assert.equal(t("attendance.empty.primary"), "יצירת שיעור");
 assert.equal(t("attendance.empty.secondary"), "מעבר ללוח השיעורים");
+assert.equal(t("admin.classDetail.cancelClass"), "ביטול שיעור");
+assert.equal(
+  t("admin.classDetail.cancelClassConfirmCheckbox"),
+  "אני מבין/ה שהשיעור יבוטל והמשתתפות יקבלו עדכון.",
+);
+assert.equal(t("admin.classDetail.deleteClass"), "מחיקת שיעור");
 
 applyLang("en");
 assert.equal(document.documentElement.lang, "en");
@@ -58,6 +64,11 @@ assert.equal(
 );
 assert.equal(t("attendance.empty.primary"), "Create class");
 assert.equal(t("attendance.empty.secondary"), "Open schedule");
+assert.equal(t("admin.classDetail.cancelClass"), "Cancel class");
+assert.equal(
+  t("admin.classDetail.deleteBlocked"),
+  "You can’t delete a class with active bookings. Cancel it instead.",
+);
 
 applyLang("ar");
 assert.equal(document.documentElement.lang, "ar");
@@ -72,5 +83,7 @@ assert.equal(
 );
 assert.equal(t("attendance.empty.primary"), "إنشاء حصة");
 assert.equal(t("attendance.empty.secondary"), "الانتقال للجدول");
+assert.equal(t("admin.classDetail.cancelClass"), "إلغاء الحصة");
+assert.equal(t("admin.classDetail.deleteClass"), "حذف الحصة");
 
 console.log("i18n defaults and catalogs OK");

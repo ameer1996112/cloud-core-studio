@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  deriveAdminClassWorkflowSnapshot,
+  type AdminCancelClassResult,
+  type AdminDeleteClassResult,
+} from "@/lib/adminClassWorkflow";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, isTestRecord } from "@/lib/test-records";
 
@@ -292,12 +297,168 @@ export const deleteClass = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "admin");
-    const { error } = await context.supabase
-      .from("classes")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("classes").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
+  });
+
+export const getAdminClassWorkflow = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ classId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "staff");
+
+    const [clsRes, bookingListRes, waitlistRes, attendanceRes, notificationRes] = await Promise.all(
+      [
+        context.supabase.from("classes").select("id,status").eq("id", data.classId).maybeSingle(),
+        context.supabase.from("bookings").select("id,status").eq("class_id", data.classId),
+        context.supabase
+          .from("waitlist_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("class_id", data.classId),
+        context.supabase
+          .from("attendance_records")
+          .select("id", { count: "exact", head: true })
+          .eq("class_id", data.classId),
+        context.supabase
+          .from("notification_logs")
+          .select("id", { count: "exact", head: true })
+          .eq("related_class_id", data.classId),
+      ],
+    );
+
+    if (clsRes.error) throw clsRes.error;
+    if (bookingListRes.error) throw bookingListRes.error;
+    if (waitlistRes.error) throw waitlistRes.error;
+    if (attendanceRes.error) throw attendanceRes.error;
+    if (notificationRes.error) throw notificationRes.error;
+
+    const bookingIds = (bookingListRes.data ?? []).map((row: any) => row.id);
+    const financialRes = bookingIds.length
+      ? await context.supabase
+          .from("credit_transactions")
+          .select("id", { count: "exact", head: true })
+          .in("related_booking_id", bookingIds)
+      : { count: 0, error: null };
+
+    if (financialRes.error) throw financialRes.error;
+
+    const counts = {
+      bookings: bookingListRes.data?.length ?? 0,
+      waitlist: waitlistRes.count ?? 0,
+      attendance: attendanceRes.count ?? 0,
+      notifications: notificationRes.count ?? 0,
+      financial: financialRes.count ?? 0,
+    };
+
+    return {
+      classId: data.classId,
+      classStatus: clsRes.data?.status ?? "scheduled",
+      counts,
+      ...deriveAdminClassWorkflowSnapshot({
+        status: clsRes.data?.status ?? "scheduled",
+        ...counts,
+      }),
+    };
+  });
+
+export const adminDeleteClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ classId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "admin");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: result, error } = await (supabaseAdmin as any).rpc("admin_delete_class", {
+      p_actor_id: context.userId,
+      p_class_id: data.classId,
+    });
+    if (error) throw error;
+    return result as AdminDeleteClassResult;
+  });
+
+export const adminCancelClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        classId: z.string().uuid(),
+        reason: z.string().trim().nullable().optional(),
+        notifyMembers: z.boolean().default(true),
+        refundCredits: z.boolean().default(true),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "admin");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rpcResult, error } = await (supabaseAdmin as any).rpc("admin_cancel_class", {
+      p_actor_id: context.userId,
+      p_class_id: data.classId,
+      p_reason: data.reason ?? null,
+      p_refund: data.refundCredits,
+    });
+    if (error) throw error;
+
+    const warnings: string[] = [];
+    let notificationsPrepared = 0;
+    let notificationsManualReview = 0;
+
+    const cancelledBookingIds: string[] = rpcResult?.cancelled_booking_ids ?? [];
+    if (data.notifyMembers && cancelledBookingIds.length > 0) {
+      const [bookingRes, settingsRes] = await Promise.all([
+        context.supabase
+          .from("bookings")
+          .select(
+            "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+          )
+          .in("id", cancelledBookingIds),
+        context.supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+      ]);
+
+      if (bookingRes.error) throw bookingRes.error;
+      if (settingsRes.error) throw settingsRes.error;
+
+      const rows = (bookingRes.data ?? []).flatMap((booking: any) =>
+        booking.member && booking.class
+          ? buildNotificationDraftRows({
+              eventKey: "class_cancelled_by_admin",
+              channels: ["whatsapp", "email"],
+              audience: "member",
+              member: booking.member,
+              appLanguage: null,
+              studioSettings: settingsRes.data ?? null,
+              relatedIds: { bookingId: booking.id, classId: booking.class_id },
+              variables: buildClassVariables(booking.class),
+            })
+          : [],
+      );
+
+      const { error: notificationError } = await context.supabase
+        .from("notification_logs")
+        .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+
+      notificationsPrepared = rows.filter((row) => row.status === "draft").length;
+      notificationsManualReview = rows.filter((row) => row.status === "skipped").length;
+
+      if (notificationError) {
+        warnings.push("notification_drafts_failed");
+        notificationsPrepared = 0;
+        notificationsManualReview = Math.max(cancelledBookingIds.length, notificationsManualReview);
+      }
+    }
+
+    return {
+      status: rpcResult?.status === "already_cancelled" ? "already_cancelled" : "cancelled",
+      classId: data.classId,
+      summary: {
+        bookingsCancelled: rpcResult?.bookings_cancelled ?? 0,
+        creditsReturned: rpcResult?.credits_returned ?? 0,
+        waitlistClosed: rpcResult?.waitlist_closed ?? 0,
+        notificationsPrepared,
+        notificationsManualReview,
+      },
+      warnings,
+    } satisfies AdminCancelClassResult;
   });
 
 export const duplicateClass = createServerFn({ method: "POST" })

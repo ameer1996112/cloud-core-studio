@@ -324,7 +324,9 @@ function RosterBody({ classId }: { classId: string }) {
         {/* Studio operations summary metadata grid */}
         <div className="grid grid-cols-2 gap-4 mt-4 bg-white/60 backdrop-blur-sm rounded-xl p-3.5 border border-gold/10">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.time")}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+              {t("admin.classes.time")}
+            </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5" dir="ltr">
               {start.toLocaleDateString(getLocale(), {
                 weekday: "short",
@@ -335,7 +337,9 @@ function RosterBody({ classId }: { classId: string }) {
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.durationMin")}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+              {t("admin.classes.durationMin")}
+            </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">
               {c.duration_minutes} {t("common.minutes")}
             </p>
@@ -345,7 +349,9 @@ function RosterBody({ classId }: { classId: string }) {
             <p className="font-display text-sm text-navy font-medium mt-0.5">{roomName}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.instructor")}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+              {t("admin.classes.instructor")}
+            </p>
             <div className="flex items-center gap-2 mt-0.5">
               <InstructorAvatar
                 name={c.instructor?.name}
@@ -356,13 +362,17 @@ function RosterBody({ classId }: { classId: string }) {
             </div>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.capacityPlaces")}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+              {t("admin.classes.capacityPlaces")}
+            </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">
               {c.booked_count} / {c.capacity}
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("roster.waitlist")}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+              {t("roster.waitlist")}
+            </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">
               {c.waitlist_count} {t("common.waiting")}
             </p>
@@ -501,7 +511,11 @@ function RosterBody({ classId }: { classId: string }) {
           <div className="border border-dashed border-gold/30 rounded-xl p-6 text-center bg-white/40">
             <Clock className="h-5 w-5 text-gold/60 mx-auto mb-2" />
             <p className="font-display text-sm font-medium text-navy">
-              {lang === "he" ? "אין ממתינים כרגע" : lang === "ar" ? "لا يوجد أحد في قائمة الانتظار حالياً" : "No waitlisted members yet"}
+              {lang === "he"
+                ? "אין ממתינים כרגע"
+                : lang === "ar"
+                  ? "لا يوجد أحد في قائمة الانتظار حالياً"
+                  : "No waitlisted members yet"}
             </p>
             <p className="text-xs text-slate mt-1 max-w-[280px] mx-auto leading-relaxed">
               {lang === "he"
@@ -521,8 +535,8 @@ function RosterBody({ classId }: { classId: string }) {
                 <div className="min-w-0">
                   <p className="font-display text-base font-medium text-navy">{w.member?.name}</p>
                   <p className="mt-1 text-xs text-slate">
-                    #{i + 1} · {localizeRosterStatus(w.status, lang)} · {w.member?.remaining_credits ?? 0}{" "}
-                    {t("common.credits")}
+                    #{i + 1} · {localizeRosterStatus(w.status, lang)} ·{" "}
+                    {w.member?.remaining_credits ?? 0} {t("common.credits")}
                   </p>
                 </div>
                 {isAdmin && (w.status === "waiting" || w.status === "offered") && (
@@ -600,7 +614,7 @@ function RosterRow({
             >
               {m.name}
             </Link>
-            
+
             {m.is_first_timer && (
               <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold border border-gold/25">
                 <Sparkles className="h-2.5 w-2.5" /> {t("roster.first")}
@@ -617,7 +631,7 @@ function RosterRow({
               </span>
             )}
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate">
             {m.phone && (
               <span className="inline-flex items-center gap-1">
@@ -630,9 +644,15 @@ function RosterRow({
               {m.remaining_credits ?? 0} {t("common.credits")}
             </span>
             <span className="text-slate/40">·</span>
-            <span className={`font-semibold ${
-              st === "attended" ? "text-green-700" : st === "no_show" ? "text-red-700" : "text-navy"
-            }`}>
+            <span
+              className={`font-semibold ${
+                st === "attended"
+                  ? "text-green-700"
+                  : st === "no_show"
+                    ? "text-red-700"
+                    : "text-navy"
+              }`}
+            >
               {localizeRosterStatus(st || "booked", lang)}
             </span>
           </div>
@@ -662,7 +682,7 @@ function RosterRow({
           >
             <XCircle className="h-4 w-4" />
           </AttBtn>
-          
+
           <div className="h-5 w-px bg-gold/20 mx-1" />
 
           {/* WhatsApp Reminder */}

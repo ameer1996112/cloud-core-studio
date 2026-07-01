@@ -206,7 +206,13 @@ function CalendarPage() {
             {t("calendar.addRoomSuffix")}
           </Empty>
         ) : view === "day" ? (
-          <DayLayout day={anchor} rooms={rooms} classes={classes} onOpen={setOpenClassId} openClassId={openClassId} />
+          <DayLayout
+            day={anchor}
+            rooms={rooms}
+            classes={classes}
+            onOpen={setOpenClassId}
+            openClassId={openClassId}
+          />
         ) : (
           <WeekLayout
             days={days}
@@ -549,7 +555,17 @@ function DayAgenda({
   );
 }
 
-function AgendaCard({ cls, room, onOpen, isOpen }: { cls: any; room: any; onOpen: () => void; isOpen: boolean }) {
+function AgendaCard({
+  cls,
+  room,
+  onOpen,
+  isOpen,
+}: {
+  cls: any;
+  room: any;
+  onOpen: () => void;
+  isOpen: boolean;
+}) {
   const start = new Date(cls.starts_at);
   const color = room?.color ?? cls.program?.color ?? "#D4AF6A";
   const meta = classMeta(cls, getLocale() as Lang, room);
@@ -692,7 +708,12 @@ function WeekDesktop({
                   <p className="py-6 text-xs text-slate/60 italic text-center">—</p>
                 ) : (
                   items.map((c: any) => (
-                    <WeekBlock key={c.id} cls={c} onOpen={() => onOpen(c.id)} isOpen={openClassId === c.id} />
+                    <WeekBlock
+                      key={c.id}
+                      cls={c}
+                      onOpen={() => onOpen(c.id)}
+                      isOpen={openClassId === c.id}
+                    />
                   ))
                 )}
               </div>
@@ -796,7 +817,13 @@ function WeekMobile({
           })}
         </div>
       </div>
-      <DayAgenda day={selected} rooms={rooms} classes={classes} onOpen={onOpen} openClassId={openClassId} />
+      <DayAgenda
+        day={selected}
+        rooms={rooms}
+        classes={classes}
+        onOpen={onOpen}
+        openClassId={openClassId}
+      />
     </div>
   );
 }
