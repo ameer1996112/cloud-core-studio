@@ -52,6 +52,7 @@ import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin/attendance'
 import { Route as AuthenticatedAdminMembersIndexRouteImport } from './routes/_authenticated/admin/members/index'
 import { Route as AuthenticatedAdminClassesIndexRouteImport } from './routes/_authenticated/admin/classes/index'
+import { Route as ApiInternalNotificationsOpenwaRunRouteImport } from './routes/api/internal/notifications/openwa-run'
 import { Route as AuthenticatedAdminMembersIdRouteImport } from './routes/_authenticated/admin/members/$id'
 import { Route as AuthenticatedAdminClassesNewRouteImport } from './routes/_authenticated/admin/classes/new'
 import { Route as AuthenticatedAdminClassesIdRouteImport } from './routes/_authenticated/admin/classes/$id'
@@ -294,6 +295,12 @@ const AuthenticatedAdminClassesIndexRoute =
     path: '/classes/',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const ApiInternalNotificationsOpenwaRunRoute =
+  ApiInternalNotificationsOpenwaRunRouteImport.update({
+    id: '/api/internal/notifications/openwa-run',
+    path: '/api/internal/notifications/openwa-run',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminMembersIdRoute =
   AuthenticatedAdminMembersIdRouteImport.update({
     id: '/members/$id',
@@ -363,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
   '/api/public/webhooks/payments/$provider': typeof ApiPublicWebhooksPaymentsProviderRoute
@@ -408,6 +416,7 @@ export interface FileRoutesByTo {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/admin/classes': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members': typeof AuthenticatedAdminMembersIndexRoute
   '/api/public/webhooks/payments/$provider': typeof ApiPublicWebhooksPaymentsProviderRoute
@@ -458,6 +467,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/_authenticated/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/_authenticated/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/_authenticated/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/_authenticated/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
   '/api/public/webhooks/payments/$provider': typeof ApiPublicWebhooksPaymentsProviderRoute
@@ -508,6 +518,7 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/notifications/openwa-run'
     | '/admin/classes/'
     | '/admin/members/'
     | '/api/public/webhooks/payments/$provider'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/notifications/openwa-run'
     | '/admin/classes'
     | '/admin/members'
     | '/api/public/webhooks/payments/$provider'
@@ -602,6 +614,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/classes/$id'
     | '/_authenticated/admin/classes/new'
     | '/_authenticated/admin/members/$id'
+    | '/api/internal/notifications/openwa-run'
     | '/_authenticated/admin/classes/'
     | '/_authenticated/admin/members/'
     | '/api/public/webhooks/payments/$provider'
@@ -617,6 +630,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
+  ApiInternalNotificationsOpenwaRunRoute: typeof ApiInternalNotificationsOpenwaRunRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
 }
 
@@ -923,6 +937,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClassesIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/api/internal/notifications/openwa-run': {
+      id: '/api/internal/notifications/openwa-run'
+      path: '/api/internal/notifications/openwa-run'
+      fullPath: '/api/internal/notifications/openwa-run'
+      preLoaderRoute: typeof ApiInternalNotificationsOpenwaRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/members/$id': {
       id: '/_authenticated/admin/members/$id'
       path: '/members/$id'
@@ -1084,6 +1105,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
+  ApiInternalNotificationsOpenwaRunRoute:
+    ApiInternalNotificationsOpenwaRunRoute,
   ApiPublicWebhooksPaymentsProviderRoute:
     ApiPublicWebhooksPaymentsProviderRoute,
 }

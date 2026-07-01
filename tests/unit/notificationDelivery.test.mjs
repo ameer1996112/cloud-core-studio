@@ -130,6 +130,18 @@ assert.equal(
 );
 assert.equal(computeRetrySchedule({ attemptCount: 4, failedAt }), null);
 
+const failedNearWindowClose = new Date("2026-07-01T17:28:00.000Z");
+const deferredRetry = computeRetrySchedule({
+  attemptCount: 1,
+  failedAt: failedNearWindowClose,
+});
+assert.equal(deferredRetry?.toISOString(), "2026-07-02T05:00:00.000Z");
+assert.deepEqual(getIsraelNowParts(deferredRetry), {
+  date: "2026-07-02",
+  hour: 8,
+  minute: 0,
+});
+
 assert.equal(
   shouldSkipNotification({
     eventType: "class_reminder_2h",

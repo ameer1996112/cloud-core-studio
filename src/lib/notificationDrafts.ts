@@ -9,7 +9,11 @@ import {
   type NotificationEventKey,
   type NotificationVariables,
 } from "@/lib/notificationTemplates";
-import { getNextAllowedSendTime, resolveNotificationTimingState } from "@/lib/notificationDelivery";
+import {
+  getNextAllowedSendTime,
+  resolveNotificationTimingState,
+  shouldAutoQueueOpenwaNotification,
+} from "@/lib/notificationDelivery";
 
 type DraftMember = {
   id: string;
@@ -134,9 +138,8 @@ export function buildNotificationDraftRows(
             endMinute: 30,
           })
         : null;
-    const status = reason
-      ? "skipped"
-      : channel === "whatsapp" && scheduledFor
+    const timingState =
+      channel === "whatsapp" && scheduledFor
         ? resolveNotificationTimingState({
             eventType: input.eventKey,
             scheduledFor,
@@ -144,6 +147,15 @@ export function buildNotificationDraftRows(
             waitlistExpiresAt: toDate(input.delivery?.waitlistExpiresAt) ?? undefined,
           })
         : "draft";
+    const status = reason
+      ? "skipped"
+      : channel !== "whatsapp"
+        ? "draft"
+        : timingState !== "queued"
+          ? timingState
+          : shouldAutoQueueOpenwaNotification(input.eventKey)
+            ? "queued"
+            : "draft";
 
     return {
       template_key: `${input.eventKey}.${channel}.${language}.${audience}`,

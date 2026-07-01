@@ -2,6 +2,7 @@ const ISRAEL_TIMEZONE = "Asia/Jerusalem";
 const SEND_WINDOW_START_MINUTES = 8 * 60;
 const SEND_WINDOW_END_MINUTES = 20 * 60 + 30;
 const RETRY_DELAYS_MINUTES = [5, 15, 30] as const;
+const AUTOMATED_OPENWA_EVENT_TYPES = new Set(["payment_confirmed"]);
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 
@@ -154,7 +155,21 @@ export function getNextAllowedSendTime(input: {
 export function computeRetrySchedule(input: { attemptCount: number; failedAt: Date }): Date | null {
   const retryDelayMinutes = RETRY_DELAYS_MINUTES[Math.trunc(input.attemptCount) - 1];
   if (retryDelayMinutes == null) return null;
-  return new Date(input.failedAt.getTime() + retryDelayMinutes * 60_000);
+
+  const delayedRetry = new Date(input.failedAt.getTime() + retryDelayMinutes * 60_000);
+
+  return getNextAllowedSendTime({
+    now: delayedRetry,
+    timezone: "Asia/Jerusalem",
+    startHour: 8,
+    startMinute: 0,
+    endHour: 20,
+    endMinute: 30,
+  });
+}
+
+export function shouldAutoQueueOpenwaNotification(eventType: string): boolean {
+  return AUTOMATED_OPENWA_EVENT_TYPES.has(eventType.trim().toLowerCase());
 }
 
 export function resolveNotificationTimingState(input: {

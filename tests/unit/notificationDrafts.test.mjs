@@ -33,7 +33,7 @@ const rows = buildNotificationDraftRows({
 });
 
 assert.equal(rows.length, 2);
-assert.equal(rows[0].status, "queued");
+assert.equal(rows[0].status, "draft");
 assert.equal(rows[0].language, "en");
 assert.equal(rows[0].staff_visibility, "operational");
 assert.equal(rows[0].related_booking_id, "booking-1");
@@ -45,6 +45,97 @@ assert.ok(rows[0].generated_text?.includes("Noa"));
 assert.equal(rows[1].channel, "email");
 assert.equal(rows[1].status, "draft");
 assert.ok(rows[1].subject?.includes("Core Flow"));
+
+const bookingRows = buildNotificationDraftRows({
+  eventKey: "booking_confirmed",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-booking",
+    name: "Noa",
+    phone: "+972501234567",
+    email: "noa@example.com",
+    preferred_language: "en",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: "+972400000000",
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    bookingId: "booking-auto-scope",
+    classId: "class-auto-scope",
+  },
+  variables: {
+    class_name: "Core Flow",
+    class_date: "29/06/2026",
+    class_time: "18:00",
+    instructor_name: "Maya",
+  },
+});
+
+assert.equal(bookingRows[0].status, "draft");
+
+const autoPaymentRows = buildNotificationDraftRows({
+  eventKey: "payment_confirmed",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-payment",
+    name: "Mira",
+    phone: "+972509998887",
+    email: "mira@example.com",
+    preferred_language: "he",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    paymentId: "payment-auto-1",
+  },
+  variables: {
+    package_name: "Ten Classes",
+  },
+});
+
+assert.equal(autoPaymentRows[0].status, "queued");
+
+const receiptRows = buildNotificationDraftRows({
+  eventKey: "receipt_issued",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-receipt",
+    name: "Mira",
+    phone: "+972509998887",
+    email: "mira@example.com",
+    preferred_language: "he",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    receiptId: "receipt-manual-1",
+  },
+  variables: {
+    receipt_number: "R-1001",
+  },
+});
+
+assert.equal(receiptRows[0].status, "draft");
 
 const waitlistRows = buildNotificationDraftRows({
   eventKey: "waitlist_joined",
@@ -74,7 +165,7 @@ const waitlistRows = buildNotificationDraftRows({
   },
 });
 
-assert.equal(waitlistRows[0].status, "queued");
+assert.equal(waitlistRows[0].status, "draft");
 assert.equal(waitlistRows[0].language, "he");
 assert.equal(waitlistRows[0].idempotency_key, "waitlist:waitlist-1:waitlist_joined:whatsapp");
 assert.equal(waitlistRows[0].payload.related_ids.waitlistEntryId, "waitlist-1");
