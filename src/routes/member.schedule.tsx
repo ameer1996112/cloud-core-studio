@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, ScheduleDaySection } from "@/components/visual/VisualClassCard";
-import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
+import { ClassDetailSheet, deriveGuestClassState } from "@/components/member/ClassDetailSheet";
 import { AppShell } from "@/components/app-shell/AppShell";
 import {
   MemberScheduleFilterPanel,
@@ -35,6 +35,7 @@ type GuestScheduleCopy = {
   panelEyebrow: string;
   panelTitle: string;
   panelBody: string;
+  scheduleHint: string;
   primaryCta: string;
   secondaryCta: string;
   statClasses: string;
@@ -51,6 +52,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     panelTitle: "Current availability",
     panelBody:
       "Full classes stay visible here, and signing in is the next step before booking or waitlist access.",
+    scheduleHint:
+      "Use filters to scan the live schedule. Sign in only when you are ready to reserve.",
     primaryCta: "Sign in to book",
     secondaryCta: "Talk to support",
     statClasses: "Open classes",
@@ -64,6 +67,7 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     panelEyebrow: "תצוגת לו״ז",
     panelTitle: "זמינות נוכחית",
     panelBody: "שיעורים מלאים נשארים גלויים כאן, והשלב הבא לפני הזמנה או רשימת המתנה הוא התחברות.",
+    scheduleHint: "המסננים פתוחים לצפייה חיה. מתחברות רק כשמוכנות להשלים הזמנה.",
     primaryCta: "התחברות להזמנה",
     secondaryCta: "שיחה עם התמיכה",
     statClasses: "שיעורים פתוחים",
@@ -78,6 +82,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     panelTitle: "التوفر الحالي",
     panelBody:
       "تبقى الحصص الممتلئة ظاهرة هنا، وتسجيل الدخول هو الخطوة التالية قبل الحجز أو الانتظار.",
+    scheduleHint:
+      "استخدمي الفلاتر لمراجعة الجدول المباشر. سجلي الدخول فقط عندما تكونين جاهزة للحجز.",
     primaryCta: "تسجيل الدخول للحجز",
     secondaryCta: "التواصل مع الدعم",
     statClasses: "حصص متاحة",
@@ -115,13 +121,12 @@ function startOfDay(d: Date) {
   return x;
 }
 
-function deriveGuestPreviewState(cls: ScheduleClass) {
-  if (cls.status === "cancelled") return { kind: "cancelled" };
-  if (cls.status !== "scheduled") return { kind: "closed" };
-  const spots = (cls.capacity ?? 0) - (cls.booked_count ?? 0);
-  if (spots <= 0) return { kind: "full" };
-  if (spots <= 2) return { kind: "almost", spotsLeft: spots };
-  return { kind: "available", spotsLeft: spots };
+// eslint-disable-next-line react-refresh/only-export-components
+export function getGuestOpenClassesCount(classes: ScheduleClass[]) {
+  return classes.filter((cls) => {
+    const state = deriveGuestClassState(cls);
+    return state.kind === "available" || state.kind === "almost";
+  }).length;
 }
 
 function MemberSchedulePublic() {
@@ -300,6 +305,7 @@ function MemberScheduleContent({ session }: { session: any }) {
       return true;
     });
   }, [classes, dateScope, filter, search]);
+  const guestOpenClassesCount = session ? 0 : getGuestOpenClassesCount(filtered);
 
   const groups = new Map<string, any[]>();
   for (const c of filtered) {
@@ -312,7 +318,7 @@ function MemberScheduleContent({ session }: { session: any }) {
   const guestStatCells =
     guestCopy && guestStats
       ? [
-          { label: guestCopy.statClasses, value: filtered.length },
+          { label: guestCopy.statClasses, value: guestOpenClassesCount },
           {
             label: guestCopy.statWindow,
             value: guestStats.windowValue,
@@ -340,20 +346,27 @@ function MemberScheduleContent({ session }: { session: any }) {
           remainingCredits: member?.remaining_credits ?? 0,
           hasActivePackage: data?.hasActivePackage,
         })
-      : deriveGuestPreviewState(cls);
+      : deriveGuestClassState(cls);
 
   return (
     <section dir={dir} className="member-page w-full space-y-6 pb-10">
       <div className="member-page-panel p-5 sm:p-8">
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end">
+        <div
+          className={`grid gap-6 ${session ? "md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end" : "md:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] md:items-center"}`}
+        >
           <div className="member-page-copy">
-            <p className="member-eyebrow">
-              {session ? t("member.schedule.kicker") : guestCopy?.panelEyebrow}
-            </p>
-            <h1 className="member-page-title mt-3">
-              {session ? t("nav.schedule") : guestCopy?.panelTitle}
-            </h1>
-            {session && <p className="member-page-body mt-3">{t("member.schedule.body")}</p>}
+            {session ? (
+              <>
+                <p className="member-eyebrow">{t("member.schedule.kicker")}</p>
+                <h1 className="member-page-title mt-3">{t("nav.schedule")}</h1>
+                <p className="member-page-body mt-3">{t("member.schedule.body")}</p>
+              </>
+            ) : (
+              <>
+                <p className="member-eyebrow">{t("nav.schedule")}</p>
+                <p className="member-page-body mt-2 max-w-2xl">{guestCopy?.scheduleHint}</p>
+              </>
+            )}
           </div>
           <div className="member-stat-strip" dir={dir}>
             {session ? (
@@ -462,6 +475,7 @@ function MemberScheduleContent({ session }: { session: any }) {
         classId={openClass}
         open={!!openClass}
         onOpenChange={(v) => !v && setOpenClass(null)}
+        viewerContext={session ? "member" : "guest"}
       />
     </section>
   );

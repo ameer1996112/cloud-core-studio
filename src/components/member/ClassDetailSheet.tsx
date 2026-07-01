@@ -14,9 +14,10 @@ import {
   deriveClassState,
   formatTime,
   formatDate,
+  type ClassState,
   type PremiumClassCardClass,
 } from "./PremiumClassCard";
-import { t, useI18n } from "@/lib/i18n";
+import { t, useI18n, type Lang } from "@/lib/i18n";
 import {
   localizedClassMetadataChips,
   localizedClassTitle,
@@ -49,8 +50,74 @@ type JoinWaitlistResult = {
   position?: number | string | null;
 };
 
+type GuestDetailCtaModel =
+  | { label: string; supportingCopy: string; to: "/auth"; disabled?: false }
+  | { label: string; supportingCopy: string; disabled: true; to?: never };
+
 function hasBookingId(res: BookClassResult): res is BookClassResult & { booking_id: string } {
   return res.status === "booked" && typeof res.booking_id === "string" && res.booking_id.length > 0;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function deriveGuestClassState(cls: PremiumClassCardClass): ClassState {
+  if (cls.status === "cancelled") return { kind: "cancelled" };
+  if (cls.status !== "scheduled") return { kind: "closed" };
+  const spots = (cls.capacity ?? 0) - (cls.booked_count ?? 0);
+  if (spots <= 0) return { kind: "full" };
+  if (spots <= 2) return { kind: "almost", spotsLeft: spots };
+  return { kind: "available", spotsLeft: spots };
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function getGuestDetailCtaModel(state: ClassState, lang: Lang): GuestDetailCtaModel {
+  if (state.kind === "closed" || state.kind === "cancelled") {
+    return {
+      label: t("booking.registrationClosed"),
+      supportingCopy:
+        lang === "he"
+          ? "השיעור הזה לא פתוח להזמנה כרגע."
+          : lang === "ar"
+            ? "هذه الحصة غير متاحة للحجز الآن."
+            : "This class is not open for booking right now.",
+      disabled: true,
+    };
+  }
+
+  if (state.kind === "full") {
+    return {
+      label:
+        lang === "he"
+          ? "התחברות לאפשרויות הזמנה"
+          : lang === "ar"
+            ? "سجلي الدخول لخيارات الحجز"
+            : "Sign in for booking options",
+      supportingCopy:
+        lang === "he"
+          ? "השיעור מלא כרגע. התחברות תאפשר לראות את אפשרויות ההזמנה הזמינות."
+          : lang === "ar"
+            ? "الحصة ممتلئة الآن. سيسمح لك تسجيل الدخول برؤية خيارات الحجز المتاحة."
+            : "This class is currently full. Sign in to see the booking options available to you.",
+      to: "/auth",
+    };
+  }
+
+  return {
+    label:
+      lang === "he" ? "התחברות להזמנה" : lang === "ar" ? "سجلي الدخول للحجز" : "Sign in to book",
+    supportingCopy:
+      lang === "he"
+        ? "הצפייה פתוחה לאורחות. מתחברות רק כשמוכנות להשלים הזמנה."
+        : lang === "ar"
+          ? "التصفح مفتوح للضيفات. سجلي الدخول فقط عندما تكونين جاهزة لإكمال الحجز."
+          : "Guest browsing stays open. Sign in only when you are ready to complete a booking.",
+    to: "/auth",
+  };
+}
+
+function guestNextStepLabel(lang: Lang) {
+  if (lang === "he") return "השלב הבא";
+  if (lang === "ar") return "الخطوة التالية";
+  return "Next step";
 }
 
 function StudioLocationInline({ value }: { value: string }) {
@@ -80,10 +147,12 @@ export function ClassDetailSheet({
   classId,
   open,
   onOpenChange,
+  viewerContext = "member",
 }: {
   classId: string | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  viewerContext?: "member" | "guest";
 }) {
   const { dir, lang } = useI18n();
   const fetchDetail = useServerFn(getClassDetail);
@@ -192,13 +261,19 @@ export function ClassDetailSheet({
         : `With ${instructor}`
     : null;
   const state = cls
-    ? deriveClassState(cls, {
-        booked: data?.myBooking?.status === "booked",
-        waiting: data?.myWaitlist?.status === "waiting" || data?.myWaitlist?.status === "ready",
-        remainingCredits: data?.member?.remaining_credits ?? 0,
-        hasActivePackage: data?.hasActivePackage,
-      })
+    ? !isAuthenticated && viewerContext === "guest"
+      ? deriveGuestClassState(cls)
+      : deriveClassState(cls, {
+          booked: data?.myBooking?.status === "booked",
+          waiting: data?.myWaitlist?.status === "waiting" || data?.myWaitlist?.status === "ready",
+          remainingCredits: data?.member?.remaining_credits ?? 0,
+          hasActivePackage: data?.hasActivePackage,
+        })
     : null;
+  const guestDetailCta =
+    !isAuthenticated && viewerContext === "guest" && state
+      ? getGuestDetailCtaModel(state, lang)
+      : null;
 
   return (
     <Dialog
@@ -342,11 +417,19 @@ export function ClassDetailSheet({
                     label={t("common.spots")}
                     value={spotsLabel}
                   />
-                  <Stat
-                    icon={<Sparkles className="h-3 w-3 text-gold" />}
-                    label={t("common.credits")}
-                    value={creditLabel}
-                  />
+                  {guestDetailCta ? (
+                    <Stat
+                      icon={<Sparkles className="h-3 w-3 text-gold" />}
+                      label={guestNextStepLabel(lang)}
+                      value={guestDetailCta.label}
+                    />
+                  ) : (
+                    <Stat
+                      icon={<Sparkles className="h-3 w-3 text-gold" />}
+                      label={t("common.credits")}
+                      value={creditLabel}
+                    />
+                  )}
                 </div>
 
                 {programDescription && (
@@ -366,17 +449,22 @@ export function ClassDetailSheet({
               </div>
 
               <div className="lesson-detail__cta">
-                {!isAuthenticated ? (
-                  <Link
-                    to="/auth"
-                    className="btn-navy w-full hover:btn-navy-hover text-center justify-center flex items-center gap-2"
-                  >
-                    {lang === "he"
-                      ? "התחברי כדי להזמין"
-                      : lang === "ar"
-                        ? "سجل الدخول للحجز"
-                        : "Sign in to book"}
-                  </Link>
+                {guestDetailCta ? (
+                  <>
+                    {guestDetailCta.disabled ? (
+                      <button disabled className="btn-ghost w-full opacity-60 cursor-not-allowed">
+                        {guestDetailCta.label}
+                      </button>
+                    ) : (
+                      <Link
+                        to={guestDetailCta.to}
+                        className="btn-navy w-full hover:btn-navy-hover text-center justify-center flex items-center gap-2"
+                      >
+                        {guestDetailCta.label}
+                      </Link>
+                    )}
+                    <p className="text-sm leading-6 text-slate">{guestDetailCta.supportingCopy}</p>
+                  </>
                 ) : data?.myBooking?.status === "booked" ? (
                   <Link to="/member/bookings" className="btn-navy w-full hover:btn-navy-hover">
                     {t("booking.viewMine")}{" "}
