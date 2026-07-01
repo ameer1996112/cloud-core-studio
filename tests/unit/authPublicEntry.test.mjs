@@ -1,7 +1,13 @@
+import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "bun:test";
 
 const decoder = new TextDecoder();
 const cwd = process.cwd();
+const authRoutePath = fileURLToPath(new URL("../../src/routes/auth.tsx", import.meta.url));
+
+function countOccurrences(haystack, needle) {
+  return haystack.split(needle).length - 1;
+}
 
 function renderAuthRoute(lang = "en") {
   const script = `
@@ -124,7 +130,7 @@ mock.module("@/lib/image-assets", () => ({
   },
 }));
 
-const routeModule = await import("./src/routes/auth.tsx");
+const routeModule = await import(${JSON.stringify(authRoutePath)});
 process.stdout.write(renderToStaticMarkup(React.createElement(routeModule.Route.options.component)));
 `;
 
@@ -152,6 +158,8 @@ describe("auth public entry", () => {
     expect(html).toContain('href="/member/schedule"');
     expect(html).toContain("Browse Schedule");
     expect(html).toContain('href="/support"');
+    expect(html).toContain(">Support</a>");
+    expect(countOccurrences(html, 'href="/support"')).toBe(2);
     expect(html.indexOf("Enter the studio")).toBeLessThan(html.indexOf("Browse Schedule"));
   });
 
