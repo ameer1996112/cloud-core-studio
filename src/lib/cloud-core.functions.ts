@@ -3,7 +3,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 
-export type BookingStatus = "booked" | "already_booked" | "full" | "insufficient_credits" | "error";
+export type BookingStatus =
+  | "booked"
+  | "already_booked"
+  | "full"
+  | "insufficient_credits"
+  | "no_active_package"
+  | "error";
 
 async function insertNotificationDraftRows(supabase: any, rows: any[]) {
   if (!rows.length) return;

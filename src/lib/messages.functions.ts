@@ -330,6 +330,7 @@ const logSchema = z.object({
       "queued",
       "sent",
       "failed",
+      "cancelled",
       "manually_sent",
       "skipped",
       "generated",
@@ -363,6 +364,7 @@ function getLogStatusFilter(status: string) {
   if (status === "manually_sent") return ["manually_sent", "marked_sent"];
   if (status === "sent") return ["sent"];
   if (status === "failed") return ["failed"];
+  if (status === "cancelled") return ["cancelled"];
   if (status === "skipped") return ["skipped"];
   if (status === "queued") return ["queued"];
   return [status];
@@ -470,8 +472,8 @@ export const prepareNotificationDrafts = createServerFn({ method: "POST" })
       .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
     if (error) throw error;
     return {
-      inserted: rows.filter((row) => row.status === "draft").length,
-      skipped: rows.filter((row) => row.status === "skipped").length,
+      inserted: rows.filter((row) => row.status === "draft" || row.status === "queued").length,
+      skipped: rows.filter((row) => row.status === "skipped" || row.status === "cancelled").length,
     };
   });
 
@@ -523,7 +525,16 @@ export const listNotificationLogs = createServerFn({ method: "GET" })
         limit: z.number().int().positive().max(200).default(50),
         channel: z.enum(["all", "whatsapp", "email", "in_app"]).default("all"),
         status: z
-          .enum(["all", "draft", "queued", "sent", "failed", "manually_sent", "skipped"])
+          .enum([
+            "all",
+            "draft",
+            "queued",
+            "sent",
+            "failed",
+            "cancelled",
+            "manually_sent",
+            "skipped",
+          ])
           .default("all"),
         triggerType: z.string().default("all"),
         visibility: z.enum(["all", "operational", "admin_only"]).default("all"),
@@ -611,6 +622,9 @@ export const waitlistOffer = createServerFn({ method: "POST" })
         if (settingsRes.error) throw settingsRes.error;
         const entry = entryRes.data as any;
         if (entry?.member && entry?.class) {
+          const waitlistExpiresAt = new Date(
+            Date.now() + Number(settingsRes.data?.waitlist_claim_window_minutes ?? 60) * 60_000,
+          );
           await insertNotificationDraftRows(
             context.supabase,
             buildNotificationDraftRows({
@@ -622,6 +636,9 @@ export const waitlistOffer = createServerFn({ method: "POST" })
               studioSettings: settingsRes.data ?? null,
               relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
               variables: buildClassVariables(entry.class),
+              delivery: {
+                waitlistExpiresAt,
+              },
             }),
           );
         }

@@ -437,7 +437,9 @@ export const adminCancelClass = createServerFn({ method: "POST" })
         .from("notification_logs")
         .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
 
-      notificationsPrepared = rows.filter((row) => row.status === "draft").length;
+      notificationsPrepared = rows.filter(
+        (row) => row.status === "draft" || row.status === "queued",
+      ).length;
       notificationsManualReview = rows.filter((row) => row.status === "skipped").length;
 
       if (notificationError) {
@@ -1126,6 +1128,9 @@ export const waitlistPromote = createServerFn({ method: "POST" })
         if (settingsRes.error) throw settingsRes.error;
         const entry = entryRes.data as any;
         if (entry?.member && entry?.class) {
+          const waitlistExpiresAt = new Date(
+            Date.now() + Number(settingsRes.data?.waitlist_claim_window_minutes ?? 60) * 60_000,
+          );
           await insertNotificationDraftRows(
             context.supabase,
             buildNotificationDraftRows({
@@ -1137,6 +1142,9 @@ export const waitlistPromote = createServerFn({ method: "POST" })
               studioSettings: settingsRes.data ?? null,
               relatedIds: { classId: entry.class_id, waitlistEntryId: entry.id },
               variables: buildClassVariables(entry.class),
+              delivery: {
+                waitlistExpiresAt,
+              },
             }),
           );
         }

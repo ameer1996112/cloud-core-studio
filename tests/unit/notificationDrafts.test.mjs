@@ -33,12 +33,14 @@ const rows = buildNotificationDraftRows({
 });
 
 assert.equal(rows.length, 2);
-assert.equal(rows[0].status, "draft");
+assert.equal(rows[0].status, "queued");
 assert.equal(rows[0].language, "en");
 assert.equal(rows[0].staff_visibility, "operational");
 assert.equal(rows[0].related_booking_id, "booking-1");
 assert.equal(rows[0].related_class_id, "class-1");
 assert.equal(rows[0].idempotency_key, "booking:booking-1:booking_confirmed:whatsapp");
+assert.equal(rows[0].provider, "openwa");
+assert.ok(typeof rows[0].scheduled_for === "string");
 assert.ok(rows[0].generated_text?.includes("Noa"));
 assert.equal(rows[1].channel, "email");
 assert.equal(rows[1].status, "draft");
@@ -72,7 +74,7 @@ const waitlistRows = buildNotificationDraftRows({
   },
 });
 
-assert.equal(waitlistRows[0].status, "draft");
+assert.equal(waitlistRows[0].status, "queued");
 assert.equal(waitlistRows[0].language, "he");
 assert.equal(waitlistRows[0].idempotency_key, "waitlist:waitlist-1:waitlist_joined:whatsapp");
 assert.equal(waitlistRows[0].payload.related_ids.waitlistEntryId, "waitlist-1");
@@ -270,5 +272,76 @@ const reminder2hRows = buildNotificationDraftRows({
 
 assert.equal(reminder2hRows[0].language, "ar");
 assert.ok(reminder2hRows[0].subject?.includes("تذكير"));
+
+const skippedReminderRows = buildNotificationDraftRows({
+  eventKey: "class_reminder_2h",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-9",
+    name: "Tamar",
+    phone: "+972500000111",
+    email: null,
+    preferred_language: "he",
+  },
+  appLanguage: "he",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    bookingId: "booking-9",
+    classId: "class-9",
+  },
+  variables: {
+    class_name: "Sunrise Core",
+    class_time: "08:15",
+  },
+  delivery: {
+    scheduledFor: "2026-07-01T03:00:00.000Z",
+    classStartsAt: "2026-07-01T05:00:00.000Z",
+  },
+});
+
+assert.equal(skippedReminderRows[0].status, "skipped");
+
+const cancelledWaitlistRows = buildNotificationDraftRows({
+  eventKey: "waitlist_spot_available",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-10",
+    name: "Adi",
+    phone: "+972500000222",
+    email: null,
+    preferred_language: "en",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "en",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    classId: "class-10",
+    waitlistEntryId: "waitlist-10",
+  },
+  variables: {
+    class_name: "Evening Flow",
+    class_date: "01/07/2026",
+    class_time: "09:00",
+  },
+  delivery: {
+    scheduledFor: "2026-07-01T03:00:00.000Z",
+    waitlistExpiresAt: "2026-07-01T04:15:00.000Z",
+  },
+});
+
+assert.equal(cancelledWaitlistRows[0].status, "cancelled");
 
 console.log("notification draft rows OK");

@@ -1706,19 +1706,21 @@ function LogsTab() {
           </button>
         ))}
         <span className="border-s border-gold/20 mx-1" />
-        {["all", "draft", "skipped", "failed", "manually_sent", "sent"].map((s) => (
-          <button
-            key={s}
-            onClick={() => setLogFilter((f) => ({ ...f, status: s }))}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
-              logFilter.status === s
-                ? "bg-navy text-ivory border-navy"
-                : "border-gold/30 text-slate hover:text-navy/85"
-            }`}
-          >
-            {s.replace("_", " ")}
-          </button>
-        ))}
+        {["all", "draft", "queued", "skipped", "cancelled", "failed", "manually_sent", "sent"].map(
+          (s) => (
+            <button
+              key={s}
+              onClick={() => setLogFilter((f) => ({ ...f, status: s }))}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                logFilter.status === s
+                  ? "bg-navy text-ivory border-navy"
+                  : "border-gold/30 text-slate hover:text-navy/85"
+              }`}
+            >
+              {s.replace("_", " ")}
+            </button>
+          ),
+        )}
         <span className="border-s border-gold/20 mx-1" />
         {["all", "operational", "admin_only"].map((v) => (
           <button
@@ -1787,7 +1789,7 @@ function LogsTab() {
                   className={`rounded-full px-2 py-1 text-xs font-medium ${
                     l.status === "manually_sent" || l.status === "sent"
                       ? "bg-navy text-ivory"
-                      : l.status === "draft"
+                      : l.status === "draft" || l.status === "queued"
                         ? "bg-powder text-navy"
                         : l.status === "failed"
                           ? "bg-destructive/10 text-destructive"
@@ -1811,14 +1813,17 @@ function LogsTab() {
                   {l.generated_text}
                 </pre>
               )}
-              {l.status !== "manually_sent" && l.status !== "sent" && l.status !== "skipped" && (
-                <button
-                  onClick={() => mark.mutate(l.id)}
-                  className="btn-ghost mt-2 text-xs hover:btn-ghost-hover"
-                >
-                  Mark manually sent
-                </button>
-              )}
+              {l.status !== "manually_sent" &&
+                l.status !== "sent" &&
+                l.status !== "skipped" &&
+                l.status !== "cancelled" && (
+                  <button
+                    onClick={() => mark.mutate(l.id)}
+                    className="btn-ghost mt-2 text-xs hover:btn-ghost-hover"
+                  >
+                    Mark manually sent
+                  </button>
+                )}
             </article>
           </li>
         ))}

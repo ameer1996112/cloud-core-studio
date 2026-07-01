@@ -153,31 +153,78 @@ await check("admin roster reflects member booking (sees it via service role)", a
   return data.some((r) => r.member_id === m1.uid);
 });
 
-await check("member with zero credits cannot book", async () => {
-  await admin.from("members").update({ remaining_credits: 0 }).eq("id", m1.uid);
-  // create a fresh class to attempt
-  const { data: c } = await admin
-    .from("classes")
-    .insert({
-      title: "E2E Zero Credit",
-      starts_at: new Date(Date.now() + 2 * 86400000).toISOString(),
-      duration_minutes: 60,
-      capacity: 5,
-      instructor_id: instrS.uid,
-      room: "E2E Studio",
-      credit_cost: 1,
-      cancellation_window_hours: 4,
-      status: "scheduled",
-      booked_count: 0,
-      waitlist_count: 0,
-      energy: "flow",
-    })
-    .select()
-    .single();
-  const { data: r } = await m1.c.rpc("book_class_v2", { p_actor_id: m1.uid, p_class_id: c.id });
-  await admin.from("members").update({ remaining_credits: 9 }).eq("id", m1.uid); // restore for later tests
-  return r?.status === "insufficient_credits";
+await check("member with no active package gets no_active_package", async () => {
+  try {
+    await admin.from("member_plans").delete().eq("member_id", m1.uid);
+    await admin.from("members").update({ remaining_credits: 0 }).eq("id", m1.uid);
+    const { data: c } = await admin
+      .from("classes")
+      .insert({
+        title: "E2E Zero Credit",
+        starts_at: new Date(Date.now() + 2 * 86400000).toISOString(),
+        duration_minutes: 60,
+        capacity: 5,
+        instructor_id: instrS.uid,
+        room: "E2E Studio",
+        credit_cost: 1,
+        cancellation_window_hours: 4,
+        status: "scheduled",
+        booked_count: 0,
+        waitlist_count: 0,
+        energy: "flow",
+      })
+      .select()
+      .single();
+    const { data: r } = await m1.c.rpc("book_class_v2", { p_actor_id: m1.uid, p_class_id: c.id });
+    return r?.status === "no_active_package";
+  } finally {
+    await admin.from("member_plans").delete().eq("member_id", m1.uid);
+    await admin.from("members").update({ remaining_credits: 9 }).eq("id", m1.uid);
+  }
 });
+
+await check(
+  "member with active package but no usable balance gets insufficient_credits",
+  async () => {
+    try {
+      await admin.from("member_plans").delete().eq("member_id", m1.uid);
+      await admin.from("members").update({ remaining_credits: 0 }).eq("id", m1.uid);
+      await admin.from("member_plans").insert({
+        member_id: m1.uid,
+        plan_id: creditsPlan.id,
+        credits_granted: creditsPlan.credits,
+        starts_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+        status: "active",
+        assigned_by: adminS.uid,
+        notes: "rpc entitlement coverage",
+      });
+      const { data: c } = await admin
+        .from("classes")
+        .insert({
+          title: "E2E Active Package Zero Credit",
+          starts_at: new Date(Date.now() + 2 * 86400000).toISOString(),
+          duration_minutes: 60,
+          capacity: 5,
+          instructor_id: instrS.uid,
+          room: "E2E Studio",
+          credit_cost: 1,
+          cancellation_window_hours: 4,
+          status: "scheduled",
+          booked_count: 0,
+          waitlist_count: 0,
+          energy: "flow",
+        })
+        .select()
+        .single();
+      const { data: r } = await m1.c.rpc("book_class_v2", { p_actor_id: m1.uid, p_class_id: c.id });
+      return r?.status === "insufficient_credits";
+    } finally {
+      await admin.from("member_plans").delete().eq("member_id", m1.uid);
+      await admin.from("members").update({ remaining_credits: 9 }).eq("id", m1.uid);
+    }
+  },
+);
 
 // ---------- WAITLIST ----------
 

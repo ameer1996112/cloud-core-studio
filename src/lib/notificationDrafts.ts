@@ -9,6 +9,7 @@ import {
   type NotificationEventKey,
   type NotificationVariables,
 } from "@/lib/notificationTemplates";
+import { getNextAllowedSendTime, resolveNotificationTimingState } from "@/lib/notificationDelivery";
 
 type DraftMember = {
   id: string;
@@ -45,6 +46,11 @@ export type NotificationDraftInput = {
   studioSettings: DraftStudioSettings | null;
   relatedIds: RelatedIds;
   variables: NotificationVariables;
+  delivery?: {
+    classStartsAt?: Date | string | null;
+    scheduledFor?: Date | string | null;
+    waitlistExpiresAt?: Date | string | null;
+  };
 };
 
 export type NotificationLogInsertRow = {
@@ -52,7 +58,7 @@ export type NotificationLogInsertRow = {
   channel: NotificationChannel;
   recipient_member_id: string;
   payload: NotificationDraftPayload;
-  status: "draft" | "skipped";
+  status: "draft" | "queued" | "skipped" | "cancelled";
   trigger_type: NotificationEventKey;
   related_class_id: string | null;
   related_booking_id: string | null;
@@ -65,6 +71,7 @@ export type NotificationLogInsertRow = {
   language: string;
   provider: string | null;
   provider_message_id: string | null;
+  scheduled_for: string | null;
   sent_at: string | null;
   error_message: string | null;
   idempotency_key: string;
@@ -82,6 +89,11 @@ function skipReason(channel: NotificationChannel, member: DraftMember): string |
   if (channel === "whatsapp" && !member.phone) return "missing_whatsapp_phone";
   if (channel === "email" && !member.email) return "missing_email";
   return null;
+}
+
+function toDate(value: Date | string | null | undefined): Date | null {
+  if (!value) return null;
+  return value instanceof Date ? value : new Date(value);
 }
 
 export function buildNotificationDraftRows(
@@ -110,6 +122,28 @@ export function buildNotificationDraftRows(
     });
     const rendered = renderNotificationCopy(template, variables);
     const reason = skipReason(channel, input.member);
+    const requestedSendTime = toDate(input.delivery?.scheduledFor) ?? new Date();
+    const scheduledFor =
+      channel === "whatsapp"
+        ? getNextAllowedSendTime({
+            now: requestedSendTime,
+            timezone: "Asia/Jerusalem",
+            startHour: 8,
+            startMinute: 0,
+            endHour: 20,
+            endMinute: 30,
+          })
+        : null;
+    const status = reason
+      ? "skipped"
+      : channel === "whatsapp" && scheduledFor
+        ? resolveNotificationTimingState({
+            eventType: input.eventKey,
+            scheduledFor,
+            classStartsAt: toDate(input.delivery?.classStartsAt) ?? undefined,
+            waitlistExpiresAt: toDate(input.delivery?.waitlistExpiresAt) ?? undefined,
+          })
+        : "draft";
 
     return {
       template_key: `${input.eventKey}.${channel}.${language}.${audience}`,
@@ -121,7 +155,7 @@ export function buildNotificationDraftRows(
         variables,
         related_ids: input.relatedIds,
       },
-      status: reason ? "skipped" : "draft",
+      status,
       trigger_type: input.eventKey,
       related_class_id: input.relatedIds.classId ?? null,
       related_booking_id: input.relatedIds.bookingId ?? null,
@@ -132,8 +166,9 @@ export function buildNotificationDraftRows(
       generated_text: rendered.body,
       subject: rendered.subject,
       language,
-      provider: null,
+      provider: channel === "whatsapp" ? "openwa" : null,
       provider_message_id: null,
+      scheduled_for: scheduledFor?.toISOString() ?? null,
       sent_at: null,
       error_message: reason,
       idempotency_key: buildNotificationIdempotencyKey({
