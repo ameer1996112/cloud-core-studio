@@ -2,7 +2,6 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, mock, test } from "bun:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import * as actualReact from "../../node_modules/react/index.js";
 import * as actualRouter from "../../node_modules/@tanstack/react-router/dist/cjs/index.cjs";
 import * as actualReactStart from "../../node_modules/@tanstack/react-start/dist/esm/index.js";
 
@@ -35,35 +34,64 @@ const fullClass = {
   booked_count: 10,
 };
 
-const classesById = {
-  "open-class": openClass,
-  "full-class": fullClass,
-};
-
-let selectedGuestClassId = null;
-let useStateCallIndex = 0;
-const detailQueryClassIds = [];
+const guestSession = null;
+const memberSession = { user: { id: "member-1" } };
+const observedQueryKeys = [];
 const renderedCardOpeners = [];
 
-mock.module("react", () => ({
-  ...actualReact,
-  useEffect: () => {},
-  useState: (initialValue) => {
-    const callIndex = useStateCallIndex++;
-
-    if (callIndex === 3) {
-      return [
-        selectedGuestClassId,
-        (nextValue) => {
-          selectedGuestClassId =
-            typeof nextValue === "function" ? nextValue(selectedGuestClassId) : nextValue;
-        },
-      ];
-    }
-
-    return [typeof initialValue === "function" ? initialValue() : initialValue, () => {}];
+const scheduleDataByScope = {
+  guest: {
+    classes: [openClass, fullClass],
+    member: null,
+    bookingsByClass: {},
+    waitlistByClass: {},
+    hasActivePackage: null,
   },
-}));
+  "member:member-1": {
+    classes: [openClass, fullClass],
+    member: { remaining_credits: 7 },
+    bookingsByClass: {},
+    waitlistByClass: {},
+    hasActivePackage: true,
+  },
+  legacy: {
+    classes: [openClass, fullClass],
+    member: null,
+    bookingsByClass: {},
+    waitlistByClass: {},
+    hasActivePackage: null,
+  },
+};
+
+const detailDataByScope = {
+  guest: {
+    "open-class": {
+      cls: openClass,
+      myBooking: null,
+      myWaitlist: null,
+      member: null,
+      hasActivePackage: null,
+    },
+  },
+  "member:member-1": {
+    "open-class": {
+      cls: openClass,
+      myBooking: { status: "booked", id: "booking-1" },
+      myWaitlist: null,
+      member: { remaining_credits: 7 },
+      hasActivePackage: true,
+    },
+  },
+  legacy: {
+    "open-class": {
+      cls: openClass,
+      myBooking: null,
+      myWaitlist: null,
+      member: null,
+      hasActivePackage: null,
+    },
+  },
+};
 
 mock.module("@tanstack/react-router", () => ({
   ...actualRouter,
@@ -79,32 +107,22 @@ mock.module("@tanstack/react-start", () => ({
 
 mock.module("@tanstack/react-query", () => ({
   useQuery: ({ queryKey }) => {
+    observedQueryKeys.push(queryKey);
+
     if (queryKey[0] === "member-schedule") {
       return {
-        data: {
-          classes: [openClass, fullClass],
-          member: null,
-          bookingsByClass: {},
-          waitlistByClass: {},
-          hasActivePackage: null,
-        },
+        data: scheduleDataByScope[queryKey[1] ?? "legacy"] ?? scheduleDataByScope.legacy,
         isLoading: false,
       };
     }
 
     if (queryKey[0] === "class-detail") {
-      detailQueryClassIds.push(queryKey[1] ?? null);
+      const usesScopedKey = queryKey.length >= 3;
+      const scope = usesScopedKey ? queryKey[1] : "legacy";
+      const classId = usesScopedKey ? queryKey[2] : queryKey[1];
 
       return {
-        data: queryKey[1]
-          ? {
-              cls: classesById[queryKey[1]],
-              myBooking: null,
-              myWaitlist: null,
-              member: null,
-              hasActivePackage: null,
-            }
-          : null,
+        data: classId ? (detailDataByScope[scope]?.[classId] ?? null) : null,
         isLoading: false,
       };
     }
@@ -223,6 +241,7 @@ mock.module("@/lib/i18n", () => ({
       "booking.details": "Booking details",
       "booking.bring": "Bring water",
       "booking.registrationClosed": "Registration closed",
+      "booking.viewMine": "View my bookings",
       "member.oneCredit": "1 credit",
     };
 
@@ -266,39 +285,69 @@ mock.module("@/lib/image-assets", () => ({
   resolveClassImagePosition: () => "center center",
 }));
 
-function renderGuestSchedule(routeModule) {
-  useStateCallIndex = 0;
+function renderPublicRoute(routeModule, { session, selectedClassId, onSelectedClassChange }) {
   return renderToStaticMarkup(
-    React.createElement(routeModule.MemberScheduleContent, { session: null }),
+    React.createElement(routeModule.Route.options.component, {
+      authSnapshot: { initialized: true, session },
+      selectedClassId,
+      onSelectedClassChange,
+    }),
   );
 }
 
 describe("guest schedule handoff", () => {
-  test("connects a signed-out schedule card open to the real guest-safe detail CTA", async () => {
+  test("separates guest and member schedule/detail query scopes across the real public route", async () => {
     const routeModule = await import("../../src/routes/member.schedule.tsx");
+    let selectedClassId = null;
 
-    selectedGuestClassId = null;
-    detailQueryClassIds.length = 0;
+    observedQueryKeys.length = 0;
     renderedCardOpeners.length = 0;
 
-    const initialHtml = renderGuestSchedule(routeModule);
+    const guestHtml = renderPublicRoute(routeModule, {
+      session: guestSession,
+      selectedClassId,
+      onSelectedClassChange: (nextValue) => {
+        selectedClassId = nextValue;
+      },
+    });
 
-    expect(initialHtml).toContain("Open classes");
-    expect(initialHtml).toContain(">1<");
-    expect(renderedCardOpeners.map((card) => card.classId)).toEqual(["open-class", "full-class"]);
+    expect(guestHtml).toContain("Guest schedule preview");
+    expect(observedQueryKeys).toContainEqual(["member-schedule", "guest"]);
+    expect(guestHtml).toContain("Open classes");
+    expect(guestHtml).toContain(">1<");
 
     renderedCardOpeners[0].onOpen();
-    expect(selectedGuestClassId).toBe("open-class");
+    expect(selectedClassId).toBe("open-class");
 
-    detailQueryClassIds.length = 0;
-    const rerenderedHtml = renderGuestSchedule(routeModule);
+    observedQueryKeys.length = 0;
+    const guestDetailHtml = renderPublicRoute(routeModule, {
+      session: guestSession,
+      selectedClassId,
+      onSelectedClassChange: (nextValue) => {
+        selectedClassId = nextValue;
+      },
+    });
 
-    expect(detailQueryClassIds).toEqual(["open-class"]);
-    expect(rerenderedHtml).toContain("Open Class");
-    expect(rerenderedHtml).toContain("Sign in to book");
-    expect(rerenderedHtml).toContain("Guest browsing stays open");
-    expect(rerenderedHtml).not.toContain("Join waitlist");
-    expect(rerenderedHtml).not.toContain("Choose package");
-    expect(rerenderedHtml).not.toContain("Top up credits");
+    expect(observedQueryKeys).toContainEqual(["member-schedule", "guest"]);
+    expect(observedQueryKeys).toContainEqual(["class-detail", "guest", "open-class"]);
+    expect(guestDetailHtml).toContain("Sign in to book");
+    expect(guestDetailHtml).toContain("Guest browsing stays open");
+
+    observedQueryKeys.length = 0;
+    const memberHtml = renderPublicRoute(routeModule, {
+      session: memberSession,
+      selectedClassId,
+      onSelectedClassChange: (nextValue) => {
+        selectedClassId = nextValue;
+      },
+    });
+
+    expect(memberHtml).not.toContain("Guest schedule preview");
+    expect(observedQueryKeys).toContainEqual(["member-schedule", "member:member-1"]);
+    expect(observedQueryKeys).toContainEqual(["class-detail", "member:member-1", "open-class"]);
+    expect(memberHtml).toContain("Credits");
+    expect(memberHtml).toContain(">7<");
+    expect(memberHtml).toContain("View my bookings");
+    expect(memberHtml).not.toContain("Sign in to book");
   });
 });

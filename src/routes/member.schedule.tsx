@@ -114,11 +114,33 @@ const GUEST_SCHEDULE_STATS: Record<
 };
 
 type ScheduleClass = Parameters<typeof deriveClassState>[0];
+type AuthSnapshot = { initialized: boolean; session: any | null };
+type MemberSchedulePublicProps = {
+  authSnapshot?: AuthSnapshot;
+  selectedClassId?: string | null;
+  onSelectedClassChange?: (classId: string | null) => void;
+};
+type MemberScheduleContentProps = {
+  session: any;
+  selectedClassId?: string | null;
+  onSelectedClassChange?: (classId: string | null) => void;
+  viewerCacheKey?: string;
+};
 
 function startOfDay(d: Date) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
+}
+
+function getViewerCacheKey(session: any) {
+  const userId = session?.user?.id;
+  return typeof userId === "string" && userId.length > 0 ? `member:${userId}` : "guest";
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function getMemberScheduleQueryKey(viewerCacheKey: string) {
+  return ["member-schedule", viewerCacheKey] as const;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -129,13 +151,20 @@ export function getGuestOpenClassesCount(classes: ScheduleClass[]) {
   }).length;
 }
 
-function MemberSchedulePublic() {
+function MemberSchedulePublic({
+  authSnapshot,
+  selectedClassId,
+  onSelectedClassChange,
+}: MemberSchedulePublicProps = {}) {
   const { lang, dir } = useI18n();
-  const [session, setSession] = useState<any>(null);
-  const [checkingSession, setCheckingSession] = useState(true);
+  const isAuthSnapshotInitialized = authSnapshot?.initialized === true;
+  const [session, setSession] = useState<any>(authSnapshot?.session ?? null);
+  const [checkingSession, setCheckingSession] = useState(!isAuthSnapshotInitialized);
   const guestCopy = GUEST_SCHEDULE_COPY[lang];
 
   useEffect(() => {
+    if (isAuthSnapshotInitialized) return;
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setCheckingSession(false);
@@ -144,7 +173,7 @@ function MemberSchedulePublic() {
       setSession(session);
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [isAuthSnapshotInitialized]);
 
   if (checkingSession) {
     return (
@@ -157,7 +186,12 @@ function MemberSchedulePublic() {
   if (session) {
     return (
       <AppShell role="member">
-        <MemberScheduleContent session={session} />
+        <MemberScheduleContent
+          session={session}
+          selectedClassId={selectedClassId}
+          onSelectedClassChange={onSelectedClassChange}
+          viewerCacheKey={getViewerCacheKey(session)}
+        />
       </AppShell>
     );
   }
@@ -238,18 +272,29 @@ function MemberSchedulePublic() {
             </div>
           </div>
         </section>
-        <MemberScheduleContent session={null} />
+        <MemberScheduleContent
+          session={null}
+          selectedClassId={selectedClassId}
+          onSelectedClassChange={onSelectedClassChange}
+          viewerCacheKey="guest"
+        />
       </main>
     </div>
   );
 }
 
-export function MemberScheduleContent({ session }: { session: any }) {
+export function MemberScheduleContent({
+  session,
+  selectedClassId,
+  onSelectedClassChange,
+  viewerCacheKey,
+}: MemberScheduleContentProps) {
   const { lang, dir } = useI18n();
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
+  const resolvedViewerCacheKey = viewerCacheKey ?? getViewerCacheKey(session);
   const { data, isLoading } = useQuery({
-    queryKey: ["member-schedule"],
+    queryKey: getMemberScheduleQueryKey(resolvedViewerCacheKey),
     queryFn: () => fetchSchedule({ data: { days: 14 } }),
   });
 
@@ -261,7 +306,15 @@ export function MemberScheduleContent({ session }: { session: any }) {
     room?: string;
   }>({});
   const [dateScope, setDateScope] = useState<DateScope>("all");
-  const [openClass, setOpenClass] = useState<string | null>(null);
+  const [uncontrolledOpenClass, setUncontrolledOpenClass] = useState<string | null>(null);
+  const openClass = selectedClassId === undefined ? uncontrolledOpenClass : selectedClassId;
+  const setOpenClass = (classId: string | null) => {
+    if (selectedClassId === undefined) {
+      setUncontrolledOpenClass(classId);
+      return;
+    }
+    onSelectedClassChange?.(classId);
+  };
 
   const classes = useMemo(() => data?.classes ?? [], [data?.classes]);
   const member = data?.member;
@@ -476,6 +529,7 @@ export function MemberScheduleContent({ session }: { session: any }) {
         open={!!openClass}
         onOpenChange={(v) => !v && setOpenClass(null)}
         viewerContext={session ? "member" : "guest"}
+        viewerCacheKey={resolvedViewerCacheKey}
       />
     </section>
   );

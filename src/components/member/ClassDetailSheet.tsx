@@ -120,6 +120,20 @@ function guestNextStepLabel(lang: Lang) {
   return "Next step";
 }
 
+function getResolvedViewerCacheKey(viewerContext: "member" | "guest", viewerCacheKey?: string) {
+  if (viewerCacheKey) return viewerCacheKey;
+  return viewerContext === "guest" ? "guest" : "member";
+}
+
+function getMemberScheduleCacheKey(viewerCacheKey: string) {
+  return ["member-schedule", viewerCacheKey] as const;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function getClassDetailQueryKey(classId: string | null, viewerCacheKey: string) {
+  return ["class-detail", viewerCacheKey, classId] as const;
+}
+
 function StudioLocationInline({ value }: { value: string }) {
   const match = value.match(/Cloud\s*&\s*Core/);
   if (!match || match.index === undefined) {
@@ -148,16 +162,19 @@ export function ClassDetailSheet({
   open,
   onOpenChange,
   viewerContext = "member",
+  viewerCacheKey,
 }: {
   classId: string | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   viewerContext?: "member" | "guest";
+  viewerCacheKey?: string;
 }) {
   const { dir, lang } = useI18n();
   const fetchDetail = useServerFn(getClassDetail);
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const resolvedViewerCacheKey = getResolvedViewerCacheKey(viewerContext, viewerCacheKey);
   const [confirmation, setConfirmation] = useState<null | { bookingId: string; remaining: number }>(
     null,
   );
@@ -174,7 +191,7 @@ export function ClassDetailSheet({
   }, []);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["class-detail", classId],
+    queryKey: getClassDetailQueryKey(classId, resolvedViewerCacheKey),
     queryFn: () => fetchDetail({ data: { classId: classId! } }),
     enabled: !!classId && open,
   });
@@ -190,7 +207,7 @@ export function ClassDetailSheet({
         toast.success(t("booking.confirmed"));
         setConfirmation({ bookingId: res.booking_id, remaining: res.remaining_credits ?? 0 });
         qc.invalidateQueries({ queryKey: ["member-home"] });
-        qc.invalidateQueries({ queryKey: ["member-schedule"] });
+        qc.invalidateQueries({ queryKey: getMemberScheduleCacheKey(resolvedViewerCacheKey) });
         qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
         qc.invalidateQueries({ queryKey: ["studio-pulse"] });
       } else if (res.status === "already_booked") {
@@ -217,7 +234,9 @@ export function ClassDetailSheet({
     onSuccess: (res: JoinWaitlistResult) => {
       if (res.status === "waiting" || res.status === "already_waiting") {
         toast.success(t("booking.toast.waiting", { position: res.position }));
-        qc.invalidateQueries({ queryKey: ["class-detail", classId] });
+        qc.invalidateQueries({
+          queryKey: getClassDetailQueryKey(classId, resolvedViewerCacheKey),
+        });
         qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
       } else {
         toast(t("booking.toast.waitlistError"));
@@ -229,7 +248,9 @@ export function ClassDetailSheet({
     mutationFn: (entryId: string) => leaveFn({ data: { entryId } }),
     onSuccess: () => {
       toast.success(t("booking.toast.left"));
-      qc.invalidateQueries({ queryKey: ["class-detail", classId] });
+      qc.invalidateQueries({
+        queryKey: getClassDetailQueryKey(classId, resolvedViewerCacheKey),
+      });
       qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
     },
   });

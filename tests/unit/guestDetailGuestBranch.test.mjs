@@ -50,16 +50,20 @@ mock.module("@tanstack/react-start", () => ({
 }));
 
 mock.module("@tanstack/react-query", () => ({
-  useQuery: ({ queryKey }) => ({
-    data: {
-      cls: classesById[queryKey[1]],
-      myBooking: null,
-      myWaitlist: null,
-      member: null,
-      hasActivePackage: null,
-    },
-    isLoading: false,
-  }),
+  useQuery: ({ queryKey }) => {
+    const classId = queryKey.length >= 3 ? queryKey[2] : queryKey[1];
+
+    return {
+      data: {
+        cls: classesById[classId],
+        myBooking: null,
+        myWaitlist: null,
+        member: null,
+        hasActivePackage: null,
+      },
+      isLoading: false,
+    };
+  },
   useMutation: () => ({ mutate() {}, isPending: false }),
   useQueryClient: () => ({ invalidateQueries() {} }),
 }));

@@ -8,9 +8,10 @@ Tracked verification for Task 2 guest schedule/detail review lives in:
 What those tracked checks prove:
 
 - `guestScheduleGuestHandoff.test.mjs`
-  - the signed-out schedule surface renders the guest "Open classes" stat with sold-out classes excluded
-  - invoking a real schedule card `onOpen` selects `open-class` and the rerendered route hands that id into the real class-detail query path
-  - that same rerender renders the real guest-safe detail CTA output for the opened class: `Sign in to book` plus `Guest browsing stays open`, without waitlist/package/top-up actions
+  - the real `/member/schedule` route component is rendered through its public auth gate with a mock auth snapshot, not just `MemberScheduleContent(session=null)`
+  - the signed-out public render shows the guest schedule surface and the guest "Open classes" stat with sold-out classes excluded
+  - invoking a real schedule card `onOpen` selects `open-class`, and the guest rerender uses guest-scoped schedule/detail query keys before rendering the real guest-safe detail CTA output
+  - rerendering that same public route with a signed-in member auth snapshot and the same selected class proves the member branch switches to member-scoped schedule/detail query keys and no longer renders the guest CTA copy
 - `guestDetailGuestBranch.test.mjs`
   - the real guest detail branch still has a focused supplemental check for the full-class guest message
   - it verifies `Sign in for booking options` plus the no-waitlist/package/top-up constraint for a full guest class
