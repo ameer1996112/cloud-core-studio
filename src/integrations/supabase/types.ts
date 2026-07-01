@@ -466,6 +466,7 @@ export type Database = {
       members: {
         Row: {
           attendance_count: number;
+          birth_date: string | null;
           care_notes: string | null;
           created_at: string;
           email: string | null;
@@ -482,6 +483,7 @@ export type Database = {
         };
         Insert: {
           attendance_count?: number;
+          birth_date?: string | null;
           care_notes?: string | null;
           created_at?: string;
           email?: string | null;
@@ -498,6 +500,7 @@ export type Database = {
         };
         Update: {
           attendance_count?: number;
+          birth_date?: string | null;
           care_notes?: string | null;
           created_at?: string;
           email?: string | null;
@@ -516,6 +519,7 @@ export type Database = {
       };
       notification_logs: {
         Row: {
+          attempt_count: number;
           channel: string;
           created_at: string;
           error_message: string | null;
@@ -524,6 +528,8 @@ export type Database = {
           id: string;
           language: string | null;
           marked_sent_at: string | null;
+          last_attempt_at: string | null;
+          next_attempt_at: string | null;
           payload: Json;
           recipient_member_id: string | null;
           related_booking_id: string | null;
@@ -534,6 +540,7 @@ export type Database = {
           related_member_plan_id: string | null;
           provider: string | null;
           provider_message_id: string | null;
+          scheduled_for: string | null;
           sent_by: string | null;
           sent_at: string | null;
           staff_visibility: string;
@@ -544,6 +551,7 @@ export type Database = {
           trigger_type: string | null;
         };
         Insert: {
+          attempt_count?: number;
           channel: string;
           created_at?: string;
           error_message?: string | null;
@@ -551,7 +559,9 @@ export type Database = {
           idempotency_key?: string | null;
           id?: string;
           language?: string | null;
+          last_attempt_at?: string | null;
           marked_sent_at?: string | null;
+          next_attempt_at?: string | null;
           payload?: Json;
           recipient_member_id?: string | null;
           related_booking_id?: string | null;
@@ -562,6 +572,7 @@ export type Database = {
           related_member_plan_id?: string | null;
           provider?: string | null;
           provider_message_id?: string | null;
+          scheduled_for?: string | null;
           sent_by?: string | null;
           sent_at?: string | null;
           staff_visibility?: string;
@@ -572,6 +583,7 @@ export type Database = {
           trigger_type?: string | null;
         };
         Update: {
+          attempt_count?: number;
           channel?: string;
           created_at?: string;
           error_message?: string | null;
@@ -579,7 +591,9 @@ export type Database = {
           idempotency_key?: string | null;
           id?: string;
           language?: string | null;
+          last_attempt_at?: string | null;
           marked_sent_at?: string | null;
+          next_attempt_at?: string | null;
           payload?: Json;
           recipient_member_id?: string | null;
           related_booking_id?: string | null;
@@ -590,6 +604,7 @@ export type Database = {
           related_member_plan_id?: string | null;
           provider?: string | null;
           provider_message_id?: string | null;
+          scheduled_for?: string | null;
           sent_by?: string | null;
           sent_at?: string | null;
           staff_visibility?: string;

@@ -374,9 +374,13 @@ export function ClassDetailSheet({
                   >
                     {join.isPending ? "…" : t("booking.joinWaitlist")}
                   </button>
-                ) : state?.kind === "package_required" || state?.kind === "low_credits" ? (
+                ) : state?.kind === "package_required" ? (
                   <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
                     {t("booking.choosePackage")}
+                  </Link>
+                ) : state?.kind === "low_credits" ? (
+                  <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
+                    {t("class.cta.topUpCredits")}
                   </Link>
                 ) : state?.kind === "closed" || state?.kind === "cancelled" ? (
                   <button disabled className="btn-ghost w-full opacity-60 cursor-not-allowed">
