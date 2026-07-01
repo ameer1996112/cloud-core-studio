@@ -15,6 +15,9 @@ assert.deepEqual(getIsraelNowParts(beforeWindowSummer), {
 });
 assert.equal(isWithinQuietHours(beforeWindowSummer), true);
 
+const openingBoundary = new Date("2026-07-01T05:00:00.000Z");
+assert.equal(isWithinQuietHours(openingBoundary), false);
+
 assert.deepEqual(
   getIsraelNowParts(
     getNextAllowedSendTime({
@@ -49,6 +52,9 @@ assert.equal(
 
 const closingBoundary = new Date("2026-07-01T17:30:00.000Z");
 assert.equal(isWithinQuietHours(closingBoundary), false);
+
+const justAfterClose = new Date("2026-07-01T17:31:00.000Z");
+assert.equal(isWithinQuietHours(justAfterClose), true);
 
 const afterWindow = new Date("2026-07-01T18:00:00.000Z");
 assert.equal(isWithinQuietHours(afterWindow), true);
