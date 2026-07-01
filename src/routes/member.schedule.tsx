@@ -244,7 +244,7 @@ function MemberSchedulePublic() {
   );
 }
 
-function MemberScheduleContent({ session }: { session: any }) {
+export function MemberScheduleContent({ session }: { session: any }) {
   const { lang, dir } = useI18n();
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
