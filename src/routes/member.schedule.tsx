@@ -34,7 +34,6 @@ type GuestScheduleCopy = {
   body: string;
   panelEyebrow: string;
   panelTitle: string;
-  panelBody: string;
   primaryCta: string;
   secondaryCta: string;
   statClasses: string;
@@ -47,10 +46,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     eyebrow: "Guest schedule preview",
     title: "See the studio rhythm before you sign in.",
     body: "Browse the next two weeks of movement, filter the live schedule, and step into Cloud & Core when you are ready to book.",
-    panelEyebrow: "Live schedule",
-    panelTitle: "What is open right now",
-    panelBody:
-      "Use the filters below to scan the next two weeks, then sign in only when you are ready to reserve your spot.",
+    panelEyebrow: "Schedule preview",
+    panelTitle: "Current availability",
     primaryCta: "Sign in to book",
     secondaryCta: "Talk to support",
     statClasses: "Open classes",
@@ -61,9 +58,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     eyebrow: "תצוגת לו״ז לאורחות",
     title: "לראות את קצב הסטודיו עוד לפני ההתחברות.",
     body: "אפשר לעבור על השבועיים הקרובים, לסנן את הלו״ז החי, ולהתחבר ל-Cloud & Core כשתרצי להזמין.",
-    panelEyebrow: "לו״ז חי",
-    panelTitle: "מה פתוח עכשיו",
-    panelBody: "המסננים למטה יעזרו לך לעבור על השבועיים הקרובים, ואז להתחבר רק כשרוצים לסגור מקום.",
+    panelEyebrow: "תצוגת לו״ז",
+    panelTitle: "זמינות נוכחית",
     primaryCta: "התחברות להזמנה",
     secondaryCta: "שיחה עם התמיכה",
     statClasses: "שיעורים פתוחים",
@@ -74,10 +70,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     eyebrow: "معاينة جدول للضيفة",
     title: "شاهدي إيقاع الاستوديو قبل تسجيل الدخول.",
     body: "تصفحي الأسبوعين القادمين، صفّي الجدول المباشر، وادخلي إلى Cloud & Core عندما تكونين جاهزة للحجز.",
-    panelEyebrow: "الجدول المباشر",
-    panelTitle: "ما المتاح الآن",
-    panelBody:
-      "استخدمي الفلاتر في الأسفل لمراجعة الأسبوعين القادمين، ثم سجلي الدخول فقط عندما تريدين تثبيت مكانك.",
+    panelEyebrow: "معاينة الجدول",
+    panelTitle: "التوفر الحالي",
     primaryCta: "تسجيل الدخول للحجز",
     secondaryCta: "التواصل مع الدعم",
     statClasses: "حصص متاحة",
@@ -107,10 +101,21 @@ const GUEST_SCHEDULE_STATS: Record<
   },
 };
 
+type ScheduleClass = Parameters<typeof deriveClassState>[0];
+
 function startOfDay(d: Date) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
+}
+
+function deriveGuestPreviewState(cls: ScheduleClass) {
+  return deriveClassState(cls, {
+    booked: false,
+    waiting: false,
+    remainingCredits: Number.MAX_SAFE_INTEGER,
+    hasActivePackage: true,
+  });
 }
 
 function MemberSchedulePublic() {
@@ -315,6 +320,15 @@ function MemberScheduleContent({ session }: { session: any }) {
       : undefined;
   const emptyStateSecondaryAction =
     hasNoClasses && !session ? { label: guestCopy!.primaryCta, to: "/auth" as const } : undefined;
+  const cardStateFor = (cls: ScheduleClass) =>
+    session
+      ? deriveClassState(cls, {
+          booked: !!booked[cls.id],
+          waiting: !!waiting[cls.id],
+          remainingCredits: member?.remaining_credits ?? 0,
+          hasActivePackage: data?.hasActivePackage,
+        })
+      : deriveGuestPreviewState(cls);
 
   return (
     <section dir={dir} className="member-page w-full space-y-6 pb-10">
@@ -327,9 +341,7 @@ function MemberScheduleContent({ session }: { session: any }) {
             <h1 className="member-page-title mt-3">
               {session ? t("nav.schedule") : guestCopy?.panelTitle}
             </h1>
-            <p className="member-page-body mt-3">
-              {session ? t("member.schedule.body") : guestCopy?.panelBody}
-            </p>
+            {session && <p className="member-page-body mt-3">{t("member.schedule.body")}</p>}
           </div>
           <div className="member-stat-strip" dir={dir}>
             {session ? (
@@ -421,12 +433,7 @@ function MemberScheduleContent({ session }: { session: any }) {
               <VisualClassCard
                 key={c.id}
                 cls={c}
-                state={deriveClassState(c, {
-                  booked: !!booked[c.id],
-                  waiting: !!waiting[c.id],
-                  remainingCredits: member?.remaining_credits ?? 0,
-                  hasActivePackage: data?.hasActivePackage,
-                })}
+                state={cardStateFor(c)}
                 onOpen={() => setOpenClass(c.id)}
                 variant="standard"
                 index={index}
