@@ -116,7 +116,7 @@ function SupportPage() {
             </a>
 
             <a
-              href="https://wa.me/972500000000"
+              href="https://wa.me/message/S5HBZNKUMX45O1"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 rounded-xl border border-gold/30 bg-white/70 p-5 hover:bg-gold/5 transition-all group"
