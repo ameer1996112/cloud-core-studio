@@ -39,7 +39,8 @@ import { resolveClassImagePosition } from "@/lib/image-assets";
 import {
   getClassDetailQueryKey,
   getFallbackViewerCacheKey,
-  getMemberScheduleQueryKey,
+  getMemberScheduleInvalidationTarget,
+  type ViewerContext,
 } from "@/lib/memberQueryKeys";
 
 type BookClassResult =
@@ -125,6 +126,29 @@ function guestNextStepLabel(lang: Lang) {
   return "Next step";
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function resolveDetailViewerState({
+  viewerContext,
+  viewerCacheKey,
+  authViewerCacheKey,
+}: {
+  viewerContext: ViewerContext;
+  viewerCacheKey?: string;
+  authViewerCacheKey: string;
+}) {
+  if (viewerContext === "guest") {
+    return {
+      isGuestView: true,
+      resolvedViewerCacheKey: "guest",
+    };
+  }
+
+  return {
+    isGuestView: false,
+    resolvedViewerCacheKey: viewerCacheKey ?? authViewerCacheKey,
+  };
+}
+
 function StudioLocationInline({ value }: { value: string }) {
   const match = value.match(/Cloud\s*&\s*Core/);
   if (!match || match.index === undefined) {
@@ -158,7 +182,7 @@ export function ClassDetailSheet({
   classId: string | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  viewerContext?: "member" | "guest";
+  viewerContext?: ViewerContext;
   viewerCacheKey?: string;
 }) {
   const { dir, lang } = useI18n();
@@ -168,15 +192,17 @@ export function ClassDetailSheet({
   const [confirmation, setConfirmation] = useState<null | { bookingId: string; remaining: number }>(
     null,
   );
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authViewerCacheKey, setAuthViewerCacheKey] = useState(
     viewerCacheKey ?? getFallbackViewerCacheKey(viewerContext),
   );
-  const resolvedViewerCacheKey = viewerCacheKey ?? authViewerCacheKey;
+  const { isGuestView, resolvedViewerCacheKey } = resolveDetailViewerState({
+    viewerContext,
+    viewerCacheKey,
+    authViewerCacheKey,
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setIsAuthenticated(!!data.session);
       setAuthViewerCacheKey(
         data.session?.user?.id
           ? `member:${data.session.user.id}`
@@ -184,7 +210,6 @@ export function ClassDetailSheet({
       );
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
       setAuthViewerCacheKey(
         session?.user?.id ? `member:${session.user.id}` : getFallbackViewerCacheKey(viewerContext),
       );
@@ -209,7 +234,9 @@ export function ClassDetailSheet({
         toast.success(t("booking.confirmed"));
         setConfirmation({ bookingId: res.booking_id, remaining: res.remaining_credits ?? 0 });
         qc.invalidateQueries({ queryKey: ["member-home"] });
-        qc.invalidateQueries({ queryKey: getMemberScheduleQueryKey(resolvedViewerCacheKey) });
+        qc.invalidateQueries(
+          getMemberScheduleInvalidationTarget(viewerContext, resolvedViewerCacheKey),
+        );
         qc.invalidateQueries({ queryKey: ["my-bookings-all"] });
         qc.invalidateQueries({ queryKey: ["studio-pulse"] });
       } else if (res.status === "already_booked") {
@@ -284,7 +311,7 @@ export function ClassDetailSheet({
         : `With ${instructor}`
     : null;
   const state = cls
-    ? !isAuthenticated && viewerContext === "guest"
+    ? isGuestView
       ? deriveGuestClassState(cls)
       : deriveClassState(cls, {
           booked: data?.myBooking?.status === "booked",
@@ -293,10 +320,7 @@ export function ClassDetailSheet({
           hasActivePackage: data?.hasActivePackage,
         })
     : null;
-  const guestDetailCta =
-    !isAuthenticated && viewerContext === "guest" && state
-      ? getGuestDetailCtaModel(state, lang)
-      : null;
+  const guestDetailCta = isGuestView && state ? getGuestDetailCtaModel(state, lang) : null;
 
   return (
     <Dialog

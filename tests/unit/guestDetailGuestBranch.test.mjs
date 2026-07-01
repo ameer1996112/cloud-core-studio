@@ -36,6 +36,9 @@ const classesById = {
   },
 };
 
+const invalidateCalls = [];
+const mutationConfigs = [];
+
 mock.module("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
@@ -67,8 +70,15 @@ mock.module("@tanstack/react-query", () => ({
       isLoading: false,
     };
   },
-  useMutation: () => ({ mutate() {}, isPending: false }),
-  useQueryClient: () => ({ invalidateQueries() {} }),
+  useMutation: (config) => {
+    mutationConfigs.push(config);
+    return { mutate() {}, isPending: false };
+  },
+  useQueryClient: () => ({
+    invalidateQueries: (options) => {
+      invalidateCalls.push(options);
+    },
+  }),
 }));
 
 mock.module("@tanstack/react-router", () => ({
@@ -220,6 +230,20 @@ mock.module("@/lib/image-assets", () => ({
 }));
 
 describe("guest detail CTA branch", () => {
+  test("keeps explicit guest detail scope guest-safe even if auth cache data exists", async () => {
+    const detailModule = await import("../../src/components/member/ClassDetailSheet.tsx");
+
+    expect(
+      detailModule.resolveDetailViewerState({
+        viewerContext: "guest",
+        authViewerCacheKey: "member:member-1",
+      }),
+    ).toEqual({
+      isGuestView: true,
+      resolvedViewerCacheKey: "guest",
+    });
+  });
+
   test("renders the guest CTA branch for an open class", async () => {
     const detailModule = await import("../../src/components/member/ClassDetailSheet.tsx");
     const html = renderToStaticMarkup(
@@ -254,5 +278,43 @@ describe("guest detail CTA branch", () => {
     expect(html).not.toContain("Join waitlist");
     expect(html).not.toContain("Choose package");
     expect(html).not.toContain("Top up credits");
+  });
+
+  test("member booking invalidation does not miss the schedule when no explicit cache key exists", async () => {
+    const detailModule = await import("../../src/components/member/ClassDetailSheet.tsx");
+
+    invalidateCalls.length = 0;
+    mutationConfigs.length = 0;
+
+    renderToStaticMarkup(
+      React.createElement(detailModule.ClassDetailSheet, {
+        classId: "open-class",
+        open: true,
+        onOpenChange: () => {},
+      }),
+    );
+
+    const bookMutation = mutationConfigs.find(
+      (config) => typeof config?.onError === "function" && typeof config?.onSuccess === "function",
+    );
+
+    expect(bookMutation).toBeDefined();
+
+    bookMutation.onSuccess({
+      status: "booked",
+      booking_id: "booking-1",
+      remaining_credits: 4,
+    });
+
+    const scheduleInvalidation = invalidateCalls.find(
+      (call) => call?.queryKey?.[0] === "member-schedule" || typeof call?.predicate === "function",
+    );
+
+    expect(scheduleInvalidation).toBeDefined();
+    expect(scheduleInvalidation.queryKey).toBeUndefined();
+    expect(
+      scheduleInvalidation.predicate({ queryKey: ["member-schedule", "member:member-1"] }),
+    ).toBe(true);
+    expect(scheduleInvalidation.predicate({ queryKey: ["member-schedule", "guest"] })).toBe(false);
   });
 });

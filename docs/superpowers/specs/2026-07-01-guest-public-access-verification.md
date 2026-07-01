@@ -10,11 +10,14 @@ What those tracked checks prove:
 - `guestScheduleGuestHandoff.test.mjs`
   - the real `/member/schedule` route component is rendered through its public auth gate with a mock auth snapshot, not just `MemberScheduleContent(session=null)`
   - the signed-out public render shows the guest schedule surface and the guest "Open classes" stat with sold-out classes excluded
+  - that same guest render asserts the schedule-card state handed to `VisualClassCard`, including an open guest class rendered as `available` and a full guest class rendered as `full`
   - invoking a real schedule card `onOpen` selects `open-class`, and the guest rerender uses guest-scoped schedule/detail query keys before rendering the real guest-safe detail CTA output
   - rerendering that same public route with a signed-in member auth snapshot and the same selected class proves the member branch switches to member-scoped schedule/detail query keys and no longer renders the guest CTA copy
   - the same tracked file also verifies that member booking cancellation invalidates member-scoped schedule queries without targeting the guest schedule scope
 - `guestDetailGuestBranch.test.mjs`
+  - it verifies the explicit guest detail scope stays guest-safe even if member auth cache data exists locally
   - the real guest detail branch still has a focused supplemental check for the full-class guest message
+  - it verifies the member booking success path falls back to authenticated schedule-query invalidation instead of targeting `member:pending` when no explicit viewer cache key is available
   - it verifies `Sign in for booking options` plus the no-waitlist/package/top-up constraint for a full guest class
 
 Verified command:

@@ -38,6 +38,7 @@ const guestSession = null;
 const memberSession = { user: { id: "member-1" } };
 const observedQueryKeys = [];
 const renderedCardOpeners = [];
+const renderedCardStates = [];
 const invalidateCalls = [];
 const mutationConfigs = [];
 
@@ -225,8 +226,9 @@ mock.module(premiumClassCardPath, () => ({ ...premiumCardMock, MemberEmptyState 
 
 mock.module("@/components/visual/VisualClassCard", () => ({
   LessonReservationCard: ({ title }) => React.createElement("div", {}, title ?? "reservation"),
-  VisualClassCard: ({ cls, onOpen }) => {
+  VisualClassCard: ({ cls, state, onOpen }) => {
     renderedCardOpeners.push({ classId: cls.id, onOpen });
+    renderedCardStates.push({ classId: cls.id, state });
     return React.createElement("button", { type: "button", onClick: onOpen }, cls.title);
   },
   ScheduleDaySection: ({ children }) => React.createElement("section", {}, children),
@@ -339,6 +341,7 @@ describe("guest schedule handoff", () => {
 
     observedQueryKeys.length = 0;
     renderedCardOpeners.length = 0;
+    renderedCardStates.length = 0;
 
     const guestHtml = renderPublicRoute(routeModule, {
       session: guestSession,
@@ -352,6 +355,11 @@ describe("guest schedule handoff", () => {
     expect(observedQueryKeys).toContainEqual(["member-schedule", "guest"]);
     expect(guestHtml).toContain("Open classes");
     expect(guestHtml).toContain(">1<");
+    expect(renderedCardStates).toContainEqual({
+      classId: "open-class",
+      state: { kind: "available", spotsLeft: 4 },
+    });
+    expect(renderedCardStates).toContainEqual({ classId: "full-class", state: { kind: "full" } });
 
     const openClassCard = renderedCardOpeners.find(({ classId }) => classId === "open-class");
     expect(openClassCard).toBeDefined();
@@ -400,7 +408,15 @@ describe("guest schedule handoff", () => {
 
     expect(mutationConfigs.length).toBeGreaterThan(0);
 
-    mutationConfigs[0].onSuccess({ status: "cancelled" });
+    const cancelMutation = mutationConfigs.find((config) => {
+      invalidateCalls.length = 0;
+      config.onSuccess?.({ status: "cancelled" });
+      return invalidateCalls.some(
+        (call) => JSON.stringify(call?.queryKey) === JSON.stringify(["member-home"]),
+      );
+    });
+
+    expect(cancelMutation).toBeDefined();
 
     expect(invalidateCalls).toContainEqual({ queryKey: ["my-bookings-all"] });
     expect(invalidateCalls).toContainEqual({ queryKey: ["member-home"] });

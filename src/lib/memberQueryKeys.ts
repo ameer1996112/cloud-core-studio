@@ -1,9 +1,14 @@
-export function getViewerCacheKey(session: any) {
-  const userId = session?.user?.id;
+export type ViewerContext = "member" | "guest";
+
+export function getViewerCacheKey(session: unknown) {
+  const userId =
+    typeof session === "object" && session !== null && "user" in session
+      ? (session as { user?: { id?: unknown } }).user?.id
+      : undefined;
   return typeof userId === "string" && userId.length > 0 ? `member:${userId}` : "guest";
 }
 
-export function getFallbackViewerCacheKey(viewerContext: "member" | "guest") {
+export function getFallbackViewerCacheKey(viewerContext: ViewerContext) {
   return viewerContext === "guest" ? "guest" : "member:pending";
 }
 
@@ -21,4 +26,26 @@ export function isAuthenticatedMemberScheduleQueryKey(queryKey: readonly unknown
     typeof queryKey[1] === "string" &&
     queryKey[1].startsWith("member:")
   );
+}
+
+export function getMemberScheduleInvalidationTarget(
+  viewerContext: ViewerContext,
+  viewerCacheKey?: string,
+) {
+  if (viewerContext === "guest") {
+    return { queryKey: getMemberScheduleQueryKey("guest") };
+  }
+
+  if (
+    typeof viewerCacheKey === "string" &&
+    viewerCacheKey.startsWith("member:") &&
+    viewerCacheKey !== "member:pending"
+  ) {
+    return { queryKey: getMemberScheduleQueryKey(viewerCacheKey) };
+  }
+
+  return {
+    predicate: (query: { queryKey: readonly unknown[] }) =>
+      isAuthenticatedMemberScheduleQueryKey(query.queryKey),
+  };
 }
