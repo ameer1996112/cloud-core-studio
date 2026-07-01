@@ -34,6 +34,7 @@ type GuestScheduleCopy = {
   body: string;
   panelEyebrow: string;
   panelTitle: string;
+  panelBody: string;
   primaryCta: string;
   secondaryCta: string;
   statClasses: string;
@@ -48,6 +49,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     body: "Browse the next two weeks of movement, filter the live schedule, and step into Cloud & Core when you are ready to book.",
     panelEyebrow: "Schedule preview",
     panelTitle: "Current availability",
+    panelBody:
+      "Full classes stay visible here, and signing in is the next step before booking or waitlist access.",
     primaryCta: "Sign in to book",
     secondaryCta: "Talk to support",
     statClasses: "Open classes",
@@ -60,6 +63,7 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     body: "אפשר לעבור על השבועיים הקרובים, לסנן את הלו״ז החי, ולהתחבר ל-Cloud & Core כשתרצי להזמין.",
     panelEyebrow: "תצוגת לו״ז",
     panelTitle: "זמינות נוכחית",
+    panelBody: "שיעורים מלאים נשארים גלויים כאן, והשלב הבא לפני הזמנה או רשימת המתנה הוא התחברות.",
     primaryCta: "התחברות להזמנה",
     secondaryCta: "שיחה עם התמיכה",
     statClasses: "שיעורים פתוחים",
@@ -72,6 +76,8 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     body: "تصفحي الأسبوعين القادمين، صفّي الجدول المباشر، وادخلي إلى Cloud & Core عندما تكونين جاهزة للحجز.",
     panelEyebrow: "معاينة الجدول",
     panelTitle: "التوفر الحالي",
+    panelBody:
+      "تبقى الحصص الممتلئة ظاهرة هنا، وتسجيل الدخول هو الخطوة التالية قبل الحجز أو الانتظار.",
     primaryCta: "تسجيل الدخول للحجز",
     secondaryCta: "التواصل مع الدعم",
     statClasses: "حصص متاحة",
@@ -110,12 +116,12 @@ function startOfDay(d: Date) {
 }
 
 function deriveGuestPreviewState(cls: ScheduleClass) {
-  return deriveClassState(cls, {
-    booked: false,
-    waiting: false,
-    remainingCredits: Number.MAX_SAFE_INTEGER,
-    hasActivePackage: true,
-  });
+  if (cls.status === "cancelled") return { kind: "cancelled" };
+  if (cls.status !== "scheduled") return { kind: "closed" };
+  const spots = (cls.capacity ?? 0) - (cls.booked_count ?? 0);
+  if (spots <= 0) return { kind: "full" };
+  if (spots <= 2) return { kind: "almost", spotsLeft: spots };
+  return { kind: "available", spotsLeft: spots };
 }
 
 function MemberSchedulePublic() {
@@ -201,22 +207,28 @@ function MemberSchedulePublic() {
             />
             <div className="relative flex h-full flex-col justify-between gap-6">
               <div className="space-y-3">
-                <p className="member-eyebrow text-slate">{t("nav.schedule")}</p>
-                <div className="space-y-2">
-                  <p className="text-2xl font-semibold leading-tight text-navy sm:text-3xl">
-                    {t("member.schedule.kicker")}
-                  </p>
-                  <p className="member-page-body max-w-md">{t("member.schedule.body")}</p>
-                </div>
+                <p className="member-eyebrow text-slate">{guestCopy.panelEyebrow}</p>
+                <p className="text-2xl font-semibold leading-tight text-navy sm:text-3xl">
+                  {guestCopy.panelTitle}
+                </p>
+                <p className="member-page-body max-w-md">{guestCopy.panelBody}</p>
               </div>
-              <div className="rounded-[calc(var(--cc-radius-card)-2px)] border border-gold/20 bg-white/75 p-4 shadow-[0_24px_60px_-40px_rgba(11,29,58,0.4)] backdrop-blur-sm">
-                <p className="member-eyebrow text-slate">{guestCopy.statAccess}</p>
-                <p className="mt-2 text-lg font-semibold text-navy">
-                  {GUEST_SCHEDULE_STATS[lang].accessValue}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate">
-                  {GUEST_SCHEDULE_STATS[lang].accessNote}
-                </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[calc(var(--cc-radius-card)-2px)] border border-gold/20 bg-white/75 p-4 shadow-[0_24px_60px_-40px_rgba(11,29,58,0.4)] backdrop-blur-sm">
+                  <p className="member-eyebrow text-slate">{guestCopy.statWindow}</p>
+                  <p className="mt-2 text-lg font-semibold text-navy">
+                    {GUEST_SCHEDULE_STATS[lang].windowValue}
+                  </p>
+                </div>
+                <div className="rounded-[calc(var(--cc-radius-card)-2px)] border border-gold/20 bg-white/75 p-4 shadow-[0_24px_60px_-40px_rgba(11,29,58,0.4)] backdrop-blur-sm">
+                  <p className="member-eyebrow text-slate">{guestCopy.statAccess}</p>
+                  <p className="mt-2 text-lg font-semibold text-navy">
+                    {GUEST_SCHEDULE_STATS[lang].accessValue}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate">
+                    {GUEST_SCHEDULE_STATS[lang].accessNote}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
