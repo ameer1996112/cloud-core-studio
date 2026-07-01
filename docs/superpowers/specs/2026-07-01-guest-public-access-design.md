@@ -1,178 +1,241 @@
 # Guest Public Access Design
 
-## Goal
+## Summary
 
-Resolve the App Review issues from July 1, 2026 by removing the mandatory login wall for non-account-based features and by making the support surface clearly functional for App Store review.
+Resolve the App Review issues dated July 1, 2026 without changing the app's core private-member model.
 
-The app should still require authentication for account-based actions such as booking, packages, profile, and personal history. Public studio browsing should feel premium, not like a stripped-down fallback.
+The approved direction is:
 
-## Scope
+- keep `/auth` as the first screen and perceived entry point
+- add a premium guest CTA from `/auth`
+- allow guests to browse the public schedule
+- allow guests to open public class detail previews
+- keep support public and clearly functional
+- keep booking, packages, payments, profile, and member history behind authentication
 
-In scope:
+This creates a review-safe public discovery layer while preserving the studio's private account-based workflows.
 
-- Public guest access to class browsing.
-- A premium public-facing schedule experience.
-- Clear sign-in handoff for account-based actions.
-- A strengthened public support page suitable for the App Store Connect Support URL.
-- Preservation of existing Hebrew, Arabic, and English support.
-- Preservation of existing authenticated route guards and role-based routing.
+## Goals
 
-Out of scope:
+- Satisfy App Review Guideline 5.1.1 by removing mandatory registration for non-account-based features
+- Keep the auth screen as the app's entry point
+- Preserve a premium boutique-studio feel across auth, guest schedule, and support
+- Let guests browse real studio schedule data and class previews without exposing personal data
+- Keep protected member/admin/instructor flows unchanged
 
-- Booking rules.
-- Payment flows.
-- Supabase schema.
-- RLS.
-- Studio operations logic.
-- Admin route redesign.
-- Native build configuration changes unrelated to these review issues.
+## Non-Goals
+
+- No changes to booking rules or package rules
+- No changes to payments
+- No changes to Supabase schema, RLS, or auth model
+- No changes to admin route structure
+- No changes to member-only business logic
+- No alternate guest-only app shell or duplicated public microsite
 
 ## Product Decision
 
 Guests can access:
 
-- Schedule browsing.
-- Class details.
-- Instructor and room context already shown in schedule cards and detail sheet.
-- Support and legal pages.
+- `/auth`
+- `/member/schedule`
+- public class detail previews opened from the schedule
+- `/support`
+- existing public legal and password-reset routes
 
 Guests cannot access:
 
-- Booking actions.
-- Packages.
-- Personal bookings.
-- Profile or account actions.
-- Any authenticated admin, member, or instructor route.
+- booking completion
+- waitlist actions
+- packages
+- personal bookings
+- profile or account management
+- any authenticated member, admin, or instructor route
 
-This keeps the public mode aligned with Apple’s requirement that non-account-based features remain accessible without registration while preserving authentication for personal and studio-managed workflows.
+Protected actions should redirect to `/auth` and preserve enough context to return the user to the same schedule/detail surface after sign-in.
 
 ## Approaches Considered
 
-### Recommended: Upgrade the existing public `/member/schedule` route
+### Recommended: Keep `/auth` as the entry point and add a premium guest path into the existing public schedule
 
-Use the already-public schedule route as the guest entry point and make it feel like a premium studio discovery page.
-
-Pros:
-
-- Smallest route-level change.
-- Reuses the existing premium card system and data source.
-- Keeps `/` already aligned with public discovery because unauthenticated users currently redirect there.
-- Avoids duplicating schedule logic.
-
-Cons:
-
-- Requires careful CTA behavior so guests are encouraged to sign in without implying that browsing itself is gated.
-
-### Alternative: Create a separate `/guest` or `/discover` route
+This keeps the current app framing while exposing the non-account-based features Apple expects.
 
 Pros:
 
-- Maximum freedom for a dedicated marketing-style landing page.
+- Matches the user's requirement that auth remains the first screen
+- Minimizes route churn
+- Reuses the premium public schedule and detail work already present in the repo
+- Gives App Review an obvious public path without weakening private flows
 
 Cons:
 
-- Adds another public route to maintain.
-- Risks duplicating schedule and class-preview logic.
-- Slower path to resolving review.
+- Requires careful hierarchy so the guest CTA feels intentional, not secondary clutter
+- Requires premium copy so the public path feels curated rather than limited
 
-### Rejected: Keep `/auth` as the first-screen experience and embed public content there
+### Alternative: Make `/member/schedule` the unauthenticated home route
 
-This keeps the sign-in wall too visually dominant and is too close to the rejected behavior.
+Pros:
+
+- Simplest App Review story
+- Public content is immediately visible
+
+Cons:
+
+- Conflicts with the approved product direction
+- Makes the auth screen feel demoted
+
+### Rejected: Create a separate `/guest` or marketing-style discovery route
+
+Pros:
+
+- Full creative freedom for a dedicated landing page
+
+Cons:
+
+- Duplicates public discovery logic
+- Adds maintenance cost
+- Not necessary to resolve review
 
 ## Route Design
 
-Keep the current authenticated guard on `/_authenticated`.
+Public entry behavior should be:
 
-Public routes remain:
+- `/auth` remains the first screen users land on
+- `/auth` presents sign-in/sign-up as the primary action set
+- `/auth` also presents a premium guest CTA such as `Browse Schedule`
+- that guest CTA routes to `/member/schedule`
 
-- `/`
+Public routes:
+
 - `/auth`
 - `/member/schedule`
 - `/support`
-- legal and password-reset routes that are already public
+- existing public legal and password-reset routes
 
-Routing behavior:
+Protected routes remain under the current authenticated guards. The review fix comes from allowing public discovery, not from weakening route protection.
 
-- Unauthenticated `/` continues to redirect to `/member/schedule`.
-- Authenticated `/` continues to redirect to the role home.
-- Guests can remain on `/member/schedule` without interruption.
-- Guest attempts to perform account-based actions redirect to `/auth`.
+## Auth Screen Design
 
-No authenticated route should be weakened. The review fix comes from broadening public browsing, not from relaxing private route protection.
+The auth screen remains the brand-first front door.
 
-## Guest Schedule Experience
+### Structure
 
-The public schedule page should become the premium guest front door for the studio.
-
-### Layout
-
-- Keep the existing premium class-card system and class detail sheet where possible.
-- Add a more intentional guest-facing header with brand, support link, and sign-in CTA.
-- Add premium hero copy that frames the page as studio discovery, not as a member dashboard.
-- Keep filters, search, and day-grouping visible to guests.
-
-### Guest messaging
-
-Guest-facing copy should clearly separate browsing from account actions:
-
-- Browsing is open.
-- Booking requires sign-in.
-- Support is available without sign-in.
-
-Examples of guest CTA behavior:
-
-- Primary top-bar CTA: sign in or create account.
-- Booking CTA inside class detail: sign in to book.
-- Empty-state support CTA: support page.
+- Keep the current premium hero, imagery, and account form structure
+- Preserve sign-in and sign-up as the dominant actions
+- Add a branded secondary guest CTA below or alongside the account actions
+- Add short copy clarifying that users can browse the schedule before signing in
 
 ### Premium direction
 
-The page should feel editorial and boutique rather than generic SaaS:
+The guest CTA should not look like a fallback text link. It should feel designed:
 
-- Soft ivory base with warm light overlays.
-- Deep navy structure with restrained gold accents.
-- Clear visual hierarchy around class discovery.
-- Strong typography already used by the app’s premium auth and member surfaces.
-- No “guest mode” language that makes the public experience feel second-class.
+- clear button or card treatment
+- premium spacing and typography
+- consistent ivory, navy, and restrained gold palette
+- warm studio language instead of utilitarian product wording
+
+### Copy direction
+
+Preferred phrasing:
+
+- `Browse Schedule`
+- `See today's classes`
+- `Sign in to book`
+
+Avoid:
+
+- `Guest mode`
+- `Limited access`
+- `Continue without account`
+
+The public path should feel like a polished studio preview, not a degraded anonymous mode.
+
+## Guest Schedule And Class Detail Experience
+
+The existing public `/member/schedule` route becomes the guest discovery surface reached from `/auth`.
+
+### Schedule surface
+
+- Keep the premium visual class-card system
+- Keep filters and grouping visible to guests
+- Keep the guest-specific premium header and discovery framing
+- Keep support access visible
+
+### Class detail previews
+
+Guests should be able to open class detail previews from schedule cards.
+
+The detail surface can include:
+
+- class title
+- schedule timing
+- instructor context
+- room/context already considered public studio information
+- descriptive class copy already used in the schedule/detail system
+
+The detail surface must not expose:
+
+- personal booking state
+- user-specific package status
+- member history
+- any private operational data
+
+### Protected action handoff
+
+When a guest attempts a protected action such as booking:
+
+- route to `/auth`
+- preserve the selected class/detail context
+- return the user to the same schedule/detail surface after successful sign-in
+
+This should feel seamless and premium, not punitive.
 
 ## Support Page Design
 
-The existing `/support` route is already public and should be strengthened into an unmistakably valid support destination.
+`/support` remains public and should continue to satisfy the App Store Connect Support URL requirement.
 
-Required support elements:
+Required characteristics:
 
-- A clear support title and intro.
-- Direct contact channels visible above the fold.
-- Support email.
-- WhatsApp or direct-message support path if it is real and maintained.
-- Short explanation of what users can ask for help with.
-- Account deletion guidance.
-- Expected response framing during studio hours.
+- visible direct contact information above the fold
+- support email
+- working WhatsApp or direct-chat path if maintained by the studio
+- short guidance for bookings, packages, payments, and account help
+- account deletion guidance
+- links back to schedule browsing and auth
 
-The page should also link users back to:
+The support page should stay premium and branded, but its primary job is clarity and usefulness for users and App Review.
 
-- Public schedule browsing.
-- Authentication for account-specific help.
+## Data And Privacy Guardrails
 
-## Component and Copy Strategy
+- Guests only see public studio/catalog information
+- No member-specific data is exposed without authentication
+- Guest and authenticated cache keys remain separated
+- Existing authenticated route guards remain intact
+- Any action that needs identity or personal state must require auth
 
-Prefer targeted edits over new parallel systems.
+This preserves the boutique studio's privacy model while allowing public discovery of non-personal information.
 
-Likely touch points:
+## Components And Files
 
+Prefer targeted edits in the current public surfaces rather than new parallel systems.
+
+Primary touch points:
+
+- `src/routes/auth.tsx`
 - `src/routes/member.schedule.tsx`
 - `src/routes/support.tsx`
-- shared styling in `src/styles.css` only if the current tokens are insufficient for the guest premium pass
 
-Avoid introducing a separate guest card family. Continue using the current visual class-card system so public and member browsing remain part of one design language.
+Avoid:
 
-Guest copy must remain localized for Hebrew, Arabic, and English. Directionality must continue to follow the existing i18n system.
+- a new guest-only route family
+- a separate guest card component system
+- business-logic changes in booking or member flows
 
-## Error Handling and Fallbacks
+## Error Handling And Edge Cases
 
-- If schedule data is empty, show a premium empty state with support access rather than a dead-end login wall.
-- If a guest tries to book, route them to `/auth` with clear intent.
-- If a session appears while on the guest schedule page, the page may continue to work and expose member-only data only where explicitly intended by the existing authenticated path.
+- If schedule data is empty, show a premium empty state with support access, not a login wall
+- If a guest deep-links directly to `/member/schedule`, allow browsing normally
+- If a guest taps a protected CTA, route to `/auth` with preserved context
+- If a session already exists, the existing member schedule path should continue to work without exposing guest-only copy in the wrong state
 
 ## Testing
 
@@ -180,22 +243,26 @@ Code verification:
 
 - `bun run lint`
 - `bun run build`
+- targeted tests around guest schedule browsing, public detail access, support access, and auth handoff
 
-Manual QA targets:
+Manual QA:
 
-- Guest visit to `/` lands on public schedule, not `/auth`.
-- Guest can browse `/member/schedule` without login.
-- Guest can open class detail content without authentication.
-- Guest booking/account CTAs send the user to `/auth`.
-- `/support` clearly exposes working support information.
-- Hebrew, Arabic, and English layouts remain aligned and readable.
-- Mobile, tablet, and desktop layouts remain premium and stable.
+- app entry reaches `/auth`
+- `/auth` shows a premium guest CTA
+- guest can move from `/auth` to `/member/schedule`
+- guest can open class detail previews
+- guest cannot complete booking without auth
+- signing in returns the user to the selected class context
+- `/support` is public and clearly functional
+- Hebrew, Arabic, and English remain correct
+- desktop and mobile layouts remain premium
 
 ## Acceptance Criteria
 
-- App launch no longer forces registration before browsing public studio content.
-- Guests can browse schedule content and open support without logging in.
-- Account-based actions still require authentication.
-- The support page is clearly functional for App Store review.
-- The guest experience feels premium and consistent with the rest of the app.
-- No booking, payment, schema, or role logic is changed.
+- The app still presents `/auth` as the first screen
+- Users can browse schedule and class detail previews without registration
+- Support remains public and clearly useful
+- Booking and other account-based actions still require sign-in
+- The guest path feels premium and branded
+- No private member data is exposed to guests
+- No account-based business logic is weakened
