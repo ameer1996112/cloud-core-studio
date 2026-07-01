@@ -32,6 +32,9 @@ type GuestScheduleCopy = {
   eyebrow: string;
   title: string;
   body: string;
+  panelEyebrow: string;
+  panelTitle: string;
+  panelBody: string;
   primaryCta: string;
   secondaryCta: string;
   statClasses: string;
@@ -44,6 +47,10 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     eyebrow: "Guest schedule preview",
     title: "See the studio rhythm before you sign in.",
     body: "Browse the next two weeks of movement, filter the live schedule, and step into Cloud & Core when you are ready to book.",
+    panelEyebrow: "Live schedule",
+    panelTitle: "What is open right now",
+    panelBody:
+      "Use the filters below to scan the next two weeks, then sign in only when you are ready to reserve your spot.",
     primaryCta: "Sign in to book",
     secondaryCta: "Talk to support",
     statClasses: "Open classes",
@@ -54,6 +61,9 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     eyebrow: "תצוגת לו״ז לאורחות",
     title: "לראות את קצב הסטודיו עוד לפני ההתחברות.",
     body: "אפשר לעבור על השבועיים הקרובים, לסנן את הלו״ז החי, ולהתחבר ל-Cloud & Core כשתרצי להזמין.",
+    panelEyebrow: "לו״ז חי",
+    panelTitle: "מה פתוח עכשיו",
+    panelBody: "המסננים למטה יעזרו לך לעבור על השבועיים הקרובים, ואז להתחבר רק כשרוצים לסגור מקום.",
     primaryCta: "התחברות להזמנה",
     secondaryCta: "שיחה עם התמיכה",
     statClasses: "שיעורים פתוחים",
@@ -64,6 +74,10 @@ const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
     eyebrow: "معاينة جدول للضيفة",
     title: "شاهدي إيقاع الاستوديو قبل تسجيل الدخول.",
     body: "تصفحي الأسبوعين القادمين، صفّي الجدول المباشر، وادخلي إلى Cloud & Core عندما تكونين جاهزة للحجز.",
+    panelEyebrow: "الجدول المباشر",
+    panelTitle: "ما المتاح الآن",
+    panelBody:
+      "استخدمي الفلاتر في الأسفل لمراجعة الأسبوعين القادمين، ثم سجلي الدخول فقط عندما تريدين تثبيت مكانك.",
     primaryCta: "تسجيل الدخول للحجز",
     secondaryCta: "التواصل مع الدعم",
     statClasses: "حصص متاحة",
@@ -308,13 +322,13 @@ function MemberScheduleContent({ session }: { session: any }) {
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end">
           <div className="member-page-copy">
             <p className="member-eyebrow">
-              {session ? t("member.schedule.kicker") : guestCopy?.eyebrow}
+              {session ? t("member.schedule.kicker") : guestCopy?.panelEyebrow}
             </p>
             <h1 className="member-page-title mt-3">
-              {session ? t("nav.schedule") : guestCopy?.title}
+              {session ? t("nav.schedule") : guestCopy?.panelTitle}
             </h1>
             <p className="member-page-body mt-3">
-              {session ? t("member.schedule.body") : guestCopy?.body}
+              {session ? t("member.schedule.body") : guestCopy?.panelBody}
             </p>
           </div>
           <div className="member-stat-strip" dir={dir}>
