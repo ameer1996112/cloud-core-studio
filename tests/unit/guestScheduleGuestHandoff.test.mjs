@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import * as actualReact from "../../node_modules/react/index.js";
 import * as actualRouter from "../../node_modules/@tanstack/react-router/dist/cjs/index.cjs";
 import * as actualReactStart from "../../node_modules/@tanstack/react-start/dist/esm/index.js";
 
@@ -28,6 +29,30 @@ const fullClass = {
   title: "Full Class",
   booked_count: 10,
 };
+
+let selectedGuestClassId = null;
+const renderedCardOpeners = [];
+
+mock.module("react", () => ({
+  ...actualReact,
+  useEffect: () => {},
+  useState: (initialValue) => {
+    if (initialValue === "") return ["", () => {}];
+    if (initialValue && typeof initialValue === "object") return [{}, () => {}];
+    if (initialValue === "all") return ["all", () => {}];
+    if (initialValue === null) {
+      return [
+        selectedGuestClassId,
+        (nextValue) => {
+          selectedGuestClassId =
+            typeof nextValue === "function" ? nextValue(selectedGuestClassId) : nextValue;
+        },
+      ];
+    }
+
+    return [initialValue, () => {}];
+  },
+}));
 
 mock.module("@tanstack/react-router", () => ({
   ...actualRouter,
@@ -101,7 +126,10 @@ mock.module("@/components/member/PremiumClassCard", () => ({
 }));
 
 mock.module("@/components/visual/VisualClassCard", () => ({
-  VisualClassCard: ({ cls }) => React.createElement("button", {}, cls.title),
+  VisualClassCard: ({ cls, onOpen }) => {
+    renderedCardOpeners.push({ classId: cls.id, onOpen });
+    return React.createElement("button", {}, cls.title);
+  },
   ScheduleDaySection: ({ children }) => React.createElement("section", {}, children),
 }));
 
@@ -150,17 +178,31 @@ mock.module("@/lib/localized-content", () => ({
 }));
 
 describe("guest schedule handoff", () => {
-  test("renders the signed-out schedule with a guest detail handoff and guest-safe open count", async () => {
+  test("connects a guest schedule card open to the selected detail class id", async () => {
     const routeModule = await import("../../src/routes/member.schedule.tsx");
-    const html = renderToStaticMarkup(
+    selectedGuestClassId = null;
+    renderedCardOpeners.length = 0;
+
+    const initialHtml = renderToStaticMarkup(
       React.createElement(routeModule.MemberScheduleContent, { session: null }),
     );
 
-    expect(html).toContain('data-testid="class-detail-sheet"');
-    expect(html).toContain('data-viewer-context="guest"');
-    expect(html).toContain("Open classes");
-    expect(html).toContain(">1<");
-    expect(html).toContain("Open Class");
-    expect(html).toContain("Full Class");
+    expect(initialHtml).toContain('data-viewer-context="guest"');
+    expect(initialHtml).toContain('data-open="false"');
+    expect(initialHtml).toContain('data-class-id=""');
+    expect(initialHtml).toContain("Open classes");
+    expect(initialHtml).toContain(">1<");
+    expect(renderedCardOpeners.map((card) => card.classId)).toEqual(["open-class", "full-class"]);
+
+    renderedCardOpeners[0].onOpen();
+    expect(selectedGuestClassId).toBe("open-class");
+
+    const rerenderedHtml = renderToStaticMarkup(
+      React.createElement(routeModule.MemberScheduleContent, { session: null }),
+    );
+
+    expect(rerenderedHtml).toContain('data-viewer-context="guest"');
+    expect(rerenderedHtml).toContain('data-open="true"');
+    expect(rerenderedHtml).toContain('data-class-id="open-class"');
   });
 });
