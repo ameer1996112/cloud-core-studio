@@ -25,6 +25,9 @@ mkdir -p "$ROOT/.openwa"
 if [ ! -d "$OPENWA_DIR/.git" ]; then
   git clone "$OPENWA_REPO" "$OPENWA_DIR"
 else
+  # This script rewrites the vendored compose file on each run, so restore it
+  # before pulling upstream changes to avoid self-inflicted dirty-checkout failures.
+  git -C "$OPENWA_DIR" restore docker-compose.dev.yml 2>/dev/null || true
   git -C "$OPENWA_DIR" pull --ff-only
 fi
 
