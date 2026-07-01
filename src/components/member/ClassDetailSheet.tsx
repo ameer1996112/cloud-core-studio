@@ -38,7 +38,7 @@ import { resolveClassImagePosition } from "@/lib/image-assets";
 type BookClassResult =
   | { status: "booked"; booking_id: string; remaining_credits?: number | null }
   | {
-      status: "already_booked" | "full" | "insufficient_credits" | string;
+      status: "already_booked" | "full" | "insufficient_credits" | "no_active_package" | string;
       booking_id?: string | null;
       remaining_credits?: number | null;
     };
@@ -116,6 +116,9 @@ export function ClassDetailSheet({
         toast(t("booking.toast.already"));
       } else if (res.status === "full") {
         toast(t("booking.toast.full"));
+      } else if (res.status === "no_active_package") {
+        toast(t("booking.choosePackage"));
+        navigate({ to: "/member/packages" });
       } else if (res.status === "insufficient_credits") {
         toast(t("booking.toast.credits"));
       } else {
@@ -181,6 +184,7 @@ export function ClassDetailSheet({
         booked: data?.myBooking?.status === "booked",
         waiting: data?.myWaitlist?.status === "waiting" || data?.myWaitlist?.status === "ready",
         remainingCredits: data?.member?.remaining_credits ?? 0,
+        hasActivePackage: data?.hasActivePackage,
       })
     : null;
 
@@ -370,7 +374,7 @@ export function ClassDetailSheet({
                   >
                     {join.isPending ? "…" : t("booking.joinWaitlist")}
                   </button>
-                ) : state?.kind === "low_credits" ? (
+                ) : state?.kind === "package_required" || state?.kind === "low_credits" ? (
                   <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
                     {t("booking.choosePackage")}
                   </Link>

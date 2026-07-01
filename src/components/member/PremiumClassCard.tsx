@@ -93,14 +93,22 @@ export type ClassState =
 
 export function deriveClassState(
   cls: PremiumClassCardClass,
-  ctx: { booked: boolean; waiting: boolean; remainingCredits: number },
+  ctx: {
+    booked: boolean;
+    waiting: boolean;
+    remainingCredits: number;
+    hasActivePackage?: boolean | null;
+  },
 ): ClassState {
   if (cls.status === "cancelled") return { kind: "cancelled" };
   if (cls.status !== "scheduled") return { kind: "closed" };
   if (ctx.booked) return { kind: "booked" };
   const spots = (cls.capacity ?? 0) - (cls.booked_count ?? 0);
   if (spots <= 0) return ctx.waiting ? { kind: "waiting" } : { kind: "waitlist_available" };
-  if (ctx.remainingCredits < (cls.credit_cost ?? 1)) return { kind: "low_credits" };
+  if (ctx.remainingCredits < (cls.credit_cost ?? 1)) {
+    if (ctx.hasActivePackage === false) return { kind: "package_required" };
+    return { kind: "low_credits" };
+  }
   if (spots <= 2) return { kind: "almost", spotsLeft: spots };
   return { kind: "available", spotsLeft: spots };
 }

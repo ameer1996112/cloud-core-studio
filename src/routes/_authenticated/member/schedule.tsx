@@ -189,6 +189,7 @@ function MemberSchedule() {
                   booked: !!booked[c.id],
                   waiting: !!waiting[c.id],
                   remainingCredits: member?.remaining_credits ?? 0,
+                  hasActivePackage: data?.hasActivePackage,
                 })}
                 onOpen={() => setOpenClass(c.id)}
                 variant="standard"

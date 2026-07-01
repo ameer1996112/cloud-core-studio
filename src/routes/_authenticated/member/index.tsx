@@ -176,6 +176,7 @@ function MemberHome() {
               booked: false,
               waiting: false,
               remainingCredits: data?.member?.remaining_credits ?? 0,
+              hasActivePackage: !!data?.activePlan,
             })}
             onOpen={() => setOpenClass(featuredClass.id)}
             variant="featured"
@@ -235,6 +236,7 @@ function MemberHome() {
                   booked: false,
                   waiting: false,
                   remainingCredits: data?.member?.remaining_credits ?? 0,
+                  hasActivePackage: !!data?.activePlan,
                 })}
                 onOpen={() => setOpenClass(c.id)}
                 variant="standard"
@@ -262,6 +264,7 @@ function MemberHome() {
                   booked: true,
                   waiting: false,
                   remainingCredits: data?.member?.remaining_credits ?? 0,
+                  hasActivePackage: !!data?.activePlan,
                 })}
                 to="/member/bookings"
               />

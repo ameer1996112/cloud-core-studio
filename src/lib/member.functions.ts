@@ -27,6 +27,15 @@ function buildClassVariables(cls: any) {
   };
 }
 
+function hasUsableActivePackage(
+  plans: Array<{ expires_at?: string | null }> | null | undefined,
+): boolean {
+  const now = Date.now();
+  return (plans ?? []).some(
+    (plan) => !plan.expires_at || new Date(plan.expires_at).getTime() > now,
+  );
+}
+
 export const getMemberHome = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -101,7 +110,7 @@ export const listAvailableClasses = createServerFn({ method: "GET" })
     if (error) throw error;
 
     const ids = (classes ?? []).map((c) => c.id);
-    const [bookingsRes, waitlistRes, memberRes] = await Promise.all([
+    const [bookingsRes, waitlistRes, memberRes, activePlansRes] = await Promise.all([
       ids.length
         ? supabase
             .from("bookings")
@@ -117,6 +126,11 @@ export const listAvailableClasses = createServerFn({ method: "GET" })
             .eq("member_id", userId)
         : Promise.resolve({ data: [] as any[] }),
       supabase.from("members").select("remaining_credits").eq("id", userId).maybeSingle(),
+      supabase
+        .from("member_plans")
+        .select("expires_at")
+        .eq("member_id", userId)
+        .eq("status", "active"),
     ]);
 
     const bookingsByClass: Record<string, { id: string; status: string }> = {};
@@ -134,6 +148,9 @@ export const listAvailableClasses = createServerFn({ method: "GET" })
       bookingsByClass,
       waitlistByClass,
       member: memberRes.data,
+      hasActivePackage: hasUsableActivePackage(
+        activePlansRes.data as Array<{ expires_at?: string | null }> | null,
+      ),
     };
   });
 
@@ -149,7 +166,7 @@ export const getClassDetail = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw error;
 
-    const [bookingRes, waitlistRes, memberRes] = await Promise.all([
+    const [bookingRes, waitlistRes, memberRes, activePlansRes] = await Promise.all([
       supabase
         .from("bookings")
         .select("id,status,credit_cost")
@@ -163,12 +180,20 @@ export const getClassDetail = createServerFn({ method: "GET" })
         .eq("member_id", userId)
         .maybeSingle(),
       supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle(),
+      supabase
+        .from("member_plans")
+        .select("expires_at")
+        .eq("member_id", userId)
+        .eq("status", "active"),
     ]);
     return {
       cls,
       myBooking: bookingRes.data,
       myWaitlist: waitlistRes.data,
       member: memberRes.data,
+      hasActivePackage: hasUsableActivePackage(
+        activePlansRes.data as Array<{ expires_at?: string | null }> | null,
+      ),
     };
   });
 
