@@ -1,9 +1,16 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
+
+const decoder = new TextDecoder();
+const cwd = process.cwd();
+
+function renderSupportRoute(lang = "en") {
+  const script = `
+import { mock } from "bun:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as actualRouter from "@tanstack/react-router";
 
-let currentLang = "en";
+const currentLang = ${JSON.stringify(lang)};
 
 mock.module("@tanstack/react-router", () => ({
   ...actualRouter,
@@ -36,15 +43,27 @@ mock.module("@/components/legal/LegalLanguageSwitcher", () => ({
     React.createElement("div", { "data-testid": "language-switcher" }, "Language"),
 }));
 
-async function renderSupportRoute(lang = "en") {
-  currentLang = lang;
-  const routeModule = await import("../../src/routes/support.tsx");
-  return renderToStaticMarkup(React.createElement(routeModule.Route.options.component));
+const routeModule = await import("./src/routes/support.tsx");
+process.stdout.write(renderToStaticMarkup(React.createElement(routeModule.Route.options.component)));
+`;
+
+  const result = Bun.spawnSync({
+    cmd: ["bun", "-e", script],
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  if (result.exitCode !== 0) {
+    throw new Error(decoder.decode(result.stderr).trim() || "support route render failed");
+  }
+
+  return decoder.decode(result.stdout);
 }
 
 describe("public support route", () => {
-  test("promotes direct support and public guest navigation before detailed help cards", async () => {
-    const html = await renderSupportRoute("en");
+  test("promotes direct support and public guest navigation before detailed help cards", () => {
+    const html = renderSupportRoute("en");
 
     expect(html).toContain("Contact the studio team directly");
     expect(html).toContain("cloudandcorestudio@gmail.com");
@@ -62,9 +81,9 @@ describe("public support route", () => {
     expect(html.indexOf("Sign in or get account help")).toBeLessThan(html.indexOf("Bookings"));
   });
 
-  test("renders hebrew and arabic support navigation copy with rtl direction", async () => {
-    const hebrewHtml = await renderSupportRoute("he");
-    const arabicHtml = await renderSupportRoute("ar");
+  test("renders hebrew and arabic support navigation copy with rtl direction", () => {
+    const hebrewHtml = renderSupportRoute("he");
+    const arabicHtml = renderSupportRoute("ar");
 
     expect(hebrewHtml).toContain('<main dir="rtl"');
     expect(hebrewHtml).toContain("יצירת קשר ישירה");
