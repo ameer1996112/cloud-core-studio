@@ -612,10 +612,20 @@ export function PremiumLessonReservationCard({
   const accent = getLessonProgramAccent(cls);
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       dir={dir}
-      onClick={onOpen}
+      onClick={(event) => {
+        if (shouldIgnoreCardOpen(event.target)) return;
+        onOpen();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        if (shouldIgnoreCardOpen(event.target)) return;
+        event.preventDefault();
+        onOpen();
+      }}
       className="group block w-full text-start animate-fade-in premium-lesson-card-trigger"
     >
       <article
@@ -713,17 +723,30 @@ export function PremiumLessonReservationCard({
                   )}
                 </div>
               )}
-              {cta && !compact && (
-                <span
-                  className={`lesson-card__cta ${tone.cta}`}
-                  aria-disabled={cta.disabled || undefined}
-                >
-                  {ctaLabelFor(state, cta.label, lang)}
-                  {!cta.disabled && (
+              {cta &&
+                !compact &&
+                (state.kind === "low_credits" || state.kind === "package_required" ? (
+                  <Link
+                    to="/member/packages"
+                    data-card-open-ignore="true"
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                    className={`lesson-card__cta ${tone.cta}`}
+                  >
+                    {ctaLabelFor(state, cta.label, lang)}
                     <ChevronLeft className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
-                  )}
-                </span>
-              )}
+                  </Link>
+                ) : (
+                  <span
+                    className={`lesson-card__cta ${tone.cta}`}
+                    aria-disabled={cta.disabled || undefined}
+                  >
+                    {ctaLabelFor(state, cta.label, lang)}
+                    {!cta.disabled && (
+                      <ChevronLeft className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden />
+                    )}
+                  </span>
+                ))}
             </div>
             {compact && (
               <ChevronLeft
@@ -734,13 +757,17 @@ export function PremiumLessonReservationCard({
           </div>
         </div>
       </article>
-    </button>
+    </div>
   );
 }
 
 export const VisualClassCard = PremiumLessonReservationCard;
 export const PremiumReservationLessonCard = PremiumLessonReservationCard;
 export const LessonCard = PremiumLessonReservationCard;
+
+function shouldIgnoreCardOpen(target: EventTarget | null) {
+  return target instanceof Element && Boolean(target.closest("[data-card-open-ignore='true']"));
+}
 
 /** Mini variant — single-line row for home upcoming previews. */
 export function VisualClassCardMini({
