@@ -4,6 +4,7 @@ import {
   getIsraelNowParts,
   getNextAllowedSendTime,
   isWithinQuietHours,
+  resolveNotificationTimingState,
   shouldSkipNotification,
 } from "../../src/lib/notificationDelivery.ts";
 
@@ -95,6 +96,25 @@ assert.deepEqual(
   },
 );
 
+const dstTransitionEve = new Date("2026-03-26T19:00:00.000Z");
+assert.deepEqual(
+  getIsraelNowParts(
+    getNextAllowedSendTime({
+      now: dstTransitionEve,
+      timezone: "Asia/Jerusalem",
+      startHour: 8,
+      startMinute: 0,
+      endHour: 20,
+      endMinute: 30,
+    }),
+  ),
+  {
+    date: "2026-03-27",
+    hour: 8,
+    minute: 0,
+  },
+);
+
 const failedAt = new Date("2026-07-01T10:00:00.000Z");
 assert.equal(
   computeRetrySchedule({ attemptCount: 1, failedAt })?.toISOString(),
@@ -119,6 +139,14 @@ assert.equal(
   true,
 );
 assert.equal(
+  resolveNotificationTimingState({
+    eventType: "class_reminder_2h",
+    scheduledFor: new Date("2026-07-01T15:00:00.000Z"),
+    classStartsAt: new Date("2026-07-01T14:30:00.000Z"),
+  }),
+  "skipped",
+);
+assert.equal(
   shouldSkipNotification({
     eventType: "waitlist_spot_available",
     scheduledFor: new Date("2026-07-01T12:01:00.000Z"),
@@ -127,12 +155,28 @@ assert.equal(
   true,
 );
 assert.equal(
+  resolveNotificationTimingState({
+    eventType: "waitlist_spot_available",
+    scheduledFor: new Date("2026-07-01T12:01:00.000Z"),
+    waitlistExpiresAt: new Date("2026-07-01T12:00:00.000Z"),
+  }),
+  "cancelled",
+);
+assert.equal(
   shouldSkipNotification({
     eventType: "class_cancelled_by_admin",
     scheduledFor: new Date("2026-07-01T12:01:00.000Z"),
     classStartsAt: new Date("2026-07-01T12:00:00.000Z"),
   }),
   false,
+);
+assert.equal(
+  resolveNotificationTimingState({
+    eventType: "class_cancelled_by_admin",
+    scheduledFor: new Date("2026-07-01T12:01:00.000Z"),
+    classStartsAt: new Date("2026-07-01T12:00:00.000Z"),
+  }),
+  "queued",
 );
 
 console.log("notification delivery helpers OK");

@@ -157,29 +157,40 @@ export function computeRetrySchedule(input: { attemptCount: number; failedAt: Da
   return new Date(input.failedAt.getTime() + retryDelayMinutes * 60_000);
 }
 
-export function shouldSkipNotification(input: {
+export function resolveNotificationTimingState(input: {
   eventType: string;
   scheduledFor: Date;
   classStartsAt?: Date | null;
   waitlistExpiresAt?: Date | null;
-}): boolean {
+}): "queued" | "skipped" | "cancelled" {
   const eventType = input.eventType.trim().toLowerCase();
 
   if (
     (eventType === "waitlist_spot_available" ||
       eventType === "waitlist_spot_opened" ||
       eventType === "waitlist_offer") &&
-    input.waitlistExpiresAt
+    input.waitlistExpiresAt &&
+    input.scheduledFor.getTime() >= input.waitlistExpiresAt.getTime()
   ) {
-    return input.scheduledFor.getTime() >= input.waitlistExpiresAt.getTime();
+    return "cancelled";
   }
 
   if (
     (eventType === "class_reminder_24h" || eventType === "class_reminder_2h") &&
-    input.classStartsAt
+    input.classStartsAt &&
+    input.scheduledFor.getTime() >= input.classStartsAt.getTime()
   ) {
-    return input.scheduledFor.getTime() >= input.classStartsAt.getTime();
+    return "skipped";
   }
 
-  return false;
+  return "queued";
+}
+
+export function shouldSkipNotification(input: {
+  eventType: string;
+  scheduledFor: Date;
+  classStartsAt?: Date | null;
+  waitlistExpiresAt?: Date | null;
+}): boolean {
+  return resolveNotificationTimingState(input) !== "queued";
 }
