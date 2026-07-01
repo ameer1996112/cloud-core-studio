@@ -13,20 +13,20 @@
       "run.googleapis.com/ingress": "all",
       "run.googleapis.com/ingress-status": "all",
       "run.googleapis.com/maxScale": "3",
-      "run.googleapis.com/operation-id": "0a23e8b5-22aa-460a-8c2f-60a35e0a25fb",
+      "run.googleapis.com/operation-id": "7ca497ca-6949-4db2-8dbe-a36f73426412",
       "run.googleapis.com/urls": "[\"https://cloud-core-studio-190584124070.me-west1.run.app\",\"https://cloud-core-studio-6uthbm2yyq-zf.a.run.app\"]",
       "serving.knative.dev/creator": "cloudandcorestudio@gmail.com",
       "serving.knative.dev/lastModifier": "cloudandcorestudio@gmail.com"
     },
     "creationTimestamp": "2026-06-23T20:43:21.790820Z",
-    "generation": 159,
+    "generation": 184,
     "labels": {
       "cloud.googleapis.com/location": "me-west1",
       "run.googleapis.com/satisfiesPzs": "true"
     },
     "name": "cloud-core-studio",
     "namespace": "190584124070",
-    "resourceVersion": "AAZVbOgSkdM",
+    "resourceVersion": "AAZVehWX4hI",
     "selfLink": "/apis/serving.knative.dev/v1/namespaces/190584124070/services/cloud-core-studio",
     "uid": "16e2a8b6-9e31-44f4-bd3a-9951a2a0dac6"
   },
@@ -40,7 +40,7 @@
           "run.googleapis.com/startup-cpu-boost": "true"
         },
         "labels": {
-          "client.knative.dev/nonce": "zgdrbxtotc",
+          "client.knative.dev/nonce": "tywttlwmxt",
           "run.googleapis.com/startupProbeType": "Default"
         }
       },
@@ -67,7 +67,7 @@
                 }
               }
             ],
-            "image": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260629233204",
+            "image": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260630151446",
             "ports": [
               {
                 "containerPort": 8080,
@@ -76,7 +76,7 @@
             ],
             "resources": {
               "limits": {
-                "cpu": "1000m",
+                "cpu": "1",
                 "memory": "512Mi"
               }
             },
@@ -107,29 +107,29 @@
     },
     "conditions": [
       {
-        "lastTransitionTime": "2026-06-29T23:34:58.623955Z",
+        "lastTransitionTime": "2026-06-30T15:18:16.910354Z",
         "status": "True",
         "type": "Ready"
       },
       {
-        "lastTransitionTime": "2026-06-29T23:34:57.333061Z",
+        "lastTransitionTime": "2026-06-30T15:18:12.136525Z",
         "status": "True",
         "type": "ConfigurationsReady"
       },
       {
-        "lastTransitionTime": "2026-06-29T23:34:58.587033Z",
+        "lastTransitionTime": "2026-06-30T15:18:16.879781Z",
         "status": "True",
         "type": "RoutesReady"
       }
     ],
-    "latestCreatedRevisionName": "cloud-core-studio-00147-phh",
-    "latestReadyRevisionName": "cloud-core-studio-00147-phh",
-    "observedGeneration": 159,
+    "latestCreatedRevisionName": "cloud-core-studio-00172-zks",
+    "latestReadyRevisionName": "cloud-core-studio-00172-zks",
+    "observedGeneration": 184,
     "traffic": [
       {
         "latestRevision": true,
         "percent": 100,
-        "revisionName": "cloud-core-studio-00147-phh"
+        "revisionName": "cloud-core-studio-00172-zks"
       }
     ],
     "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app"

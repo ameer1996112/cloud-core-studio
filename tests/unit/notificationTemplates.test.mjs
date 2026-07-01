@@ -64,7 +64,7 @@ assert.ok(rendered.body.includes("Core Flow"));
 assert.equal(rendered.subject, null);
 
 const adminPackageTemplate = findNotificationTemplate({
-  eventKey: "package_request_received",
+  eventKey: "payment_request_received",
   channel: "email",
   language: "en",
   audience: "admin",
@@ -76,22 +76,22 @@ const adminRendered = renderNotificationCopy(adminPackageTemplate, {
 });
 
 assert.ok(adminRendered.subject?.includes("awaiting review"));
-assert.ok(adminRendered.body.includes("A new package request was received"));
+assert.ok(adminRendered.body.includes("A new payment request was received"));
 
 assert.equal(notificationStaffVisibility("payment_confirmed"), "admin_only");
 assert.equal(notificationStaffVisibility("receipt_issued"), "admin_only");
-assert.equal(notificationStaffVisibility("package_request_received", "member"), "operational");
-assert.equal(notificationStaffVisibility("package_request_received", "admin"), "admin_only");
+assert.equal(notificationStaffVisibility("payment_request_received", "member"), "operational");
+assert.equal(notificationStaffVisibility("payment_request_received", "admin"), "admin_only");
 assert.equal(notificationStaffVisibility("booking_confirmed"), "operational");
 
 assert.equal(
   buildNotificationIdempotencyKey({
-    eventKey: "package_request_received",
+    eventKey: "payment_request_received",
     channel: "email",
     audience: "admin",
     relatedIds: { packageRequestId: "pkg-1" },
   }),
-  "package_request:pkg-1:package_request_received:email:admin",
+  "payment_request:pkg-1:payment_request_received:email:admin",
 );
 
 assert.equal(

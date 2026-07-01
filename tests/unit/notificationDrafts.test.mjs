@@ -146,7 +146,7 @@ assert.equal(paymentRows[0].staff_visibility, "admin_only");
 assert.equal(paymentRows[0].related_payment_id, "payment-1");
 
 const memberPackageRequestRows = buildNotificationDraftRows({
-  eventKey: "package_request_received",
+  eventKey: "payment_request_received",
   channels: ["email"],
   audience: "member",
   member: {
@@ -175,7 +175,7 @@ const memberPackageRequestRows = buildNotificationDraftRows({
 assert.equal(memberPackageRequestRows[0].staff_visibility, "operational");
 
 const adminPackageRequestRows = buildNotificationDraftRows({
-  eventKey: "package_request_received",
+  eventKey: "payment_request_received",
   channels: ["email"],
   audience: "admin",
   member: {
@@ -202,5 +202,73 @@ const adminPackageRequestRows = buildNotificationDraftRows({
 });
 
 assert.equal(adminPackageRequestRows[0].staff_visibility, "admin_only");
+
+const classCancelledRows = buildNotificationDraftRows({
+  eventKey: "class_cancelled_by_admin",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-7",
+    name: "Yael",
+    phone: "+972501111111",
+    email: "yael@example.com",
+    preferred_language: "he",
+  },
+  appLanguage: "he",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    bookingId: "booking-7",
+    classId: "class-7",
+  },
+  variables: {
+    class_name: "Pilates Mat",
+    class_date: "30/06/2026",
+    class_time: "17:00",
+  },
+});
+
+assert.equal(
+  classCancelledRows[0].idempotency_key,
+  "booking:booking-7:class_cancelled_by_admin:whatsapp",
+);
+assert.ok(classCancelledRows[0].generated_text?.includes("בוטל"));
+
+const reminder2hRows = buildNotificationDraftRows({
+  eventKey: "class_reminder_2h",
+  channels: ["email"],
+  audience: "member",
+  member: {
+    id: "member-8",
+    name: "Amal",
+    phone: null,
+    email: "amal@example.com",
+    preferred_language: "ar",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: null,
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    bookingId: "booking-8",
+    classId: "class-8",
+  },
+  variables: {
+    class_name: "Aerial Yoga",
+    class_time: "19:00",
+  },
+});
+
+assert.equal(reminder2hRows[0].language, "ar");
+assert.ok(reminder2hRows[0].subject?.includes("تذكير"));
 
 console.log("notification draft rows OK");

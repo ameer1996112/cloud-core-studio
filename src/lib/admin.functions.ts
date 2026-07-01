@@ -32,6 +32,47 @@ function buildClassVariables(cls: any) {
   };
 }
 
+async function buildClassMemberDraftRows(
+  supabase: any,
+  input: {
+    classId: string;
+    eventKey: "class_cancelled_by_admin" | "class_time_changed";
+  },
+) {
+  const [bookingsRes, clsRes, settingsRes] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("id,member:members(id,name,phone,email,preferred_language)")
+      .eq("class_id", input.classId)
+      .eq("status", "booked"),
+    supabase
+      .from("classes")
+      .select("id,title,starts_at,instructor:instructors(name)")
+      .eq("id", input.classId)
+      .maybeSingle(),
+    supabase.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+  ]);
+  if (bookingsRes.error) throw bookingsRes.error;
+  if (clsRes.error) throw clsRes.error;
+  if (settingsRes.error) throw settingsRes.error;
+  const cls = clsRes.data as any;
+  if (!cls) return [];
+  return (bookingsRes.data ?? []).flatMap((booking: any) =>
+    booking.member
+      ? buildNotificationDraftRows({
+          eventKey: input.eventKey,
+          channels: ["whatsapp", "email"],
+          audience: "member",
+          member: booking.member,
+          appLanguage: null,
+          studioSettings: settingsRes.data ?? null,
+          relatedIds: { bookingId: booking.id, classId: input.classId },
+          variables: buildClassVariables(cls),
+        })
+      : [],
+  );
+}
+
 // ===== Overview =====
 export const adminOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -164,8 +205,45 @@ export const upsertClass = createServerFn({ method: "POST" })
     await ensureStaff(context.supabase, context.userId, "admin");
     const payload = { ...data, status: data.status ?? "scheduled" };
     if (data.id) {
+      const { data: previous, error: previousError } = await context.supabase
+        .from("classes")
+        .select("id,starts_at,status")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (previousError) throw previousError;
       const { error } = await context.supabase.from("classes").update(payload).eq("id", data.id);
       if (error) throw error;
+      const timeChanged =
+        previous?.starts_at &&
+        new Date(previous.starts_at).getTime() !== new Date(data.starts_at).getTime() &&
+        payload.status === "scheduled";
+      const becameCancelled = previous?.status !== "cancelled" && payload.status === "cancelled";
+      if (timeChanged) {
+        try {
+          await insertNotificationDraftRows(
+            context.supabase,
+            await buildClassMemberDraftRows(context.supabase, {
+              classId: data.id,
+              eventKey: "class_time_changed",
+            }),
+          );
+        } catch (draftError) {
+          console.error("class_time_changed_draft_prepare_failed", draftError);
+        }
+      }
+      if (becameCancelled) {
+        try {
+          await insertNotificationDraftRows(
+            context.supabase,
+            await buildClassMemberDraftRows(context.supabase, {
+              classId: data.id,
+              eventKey: "class_cancelled_by_admin",
+            }),
+          );
+        } catch (draftError) {
+          console.error("class_cancelled_by_admin_draft_prepare_failed", draftError);
+        }
+      }
       // audit log entry is best-effort; _log_action is internal
       return { id: data.id };
     } else {
@@ -191,6 +269,32 @@ export const setClassStatus = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("classes")
       .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw error;
+    if (data.status === "cancelled") {
+      try {
+        await insertNotificationDraftRows(
+          context.supabase,
+          await buildClassMemberDraftRows(context.supabase, {
+            classId: data.id,
+            eventKey: "class_cancelled_by_admin",
+          }),
+        );
+      } catch (draftError) {
+        console.error("class_cancelled_by_admin_draft_prepare_failed", draftError);
+      }
+    }
+    return { ok: true };
+  });
+
+export const deleteClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "admin");
+    const { error } = await context.supabase
+      .from("classes")
+      .delete()
       .eq("id", data.id);
     if (error) throw error;
     return { ok: true };
@@ -651,7 +755,14 @@ export const markAttendance = createServerFn({ method: "POST" })
 
 export const prepareClassReminderDrafts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ classId: z.string().uuid() }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        classId: z.string().uuid(),
+        reminderWindow: z.enum(["24h", "2h"]).default("24h"),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "staff");
     const [bookingsRes, clsRes, settingsRes] = await Promise.all([
@@ -674,7 +785,7 @@ export const prepareClassReminderDrafts = createServerFn({ method: "POST" })
     const rows = (bookingsRes.data ?? []).flatMap((booking: any) =>
       booking.member && cls
         ? buildNotificationDraftRows({
-            eventKey: "class_reminder_24h",
+            eventKey: data.reminderWindow === "2h" ? "class_reminder_2h" : "class_reminder_24h",
             channels: ["whatsapp", "email"],
             audience: "member",
             member: booking.member,

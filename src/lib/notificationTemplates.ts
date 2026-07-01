@@ -7,12 +7,16 @@ export type NotificationAudience = "member" | "admin";
 export type NotificationEventKey =
   | "booking_confirmed"
   | "booking_cancelled"
+  | "booking_cancelled_by_member"
   | "waitlist_joined"
   | "waitlist_spot_available"
-  | "package_request_received"
+  | "payment_request_received"
   | "payment_confirmed"
   | "receipt_issued"
+  | "class_cancelled_by_admin"
+  | "class_time_changed"
   | "class_reminder_24h"
+  | "class_reminder_2h"
   | "no_show_followup";
 
 export type NotificationTemplateDefinition = {
@@ -111,6 +115,11 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     ar: "مرحباً {{member_name}}، تم إلغاء حجزك لحصة {{class_name}}.",
     en: "Hi {{member_name}}, your booking for {{class_name}} was cancelled.",
   },
+  booking_cancelled_by_member: {
+    he: "שלום {{member_name}}, ביטלת את ההרשמה לשיעור {{class_name}}. אם מגיע זיכוי, הוא עודכן בחשבון שלך.",
+    ar: "مرحباً {{member_name}}، تم إلغاء حجزك لحصة {{class_name}}. إذا كان هناك رصيد مستحق فقد تم تحديثه في حسابك.",
+    en: "Hi {{member_name}}, your booking for {{class_name}} was cancelled. If a credit is due, it has been returned to your account.",
+  },
   waitlist_joined: {
     he: "שלום {{member_name}}, הצטרפת לרשימת ההמתנה לשיעור {{class_name}}.",
     ar: "مرحباً {{member_name}}، تمت إضافتك إلى قائمة الانتظار لحصة {{class_name}}.",
@@ -121,10 +130,10 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     ar: "مرحباً {{member_name}}، أصبح هناك مكان متاح في حصة {{class_name}}.",
     en: "Hi {{member_name}}, a spot is available in {{class_name}}.",
   },
-  package_request_received: {
-    he: "שלום {{member_name}}, בקשת החבילה {{package_name}} התקבלה וממתינה לאישור הסטודיו.",
-    ar: "مرحباً {{member_name}}، تم استلام طلب باقة {{package_name}} وهو بانتظار تأكيد الاستوديو.",
-    en: "Hi {{member_name}}, your {{package_name}} package request was received and is pending studio confirmation.",
+  payment_request_received: {
+    he: "שלום {{member_name}}, בקשת התשלום עבור {{package_name}} התקבלה וממתינה לאישור הסטודיו.",
+    ar: "مرحباً {{member_name}}، تم استلام طلب الدفع مقابل {{package_name}} وهو بانتظار تأكيد الاستوديو.",
+    en: "Hi {{member_name}}, your payment request for {{package_name}} was received and is pending studio confirmation.",
   },
   payment_confirmed: {
     he: "שלום {{member_name}}, התשלום עבור {{package_name}} אושר.",
@@ -136,10 +145,25 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     ar: "مرحباً {{member_name}}، تم إصدار الإيصال {{receipt_number}} وهو متاح في حسابك.",
     en: "Hi {{member_name}}, receipt {{receipt_number}} was issued and is available in your account.",
   },
+  class_cancelled_by_admin: {
+    he: "שלום {{member_name}}, השיעור {{class_name}} בתאריך {{class_date}} בשעה {{class_time}} בוטל על ידי הסטודיו.",
+    ar: "مرحباً {{member_name}}، تم إلغاء حصة {{class_name}} بتاريخ {{class_date}} الساعة {{class_time}} من قبل الاستوديو.",
+    en: "Hi {{member_name}}, {{class_name}} on {{class_date}} at {{class_time}} was cancelled by the studio.",
+  },
+  class_time_changed: {
+    he: "שלום {{member_name}}, השעה של {{class_name}} עודכנה. השעה החדשה: {{class_date}} בשעה {{class_time}}.",
+    ar: "مرحباً {{member_name}}، تم تحديث موعد حصة {{class_name}}. الموعد الجديد: {{class_date}} الساعة {{class_time}}.",
+    en: "Hi {{member_name}}, the time for {{class_name}} has changed. New time: {{class_date}} at {{class_time}}.",
+  },
   class_reminder_24h: {
     he: "שלום {{member_name}}, תזכורת לשיעור {{class_name}} מחר בשעה {{class_time}}.",
     ar: "مرحباً {{member_name}}، تذكير بحصة {{class_name}} غداً الساعة {{class_time}}.",
     en: "Hi {{member_name}}, reminder: {{class_name}} is tomorrow at {{class_time}}.",
+  },
+  class_reminder_2h: {
+    he: "שלום {{member_name}}, תזכורת קצרה: {{class_name}} מתחיל היום בשעה {{class_time}}.",
+    ar: "مرحباً {{member_name}}، تذكير سريع: تبدأ حصة {{class_name}} اليوم الساعة {{class_time}}.",
+    en: "Hi {{member_name}}, quick reminder: {{class_name}} starts today at {{class_time}}.",
   },
   no_show_followup: {
     he: "שלום {{member_name}}, ראינו שלא הגעת לשיעור {{class_name}}. נשמח לראות אותך שוב בקרוב.",
@@ -151,10 +175,10 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
 const ADMIN_FALLBACK_BODIES: Partial<
   Record<NotificationEventKey, Record<NotificationLanguage, string>>
 > = {
-  package_request_received: {
-    he: "בקשת חבילה חדשה התקבלה עבור {{member_name}}: {{package_name}}.",
-    ar: "تم استلام طلب باقة جديد للعضو {{member_name}}: {{package_name}}.",
-    en: "A new package request was received for {{member_name}}: {{package_name}}.",
+  payment_request_received: {
+    he: "בקשת תשלום חדשה התקבלה עבור {{member_name}}: {{package_name}}.",
+    ar: "تم استلام طلب دفع جديد للعضو {{member_name}}: {{package_name}}.",
+    en: "A new payment request was received for {{member_name}}: {{package_name}}.",
   },
 };
 
@@ -169,6 +193,11 @@ const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, 
     ar: "تم إلغاء حجز الحصة · {{class_name}}",
     en: "Your class booking was cancelled · {{class_name}}",
   },
+  booking_cancelled_by_member: {
+    he: "הביטול שלך אושר · {{class_name}}",
+    ar: "تم تأكيد إلغاء الحجز · {{class_name}}",
+    en: "Your cancellation is confirmed · {{class_name}}",
+  },
   waitlist_joined: {
     he: "הצטרפת לרשימת ההמתנה · {{class_name}}",
     ar: "تمت إضافتك إلى قائمة الانتظار · {{class_name}}",
@@ -179,10 +208,10 @@ const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, 
     ar: "أصبح هناك مكان متاح · {{class_name}}",
     en: "A class spot is available · {{class_name}}",
   },
-  package_request_received: {
-    he: "בקשת החבילה התקבלה · {{package_name}}",
-    ar: "تم استلام طلب الباقة · {{package_name}}",
-    en: "Package request received · {{package_name}}",
+  payment_request_received: {
+    he: "בקשת התשלום התקבלה · {{package_name}}",
+    ar: "تم استلام طلب الدفع · {{package_name}}",
+    en: "Payment request received · {{package_name}}",
   },
   payment_confirmed: {
     he: "התשלום אושר · {{package_name}}",
@@ -194,10 +223,25 @@ const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, 
     ar: "تم إصدار الإيصال · {{receipt_number}}",
     en: "Receipt issued · {{receipt_number}}",
   },
+  class_cancelled_by_admin: {
+    he: "השיעור בוטל · {{class_name}}",
+    ar: "تم إلغاء الحصة · {{class_name}}",
+    en: "Class cancelled · {{class_name}}",
+  },
+  class_time_changed: {
+    he: "שעת השיעור עודכנה · {{class_name}}",
+    ar: "تم تحديث وقت الحصة · {{class_name}}",
+    en: "Class time changed · {{class_name}}",
+  },
   class_reminder_24h: {
     he: "תזכורת לשיעור הקרוב · {{class_name}}",
     ar: "تذكير بالحصة القادمة · {{class_name}}",
     en: "Reminder for your upcoming class · {{class_name}}",
+  },
+  class_reminder_2h: {
+    he: "תזכורת אחרונה לשיעור · {{class_name}}",
+    ar: "تذكير أخير بالحصة · {{class_name}}",
+    en: "Final class reminder · {{class_name}}",
   },
   no_show_followup: {
     he: "נשמח לראות אותך שוב · {{class_name}}",
@@ -209,10 +253,10 @@ const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, 
 const ADMIN_EMAIL_SUBJECTS: Partial<
   Record<NotificationEventKey, Record<NotificationLanguage, string>>
 > = {
-  package_request_received: {
-    he: "בקשת חבילה חדשה מחכה לטיפול · {{package_name}}",
-    ar: "طلب باقة جديد بانتظار المتابعة · {{package_name}}",
-    en: "New package request awaiting review · {{package_name}}",
+  payment_request_received: {
+    he: "בקשת תשלום חדשה מחכה לטיפול · {{package_name}}",
+    ar: "طلب دفع جديد بانتظار المتابعة · {{package_name}}",
+    en: "New payment request awaiting review · {{package_name}}",
   },
 };
 
@@ -265,7 +309,7 @@ export function notificationStaffVisibility(
 ): "operational" | "admin_only" {
   return eventKey === "payment_confirmed" ||
     eventKey === "receipt_issued" ||
-    (eventKey === "package_request_received" && audience === "admin")
+    (eventKey === "payment_request_received" && audience === "admin")
     ? "admin_only"
     : "operational";
 }
@@ -283,8 +327,9 @@ export function buildNotificationIdempotencyKey(input: {
   };
 }): string {
   const audience = input.audience ?? "member";
-  if (input.eventKey === "package_request_received") {
-    return `package_request:${input.relatedIds.packageRequestId}:package_request_received:${input.channel}:${audience}`;
+  if (input.eventKey === "payment_request_received") {
+    const sourceId = input.relatedIds.packageRequestId ?? input.relatedIds.paymentId;
+    return `payment_request:${sourceId}:payment_request_received:${input.channel}:${audience}`;
   }
   if (input.eventKey === "payment_confirmed") {
     return `payment:${input.relatedIds.paymentId}:payment_confirmed:${input.channel}`;

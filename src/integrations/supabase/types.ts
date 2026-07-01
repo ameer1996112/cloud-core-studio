@@ -1481,6 +1481,14 @@ export type Database = {
         Args: { p_actor_id: string; p_entry_id: string };
         Returns: Json;
       };
+      sweep_all_members_credits: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      sweep_member_credits: {
+        Args: { p_member_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: "member" | "instructor" | "admin";

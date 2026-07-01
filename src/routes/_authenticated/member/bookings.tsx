@@ -2,30 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { MapPin, Sparkles, MessageCircle, CalendarPlus } from "lucide-react";
+import { MessageCircle, CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 import { getMyBookingsAll, memberCancelBooking, leaveWaitlist } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
-import {
-  ClassImage,
-  formatDate,
-  formatDurationLabel,
-  formatTime,
-  MemberEmptyState,
-  StateBadge,
-} from "@/components/member/PremiumClassCard";
+import { formatDate, formatTime, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
+import { LessonReservationCard } from "@/components/visual/VisualClassCard";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { t, useI18n, getLocale } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import {
-  localizedClassTitle,
-  localizedClassTitleParts,
-  localizedOptionalInstructorName,
-} from "@/lib/localized-content";
-import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
+import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
   component: MyBookings,
@@ -197,7 +186,12 @@ function MyBookings() {
       <div className="space-y-3">
         {tab === "waitlist"
           ? waitlist.map((w: any) => (
-              <WaitlistCard key={w.id} entry={w} onLeave={() => leave.mutate(w.id)} />
+              <WaitlistCard
+                key={w.id}
+                entry={w}
+                onOpen={() => setOpenClass(w.class.id)}
+                onLeave={() => leave.mutate(w.id)}
+              />
             ))
           : current.map((b: any) => (
               <BookingCard
@@ -285,7 +279,6 @@ function BookingCard({
   muted?: boolean;
   studio?: any;
 }) {
-  const { dir, lang } = useI18n();
   const cls = booking.class;
   if (!cls) return null;
   const startsAt = new Date(cls.starts_at);
@@ -295,7 +288,6 @@ function BookingCard({
   const canCancel = Date.now() < deadline.getTime() && booking.status === "booked";
   const isUpcoming = startsAt.getTime() >= Date.now() && booking.status === "booked";
   const title = localizedClassTitle(cls);
-  const titleParts = localizedClassTitleParts(cls, lang);
   const instructor =
     localizedOptionalInstructorName(cls.instructor?.name) ?? t("member.noInstructor");
   const statusLabel =
@@ -336,82 +328,25 @@ function BookingCard({
   });
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      className={`visual-class-card member-card group cursor-pointer overflow-hidden outline-none transition-[transform,box-shadow,opacity] hover:-translate-y-0.5 hover:member-card-hover focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory ${
-        muted ? "opacity-80" : ""
-      }`}
+    <LessonReservationCard
+      cls={cls}
+      state={
+        booking.status === "cancelled"
+          ? { kind: "cancelled" }
+          : attendance?.status === "attended"
+            ? { kind: "closed" }
+            : { kind: "booked" }
+      }
+      statusLabel={statusLabel}
+      onOpen={onOpen}
+      muted={muted}
     >
-      <div className="relative overflow-hidden bg-navy">
-        <ClassImage cls={cls} className="member-class-media" />
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(11,29,58,0.06) 0%, rgba(11,29,58,0.10) 48%, rgba(11,29,58,0.34) 100%)",
-          }}
-        />
-        <div className="absolute start-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-xs font-semibold tabular-nums text-ivory shadow-[0_16px_30px_-24px_rgba(11,29,58,0.95)] backdrop-blur-md">
-          <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
-          <span className="h-3 w-px bg-ivory/22" aria-hidden />
-          <bdi className="font-medium text-ivory/72">
-            {formatDurationLabel(cls.duration_minutes)}
-          </bdi>
-        </div>
-        <div className="absolute end-4 top-4 z-10 flex flex-wrap justify-end gap-2">
-          {attendance?.status === "attended" && (
-            <span className="member-chip">{t("bookings.attended")}</span>
-          )}
-          {attendance?.status === "no_show" && (
-            <span className="member-chip">{t("bookings.noShow")}</span>
-          )}
-          {booking.status === "cancelled" && (
-            <span className="member-chip">{t("bookings.cancelled")}</span>
-          )}
-        </div>
-      </div>
-
-      <div className="bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(250,247,242,0.98))] p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="member-eyebrow">
-              <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
-            </p>
-            <MixedLessonTitle
-              as="h3"
-              brand={titleParts.brand}
-              program={titleParts.program}
-              dir={dir}
-              className="mt-1 font-sans text-[22px] font-semibold leading-tight tracking-normal text-navy"
-            />
-          </div>
-          <span className="rounded-full border border-gold/30 bg-sand/45 px-3 py-1 text-xs font-medium text-slate">
-            {statusLabel}
+      {isUpcoming && (
+        <>
+          <span className="basis-full text-xs text-slate leading-relaxed">
+            {t("booking.cancelWindow", { hours: cls.cancellation_window_hours })}
           </span>
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-slate">
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3 w-3 text-gold" />
-            {t("member.locationStudio")}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-gold" />
-            {instructor}
-          </span>
-        </div>
-
-        {isUpcoming && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t hairline pt-3">
+          <div className="lesson-reservation-card__action-row">
             <button
               onClick={addToCalendar}
               className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
@@ -444,59 +379,44 @@ function BookingCard({
               </a>
             )}
           </div>
-        )}
-      </div>
-    </div>
+        </>
+      )}
+    </LessonReservationCard>
   );
 }
 
-function WaitlistCard({ entry, onLeave }: { entry: any; onLeave: () => void }) {
-  const { dir, lang } = useI18n();
+function WaitlistCard({
+  entry,
+  onOpen,
+  onLeave,
+}: {
+  entry: any;
+  onOpen: () => void;
+  onLeave: () => void;
+}) {
   const cls = entry.class;
   if (!cls) return null;
-  const title = localizedClassTitle(cls);
-  const titleParts = localizedClassTitleParts(cls, lang);
   return (
-    <div className="member-card overflow-hidden">
-      <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[180px_1fr]">
-        <ClassImage cls={cls} className="aspect-square sm:aspect-auto" />
-        <div className="p-4 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs font-medium text-slate">
-                <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
-                <span aria-hidden="true"> · </span>
-                <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
-              </p>
-              <MixedLessonTitle
-                as="p"
-                brand={titleParts.brand}
-                program={titleParts.program}
-                dir={dir}
-                className="member-mixed-title mt-1 text-xl leading-tight text-navy"
-              />
-            </div>
-            <StateBadge
-              state={
-                { kind: entry.status === "ready" ? "available" : "waiting", spotsLeft: 0 } as any
-              }
-            />
-          </div>
-          {entry.status === "offered" ? (
-            <p className="text-xs text-navy">{t("bookings.offered")}</p>
-          ) : (
-            <p className="text-xs text-slate">{t("bookings.waitingNote")}</p>
-          )}
-          <div className="pt-2 border-t hairline flex justify-start">
-            <button
-              onClick={onLeave}
-              className="border-b border-gold/40 text-xs font-medium text-navy hover:text-gold"
-            >
-              {t("booking.leaveWaitlist")}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <LessonReservationCard
+      cls={cls}
+      state={
+        entry.status === "ready" || entry.status === "offered"
+          ? { kind: "available", spotsLeft: 1 }
+          : { kind: "waiting" }
+      }
+      statusLabel={entry.status === "offered" ? t("bookings.offered") : t("bookings.waitingNote")}
+      onOpen={onOpen}
+    >
+      <button
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onLeave();
+        }}
+        className="btn-ghost min-h-10 px-0 text-xs hover:btn-ghost-hover"
+      >
+        {t("booking.leaveWaitlist")}
+      </button>
+    </LessonReservationCard>
   );
 }

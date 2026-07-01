@@ -33,7 +33,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { getLocale, labelForStatus, t, useI18n } from "@/lib/i18n";
+import { getLocale, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { InstructorAvatar } from "@/components/visual/InstructorAvatar";
 import {
@@ -287,95 +287,129 @@ function RosterBody({ classId }: { classId: string }) {
         <div className="absolute inset-0 bg-gradient-to-t from-ivory via-ivory/50 to-transparent" />
       </div>
 
-      {/* Header */}
-      <SheetHeader className="px-5 sm:px-6 pt-4 sm:pt-5 pb-5 border-b border-gold/20 bg-ivory shrink-0 text-start">
-        <p className="eyebrow">{t("roster.title")}</p>
-        <SheetTitle className="font-display text-2xl sm:text-3xl font-light text-navy leading-tight">
-          <span dir="auto">
-            <bdi>{classTitle}</bdi>
-          </span>
-        </SheetTitle>
-        <p className="text-sm text-slate mt-1">
-          {start.toLocaleDateString(getLocale(), {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}{" "}
-          · {start.toLocaleTimeString(getLocale(), { hour: "numeric", minute: "2-digit" })} ·{" "}
-          {c.duration_minutes} {t("common.minutes")}
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-slate">
-          <span className="btn-ghost px-2.5 py-1">{roomName}</span>
-          <span className="btn-ghost inline-flex items-center gap-2 px-2.5 py-1">
-            <InstructorAvatar
-              name={c.instructor?.name}
-              photoUrl={c.instructor?.photo_url}
-              size="xs"
-            />
-            {instructorName}
-          </span>
-          <span
-            className={`inline-flex min-h-9 items-center rounded-full px-2.5 py-1 ${
-              full ? "bg-navy text-ivory" : "border border-gold/30 bg-white/80 text-navy"
-            }`}
-          >
-            {c.booked_count}/{c.capacity} · {full ? t("common.full") : t("common.open")}
-          </span>
-          {c.waitlist_count > 0 && (
-            <span className="inline-flex min-h-9 items-center rounded-full border border-gold bg-gold/10 px-2.5 py-1 text-navy">
-              {c.waitlist_count} {t("common.waiting")}
+      {/* Header Info Block */}
+      <SheetHeader className="px-5 sm:px-6 pt-5 pb-5 border-b border-gold/20 bg-ivory shrink-0 text-start">
+        <div className="flex justify-between items-start gap-4">
+          <div>
+            <p className="eyebrow mb-1">{t("roster.title")}</p>
+            <SheetTitle className="font-display text-2xl sm:text-3xl font-light text-navy leading-tight">
+              <span dir="auto">
+                <bdi>{classTitle}</bdi>
+              </span>
+            </SheetTitle>
+          </div>
+          <div className="shrink-0">
+            <span
+              className={`inline-flex min-h-7 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                c.status === "cancelled"
+                  ? "bg-red-50 text-red-700 border border-red-200"
+                  : c.status === "closed"
+                    ? "bg-sand text-slate border border-slate/20"
+                    : full
+                      ? "bg-navy text-ivory"
+                      : "bg-green-50 text-green-700 border border-green-200"
+              }`}
+            >
+              {c.status === "cancelled"
+                ? t("state.cancelled")
+                : c.status === "closed"
+                  ? t("state.closed")
+                  : full
+                    ? t("common.full")
+                    : t("common.open")}
             </span>
-          )}
-          {c.status !== "scheduled" && (
-            <span className="inline-flex min-h-9 items-center rounded-full bg-sand px-2.5 py-1 text-slate">
-              {labelForStatus(c.status)}
-            </span>
-          )}
+          </div>
         </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          {isAdmin ? (
-            <Link
-              to="/admin/classes/$id"
-              params={{ id: classId }}
-              className="btn-ghost text-xs hover:btn-ghost-hover"
-            >
-              {t("roster.editor")}
-            </Link>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate">
-              <Eye className="h-3 w-3" /> {t("roster.readOnly")}
-            </span>
-          )}
+
+        {/* Studio operations summary metadata grid */}
+        <div className="grid grid-cols-2 gap-4 mt-4 bg-white/60 backdrop-blur-sm rounded-xl p-3.5 border border-gold/10">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.time")}</p>
+            <p className="font-display text-sm text-navy font-medium mt-0.5" dir="ltr">
+              {start.toLocaleDateString(getLocale(), {
+                weekday: "short",
+                month: "numeric",
+                day: "numeric",
+              })}{" "}
+              · {start.toLocaleTimeString(getLocale(), { hour: "numeric", minute: "2-digit" })}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.durationMin")}</p>
+            <p className="font-display text-sm text-navy font-medium mt-0.5">
+              {c.duration_minutes} {t("common.minutes")}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("common.room")}</p>
+            <p className="font-display text-sm text-navy font-medium mt-0.5">{roomName}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.instructor")}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <InstructorAvatar
+                name={c.instructor?.name}
+                photoUrl={c.instructor?.photo_url}
+                size="xs"
+              />
+              <span className="font-display text-sm text-navy font-medium">{instructorName}</span>
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("admin.classes.capacityPlaces")}</p>
+            <p className="font-display text-sm text-navy font-medium mt-0.5">
+              {c.booked_count} / {c.capacity}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("roster.waitlist")}</p>
+            <p className="font-display text-sm text-navy font-medium mt-0.5">
+              {c.waitlist_count} {t("common.waiting")}
+            </p>
+          </div>
+        </div>
+
+        {/* Consolidated Action Row */}
+        <div className="flex flex-wrap items-center gap-2 mt-4 pt-1">
           {isAdmin && (
-            <button
-              onClick={() => {
-                const booked = data.bookings.filter((b: any) => b.status === "booked");
-                if (booked.length === 0) {
-                  toast(t("roster.noBooked"));
-                  return;
-                }
-                booked.forEach((b: any) =>
-                  prepareReminderFor(b.member.id, b.member.name, b.member.phone),
-                );
-                toast.success(t("roster.prepared", { count: booked.length }));
-              }}
-              className="btn-outline inline-flex h-9 items-center gap-1.5 px-3 text-xs hover:btn-outline-hover"
-            >
-              <Bell className="h-3 w-3" /> {t("roster.prepareReminders")}
-            </button>
+            <>
+              <Link
+                to="/admin/classes/$id"
+                params={{ id: classId }}
+                className="btn-navy inline-flex h-9 items-center gap-1.5 px-4 text-xs hover:btn-navy-hover"
+              >
+                {t("roster.editor")}
+              </Link>
+              <button
+                onClick={() => {
+                  const booked = data.bookings.filter((b: any) => b.status === "booked");
+                  if (booked.length === 0) {
+                    toast(t("roster.noBooked"));
+                    return;
+                  }
+                  booked.forEach((b: any) =>
+                    prepareReminderFor(b.member.id, b.member.name, b.member.phone),
+                  );
+                  toast.success(t("roster.prepared", { count: booked.length }));
+                }}
+                className="btn-outline inline-flex h-9 items-center gap-1.5 px-3 text-xs hover:btn-outline-hover"
+              >
+                <Bell className="h-3.5 w-3.5 text-gold" /> {t("roster.prepareReminders")}
+              </button>
+            </>
           )}
         </div>
       </SheetHeader>
 
       {/* Add member — admin only */}
       {isAdmin && (
-        <div className="px-5 sm:px-6 py-4 border-b border-gold/15">
+        <div className="px-5 sm:px-6 py-4 border-b border-gold/15 bg-white/40">
           {!adding ? (
             <button
               onClick={() => setAdding(true)}
               className="btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs hover:btn-outline-hover"
             >
-              <UserPlus className="h-3.5 w-3.5" /> {t("roster.addMember")}
+              <UserPlus className="h-3.5 w-3.5 text-gold" /> {t("roster.addMember")}
             </button>
           ) : (
             <div className="space-y-3">
@@ -389,7 +423,7 @@ function RosterBody({ classId }: { classId: string }) {
                   className="editorial-input ps-10"
                 />
               </div>
-              <div className="max-h-56 overflow-y-auto rounded-xl border border-gold/20 divide-y divide-gold/10">
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-gold/20 divide-y divide-gold/10 bg-white">
                 {(candidates ?? []).length === 0 && (
                   <p className="p-4 text-xs italic text-slate font-display">
                     {t("roster.noMatches")}
@@ -402,8 +436,8 @@ function RosterBody({ classId }: { classId: string }) {
                     disabled={addBooking.isPending}
                     className="w-full text-start p-3 flex items-center justify-between hover:bg-gold/5 disabled:opacity-50"
                   >
-                    <span className="text-sm text-navy">{m.name}</span>
-                    <span className="text-xs font-medium text-slate">
+                    <span className="text-sm text-navy font-medium">{m.name}</span>
+                    <span className="text-xs font-medium text-slate bg-sand/35 px-2 py-0.5 rounded-full">
                       {m.remaining_credits}{" "}
                       {m.remaining_credits === 1 ? t("common.credit") : t("common.credits")}
                     </span>
@@ -430,7 +464,7 @@ function RosterBody({ classId }: { classId: string }) {
           <h3 className="section-title">
             {t("roster.booked")} ({data.bookings.filter((b) => b.status === "booked").length})
           </h3>
-          <span className="text-xs font-medium text-slate">
+          <span className="text-xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full">
             {t("roster.checkedIn", { count: data.checked_in_count })}
           </span>
         </div>
@@ -438,7 +472,7 @@ function RosterBody({ classId }: { classId: string }) {
         {data.bookings.length === 0 && (
           <p className="font-display text-slate text-center py-8">{t("roster.noBookings")}</p>
         )}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {data.bookings.map((b: any) => (
             <RosterRow
               key={b.id}
@@ -453,26 +487,41 @@ function RosterBody({ classId }: { classId: string }) {
       </div>
 
       {/* Waitlist */}
-      {data.waitlist.length > 0 && (
-        <div className="px-5 sm:px-6 py-5 border-t border-gold/15">
-          <h3 className="section-title mb-4">
-            {t("roster.waitlist")} (
-            {
-              data.waitlist.filter((w: any) => w.status === "waiting" || w.status === "offered")
-                .length
-            }
-            )
-          </h3>
+      <div className="px-5 sm:px-6 py-5 border-t border-gold/15 bg-white/10">
+        <h3 className="section-title mb-4">
+          {t("roster.waitlist")} (
+          {
+            data.waitlist.filter((w: any) => w.status === "waiting" || w.status === "offered")
+              .length
+          }
+          )
+        </h3>
+
+        {data.waitlist.length === 0 ? (
+          <div className="border border-dashed border-gold/30 rounded-xl p-6 text-center bg-white/40">
+            <Clock className="h-5 w-5 text-gold/60 mx-auto mb-2" />
+            <p className="font-display text-sm font-medium text-navy">
+              {lang === "he" ? "אין ממתינים כרגע" : lang === "ar" ? "لا يوجد أحد في قائمة الانتظار حالياً" : "No waitlisted members yet"}
+            </p>
+            <p className="text-xs text-slate mt-1 max-w-[280px] mx-auto leading-relaxed">
+              {lang === "he"
+                ? "אם השיעור יתמלא, חברים יוכלו להצטרף לרשימת ההמתנה."
+                : lang === "ar"
+                  ? "إذا امتلأ الفصل، سيتمكن الأعضاء من الانضمام إلى قائمة الانتظار."
+                  : "If the class fills up, members will be able to join the waitlist."}
+            </p>
+          </div>
+        ) : (
           <div className="space-y-2">
             {data.waitlist.map((w: any, i: number) => (
               <div
                 key={w.id}
-                className="editorial-card p-4 flex items-center justify-between gap-3"
+                className="editorial-card p-4 flex items-center justify-between gap-3 border border-gold/15 rounded-xl bg-white text-start"
               >
                 <div className="min-w-0">
-                  <p className="font-display text-base text-navy">{w.member?.name}</p>
-                  <p className="mt-1 text-xs font-medium text-slate">
-                    #{i + 1} · {labelForStatus(w.status)} · {w.member?.remaining_credits ?? 0}{" "}
+                  <p className="font-display text-base font-medium text-navy">{w.member?.name}</p>
+                  <p className="mt-1 text-xs text-slate">
+                    #{i + 1} · {localizeRosterStatus(w.status, lang)} · {w.member?.remaining_credits ?? 0}{" "}
                     {t("common.credits")}
                   </p>
                 </div>
@@ -482,9 +531,9 @@ function RosterBody({ classId }: { classId: string }) {
                       <button
                         onClick={() => offer.mutate(w.id)}
                         title="Mark as offered"
-                        className="btn-outline inline-flex h-9 items-center gap-1 px-2.5 text-xs hover:btn-outline-hover"
+                        className="btn-outline inline-flex h-9 items-center gap-1 px-2.5 text-xs hover:btn-outline-hover rounded-full"
                       >
-                        <Bell className="h-3.5 w-3.5" /> {t("roster.offer")}
+                        <Bell className="h-3.5 w-3.5 text-gold" /> {t("roster.offer")}
                       </button>
                     )}
                     <button
@@ -492,21 +541,21 @@ function RosterBody({ classId }: { classId: string }) {
                         prepareWaitlistOffer(w.member.id, w.member.name, w.member.phone, i + 1)
                       }
                       title="Copy/open WhatsApp"
-                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover"
+                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => promote.mutate(w.id)}
                       title="Promote to booking"
-                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover"
+                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
                     >
                       <ArrowUpCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => removeWait.mutate(w.id)}
                       title="Remove from waitlist"
-                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover rounded-full text-red-600 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -515,8 +564,8 @@ function RosterBody({ classId }: { classId: string }) {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -534,51 +583,64 @@ function RosterRow({
   onCancel: () => void;
   onReminder: () => void;
 }) {
+  const { lang } = useI18n();
   const m = b.member ?? {};
   const st = b.attendance_state;
+
   return (
-    <div className="editorial-card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
+    <div className="editorial-card p-4 hover:border-gold/30 transition-all hover:shadow-[0_4px_12px_rgba(11,29,58,0.03)] bg-white rounded-xl border border-gold/15">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Member Details */}
+        <div className="min-w-0 flex-1 space-y-1.5 text-start">
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               to="/admin/members/$id"
               params={{ id: m.id }}
-              className="font-display text-base text-navy hover:text-gold truncate"
+              className="font-display text-base font-medium text-navy hover:text-gold transition-colors truncate"
             >
               {m.name}
             </Link>
+            
             {m.is_first_timer && (
-              <span className="btn-outline inline-flex min-h-7 items-center gap-1 px-1.5 py-0.5 text-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold border border-gold/25">
                 <Sparkles className="h-2.5 w-2.5" /> {t("roster.first")}
               </span>
             )}
             {m.has_care_notes && (
-              <span className="chip-warn">
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600 border border-red-200">
                 <AlertTriangle className="h-2.5 w-2.5" /> {t("roster.care")}
               </span>
             )}
-
             {m.active_plan && (
-              <span className="inline-flex min-h-7 items-center rounded-full border border-gold/30 px-1.5 py-0.5 text-xs font-medium text-slate">
+              <span className="inline-flex items-center rounded-full bg-sand/40 border border-gold/20 px-2 py-0.5 text-[10px] font-medium text-slate">
                 {m.active_plan.name}
               </span>
             )}
           </div>
-          <p className="mt-1 flex items-center gap-3 text-xs text-slate">
+          
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate">
             {m.phone && (
               <span className="inline-flex items-center gap-1">
-                <Phone className="h-3 w-3" />
-                {m.phone}
+                <Phone className="h-3 w-3 text-gold/80" />
+                <span dir="ltr">{m.phone}</span>
               </span>
             )}
+            <span className="text-slate/40">·</span>
             <span>
               {m.remaining_credits ?? 0} {t("common.credits")}
             </span>
-            <span className="font-medium">· {labelForStatus(st)}</span>
-          </p>
+            <span className="text-slate/40">·</span>
+            <span className={`font-semibold ${
+              st === "attended" ? "text-green-700" : st === "no_show" ? "text-red-700" : "text-navy"
+            }`}>
+              {localizeRosterStatus(st || "booked", lang)}
+            </span>
+          </div>
         </div>
-        <div className="flex gap-1 shrink-0">
+
+        {/* Actions Row */}
+        <div className="flex items-center gap-1.5 shrink-0 justify-end">
+          {/* Quick Attendance Buttons */}
           <AttBtn
             active={st === "checked_in"}
             title={t("roster.checkIn")}
@@ -600,22 +662,38 @@ function RosterRow({
           >
             <XCircle className="h-4 w-4" />
           </AttBtn>
+          
+          <div className="h-5 w-px bg-gold/20 mx-1" />
+
+          {/* WhatsApp Reminder */}
           {isAdmin && (
             <button
               title={t("roster.prepareReminder")}
               onClick={onReminder}
-              className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
+              className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
             >
               <MessageCircle className="h-4 w-4" />
             </button>
           )}
+
+          {/* View Member Profile */}
+          <Link
+            to="/admin/members/$id"
+            params={{ id: m.id }}
+            title={t("common.view" as any)}
+            className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full text-slate"
+          >
+            <Eye className="h-4 w-4" />
+          </Link>
+
+          {/* Cancel/Remove Booking */}
           {isAdmin && b.status === "booked" && (
             <button
               title={t("roster.removeRefund")}
               onClick={() => {
                 if (confirm(t("roster.confirmRemove"))) onCancel();
               }}
-              className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-destructive/80 hover:text-destructive"
+              className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-red-600 hover:bg-red-50 rounded-full"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -631,13 +709,28 @@ function AttBtn({ active, onClick, title, children }: any) {
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors cursor-pointer ${
         active
-          ? "bg-navy border-navy text-ivory"
+          ? "bg-navy border-navy text-ivory font-semibold"
           : "border-gold/25 text-slate hover:border-gold hover:text-navy"
       }`}
     >
       {children}
     </button>
   );
+}
+
+function localizeRosterStatus(status: string | null | undefined, lang: Lang): string {
+  if (!status) return "—";
+  const map: Record<string, Record<Lang, string>> = {
+    booked: { en: "Confirmed", he: "מאושר", ar: "مؤكد" },
+    attended: { en: "Attended", he: "נכח/ה", ar: "حضر" },
+    no_show: { en: "No Show", he: "לא הגיע/ה", ar: "لم يحضر" },
+    cancelled: { en: "Cancelled", he: "בוטל", ar: "ملغي" },
+    waiting: { en: "Waiting", he: "ממתין/ה", ar: "في الانتظار" },
+    offered: { en: "Offered", he: "ממתין/ה (הצעה)", ar: "في الانتظار (معروض)" },
+    pending: { en: "Pending", he: "ממתין/ה", ar: "قيد الانتظار" },
+    checked_in: { en: "Checked In", he: "נרשם/ה", ar: "تم التسجيل" },
+  };
+  return map[status.toLowerCase()]?.[lang] ?? labelForStatus(status);
 }

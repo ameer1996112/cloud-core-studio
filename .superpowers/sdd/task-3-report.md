@@ -1,46 +1,24 @@
-# Task 3 Report: Add Pure Draft Row Builder
+Task 3 report
 
-## Completed
+Files changed:
+- `/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/src/routes/_authenticated/member/index.tsx`
+- `/Users/ameeramer/Documents/Cloud& Core/cloud-core-lovable-site/src/routes/_authenticated/member/schedule.tsx`
 
-- Added `src/lib/notificationDrafts.ts` with the pure draft-row builder, input/output types, skip reasons, language resolution, rendered copy, idempotency keys, and staff visibility.
-- Added `tests/unit/notificationDrafts.test.mjs` covering draft rows, skipped rows, and admin-only visibility for payment notifications.
+Summary:
+- Wired the member home featured lesson card to `homeFeature`.
+- Wired the member home recommended list cards to `homeList`.
+- Wired the schedule day cards to `scheduleLead` for the first item and `scheduleList` for the rest.
+- No booking, waitlist, payment, auth, schema, or helper logic was changed.
 
-## Verification
+Commands run with outcomes:
+- `git diff -- src/routes/_authenticated/member/index.tsx src/routes/_authenticated/member/schedule.tsx` -> confirmed the route diff was limited to the requested variant prop strings in the staged commit.
+- `/Users/ameeramer/.bun/bin/bun run build` -> passed successfully.
+- `git commit -m "feat: wire member routes to lesson card variants"` -> succeeded.
 
-- `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs`
-  - First attempt failed in the sandbox with `listen EPERM` on the `tsx` IPC pipe.
-  - Reran with escalated permissions and the test passed: `notification draft rows OK`.
-- `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationTemplates.test.mjs`
-  - Passed: `notification template helpers OK`.
-- `bun install`
-  - Passed with no package changes.
-- `bun run lint`
-  - Fails on pre-existing repository warnings outside the task files; the new files are clean under targeted `eslint`.
-- `bun run build`
-  - Passed.
+Self-review notes:
+- The change is narrowly scoped to the two owned route files.
+- The build completed cleanly after the variant wiring.
+- The committed diff matches the task brief.
 
-## Commit
-
-- Pending at report write time.
-
-## Concern
-
-- The repository still has many existing lint warnings, so the full lint script exits non-zero even though the new files are lint-clean.
-
-## Fix Update
-
-- Preserved all provided related IDs in `payload.related_ids` so waitlist linkage remains auditable without adding a DB column.
-- Added a compact waitlist-focused unit test covering idempotency, language fallback, and `payload.related_ids.waitlistEntryId`.
-
-## Verification Update
-
-- `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationDrafts.test.mjs`
-  - Sandbox attempt failed with `listen EPERM` on the `tsx` IPC pipe.
-  - Escalated rerun passed: `notification draft rows OK`.
-- `/Users/ameeramer/.bun/bin/bunx tsx tests/unit/notificationTemplates.test.mjs`
-  - Sandbox attempt failed with `listen EPERM` on the `tsx` IPC pipe.
-  - Escalated rerun passed: `notification template helpers OK`.
-- `bun run lint`
-  - Completed with the repository's existing 401 warnings and no errors.
-- `bun run build`
-  - Passed.
+Concerns:
+- The worktree already contains unrelated local changes outside this task, including an unstaged `src/routes/_authenticated/member/schedule.tsx` change that adds `count={items.length}` to `ScheduleDaySection`. I left it untouched.

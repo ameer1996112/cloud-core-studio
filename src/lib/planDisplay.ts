@@ -11,21 +11,21 @@ const PLAN_COPY: Record<string, Record<Lang, PlanCopy>> = {
   single_class: {
     en: {
       name: "Single Class",
-      description: "One-time entry for a single studio class.",
-      memberLine: "1 credit · valid for 30 days",
-      adminLine: "1 credit · 30 days",
+      description: "A single class to get to know the studio.",
+      memberLine: "1 credit · valid for 14 days",
+      adminLine: "1 credit · 14 days",
     },
     he: {
-      name: "שיעור בודד",
-      description: "כניסה חד־פעמית לשיעור אחד בסטודיו.",
-      memberLine: "כניסה אחת · בתוקף ל־30 ימים",
-      adminLine: "כניסה אחת · 30 ימים",
+      name: "כניסה חד־פעמית",
+      description: "שיעור בודד להיכרות עם הסטודיו",
+      memberLine: "כניסה אחת · בתוקף ל־14 ימים",
+      adminLine: "כניסה אחת · 14 ימים",
     },
     ar: {
       name: "حصة واحدة",
-      description: "دخول لمرة واحدة لحصة واحدة في الاستوديو.",
-      memberLine: "دخول واحد · صالح لمدة 30 يوم",
-      adminLine: "دخول واحد · 30 يوم",
+      description: "حصة واحدة للتعرّف على الاستوديو.",
+      memberLine: "دخول واحد · صالح لمدة 14 يوم",
+      adminLine: "دخول واحد · 14 يوم",
     },
   },
   monthly_once_week: {
@@ -36,9 +36,9 @@ const PLAN_COPY: Record<string, Record<Lang, PlanCopy>> = {
       adminLine: "5 credits · once a week · 30 days",
     },
     he: {
-      name: "מנוי חודשי — פעם בשבוע",
-      description: "מנוי חודשי הכולל 5 כניסות בחודש, מתאים למי שרוצה להגיע פעם בשבוע.",
-      memberLine: "5 כניסות בחודש · מתאים לפעם בשבוע",
+      name: "מנוי חודשי — 5 כניסות",
+      description: "מתאים למי שמגיעה פעם בשבוע",
+      memberLine: "5 כניסות · בתוקף ל־30 ימים",
       adminLine: "5 כניסות · פעם בשבוע · 30 ימים",
     },
     ar: {
@@ -56,9 +56,9 @@ const PLAN_COPY: Record<string, Record<Lang, PlanCopy>> = {
       adminLine: "10 credits · twice a week · 30 days",
     },
     he: {
-      name: "מנוי חודשי — פעמיים בשבוע",
-      description: "מנוי חודשי הכולל 10 כניסות בחודש, מתאים למי שרוצה להגיע פעמיים בשבוע.",
-      memberLine: "10 כניסות בחודש · מתאים לפעמיים בשבוע",
+      name: "מנוי חודשי — 10 כניסות",
+      description: "הבחירה הטובה למי שרוצה להתקדם ולהתמיד",
+      memberLine: "10 כניסות · בתוקף ל־30 ימים",
       adminLine: "10 כניסות · פעמיים בשבוע · 30 ימים",
     },
     ar: {
@@ -76,9 +76,9 @@ const PLAN_COPY: Record<string, Record<Lang, PlanCopy>> = {
       adminLine: "5 credits · once a week · 30 days",
     },
     he: {
-      name: "מנוי חודשי — פעם בשבוע",
-      description: "מנוי חודשי הכולל 5 כניסות בחודש, מתאים למי שרוצה להגיע פעם בשבוע.",
-      memberLine: "5 כניסות בחודש · מתאים לפעם בשבוע",
+      name: "מנוי חודשי — 5 כניסות",
+      description: "מתאים למי שמגיעה פעם בשבוע",
+      memberLine: "5 כניסות · בתוקף ל־30 ימים",
       adminLine: "5 כניסות · פעם בשבוע · 30 ימים",
     },
     ar: {
@@ -96,9 +96,9 @@ const PLAN_COPY: Record<string, Record<Lang, PlanCopy>> = {
       adminLine: "10 credits · twice a week · 30 days",
     },
     he: {
-      name: "מנוי חודשי — פעמיים בשבוע",
-      description: "מנוי חודשי הכולל 10 כניסות בחודש, מתאים למי שרוצה להגיע פעמיים בשבוע.",
-      memberLine: "10 כניסות בחודש · מתאים לפעמיים בשבוע",
+      name: "מנוי חודשי — 10 כניסות",
+      description: "הבחירה הטובה למי שרוצה להתקדם ולהתמיד",
+      memberLine: "10 כניסות · בתוקף ל־30 ימים",
       adminLine: "10 כניסות · פעמיים בשבוע · 30 ימים",
     },
     ar: {
@@ -117,8 +117,8 @@ const PLAN_COPY: Record<string, Record<Lang, PlanCopy>> = {
     },
     he: {
       name: "כרטיסייה · 10 כניסות",
-      description: "10 כניסות ללא התחייבות חודשית",
-      memberLine: "10 כניסות",
+      description: "גמישות מלאה ללא התחייבות חודשית",
+      memberLine: "10 כניסות · בתוקף ל־90 ימים",
       adminLine: "10 כניסות",
     },
     ar: {

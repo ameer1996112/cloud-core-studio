@@ -56,7 +56,7 @@ export const createMyPackageRequest = createServerFn({ method: "POST" })
       if (memberRes.data && planRes.data) {
         const rows = [
           ...buildNotificationDraftRows({
-            eventKey: "package_request_received",
+            eventKey: "payment_request_received",
             channels: ["whatsapp", "email"],
             audience: "member",
             member: memberRes.data,
@@ -66,7 +66,7 @@ export const createMyPackageRequest = createServerFn({ method: "POST" })
             variables: { package_name: planRes.data.name ?? "" },
           }),
           ...buildNotificationDraftRows({
-            eventKey: "package_request_received",
+            eventKey: "payment_request_received",
             channels: ["whatsapp", "email"],
             audience: "admin",
             member: memberRes.data,
@@ -79,7 +79,7 @@ export const createMyPackageRequest = createServerFn({ method: "POST" })
         await insertNotificationDraftRows(context.supabase, rows);
       }
     } catch (draftError) {
-      console.error("package_request_received_draft_prepare_failed", draftError);
+      console.error("payment_request_received_draft_prepare_failed", draftError);
     }
     return { id: row.id };
   });
@@ -147,7 +147,7 @@ export const createManualPackagePayment = createServerFn({ method: "POST" })
       if (memberDraftRes.data && planDraftRes.data) {
         const packageRequestId = requestRes.data?.id ?? null;
         let draftRows = buildNotificationDraftRows({
-          eventKey: "package_request_received",
+          eventKey: "payment_request_received",
           channels: ["whatsapp", "email"],
           audience: "admin",
           member: memberDraftRes.data,
@@ -168,7 +168,7 @@ export const createManualPackagePayment = createServerFn({ method: "POST" })
         if (!packageRequestId) {
           draftRows = draftRows.map((draftRow: any) => ({
             ...draftRow,
-            idempotency_key: `payment:${row.id}:package_request_received:${draftRow.channel}:admin`,
+            idempotency_key: `payment_request:${row.id}:payment_request_received:${draftRow.channel}:admin`,
           }));
         }
         await insertNotificationDraftRows(context.supabase, draftRows);

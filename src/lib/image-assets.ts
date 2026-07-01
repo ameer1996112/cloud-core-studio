@@ -10,11 +10,18 @@
 import matDetail from "@/assets/mat-detail.webp";
 import plantDetail from "@/assets/plant-detail.webp";
 import hammockDetail from "@/assets/hammock-detail.webp";
-import pilatesPhoto from "@/assets/pilates-card.webp";
+
+import aerialYogaFlowCard from "@/assets/classes/aerial-yoga-flow-card.webp";
+import aerialYogaFlowHero from "@/assets/classes/aerial-yoga-flow-hero.webp";
+import aerialYogaFlowThumb from "@/assets/classes/aerial-yoga-flow-thumb.webp";
 
 import coreBalanceCard from "@/assets/classes/core-balance-card.webp";
 import coreBalanceHero from "@/assets/classes/core-balance-hero.webp";
 import coreBalanceThumb from "@/assets/classes/core-balance-thumb.webp";
+
+import pilatesSculptCard from "@/assets/classes/pilates-sculpt-card.webp";
+import pilatesSculptHero from "@/assets/classes/pilates-sculpt-hero.webp";
+import pilatesSculptThumb from "@/assets/classes/pilates-sculpt-thumb.webp";
 
 import privateCard from "@/assets/classes/private-session-card.webp";
 import privateHero from "@/assets/classes/private-session-hero.webp";
@@ -303,20 +310,20 @@ export const classImages = {
     position: "center center",
   },
   aerialYogaFlow: {
-    src: hammockDetail,
-    variants: { card: hammockDetail, hero: hammockDetail, thumb: hammockDetail },
+    src: aerialYogaFlowCard,
+    variants: { card: aerialYogaFlowCard, hero: aerialYogaFlowHero, thumb: aerialYogaFlowThumb },
     alt: { he: "יוגה אווירית", en: "Aerial yoga flow", ar: "يوغا هوائية" },
     tone: "class" as const,
     fit: "cover" as const,
-    position: "center center",
+    position: "center 46%",
   },
   pilatesSculpt: {
-    src: pilatesPhoto,
-    variants: { card: pilatesPhoto, hero: pilatesPhoto, thumb: pilatesPhoto },
+    src: pilatesSculptCard,
+    variants: { card: pilatesSculptCard, hero: pilatesSculptHero, thumb: pilatesSculptThumb },
     alt: { he: "פילאטיס Sculpt", en: "Pilates Sculpt", ar: "بيلاتس Sculpt" },
     tone: "class" as const,
     fit: "cover" as const,
-    position: "center 30%",
+    position: "center 52%",
   },
   privateSession: {
     src: privateCard,

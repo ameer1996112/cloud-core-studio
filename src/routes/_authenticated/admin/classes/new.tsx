@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { upsertClass, listInstructors, getSettings, listProgramTypes } from "@/lib/admin.functions";
 import { listRooms } from "@/lib/rooms.functions";
-import { useI18n, type Lang } from "@/lib/i18n";
+import { useI18n, type Lang, labelForStatus } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   localizedInstructorName,
@@ -168,6 +168,10 @@ export function SessionForm({
 }) {
   const { t, lang } = useI18n();
   const [notes, setNotes] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const [initialForm] = useState(() => ({ ...form }));
+
   const activeRooms = (data.rooms ?? []).filter((r: any) => r.active);
   const activePrograms = (data.programs ?? []).filter((p: any) => p.active);
   const activeInstructors = (data.instructors ?? []).filter((i: any) => i.active);
@@ -197,6 +201,13 @@ export function SessionForm({
   });
   const canSubmit = !disabledReason;
 
+  const isDirty = useMemo(() => {
+    return Object.keys(initialForm).some((key) => {
+      const k = key as keyof SessionFormState;
+      return form[k] !== initialForm[k];
+    });
+  }, [form, initialForm]);
+
   useEffect(() => {
     if (activeRooms.length !== 1) return;
     const [onlyRoom] = activeRooms;
@@ -223,104 +234,182 @@ export function SessionForm({
 
   return (
     <form
-      className="session-form-shell"
+      className="w-full max-w-3xl mx-auto space-y-6"
       onSubmit={(e) => {
         e.preventDefault();
         submit();
       }}
     >
-      <header className="session-hero">
-        <div>
-          <p className="session-eyebrow">{t("admin.classes.sessionPlanner")}</p>
-          <h2>{mode === "create" ? t("admin.classes.create") : t("admin.classes.edit")}</h2>
-          <p>{t("admin.classes.plannerIntro")}</p>
-        </div>
-        <div className="session-summary" aria-label={t("admin.classes.summary")}>
-          {hasSelectedTime ? (
-            <>
-              <span>{formatSessionDate(startDate, lang)}</span>
-              <strong>{formatSessionTime(startDate, lang)}</strong>
-            </>
-          ) : (
-            <>
-              <span>{t("admin.classes.launchOpening")}</span>
-              <strong>{t("admin.classes.timePending")}</strong>
-            </>
-          )}
-        </div>
+      <header className="mb-6 text-start">
+        <p className="session-eyebrow mb-1">{t("admin.classes.sessionPlanner")}</p>
+        <h2 className="font-display text-3xl font-light text-navy">
+          {mode === "create" ? t("admin.classes.create") : t("admin.classes.edit")}
+        </h2>
+        <p className="text-sm text-slate mt-1">{t("admin.classes.plannerIntro")}</p>
       </header>
 
-      {disabledReason && (
-        <div className="session-alert">
-          <Info className="h-4 w-4" />
-          <span>{disabledReason}</span>
+      {/* 1. Session Summary / Header Dashboard */}
+      <div className="bg-white border border-gold/25 rounded-2xl p-5 shadow-[0_4px_16px_rgba(11,29,58,0.02)] grid grid-cols-2 md:grid-cols-4 gap-4 text-start">
+        <div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.time")}</span>
+          <p className="font-display text-sm font-semibold text-navy mt-1" dir="ltr">
+            {hasSelectedTime ? `${formatSessionDate(startDate, lang)} · ${formatSessionTime(startDate, lang)}` : t("admin.classes.timePending")}
+          </p>
         </div>
-      )}
+        <div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.lessonTemplate")}</span>
+          <p className="font-display text-sm font-semibold text-navy mt-1 truncate">
+            {selectedProgram ? programName(selectedProgram, lang) : "—"}
+          </p>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.capacityPlaces")}</span>
+          <p className="font-display text-sm font-semibold text-navy mt-1">
+            {form.capacity}
+          </p>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">{t("admin.classes.status" as any) === "admin.classes.status" ? "Status" : t("admin.classes.status" as any)}</span>
+          <p className="font-display text-sm font-semibold text-navy mt-1">
+            <span className="inline-flex items-center rounded-full bg-gold/10 px-2.5 py-0.5 text-xs text-navy font-semibold border border-gold/20">
+              {form.status ? labelForStatus(form.status) : labelForStatus("scheduled")}
+            </span>
+          </p>
+        </div>
+      </div>
 
-      <div className="session-layout">
-        <div className="session-main">
-          <SessionPanel
-            icon={<Sparkles className="h-4 w-4" />}
-            title={t("admin.classes.sectionLesson")}
-            description={t("admin.classes.sectionLessonHelp")}
+      {/* 2. Core Details */}
+      <SessionPanel
+        icon={<Sparkles className="h-4 w-4 text-gold" />}
+        title={t("admin.classes.sectionLesson")}
+        description={t("admin.classes.sectionLessonHelp")}
+      >
+        <div className="space-y-4">
+          <PremiumField
+            label={t("admin.classes.lessonTemplate")}
+            helper={t("admin.classes.programHelp")}
           >
-            <PremiumField
-              label={t("admin.classes.lessonTemplate")}
-              helper={t("admin.classes.programHelp")}
+            <PremiumSelect
+              required
+              value={form.program_type_id}
+              onChange={(value) => {
+                const program = data.programs?.find((item: any) => item.id === value);
+                setForm((current) => ({
+                  ...current,
+                  program_type_id: value,
+                  title: program ? programName(program, lang) : current.title,
+                  duration_minutes: program?.default_duration_minutes ?? current.duration_minutes,
+                  capacity: program?.default_capacity ?? current.capacity,
+                  credit_cost: program?.default_credit_cost ?? current.credit_cost,
+                }));
+              }}
             >
-              <PremiumSelect
-                required
-                value={form.program_type_id}
-                onChange={(value) => {
-                  const program = data.programs?.find((item: any) => item.id === value);
-                  setForm((current) => ({
-                    ...current,
-                    program_type_id: value,
-                    title: program ? programName(program, lang) : current.title,
-                    duration_minutes: program?.default_duration_minutes ?? current.duration_minutes,
-                    capacity: program?.default_capacity ?? current.capacity,
-                    credit_cost: program?.default_credit_cost ?? current.credit_cost,
-                  }));
-                }}
-              >
-                <option value="">{t("admin.classes.selectProgram")}</option>
-                {activePrograms.map((program: any) => (
-                  <option key={program.id} value={program.id}>
-                    {programName(program, lang)}
-                  </option>
-                ))}
-              </PremiumSelect>
-            </PremiumField>
-            {selectedProgram && (
-              <div className="session-template-summary">
-                <span>{programName(selectedProgram, lang)}</span>
-                <p>
-                  {localizedProgramDescription(selectedProgram, lang) ??
-                    t("admin.classes.templateReady")}
-                </p>
-              </div>
-            )}
-            <PremiumField label={t("admin.classes.title")} helper={t("admin.classes.titleHelp")}>
-              <input
-                className="session-input"
-                required
-                value={form.title}
-                onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
-              />
-            </PremiumField>
-          </SessionPanel>
+              <option value="">{t("admin.classes.selectProgram")}</option>
+              {activePrograms.map((program: any) => (
+                <option key={program.id} value={program.id}>
+                  {programName(program, lang)}
+                </option>
+              ))}
+            </PremiumSelect>
+          </PremiumField>
 
-          <SessionPanel
-            icon={<CalendarDays className="h-4 w-4" />}
-            title={t("admin.classes.sectionSchedule")}
-            description={t("admin.classes.sectionScheduleHelp")}
-          >
-            <PremiumCalendar
-              value={form.starts_at}
-              onChange={(value) => setForm((current) => ({ ...current, starts_at: value }))}
-              lang={lang}
+          {selectedProgram && (
+            <div className="session-template-summary border border-gold/15 bg-ivory/50 rounded-xl p-3.5 text-start">
+              <span className="font-semibold text-navy text-sm">{programName(selectedProgram, lang)}</span>
+              <p className="text-xs text-slate mt-1">
+                {localizedProgramDescription(selectedProgram, lang) ??
+                  t("admin.classes.templateReady")}
+              </p>
+            </div>
+          )}
+
+          <PremiumField label={t("admin.classes.title")} helper={t("admin.classes.titleHelp")}>
+            <input
+              className="session-input text-start"
+              required
+              value={form.title}
+              onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
             />
-            <div className="session-grid two">
+          </PremiumField>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeInstructors.length === 1 ? (
+              <ReadOnlyChip label={t("admin.classes.instructor")} value={instructorDisplay} />
+            ) : (
+              <PremiumField label={t("admin.classes.instructor")}>
+                <PremiumSelect
+                  required
+                  value={form.instructor_id}
+                  onChange={(value) =>
+                    setForm((current) => ({ ...current, instructor_id: value }))
+                  }
+                >
+                  <option value="">{t("admin.classes.selectInstructor")}</option>
+                  {activeInstructors.map((instructor: any) => (
+                    <option key={instructor.id} value={instructor.id}>
+                      {localizedInstructorName(instructor.name, lang)}
+                    </option>
+                  ))}
+                </PremiumSelect>
+              </PremiumField>
+            )}
+
+            {activeRooms.length === 1 ? (
+              <ReadOnlyChip label={t("admin.classes.location")} value={roomDisplay} />
+            ) : activeRooms.length > 1 ? (
+              <PremiumField label={t("admin.classes.location")}>
+                <PremiumSelect
+                  required
+                  value={form.room_id}
+                  onChange={(value) => {
+                    const room = activeRooms.find((item: any) => item.id === value);
+                    setForm((current) => ({
+                      ...current,
+                      room_id: value,
+                      room: room?.name ?? "",
+                    }));
+                  }}
+                >
+                  <option value="">{t("admin.classes.selectRoom")}</option>
+                  {activeRooms.map((room: any) => (
+                    <option key={room.id} value={room.id}>
+                      {localizedRoomName(room, room.name, lang)}
+                    </option>
+                  ))}
+                </PremiumSelect>
+              </PremiumField>
+            ) : (
+              <div className="session-setup-warning">{t("admin.classes.needMainStudio")}</div>
+            )}
+          </div>
+        </div>
+      </SessionPanel>
+
+      {/* 3. Schedule */}
+      <SessionPanel
+        icon={<CalendarDays className="h-4 w-4 text-gold" />}
+        title={t("admin.classes.sectionSchedule")}
+        description={t("admin.classes.sectionScheduleHelp")}
+      >
+        <div className="space-y-4">
+          <div className="border border-gold/15 rounded-xl bg-ivory/30 p-3.5 flex items-center justify-between text-start">
+            <span className="text-xs text-slate font-medium">{t("admin.classes.summary")}</span>
+            <span className="font-display text-sm font-semibold text-navy" dir="ltr">
+              {hasSelectedTime
+                ? `${formatSessionDate(startDate, lang)} · ${formatSessionTime(startDate, lang)} · ${form.duration_minutes} ${t("common.minutes")}`
+                : t("admin.classes.timePending")}
+            </span>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <PremiumCalendar
+                value={form.starts_at}
+                onChange={(value) => setForm((current) => ({ ...current, starts_at: value }))}
+                lang={lang}
+              />
+            </div>
+            <div className="w-full md:w-64 space-y-4">
               <PremiumField label={t("admin.classes.durationMin")}>
                 <NumberInput
                   value={form.duration_minutes}
@@ -331,105 +420,85 @@ export function SessionForm({
                 />
               </PremiumField>
             </div>
-          </SessionPanel>
+          </div>
+        </div>
+      </SessionPanel>
 
-          <SessionPanel
-            icon={<Users className="h-4 w-4" />}
-            title={t("admin.classes.sectionBooking")}
-            description={t("admin.classes.sectionBookingHelp")}
-          >
-            <div className="session-grid two">
-              <PremiumField label={t("admin.classes.capacityPlaces")}>
-                <NumberInput
-                  value={form.capacity}
-                  min={1}
-                  onChange={(value) => setForm((current) => ({ ...current, capacity: value }))}
-                />
-              </PremiumField>
-              <PremiumField label={t("admin.classes.creditCost")}>
-                <NumberInput
-                  value={form.credit_cost}
-                  min={0}
-                  onChange={(value) => setForm((current) => ({ ...current, credit_cost: value }))}
-                />
-              </PremiumField>
-            </div>
-            <PremiumField label={t("admin.classes.cancelWindow")}>
+      {/* 4. Capacity & Credits */}
+      <SessionPanel
+        icon={<Users className="h-4 w-4 text-gold" />}
+        title={t("admin.classes.sectionBooking")}
+        description={t("admin.classes.sectionBookingHelp")}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PremiumField label={t("admin.classes.capacityPlaces")}>
               <NumberInput
-                value={form.cancellation_window_hours}
-                min={0}
-                onChange={(value) =>
-                  setForm((current) => ({
-                    ...current,
-                    cancellation_window_hours: value,
-                  }))
-                }
+                value={form.capacity}
+                min={1}
+                onChange={(value) => setForm((current) => ({ ...current, capacity: value }))}
               />
             </PremiumField>
-            <div className="session-rule-card">
-              <span>{t("admin.classes.ruleWindow")}</span>
-              <strong>
-                {t("admin.classes.ruleWindowValue", {
-                  count: form.cancellation_window_hours,
-                })}
-              </strong>
-            </div>
-          </SessionPanel>
+            <PremiumField label={t("admin.classes.creditCost")}>
+              <NumberInput
+                value={form.credit_cost}
+                min={0}
+                onChange={(value) => setForm((current) => ({ ...current, credit_cost: value }))}
+              />
+            </PremiumField>
+          </div>
+          <PremiumField label={t("admin.classes.cancelWindow")}>
+            <NumberInput
+              value={form.cancellation_window_hours}
+              min={0}
+              onChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  cancellation_window_hours: value,
+                }))
+              }
+            />
+          </PremiumField>
+          <div className="session-rule-card border border-gold/15 bg-white rounded-xl p-3.5 flex justify-between items-center text-start">
+            <span className="text-xs text-slate font-medium">{t("admin.classes.ruleWindow")}</span>
+            <strong className="text-navy text-sm font-semibold">
+              {t("admin.classes.ruleWindowValue", {
+                count: form.cancellation_window_hours,
+              })}
+            </strong>
+          </div>
+        </div>
+      </SessionPanel>
 
-          <SessionPanel
-            icon={<DoorOpen className="h-4 w-4" />}
-            title={t("admin.classes.sectionStaffLocation")}
-            description={t("admin.classes.sectionStaffLocationHelp")}
-          >
-            <div className="session-chip-grid">
-              {activeInstructors.length === 1 ? (
-                <ReadOnlyChip label={t("admin.classes.instructor")} value={instructorDisplay} />
-              ) : (
-                <PremiumField label={t("admin.classes.instructor")}>
-                  <PremiumSelect
-                    required
-                    value={form.instructor_id}
-                    onChange={(value) =>
-                      setForm((current) => ({ ...current, instructor_id: value }))
-                    }
-                  >
-                    <option value="">{t("admin.classes.selectInstructor")}</option>
-                    {activeInstructors.map((instructor: any) => (
-                      <option key={instructor.id} value={instructor.id}>
-                        {localizedInstructorName(instructor.name, lang)}
-                      </option>
-                    ))}
-                  </PremiumSelect>
-                </PremiumField>
-              )}
-              {activeRooms.length === 1 ? (
-                <ReadOnlyChip label={t("admin.classes.location")} value={roomDisplay} />
-              ) : activeRooms.length > 1 ? (
-                <PremiumField label={t("admin.classes.location")}>
-                  <PremiumSelect
-                    required
-                    value={form.room_id}
-                    onChange={(value) => {
-                      const room = activeRooms.find((item: any) => item.id === value);
-                      setForm((current) => ({
-                        ...current,
-                        room_id: value,
-                        room: room?.name ?? "",
-                      }));
-                    }}
-                  >
-                    <option value="">{t("admin.classes.selectRoom")}</option>
-                    {activeRooms.map((room: any) => (
-                      <option key={room.id} value={room.id}>
-                        {localizedRoomName(room, room.name, lang)}
-                      </option>
-                    ))}
-                  </PremiumSelect>
-                </PremiumField>
-              ) : (
-                <div className="session-setup-warning">{t("admin.classes.needMainStudio")}</div>
-              )}
-            </div>
+      {/* 5. Member Visibility & Notes */}
+      <SessionPanel
+        icon={<StickyNote className="h-4 w-4 text-gold" />}
+        title={t("admin.classes.sectionNotes")}
+        description={t("admin.classes.sectionNotesHelp")}
+      >
+        <div className="space-y-3">
+          <textarea
+            className="session-input session-textarea text-start"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={t("admin.classes.notesPlaceholder")}
+          />
+          <p className="session-helper text-xs text-slate/75">{t("admin.classes.notesNotSaved")}</p>
+        </div>
+      </SessionPanel>
+
+      {/* 6. Advanced Details (Collapsed by default) */}
+      <div className="border border-gold/15 rounded-2xl bg-white/60 overflow-hidden text-start">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full flex items-center justify-between p-4 font-display text-sm font-medium text-navy hover:bg-gold/5 transition-colors cursor-pointer"
+        >
+          <span>{lang === "he" ? "פרטים מתקדמים" : lang === "ar" ? "تفاصيل إضافية" : "Advanced Details"}</span>
+          <ChevronRight className={`h-4 w-4 text-gold transition-transform duration-205 ${showAdvanced ? "rotate-90" : ""}`} />
+        </button>
+        {showAdvanced && (
+          <div className="p-4 border-t border-gold/10 bg-white/30 space-y-4 animate-fadeIn">
             <PremiumField label={t("member.filter.energy")}>
               <PremiumSelect
                 value={form.energy}
@@ -444,62 +513,49 @@ export function SessionForm({
                 ))}
               </PremiumSelect>
             </PremiumField>
-          </SessionPanel>
+          </div>
+        )}
+      </div>
+
+      {/* Sticky Action Bar */}
+      <div className="sticky bottom-0 z-30 -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 bg-white/95 backdrop-blur-md border-t border-gold/25 flex flex-wrap items-center justify-between gap-4 mt-8 shadow-[0_-8px_30px_rgba(11,29,58,0.08)]">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isDirty ? (
+            <span className="text-xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
+              <Info className="h-3.5 w-3.5" />
+              {lang === "he" ? "יש שינויים שלא נשמרו" : lang === "ar" ? "هناك تغييرات غير محفوظة" : "Unsaved changes"}
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-slate">
+              {lang === "he" ? "כל השינויים שמורים" : lang === "ar" ? "تم حفظ جميع التغييرات" : "All changes saved"}
+            </span>
+          )}
+          {disabledReason && (
+            <span className="text-xs font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-full">
+              {disabledReason}
+            </span>
+          )}
         </div>
-
-        <aside className="session-side">
-          <SessionPanel
-            icon={<CircleDollarSign className="h-4 w-4" />}
-            title={t("admin.classes.sectionPricing")}
-            description={t("admin.classes.sectionPricingHelp")}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="btn-outline h-10 px-5 text-xs hover:btn-outline-hover cursor-pointer"
           >
-            <div className="session-rule-card">
-              <span>{t("admin.classes.capacityPlaces")}</span>
-              <strong>{form.capacity}</strong>
-            </div>
-            <div className="session-rule-card powder">
-              <span>{t("admin.classes.memberCharge")}</span>
-              <strong>{t("admin.classes.creditValue", { count: form.credit_cost })}</strong>
-            </div>
-          </SessionPanel>
-
-          <SessionPanel
-            icon={<StickyNote className="h-4 w-4" />}
-            title={t("admin.classes.sectionNotes")}
-            description={t("admin.classes.sectionNotesHelp")}
+            {t("common.cancel")}
+          </button>
+          <button
+            type="submit"
+            disabled={isPending || !canSubmit}
+            className="btn-navy h-10 px-6 text-xs hover:btn-navy-hover cursor-pointer"
           >
-            <textarea
-              className="session-input session-textarea"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={t("admin.classes.notesPlaceholder")}
-            />
-            <p className="session-helper">{t("admin.classes.notesNotSaved")}</p>
-          </SessionPanel>
-        </aside>
-      </div>
-
-      <div className="session-preview" aria-label={t("admin.classes.summary")}>
-        <span>
-          {selectedProgram ? programName(selectedProgram, lang) : t("admin.classes.lessonTemplate")}
-        </span>
-        <span>{roomDisplay}</span>
-        <span>{instructorDisplay}</span>
-      </div>
-
-      {disabledReason && <p className="session-action-hint">{disabledReason}</p>}
-
-      <div className="session-actions">
-        <button type="button" onClick={onCancel} className="session-button secondary">
-          {t("common.cancel")}
-        </button>
-        <button type="submit" disabled={isPending || !canSubmit} className="session-button primary">
-          {isPending
-            ? t("common.saving")
-            : mode === "create"
-              ? t("admin.classes.createAction")
-              : t("common.save")}
-        </button>
+            {isPending
+              ? t("common.saving")
+              : mode === "create"
+                ? t("admin.classes.createAction")
+                : t("common.save")}
+          </button>
+        </div>
       </div>
     </form>
   );

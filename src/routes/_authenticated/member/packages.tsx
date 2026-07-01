@@ -66,7 +66,9 @@ function MemberPackages() {
   const credits = data?.member?.remaining_credits ?? 0;
   const memberName = data?.member?.name?.split(" ")[0] ?? "";
   const pendingPayments = (data?.payments ?? []).filter((p: any) => p.status === "pending");
-  const visiblePlans = (data?.plans ?? []).filter((p: any) => !hasTestPlanRecord(p));
+  const visiblePlans = (data?.plans ?? [])
+    .filter((p: any) => !hasTestPlanRecord(p))
+    .sort(comparePricingPlans);
 
   function submitManualPayment(plan: any, method: "cash" | "bit") {
     const planDisplay = getPlanDisplay(plan, lang);
@@ -171,7 +173,19 @@ function MemberPackages() {
 
       <div className="space-y-4">
         <div className="member-section-heading">
-          <h2 className="member-section-title">{t("packages.available")}</h2>
+          <div>
+            <h2 className="member-section-title">{t("packages.available")}</h2>
+            <p className="member-page-body mt-2 max-w-2xl text-sm sm:text-base">
+              {pricingCopy[lang].subtitle}
+            </p>
+          </div>
+        </div>
+        <div className="package-value-strip" aria-label={pricingCopy[lang].valueStripLabel}>
+          {pricingCopy[lang].valueChips.map((chip) => (
+            <span key={chip} className="package-value-chip">
+              {chip}
+            </span>
+          ))}
         </div>
         {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
         {visiblePlans.length === 0 && !isLoading ? (
@@ -181,7 +195,7 @@ function MemberPackages() {
             body={t("member.empty.packages.body")}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="package-pricing-grid">
             {visiblePlans.map((p: any) => (
               <PackagePricingCard
                 key={p.id}
@@ -328,38 +342,53 @@ function PackagePricingCard({
   const isUnlimited = plan.credits >= 999 || /unlim/i.test(plan.name);
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
+  const marketing = getPackageMarketing(plan, lang);
+  const isRecommended = marketing.kind === "recommended";
   const creditsLine = getPackageCreditsLine(plan.credits, lang);
   return (
-    <div className="member-card p-6 flex flex-col gap-5">
+    <div
+      className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
+      data-plan-kind={marketing.kind}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display text-2xl text-navy leading-tight">{display.name}</p>
-          {display.description && (
-            <p className="text-sm text-slate mt-1.5">{display.description}</p>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-display text-2xl text-navy leading-tight">{display.name}</p>
+            {marketing.badge && <span className="package-plan-badge">{marketing.badge}</span>}
+            {marketing.secondaryBadge && (
+              <span className="package-plan-badge is-secondary">{marketing.secondaryBadge}</span>
+            )}
+          </div>
+          <p className="text-sm text-slate mt-1.5">{marketing.subtitle || display.description}</p>
         </div>
-        <Sparkles className="h-5 w-5 text-gold shrink-0" />
+        <span className="package-plan-icon" aria-hidden="true">
+          <Sparkles className="h-4 w-4" />
+        </span>
       </div>
       <div>
         <p className="numeric-display font-display text-4xl text-navy">{price}</p>
-        <p className="mt-2 text-sm font-semibold text-navy">{display.memberLine}</p>
+        <p className="mt-2 text-sm font-semibold text-navy">{marketing.priceNote}</p>
+        {marketing.savings && (
+          <p className="mt-1 text-xs font-semibold text-gold-dark">{marketing.savings}</p>
+        )}
       </div>
       <div className="space-y-2 text-sm">
-        <p className="flex items-center gap-2 text-navy">
-          <Check className="h-3.5 w-3.5 text-gold" />{" "}
-          {isUnlimited ? t("packages.unlimited") : creditsLine}
-        </p>
-        <p className="flex items-center gap-2 text-navy">
-          <Check className="h-3.5 w-3.5 text-gold" />{" "}
-          {plan.duration_days
-            ? t("packages.validDays", { days: plan.duration_days })
-            : t("packages.noExpiry")}
-        </p>
-        <p className="flex items-center gap-2 text-navy">
-          <Check className="h-3.5 w-3.5 text-gold" /> {t("packages.allPrograms")}
-        </p>
+        {(marketing.features.length
+          ? marketing.features
+          : [
+              isUnlimited ? t("packages.unlimited") : creditsLine,
+              plan.duration_days
+                ? t("packages.validDays", { days: plan.duration_days })
+                : t("packages.noExpiry"),
+              t("packages.allPrograms"),
+            ]
+        ).map((feature) => (
+          <p key={feature} className="flex items-center gap-2 text-navy">
+            <Check className="h-3.5 w-3.5 text-gold" /> {feature}
+          </p>
+        ))}
       </div>
-      <div className="flex items-end justify-between pt-3 border-t hairline">
+      <div className="mt-auto flex items-end justify-between gap-3 pt-3 border-t hairline">
         <p className="text-xs font-medium text-slate">{t("packages.choosePackage")}</p>
         {payment ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
@@ -374,14 +403,240 @@ function PackagePricingCard({
           <button
             onClick={onRequest}
             disabled={pending}
-            className="btn-navy hover:btn-navy-hover disabled:opacity-50"
+            className={
+              isRecommended
+                ? "btn-navy hover:btn-navy-hover disabled:opacity-50"
+                : "btn-outline hover:btn-ghost-hover disabled:opacity-50"
+            }
           >
-            <Send className="h-3 w-3" /> {t("packages.choosePackage")}
+            <Send className="h-3 w-3" /> {marketing.cta}
           </button>
         )}
       </div>
     </div>
   );
+}
+
+type PricingKind = "recommended" | "single" | "monthly5" | "card10" | "default";
+
+type PricingPlanLike = {
+  description?: string | null;
+  price_cents?: number | string | null;
+  credits?: number | string | null;
+  duration_days?: number | string | null;
+};
+
+const planOrder: Record<PricingKind, number> = {
+  recommended: 0,
+  monthly5: 1,
+  single: 2,
+  card10: 3,
+  default: 4,
+};
+
+const pricingCopy: Record<
+  Lang,
+  { subtitle: string; valueStripLabel: string; valueChips: string[] }
+> = {
+  he: {
+    subtitle: "בחרי את החבילה שמתאימה לקצב שלך — לשיעור ניסיון, התמדה חודשית או גמישות מלאה.",
+    valueStripLabel: "השוואת ערך בין החבילות",
+    valueChips: ["₪80 לשיעור בודד", "₪35 לשיעור במנוי המומלץ", "חיסכון של ₪450"],
+  },
+  en: {
+    subtitle:
+      "Choose the package that fits your rhythm — a trial class, monthly consistency, or full flexibility.",
+    valueStripLabel: "Package value comparison",
+    valueChips: ["₪80 for a drop-in", "₪35 per class on the recommended plan", "Save ₪450"],
+  },
+  ar: {
+    subtitle: "اختاري الباقة المناسبة لإيقاعك — تجربة واحدة، التزام شهري، أو مرونة كاملة.",
+    valueStripLabel: "مقارنة قيمة الباقات",
+    valueChips: ["₪80 للحصة الواحدة", "₪35 للحصة في الباقة الموصى بها", "توفير ₪450"],
+  },
+};
+
+function packageKind(plan: PricingPlanLike): PricingKind {
+  const code = String(plan?.description ?? "");
+  if (code === "cloud_monthly_2x_week" || Number(plan?.price_cents) === 35000) return "recommended";
+  if (code === "cloud_monthly_1x_week" || Number(plan?.price_cents) === 28000) return "monthly5";
+  if (code === "single_class" || Number(plan?.price_cents) === 8000) return "single";
+  if (code === "cloud_10_entry_card" || Number(plan?.price_cents) === 70000) return "card10";
+  return "default";
+}
+
+function comparePricingPlans(a: PricingPlanLike, b: PricingPlanLike) {
+  const kindDiff = planOrder[packageKind(a)] - planOrder[packageKind(b)];
+  if (kindDiff !== 0) return kindDiff;
+  return Number(a?.price_cents ?? 0) - Number(b?.price_cents ?? 0);
+}
+
+function getPackageMarketing(plan: PricingPlanLike, lang: Lang) {
+  const kind = packageKind(plan);
+  const days = Number(plan?.duration_days ?? 0);
+  const credits = Number(plan?.credits ?? 0);
+  const fallbackPriceNote =
+    credits > 0
+      ? perClassCopy(lang, Math.round(Number(plan?.price_cents ?? 0) / 100 / credits))
+      : "";
+  const fallbackFeatureDays = days > 0 ? t("packages.validDays", { days }) : t("packages.noExpiry");
+
+  const copy = {
+    single: {
+      he: {
+        subtitle: "שיעור בודד להיכרות עם הסטודיו",
+        priceNote: "₪80 לשיעור",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["כניסה אחת לשיעור", "בתוקף ל־14 ימים", "מתאים להתנסות ראשונה"],
+        cta: "בחירת שיעור",
+      },
+      en: {
+        subtitle: "A single class to get to know the studio",
+        priceNote: "₪80 per class",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["1 class entry", "Valid for 14 days", "Best for a first trial"],
+        cta: "Choose class",
+      },
+      ar: {
+        subtitle: "حصة واحدة للتعرّف على الاستوديو",
+        priceNote: "₪80 للحصة",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["دخول واحد لحصة", "صالحة لمدة 14 يوم", "مناسبة للتجربة الأولى"],
+        cta: "اختيار حصة",
+      },
+    },
+    monthly5: {
+      he: {
+        subtitle: "מתאים למי שמגיעה פעם בשבוע",
+        priceNote: "₪56 לשיעור",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["5 כניסות לשיעורים", "בתוקף ל־30 ימים", "לכל תכניות הסטודיו"],
+        cta: "בחירת חבילה",
+      },
+      en: {
+        subtitle: "For members who come once a week",
+        priceNote: "₪56 per class",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["5 class entries", "Valid for 30 days", "All studio programs"],
+        cta: "Choose package",
+      },
+      ar: {
+        subtitle: "مناسب لمن تأتي مرة في الأسبوع",
+        priceNote: "₪56 للحصة",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["5 دخولات للحصص", "صالحة لمدة 30 يوم", "كل برامج الاستوديو"],
+        cta: "اختيار الباقة",
+      },
+    },
+    recommended: {
+      he: {
+        subtitle: "הבחירה הטובה למי שרוצה להתקדם ולהתמיד",
+        priceNote: "רק ₪35 לשיעור",
+        savings: "חיסכון של ₪450 לעומת 10 כניסות חד־פעמיות",
+        badge: "הכי משתלם",
+        secondaryBadge: "מומלץ",
+        features: [
+          "10 כניסות לשיעורים",
+          "בתוקף ל־30 ימים",
+          "הכי מתאים להתמדה שבועית",
+          "לכל תכניות הסטודיו",
+        ],
+        cta: "בחירת המנוי המומלץ",
+      },
+      en: {
+        subtitle: "The best choice for progressing and staying consistent",
+        priceNote: "Only ₪35 per class",
+        savings: "Save ₪450 compared with 10 drop-ins",
+        badge: "Best value",
+        secondaryBadge: "Recommended",
+        features: [
+          "10 class entries",
+          "Valid for 30 days",
+          "Best for weekly consistency",
+          "All studio programs",
+        ],
+        cta: "Choose recommended plan",
+      },
+      ar: {
+        subtitle: "الخيار الأفضل للتقدّم والاستمرارية",
+        priceNote: "فقط ₪35 للحصة",
+        savings: "توفير ₪450 مقارنة بـ 10 دخولات منفردة",
+        badge: "الأوفر",
+        secondaryBadge: "موصى به",
+        features: [
+          "10 دخولات للحصص",
+          "صالحة لمدة 30 يوم",
+          "الأفضل للاستمرارية الأسبوعية",
+          "كل برامج الاستوديو",
+        ],
+        cta: "اختيار الاشتراك الموصى به",
+      },
+    },
+    card10: {
+      he: {
+        subtitle: "גמישות מלאה ללא התחייבות חודשית",
+        priceNote: "₪70 לשיעור",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["10 כניסות לשיעורים", "בתוקף ל־90 ימים", "מתאים למי שמגיעה לא קבוע"],
+        cta: "בחירת כרטיסייה",
+      },
+      en: {
+        subtitle: "Full flexibility with no monthly commitment",
+        priceNote: "₪70 per class",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["10 class entries", "Valid for 90 days", "Best for flexible visitors"],
+        cta: "Choose class card",
+      },
+      ar: {
+        subtitle: "مرونة كاملة بدون التزام شهري",
+        priceNote: "₪70 للحصة",
+        savings: "",
+        badge: "",
+        secondaryBadge: "",
+        features: ["10 دخولات للحصص", "صالحة لمدة 90 يوم", "مناسبة لمن لا تأتي بانتظام"],
+        cta: "اختيار البطاقة",
+      },
+    },
+  } as const;
+
+  if (kind !== "default") return { kind, ...copy[kind][lang] };
+  return {
+    kind,
+    subtitle: "",
+    priceNote: fallbackPriceNote,
+    savings: "",
+    badge: "",
+    secondaryBadge: "",
+    features: [
+      getPackageCreditsLine(Number(plan?.credits ?? 0), lang),
+      fallbackFeatureDays,
+      t("packages.allPrograms"),
+    ],
+    cta: t("packages.choosePackage"),
+  };
+}
+
+function perClassCopy(lang: Lang, amount: number) {
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  if (lang === "he") return `₪${amount} לשיעור`;
+  if (lang === "ar") return `₪${amount} للحصة`;
+  return `₪${amount} per class`;
 }
 
 function getPackageCreditsLine(credits: number, lang: Lang) {

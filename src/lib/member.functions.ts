@@ -202,7 +202,7 @@ export const memberCancelBooking = createServerFn({ method: "POST" })
           await insertNotificationDraftRows(
             context.supabase,
             buildNotificationDraftRows({
-              eventKey: "booking_cancelled",
+              eventKey: "booking_cancelled_by_member",
               channels: ["whatsapp", "email"],
               audience: "member",
               member: booking.member,
@@ -214,7 +214,7 @@ export const memberCancelBooking = createServerFn({ method: "POST" })
           );
         }
       } catch (draftError) {
-        console.error("booking_cancelled_draft_prepare_failed", draftError);
+        console.error("booking_cancelled_by_member_draft_prepare_failed", draftError);
       }
     }
     return typedResult;

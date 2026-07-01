@@ -1358,7 +1358,7 @@ export const MESSAGES = {
     "state.booked": "את/ה בפנים",
     "state.waiting": "ברשימת המתנה",
     "state.package_required": "נדרשת חבילה",
-    "state.low_credits": "צריך לחדש קרדיטים",
+    "state.low_credits": "נדרש חידוש קרדיטים",
     "state.closed": "סגור",
     "state.cancelled": "בוטל",
     "capacity.left.one": "מקום אחד נותר",

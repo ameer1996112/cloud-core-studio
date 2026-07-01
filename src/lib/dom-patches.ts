@@ -49,12 +49,13 @@ if (typeof window !== "undefined" && typeof Node !== "undefined") {
 if (typeof window !== "undefined" && typeof Window !== "undefined") {
   const originalPostMessage = Window.prototype.postMessage;
   Window.prototype.postMessage = function (
+    this: Window,
     message: any,
     targetOrigin: string,
     transfer?: any[],
   ): void {
     try {
-      return originalPostMessage.call(this, message, targetOrigin, transfer);
+      return (originalPostMessage as any).call(this, message, targetOrigin, transfer);
     } catch (e) {
       if (
         e instanceof Error &&

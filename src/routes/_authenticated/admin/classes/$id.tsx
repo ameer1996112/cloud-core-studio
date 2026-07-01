@@ -16,6 +16,8 @@ import {
   listMembers,
   adminCreateBooking,
   listAudit,
+  setClassStatus,
+  deleteClass,
 } from "@/lib/admin.functions";
 import { listRooms } from "@/lib/rooms.functions";
 import { useState, useMemo } from "react";
@@ -56,6 +58,8 @@ function Page() {
   const createBookingFn = useServerFn(adminCreateBooking);
   const membersFn = useServerFn(listMembers);
   const auditFn = useServerFn(listAudit);
+  const setStatusFn = useServerFn(setClassStatus);
+  const deleteClassFn = useServerFn(deleteClass);
 
   const { data: classes } = useQuery({ queryKey: ["admin-classes"], queryFn: () => classesFn() });
   const cls = classes?.find((c: any) => c.id === id);
@@ -124,6 +128,26 @@ function Page() {
     onSuccess: () => {
       toast.success(t("common.saved"));
       setEdit(false);
+      qc.invalidateQueries({ queryKey: ["admin-classes"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
+  });
+
+  const changeStatus = useMutation({
+    mutationFn: (status: "scheduled" | "cancelled" | "archived") => 
+      setStatusFn({ data: { id, status } }),
+    onSuccess: () => {
+      toast.success(t("common.saved"));
+      qc.invalidateQueries({ queryKey: ["admin-classes"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
+  });
+
+  const removeClass = useMutation({
+    mutationFn: () => deleteClassFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success(lang === "he" ? "השיעור נמחק בהצלחה" : "Class deleted successfully");
+      navigate({ to: "/admin/classes" });
       qc.invalidateQueries({ queryKey: ["admin-classes"] });
     },
     onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
@@ -224,9 +248,40 @@ function Page() {
             {t("admin.classes.booked", { count: cls.booked_count })}/{cls.capacity} ·{" "}
             {t("admin.classes.waiting", { count: cls.waitlist_count })} · {clsStatus}
           </p>
-          <button onClick={startEdit} className="btn-navy hover:btn-navy-hover">
-            {t("admin.classes.edit")}
-          </button>
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={startEdit} className="btn-navy hover:btn-navy-hover">
+              {t("admin.classes.edit")}
+            </button>
+            {cls.status !== "cancelled" && (
+              <button
+                onClick={() => {
+                  const confirmCancelMsg = lang === "he"
+                    ? "האם אתה בטוח שברצונך לבטל שיעור זה? ההזמנות הקיימות יבוטלו."
+                    : "Are you sure you want to cancel this class? All bookings will be cancelled.";
+                  if (confirm(confirmCancelMsg)) {
+                    changeStatus.mutate("cancelled");
+                  }
+                }}
+                className="btn-outline text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+              >
+                {lang === "he" ? "בטל שיעור" : "Cancel Class"}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                const confirmDeleteMsg = lang === "he"
+                  ? "האם אתה בטוח שברצונך למחוק שיעור זה? פעולה זו היא סופית."
+                  : "Are you sure you want to delete this class? This action cannot be undone.";
+                if (confirm(confirmDeleteMsg)) {
+                  removeClass.mutate();
+                }
+              }}
+              className="btn-ghost text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4 me-1 inline" />
+              {lang === "he" ? "מחק שיעור" : "Delete Class"}
+            </button>
+          </div>
         </div>
       ) : (
         <SessionForm

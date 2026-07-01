@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Clock, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { getLocale, t, useI18n } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
@@ -12,11 +11,9 @@ import {
 import { EmptyIllustration } from "@/components/visual/EmptyIllustration";
 import {
   localizedClassTitle,
-  localizedClassTitleParts,
   localizedOptionalInstructorName,
   localizedProgramName,
 } from "@/lib/localized-content";
-import { LtrInline, MixedLessonTitle } from "@/components/ui/bidi";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString(getLocale(), {
@@ -137,68 +134,6 @@ export function StateBadge({ state }: { state: ClassState }) {
     >
       {c.label}
     </span>
-  );
-}
-
-export function PremiumClassCard({
-  cls,
-  state,
-  onOpen,
-}: {
-  cls: PremiumClassCardClass;
-  state: ClassState;
-  onOpen: () => void;
-}) {
-  const { dir, lang } = useI18n();
-  const title = localizedClassTitleParts(cls, lang);
-  const instructor = localizedOptionalInstructorName(cls.instructor?.name);
-
-  return (
-    <button
-      onClick={onOpen}
-      dir={dir}
-      className="member-card hover:member-card-hover text-start w-full overflow-hidden flex flex-col group"
-    >
-      <ClassImage cls={cls} className="member-class-media">
-        <div
-          className="absolute inset-0 z-[2] pointer-events-none"
-          aria-hidden
-          style={{
-            background:
-              "linear-gradient(0deg, rgba(28,43,69,0.78) 0%, rgba(28,43,69,0.28) 48%, rgba(28,43,69,0.08) 100%)",
-          }}
-        />
-        <div className="absolute top-3 end-3 z-10">
-          <StateBadge state={state} />
-        </div>
-        <div className="absolute bottom-3 inset-x-4 z-10 text-ivory text-start">
-          <p className="text-xs font-medium opacity-90">
-            <LtrInline>{formatDate(cls.starts_at)}</LtrInline>
-            <span aria-hidden="true"> · </span>
-            <LtrInline>{formatTime(cls.starts_at)}</LtrInline>
-          </p>
-          <MixedLessonTitle
-            as="p"
-            brand={title.brand}
-            program={title.program}
-            dir={dir}
-            className="member-mixed-title mt-1 text-2xl leading-tight text-ivory drop-shadow-sm"
-          />
-        </div>
-      </ClassImage>
-      <div className="px-4 py-3 flex flex-wrap items-center gap-3 text-xs text-slate">
-        <span className="inline-flex items-center gap-1.5">
-          <Clock className="h-3 w-3 text-gold" />
-          <bdi>{formatDurationLabel(cls.duration_minutes)}</bdi>
-        </span>
-        {instructor && (
-          <span className="inline-flex items-center gap-1.5">
-            <Sparkles className="h-3 w-3 text-gold" />
-            {instructor}
-          </span>
-        )}
-      </div>
-    </button>
   );
 }
 

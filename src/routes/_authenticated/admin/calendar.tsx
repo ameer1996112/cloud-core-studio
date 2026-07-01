@@ -206,7 +206,7 @@ function CalendarPage() {
             {t("calendar.addRoomSuffix")}
           </Empty>
         ) : view === "day" ? (
-          <DayLayout day={anchor} rooms={rooms} classes={classes} onOpen={setOpenClassId} />
+          <DayLayout day={anchor} rooms={rooms} classes={classes} onOpen={setOpenClassId} openClassId={openClassId} />
         ) : (
           <WeekLayout
             days={days}
@@ -215,6 +215,7 @@ function CalendarPage() {
             onOpen={setOpenClassId}
             anchor={anchor}
             setAnchor={setAnchor}
+            openClassId={openClassId}
           />
         )}
 
@@ -336,6 +337,7 @@ function DayLayout(props: {
   rooms: any[];
   classes: any[];
   onOpen: (id: string) => void;
+  openClassId: string | null;
 }) {
   return (
     <>
@@ -354,11 +356,13 @@ function DayTimeline({
   rooms,
   classes,
   onOpen,
+  openClassId,
 }: {
   day: Date;
   rooms: any[];
   classes: any[];
   onOpen: (id: string) => void;
+  openClassId: string | null;
 }) {
   const HOUR_PX = 60;
   const startHour = 6;
@@ -448,8 +452,12 @@ function DayTimeline({
                 <button
                   key={c.id}
                   onClick={() => onOpen(c.id)}
-                  className="absolute inset-x-1.5 rounded-[4px] px-3 py-2 text-start overflow-hidden bg-white border border-gold/30 hover:border-gold transition-shadow shadow-[0_1px_0_rgba(11,29,58,0.04)] hover:shadow-[0_6px_18px_-8px_rgba(11,29,58,0.18)]"
-                  style={{ top, height, borderInlineStart: `3px solid ${r.color}` }}
+                  className={`absolute inset-x-1.5 rounded-lg px-3 py-2 text-start overflow-hidden bg-white border transition-all duration-200 hover:shadow-[0_6px_18px_rgba(11,29,58,0.08)] ${
+                    openClassId === c.id
+                      ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_rgba(212,175,106,0.15)]"
+                      : "border-gold/20 hover:border-gold"
+                  }`}
+                  style={{ top, height, borderInlineStart: `3.5px solid ${r.color}` }}
                   aria-label={`${meta.title} ${fmtTime(start)}`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -477,11 +485,13 @@ function DayAgenda({
   rooms,
   classes,
   onOpen,
+  openClassId,
 }: {
   day: Date;
   rooms: any[];
   classes: any[];
   onOpen: (id: string) => void;
+  openClassId: string | null;
 }) {
   const items = useMemo(
     () =>
@@ -529,6 +539,7 @@ function DayAgenda({
                   cls={c}
                   room={roomById[c.room_id]}
                   onOpen={() => onOpen(c.id)}
+                  isOpen={openClassId === c.id}
                 />
               ))}
             </div>
@@ -538,14 +549,18 @@ function DayAgenda({
   );
 }
 
-function AgendaCard({ cls, room, onOpen }: { cls: any; room: any; onOpen: () => void }) {
+function AgendaCard({ cls, room, onOpen, isOpen }: { cls: any; room: any; onOpen: () => void; isOpen: boolean }) {
   const start = new Date(cls.starts_at);
   const color = room?.color ?? cls.program?.color ?? "#D4AF6A";
   const meta = classMeta(cls, getLocale() as Lang, room);
   return (
     <button
       onClick={onOpen}
-      className="flex w-full items-center gap-4 rounded-xl border border-gold/30 bg-white p-4 text-start shadow-[0_1px_0_rgba(11,29,58,0.04)] transition-shadow hover:border-gold hover:shadow-[0_8px_22px_-10px_rgba(11,29,58,0.18)]"
+      className={`flex w-full items-center gap-4 rounded-xl border bg-white p-4 text-start transition-all duration-200 hover:shadow-[0_8px_22px_rgba(11,29,58,0.06)] hover:-translate-y-0.5 ${
+        isOpen
+          ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_rgba(212,175,106,0.15)]"
+          : "border-gold/20 hover:border-gold/60"
+      }`}
       style={{ borderInlineStart: `4px solid ${color}` }}
     >
       <div className="text-end pe-4 border-e border-gold/25 min-w-[64px]">
@@ -599,6 +614,7 @@ function WeekLayout(props: {
   onOpen: (id: string) => void;
   anchor: Date;
   setAnchor: (d: Date) => void;
+  openClassId: string | null;
 }) {
   return (
     <>
@@ -616,11 +632,13 @@ function WeekDesktop({
   days,
   classes,
   onOpen,
+  openClassId,
 }: {
   days: Date[];
   rooms: any[];
   classes: any[];
   onOpen: (id: string) => void;
+  openClassId: string | null;
 }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -674,7 +692,7 @@ function WeekDesktop({
                   <p className="py-6 text-xs text-slate/60 italic text-center">—</p>
                 ) : (
                   items.map((c: any) => (
-                    <WeekBlock key={c.id} cls={c} onOpen={() => onOpen(c.id)} />
+                    <WeekBlock key={c.id} cls={c} onOpen={() => onOpen(c.id)} isOpen={openClassId === c.id} />
                   ))
                 )}
               </div>
@@ -686,15 +704,19 @@ function WeekDesktop({
   );
 }
 
-function WeekBlock({ cls, onOpen }: { cls: any; onOpen: () => void }) {
+function WeekBlock({ cls, onOpen, isOpen }: { cls: any; onOpen: () => void; isOpen: boolean }) {
   const start = new Date(cls.starts_at);
   const color = cls.program?.color ?? "#D4AF6A";
   const meta = classMeta(cls, getLocale() as Lang);
   return (
     <button
       onClick={onOpen}
-      className="w-full text-start bg-white border border-gold/25 hover:border-gold rounded-[4px] px-2.5 py-2 transition-shadow hover:shadow-[0_4px_14px_-6px_rgba(11,29,58,0.18)]"
-      style={{ borderInlineStart: `3px solid ${color}` }}
+      className={`w-full text-start bg-white border rounded-lg px-2.5 py-2 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(11,29,58,0.06)] hover:-translate-y-0.5 ${
+        isOpen
+          ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_rgba(212,175,106,0.15)]"
+          : "border-gold/20 hover:border-gold/60"
+      }`}
+      style={{ borderInlineStart: `3.5px solid ${color}` }}
     >
       <div className="flex items-center justify-between gap-1">
         <p className="text-xs font-medium text-slate">{fmtTime(start)}</p>
@@ -718,6 +740,7 @@ function WeekMobile({
   onOpen,
   anchor,
   setAnchor,
+  openClassId,
 }: {
   days: Date[];
   classes: any[];
@@ -725,6 +748,7 @@ function WeekMobile({
   onOpen: (id: string) => void;
   anchor: Date;
   setAnchor: (d: Date) => void;
+  openClassId: string | null;
 }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -772,7 +796,7 @@ function WeekMobile({
           })}
         </div>
       </div>
-      <DayAgenda day={selected} rooms={rooms} classes={classes} onOpen={onOpen} />
+      <DayAgenda day={selected} rooms={rooms} classes={classes} onOpen={onOpen} openClassId={openClassId} />
     </div>
   );
 }
