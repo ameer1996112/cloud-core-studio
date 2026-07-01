@@ -12,7 +12,7 @@ import {
   MemberScheduleFilterPanel,
   type DateScope,
 } from "@/components/member/MemberScheduleFilterPanel";
-import { LANG_META, t, useI18n } from "@/lib/i18n";
+import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   localizedClassTitle,
@@ -26,6 +26,73 @@ export const Route = createFileRoute("/member/schedule")({
   component: MemberSchedulePublic,
 });
 
+const GUEST_SCHEDULE_WINDOW_DAYS = 14;
+
+type GuestScheduleCopy = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  primaryCta: string;
+  secondaryCta: string;
+  statClasses: string;
+  statWindow: string;
+  statAccess: string;
+};
+
+const GUEST_SCHEDULE_COPY: Record<Lang, GuestScheduleCopy> = {
+  en: {
+    eyebrow: "Guest schedule preview",
+    title: "See the studio rhythm before you sign in.",
+    body: "Browse the next two weeks of movement, filter the live schedule, and step into Cloud & Core when you are ready to book.",
+    primaryCta: "Sign in to book",
+    secondaryCta: "Talk to support",
+    statClasses: "Open classes",
+    statWindow: "Preview window",
+    statAccess: "Guest access",
+  },
+  he: {
+    eyebrow: "תצוגת לו״ז לאורחות",
+    title: "לראות את קצב הסטודיו עוד לפני ההתחברות.",
+    body: "אפשר לעבור על השבועיים הקרובים, לסנן את הלו״ז החי, ולהתחבר ל-Cloud & Core כשתרצי להזמין.",
+    primaryCta: "התחברות להזמנה",
+    secondaryCta: "שיחה עם התמיכה",
+    statClasses: "שיעורים פתוחים",
+    statWindow: "חלון צפייה",
+    statAccess: "גישת אורחת",
+  },
+  ar: {
+    eyebrow: "معاينة جدول للضيفة",
+    title: "شاهدي إيقاع الاستوديو قبل تسجيل الدخول.",
+    body: "تصفحي الأسبوعين القادمين، صفّي الجدول المباشر، وادخلي إلى Cloud & Core عندما تكونين جاهزة للحجز.",
+    primaryCta: "تسجيل الدخول للحجز",
+    secondaryCta: "التواصل مع الدعم",
+    statClasses: "حصص متاحة",
+    statWindow: "مدة المعاينة",
+    statAccess: "دخول الضيفة",
+  },
+};
+
+const GUEST_SCHEDULE_STATS: Record<
+  Lang,
+  { windowValue: string; accessValue: string; accessNote: string }
+> = {
+  en: {
+    windowValue: `${GUEST_SCHEDULE_WINDOW_DAYS} days`,
+    accessValue: "Open preview",
+    accessNote: "Public browsing now, sign-in ready booking when you want to reserve.",
+  },
+  he: {
+    windowValue: `${GUEST_SCHEDULE_WINDOW_DAYS} ימים`,
+    accessValue: "פתוחה",
+    accessNote: "צפייה פתוחה עכשיו, והתחברות אחת כשרוצים לעבור להזמנה.",
+  },
+  ar: {
+    windowValue: `${GUEST_SCHEDULE_WINDOW_DAYS} يومًا`,
+    accessValue: "مفتوح",
+    accessNote: "تصفح عام الآن، وتسجيل دخول جاهز عندما ترغبين في تثبيت الحجز.",
+  },
+};
+
 function startOfDay(d: Date) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -33,8 +100,10 @@ function startOfDay(d: Date) {
 }
 
 function MemberSchedulePublic() {
+  const { lang, dir } = useI18n();
   const [session, setSession] = useState<any>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const guestCopy = GUEST_SCHEDULE_COPY[lang];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -63,42 +132,80 @@ function MemberSchedulePublic() {
     );
   }
 
-  const signInLabel = {
-    en: "Sign In",
-    he: "התחברות",
-    ar: "تسجيل الدخول",
-  }[getLocaleFromCookie() || "he"];
-
   return (
-    <div className="min-h-screen bg-ivory text-navy">
+    <div dir={dir} className="relative min-h-screen overflow-x-hidden bg-ivory text-navy">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(212,175,106,0.22),transparent_52%),linear-gradient(180deg,rgba(250,247,242,0.96)_0%,rgba(250,247,242,0.72)_42%,rgba(250,247,242,0)_100%)]"
+      />
       <header className="sticky top-0 z-40 w-full border-b border-navy/8 bg-ivory/95 backdrop-blur-md px-5 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link to="/auth" className="brand-wordmark text-xl text-navy" dir="ltr">
             Cloud &amp; Core
           </Link>
-          <Link
-            to="/auth"
-            className="inline-flex min-h-9 items-center justify-center rounded-full border border-gold/40 bg-white hover:bg-gold/8 px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors"
-          >
-            {signInLabel}
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/support"
+              className="text-sm font-medium text-slate transition-colors hover:text-navy"
+            >
+              {t("legal.support")}
+            </Link>
+            <Link
+              to="/auth"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-gold/40 bg-white px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors hover:bg-gold/8"
+            >
+              {guestCopy.primaryCta}
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="relative mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="member-page-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+          <div className="member-page-copy p-5 sm:p-8 md:p-10">
+            <p className="member-eyebrow">{guestCopy.eyebrow}</p>
+            <h1 className="member-page-title mt-3">{guestCopy.title}</h1>
+            <p className="member-page-body mt-3 max-w-2xl">{guestCopy.body}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link to="/auth" className="btn-primary hover:btn-primary-hover justify-center">
+                {guestCopy.primaryCta}
+              </Link>
+              <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
+                {guestCopy.secondaryCta}
+              </Link>
+            </div>
+          </div>
+          <div className="relative min-h-[220px] border-t border-gold/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(232,223,209,0.58)_100%)] p-5 sm:p-8 lg:border-t-0 lg:border-s lg:p-10">
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(212,175,106,0.16),transparent_30%),radial-gradient(circle_at_82%_82%,rgba(11,29,58,0.08),transparent_34%)]"
+            />
+            <div className="relative flex h-full flex-col justify-between gap-6">
+              <div className="space-y-3">
+                <p className="member-eyebrow text-slate">{t("nav.schedule")}</p>
+                <div className="space-y-2">
+                  <p className="text-2xl font-semibold leading-tight text-navy sm:text-3xl">
+                    {t("member.schedule.kicker")}
+                  </p>
+                  <p className="member-page-body max-w-md">{t("member.schedule.body")}</p>
+                </div>
+              </div>
+              <div className="rounded-[calc(var(--cc-radius-card)-2px)] border border-gold/20 bg-white/75 p-4 shadow-[0_24px_60px_-40px_rgba(11,29,58,0.4)] backdrop-blur-sm">
+                <p className="member-eyebrow text-slate">{guestCopy.statAccess}</p>
+                <p className="mt-2 text-lg font-semibold text-navy">
+                  {GUEST_SCHEDULE_STATS[lang].accessValue}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate">
+                  {GUEST_SCHEDULE_STATS[lang].accessNote}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
         <MemberScheduleContent session={null} />
       </main>
     </div>
   );
-}
-
-function getLocaleFromCookie() {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith("cc_lang="));
-  return match ? match.slice(8) : null;
 }
 
 function MemberScheduleContent({ session }: { session: any }) {
@@ -124,6 +231,8 @@ function MemberScheduleContent({ session }: { session: any }) {
   const member = data?.member;
   const booked = data?.bookingsByClass ?? {};
   const waiting = data?.waitlistByClass ?? {};
+  const guestCopy = session ? null : GUEST_SCHEDULE_COPY[lang];
+  const guestStats = session ? null : GUEST_SCHEDULE_STATS[lang];
 
   const levels = Array.from(
     new Set(classes.map((c: any) => c.program_type?.level).filter(Boolean)),
@@ -168,19 +277,61 @@ function MemberScheduleContent({ session }: { session: any }) {
     groups.get(key)!.push(c);
   }
 
+  const hasNoClasses = classes.length === 0;
+  const guestStatCells =
+    guestCopy && guestStats
+      ? [
+          { label: guestCopy.statClasses, value: filtered.length },
+          {
+            label: guestCopy.statWindow,
+            value: guestStats.windowValue,
+            valueClassName: "text-lg sm:text-xl",
+          },
+          {
+            label: guestCopy.statAccess,
+            value: guestStats.accessValue,
+            valueClassName: "text-lg sm:text-xl",
+          },
+        ]
+      : [];
+  const emptyStatePrimaryAction = hasNoClasses
+    ? { label: t("legal.support"), to: "/support" as const }
+    : !session
+      ? { label: guestCopy!.primaryCta, to: "/auth" as const }
+      : undefined;
+  const emptyStateSecondaryAction =
+    hasNoClasses && !session ? { label: guestCopy!.primaryCta, to: "/auth" as const } : undefined;
+
   return (
     <section dir={dir} className="member-page w-full space-y-6 pb-10">
       <div className="member-page-panel p-5 sm:p-8">
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end">
           <div className="member-page-copy">
-            <p className="member-eyebrow">{t("member.schedule.kicker")}</p>
-            <h1 className="member-page-title mt-3">{t("nav.schedule")}</h1>
-            <p className="member-page-body mt-3">{t("member.schedule.body")}</p>
+            <p className="member-eyebrow">
+              {session ? t("member.schedule.kicker") : guestCopy?.eyebrow}
+            </p>
+            <h1 className="member-page-title mt-3">
+              {session ? t("nav.schedule") : guestCopy?.title}
+            </h1>
+            <p className="member-page-body mt-3">
+              {session ? t("member.schedule.body") : guestCopy?.body}
+            </p>
           </div>
           <div className="member-stat-strip" dir={dir}>
-            <StatCell label={t("member.stat.available")} value={filtered.length} />
-            {session && (
-              <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
+            {session ? (
+              <>
+                <StatCell label={t("member.stat.available")} value={filtered.length} />
+                <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
+              </>
+            ) : (
+              guestStatCells.map((stat) => (
+                <StatCell
+                  key={stat.label}
+                  label={stat.label}
+                  value={stat.value}
+                  valueClassName={stat.valueClassName}
+                />
+              ))
             )}
           </div>
         </div>
@@ -242,11 +393,10 @@ function MemberScheduleContent({ session }: { session: any }) {
       {!isLoading && filtered.length === 0 && (
         <MemberEmptyState
           variant="schedule"
-          title={classes.length === 0 ? t("member.empty.schedule.title") : t("member.noSessions")}
-          body={classes.length === 0 ? t("member.empty.schedule.body") : t("member.clearFilters")}
-          primaryAction={
-            classes.length === 0 ? { label: t("legal.support"), to: "/support" } : undefined
-          }
+          title={hasNoClasses ? t("member.empty.schedule.title") : t("member.noSessions")}
+          body={hasNoClasses ? t("member.empty.schedule.body") : t("member.clearFilters")}
+          primaryAction={emptyStatePrimaryAction}
+          secondaryAction={emptyStateSecondaryAction}
         />
       )}
 
@@ -284,11 +434,21 @@ function MemberScheduleContent({ session }: { session: any }) {
   );
 }
 
-function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
+function StatCell({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: React.ReactNode;
+  valueClassName?: string;
+}) {
   return (
     <div className="member-stat-cell">
       <p className="member-eyebrow text-slate">{label}</p>
-      <p className="numeric-display numeric-display-md mt-2">{value}</p>
+      <p className={`numeric-display numeric-display-md mt-2 ${valueClassName ?? ""}`.trim()}>
+        {value}
+      </p>
     </div>
   );
 }
