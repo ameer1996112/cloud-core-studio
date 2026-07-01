@@ -50,6 +50,13 @@ assert.equal(
   "אני מבין/ה שהשיעור יבוטל והמשתתפות יקבלו עדכון.",
 );
 assert.equal(t("admin.classDetail.deleteClass"), "מחיקת שיעור");
+assert.equal(t("auth.guestTitle"), "לפני שמתחברים");
+assert.equal(
+  t("auth.guestBody"),
+  "אפשר לעיין בלוח השיעורים ולפתוח פרטי שיעור לפני התחברות.",
+);
+assert.equal(t("auth.browseSchedule"), "עיון בלוח השיעורים");
+assert.equal(t("auth.guestSupport"), "תמיכה");
 
 applyLang("en");
 assert.equal(document.documentElement.lang, "en");
@@ -69,6 +76,13 @@ assert.equal(
   t("admin.classDetail.deleteBlocked"),
   "You can’t delete a class with active bookings. Cancel it instead.",
 );
+assert.equal(t("auth.guestTitle"), "Before you sign in");
+assert.equal(
+  t("auth.guestBody"),
+  "Browse the schedule and open class details before signing in.",
+);
+assert.equal(t("auth.browseSchedule"), "Browse Schedule");
+assert.equal(t("auth.guestSupport"), "Support");
 
 applyLang("ar");
 assert.equal(document.documentElement.lang, "ar");
@@ -85,5 +99,12 @@ assert.equal(t("attendance.empty.primary"), "إنشاء حصة");
 assert.equal(t("attendance.empty.secondary"), "الانتقال للجدول");
 assert.equal(t("admin.classDetail.cancelClass"), "إلغاء الحصة");
 assert.equal(t("admin.classDetail.deleteClass"), "حذف الحصة");
+assert.equal(t("auth.guestTitle"), "قبل تسجيل الدخول");
+assert.equal(
+  t("auth.guestBody"),
+  "يمكنك تصفح الجدول وفتح تفاصيل الحصص قبل تسجيل الدخول.",
+);
+assert.equal(t("auth.browseSchedule"), "تصفح الجدول");
+assert.equal(t("auth.guestSupport"), "الدعم");
 
 console.log("i18n defaults and catalogs OK");
