@@ -14,6 +14,7 @@ test("getOpenwaRuntimeConfig rejects missing runtime env", () => {
 test("isReachableOpenwaBaseUrl rejects local endpoints and accepts remote http urls", () => {
   expect(isReachableOpenwaBaseUrl("http://localhost:2785")).toBe(false);
   expect(isReachableOpenwaBaseUrl("http://127.0.0.1:2785")).toBe(false);
+  expect(isReachableOpenwaBaseUrl("http://127.0.0.2:2785")).toBe(false);
   expect(isReachableOpenwaBaseUrl("http://0.0.0.0:2785")).toBe(false);
   expect(isReachableOpenwaBaseUrl("http://[::1]:2785")).toBe(false);
   expect(isReachableOpenwaBaseUrl("https://openwa.example.com")).toBe(true);
