@@ -6,6 +6,8 @@ This runbook covers the local macOS `launchd` worker that calls the production O
 
 Cloud Run must have these environment variables configured:
 
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENWA_AUTOMATION_TOKEN`
 - `OPENWA_BASE_URL`
 - `OPENWA_API_KEY`
