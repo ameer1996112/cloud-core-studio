@@ -37,12 +37,17 @@ bash scripts/install-openwa-launchd.sh
 
 ## Verify the launch agent
 
-After install, verify the agent is registered and review its logs:
+After install, verify the agent is registered and review the relevant success and failure logs:
 
 ```bash
 launchctl list | grep cloudandcore.openwa-worker
 tail -f ~/Library/Logs/CloudCoreOpenWA/worker.log
+tail -f ~/Library/Logs/CloudCoreOpenWA/worker-error.log
+tail -f ~/Library/Logs/CloudCoreOpenWA/launchd-stdout.log
+tail -f ~/Library/Logs/CloudCoreOpenWA/launchd-stderr.log
 ```
+
+Use `worker.log` for successful polling runs, `worker-error.log` for script-level failures such as missing Keychain tokens or non-200 responses, and `launchd-stdout.log` plus `launchd-stderr.log` for process output from the LaunchAgent itself. The latest HTTP response body is also written to `~/Library/Logs/CloudCoreOpenWA/worker-last-response.body`.
 
 The installer writes the plist to `~/Library/LaunchAgents/com.cloudandcore.openwa-worker.plist` and starts the job on load.
 
@@ -59,4 +64,4 @@ curl -sS -X POST \
   --data '{"limit":10}'
 ```
 
-If the token matches and the Cloud Run env vars are present, the route should return an `ok: true` response with notification counters.
+If the route returns `ok: true`, that means the bearer token matched and the worker completed its current pass against the due `payment_confirmed.whatsapp` OpenWA rows it was able to process. Success still depends on the deployed service having valid Supabase access, a reachable `OPENWA_BASE_URL`, a valid `OPENWA_API_KEY`, a live `OPENWA_SESSION_ID`, and the OpenWA session being reachable and healthy. This route does not drain the entire notification queue; it only covers the current OpenWA worker scope.
