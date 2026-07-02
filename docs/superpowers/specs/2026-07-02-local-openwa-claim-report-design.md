@@ -20,6 +20,7 @@ This removes the broken assumption that Cloud Run can reach `localhost` on your 
 - Avoid exposing the local OpenWA API publicly
 - Keep the current approved automatic WhatsApp event set unchanged
 - Keep the Mac worker limited to bearer-protected Cloud Run endpoints rather than broad database credentials
+- Add enough operational safety that the Mac can act as V1 infrastructure without silently losing messages
 
 ## Non-Goals
 
@@ -28,6 +29,8 @@ This removes the broken assumption that Cloud Run can reach `localhost` on your 
 - No direct Supabase service-role access from the Mac worker
 - No change to the approved automatic event set in this pass
 - No redesign of templates, Hebrew-only language rules, or core business logic
+- No marketing broadcasts or bulk campaigns
+- No official WhatsApp Cloud API migration in this pass
 
 ## Approved Automatic Event Set
 
@@ -41,6 +44,19 @@ Keep the current approved automatic WhatsApp event set exactly as-is:
 - `class_time_changed`
 
 These events already align with the current Hebrew-only automatic member WhatsApp behavior and queue rules.
+
+## Product Positioning
+
+This is the right V1 architecture for launch, but it is not the final long-term infrastructure.
+
+- `Cloud Run + Mac local sender` is realistic for launch
+- `OpenWA on one Mac` is acceptable as a bridge
+- official WhatsApp platform migration can wait until the notification care system is proven in real studio usage
+
+So this design should be treated as:
+
+- V1 launch architecture: yes
+- permanent production architecture: no
 
 ## Current Problem
 
@@ -84,6 +100,22 @@ Use a shared bearer token stored in:
 
 The Mac worker should use that token for both claim and report requests.
 
+### 4. Worker identity
+
+Every claim and report request should include a stable worker identifier, for example:
+
+```json
+{
+  "workerId": "ameer-macbook"
+}
+```
+
+This is primarily for auditability and debugging. It helps answer:
+
+- which machine claimed the job
+- which machine reported the result
+- whether multiple workers are accidentally running
+
 ## API Design
 
 Replace the current one-shot “run the server-side worker” route model with two explicit Cloud Run endpoints.
@@ -100,6 +132,7 @@ Responsibilities:
 - select due rows in the approved automatic WhatsApp scope
 - atomically claim rows by moving them to `sending`
 - return enough payload for the Mac to send locally
+- keep the batch small enough for OpenWA reliability
 
 Suggested response shape:
 
@@ -117,6 +150,40 @@ Suggested response shape:
   ]
 }
 ```
+
+Suggested request shape:
+
+```json
+{
+  "limit": 5,
+  "workerId": "ameer-macbook"
+}
+```
+
+Recommended limit:
+
+- default `5`
+- maximum `10`
+
+Do not claim large batches in V1. OpenWA is more reliable with small, steady throughput.
+
+### Claim safety
+
+Preferred design:
+
+- record `claimed_by`
+- record `claimed_at`
+- record `claim_expires_at`
+
+Example:
+
+- `claim_expires_at = now + 2 minutes`
+
+However, these fields do not appear to exist in the current schema. Because this pass must not add schema changes without approval:
+
+- if the current schema already has suitable fields, use them
+- otherwise reuse the existing `sending` plus stale-recovery model for V1
+- if stronger claim-expiry metadata is required, stop and ask for migration approval first
 
 ### Report endpoint
 
@@ -137,7 +204,8 @@ Suggested request shapes:
 {
   "jobId": "notification-log-id",
   "status": "sent",
-  "providerMessageId": "provider-msg-id"
+  "providerMessageId": "provider-msg-id",
+  "workerId": "ameer-macbook"
 }
 ```
 
@@ -146,7 +214,8 @@ Suggested request shapes:
   "jobId": "notification-log-id",
   "status": "failed",
   "retryable": true,
-  "error": "openwa_network_error"
+  "error": "openwa_network_error",
+  "workerId": "ameer-macbook"
 }
 ```
 
@@ -192,6 +261,8 @@ The local worker should:
 - call report endpoint immediately after each outcome
 - log successes and failures locally
 - exit cleanly after each polling run
+- support a `--dry-run` mode for safe validation before live sends
+- support a test-phone-only mode during rollout
 
 The worker should not:
 
@@ -199,6 +270,35 @@ The worker should not:
 - decide event eligibility locally
 - re-render message text locally
 - mutate queue state without going through Cloud Run
+
+### Dry-run mode
+
+The worker should support a dry-run mode for safe rollout verification.
+
+Recommended behavior:
+
+- worker still authenticates and exercises the claim path against a safe dry-run endpoint or dry-run flag
+- worker logs which messages would send
+- worker does not send to WhatsApp
+- worker does not mark real jobs as sent
+
+If a server-side dry-run path does not already exist, implement it explicitly rather than pretending normal claim/report is safe for dry-run.
+
+### Test-phone-only mode
+
+For launch testing, the worker should support a local safety override such as:
+
+```text
+OPENWA_TEST_PHONE=+972...
+```
+
+When enabled:
+
+- the worker refuses to send to any other phone
+- the refusal must be logged clearly
+- production rows should not be silently marked sent
+
+This mode is for rollout safety only and should be easy to disable once real automation is approved.
 
 ## Required Production Configuration
 
@@ -225,6 +325,7 @@ Your Mac should require:
 - local OpenWA session id
 - Keychain-stored bearer token
 - installed `launchd` worker
+- a no-sleep operating mode while the automation is expected to run continuously
 
 ## Error Handling
 
@@ -251,12 +352,55 @@ If local send succeeded but report call fails:
 - this is a high-risk operational state because Cloud Run may still think the row is `sending`
 - follow-up handling should prefer existing stale-sending recovery logic rather than local duplicate sends
 
+### OpenWA disconnected
+
+If local OpenWA is disconnected or the session expires:
+
+- worker should report a retryable failure unless the current queue model requires terminal failure
+- admin should be able to see a clear disconnected/session-type error
+- worker must never fake a success
+
+### Mac sleep / logout risk
+
+Because the Mac is part of the infrastructure in this pass:
+
+- prevent sleep while the worker is expected to operate
+- prefer an always-logged-in user session for V1
+- treat machine sleep/logout as a first-class operational risk, not an edge case
+
 ## Security
 
 - Keep bearer auth on both claim and report endpoints
 - Do not put Supabase service-role credentials on the Mac
 - Do not expose the local OpenWA API publicly
 - Keep the bearer token out of repo files and plist contents
+
+## Admin Visibility
+
+The admin surface should continue to show queue/audit details per notification row, and should also expose basic WhatsApp automation health where practical.
+
+Minimum per-row visibility:
+
+- event
+- member
+- phone
+- message preview
+- channel
+- status
+- attempt count
+- scheduled time
+- sent time
+- last error
+
+Recommended V1 health summary if it can be added without unrelated UI churn:
+
+- WhatsApp automation connected/disconnected
+- last worker check-in
+- queued count
+- sending count
+- failed count
+
+If a compact health panel is too much for this pass, do not redesign the UI broadly. Prefer a small status indicator or documented log-based fallback.
 
 ## Testing
 
@@ -267,15 +411,39 @@ If local send succeeded but report call fails:
 - report endpoint marks successful sends `sent`
 - retryable local-send failure requeues correctly
 - terminal failure marks rows `failed`
+- bearer auth rejects missing/invalid token on both endpoints
+- workerId is accepted and logged/validated where applicable
+- template output never leaks `undefined`/`null`
 
 ### Manual QA
 
 1. Start local OpenWA on the Mac.
-2. Trigger a real approved automatic WhatsApp event.
-3. Confirm the row becomes `queued`.
-4. Confirm the local worker claims the job within `15 seconds`.
-5. Confirm the message is sent locally through OpenWA.
-6. Confirm the row transitions to `sent` in `notification_logs`.
+2. Run the Mac worker in dry-run mode first.
+3. Trigger a real approved automatic WhatsApp event.
+4. Confirm the row becomes `queued`.
+5. Confirm the local worker claims the job within `15 seconds`.
+6. Confirm the worker sends locally through OpenWA only when dry-run is off and test-phone rules allow it.
+7. Confirm the row transitions to `sent` in `notification_logs`.
+
+## Rollout Order
+
+Use this order for V1 rollout:
+
+1. implement claim/report endpoints
+2. implement Mac worker with manual run
+3. test with a controlled notification row
+4. test with your own phone only
+5. add launchd every `15 seconds`
+6. verify audit visibility and failure handling
+7. enable `payment_confirmed`
+8. enable `waitlist_spot_available`
+9. enable `class_time_changed` and `class_cancelled_by_admin`
+10. enable `class_reminder_24h` last
+
+Reason:
+
+- reminders are the easiest to duplicate or mis-time
+- payment and booking-style events are easier to verify against real user actions
 
 ## Risks
 
@@ -290,6 +458,10 @@ If the Mac sleeps, reboots without login, or OpenWA stops, sending pauses until 
 ### Scope creep
 
 The clean rollout is architecture-only. Do not mix this pass with event-set expansion, template redesign, or admin UI redesign.
+
+### Long-term platform risk
+
+OpenWA is a practical local bridge, not the final long-term platform choice. The long-term direction should remain an official WhatsApp platform integration once the premium care workflow is proven.
 
 ## Success Criteria
 
