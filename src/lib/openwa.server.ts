@@ -75,7 +75,7 @@ export function isReachableOpenwaBaseUrl(baseUrl: string) {
       return false;
     }
 
-    return !["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname);
+    return !["localhost", "127.0.0.1", "0.0.0.0", "[::1]", "::1"].includes(url.hostname);
   } catch {
     return false;
   }
