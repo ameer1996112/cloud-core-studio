@@ -4,6 +4,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as actualRouter from "@tanstack/react-router";
 import * as actualReactStart from "@tanstack/react-start";
+import * as actualLessonCardVariants from "../../src/lib/lesson-card-variants.ts";
+import * as actualLocalizedContent from "../../src/lib/localized-content.ts";
 
 const premiumClassCardPath = fileURLToPath(
   new URL("../../src/components/member/PremiumClassCard.tsx", import.meta.url),
@@ -186,7 +188,7 @@ mock.module("@/lib/i18n", () => ({
 }));
 
 mock.module("@/lib/localized-content", () => ({
-  localizedClassMetadataChips: () => ["Flow", "Studio"],
+  ...actualLocalizedContent,
   localizedClassTitle: (cls) => cls.title,
   localizedClassTitleParts: (cls) => ({ brand: "Cloud & Core", program: cls.title }),
   localizedFilterLabel: (value) => value,
@@ -194,7 +196,6 @@ mock.module("@/lib/localized-content", () => ({
   localizedOptionalInstructorName: (name) => name ?? null,
   localizedProgramDescription: () => "Program description",
   localizedRoomName: ({ name }) => name,
-  localizedToneName: (value) => value,
 }));
 
 mock.module("@/components/ui/bidi", () => ({
@@ -219,11 +220,8 @@ mock.module("@/components/visual/VisualClassCard", () => ({
 }));
 
 mock.module("@/lib/lesson-card-variants", () => ({
-  formatDuration: () => "50 min",
-  formatSpots: (spotsLeft, capacity) => `${spotsLeft}/${capacity} spots`,
-  getArtTileVariant: () => "a",
+  ...actualLessonCardVariants,
   getFriendlyStudioLocation: () => "Cloud & Core Studio",
-  getLessonVisualMode: () => "artTile",
 }));
 
 mock.module("@/lib/image-assets", () => ({

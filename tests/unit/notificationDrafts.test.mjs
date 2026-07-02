@@ -330,7 +330,7 @@ assert.equal(
   classCancelledRows[0].idempotency_key,
   "booking:booking-7:class_cancelled_by_admin:whatsapp",
 );
-assert.ok(classCancelledRows[0].generated_text?.includes("בוטל"));
+assert.ok(classCancelledRows[0].generated_text?.includes("לא יתקיים"));
 
 const reminder2hRows = buildNotificationDraftRows({
   eventKey: "class_reminder_2h",
