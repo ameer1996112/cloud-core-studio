@@ -16,6 +16,9 @@ export function normalizePhoneForWa(raw?: string | null): string | null {
   if (s.startsWith("+")) s = s.slice(1);
   if (s.startsWith("00")) s = s.slice(2);
   s = s.replace(/\D+/g, "");
+  if (s.length === 10 && s.startsWith("0")) {
+    s = `972${s.slice(1)}`;
+  }
   return s.length >= 6 ? s : null;
 }
 

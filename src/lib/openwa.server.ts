@@ -21,8 +21,10 @@ export function createOpenwaClient(input: {
         return { ok: false, retryable: false, error: "invalid_whatsapp_phone" };
       }
 
+      const chatId = `${phone}@c.us`;
+
       const response = await fetchImpl(
-        `${input.baseUrl.replace(/\/$/, "")}/api/sessions/${input.sessionId}/send-text`,
+        `${input.baseUrl.replace(/\/$/, "")}/api/sessions/${input.sessionId}/messages/send-text`,
         {
           method: "POST",
           headers: {
@@ -30,7 +32,7 @@ export function createOpenwaClient(input: {
             "x-api-key": input.apiKey,
           },
           body: JSON.stringify({
-            phone,
+            chatId,
             text: message.text,
           }),
         },
