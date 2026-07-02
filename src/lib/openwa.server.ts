@@ -67,6 +67,20 @@ export function createOpenwaClient(input: {
   };
 }
 
+export function isReachableOpenwaBaseUrl(baseUrl: string) {
+  try {
+    const url = new URL(baseUrl);
+
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return false;
+    }
+
+    return !["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function getOpenwaRuntimeConfig(env = process.env) {
   const baseUrl = env.OPENWA_BASE_URL;
   const apiKey = env.OPENWA_API_KEY;
