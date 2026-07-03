@@ -2,6 +2,15 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEFAULT_ENV_FILE="$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env"
+ENV_FILE="${OPENWA_WORKER_ENV_FILE:-$DEFAULT_ENV_FILE}"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
 LIMIT="${OPENWA_WORKER_LIMIT:-5}"
 LOG_DIR="${OPENWA_WORKER_LOG_DIR:-$HOME/Library/Logs/CloudCoreOpenWA}"
 SUCCESS_LOG="$LOG_DIR/worker.log"
