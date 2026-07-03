@@ -35,3 +35,18 @@ Task 4 is implemented as a regression test update only. The queue scope assertio
 
 - I preserved unrelated dirty worktree changes and did not touch any files outside the task scope except the formatting-only fix in the OpenWA plan file that eslint flagged.
 - The remaining failing unit test is outside Task 4 scope and was not changed here.
+
+## Fix follow-up after review
+
+- Updated `tests/unit/notificationDrafts.test.mjs` to expect `booking_confirmed` WhatsApp drafts in `queued` state. This was stale test coverage, not a business-logic bug: the approved automatic OpenWA event set still includes `booking_confirmed`, and `buildNotificationDraftRows` correctly auto-queues it.
+- Removed the duplicate `OPENWA_APPROVED_AUTOMATION_EVENT_TYPES` assertion block from `tests/unit/notificationQueueServer.test.mjs` and kept the in-scope claim-suite assertion as the single source of coverage for the approved event set.
+- Kept the earlier `tests/unit/openwaLocalWorkerJobs.test.mjs` formatting-only change in report scope because it was needed for `bun run lint` to pass in this plan; I did not revert it.
+
+## Follow-up verification
+
+- `bun test tests/unit/notificationQueueServer.test.mjs tests/unit/openwaLocalWorkerConfig.test.mjs tests/unit/notificationDelivery.test.mjs tests/unit/notificationDrafts.test.mjs`
+  - Passes: 17 tests, 0 failures.
+- `bun run lint`
+  - Passes with existing repo-wide warnings only.
+- `bun run build`
+  - Passes.

@@ -361,16 +361,3 @@ describe("reportOpenwaNotification", () => {
     expect(notSending).toEqual({ ok: false, reason: "not_sending" });
   });
 });
-
-describe("OPENWA_APPROVED_AUTOMATION_EVENT_TYPES", () => {
-  test("matches the approved Gate 1 event scope exactly", () => {
-    expect([...OPENWA_APPROVED_AUTOMATION_EVENT_TYPES]).toEqual([
-      "payment_confirmed",
-      "booking_confirmed",
-      "class_reminder_24h",
-      "waitlist_spot_available",
-      "class_cancelled_by_admin",
-      "class_time_changed",
-    ]);
-  });
-});

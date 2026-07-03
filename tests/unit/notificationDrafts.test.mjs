@@ -33,7 +33,7 @@ const rows = buildNotificationDraftRows({
 });
 
 assert.equal(rows.length, 2);
-assert.equal(rows[0].status, "draft");
+assert.equal(rows[0].status, "queued");
 assert.equal(rows[0].language, "en");
 assert.equal(rows[0].staff_visibility, "operational");
 assert.equal(rows[0].related_booking_id, "booking-1");
@@ -77,7 +77,7 @@ const bookingRows = buildNotificationDraftRows({
   },
 });
 
-assert.equal(bookingRows[0].status, "draft");
+assert.equal(bookingRows[0].status, "queued");
 
 const autoPaymentRows = buildNotificationDraftRows({
   eventKey: "payment_confirmed",
