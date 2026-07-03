@@ -31,28 +31,24 @@ describe("processClaimedJobs", () => {
     const errors = [];
     const infos = [];
 
-    await processClaimedJobs(
-      createConfig(),
-      [createJob("job-1"), createJob("job-2")],
-      {
-        async sendViaOpenwa(_config, job) {
-          sends.push(job.id);
-          if (job.id === "job-1") {
-            throw new Error("fetch rejected");
-          }
-          return { ok: true, providerMessageId: `provider-${job.id}` };
-        },
-        async reportResult(_config, body) {
-          reports.push(body);
-        },
-        logError(message) {
-          errors.push(message);
-        },
-        logInfo(message) {
-          infos.push(message);
-        },
+    await processClaimedJobs(createConfig(), [createJob("job-1"), createJob("job-2")], {
+      async sendViaOpenwa(_config, job) {
+        sends.push(job.id);
+        if (job.id === "job-1") {
+          throw new Error("fetch rejected");
+        }
+        return { ok: true, providerMessageId: `provider-${job.id}` };
       },
-    );
+      async reportResult(_config, body) {
+        reports.push(body);
+      },
+      logError(message) {
+        errors.push(message);
+      },
+      logInfo(message) {
+        infos.push(message);
+      },
+    });
 
     expect(sends).toEqual(["job-1", "job-2"]);
     expect(reports).toEqual([

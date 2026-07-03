@@ -1,14 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import {
-  PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS,
-  runPaymentConfirmedOpenwaPass,
+  claimOpenwaNotifications,
+  OPENWA_APPROVED_AUTOMATION_EVENT_TYPES,
+  OPENWA_LOCAL_STALE_SENDING_MS,
+  OPENWA_STALE_SENDING_RECOVERY_ERROR,
+  reportOpenwaNotification,
 } from "../../src/lib/notificationQueue.server.ts";
 
 function makeRow(overrides = {}) {
   return {
     id: "row-1",
     attempt_count: 0,
-    generated_text: "Payment approved",
+    generated_text: "Message ready",
     last_attempt_at: null,
     scheduled_for: null,
     next_attempt_at: null,
@@ -21,36 +24,64 @@ function makeRow(overrides = {}) {
   };
 }
 
-function createDeps(rows, options = {}) {
+function createClaimDeps(rows, options = {}) {
   const operations = [];
   const claims = options.claims ?? new Map();
 
   return {
     operations,
     deps: {
-      async listRows({ limit }) {
+      async listRows({ limit, testPhone }) {
+        operations.push({ type: "list", limit, testPhone: testPhone ?? null });
         return rows.slice(0, limit);
       },
       async claimRow({ row }) {
         operations.push({ type: "claim", rowId: row.id });
-        if (options.claimRow) return options.claimRow({ row });
         if (claims.has(row.id)) return claims.get(row.id);
         return { id: row.id, attemptCount: row.attempt_count + 1 };
       },
-      async sendText({ to, text }) {
-        operations.push({ type: "send", to, text });
-        if (options.sendResult instanceof Error) throw options.sendResult;
-        return options.sendResult ?? { ok: true, providerMessageId: "provider-msg-1" };
-      },
       async markSent(payload) {
         operations.push({ type: "sent", ...payload });
-        if (options.markSentError) throw options.markSentError;
       },
       async requeue(payload) {
         operations.push({ type: "requeue", ...payload });
       },
       async markFailed(payload) {
         operations.push({ type: "failed", ...payload });
+      },
+      async getReportRow() {
+        return null;
+      },
+      computeRetryAt() {
+        return null;
+      },
+    },
+  };
+}
+
+function createReportDeps(row, options = {}) {
+  const operations = [];
+
+  return {
+    operations,
+    deps: {
+      async listRows() {
+        return [];
+      },
+      async claimRow() {
+        return null;
+      },
+      async markSent(payload) {
+        operations.push({ type: "sent", ...payload });
+      },
+      async requeue(payload) {
+        operations.push({ type: "requeue", ...payload });
+      },
+      async markFailed(payload) {
+        operations.push({ type: "failed", ...payload });
+      },
+      async getReportRow() {
+        return row;
       },
       computeRetryAt({ attemptCount, failedAt }) {
         if (options.computeRetryAt) return options.computeRetryAt({ attemptCount, failedAt });
@@ -60,219 +91,110 @@ function createDeps(rows, options = {}) {
   };
 }
 
-describe("runPaymentConfirmedOpenwaPass", () => {
-  test("processes only queued payment_confirmed whatsapp openwa rows", async () => {
+describe("claimOpenwaNotifications", () => {
+  test("claims only approved queued whatsapp rows and returns jobs", async () => {
     const rows = [
-      makeRow({ id: "process-me" }),
+      makeRow({ id: "payment" }),
+      makeRow({ id: "booking", trigger_type: "booking_confirmed" }),
+      makeRow({ id: "email", channel: "email" }),
+      makeRow({ id: "other-provider", provider: "other" }),
       makeRow({ id: "wrong-trigger", trigger_type: "receipt_issued" }),
-      makeRow({ id: "wrong-provider", provider: "other" }),
-      makeRow({ id: "wrong-channel", channel: "email" }),
-      makeRow({ id: "already-sent", status: "sent" }),
-      makeRow({ id: "already-sending", status: "sending" }),
     ];
-    const { deps, operations } = createDeps(rows);
+    const { deps, operations } = createClaimDeps(rows);
 
-    const result = await runPaymentConfirmedOpenwaPass(
-      { now: new Date("2026-07-01T10:00:00.000Z"), limit: 10 },
+    const result = await claimOpenwaNotifications(
+      { now: new Date("2026-07-02T09:00:00.000Z"), limit: 10 },
       deps,
     );
 
-    expect(result).toEqual({ claimed: 1, sent: 1, failed: 0, skipped: 0 });
-    expect(operations.map((entry) => entry.type)).toEqual(["claim", "send", "sent"]);
-    expect(operations[0].rowId).toBe("process-me");
+    expect(result.jobs.map((job) => job.id)).toEqual(["payment", "booking"]);
+    expect(result.claimed).toBe(2);
+    expect(
+      operations.filter((entry) => entry.type === "claim").map((entry) => entry.rowId),
+    ).toEqual(["payment", "booking"]);
   });
 
-  test("recovers stale sending rows after the explicit timeout", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
+  test("approved OpenWA automation event set matches the Mac worker operational scope", () => {
+    expect([...OPENWA_APPROVED_AUTOMATION_EVENT_TYPES]).toEqual([
+      "payment_confirmed",
+      "booking_confirmed",
+      "class_reminder_24h",
+      "waitlist_spot_available",
+      "class_cancelled_by_admin",
+      "class_time_changed",
+    ]);
+  });
+
+  test("dry-run previews jobs without mutating queue state", async () => {
+    const { deps, operations } = createClaimDeps([makeRow({ id: "preview-row" })]);
+
+    const result = await claimOpenwaNotifications(
+      { now: new Date("2026-07-02T09:00:00.000Z"), limit: 5, dryRun: true },
+      deps,
+    );
+
+    expect(result).toEqual({
+      jobs: [
+        {
+          id: "preview-row",
+          to: "+972501234567",
+          text: "Message ready",
+          attemptCount: 1,
+          triggerType: "payment_confirmed",
+        },
+      ],
+      dryRun: true,
+      claimed: 0,
+      recovered: 0,
+      invalid: 0,
+    });
+    expect(operations).toEqual([{ type: "list", limit: 5, testPhone: null }]);
+  });
+
+  test("recovers stale sending rows instead of handing them to the worker", async () => {
+    const now = new Date("2026-07-02T09:00:00.000Z");
     const staleLastAttemptAt = new Date(
-      now.getTime() - PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS,
+      now.getTime() - OPENWA_LOCAL_STALE_SENDING_MS,
     ).toISOString();
-    const recentLastAttemptAt = new Date(
-      now.getTime() - PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS + 60_000,
-    ).toISOString();
-    const rows = [
+    const { deps, operations } = createClaimDeps([
       makeRow({
-        id: "stale-sending",
+        id: "stale-row",
         status: "sending",
         last_attempt_at: staleLastAttemptAt,
       }),
-      makeRow({
-        id: "fresh-sending",
-        status: "sending",
-        last_attempt_at: recentLastAttemptAt,
-      }),
-    ];
-    const { deps, operations } = createDeps(rows);
+    ]);
 
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 10 }, deps);
+    const result = await claimOpenwaNotifications({ now, limit: 5 }, deps);
 
-    expect(result).toEqual({ claimed: 1, sent: 0, failed: 1, skipped: 0 });
+    expect(result.jobs).toEqual([]);
+    expect(result.claimed).toBe(1);
+    expect(result.recovered).toBe(1);
     expect(operations).toEqual([
-      { type: "claim", rowId: "stale-sending" },
+      { type: "list", limit: 5, testPhone: null },
+      { type: "claim", rowId: "stale-row" },
       {
         type: "failed",
-        rowId: "stale-sending",
-        error: "stale_sending_recovery_manual_review",
+        rowId: "stale-row",
+        error: OPENWA_STALE_SENDING_RECOVERY_ERROR,
       },
     ]);
   });
 
-  test("respects scheduled_for and next_attempt_at due filtering", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const rows = [
-      makeRow({ id: "due", scheduled_for: "2026-07-01T09:59:00.000Z" }),
-      makeRow({ id: "future-scheduled", scheduled_for: "2026-07-01T10:05:00.000Z" }),
-      makeRow({ id: "future-retry", next_attempt_at: "2026-07-01T10:10:00.000Z" }),
-      makeRow({ id: "due-retry", next_attempt_at: "2026-07-01T09:55:00.000Z" }),
-    ];
-    const { deps, operations } = createDeps(rows);
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 10 }, deps);
-
-    expect(result).toEqual({ claimed: 2, sent: 2, failed: 0, skipped: 0 });
-    expect(
-      operations.filter((entry) => entry.type === "claim").map((entry) => entry.rowId),
-    ).toEqual(["due", "due-retry"]);
-  });
-
-  test("marks successful send as sent", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const { deps, operations } = createDeps([makeRow({ id: "success-row" })], {
-      sendResult: { ok: true, providerMessageId: "provider-42" },
-    });
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 1 }, deps);
-
-    expect(result).toEqual({ claimed: 1, sent: 1, failed: 0, skipped: 0 });
-    expect(operations[2]).toEqual({
-      type: "sent",
-      rowId: "success-row",
-      now,
-      providerMessageId: "provider-42",
-    });
-  });
-
-  test("marks current-process finalize failures as terminal manual review without requeueing", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const { deps, operations } = createDeps([makeRow({ id: "finalize-failure-row" })], {
-      sendResult: { ok: true, providerMessageId: "provider-42" },
-      markSentError: new Error("db_commit_failed"),
-    });
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 1 }, deps);
-
-    expect(result).toEqual({ claimed: 1, sent: 0, failed: 1, skipped: 0 });
-    expect(operations).toEqual([
-      { type: "claim", rowId: "finalize-failure-row" },
-      { type: "send", to: "+972501234567", text: "Payment approved" },
-      {
-        type: "sent",
-        rowId: "finalize-failure-row",
-        now,
-        providerMessageId: "provider-42",
-      },
-      {
-        type: "failed",
-        rowId: "finalize-failure-row",
-        error: "openwa_send_finalize_failed_manual_review:unexpected_worker_error:db_commit_failed",
-      },
-    ]);
-  });
-
-  test("requeues retryable failures with the next retry time", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const { deps, operations } = createDeps([makeRow({ id: "retry-row", attempt_count: 1 })], {
-      sendResult: { ok: false, retryable: true, error: "openwa_temporarily_unavailable" },
-      computeRetryAt: () => new Date("2026-07-01T10:15:00.000Z"),
-    });
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 1 }, deps);
-
-    expect(result).toEqual({ claimed: 1, sent: 0, failed: 0, skipped: 1 });
-    expect(operations[2]).toEqual({
-      type: "requeue",
-      rowId: "retry-row",
-      error: "openwa_temporarily_unavailable",
-      nextAttemptAt: new Date("2026-07-01T10:15:00.000Z"),
-    });
-  });
-
-  test("requeues unexpected thrown send errors instead of leaving rows stranded", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const { deps, operations } = createDeps([makeRow({ id: "throwing-send-row" })], {
-      sendResult: new Error("socket_closed"),
-      computeRetryAt: () => new Date("2026-07-01T10:15:00.000Z"),
-    });
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 1 }, deps);
-
-    expect(result).toEqual({ claimed: 1, sent: 0, failed: 0, skipped: 1 });
-    expect(operations).toEqual([
-      { type: "claim", rowId: "throwing-send-row" },
-      { type: "send", to: "+972501234567", text: "Payment approved" },
-      {
-        type: "requeue",
-        rowId: "throwing-send-row",
-        error: "unexpected_worker_error:socket_closed",
-        nextAttemptAt: new Date("2026-07-01T10:15:00.000Z"),
-      },
-    ]);
-  });
-
-  test("marks terminal failures as failed", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const { deps, operations } = createDeps([makeRow({ id: "failed-row" })], {
-      sendResult: { ok: false, retryable: false, error: "invalid_whatsapp_phone" },
-    });
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 1 }, deps);
-
-    expect(result).toEqual({ claimed: 1, sent: 0, failed: 1, skipped: 0 });
-    expect(operations[2]).toEqual({
-      type: "failed",
-      rowId: "failed-row",
-      error: "invalid_whatsapp_phone",
-    });
-  });
-
-  test("marks retryable failures as failed when no retry slot remains", async () => {
-    const now = new Date("2026-07-01T10:00:00.000Z");
-    const { deps, operations } = createDeps(
-      [makeRow({ id: "retry-exhausted-row", attempt_count: 3 })],
-      {
-        sendResult: { ok: false, retryable: true, error: "openwa_temporarily_unavailable" },
-        computeRetryAt: () => null,
-      },
-    );
-
-    const result = await runPaymentConfirmedOpenwaPass({ now, limit: 1 }, deps);
-
-    expect(result).toEqual({ claimed: 1, sent: 0, failed: 1, skipped: 0 });
-    expect(operations).toEqual([
-      { type: "claim", rowId: "retry-exhausted-row" },
-      { type: "send", to: "+972501234567", text: "Payment approved" },
-      {
-        type: "failed",
-        rowId: "retry-exhausted-row",
-        error: "openwa_temporarily_unavailable",
-      },
-    ]);
-  });
-
-  test("marks malformed rows as terminal failures without sending", async () => {
-    const rows = [
+  test("fails malformed rows after claim so they do not loop forever", async () => {
+    const { deps, operations } = createClaimDeps([
       makeRow({ id: "missing-text", generated_text: "   " }),
       makeRow({ id: "missing-phone", member: { phone: null } }),
-    ];
-    const { deps, operations } = createDeps(rows);
+    ]);
 
-    const result = await runPaymentConfirmedOpenwaPass(
-      { now: new Date("2026-07-01T10:00:00.000Z"), limit: 10 },
+    const result = await claimOpenwaNotifications(
+      { now: new Date("2026-07-02T09:00:00.000Z"), limit: 10 },
       deps,
     );
 
-    expect(result).toEqual({ claimed: 2, sent: 0, failed: 2, skipped: 0 });
+    expect(result.jobs).toEqual([]);
+    expect(result.invalid).toBe(2);
     expect(operations).toEqual([
+      { type: "list", limit: 10, testPhone: null },
       { type: "claim", rowId: "missing-text" },
       { type: "failed", rowId: "missing-text", error: "missing_generated_text" },
       { type: "claim", rowId: "missing-phone" },
@@ -280,30 +202,175 @@ describe("runPaymentConfirmedOpenwaPass", () => {
     ]);
   });
 
-  test("ignores rows that become unavailable before the claim succeeds", async () => {
-    const claims = new Map([
-      ["postponed-before-claim", null],
-      ["claimed", { id: "claimed", attemptCount: 1 }],
-    ]);
-    const rows = [makeRow({ id: "postponed-before-claim" }), makeRow({ id: "claimed" })];
-    const { deps, operations } = createDeps(rows, { claims });
+  test("passes test-phone filtering down to queue selection", async () => {
+    const { deps, operations } = createClaimDeps([makeRow({ id: "test-only-row" })]);
 
-    const result = await runPaymentConfirmedOpenwaPass(
-      { now: new Date("2026-07-01T10:00:00.000Z"), limit: 10 },
+    await claimOpenwaNotifications(
+      {
+        now: new Date("2026-07-02T09:00:00.000Z"),
+        limit: 5,
+        testPhone: "+972-50-123-4567",
+      },
       deps,
     );
 
-    expect(result).toEqual({ claimed: 1, sent: 1, failed: 0, skipped: 0 });
-    expect(operations).toEqual([
-      { type: "claim", rowId: "postponed-before-claim" },
-      { type: "claim", rowId: "claimed" },
-      { type: "send", to: "+972501234567", text: "Payment approved" },
+    expect(operations[0]).toEqual({
+      type: "list",
+      limit: 5,
+      testPhone: "+972-50-123-4567",
+    });
+  });
+});
+
+describe("reportOpenwaNotification", () => {
+  test("marks sent rows as sent with the local provider", async () => {
+    const { deps, operations } = createReportDeps({
+      id: "job-1",
+      attempt_count: 1,
+      status: "sending",
+      trigger_type: "booking_confirmed",
+      channel: "whatsapp",
+      provider: "openwa",
+    });
+    const now = new Date("2026-07-02T09:00:00.000Z");
+
+    const result = await reportOpenwaNotification(
       {
-        type: "sent",
-        rowId: "claimed",
-        now: new Date("2026-07-01T10:00:00.000Z"),
-        providerMessageId: "provider-msg-1",
+        jobId: "job-1",
+        status: "sent",
+        providerMessageId: "provider-1",
+        workerId: "ameer-macbook",
+        now,
       },
+      deps,
+    );
+
+    expect(result).toEqual({ ok: true, outcome: "sent" });
+    expect(operations).toEqual([
+      { type: "sent", rowId: "job-1", now, providerMessageId: "provider-1" },
+    ]);
+  });
+
+  test("requeues retryable failures with the next retry slot", async () => {
+    const retryAt = new Date("2026-07-02T09:15:00.000Z");
+    const { deps, operations } = createReportDeps(
+      {
+        id: "job-2",
+        attempt_count: 2,
+        status: "sending",
+        trigger_type: "payment_confirmed",
+        channel: "whatsapp",
+        provider: "openwa",
+      },
+      {
+        computeRetryAt: () => retryAt,
+      },
+    );
+
+    const result = await reportOpenwaNotification(
+      {
+        jobId: "job-2",
+        status: "failed",
+        retryable: true,
+        error: "openwa_network_error",
+        workerId: "ameer-macbook",
+        now: new Date("2026-07-02T09:00:00.000Z"),
+      },
+      deps,
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      outcome: "requeued",
+      nextAttemptAt: retryAt.toISOString(),
+    });
+    expect(operations).toEqual([
+      {
+        type: "requeue",
+        rowId: "job-2",
+        error: "openwa_network_error",
+        nextAttemptAt: retryAt,
+      },
+    ]);
+  });
+
+  test("marks retryable failures as failed when retries are exhausted", async () => {
+    const { deps, operations } = createReportDeps(
+      {
+        id: "job-3",
+        attempt_count: 4,
+        status: "sending",
+        trigger_type: "class_time_changed",
+        channel: "whatsapp",
+        provider: "openwa",
+      },
+      {
+        computeRetryAt: () => null,
+      },
+    );
+
+    const result = await reportOpenwaNotification(
+      {
+        jobId: "job-3",
+        status: "failed",
+        retryable: true,
+        error: "openwa_temporarily_unavailable",
+        workerId: "ameer-macbook",
+      },
+      deps,
+    );
+
+    expect(result).toEqual({ ok: true, outcome: "failed" });
+    expect(operations).toEqual([
+      {
+        type: "failed",
+        rowId: "job-3",
+        error: "openwa_temporarily_unavailable",
+      },
+    ]);
+  });
+
+  test("rejects report calls for missing or non-sending jobs", async () => {
+    const missing = await reportOpenwaNotification(
+      {
+        jobId: "job-missing",
+        status: "sent",
+        providerMessageId: "provider-1",
+      },
+      createReportDeps(null).deps,
+    );
+
+    const notSending = await reportOpenwaNotification(
+      {
+        jobId: "job-4",
+        status: "failed",
+        retryable: false,
+        error: "blocked",
+      },
+      createReportDeps({
+        id: "job-4",
+        attempt_count: 1,
+        status: "queued",
+        trigger_type: "payment_confirmed",
+        channel: "whatsapp",
+        provider: "openwa",
+      }).deps,
+    );
+
+    expect(missing).toEqual({ ok: false, reason: "not_found" });
+    expect(notSending).toEqual({ ok: false, reason: "not_sending" });
+  });
+});
+
+describe("OPENWA_APPROVED_AUTOMATION_EVENT_TYPES", () => {
+  test("matches the approved Gate 1 event scope exactly", () => {
+    expect([...OPENWA_APPROVED_AUTOMATION_EVENT_TYPES]).toEqual([
+      "payment_confirmed",
+      "booking_confirmed",
+      "class_reminder_24h",
+      "waitlist_spot_available",
+      "class_cancelled_by_admin",
+      "class_time_changed",
     ]);
   });
 });
