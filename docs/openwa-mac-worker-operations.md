@@ -35,6 +35,7 @@ export OPENWA_API_KEY="<openwa-api-key>"
 export OPENWA_SESSION_ID="<current-openwa-session-id>"
 export OPENWA_WORKER_ID="studio-mac"
 export OPENWA_TEST_PHONE="+972501234567"
+export OPENWA_NODE_BIN="/opt/homebrew/bin/node"
 EOF
 chmod 600 "$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env"
 ```
@@ -48,31 +49,48 @@ security add-generic-password -U \
   -w "<same-token-as-cloud-run>"
 ```
 
-6. Run the local worker with the env file loaded by the launchd wrapper:
+6. Run the launchd wrapper in dry-run mode first. This proves the wrapper can load the env file and reach the worker without allowing a real customer send:
 
 ```bash
 OPENWA_WORKER_ENV_FILE="$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env" \
-  bash scripts/openwa-launchd-worker.sh
+OPENWA_WORKER_DRY_RUN=1 \
+bash scripts/openwa-launchd-worker.sh
 ```
 
-7. Run a dry run:
+7. Run the launchd wrapper in test-phone-only mode before any normal production send:
 
 ```bash
 OPENWA_WORKER_ENV_FILE="$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env" \
+OPENWA_WORKER_TEST_PHONE_ONLY=1 \
+bash scripts/openwa-launchd-worker.sh
+```
+
+8. Optional: run the worker directly only after sourcing the env file into the shell first:
+
+```bash
+set -a
+. "$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env"
+set +a
 node scripts/openwa-local-worker.mjs --dry-run --limit=1
-```
-
-8. Run a test-phone-only pass:
-
-```bash
-OPENWA_WORKER_ENV_FILE="$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env" \
-node scripts/openwa-local-worker.mjs --test-phone-only --limit=1
 ```
 
 9. Install the launch agent:
 
 ```bash
 bash scripts/install-openwa-launchd.sh
+```
+
+10. Run the shell-level smoke check for the wrapper:
+
+```bash
+bash scripts/openwa-launchd-worker-smoke.sh
+```
+
+11. When you are ready for normal sending, run the wrapper without safety flags:
+
+```bash
+OPENWA_WORKER_ENV_FILE="$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env" \
+bash scripts/openwa-launchd-worker.sh
 ```
 
 ## When OpenWA Creates a New Session
@@ -92,14 +110,15 @@ launchctl kickstart -k "gui/$(id -u)/com.cloudandcore.openwa-worker"
 
 ```bash
 OPENWA_WORKER_ENV_FILE="$HOME/Library/Application Support/CloudCoreOpenWA/openwa-worker.env" \
-node scripts/openwa-local-worker.mjs --dry-run --limit=1
+OPENWA_WORKER_DRY_RUN=1 \
+bash scripts/openwa-launchd-worker.sh
 ```
 
 No App Store release is needed. No mobile app env value changes.
 
 ## How launchd gets its environment
 
-`scripts/openwa-launchd-worker.sh` sources `~/Library/Application Support/CloudCoreOpenWA/openwa-worker.env` on every run before it calls `node scripts/openwa-local-worker.mjs`. That keeps the Mac worker settings persistent across LaunchAgent restarts without committing secrets or relying on transient shell exports.
+`scripts/openwa-launchd-worker.sh` sources `~/Library/Application Support/CloudCoreOpenWA/openwa-worker.env` on every run before it calls `OPENWA_NODE_BIN` for `scripts/openwa-local-worker.mjs`. Set `OPENWA_NODE_BIN` to an absolute Node path in the env file, such as `/opt/homebrew/bin/node`, so launchd does not depend on an interactive shell PATH. That keeps the Mac worker settings persistent across LaunchAgent restarts without committing secrets or relying on transient shell exports.
 
 ## Check Status
 
@@ -115,3 +134,11 @@ cat "$HOME/Library/Logs/CloudCoreOpenWA/worker-last-response.body"
 Use `OPENWA_TEST_PHONE` and `--test-phone-only` before allowing normal production sending.
 
 If the worker reports `openwa_test_phone_only_blocked`, it protected a non-test recipient from being sent during a test run.
+
+## Wrapper Smoke Verification
+
+Use the wrapper smoke script to prove the env file is sourced and the dry-run flag reaches the worker process without touching the network:
+
+```bash
+bash scripts/openwa-launchd-worker-smoke.sh
+```
