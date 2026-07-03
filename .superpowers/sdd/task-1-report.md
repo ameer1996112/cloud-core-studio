@@ -42,3 +42,21 @@ I extracted the local OpenWA worker configuration logic into pure exported helpe
 
 - `bun run lint` completed with pre-existing warnings in unrelated files already present in the worktree. No new lint errors were introduced by this task.
 - `bun run build` completed successfully.
+
+---
+
+## Review Fix: Per-job transport/report isolation
+
+Date: 2026-07-03
+
+- wrapped claimed-job processing in an exported `processClaimedJobs(config, jobs, deps)` helper so transport and report exceptions are contained per job
+- added `safeReportResult(...)` so reporting failures after safety blocks, failed sends, and successful sends log `HIGH_RISK report_failed` and do not abort later jobs
+- when `sendViaOpenwa()` throws, the worker now logs the transport failure, reports a retryable failed outcome when possible, and continues to the next claimed job
+- added focused unit coverage in `tests/unit/openwaLocalWorkerJobs.test.mjs` for:
+  - send transport rejection followed by continued processing of later jobs
+  - report failures while reporting both failed and successful sends without aborting the batch
+
+## Validation for review fix
+
+- `bun test tests/unit/openwaLocalWorkerConfig.test.mjs`
+- `bun test tests/unit/openwaLocalWorkerJobs.test.mjs`

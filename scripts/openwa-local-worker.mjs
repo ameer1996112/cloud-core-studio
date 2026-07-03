@@ -44,6 +44,19 @@ function requireEnvFrom(env, name) {
   return value;
 }
 
+function getErrorMessage(error, fallback = "unknown_error") {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function sanitizeErrorCode(value, fallback = "unknown_error") {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return normalized || fallback;
+}
+
 export function normalizePhone(value) {
   return value.replace(/[^\d+]/g, "");
 }
@@ -220,6 +233,131 @@ async function reportResult(config, body) {
   );
 }
 
+async function safeReportResult(config, body, context, job, deps) {
+  try {
+    await deps.reportResult(config, body);
+    return true;
+  } catch (error) {
+    const message = getErrorMessage(error, "report_failed");
+    deps.logError(
+      `[openwa-local-worker] HIGH_RISK report_failed job=${job.id} trigger=${job.triggerType} context=${context} error=${message}`,
+    );
+    return false;
+  }
+}
+
+export async function processClaimedJobs(config, jobs, deps = {}) {
+  const runtimeDeps = {
+    sendViaOpenwa,
+    reportResult,
+    logInfo: console.log,
+    logError: console.error,
+    ...deps,
+  };
+
+  for (const job of jobs) {
+    if (!job || typeof job !== "object") continue;
+
+    const safeTo = typeof job.to === "string" ? job.to : "";
+    const safeId = typeof job.id === "string" ? job.id : "";
+    const safeTrigger = typeof job.triggerType === "string" ? job.triggerType : "unknown";
+
+    if (!safeId || !safeTo) {
+      runtimeDeps.logError(`[openwa-local-worker] skipped malformed job trigger=${safeTrigger}`);
+      continue;
+    }
+
+    if (config.options.dryRun) {
+      runtimeDeps.logInfo(
+        `[openwa-local-worker] dry-run job=${safeId} trigger=${safeTrigger} to=${safeTo}`,
+      );
+      continue;
+    }
+
+    if (
+      config.options.testPhoneOnly &&
+      normalizePhone(safeTo) !== normalizePhone(config.testPhone ?? "")
+    ) {
+      runtimeDeps.logError(
+        `[openwa-local-worker] safety block job=${safeId} trigger=${safeTrigger} to=${safeTo}`,
+      );
+      await safeReportResult(
+        config,
+        {
+          jobId: safeId,
+          status: "failed",
+          retryable: false,
+          error: "openwa_test_phone_only_blocked",
+        },
+        "safety_block",
+        { id: safeId, triggerType: safeTrigger },
+        runtimeDeps,
+      );
+      continue;
+    }
+
+    let sendResult;
+    try {
+      sendResult = await runtimeDeps.sendViaOpenwa(config, job);
+    } catch (error) {
+      const message = getErrorMessage(error, "send_transport_failed");
+      const errorCode = sanitizeErrorCode(message, "send_transport_failed");
+      runtimeDeps.logError(
+        `[openwa-local-worker] send transport failed job=${safeId} trigger=${safeTrigger} error=${message}`,
+      );
+      await safeReportResult(
+        config,
+        {
+          jobId: safeId,
+          status: "failed",
+          retryable: true,
+          error: `send_transport_failed:${errorCode}`,
+        },
+        "send_transport_failure",
+        { id: safeId, triggerType: safeTrigger },
+        runtimeDeps,
+      );
+      continue;
+    }
+
+    if (!sendResult?.ok) {
+      runtimeDeps.logError(
+        `[openwa-local-worker] send failed job=${safeId} trigger=${safeTrigger} retryable=${sendResult.retryable} error=${sendResult.error}`,
+      );
+      await safeReportResult(
+        config,
+        {
+          jobId: safeId,
+          status: "failed",
+          retryable: sendResult.retryable,
+          error: sendResult.error,
+        },
+        "send_failed",
+        { id: safeId, triggerType: safeTrigger },
+        runtimeDeps,
+      );
+      continue;
+    }
+
+    const reportedSent = await safeReportResult(
+      config,
+      {
+        jobId: safeId,
+        status: "sent",
+        providerMessageId: sendResult.providerMessageId,
+      },
+      "sent",
+      { id: safeId, triggerType: safeTrigger },
+      runtimeDeps,
+    );
+    if (reportedSent) {
+      runtimeDeps.logInfo(
+        `[openwa-local-worker] sent job=${safeId} trigger=${safeTrigger} providerMessageId=${sendResult.providerMessageId ?? "none"}`,
+      );
+    }
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const token = await readAutomationToken();
@@ -248,71 +386,7 @@ async function main() {
     `[openwa-local-worker] claimed=${jobs.length} worker=${config.workerId} dryRun=${options.dryRun}`,
   );
 
-  for (const job of jobs) {
-    if (!job || typeof job !== "object") continue;
-
-    const safeTo = typeof job.to === "string" ? job.to : "";
-    const safeId = typeof job.id === "string" ? job.id : "";
-    const safeTrigger = typeof job.triggerType === "string" ? job.triggerType : "unknown";
-
-    if (!safeId || !safeTo) {
-      console.error(`[openwa-local-worker] skipped malformed job trigger=${safeTrigger}`);
-      continue;
-    }
-
-    if (options.dryRun) {
-      console.log(
-        `[openwa-local-worker] dry-run job=${safeId} trigger=${safeTrigger} to=${safeTo}`,
-      );
-      continue;
-    }
-
-    if (
-      options.testPhoneOnly &&
-      normalizePhone(safeTo) !== normalizePhone(config.testPhone ?? "")
-    ) {
-      console.error(
-        `[openwa-local-worker] safety block job=${safeId} trigger=${safeTrigger} to=${safeTo}`,
-      );
-      await reportResult(config, {
-        jobId: safeId,
-        status: "failed",
-        retryable: false,
-        error: "openwa_test_phone_only_blocked",
-      });
-      continue;
-    }
-
-    const sendResult = await sendViaOpenwa(config, job);
-    if (!sendResult.ok) {
-      console.error(
-        `[openwa-local-worker] send failed job=${safeId} trigger=${safeTrigger} retryable=${sendResult.retryable} error=${sendResult.error}`,
-      );
-      await reportResult(config, {
-        jobId: safeId,
-        status: "failed",
-        retryable: sendResult.retryable,
-        error: sendResult.error,
-      });
-      continue;
-    }
-
-    try {
-      await reportResult(config, {
-        jobId: safeId,
-        status: "sent",
-        providerMessageId: sendResult.providerMessageId,
-      });
-      console.log(
-        `[openwa-local-worker] sent job=${safeId} trigger=${safeTrigger} providerMessageId=${sendResult.providerMessageId ?? "none"}`,
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "report_failed";
-      console.error(
-        `[openwa-local-worker] HIGH_RISK sent_but_report_failed job=${safeId} trigger=${safeTrigger} error=${message}`,
-      );
-    }
-  }
+  await processClaimedJobs(config, jobs);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
