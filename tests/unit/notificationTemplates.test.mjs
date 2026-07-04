@@ -302,7 +302,7 @@ const waitlistJoinedTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(waitlistJoinedTemplate, premiumHebrewVariables).body,
-  "נועה, נכנסת לרשימת ההמתנה\n\nCore Flow\n\nאם יתפנה מקום, אעדכן אותך.",
+  "נועה, נכנסת לרשימת ההמתנה\n\nCore Flow\n\nאם יתפנה מקום, אעדכן אותך מיד.\nירין",
 );
 
 const reminder2hTemplate = findNotificationTemplate({
@@ -350,7 +350,7 @@ const bookingCancelledTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(bookingCancelledTemplate, premiumHebrewVariables).body,
-  "נועה, ההזמנה בוטלה\n\nCore Flow\n\nאם תרצי לבחור שיעור אחר, אני כאן.",
+  "נועה, ההזמנה בוטלה\n\nCore Flow\n\nאם תרצי לבחור שיעור אחר, אני כאן לעזור.\nירין",
 );
 
 const receiptIssuedTemplate = findNotificationTemplate({
@@ -362,7 +362,7 @@ const receiptIssuedTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(receiptIssuedTemplate, premiumHebrewVariables).body,
-  "נועה, הקבלה הונפקה\n\nR-1001\nאפשר לצפות בה באזור האישי.",
+  "נועה, הקבלה הונפקה\n\nR-1001\nאפשר לצפות בה באזור האישי.\nירין",
 );
 
 const paymentRequestReceivedTemplate = findNotificationTemplate({
