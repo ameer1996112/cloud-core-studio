@@ -34,7 +34,7 @@ const rows = buildNotificationDraftRows({
 
 assert.equal(rows.length, 2);
 assert.equal(rows[0].status, "queued");
-assert.equal(rows[0].language, "en");
+assert.equal(rows[0].language, "he");
 assert.equal(rows[0].staff_visibility, "operational");
 assert.equal(rows[0].related_booking_id, "booking-1");
 assert.equal(rows[0].related_class_id, "class-1");
@@ -43,6 +43,7 @@ assert.equal(rows[0].provider, "openwa");
 assert.ok(typeof rows[0].scheduled_for === "string");
 assert.ok(rows[0].generated_text?.includes("Noa"));
 assert.equal(rows[1].channel, "email");
+assert.equal(rows[1].language, "en");
 assert.equal(rows[1].status, "draft");
 assert.ok(rows[1].subject?.includes("Core Flow"));
 
@@ -107,6 +108,40 @@ const autoPaymentRows = buildNotificationDraftRows({
 });
 
 assert.equal(autoPaymentRows[0].status, "queued");
+
+const lifecycleRows = buildNotificationDraftRows({
+  eventKey: "package_approved_no_booking",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-lifecycle",
+    name: "Noa",
+    phone: "+972501234567",
+    email: "noa@example.com",
+    preferred_language: "he",
+  },
+  appLanguage: "he",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    memberPlanId: "member-plan-lifecycle",
+  },
+  variables: {
+    package_name: "מינוי היכרות",
+  },
+});
+
+assert.equal(lifecycleRows[0].status, "queued");
+assert.equal(
+  lifecycleRows[0].idempotency_key,
+  "member_plan:member-plan-lifecycle:package_approved_no_booking:whatsapp",
+);
+assert.ok(lifecycleRows[0].generated_text?.includes("החבילה שלך כבר מחכה לך"));
 
 const receiptRows = buildNotificationDraftRows({
   eventKey: "receipt_issued",
@@ -434,5 +469,34 @@ const cancelledWaitlistRows = buildNotificationDraftRows({
 });
 
 assert.equal(cancelledWaitlistRows[0].status, "cancelled");
+
+const hebrewOnlyWhatsAppRows = buildNotificationDraftRows({
+  eventKey: "registered_no_action",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-hebrew-only",
+    name: "Dana",
+    phone: "+972500000333",
+    email: null,
+    preferred_language: "en",
+  },
+  appLanguage: "en",
+  studioSettings: {
+    default_language: "en",
+    studio_name: "Cloud & Core",
+    public_phone: null,
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    memberId: "member-hebrew-only",
+  },
+  variables: {},
+});
+
+assert.equal(hebrewOnlyWhatsAppRows[0].language, "he");
+assert.ok(hebrewOnlyWhatsAppRows[0].generated_text?.includes("ברוכה הבאה"));
+assert.ok(!hebrewOnlyWhatsAppRows[0].generated_text?.includes("welcome"));
 
 console.log("notification draft rows OK");
