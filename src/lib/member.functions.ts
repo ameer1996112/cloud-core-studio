@@ -73,9 +73,10 @@ export const optionalSupabaseAuth = createMiddleware({ type: "function" }).serve
 const classSelect =
   "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
 
-async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
   if (!rows.length) return;
-  const { error } = await supabase
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
     .from("notification_logs")
     .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
   if (error) console.error("notification_draft_insert_failed", error.message);

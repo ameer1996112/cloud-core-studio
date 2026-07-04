@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LABEL="com.cloudandcore.openwa-worker"
+APP_SUPPORT_DIR="${OPENWA_LAUNCHD_APP_SUPPORT_DIR:-$HOME/Library/Application Support/CloudCoreOpenWA}"
+INSTALL_SCRIPTS_DIR="$APP_SUPPORT_DIR/scripts"
 PLIST_DIR="${OPENWA_LAUNCHD_PLIST_DIR:-$HOME/Library/LaunchAgents}"
 PLIST_PATH="$PLIST_DIR/com.cloudandcore.openwa-worker.plist"
 LOG_DIR="${OPENWA_LAUNCHD_LOG_DIR:-$HOME/Library/Logs/CloudCoreOpenWA}"
@@ -17,7 +19,11 @@ xml_escape() {
   printf '%s' "$value"
 }
 
-mkdir -p "$PLIST_DIR" "$LOG_DIR"
+mkdir -p "$INSTALL_SCRIPTS_DIR" "$PLIST_DIR" "$LOG_DIR"
+cp "$ROOT_DIR/scripts/openwa-launchd-worker.sh" "$INSTALL_SCRIPTS_DIR/openwa-launchd-worker.sh"
+cp "$ROOT_DIR/scripts/openwa-local-worker.mjs" "$INSTALL_SCRIPTS_DIR/openwa-local-worker.mjs"
+chmod 700 "$INSTALL_SCRIPTS_DIR/openwa-launchd-worker.sh"
+chmod 600 "$INSTALL_SCRIPTS_DIR/openwa-local-worker.mjs"
 
 cat > "$PLIST_PATH" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -29,7 +35,7 @@ cat > "$PLIST_PATH" <<PLIST
     <key>ProgramArguments</key>
     <array>
       <string>/bin/bash</string>
-      <string>$(xml_escape "$ROOT_DIR/scripts/openwa-launchd-worker.sh")</string>
+      <string>$(xml_escape "$INSTALL_SCRIPTS_DIR/openwa-launchd-worker.sh")</string>
     </array>
     <key>StartInterval</key>
     <integer>15</integer>
@@ -40,7 +46,7 @@ cat > "$PLIST_PATH" <<PLIST
     <key>StandardErrorPath</key>
     <string>$(xml_escape "$LOG_DIR/launchd-stderr.log")</string>
     <key>WorkingDirectory</key>
-    <string>$(xml_escape "$ROOT_DIR")</string>
+    <string>$(xml_escape "$APP_SUPPORT_DIR")</string>
   </dict>
 </plist>
 PLIST

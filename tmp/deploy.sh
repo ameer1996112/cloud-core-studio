@@ -19,7 +19,7 @@ gcloud run deploy cloud-core-studio \
   --image "$IMAGE" \
   --region "me-west1" \
   --allow-unauthenticated \
-  --set-env-vars SUPABASE_URL="https://banjmspemvzrqckajvwo.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_teQmj60vBGsYCVxVWFHlVg_i4zawbJJ" \
+  --set-env-vars SUPABASE_URL="https://banjmspemvzrqckajvwo.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_teQmj60vBGsYCVxVWFHlVg_i4zawbJJ",APP_STORE_URL="https://apps.apple.com/il/app/cloud-core/id6786035836",GOOGLE_PLAY_URL="" \
   --set-secrets SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest
 
 echo "$IMAGE" > tmp/last-deployed-image.txt

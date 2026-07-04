@@ -234,6 +234,81 @@ export const deleteMemberNote = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteMemberAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        memberId: z.string().uuid(),
+        confirmation: z.string().min(1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "admin");
+    if (data.memberId === context.userId) throw new Error("You cannot delete your own account.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: member, error: memberError } = await supabaseAdmin
+      .from("members")
+      .select("id,name,email,phone")
+      .eq("id", data.memberId)
+      .maybeSingle();
+    if (memberError) throw memberError;
+    if (!member) throw new Error("Member was not found.");
+
+    const expected = [member.email, member.name].filter(Boolean).map((value) => value.trim());
+    if (!expected.includes(data.confirmation.trim())) {
+      throw new Error("Type the member email or full name to confirm deletion.");
+    }
+
+    const deleteFrom = async (table: string, column = "member_id") => {
+      const { error } = await (supabaseAdmin as any).from(table).delete().eq(column, data.memberId);
+      if (error) throw error;
+    };
+
+    const { error: notificationError } = await supabaseAdmin
+      .from("notification_logs")
+      .update({ recipient_member_id: null })
+      .eq("recipient_member_id", data.memberId);
+    if (notificationError) throw notificationError;
+
+    await deleteFrom("account_deletion_requests");
+    await deleteFrom("package_requests");
+    await deleteFrom("member_notes");
+    await deleteFrom("waitlist_entries");
+    await deleteFrom("attendance_records");
+    await deleteFrom("credit_transactions");
+    await deleteFrom("receipts");
+    await deleteFrom("payments");
+    await deleteFrom("member_plans");
+    await deleteFrom("bookings");
+
+    const { error: memberDeleteError } = await supabaseAdmin
+      .from("members")
+      .delete()
+      .eq("id", data.memberId);
+    if (memberDeleteError) throw memberDeleteError;
+
+    await supabaseAdmin.from("profiles").delete().eq("id", data.memberId);
+    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(data.memberId);
+    if (authDeleteError && !/not found/i.test(authDeleteError.message)) throw authDeleteError;
+
+    await supabaseAdmin.from("admin_activity_log").insert({
+      actor_id: context.userId,
+      action: "member.deleted",
+      entity_type: "member",
+      entity_id: data.memberId,
+      metadata: {
+        name: member.name,
+        email: member.email,
+        phone: member.phone,
+      },
+    });
+
+    return { ok: true };
+  });
+
 /** Rich roster for the class roster drawer — adds credits, first-time flag, note flag, attendance state. */
 export const getClassRoster = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

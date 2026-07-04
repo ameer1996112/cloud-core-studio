@@ -2,7 +2,20 @@ const ISRAEL_TIMEZONE = "Asia/Jerusalem";
 const SEND_WINDOW_START_MINUTES = 8 * 60;
 const SEND_WINDOW_END_MINUTES = 20 * 60 + 30;
 const RETRY_DELAYS_MINUTES = [5, 15, 30] as const;
-const AUTOMATED_OPENWA_EVENT_TYPES = new Set(["payment_confirmed"]);
+const AUTOMATED_OPENWA_EVENT_TYPES = new Set([
+  "payment_confirmed",
+  "booking_confirmed",
+  "class_reminder_24h",
+  "waitlist_spot_available",
+  "class_cancelled_by_admin",
+  "class_time_changed",
+  "registered_no_action",
+  "package_approved_no_booking",
+  "first_lesson_followup",
+  "low_credits",
+  "package_expiring_soon",
+  "no_upcoming_booking_14d",
+]);
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 

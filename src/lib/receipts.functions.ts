@@ -8,9 +8,10 @@ async function isAdmin(supabase: any, userId: string) {
   return data?.role === "admin";
 }
 
-async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
   if (!rows.length) return;
-  const { error } = await supabase
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
     .from("notification_logs")
     .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
   if (error) console.error("notification_draft_insert_failed", error.message);

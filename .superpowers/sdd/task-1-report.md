@@ -1,62 +1,18 @@
-# Task 1 Report: Extract and Test Local Worker Configuration
+Changed files:
+- tests/unit/notificationTemplates.test.mjs
 
-Date: 2026-07-03
+Commit hash:
+- 93ec8bf
 
-## Result
+Command run:
+- bun test tests/unit/notificationTemplates.test.mjs
 
-Task 1 is complete.
+Result:
+- Expected failure on first WhatsApp copy assertion at line 62 (booking_confirmed smoke assertion), confirming runtime copy still old.
 
-I extracted the local OpenWA worker configuration logic into pure exported helpers and added the requested unit coverage without changing the worker’s runtime behavior.
-
-## What changed
-
-### `scripts/openwa-local-worker.mjs`
-
-- exported `parseArgs(argv)`
-- exported `normalizePhone(value)`
-- exported `buildConfigFromEnv(env, options, token)`
-- kept the worker execution path in `main()`
-- added a direct-execution guard so importing the module for tests does not start the worker
-- preserved the existing worker behavior for claim, send, and report handling
-
-### `tests/unit/openwaLocalWorkerConfig.test.mjs`
-
-- added the exact config test coverage requested in the brief
-- verifies argument parsing, env-driven config assembly, missing env failures, and phone normalization
-
-## TDD flow
-
-1. Wrote the unit test file first.
-2. Ran `bun test tests/unit/openwaLocalWorkerConfig.test.mjs` and confirmed it failed because the module did not export the helpers yet.
-3. Implemented the smallest export-and-guard refactor needed for the tests.
-4. Reran the unit test file and confirmed it passed.
-
-## Validation
-
-- `bun install`
-- `bun test tests/unit/openwaLocalWorkerConfig.test.mjs`
-- `bun run lint`
-- `bun run build`
-
-## Notes
-
-- `bun run lint` completed with pre-existing warnings in unrelated files already present in the worktree. No new lint errors were introduced by this task.
-- `bun run build` completed successfully.
-
----
-
-## Review Fix: Per-job transport/report isolation
-
-Date: 2026-07-03
-
-- wrapped claimed-job processing in an exported `processClaimedJobs(config, jobs, deps)` helper so transport and report exceptions are contained per job
-- added `safeReportResult(...)` so reporting failures after safety blocks, failed sends, and successful sends log `HIGH_RISK report_failed` and do not abort later jobs
-- when `sendViaOpenwa()` throws, the worker now logs the transport failure, reports a retryable failed outcome when possible, and continues to the next claimed job
-- added focused unit coverage in `tests/unit/openwaLocalWorkerJobs.test.mjs` for:
-  - send transport rejection followed by continued processing of later jobs
-  - report failures while reporting both failed and successful sends without aborting the batch
-
-## Validation for review fix
-
-- `bun test tests/unit/openwaLocalWorkerConfig.test.mjs`
-- `bun test tests/unit/openwaLocalWorkerJobs.test.mjs`
+Self-review:
+- Scope is limited to tests/unit/notificationTemplates.test.mjs only.
+- Existing email/admin assertions were kept unchanged.
+- Premium Hebrew variables extended with required fields.
+- Exact expected strings from task brief were applied for member-facing WhatsApp templates.
+- Runtime files were not modified.

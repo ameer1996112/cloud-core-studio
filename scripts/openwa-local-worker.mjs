@@ -12,6 +12,7 @@ export function parseArgs(argv) {
   const options = {
     dryRun: false,
     testPhoneOnly: false,
+    lifecycleSweep: false,
     limit: DEFAULT_LIMIT,
   };
 
@@ -22,6 +23,10 @@ export function parseArgs(argv) {
     }
     if (arg === "--test-phone-only") {
       options.testPhoneOnly = true;
+      continue;
+    }
+    if (arg === "--lifecycle-sweep") {
+      options.lifecycleSweep = true;
       continue;
     }
     if (arg.startsWith("--limit=")) {
@@ -59,6 +64,18 @@ function sanitizeErrorCode(value, fallback = "unknown_error") {
 
 export function normalizePhone(value) {
   return value.replace(/[^\d+]/g, "");
+}
+
+export function buildOpenwaChatId(value) {
+  const normalized = normalizePhone(String(value ?? ""));
+  if (!normalized) return "";
+
+  let digits = normalized.startsWith("+") ? normalized.slice(1) : normalized;
+  if (digits.startsWith("0")) {
+    digits = `972${digits.slice(1)}`;
+  }
+
+  return digits ? `${digits}@c.us` : "";
 }
 
 async function readAutomationToken() {
@@ -129,8 +146,12 @@ function pickProviderMessageId(payload) {
   const record = payload;
   const directId = typeof record.id === "string" ? record.id : null;
   if (directId) return directId;
+  if (typeof record.messageId === "string") return record.messageId;
   if (record.data && typeof record.data === "object" && typeof record.data.id === "string") {
     return record.data.id;
+  }
+  if (record.data && typeof record.data === "object" && typeof record.data.messageId === "string") {
+    return record.data.messageId;
   }
   if (
     record.response &&
@@ -139,23 +160,221 @@ function pickProviderMessageId(payload) {
   ) {
     return record.response.id;
   }
+  if (
+    record.response &&
+    typeof record.response === "object" &&
+    typeof record.response.messageId === "string"
+  ) {
+    return record.response.messageId;
+  }
   return null;
 }
 
-async function sendViaOpenwa(config, job) {
+function sleep(ms) {
+  if (!ms) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeOpenwaMessageStatus(value) {
+  const status = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  if (!status) return null;
+  return status;
+}
+
+function isConfirmedOpenwaDeliveryStatus(status) {
+  return status === "delivered" || status === "read" || status === "played";
+}
+
+function normalizeOpenwaSessionStatus(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+}
+
+function isReadyOpenwaSessionStatus(value) {
+  const status = normalizeOpenwaSessionStatus(value);
+  return status === "ready" || status === "connected";
+}
+
+function pickSessionIdFromRecord(record) {
+  if (!record || typeof record !== "object") return null;
+  if (typeof record.id === "string" && record.id.trim()) return record.id.trim();
+  if (typeof record.sessionId === "string" && record.sessionId.trim()) {
+    return record.sessionId.trim();
+  }
+  return null;
+}
+
+function pickSessionNameFromRecord(record) {
+  if (!record || typeof record !== "object") return null;
+  if (typeof record.name === "string" && record.name.trim()) return record.name.trim();
+  if (typeof record.sessionName === "string" && record.sessionName.trim()) {
+    return record.sessionName.trim();
+  }
+  return null;
+}
+
+function pickSessionsList(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.sessions)) return payload.sessions;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+}
+
+async function readOpenwaJson(response) {
+  const text = await response.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveOpenwaSessionId(config, fetchImpl = fetch) {
+  const sessionName = config.openwaSessionName?.trim();
+  if (!sessionName) {
+    return config.openwaSessionId
+      ? { ok: true, sessionId: config.openwaSessionId }
+      : { ok: false, retryable: true, error: "openwa_session_not_configured" };
+  }
+
+  const url = new URL("/api/sessions", config.openwaBaseUrl);
+  const response = await fetchImpl(url, {
+    method: "GET",
+    headers: {
+      "x-api-key": config.openwaApiKey,
+    },
+  });
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      retryable: true,
+      error: `openwa_sessions_http_${response.status}`,
+    };
+  }
+
+  const sessions = pickSessionsList(await readOpenwaJson(response));
+  const namedSessions = sessions.filter(
+    (session) => pickSessionNameFromRecord(session) === sessionName,
+  );
+  const readySession = namedSessions.find((session) => isReadyOpenwaSessionStatus(session?.status));
+  const sessionId = pickSessionIdFromRecord(readySession);
+  if (sessionId) {
+    return { ok: true, sessionId };
+  }
+
+  return {
+    ok: false,
+    retryable: true,
+    error: "openwa_session_not_ready",
+  };
+}
+
+async function fetchOpenwaMessageStatus(config, chatId, messageId, fetchImpl) {
+  if (!messageId) return null;
+  const url = new URL(`/api/sessions/${config.openwaSessionId}/messages`, config.openwaBaseUrl);
+  url.searchParams.set("chatId", chatId);
+  url.searchParams.set("limit", "25");
+
+  const response = await fetchImpl(url, {
+    method: "GET",
+    headers: {
+      "x-api-key": config.openwaApiKey,
+    },
+  });
+
+  if (!response.ok) return null;
+  const text = await response.text();
+  if (!text.trim()) return null;
+
+  let json = null;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    return null;
+  }
+
+  const messages = Array.isArray(json?.messages) ? json.messages : Array.isArray(json) ? json : [];
+  const match = messages.find(
+    (message) => message?.waMessageId === messageId || message?.id === messageId,
+  );
+  return normalizeOpenwaMessageStatus(match?.status);
+}
+
+async function resolveOpenwaChatId(config, phone, fetchImpl) {
+  const fallbackChatId = buildOpenwaChatId(phone);
+  const number = fallbackChatId.split("@")[0];
+  if (!number) {
+    return { ok: false, retryable: false, error: "invalid_whatsapp_phone" };
+  }
+
   const url = new URL(
-    `/api/sessions/${config.openwaSessionId}/messages/send-text`,
+    `/api/sessions/${config.openwaSessionId}/contacts/check/${number}`,
     config.openwaBaseUrl,
   );
-  const response = await fetch(url, {
+
+  const response = await fetchImpl(url, {
+    method: "GET",
+    headers: {
+      "x-api-key": config.openwaApiKey,
+    },
+  });
+
+  if (!response.ok) {
+    return { ok: true, chatId: fallbackChatId };
+  }
+
+  const text = await response.text();
+  let json = null;
+  if (text.trim()) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
+    }
+  }
+
+  if (json?.exists === false) {
+    return { ok: false, retryable: false, error: "whatsapp_number_not_found" };
+  }
+
+  return {
+    ok: true,
+    chatId:
+      typeof json?.whatsappId === "string" && json.whatsappId ? json.whatsappId : fallbackChatId,
+  };
+}
+
+export async function sendViaOpenwa(config, job, deps = {}) {
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const sessionResult = await resolveOpenwaSessionId(config, fetchImpl);
+  if (!sessionResult.ok) return sessionResult;
+
+  const sessionConfig = {
+    ...config,
+    openwaSessionId: sessionResult.sessionId,
+  };
+  const url = new URL(
+    `/api/sessions/${sessionConfig.openwaSessionId}/messages/send-text`,
+    sessionConfig.openwaBaseUrl,
+  );
+  const chatIdResult = await resolveOpenwaChatId(sessionConfig, job.to, fetchImpl);
+  if (!chatIdResult.ok) return chatIdResult;
+  const chatId = chatIdResult.chatId;
+
+  const response = await fetchImpl(url, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       "x-api-key": config.openwaApiKey,
     },
     body: JSON.stringify({
-      phone: job.to,
-      message: job.text,
+      chatId,
+      text: job.text,
     }),
   });
 
@@ -194,9 +413,37 @@ async function sendViaOpenwa(config, job) {
     };
   }
 
+  const providerMessageId = pickProviderMessageId(json);
+  const verifyDelayMs = Number(config.openwaSendVerifyDelayMs ?? 0);
+  if (providerMessageId && Number.isFinite(verifyDelayMs) && verifyDelayMs > 0) {
+    await sleep(verifyDelayMs);
+    const status = await fetchOpenwaMessageStatus(
+      sessionConfig,
+      chatId,
+      providerMessageId,
+      fetchImpl,
+    );
+    if (status === "failed") {
+      return {
+        ok: false,
+        retryable: true,
+        error: "openwa_delivery_failed",
+        providerMessageId,
+      };
+    }
+    if (config.openwaRequireDeliveryConfirmation && !isConfirmedOpenwaDeliveryStatus(status)) {
+      return {
+        ok: false,
+        retryable: Boolean(config.openwaUnconfirmedRetryable),
+        error: "openwa_delivery_unconfirmed",
+        providerMessageId,
+      };
+    }
+  }
+
   return {
     ok: true,
-    providerMessageId: pickProviderMessageId(json),
+    providerMessageId,
   };
 }
 
@@ -205,15 +452,28 @@ export function buildConfigFromEnv(env, options, token) {
   if (options.testPhoneOnly && !testPhone) {
     throw new Error("missing_env:OPENWA_TEST_PHONE");
   }
+  const openwaSessionId = env.OPENWA_SESSION_ID?.trim() || "";
+  const openwaSessionName = env.OPENWA_SESSION_NAME?.trim() || "";
+  if (!openwaSessionId && !openwaSessionName) {
+    throw new Error("missing_env:OPENWA_SESSION_ID_OR_OPENWA_SESSION_NAME");
+  }
 
   return {
     cloudCoreBaseUrl: requireEnvFrom(env, "CLOUD_CORE_BASE_URL").replace(/\/+$/, ""),
     openwaBaseUrl: requireEnvFrom(env, "OPENWA_LOCAL_BASE_URL"),
     openwaApiKey: requireEnvFrom(env, "OPENWA_API_KEY"),
-    openwaSessionId: requireEnvFrom(env, "OPENWA_SESSION_ID"),
+    openwaSessionId: openwaSessionId || null,
+    openwaSessionName: openwaSessionName || null,
     workerId: env.OPENWA_WORKER_ID?.trim() || "openwa-local-worker",
     token,
     testPhone: testPhone || null,
+    openwaSendVerifyDelayMs: Math.max(
+      0,
+      Math.min(30_000, Number(env.OPENWA_SEND_VERIFY_DELAY_MS ?? 8_000) || 0),
+    ),
+    openwaRequireDeliveryConfirmation: env.OPENWA_REQUIRE_DELIVERY_CONFIRMATION === "1",
+    openwaUnconfirmedRetryable: env.OPENWA_UNCONFIRMED_RETRYABLE === "1",
+    openwaClaimNotBefore: env.OPENWA_CLAIM_NOT_BEFORE?.trim() || null,
     options,
   };
 }
@@ -229,6 +489,17 @@ async function reportResult(config, body) {
     {
       ...body,
       workerId: config.workerId,
+    },
+  );
+}
+
+async function runLifecycleSweep(config) {
+  return postJson(
+    `${config.cloudCoreBaseUrl}/api/internal/notifications/lifecycle-sweep`,
+    config.token,
+    {
+      limitPerEvent: config.options.limit,
+      dryRun: config.options.dryRun,
     },
   );
 }
@@ -331,6 +602,7 @@ export async function processClaimedJobs(config, jobs, deps = {}) {
           status: "failed",
           retryable: sendResult.retryable,
           error: sendResult.error,
+          providerMessageId: sendResult.providerMessageId,
         },
         "send_failed",
         { id: safeId, triggerType: safeTrigger },
@@ -363,11 +635,19 @@ async function main() {
   const token = await readAutomationToken();
   const config = buildConfig(options, token);
 
+  if (options.lifecycleSweep && !options.testPhoneOnly) {
+    const sweepResult = await runLifecycleSweep(config);
+    console.log(
+      `[openwa-local-worker] lifecycle-sweep inserted=${sweepResult?.inserted ?? 0} dryRun=${options.dryRun}`,
+    );
+  }
+
   const claimPayload = {
     limit: options.limit,
     workerId: config.workerId,
     dryRun: options.dryRun,
     testPhone: options.testPhoneOnly ? config.testPhone : undefined,
+    claimNotBefore: config.openwaClaimNotBefore || undefined,
   };
 
   const claimResult = await postJson(

@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   claimOpenwaNotifications,
   OPENWA_APPROVED_AUTOMATION_EVENT_TYPES,
+  OPENWA_LIFECYCLE_CONFLICT_PAUSED_ERROR,
+  OPENWA_LIFECYCLE_PAUSED_ERROR,
   OPENWA_LOCAL_STALE_SENDING_MS,
   OPENWA_STALE_SENDING_RECOVERY_ERROR,
   reportOpenwaNotification,
@@ -15,6 +17,7 @@ function makeRow(overrides = {}) {
     last_attempt_at: null,
     scheduled_for: null,
     next_attempt_at: null,
+    created_at: "2026-07-02T08:00:00.000Z",
     status: "queued",
     trigger_type: "payment_confirmed",
     channel: "whatsapp",
@@ -122,6 +125,12 @@ describe("claimOpenwaNotifications", () => {
       "waitlist_spot_available",
       "class_cancelled_by_admin",
       "class_time_changed",
+      "registered_no_action",
+      "package_approved_no_booking",
+      "first_lesson_followup",
+      "low_credits",
+      "package_expiring_soon",
+      "no_upcoming_booking_14d",
     ]);
   });
 
@@ -149,6 +158,22 @@ describe("claimOpenwaNotifications", () => {
       invalid: 0,
     });
     expect(operations).toEqual([{ type: "list", limit: 5, testPhone: null }]);
+  });
+
+  test("claim cutoff ignores older rows and claims only future rows", async () => {
+    const now = new Date("2026-07-02T09:00:00.000Z");
+    const claimNotBefore = new Date("2026-07-02T08:30:00.000Z");
+    const { deps, operations } = createClaimDeps([
+      makeRow({ id: "old-row", created_at: "2026-07-02T08:00:00.000Z" }),
+      makeRow({ id: "new-row", created_at: "2026-07-02T08:45:00.000Z" }),
+    ]);
+
+    const result = await claimOpenwaNotifications({ now, limit: 5, claimNotBefore }, deps);
+
+    expect(result.jobs.map((job) => job.id)).toEqual(["new-row"]);
+    expect(operations.filter((entry) => entry.type === "claim")).toEqual([
+      { type: "claim", rowId: "new-row" },
+    ]);
   });
 
   test("recovers stale sending rows instead of handing them to the worker", async () => {
@@ -220,10 +245,45 @@ describe("claimOpenwaNotifications", () => {
       testPhone: "+972-50-123-4567",
     });
   });
+
+  test("pauses lifecycle rows without blocking transactional rows", async () => {
+    const originalPaused = process.env.OPENWA_WORKER_LIFECYCLE_PAUSED;
+    process.env.OPENWA_WORKER_LIFECYCLE_PAUSED = "1";
+    try {
+      const { deps, operations } = createClaimDeps([
+        makeRow({ id: "lifecycle", trigger_type: "registered_no_action" }),
+        makeRow({ id: "booking", trigger_type: "booking_confirmed" }),
+      ]);
+
+      const result = await claimOpenwaNotifications(
+        { now: new Date("2026-07-02T09:00:00.000Z"), limit: 10 },
+        deps,
+      );
+
+      expect(result.jobs.map((job) => job.id)).toEqual(["booking"]);
+      expect(result.claimed).toBe(1);
+      expect(result.invalid).toBe(1);
+      expect(operations).toEqual([
+        { type: "list", limit: 10, testPhone: null },
+        {
+          type: "failed",
+          rowId: "lifecycle",
+          error: OPENWA_LIFECYCLE_PAUSED_ERROR,
+        },
+        { type: "claim", rowId: "booking" },
+      ]);
+    } finally {
+      if (originalPaused == null) {
+        delete process.env.OPENWA_WORKER_LIFECYCLE_PAUSED;
+      } else {
+        process.env.OPENWA_WORKER_LIFECYCLE_PAUSED = originalPaused;
+      }
+    }
+  });
 });
 
 describe("reportOpenwaNotification", () => {
-  test("marks sent rows as sent with the local provider", async () => {
+  test("marks sent rows as sent with the OpenWA provider", async () => {
     const { deps, operations } = createReportDeps({
       id: "job-1",
       attempt_count: 1,
@@ -290,6 +350,40 @@ describe("reportOpenwaNotification", () => {
         rowId: "job-2",
         error: "openwa_network_error",
         nextAttemptAt: retryAt,
+        providerMessageId: null,
+      },
+    ]);
+  });
+
+  test("marks unconfirmed OpenWA deliveries failed while preserving provider message id", async () => {
+    const { deps, operations } = createReportDeps({
+      id: "job-unconfirmed",
+      attempt_count: 1,
+      status: "sending",
+      trigger_type: "booking_confirmed",
+      channel: "whatsapp",
+      provider: "openwa",
+    });
+
+    const result = await reportOpenwaNotification(
+      {
+        jobId: "job-unconfirmed",
+        status: "failed",
+        retryable: false,
+        error: "openwa_delivery_unconfirmed",
+        providerMessageId: "provider-unconfirmed-1",
+        workerId: "ameer-macbook",
+      },
+      deps,
+    );
+
+    expect(result).toEqual({ ok: true, outcome: "failed" });
+    expect(operations).toEqual([
+      {
+        type: "failed",
+        rowId: "job-unconfirmed",
+        error: "openwa_delivery_unconfirmed",
+        providerMessageId: "provider-unconfirmed-1",
       },
     ]);
   });
@@ -326,6 +420,45 @@ describe("reportOpenwaNotification", () => {
         type: "failed",
         rowId: "job-3",
         error: "openwa_temporarily_unavailable",
+        providerMessageId: null,
+      },
+    ]);
+  });
+
+  test("marks lifecycle OpenWA conflicts failed instead of retrying", async () => {
+    const retryAt = new Date("2026-07-02T09:15:00.000Z");
+    const { deps, operations } = createReportDeps(
+      {
+        id: "job-lifecycle",
+        attempt_count: 1,
+        status: "sending",
+        trigger_type: "registered_no_action",
+        channel: "whatsapp",
+        provider: "openwa",
+      },
+      {
+        computeRetryAt: () => retryAt,
+      },
+    );
+
+    const result = await reportOpenwaNotification(
+      {
+        jobId: "job-lifecycle",
+        status: "failed",
+        retryable: true,
+        error: "conflict",
+        workerId: "ameer-macbook",
+        now: new Date("2026-07-02T09:00:00.000Z"),
+      },
+      deps,
+    );
+
+    expect(result).toEqual({ ok: true, outcome: "failed" });
+    expect(operations).toEqual([
+      {
+        type: "failed",
+        rowId: "job-lifecycle",
+        error: OPENWA_LIFECYCLE_CONFLICT_PAUSED_ERROR,
       },
     ]);
   });

@@ -12,6 +12,15 @@ bun run dev
 
 Fill `.env` with the Supabase project URL and publishable key before signing in or calling server functions.
 
+For the public Instagram bio download route, configure the store URLs:
+
+```bash
+APP_STORE_URL="https://apps.apple.com/il/app/cloud-core/id6786035836"
+GOOGLE_PLAY_URL=""
+```
+
+`GOOGLE_PLAY_URL` can stay empty until Android is released; Android visitors will see the branded fallback page.
+
 ## Optional OpenWA
 
 The admin messages composer can send WhatsApp messages automatically through a self-hosted OpenWA instance. Without these variables, the app still falls back to the existing manual `wa.me` flow.
@@ -139,7 +148,7 @@ gcloud run deploy cloud-core-studio \
   --image "$IMAGE" \
   --region "$REGION" \
   --allow-unauthenticated \
-  --set-env-vars SUPABASE_URL="$SUPABASE_URL",SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
+  --set-env-vars SUPABASE_URL="$SUPABASE_URL",SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY",APP_STORE_URL="$APP_STORE_URL",GOOGLE_PLAY_URL="$GOOGLE_PLAY_URL" \
   --set-secrets SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest
 ```
 

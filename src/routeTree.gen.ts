@@ -13,6 +13,8 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as DownloadRouteImport } from './routes/download'
+import { Route as DownalodRouteImport } from './routes/downalod'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -53,6 +55,9 @@ import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminMembersIndexRouteImport } from './routes/_authenticated/admin/members/index'
 import { Route as AuthenticatedAdminClassesIndexRouteImport } from './routes/_authenticated/admin/classes/index'
 import { Route as ApiInternalNotificationsOpenwaRunRouteImport } from './routes/api/internal/notifications/openwa-run'
+import { Route as ApiInternalNotificationsOpenwaReportRouteImport } from './routes/api/internal/notifications/openwa-report'
+import { Route as ApiInternalNotificationsOpenwaClaimRouteImport } from './routes/api/internal/notifications/openwa-claim'
+import { Route as ApiInternalNotificationsLifecycleSweepRouteImport } from './routes/api/internal/notifications/lifecycle-sweep'
 import { Route as AuthenticatedAdminMembersIdRouteImport } from './routes/_authenticated/admin/members/$id'
 import { Route as AuthenticatedAdminClassesNewRouteImport } from './routes/_authenticated/admin/classes/new'
 import { Route as AuthenticatedAdminClassesIdRouteImport } from './routes/_authenticated/admin/classes/$id'
@@ -76,6 +81,16 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownloadRoute = DownloadRouteImport.update({
+  id: '/download',
+  path: '/download',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownalodRoute = DownalodRouteImport.update({
+  id: '/downalod',
+  path: '/downalod',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -301,6 +316,24 @@ const ApiInternalNotificationsOpenwaRunRoute =
     path: '/api/internal/notifications/openwa-run',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalNotificationsOpenwaReportRoute =
+  ApiInternalNotificationsOpenwaReportRouteImport.update({
+    id: '/api/internal/notifications/openwa-report',
+    path: '/api/internal/notifications/openwa-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInternalNotificationsOpenwaClaimRoute =
+  ApiInternalNotificationsOpenwaClaimRouteImport.update({
+    id: '/api/internal/notifications/openwa-claim',
+    path: '/api/internal/notifications/openwa-claim',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInternalNotificationsLifecycleSweepRoute =
+  ApiInternalNotificationsLifecycleSweepRouteImport.update({
+    id: '/api/internal/notifications/lifecycle-sweep',
+    path: '/api/internal/notifications/lifecycle-sweep',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminMembersIdRoute =
   AuthenticatedAdminMembersIdRouteImport.update({
     id: '/members/$id',
@@ -329,6 +362,8 @@ const ApiPublicWebhooksPaymentsProviderRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/downalod': typeof DownalodRoute
+  '/download': typeof DownloadRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/support': typeof SupportRoute
@@ -370,6 +405,9 @@ export interface FileRoutesByFullPath {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
+  '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
+  '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
@@ -378,6 +416,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/downalod': typeof DownalodRoute
+  '/download': typeof DownloadRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/support': typeof SupportRoute
@@ -416,6 +456,9 @@ export interface FileRoutesByTo {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
+  '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
+  '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/admin/classes': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members': typeof AuthenticatedAdminMembersIndexRoute
@@ -426,6 +469,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/downalod': typeof DownalodRoute
+  '/download': typeof DownloadRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/support': typeof SupportRoute
@@ -467,6 +512,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/_authenticated/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/_authenticated/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
+  '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
+  '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/_authenticated/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/_authenticated/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
@@ -477,6 +525,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/downalod'
+    | '/download'
     | '/privacy'
     | '/reset-password'
     | '/support'
@@ -518,6 +568,9 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/notifications/lifecycle-sweep'
+    | '/api/internal/notifications/openwa-claim'
+    | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
     | '/admin/classes/'
     | '/admin/members/'
@@ -526,6 +579,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/downalod'
+    | '/download'
     | '/privacy'
     | '/reset-password'
     | '/support'
@@ -564,6 +619,9 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/notifications/lifecycle-sweep'
+    | '/api/internal/notifications/openwa-claim'
+    | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
     | '/admin/classes'
     | '/admin/members'
@@ -573,6 +631,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/downalod'
+    | '/download'
     | '/privacy'
     | '/reset-password'
     | '/support'
@@ -614,6 +674,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/classes/$id'
     | '/_authenticated/admin/classes/new'
     | '/_authenticated/admin/members/$id'
+    | '/api/internal/notifications/lifecycle-sweep'
+    | '/api/internal/notifications/openwa-claim'
+    | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
     | '/_authenticated/admin/classes/'
     | '/_authenticated/admin/members/'
@@ -624,12 +687,17 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DownalodRoute: typeof DownalodRoute
+  DownloadRoute: typeof DownloadRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
+  ApiInternalNotificationsLifecycleSweepRoute: typeof ApiInternalNotificationsLifecycleSweepRoute
+  ApiInternalNotificationsOpenwaClaimRoute: typeof ApiInternalNotificationsOpenwaClaimRoute
+  ApiInternalNotificationsOpenwaReportRoute: typeof ApiInternalNotificationsOpenwaReportRoute
   ApiInternalNotificationsOpenwaRunRoute: typeof ApiInternalNotificationsOpenwaRunRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
 }
@@ -662,6 +730,20 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/download': {
+      id: '/download'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof DownloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/downalod': {
+      id: '/downalod'
+      path: '/downalod'
+      fullPath: '/downalod'
+      preLoaderRoute: typeof DownalodRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -944,6 +1026,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInternalNotificationsOpenwaRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/notifications/openwa-report': {
+      id: '/api/internal/notifications/openwa-report'
+      path: '/api/internal/notifications/openwa-report'
+      fullPath: '/api/internal/notifications/openwa-report'
+      preLoaderRoute: typeof ApiInternalNotificationsOpenwaReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/notifications/openwa-claim': {
+      id: '/api/internal/notifications/openwa-claim'
+      path: '/api/internal/notifications/openwa-claim'
+      fullPath: '/api/internal/notifications/openwa-claim'
+      preLoaderRoute: typeof ApiInternalNotificationsOpenwaClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/notifications/lifecycle-sweep': {
+      id: '/api/internal/notifications/lifecycle-sweep'
+      path: '/api/internal/notifications/lifecycle-sweep'
+      fullPath: '/api/internal/notifications/lifecycle-sweep'
+      preLoaderRoute: typeof ApiInternalNotificationsLifecycleSweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/members/$id': {
       id: '/_authenticated/admin/members/$id'
       path: '/members/$id'
@@ -1099,12 +1202,20 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DownalodRoute: DownalodRoute,
+  DownloadRoute: DownloadRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
+  ApiInternalNotificationsLifecycleSweepRoute:
+    ApiInternalNotificationsLifecycleSweepRoute,
+  ApiInternalNotificationsOpenwaClaimRoute:
+    ApiInternalNotificationsOpenwaClaimRoute,
+  ApiInternalNotificationsOpenwaReportRoute:
+    ApiInternalNotificationsOpenwaReportRoute,
   ApiInternalNotificationsOpenwaRunRoute:
     ApiInternalNotificationsOpenwaRunRoute,
   ApiPublicWebhooksPaymentsProviderRoute:

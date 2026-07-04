@@ -11,9 +11,10 @@ async function ensureStaff(supabase: any, userId: string, level: "admin" | "staf
   return role;
 }
 
-async function insertNotificationDraftRows(supabase: any, rows: any[]) {
+async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
   if (!rows.length) return;
-  const { error } = await supabase
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin
     .from("notification_logs")
     .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
   if (error) console.error("notification_draft_insert_failed", error.message);
@@ -420,6 +421,12 @@ const draftSchema = z.object({
     "class_reminder_24h",
     "class_reminder_2h",
     "no_show_followup",
+    "registered_no_action",
+    "package_approved_no_booking",
+    "first_lesson_followup",
+    "low_credits",
+    "package_expiring_soon",
+    "no_upcoming_booking_14d",
   ]),
   channels: z.array(z.enum(["whatsapp", "email"])).default(["whatsapp", "email"]),
   audience: z.enum(["member", "admin"]).default("member"),

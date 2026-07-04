@@ -6,6 +6,7 @@ import {
   updateMemberProfile,
   addMemberNote,
   deleteMemberNote,
+  deleteMemberAccount,
 } from "@/lib/members.functions";
 import {
   adjustCredits,
@@ -48,6 +49,7 @@ function Page() {
   const setPwFn = useServerFn(setMemberPassword);
   const addNoteFn = useServerFn(addMemberNote);
   const delNoteFn = useServerFn(deleteMemberNote);
+  const deleteMemberFn = useServerFn(deleteMemberAccount);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-member", id],
@@ -66,6 +68,7 @@ function Page() {
   const [noteBody, setNoteBody] = useState("");
   const [noteImportant, setNoteImportant] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState("");
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: ["admin-member", id] });
@@ -163,10 +166,23 @@ function Page() {
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
+  const deleteMember = useMutation({
+    mutationFn: () => deleteMemberFn({ data: { memberId: id, confirmation: deleteConfirm } }),
+    onSuccess: () => {
+      toast.success("Member deleted");
+      qc.removeQueries({ queryKey: ["admin-member", id] });
+      window.location.href = "/admin/members";
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Delete failed"),
+  });
 
   if (isLoading || !data?.member) return <div className="h-40 editorial-panel animate-pulse" />;
   const m = data.member as any;
   const activePlan = (data.plans ?? []).find((p: any) => p.status === "active");
+  const deleteConfirmationOptions = [m.email, m.name]
+    .filter(Boolean)
+    .map((value: string) => value.trim());
+  const canDelete = deleteConfirmationOptions.includes(deleteConfirm.trim());
 
   return (
     <div className="space-y-6">
@@ -598,6 +614,40 @@ function Page() {
             Set
           </button>
         </div>
+      </section>
+
+      {/* Danger zone */}
+      <section className="editorial-panel border-red-200/80 bg-red-50/40 p-6 space-y-4">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-red-200 bg-white text-red-700">
+            <Trash2 className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="section-title text-red-950">Delete member</h3>
+            <p className="mt-1 text-sm leading-6 text-red-900/75">
+              Permanently removes this member, sign-in account, bookings, payments, packages,
+              credits, notes, and related cleanup records. Use this only for duplicate or test
+              accounts.
+            </p>
+          </div>
+        </div>
+        <Field label={`Type ${m.email || m.name} to confirm`}>
+          <input
+            className="editorial-input border-red-200 bg-white"
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+            placeholder={m.email || m.name}
+          />
+        </Field>
+        <button
+          type="button"
+          onClick={() => deleteMember.mutate()}
+          disabled={deleteMember.isPending || !canDelete}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          {deleteMember.isPending ? "Deleting…" : "Delete member permanently"}
+        </button>
       </section>
 
       {/* Activity */}

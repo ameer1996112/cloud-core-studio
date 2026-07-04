@@ -55,6 +55,37 @@ export const Route = createFileRoute("/_authenticated/admin/messages")({
 
 type Tab = "templates" | "composer" | "logs" | "requests";
 
+type LogStatusSummary = {
+  status?: string | null;
+  error_message?: string | null;
+};
+
+function getLogStatusLabel(log: LogStatusSummary) {
+  if (log.status === "failed" && log.error_message === "openwa_delivery_unconfirmed") {
+    return "Delivery unconfirmed";
+  }
+  return String(log.status ?? "unknown").replaceAll("_", " ");
+}
+
+function getLogStatusClass(log: LogStatusSummary) {
+  if (log.status === "manually_sent" || log.status === "sent") {
+    return "bg-navy text-ivory";
+  }
+  if (log.status === "draft" || log.status === "queued" || log.status === "sending") {
+    return "bg-powder text-navy";
+  }
+  if (log.status === "failed" && log.error_message === "openwa_delivery_unconfirmed") {
+    return "bg-amber-100 text-amber-900";
+  }
+  if (log.status === "failed") {
+    return "bg-destructive/10 text-destructive";
+  }
+  if (log.status === "skipped") {
+    return "bg-sand text-slate";
+  }
+  return "bg-sand text-slate";
+}
+
 const PAGE_COPY: Record<Lang, Record<string, string>> = {
   en: {
     title: "Messages center",
@@ -1786,19 +1817,9 @@ function LogsTab() {
                   </p>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${
-                    l.status === "manually_sent" || l.status === "sent"
-                      ? "bg-navy text-ivory"
-                      : l.status === "draft" || l.status === "queued"
-                        ? "bg-powder text-navy"
-                        : l.status === "failed"
-                          ? "bg-destructive/10 text-destructive"
-                          : l.status === "skipped"
-                            ? "bg-sand text-slate"
-                            : "bg-sand text-slate"
-                  }`}
+                  className={`rounded-full px-2 py-1 text-xs font-medium ${getLogStatusClass(l)}`}
                 >
-                  {l.status}
+                  {getLogStatusLabel(l)}
                 </span>
               </header>
               <div className="mt-2 space-y-1 text-xs text-slate">
@@ -1806,6 +1827,7 @@ function LogsTab() {
                 {l.language ? <p>Language: {l.language}</p> : null}
                 {l.staff_visibility ? <p>Visibility: {l.staff_visibility}</p> : null}
                 {l.idempotency_key ? <p>Idempotency: {l.idempotency_key}</p> : null}
+                {l.provider_message_id ? <p>OpenWA accepted id: {l.provider_message_id}</p> : null}
                 {l.error_message ? <p>Error: {l.error_message}</p> : null}
               </div>
               {l.generated_text && (

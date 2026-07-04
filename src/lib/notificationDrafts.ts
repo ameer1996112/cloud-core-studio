@@ -32,6 +32,7 @@ type DraftStudioSettings = {
 };
 
 type RelatedIds = {
+  memberId?: string | null;
   bookingId?: string | null;
   classId?: string | null;
   memberPlanId?: string | null;
@@ -103,11 +104,6 @@ function toDate(value: Date | string | null | undefined): Date | null {
 export function buildNotificationDraftRows(
   input: NotificationDraftInput,
 ): NotificationLogInsertRow[] {
-  const language = resolveNotificationLanguage({
-    memberPreferredLanguage: input.member.preferred_language,
-    appLanguage: input.appLanguage,
-    studioDefaultLanguage: input.studioSettings?.default_language,
-  });
   const audience = input.audience ?? "member";
   const variables: NotificationVariables = {
     studio_name: input.studioSettings?.studio_name ?? "Cloud & Core",
@@ -118,6 +114,14 @@ export function buildNotificationDraftRows(
   };
 
   return input.channels.map((channel) => {
+    const language =
+      channel === "whatsapp"
+        ? "he"
+        : resolveNotificationLanguage({
+            memberPreferredLanguage: input.member.preferred_language,
+            appLanguage: input.appLanguage,
+            studioDefaultLanguage: input.studioSettings?.default_language,
+          });
     const template = findNotificationTemplate({
       eventKey: input.eventKey,
       channel,
@@ -187,7 +191,7 @@ export function buildNotificationDraftRows(
         eventKey: input.eventKey,
         channel,
         audience,
-        relatedIds: input.relatedIds,
+        relatedIds: { memberId: input.member.id, ...input.relatedIds },
       }),
       staff_visibility: notificationStaffVisibility(input.eventKey, audience),
     };

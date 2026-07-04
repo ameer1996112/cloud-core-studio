@@ -75,7 +75,12 @@ export function isReachableOpenwaBaseUrl(baseUrl: string) {
       return false;
     }
 
-    if (url.hostname === "localhost" || url.hostname === "0.0.0.0" || url.hostname === "[::1]" || url.hostname === "::1") {
+    if (
+      url.hostname === "localhost" ||
+      url.hostname === "0.0.0.0" ||
+      url.hostname === "[::1]" ||
+      url.hostname === "::1"
+    ) {
       return false;
     }
 

@@ -1,11 +1,45 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 import { computeRetrySchedule } from "@/lib/notificationDelivery";
-import { createOpenwaClient, getOpenwaRuntimeConfig } from "@/lib/openwa.server";
 
 type NotificationLogRow = Database["public"]["Tables"]["notification_logs"]["Row"];
 
-type PaymentConfirmedOpenwaRow = Pick<
+export const OPENWA_APPROVED_AUTOMATION_EVENT_TYPES = [
+  "payment_confirmed",
+  "booking_confirmed",
+  "class_reminder_24h",
+  "waitlist_spot_available",
+  "class_cancelled_by_admin",
+  "class_time_changed",
+  "registered_no_action",
+  "package_approved_no_booking",
+  "first_lesson_followup",
+  "low_credits",
+  "package_expiring_soon",
+  "no_upcoming_booking_14d",
+] as const;
+
+export const OPENWA_LIFECYCLE_EVENT_TYPES = [
+  "registered_no_action",
+  "package_approved_no_booking",
+  "first_lesson_followup",
+  "low_credits",
+  "package_expiring_soon",
+  "no_upcoming_booking_14d",
+] as const;
+
+export const OPENWA_LOCAL_STALE_SENDING_MS = 10 * 60_000;
+export const OPENWA_STALE_SENDING_RECOVERY_ERROR = "stale_sending_recovery_manual_review";
+export const OPENWA_LIFECYCLE_PAUSED_ERROR = "openwa_lifecycle_paused";
+export const OPENWA_LIFECYCLE_CONFLICT_PAUSED_ERROR = "openwa_lifecycle_conflict_paused";
+
+const OPENWA_PROVIDER = "openwa";
+const OPENWA_CHANNEL = "whatsapp";
+
+type ApprovedOpenwaEventType = (typeof OPENWA_APPROVED_AUTOMATION_EVENT_TYPES)[number];
+type LifecycleOpenwaEventType = (typeof OPENWA_LIFECYCLE_EVENT_TYPES)[number];
+
+type OpenwaNotificationRow = Pick<
   NotificationLogRow,
   | "id"
   | "attempt_count"
@@ -17,45 +51,121 @@ type PaymentConfirmedOpenwaRow = Pick<
   | "trigger_type"
   | "channel"
   | "provider"
+  | "created_at"
 > & {
   member: { phone: string | null } | null;
 };
 
-type QueueStats = {
-  claimed: number;
-  sent: number;
-  failed: number;
-  skipped: number;
+type OpenwaReportRow = Pick<
+  NotificationLogRow,
+  "id" | "attempt_count" | "status" | "trigger_type" | "channel" | "provider"
+>;
+
+export type OpenwaClaimJob = {
+  id: string;
+  to: string;
+  text: string;
+  attemptCount: number;
+  triggerType: ApprovedOpenwaEventType;
 };
 
-type QueueWorkerDeps = {
-  listRows(input: { now: Date; limit: number }): Promise<PaymentConfirmedOpenwaRow[]>;
+export type OpenwaClaimResult = {
+  jobs: OpenwaClaimJob[];
+  dryRun: boolean;
+  claimed: number;
+  recovered: number;
+  invalid: number;
+};
+
+export type OpenwaReportInput =
+  | {
+      jobId: string;
+      status: "sent";
+      providerMessageId?: string | null;
+      workerId?: string | null;
+      now?: Date;
+    }
+  | {
+      jobId: string;
+      status: "failed";
+      retryable: boolean;
+      error: string;
+      providerMessageId?: string | null;
+      workerId?: string | null;
+      now?: Date;
+    };
+
+export type OpenwaReportResult =
+  | { ok: true; outcome: "sent" | "requeued" | "failed"; nextAttemptAt?: string | null }
+  | { ok: false; reason: "not_found" | "not_sending" };
+
+type OpenwaQueueDeps = {
+  listRows(input: {
+    now: Date;
+    limit: number;
+    testPhone?: string | null;
+    claimNotBefore?: Date | null;
+  }): Promise<OpenwaNotificationRow[]>;
   claimRow(input: {
-    row: PaymentConfirmedOpenwaRow;
+    row: OpenwaNotificationRow;
     now: Date;
   }): Promise<{ id: string; attemptCount: number } | null>;
-  sendText(input: {
-    to: string | null | undefined;
-    text: string;
-  }): Promise<
-    | { ok: true; providerMessageId: string | null }
-    | { ok: false; retryable: boolean; error: string }
-  >;
   markSent(input: { rowId: string; now: Date; providerMessageId: string | null }): Promise<void>;
-  requeue(input: { rowId: string; error: string; nextAttemptAt: Date }): Promise<void>;
-  markFailed(input: { rowId: string; error: string }): Promise<void>;
+  requeue(input: {
+    rowId: string;
+    error: string;
+    nextAttemptAt: Date;
+    providerMessageId?: string | null;
+  }): Promise<void>;
+  markFailed(input: {
+    rowId: string;
+    error: string;
+    providerMessageId?: string | null;
+  }): Promise<void>;
+  getReportRow(input: { rowId: string }): Promise<OpenwaReportRow | null>;
   computeRetryAt(input: { attemptCount: number; failedAt: Date }): Date | null;
 };
 
-export const PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS = 10 * 60_000;
-const STALE_SENDING_RECOVERY_ERROR = "stale_sending_recovery_manual_review";
-const SENT_FINALIZATION_ERROR = "openwa_send_finalize_failed_manual_review";
+function isLifecyclePaused() {
+  return process.env.OPENWA_WORKER_LIFECYCLE_PAUSED === "1";
+}
+
+function normalizeOpenwaTriggerType(
+  value: string | null | undefined,
+): ApprovedOpenwaEventType | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  return (
+    OPENWA_APPROVED_AUTOMATION_EVENT_TYPES.find((eventType) => eventType === normalized) ?? null
+  );
+}
+
+export function isOpenwaLifecycleEventType(
+  value: string | null | undefined,
+): value is LifecycleOpenwaEventType {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return OPENWA_LIFECYCLE_EVENT_TYPES.some((eventType) => eventType === normalized);
+}
+
+function normalizePhoneForComparison(value: string | null | undefined) {
+  if (!value) return "";
+  return value.replace(/[^\d+]/g, "");
+}
 
 function isDueAt(value: string | null, now: Date) {
   if (!value) return true;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return false;
   return parsed.getTime() <= now.getTime();
+}
+
+function isAtOrAfter(value: string | null, cutoff: Date | null | undefined) {
+  if (!cutoff) return true;
+  if (!value) return false;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed.getTime() >= cutoff.getTime();
 }
 
 function isStaleSendingAt(value: string | null, staleBefore: Date) {
@@ -65,13 +175,13 @@ function isStaleSendingAt(value: string | null, staleBefore: Date) {
   return parsed.getTime() <= staleBefore.getTime();
 }
 
-function isQueuedRowEligible(row: PaymentConfirmedOpenwaRow, now: Date) {
+function isQueuedRowEligible(row: OpenwaNotificationRow, now: Date) {
   return (
     row.status === "queued" && isDueAt(row.scheduled_for, now) && isDueAt(row.next_attempt_at, now)
   );
 }
 
-function isStaleSendingRowEligible(row: PaymentConfirmedOpenwaRow, now: Date, staleBefore: Date) {
+function isStaleSendingRowEligible(row: OpenwaNotificationRow, now: Date, staleBefore: Date) {
   return (
     row.status === "sending" &&
     isDueAt(row.scheduled_for, now) &&
@@ -79,25 +189,25 @@ function isStaleSendingRowEligible(row: PaymentConfirmedOpenwaRow, now: Date, st
   );
 }
 
-function isEligibleRow(row: PaymentConfirmedOpenwaRow, now: Date) {
-  const staleBefore = new Date(now.getTime() - PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS);
+function isEligibleRow(row: OpenwaNotificationRow, now: Date) {
+  const staleBefore = new Date(now.getTime() - OPENWA_LOCAL_STALE_SENDING_MS);
 
   return (
-    row.provider === "openwa" &&
-    row.channel === "whatsapp" &&
-    row.trigger_type === "payment_confirmed" &&
+    row.provider === OPENWA_PROVIDER &&
+    row.channel === OPENWA_CHANNEL &&
+    normalizeOpenwaTriggerType(row.trigger_type) != null &&
     (isQueuedRowEligible(row, now) || isStaleSendingRowEligible(row, now, staleBefore))
   );
 }
 
-function normalizeLimit(limit: number | undefined) {
-  if (limit == null) return 25;
-  return Math.max(1, Math.trunc(limit));
+function isStaleSendingRow(row: OpenwaNotificationRow, now: Date) {
+  const staleBefore = new Date(now.getTime() - OPENWA_LOCAL_STALE_SENDING_MS);
+  return isStaleSendingRowEligible(row, now, staleBefore);
 }
 
-function isStaleSendingRow(row: PaymentConfirmedOpenwaRow, now: Date) {
-  const staleBefore = new Date(now.getTime() - PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS);
-  return isStaleSendingRowEligible(row, now, staleBefore);
+export function normalizeOpenwaClaimLimit(limit: number | undefined) {
+  if (limit == null) return 5;
+  return Math.max(1, Math.min(10, Math.trunc(limit)));
 }
 
 function buildClaimableRowFilter(input: { nowIso: string; staleBeforeIso: string }) {
@@ -109,51 +219,49 @@ function buildClaimableRowFilter(input: { nowIso: string; staleBeforeIso: string
   ].join(",");
 }
 
-function toUnexpectedWorkerError(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return `unexpected_worker_error:${error.message}`;
-  }
-
-  return "unexpected_worker_error";
-}
-
-function buildQueueWorkerDeps(): QueueWorkerDeps {
-  const config = getOpenwaRuntimeConfig();
-  const openwa = createOpenwaClient(config);
-
+function buildQueueDeps(): OpenwaQueueDeps {
   return {
-    async listRows({ now, limit }) {
+    async listRows({ now, limit, testPhone, claimNotBefore }) {
       const nowIso = now.toISOString();
-      const staleBeforeIso = new Date(
-        now.getTime() - PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS,
-      ).toISOString();
+      const staleBeforeIso = new Date(now.getTime() - OPENWA_LOCAL_STALE_SENDING_MS).toISOString();
       const candidateLimit = Math.max(limit * 5, limit, 50);
 
       let query = supabaseAdmin
         .from("notification_logs")
         .select(
-          "id,attempt_count,generated_text,last_attempt_at,scheduled_for,next_attempt_at,status,trigger_type,channel,provider,member:members(phone)",
+          "id,attempt_count,generated_text,last_attempt_at,scheduled_for,next_attempt_at,status,trigger_type,channel,provider,created_at,member:members(phone)",
         )
-        .eq("provider", "openwa")
-        .eq("channel", "whatsapp")
-        .eq("trigger_type", "payment_confirmed")
+        .eq("provider", OPENWA_PROVIDER)
+        .eq("channel", OPENWA_CHANNEL)
+        .in("trigger_type", [...OPENWA_APPROVED_AUTOMATION_EVENT_TYPES])
         .order("created_at", { ascending: true })
         .limit(candidateLimit);
+
+      if (claimNotBefore) {
+        query = query.gte("created_at", claimNotBefore.toISOString());
+      }
 
       query = query.or(buildClaimableRowFilter({ nowIso, staleBeforeIso }));
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const rows = (data ?? []) as PaymentConfirmedOpenwaRow[];
-      return rows.filter((row) => isEligibleRow(row, now)).slice(0, limit);
+      const rows = (data ?? []) as OpenwaNotificationRow[];
+      const normalizedTestPhone = normalizePhoneForComparison(testPhone);
+
+      return rows
+        .filter((row) => isEligibleRow(row, now))
+        .filter((row) => isAtOrAfter(row.created_at, claimNotBefore))
+        .filter((row) => {
+          if (!normalizedTestPhone) return true;
+          return normalizePhoneForComparison(row.member?.phone) === normalizedTestPhone;
+        })
+        .slice(0, limit);
     },
 
     async claimRow({ row, now }) {
       const nowIso = now.toISOString();
-      const staleBeforeIso = new Date(
-        now.getTime() - PAYMENT_CONFIRMED_OPENWA_STALE_SENDING_MS,
-      ).toISOString();
+      const staleBeforeIso = new Date(now.getTime() - OPENWA_LOCAL_STALE_SENDING_MS).toISOString();
 
       let query = supabaseAdmin
         .from("notification_logs")
@@ -165,23 +273,17 @@ function buildQueueWorkerDeps(): QueueWorkerDeps {
           error_message: null,
         })
         .eq("id", row.id)
-        .eq("provider", "openwa")
-        .eq("channel", "whatsapp")
-        .eq("trigger_type", "payment_confirmed");
+        .eq("provider", OPENWA_PROVIDER)
+        .eq("channel", OPENWA_CHANNEL)
+        .in("trigger_type", [...OPENWA_APPROVED_AUTOMATION_EVENT_TYPES]);
 
-      // Re-check due-ness in the same UPDATE so rows postponed after list-time
-      // cannot be claimed and sent early, and stale `sending` rows can recover.
       query = query.or(buildClaimableRowFilter({ nowIso, staleBeforeIso }));
 
       const { data, error } = await query.select("id,attempt_count").maybeSingle();
-
       if (error) throw error;
       if (!data) return null;
-      return { id: data.id, attemptCount: data.attempt_count };
-    },
 
-    async sendText({ to, text }) {
-      return openwa.sendText({ to, text });
+      return { id: data.id, attemptCount: data.attempt_count };
     },
 
     async markSent({ rowId, now, providerMessageId }) {
@@ -189,43 +291,63 @@ function buildQueueWorkerDeps(): QueueWorkerDeps {
         .from("notification_logs")
         .update({
           status: "sent",
+          provider: OPENWA_PROVIDER,
           sent_at: now.toISOString(),
           provider_message_id: providerMessageId,
           error_message: null,
           next_attempt_at: null,
         })
-        .eq("id", rowId);
+        .eq("id", rowId)
+        .eq("status", "sending");
 
       if (error) throw error;
     },
 
-    async requeue({ rowId, error, nextAttemptAt }) {
+    async requeue({ rowId, error, nextAttemptAt, providerMessageId }) {
       const { error: updateError } = await supabaseAdmin
         .from("notification_logs")
         .update({
           status: "queued",
+          provider: OPENWA_PROVIDER,
           error_message: error,
           next_attempt_at: nextAttemptAt.toISOString(),
-          provider_message_id: null,
+          provider_message_id: providerMessageId ?? null,
           sent_at: null,
         })
-        .eq("id", rowId);
+        .eq("id", rowId)
+        .eq("status", "sending");
 
       if (updateError) throw updateError;
     },
 
-    async markFailed({ rowId, error }) {
+    async markFailed({ rowId, error, providerMessageId }) {
       const { error: updateError } = await supabaseAdmin
         .from("notification_logs")
         .update({
           status: "failed",
+          provider: OPENWA_PROVIDER,
           error_message: error,
           next_attempt_at: null,
-          provider_message_id: null,
+          provider_message_id: providerMessageId ?? null,
+          sent_at: null,
         })
-        .eq("id", rowId);
+        .eq("id", rowId)
+        .eq("status", "sending");
 
       if (updateError) throw updateError;
+    },
+
+    async getReportRow({ rowId }) {
+      const { data, error } = await supabaseAdmin
+        .from("notification_logs")
+        .select("id,attempt_count,status,trigger_type,channel,provider")
+        .eq("id", rowId)
+        .eq("channel", OPENWA_CHANNEL)
+        .in("trigger_type", [...OPENWA_APPROVED_AUTOMATION_EVENT_TYPES])
+        .maybeSingle();
+
+      if (error) throw error;
+      return (data as OpenwaReportRow | null) ?? null;
     },
 
     computeRetryAt({ attemptCount, failedAt }) {
@@ -234,118 +356,148 @@ function buildQueueWorkerDeps(): QueueWorkerDeps {
   };
 }
 
-export async function runPaymentConfirmedOpenwaPass(
-  input: { now?: Date; limit?: number } = {},
-  deps: QueueWorkerDeps = buildQueueWorkerDeps(),
-): Promise<QueueStats> {
-  const now = input.now ?? new Date();
-  const limit = normalizeLimit(input.limit);
-  const stats: QueueStats = { claimed: 0, sent: 0, failed: 0, skipped: 0 };
+function toClaimJob(row: OpenwaNotificationRow, attemptCount: number): OpenwaClaimJob | null {
+  const triggerType = normalizeOpenwaTriggerType(row.trigger_type);
+  const text = row.generated_text?.trim() ?? "";
+  const to = row.member?.phone?.trim() ?? "";
 
-  const rows = await deps.listRows({ now, limit });
+  if (!triggerType || !text || !to) return null;
+
+  return {
+    id: row.id,
+    to,
+    text,
+    attemptCount,
+    triggerType,
+  };
+}
+
+export async function claimOpenwaNotifications(
+  input: {
+    now?: Date;
+    limit?: number;
+    dryRun?: boolean;
+    workerId?: string | null;
+    testPhone?: string | null;
+    claimNotBefore?: Date | null;
+  } = {},
+  deps: OpenwaQueueDeps = buildQueueDeps(),
+): Promise<OpenwaClaimResult> {
+  const now = input.now ?? new Date();
+  const limit = normalizeOpenwaClaimLimit(input.limit);
+  const dryRun = input.dryRun === true;
+  const rows = await deps.listRows({
+    now,
+    limit,
+    testPhone: input.testPhone ?? null,
+    claimNotBefore: input.claimNotBefore ?? null,
+  });
+
+  const result: OpenwaClaimResult = {
+    jobs: [],
+    dryRun,
+    claimed: 0,
+    recovered: 0,
+    invalid: 0,
+  };
 
   for (const row of rows) {
     if (!isEligibleRow(row, now)) continue;
+    if (!isAtOrAfter(row.created_at, input.claimNotBefore)) continue;
+
+    if (isLifecyclePaused() && isOpenwaLifecycleEventType(row.trigger_type)) {
+      if (!dryRun && !isStaleSendingRow(row, now)) {
+        await deps.markFailed({ rowId: row.id, error: OPENWA_LIFECYCLE_PAUSED_ERROR });
+        result.invalid += 1;
+      }
+      continue;
+    }
+
+    if (dryRun) {
+      const job = toClaimJob(row, row.attempt_count + 1);
+      if (job) {
+        result.jobs.push(job);
+      } else if (!isStaleSendingRow(row, now)) {
+        result.invalid += 1;
+      }
+      continue;
+    }
 
     const claim = await deps.claimRow({ row, now });
     if (!claim) continue;
 
-    stats.claimed += 1;
+    result.claimed += 1;
 
     if (isStaleSendingRow(row, now)) {
-      await deps.markFailed({ rowId: row.id, error: STALE_SENDING_RECOVERY_ERROR });
-      stats.failed += 1;
+      await deps.markFailed({ rowId: row.id, error: OPENWA_STALE_SENDING_RECOVERY_ERROR });
+      result.recovered += 1;
       continue;
     }
 
-    let providerSendCommitted = false;
-
-    try {
-      const text = row.generated_text?.trim() ?? "";
-      const phone = row.member?.phone ?? null;
-
-      if (!text) {
-        await deps.markFailed({ rowId: row.id, error: "missing_generated_text" });
-        stats.failed += 1;
-        continue;
-      }
-
-      if (!phone) {
-        await deps.markFailed({ rowId: row.id, error: "missing_whatsapp_phone" });
-        stats.failed += 1;
-        continue;
-      }
-
-      const result = await deps.sendText({ to: phone, text });
-
-      if (result.ok) {
-        providerSendCommitted = true;
-        await deps.markSent({
-          rowId: row.id,
-          now,
-          providerMessageId: result.providerMessageId,
-        });
-        stats.sent += 1;
-        continue;
-      }
-
-      if (result.retryable) {
-        const retryAt = deps.computeRetryAt({
-          attemptCount: claim.attemptCount,
-          failedAt: now,
-        });
-
-        if (retryAt) {
-          await deps.requeue({
-            rowId: row.id,
-            error: result.error,
-            nextAttemptAt: retryAt,
-          });
-          stats.skipped += 1;
-          continue;
-        }
-      }
-
-      await deps.markFailed({ rowId: row.id, error: result.error });
-      stats.failed += 1;
-    } catch (error) {
-      const retryAt = deps.computeRetryAt({
-        attemptCount: claim.attemptCount,
-        failedAt: now,
-      });
-      const unexpectedWorkerError = toUnexpectedWorkerError(error);
-      let terminalError = unexpectedWorkerError;
-
-      if (providerSendCommitted) {
-        await deps.markFailed({
-          rowId: row.id,
-          error: `${SENT_FINALIZATION_ERROR}:${unexpectedWorkerError}`,
-        });
-        stats.failed += 1;
-        continue;
-      }
-
-      if (retryAt) {
-        try {
-          await deps.requeue({
-            rowId: row.id,
-            error: unexpectedWorkerError,
-            nextAttemptAt: retryAt,
-          });
-          stats.skipped += 1;
-          continue;
-        } catch (requeueError) {
-          terminalError = toUnexpectedWorkerError(requeueError);
-        }
-      }
-
-      await deps.markFailed({
-        rowId: row.id,
-        error: retryAt == null ? unexpectedWorkerError : terminalError,
-      });
-      stats.failed += 1;
+    const job = toClaimJob(row, claim.attemptCount);
+    if (job) {
+      result.jobs.push(job);
+      continue;
     }
+
+    const error = row.generated_text?.trim() ? "missing_whatsapp_phone" : "missing_generated_text";
+    await deps.markFailed({ rowId: row.id, error });
+    result.invalid += 1;
   }
 
-  return stats;
+  return result;
+}
+
+export async function reportOpenwaNotification(
+  input: OpenwaReportInput,
+  deps: OpenwaQueueDeps = buildQueueDeps(),
+): Promise<OpenwaReportResult> {
+  const row = await deps.getReportRow({ rowId: input.jobId });
+  if (!row) return { ok: false, reason: "not_found" };
+  if (row.status !== "sending") return { ok: false, reason: "not_sending" };
+
+  const now = input.now ?? new Date();
+
+  if (input.status === "sent") {
+    await deps.markSent({
+      rowId: row.id,
+      now,
+      providerMessageId: input.providerMessageId?.trim() || null,
+    });
+    return { ok: true, outcome: "sent" };
+  }
+
+  const retryAt = input.retryable
+    ? deps.computeRetryAt({
+        attemptCount: row.attempt_count,
+        failedAt: now,
+      })
+    : null;
+
+  if (
+    input.status === "failed" &&
+    input.retryable &&
+    input.error === "conflict" &&
+    isOpenwaLifecycleEventType(row.trigger_type)
+  ) {
+    await deps.markFailed({ rowId: row.id, error: OPENWA_LIFECYCLE_CONFLICT_PAUSED_ERROR });
+    return { ok: true, outcome: "failed" };
+  }
+
+  if (retryAt) {
+    await deps.requeue({
+      rowId: row.id,
+      error: input.error,
+      nextAttemptAt: retryAt,
+      providerMessageId: input.providerMessageId?.trim() || null,
+    });
+    return { ok: true, outcome: "requeued", nextAttemptAt: retryAt.toISOString() };
+  }
+
+  await deps.markFailed({
+    rowId: row.id,
+    error: input.error,
+    providerMessageId: input.providerMessageId?.trim() || null,
+  });
+  return { ok: true, outcome: "failed" };
 }

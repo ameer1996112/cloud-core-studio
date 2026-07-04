@@ -1,135 +1,22 @@
 {
-  "apiVersion": "serving.knative.dev/v1",
-  "kind": "Service",
-  "metadata": {
-    "annotations": {
-      "run.googleapis.com/build-enable-automatic-updates": "false",
-      "run.googleapis.com/build-id": "f367d603-3913-44ba-8555-fbf3bae5a84e",
-      "run.googleapis.com/build-image-uri": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-run-source-deploy/cloud-core-studio",
-      "run.googleapis.com/build-name": "projects/190584124070/locations/me-west1/builds/f367d603-3913-44ba-8555-fbf3bae5a84e",
-      "run.googleapis.com/build-source-location": "gs://run-sources-cloudandcorestudio-me-west1/services/cloud-core-studio/1782713554.881748-63b8a9a948f3416d958aea47bf07be7c.zip#1782713556695313",
-      "run.googleapis.com/client-name": "gcloud",
-      "run.googleapis.com/client-version": "574.0.0",
-      "run.googleapis.com/ingress": "all",
-      "run.googleapis.com/ingress-status": "all",
-      "run.googleapis.com/maxScale": "3",
-      "run.googleapis.com/operation-id": "7ca497ca-6949-4db2-8dbe-a36f73426412",
-      "run.googleapis.com/urls": "[\"https://cloud-core-studio-190584124070.me-west1.run.app\",\"https://cloud-core-studio-6uthbm2yyq-zf.a.run.app\"]",
-      "serving.knative.dev/creator": "cloudandcorestudio@gmail.com",
-      "serving.knative.dev/lastModifier": "cloudandcorestudio@gmail.com"
-    },
-    "creationTimestamp": "2026-06-23T20:43:21.790820Z",
-    "generation": 184,
-    "labels": {
-      "cloud.googleapis.com/location": "me-west1",
-      "run.googleapis.com/satisfiesPzs": "true"
-    },
-    "name": "cloud-core-studio",
-    "namespace": "190584124070",
-    "resourceVersion": "AAZVehWX4hI",
-    "selfLink": "/apis/serving.knative.dev/v1/namespaces/190584124070/services/cloud-core-studio",
-    "uid": "16e2a8b6-9e31-44f4-bd3a-9951a2a0dac6"
-  },
   "spec": {
     "template": {
-      "metadata": {
-        "annotations": {
-          "autoscaling.knative.dev/maxScale": "3",
-          "run.googleapis.com/client-name": "gcloud",
-          "run.googleapis.com/client-version": "574.0.0",
-          "run.googleapis.com/startup-cpu-boost": "true"
-        },
-        "labels": {
-          "client.knative.dev/nonce": "tywttlwmxt",
-          "run.googleapis.com/startupProbeType": "Default"
-        }
-      },
       "spec": {
-        "containerConcurrency": 80,
         "containers": [
           {
-            "env": [
-              {
-                "name": "SUPABASE_URL",
-                "value": "https://banjmspemvzrqckajvwo.supabase.co"
-              },
-              {
-                "name": "SUPABASE_PUBLISHABLE_KEY",
-                "value": "sb_publishable_teQmj60vBGsYCVxVWFHlVg_i4zawbJJ"
-              },
-              {
-                "name": "SUPABASE_SERVICE_ROLE_KEY",
-                "valueFrom": {
-                  "secretKeyRef": {
-                    "key": "latest",
-                    "name": "SUPABASE_SERVICE_ROLE_KEY"
-                  }
-                }
-              }
-            ],
-            "image": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260630151446",
-            "ports": [
-              {
-                "containerPort": 8080,
-                "name": "http1"
-              }
-            ],
-            "resources": {
-              "limits": {
-                "cpu": "1",
-                "memory": "512Mi"
-              }
-            },
-            "startupProbe": {
-              "failureThreshold": 1,
-              "periodSeconds": 240,
-              "tcpSocket": {
-                "port": 8080
-              },
-              "timeoutSeconds": 240
-            }
+            "image": "me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260704175331"
           }
-        ],
-        "serviceAccountName": "cloud-core-runner@cloudandcorestudio.iam.gserviceaccount.com",
-        "timeoutSeconds": 300
+        ]
       }
-    },
-    "traffic": [
-      {
-        "latestRevision": true,
-        "percent": 100
-      }
-    ]
+    }
   },
   "status": {
-    "address": {
-      "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app"
-    },
-    "conditions": [
-      {
-        "lastTransitionTime": "2026-06-30T15:18:16.910354Z",
-        "status": "True",
-        "type": "Ready"
-      },
-      {
-        "lastTransitionTime": "2026-06-30T15:18:12.136525Z",
-        "status": "True",
-        "type": "ConfigurationsReady"
-      },
-      {
-        "lastTransitionTime": "2026-06-30T15:18:16.879781Z",
-        "status": "True",
-        "type": "RoutesReady"
-      }
-    ],
-    "latestCreatedRevisionName": "cloud-core-studio-00172-zks",
-    "latestReadyRevisionName": "cloud-core-studio-00172-zks",
-    "observedGeneration": 184,
+    "latestReadyRevisionName": "cloud-core-studio-00225-tlr",
     "traffic": [
       {
         "latestRevision": true,
         "percent": 100,
-        "revisionName": "cloud-core-studio-00172-zks"
+        "revisionName": "cloud-core-studio-00225-tlr"
       }
     ],
     "url": "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app"
