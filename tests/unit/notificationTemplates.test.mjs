@@ -59,7 +59,7 @@ const rendered = renderNotificationCopy(template, {
   studio_name: "Cloud & Core",
 });
 
-assert.ok(rendered.body.includes("ההזמנה שלך אושרה"));
+assert.ok(rendered.body.includes("איזה כיף שהמקום שלך נשמר"));
 assert.ok(rendered.body.includes("Core Flow"));
 assert.equal(rendered.subject, null);
 
@@ -71,6 +71,9 @@ const premiumHebrewVariables = {
   instructor_name: "Maya",
   studio_name: "Cloud & Core",
   package_name: "מינוי חודשי",
+  credits_remaining: 2,
+  expires_on: "20/07/2026",
+  receipt_number: "R-1001",
 };
 
 const adminPackageTemplate = findNotificationTemplate({
@@ -114,6 +117,26 @@ assert.equal(
   "booking:book-1:booking_confirmed:whatsapp",
 );
 
+assert.equal(
+  buildNotificationIdempotencyKey({
+    eventKey: "registered_no_action",
+    channel: "whatsapp",
+    audience: "member",
+    relatedIds: { memberId: "member-1" },
+  }),
+  "member:member-1:registered_no_action:whatsapp",
+);
+
+assert.equal(
+  buildNotificationIdempotencyKey({
+    eventKey: "package_expiring_soon",
+    channel: "whatsapp",
+    audience: "member",
+    relatedIds: { memberPlanId: "member-plan-1" },
+  }),
+  "member_plan:member-plan-1:package_expiring_soon:whatsapp",
+);
+
 const premiumBookingTemplate = findNotificationTemplate({
   eventKey: "booking_confirmed",
   channel: "whatsapp",
@@ -123,7 +146,7 @@ const premiumBookingTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(premiumBookingTemplate, premiumHebrewVariables).body,
-  "🕊️ ההזמנה שלך אושרה\nCore Flow · 29/06/2026 · 18:00\nעם Maya\nנשמח לראות אותך ב-Cloud & Core",
+  "נועה, איזה כיף שהמקום שלך נשמר 🤍\n\nCore Flow\n29/06/2026 · 18:00\nעם Maya\n\nמחכה לראות אותך בסטודיו\nירין",
 );
 
 const premiumPaymentTemplate = findNotificationTemplate({
@@ -135,7 +158,7 @@ const premiumPaymentTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(premiumPaymentTemplate, premiumHebrewVariables).body,
-  "✨ התשלום שלך אושר\nעבור מינוי חודשי\nנשמח להמשיך לארח אותך ב-Cloud & Core",
+  "נועה, התשלום אושר והחבילה שלך פעילה ✨\n\nמינוי חודשי\n\nתוכלי לבחור שיעור ולהמשיך בקצב שמתאים לך.\nירין",
 );
 
 const premiumReminderTemplate = findNotificationTemplate({
@@ -147,7 +170,7 @@ const premiumReminderTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(premiumReminderTemplate, premiumHebrewVariables).body,
-  "⏰ תזכורת עדינה לקראת השיעור שלך\nCore Flow · 29/06/2026 · 18:00\nעם Maya\nנשמח לראות אותך ב-Cloud & Core",
+  "נועה, תזכורת קטנה למחר 🤍\n\nCore Flow\n29/06/2026 · 18:00\nעם Maya\n\nמחכה לראות אותך בסטודיו\nירין",
 );
 
 const premiumWaitlistTemplate = findNotificationTemplate({
@@ -159,7 +182,7 @@ const premiumWaitlistTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(premiumWaitlistTemplate, premiumHebrewVariables).body,
-  "🤍 התפנה מקום עבורך\nCore Flow · 29/06/2026 · 18:00\nאם זה מתאים לך, אפשר להשלים את ההזמנה עכשיו",
+  "נועה, התפנה לך מקום 🤍\n\nCore Flow\n29/06/2026 · 18:00\n\nאם זה מתאים לך, אפשר להשלים את ההזמנה עכשיו.\nירין",
 );
 
 const premiumCancelledTemplate = findNotificationTemplate({
@@ -171,7 +194,7 @@ const premiumCancelledTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(premiumCancelledTemplate, premiumHebrewVariables).body,
-  "עדכון לגבי השיעור שלך\nCore Flow בתאריך 29/06/2026 בשעה 18:00 לא יתקיים\nנעדכן אותך בכל אפשרות חלופית רלוונטית",
+  "נועה, עדכון מהסטודיו\n\nCore Flow\n29/06/2026 · 18:00\n\nהשיעור לא יתקיים הפעם.\nאם תרצי, אעזור לך למצוא שיעור חלופי.\nירין",
 );
 
 const premiumTimeChangedTemplate = findNotificationTemplate({
@@ -183,7 +206,7 @@ const premiumTimeChangedTemplate = findNotificationTemplate({
 
 assert.equal(
   renderNotificationCopy(premiumTimeChangedTemplate, premiumHebrewVariables).body,
-  "השעה של השיעור שלך עודכנה\nCore Flow · 29/06/2026 · 18:00\nנשמח לראות אותך ב-Cloud & Core",
+  "נועה, עדכון קטן לשעת השיעור\n\nCore Flow\n29/06/2026 · 18:00\n\nאם השעה החדשה לא מסתדרת לך, כתבי לי.\nירין",
 );
 
 const englishEmailTemplate = findNotificationTemplate({
@@ -196,6 +219,162 @@ const englishEmailTemplate = findNotificationTemplate({
 assert.equal(
   renderNotificationCopy(englishEmailTemplate, premiumHebrewVariables).body,
   "Hi נועה, your spot is saved for Core Flow on 29/06/2026 at 18:00. See you at Cloud & Core.",
+);
+
+const registeredNoActionTemplate = findNotificationTemplate({
+  eventKey: "registered_no_action",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(registeredNoActionTemplate, premiumHebrewVariables).body,
+  "נועה, ברוכה הבאה ל-Cloud & Core 🤍\n\nראיתי שפתחת חשבון ועדיין לא בחרת שיעור.\nאם תרצי, אעזור לך למצוא התחלה שמתאימה לקצב שלך.\n\nירין",
+);
+
+const firstLessonFollowupTemplate = findNotificationTemplate({
+  eventKey: "first_lesson_followup",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(firstLessonFollowupTemplate, premiumHebrewVariables).body,
+  "נועה, שמחתי לראות אותך היום בסטודיו 🤍\n\nמקווה שהשיעור הרגיש נעים וטוב בגוף.\nכשתרצי להמשיך, אעזור לך לבחור את השיעור הבא.\n\nירין",
+);
+
+const packageApprovedNoBookingTemplate = findNotificationTemplate({
+  eventKey: "package_approved_no_booking",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(packageApprovedNoBookingTemplate, premiumHebrewVariables).body,
+  "נועה, החבילה שלך כבר מחכה לך ✨\n\nמינוי חודשי\n\nנשאר רק לבחור שיעור ראשון. אם תרצי עזרה להתחיל, אני כאן.\nירין",
+);
+
+const lowCreditsTemplate = findNotificationTemplate({
+  eventKey: "low_credits",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(lowCreditsTemplate, premiumHebrewVariables).body,
+  "נועה, נשארו לך 2 כניסות בחבילה\n\nאם תרצי לשמור על רצף, אפשר לבחור את החבילה הבאה בזמן שנוח לך.\nאני כאן אם תרצי עזרה.\nירין",
+);
+
+const packageExpiringTemplate = findNotificationTemplate({
+  eventKey: "package_expiring_soon",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(packageExpiringTemplate, premiumHebrewVariables).body,
+  "נועה, החבילה שלך מסתיימת בקרוב\n\nמינוי חודשי\nבתוקף עד 20/07/2026\n\nאם תרצי להמשיך ברצף, אני כאן לעזור.\nירין",
+);
+
+const noUpcomingBookingTemplate = findNotificationTemplate({
+  eventKey: "no_upcoming_booking_14d",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(noUpcomingBookingTemplate, premiumHebrewVariables).body,
+  "נועה, התגעגענו אלייך בסטודיו 🤍\n\nאם מתאים לך לחזור השבוע, אעזור לך למצוא שיעור שמתאים לקצב שלך.\nירין",
+);
+
+const waitlistJoinedTemplate = findNotificationTemplate({
+  eventKey: "waitlist_joined",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(waitlistJoinedTemplate, premiumHebrewVariables).body,
+  "נועה, נכנסת לרשימת ההמתנה\n\nCore Flow\n\nאם יתפנה מקום, אעדכן אותך.",
+);
+
+const reminder2hTemplate = findNotificationTemplate({
+  eventKey: "class_reminder_2h",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(reminder2hTemplate, premiumHebrewVariables).body,
+  "נועה, תזכורת קטנה להיום\n\nCore Flow מתחיל ב-18:00.\nנתראה ממש בקרוב.\nירין",
+);
+
+const noShowTemplate = findNotificationTemplate({
+  eventKey: "no_show_followup",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(noShowTemplate, premiumHebrewVariables).body,
+  "נועה, התגעגענו אלייך בשיעור 🤍\n\nCore Flow\n\nמקווה שהכול בסדר. כשתרצי לחזור, אני כאן לעזור לבחור שיעור מתאים.\nירין",
+);
+
+const bookingCancelledByMemberTemplate = findNotificationTemplate({
+  eventKey: "booking_cancelled_by_member",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(bookingCancelledByMemberTemplate, premiumHebrewVariables).body,
+  "נועה, הביטול נקלט\n\nCore Flow\n\nאם מגיע לך זיכוי, הוא עודכן בחשבון שלך.\nירין",
+);
+
+const bookingCancelledTemplate = findNotificationTemplate({
+  eventKey: "booking_cancelled",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(bookingCancelledTemplate, premiumHebrewVariables).body,
+  "נועה, ההזמנה בוטלה\n\nCore Flow\n\nאם תרצי לבחור שיעור אחר, אני כאן.",
+);
+
+const receiptIssuedTemplate = findNotificationTemplate({
+  eventKey: "receipt_issued",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(receiptIssuedTemplate, premiumHebrewVariables).body,
+  "נועה, הקבלה הונפקה\n\nR-1001\nאפשר לצפות בה באזור האישי.",
+);
+
+const paymentRequestReceivedTemplate = findNotificationTemplate({
+  eventKey: "payment_request_received",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(paymentRequestReceivedTemplate, premiumHebrewVariables).body,
+  "נועה, ראיתי את בקשת התשלום שלך\n\nמינוי חודשי\nאאשר אותה בהקדם ואעדכן אותך כשהחבילה תהיה פעילה.\nירין",
 );
 
 console.log("notification template helpers OK");
