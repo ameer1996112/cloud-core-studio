@@ -41,7 +41,9 @@ const paymentInput = z.object({
   member_id: z.string().uuid(),
   amount: z.number().positive(),
   method: z.enum(["cash", "bit", "card", "transfer", "stripe", "other"]),
-  status: z.enum(["pending", "paid", "failed", "refunded", "partially_refunded"]).optional(),
+  status: z
+    .enum(["pending", "paid", "failed", "refunded", "partially_refunded", "cancelled"])
+    .optional(),
   plan_id: z.string().uuid().nullable().optional(),
   member_plan_id: z.string().uuid().nullable().optional(),
   reference: z.string().nullable().optional(),
@@ -95,6 +97,46 @@ export const refundPayment = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw error;
     return { ok: true, status, refunded: total };
+  });
+
+export const cancelPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    const { data: payment, error: paymentError } = await context.supabase
+      .from("payments")
+      .select("id,status,confirmed_at")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (paymentError) throw paymentError;
+    if (!payment) throw new Error("payment_not_found");
+    if (payment.confirmed_at || payment.status === "paid") throw new Error("payment_already_paid");
+    if (["refunded", "partially_refunded", "cancelled"].includes(payment.status)) {
+      return { ok: true, status: payment.status };
+    }
+
+    const { error } = await context.supabase
+      .from("payments")
+      .update({ status: "cancelled" })
+      .eq("id", data.id);
+    if (error) throw error;
+
+    await context.supabase
+      .from("notification_logs")
+      .update({ status: "cancelled" })
+      .eq("related_payment_id", data.id)
+      .in("status", ["draft", "queued"]);
+
+    await context.supabase.from("admin_activity_log").insert({
+      actor_id: context.userId,
+      action: "payment.cancelled",
+      entity_type: "payment",
+      entity_id: data.id,
+      metadata: { previous_status: payment.status },
+    });
+
+    return { ok: true, status: "cancelled" };
   });
 
 export const revenueSummary = createServerFn({ method: "GET" })

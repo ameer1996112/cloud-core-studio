@@ -198,6 +198,12 @@ function isReadyOpenwaSessionStatus(value) {
   return status === "ready" || status === "connected";
 }
 
+function pickUsableOpenwaChatId(value, fallbackChatId) {
+  if (typeof value !== "string" || !value.trim()) return fallbackChatId;
+  const chatId = value.trim();
+  return chatId.endsWith("@lid") ? fallbackChatId : chatId;
+}
+
 function pickSessionIdFromRecord(record) {
   if (!record || typeof record !== "object") return null;
   if (typeof record.id === "string" && record.id.trim()) return record.id.trim();
@@ -344,8 +350,7 @@ async function resolveOpenwaChatId(config, phone, fetchImpl) {
 
   return {
     ok: true,
-    chatId:
-      typeof json?.whatsappId === "string" && json.whatsappId ? json.whatsappId : fallbackChatId,
+    chatId: pickUsableOpenwaChatId(json?.whatsappId, fallbackChatId),
   };
 }
 

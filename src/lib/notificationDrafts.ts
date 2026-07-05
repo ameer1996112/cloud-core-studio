@@ -13,6 +13,7 @@ import {
   getNextAllowedSendTime,
   resolveNotificationTimingState,
   shouldAutoQueueOpenwaNotification,
+  shouldBypassQuietHoursForOpenwaNotification,
 } from "@/lib/notificationDelivery";
 
 type DraftMember = {
@@ -131,16 +132,20 @@ export function buildNotificationDraftRows(
     const rendered = renderNotificationCopy(template, variables);
     const reason = skipReason(channel, input.member);
     const requestedSendTime = toDate(input.delivery?.scheduledFor) ?? new Date();
+    const bypassQuietHours =
+      channel === "whatsapp" && shouldBypassQuietHoursForOpenwaNotification(input.eventKey);
     const scheduledFor =
       channel === "whatsapp"
-        ? getNextAllowedSendTime({
-            now: requestedSendTime,
-            timezone: "Asia/Jerusalem",
-            startHour: 8,
-            startMinute: 0,
-            endHour: 20,
-            endMinute: 30,
-          })
+        ? bypassQuietHours
+          ? requestedSendTime
+          : getNextAllowedSendTime({
+              now: requestedSendTime,
+              timezone: "Asia/Jerusalem",
+              startHour: 8,
+              startMinute: 0,
+              endHour: 20,
+              endMinute: 30,
+            })
         : null;
     const timingState =
       channel === "whatsapp" && scheduledFor

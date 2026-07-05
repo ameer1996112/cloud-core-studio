@@ -6,6 +6,7 @@ import {
   listPayments,
   upsertPayment,
   refundPayment,
+  cancelPayment,
   revenueSummary,
 } from "@/lib/payments.functions";
 import { confirmPaymentAndIssueReceipt } from "@/lib/receipts.functions";
@@ -19,7 +20,7 @@ import {
 } from "@/components/admin-shared";
 import { showApiError, showApiSuccess } from "@/lib/error-messages";
 import { toast } from "sonner";
-import { Plus, RotateCcw, CheckCircle2, FileText, X } from "lucide-react";
+import { Plus, RotateCcw, CheckCircle2, FileText, X, XCircle } from "lucide-react";
 import { labelForMethod, labelForStatus, t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPlanDisplay } from "@/lib/planDisplay";
@@ -45,6 +46,7 @@ function PaymentsPage() {
   const mem = useServerFn(listMembers);
   const create = useServerFn(upsertPayment);
   const refund = useServerFn(refundPayment);
+  const cancel = useServerFn(cancelPayment);
   const confirmReceipt = useServerFn(confirmPaymentAndIssueReceipt);
   const qc = useQueryClient();
 
@@ -120,6 +122,17 @@ function PaymentsPage() {
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
     },
     onError: (e) => showApiError(e, t("payments.confirmError")),
+  });
+
+  const doCancel = useMutation({
+    mutationFn: (id: string) => cancel({ data: { id } }),
+    onSuccess: () => {
+      showApiSuccess(t("payments.cancelled"));
+      qc.invalidateQueries({ queryKey: ["admin-payments"] });
+      qc.invalidateQueries({ queryKey: ["admin-revenue"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
+    onError: (e) => showApiError(e, t("payments.cancelError")),
   });
 
   return (
@@ -229,6 +242,21 @@ function PaymentsPage() {
                           {doConfirm.isPending && doConfirm.variables === p.id
                             ? t("payments.confirming")
                             : t("payments.confirmIssue")}
+                        </button>
+                      )}
+                      {p.status === "pending" && (
+                        <button
+                          onClick={() => {
+                            if (confirm(t("payments.cancelConfirm"))) doCancel.mutate(p.id);
+                          }}
+                          disabled={doCancel.isPending}
+                          className="btn-ghost me-3 inline-flex items-center gap-1 px-0 text-xs text-slate hover:text-destructive disabled:opacity-50"
+                          title={t("payments.cancelTitle")}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />{" "}
+                          {doCancel.isPending && doCancel.variables === p.id
+                            ? t("payments.cancelling")
+                            : t("common.cancel")}
                         </button>
                       )}
                       {p.status === "paid" && (

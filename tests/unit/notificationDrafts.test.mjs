@@ -80,6 +80,43 @@ const bookingRows = buildNotificationDraftRows({
 
 assert.equal(bookingRows[0].status, "queued");
 
+const lateBookingRows = buildNotificationDraftRows({
+  eventKey: "booking_confirmed",
+  channels: ["whatsapp"],
+  audience: "member",
+  member: {
+    id: "member-late-booking",
+    name: "Aline",
+    phone: "+972501234567",
+    email: "aline@example.com",
+    preferred_language: "he",
+  },
+  appLanguage: "he",
+  studioSettings: {
+    default_language: "he",
+    studio_name: "Cloud & Core",
+    public_phone: "+972400000000",
+    whatsapp_number: "+972500000000",
+    timezone: "Asia/Jerusalem",
+  },
+  relatedIds: {
+    bookingId: "booking-late",
+    classId: "class-late",
+  },
+  variables: {
+    class_name: "Core Flow",
+    class_date: "06/07/2026",
+    class_time: "16:30",
+    instructor_name: "Maya",
+  },
+  delivery: {
+    scheduledFor: "2026-07-04T20:08:07.180Z",
+  },
+});
+
+assert.equal(lateBookingRows[0].status, "queued");
+assert.equal(lateBookingRows[0].scheduled_for, "2026-07-04T20:08:07.180Z");
+
 const autoPaymentRows = buildNotificationDraftRows({
   eventKey: "payment_confirmed",
   channels: ["whatsapp"],
@@ -105,9 +142,13 @@ const autoPaymentRows = buildNotificationDraftRows({
   variables: {
     package_name: "Ten Classes",
   },
+  delivery: {
+    scheduledFor: "2026-07-04T20:08:07.180Z",
+  },
 });
 
 assert.equal(autoPaymentRows[0].status, "queued");
+assert.equal(autoPaymentRows[0].scheduled_for, "2026-07-05T05:00:00.000Z");
 
 const lifecycleRows = buildNotificationDraftRows({
   eventKey: "package_approved_no_booking",

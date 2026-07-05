@@ -4,8 +4,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   clearSupabaseAccessTokenCookie,
-  writeSupabaseAccessTokenCookie,
+  syncSupabaseAccessTokenCookie,
 } from "@/integrations/supabase/session-cookie";
+import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
@@ -13,7 +14,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
 
-import { authImages } from "@/lib/image-assets";
+import { authImages, authLogo } from "@/lib/auth-assets";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -33,6 +34,7 @@ function AuthPage() {
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [formVersion, setFormVersion] = useState(0);
+  const [restoringSession, setRestoringSession] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -44,6 +46,42 @@ function AuthPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreExistingSession() {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("mode") === "forgot") {
+        if (!cancelled) setRestoringSession(false);
+        return;
+      }
+
+      try {
+        const session = await getFreshSupabaseSession();
+        const uid = session?.user?.id;
+        if (!uid) return;
+
+        const role = await getCurrentRole(uid);
+        const fallbackTo = roleHome(role);
+        const to = resolvePostAuthDestination({
+          fallbackTo,
+          origin: window.location.origin,
+          returnTo: url.searchParams.get("returnTo"),
+          storage: window.sessionStorage,
+        });
+        if (!cancelled) navigate({ to, replace: true });
+      } finally {
+        if (!cancelled) setRestoringSession(false);
+      }
+    }
+
+    void restoreExistingSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   function changeLang(next: Lang) {
     applyLang(next);
@@ -90,9 +128,7 @@ function AuthPage() {
       } else {
         const { data: signed, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (signed.session?.access_token) {
-          writeSupabaseAccessTokenCookie(signed.session.access_token, signed.session.expires_in);
-        }
+        syncSupabaseAccessTokenCookie(signed.session);
         const uid = signed.user?.id;
         const role = uid ? await getCurrentRole(uid) : "member";
         const fallbackTo = roleHome(role);
@@ -180,10 +216,10 @@ function AuthPage() {
           <div className="auth-mobile-panel">
             <div className="auth-brand-lockup">
               <img
-                src="/brand/cloud-core-logo-full.png"
-                alt="Cloud & Core Studio"
-                width={220}
-                height={124}
+                src={authLogo.src}
+                alt={authLogo.alt}
+                width={authLogo.width}
+                height={authLogo.height}
                 className="auth-brand-logo"
               />
             </div>
@@ -200,188 +236,205 @@ function AuthPage() {
                 </p>
               )}
 
-              <form
-                key={`${mode}-${formVersion}`}
-                onSubmit={submit}
-                className="auth-form mt-4 sm:mt-5"
-                dir={dir}
-                autoComplete={mode === "signin" ? "on" : "off"}
-              >
-                {mode === "check-email" ? (
-                  <div className="auth-check-email-panel" role="status" aria-live="polite">
-                    <p>{t("auth.resetSent")}</p>
-                  </div>
-                ) : null}
-
-                {mode === "signup" && (
-                  <>
-                    <Field label={t("auth.name")}>
-                      <input
-                        name={`signup-name-${formVersion}`}
-                        value={name}
-                        onChange={(e) => {
-                          setName(e.target.value);
-                          clearError();
-                        }}
-                        required
-                        className="auth-text-input editorial-input focus:editorial-input-focus"
-                        autoComplete="off"
-                        autoCapitalize="words"
-                        autoCorrect="off"
-                        spellCheck={false}
-                      />
-                    </Field>
-                    <Field label={t("auth.phone")}>
-                      <input
-                        type="tel"
-                        name={`signup-phone-${formVersion}`}
-                        value={phone}
-                        onChange={(e) => {
-                          setPhone(e.target.value);
-                          clearError();
-                        }}
-                        required
-                        className="auth-text-input editorial-input focus:editorial-input-focus"
-                        autoComplete="tel"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                      />
-                    </Field>
-                  </>
-                )}
-                {mode !== "check-email" && (
-                  <Field label={t("auth.email")}>
-                    <input
-                      type="email"
-                      name={mode === "signup" ? `signup-email-${formVersion}` : "username"}
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        clearError();
-                      }}
-                      required
-                      className="auth-ltr-input editorial-input focus:editorial-input-focus"
-                      autoComplete={mode === "signin" ? "username" : "off"}
-                      dir="ltr"
-                      inputMode="email"
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck={false}
-                    />
-                  </Field>
-                )}
-                {(mode === "signin" || mode === "signup") && (
-                  <Field label={t("auth.password")}>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name={
-                          mode === "signup" ? `signup-password-${formVersion}` : "current-password"
-                        }
-                        value={password}
-                        onChange={(e) => {
-                          setPassword(e.target.value);
-                          clearError();
-                        }}
-                        required
-                        minLength={6}
-                        className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus"
-                        autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                        dir="ltr"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((v) => !v)}
-                        className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
-                        aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
+              {restoringSession ? (
+                <div
+                  className="auth-check-email-panel mt-5 min-h-24 justify-center"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p>{t("auth.restoringSession")}</p>
+                </div>
+              ) : (
+                <form
+                  key={`${mode}-${formVersion}`}
+                  onSubmit={submit}
+                  className="auth-form mt-4 sm:mt-5"
+                  dir={dir}
+                  autoComplete={mode === "signin" ? "on" : "off"}
+                >
+                  {mode === "check-email" ? (
+                    <div className="auth-check-email-panel" role="status" aria-live="polite">
+                      <p>{t("auth.resetSent")}</p>
                     </div>
-                    {mode === "signup" && <PasswordStrength password={password} />}
-                  </Field>
-                )}
+                  ) : null}
 
-                {formError && (
-                  <p
-                    className="auth-form-error"
-                    role="alert"
-                    aria-live="polite"
-                    dir={lang === "en" ? "ltr" : "rtl"}
-                  >
-                    {formError}
-                  </p>
-                )}
-                {formSuccess && (
-                  <p className="auth-form-success" role="status" aria-live="polite">
-                    {formSuccess}
-                  </p>
-                )}
+                  {mode === "signup" && (
+                    <>
+                      <Field label={t("auth.name")}>
+                        <input
+                          name={`signup-name-${formVersion}`}
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            clearError();
+                          }}
+                          required
+                          className="auth-text-input editorial-input focus:editorial-input-focus"
+                          autoComplete="off"
+                          autoCapitalize="words"
+                          autoCorrect="off"
+                          spellCheck={false}
+                        />
+                      </Field>
+                      <Field label={t("auth.phone")}>
+                        <input
+                          type="tel"
+                          name={`signup-phone-${formVersion}`}
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                            clearError();
+                          }}
+                          required
+                          className="auth-text-input editorial-input focus:editorial-input-focus"
+                          autoComplete="tel"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                        />
+                      </Field>
+                    </>
+                  )}
+                  {mode !== "check-email" && (
+                    <Field label={t("auth.email")}>
+                      <input
+                        type="email"
+                        name={mode === "signup" ? `signup-email-${formVersion}` : "username"}
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          clearError();
+                        }}
+                        required
+                        className="auth-ltr-input editorial-input focus:editorial-input-focus"
+                        autoComplete={mode === "signin" ? "username" : "off"}
+                        dir="ltr"
+                        inputMode="email"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
+                    </Field>
+                  )}
+                  {(mode === "signin" || mode === "signup") && (
+                    <Field label={t("auth.password")}>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name={
+                            mode === "signup"
+                              ? `signup-password-${formVersion}`
+                              : "current-password"
+                          }
+                          value={password}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            clearError();
+                          }}
+                          required
+                          minLength={6}
+                          className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus"
+                          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                          dir="ltr"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
+                          aria-label={
+                            showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+                          }
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      {mode === "signup" && <PasswordStrength password={password} />}
+                    </Field>
+                  )}
 
-                {mode !== "check-email" && (
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className={
-                      busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"
-                    }
-                  >
-                    {busy
-                      ? t("auth.busy")
-                      : mode === "signin"
-                        ? t("auth.enter")
-                        : mode === "signup"
-                          ? t("auth.reserve")
-                          : t("auth.reset")}
-                  </button>
-                )}
+                  {formError && (
+                    <p
+                      className="auth-form-error"
+                      role="alert"
+                      aria-live="polite"
+                      dir={lang === "en" ? "ltr" : "rtl"}
+                    >
+                      {formError}
+                    </p>
+                  )}
+                  {formSuccess && (
+                    <p className="auth-form-success" role="status" aria-live="polite">
+                      {formSuccess}
+                    </p>
+                  )}
 
-                {mode === "signin" && (
+                  {mode !== "check-email" && (
+                    <button
+                      type="submit"
+                      disabled={busy}
+                      className={
+                        busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"
+                      }
+                    >
+                      {busy
+                        ? t("auth.busy")
+                        : mode === "signin"
+                          ? t("auth.enter")
+                          : mode === "signup"
+                            ? t("auth.reserve")
+                            : t("auth.reset")}
+                    </button>
+                  )}
+
+                  {mode === "signin" && (
+                    <button
+                      type="button"
+                      onClick={() => switchMode("forgot")}
+                      className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
+                    >
+                      {t("auth.forgot")}
+                    </button>
+                  )}
+
                   <button
                     type="button"
-                    onClick={() => switchMode("forgot")}
-                    className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
+                    onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
+                    className="auth-switch-action block w-full text-center text-navy hover:text-gold pt-2 border-t hairline"
                   >
-                    {t("auth.forgot")}
+                    {mode === "signin"
+                      ? t("auth.create")
+                      : mode === "signup"
+                        ? t("auth.already")
+                        : t("auth.back")}
                   </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
-                  className="auth-switch-action block w-full text-center text-navy hover:text-gold pt-2 border-t hairline"
-                >
-                  {mode === "signin"
-                    ? t("auth.create")
-                    : mode === "signup"
-                      ? t("auth.already")
-                      : t("auth.back")}
-                </button>
-                <section className="mt-5 border-t hairline pt-5" aria-labelledby="auth-guest-entry">
-                  <p id="auth-guest-entry" className="member-eyebrow text-slate">
-                    {guestEntryTitle}
-                  </p>
-                  <p className="mt-3 text-sm leading-7 text-slate text-start">{guestEntryBody}</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <Link
-                      to="/member/schedule"
-                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
-                    >
-                      {browseScheduleLabel}
-                    </Link>
-                    <Link
-                      to="/support"
-                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/12 bg-transparent px-5 text-sm font-medium text-slate transition-colors hover:border-gold/35 hover:text-navy"
-                    >
-                      {guestSupportLabel}
-                    </Link>
-                  </div>
-                </section>
-              </form>
+                  <section
+                    className="mt-5 border-t hairline pt-5"
+                    aria-labelledby="auth-guest-entry"
+                  >
+                    <p id="auth-guest-entry" className="member-eyebrow text-slate">
+                      {guestEntryTitle}
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-slate text-start">{guestEntryBody}</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Link
+                        to="/member/schedule"
+                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
+                      >
+                        {browseScheduleLabel}
+                      </Link>
+                      <Link
+                        to="/support"
+                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/12 bg-transparent px-5 text-sm font-medium text-slate transition-colors hover:border-gold/35 hover:text-navy"
+                      >
+                        {guestSupportLabel}
+                      </Link>
+                    </div>
+                  </section>
+                </form>
+              )}
             </div>
 
             <div className="auth-legal-links flex justify-center gap-6 mt-6 pb-6">
@@ -395,6 +448,9 @@ function AuthPage() {
                 {t("legal.support")}
               </Link>
             </div>
+            <p className="pb-6 text-center text-xs font-medium text-slate/80">
+              Cloud and Core Studio · Hurfeish, North District, Israel
+            </p>
           </div>
         </div>
       </div>

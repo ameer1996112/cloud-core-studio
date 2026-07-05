@@ -81,6 +81,47 @@ describe("processClaimedJobs", () => {
     ]);
   });
 
+  test("sendViaOpenwa falls back to phone chat id when OpenWA returns a lid contact id", async () => {
+    const requests = [];
+    const result = await sendViaOpenwa(
+      {
+        openwaBaseUrl: "http://localhost:2785",
+        openwaApiKey: "openwa-key",
+        openwaSessionId: "session-1",
+      },
+      createJob("job-1", { to: "0524592124", text: "Booking confirmed" }),
+      {
+        fetchImpl: async (url, init) => {
+          requests.push({
+            url: String(url),
+            method: init.method,
+            body: init.body ? JSON.parse(init.body) : null,
+          });
+          if (String(url).includes("/contacts/check/")) {
+            return new Response(
+              JSON.stringify({
+                exists: true,
+                whatsappId: "237928353656991@lid",
+              }),
+              { status: 200 },
+            );
+          }
+          return new Response(JSON.stringify({ id: "provider-1" }), { status: 200 });
+        },
+      },
+    );
+
+    expect(result).toEqual({ ok: true, providerMessageId: "provider-1" });
+    expect(requests.at(-1)).toMatchObject({
+      url: "http://localhost:2785/api/sessions/session-1/messages/send-text",
+      method: "POST",
+      body: {
+        chatId: "972524592124@c.us",
+        text: "Booking confirmed",
+      },
+    });
+  });
+
   test("sendViaOpenwa reports a non-retryable failure when OpenWA says the number is not on WhatsApp", async () => {
     const result = await sendViaOpenwa(
       {

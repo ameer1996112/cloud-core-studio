@@ -5,10 +5,12 @@ import { useState } from "react";
 import {
   Sparkles,
   Check,
+  ClipboardCheck,
   CreditCard,
   FileText,
   MessageCircle,
   Send,
+  Smartphone,
   Wallet,
   X,
 } from "lucide-react";
@@ -16,13 +18,14 @@ import { toast } from "sonner";
 import { getMyPackages } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { createManualPackagePayment, getMyPackageRequests } from "@/lib/memberRequests.functions";
-import { waUrl } from "@/lib/messageTemplate";
 import { LANG_META, labelForMethod, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
 import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
+
+const BIT_PAYMENT_PHONE = "0523318478";
 
 export const Route = createFileRoute("/_authenticated/member/packages")({
   component: MemberPackages,
@@ -678,7 +681,7 @@ function PaymentMethodSheet({
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
-  const phone = settings?.whatsapp_number ?? settings?.public_phone ?? "";
+  const bitCopy = getBitPaymentCopy(lang);
   const bitMessage = t("member.packageBitConfirmationMessage", {
     studio: settings?.studio_name ?? "Cloud & Core",
     member: t("member.friend"),
@@ -686,9 +689,23 @@ function PaymentMethodSheet({
     amount: price,
   });
 
-  function openWhatsApp() {
-    if (!phone) return;
-    window.open(waUrl({ to: phone, text: bitMessage }), "_blank", "noopener");
+  async function copyBitPhone() {
+    try {
+      await navigator.clipboard.writeText(BIT_PAYMENT_PHONE);
+      toast.success(bitCopy.copied);
+    } catch {
+      toast.error(bitCopy.copyError);
+    }
+  }
+
+  function openBitApp() {
+    void navigator.clipboard?.writeText(BIT_PAYMENT_PHONE).catch(() => undefined);
+    const bitUrl = buildBitDeepLink({
+      phone: BIT_PAYMENT_PHONE,
+      amount: price,
+      note: bitMessage,
+    });
+    window.location.href = bitUrl;
   }
 
   return (
@@ -712,7 +729,7 @@ function PaymentMethodSheet({
           </button>
         </header>
 
-        <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4">
+        <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="font-display text-2xl leading-tight text-navy">{display.name}</p>
@@ -733,9 +750,9 @@ function PaymentMethodSheet({
             />
             <PaymentOption
               active={method === "bit"}
-              icon={<MessageCircle className="h-4 w-4" />}
+              icon={<Smartphone className="h-4 w-4" />}
               label={t("packages.bitLabel")}
-              description={t("packages.bitDescription")}
+              description={bitCopy.optionDescription}
               onClick={() => setMethod("bit")}
             />
             <PaymentOption
@@ -753,33 +770,44 @@ function PaymentMethodSheet({
                 {method ? labelForMethod(method) : "—"}
               </p>
               <p className="mt-2 text-sm text-slate">
-                {method === "bit" ? t("packages.bitDescription") : t("packages.cashDescription")}
+                {method === "bit" ? bitCopy.confirmDescription : t("packages.cashDescription")}
               </p>
             </div>
             {method === "bit" && (
-              <div className="rounded-xl border border-gold/25 bg-ivory p-4">
-                <p className="text-sm text-navy">
-                  {phone ? (
-                    <>
-                      {t("packages.bitNumber", { phone: "" })}
-                      <span dir="ltr" className="member-ltr-value inline-block">
-                        {phone}
-                      </span>
-                    </>
-                  ) : (
-                    t("packages.bitNumberMissing")
-                  )}
-                </p>
-                {phone && (
+              <div className="overflow-hidden rounded-xl border border-gold/35 bg-ivory shadow-[0_18px_44px_-34px_rgba(11,29,58,0.45)]">
+                <div className="flex items-start gap-3 border-b border-gold/20 bg-white/55 p-4">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-navy">
+                    <Smartphone className="h-4 w-4" />
+                  </span>
+                  <span>
+                    <span className="block font-display text-xl leading-tight text-navy">
+                      {bitCopy.openTitle}
+                    </span>
+                    <span className="mt-1 block text-sm leading-6 text-slate">
+                      {bitCopy.openBody}
+                    </span>
+                  </span>
+                </div>
+                <div className="grid gap-3 p-4">
+                  <div className="rounded-lg border border-gold/20 bg-sand/15 p-3">
+                    <p className="text-xs font-medium text-slate">{bitCopy.phoneLabel}</p>
+                    <p dir="ltr" className="member-ltr-value mt-1 text-2xl font-bold text-navy">
+                      {BIT_PAYMENT_PHONE}
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={openWhatsApp}
-                    className="btn-ghost mt-3 inline-flex items-center gap-2 px-0 text-xs hover:btn-ghost-hover"
+                    onClick={openBitApp}
+                    className="btn-navy w-full hover:btn-navy-hover"
                   >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    {t("packages.whatsappConfirm")}
+                    <Smartphone className="h-4 w-4" />
+                    {bitCopy.openButton}
                   </button>
-                )}
+                  <button type="button" onClick={copyBitPhone} className="btn-outline w-full">
+                    <ClipboardCheck className="h-4 w-4" />
+                    {bitCopy.copyButton}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -853,6 +881,65 @@ function PaymentOption({
       </span>
     </button>
   );
+}
+
+function buildBitDeepLink({
+  phone,
+  amount,
+  note,
+}: {
+  phone: string;
+  amount: string;
+  note: string;
+}) {
+  const numericAmount = amount.replace(/[^\d.]/g, "");
+  const params = new URLSearchParams({
+    phone,
+    amount: numericAmount,
+    note,
+  });
+  return `bit://pay?${params.toString()}`;
+}
+
+function getBitPaymentCopy(lang: Lang) {
+  if (lang === "he") {
+    return {
+      optionDescription: "פתחי את ביט, שלמי למספר הסטודיו, ואז שלחי לאישור.",
+      confirmDescription: "נפתח את ביט עם מספר הסטודיו. לאחר התשלום שלחי את הבקשה לאישור.",
+      openTitle: "תשלום בביט",
+      openBody: "מספר היעד מוצג כאן כדי לוודא שהתשלום נשלח למקום הנכון.",
+      phoneLabel: "מספר ביט לתשלום",
+      openButton: "פתיחת ביט לתשלום",
+      copyButton: "העתקת המספר",
+      copied: "מספר הביט הועתק",
+      copyError: "לא הצלחנו להעתיק את המספר",
+    };
+  }
+  if (lang === "ar") {
+    return {
+      optionDescription: "افتحي Bit، ادفعي لرقم الاستوديو، ثم أرسلي الطلب للتأكيد.",
+      confirmDescription: "سنفتح Bit مع رقم الاستوديو. بعد الدفع أرسلي الطلب للتأكيد.",
+      openTitle: "الدفع عبر Bit",
+      openBody: "رقم الدفع ظاهر هنا للتأكد من أن الدفعة تصل للمكان الصحيح.",
+      phoneLabel: "رقم Bit للدفع",
+      openButton: "فتح Bit للدفع",
+      copyButton: "نسخ الرقم",
+      copied: "تم نسخ رقم Bit",
+      copyError: "تعذر نسخ الرقم",
+    };
+  }
+  return {
+    optionDescription: "Open Bit, pay the studio number, then submit for approval.",
+    confirmDescription:
+      "We will open Bit with the studio number. After paying, submit for approval.",
+    openTitle: "Bit payment",
+    openBody: "The recipient number is shown here so the payment goes to the right place.",
+    phoneLabel: "Bit payment number",
+    openButton: "Open Bit to pay",
+    copyButton: "Copy number",
+    copied: "Bit number copied",
+    copyError: "Could not copy the number",
+  };
 }
 
 function formatPaymentAmount(amount: number | string, currency: string | null | undefined) {

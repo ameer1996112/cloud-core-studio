@@ -16,8 +16,9 @@ import { reportAppError } from "../lib/error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import {
   clearSupabaseAccessTokenCookie,
-  writeSupabaseAccessTokenCookie,
+  syncSupabaseAccessTokenCookie,
 } from "@/integrations/supabase/session-cookie";
+import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
 import { Toaster } from "sonner";
 import {
   applyLang,
@@ -85,6 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0B1D3A" },
+      { name: "facebook-domain-verification", content: "k7ee0g6u6wldkv9oqr22yeh7oxbgcg" },
       { title: "Cloud & Core Studio" },
       { name: "description", content: "Boutique aerial yoga & mat pilates — Cloud & Core Studio." },
       { property: "og:title", content: "Cloud & Core Studio" },
@@ -235,17 +237,29 @@ function RootComponent() {
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
     }
-    void supabase.auth.getSession().then(({ data }) => {
-      const token = data.session?.access_token;
-      if (token) writeSupabaseAccessTokenCookie(token, data.session?.expires_in ?? 3600);
-      else clearSupabaseAccessTokenCookie();
-    });
+    void getFreshSupabaseSession();
     if (typeof window !== "undefined") {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())
         .catch(() => undefined);
     }
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const syncCurrentSession = () => {
+      void getFreshSupabaseSession().then((session) => {
+        if (session) {
+          void router.invalidate();
+          void queryClient.invalidateQueries();
+        }
+      });
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") syncCurrentSession();
+    };
+
+    window.addEventListener("focus", syncCurrentSession);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (
         event !== "SIGNED_IN" &&
         event !== "SIGNED_OUT" &&
@@ -260,15 +274,14 @@ function RootComponent() {
         void router.navigate({ to: "/auth", replace: true });
         return;
       }
-      void supabase.auth.getSession().then(({ data }) => {
-        const token = data.session?.access_token;
-        if (token) writeSupabaseAccessTokenCookie(token, data.session?.expires_in ?? 3600);
-      });
+      syncSupabaseAccessTokenCookie(session);
       if (event === "SIGNED_IN") return;
       router.invalidate();
       void queryClient.invalidateQueries();
     });
     return () => {
+      window.removeEventListener("focus", syncCurrentSession);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       sub.subscription.unsubscribe();
     };
   }, [router, queryClient]);

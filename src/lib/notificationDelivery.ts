@@ -165,11 +165,18 @@ export function getNextAllowedSendTime(input: {
   });
 }
 
-export function computeRetrySchedule(input: { attemptCount: number; failedAt: Date }): Date | null {
+export function computeRetrySchedule(input: {
+  attemptCount: number;
+  failedAt: Date;
+  eventType?: string | null;
+}): Date | null {
   const retryDelayMinutes = RETRY_DELAYS_MINUTES[Math.trunc(input.attemptCount) - 1];
   if (retryDelayMinutes == null) return null;
 
   const delayedRetry = new Date(input.failedAt.getTime() + retryDelayMinutes * 60_000);
+  if (input.eventType && shouldBypassQuietHoursForOpenwaNotification(input.eventType)) {
+    return delayedRetry;
+  }
 
   return getNextAllowedSendTime({
     now: delayedRetry,
@@ -183,6 +190,10 @@ export function computeRetrySchedule(input: { attemptCount: number; failedAt: Da
 
 export function shouldAutoQueueOpenwaNotification(eventType: string): boolean {
   return AUTOMATED_OPENWA_EVENT_TYPES.has(eventType.trim().toLowerCase());
+}
+
+export function shouldBypassQuietHoursForOpenwaNotification(eventType: string): boolean {
+  return eventType.trim().toLowerCase() === "booking_confirmed";
 }
 
 export function resolveNotificationTimingState(input: {

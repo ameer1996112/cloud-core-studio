@@ -70,10 +70,7 @@ function MemberHome() {
   const nextBooking = upcomingBookings[0] ?? null;
   const featuredClass = !nextBooking ? recommended[0] : null;
   const recommendedList = featuredClass ? recommended.slice(1) : recommended;
-  const announcement = localizeAnnouncement(settings?.announcement_text) ?? {
-    title: t("admin.classes.launchOpening"),
-    body: t("member.launchOpeningBody"),
-  };
+  const announcement = localizeAnnouncement(settings?.announcement_text);
 
   return (
     <section
@@ -288,14 +285,8 @@ function MemberHome() {
 function localizeAnnouncement(value: string | null | undefined) {
   const text = value?.trim();
   if (!text) return null;
-  if (/^official opening:? 1\.7\.2026$/i.test(text)) {
-    return {
-      title: t("admin.classes.launchOpening"),
-      body: t("member.launchOpeningBody"),
-    };
-  }
   return {
-    title: t("admin.classes.launchOpening"),
+    title: t("member.studioMessage"),
     body: text,
   };
 }

@@ -123,7 +123,11 @@ type OpenwaQueueDeps = {
     providerMessageId?: string | null;
   }): Promise<void>;
   getReportRow(input: { rowId: string }): Promise<OpenwaReportRow | null>;
-  computeRetryAt(input: { attemptCount: number; failedAt: Date }): Date | null;
+  computeRetryAt(input: {
+    attemptCount: number;
+    failedAt: Date;
+    triggerType?: string | null;
+  }): Date | null;
 };
 
 function isLifecyclePaused() {
@@ -350,8 +354,8 @@ function buildQueueDeps(): OpenwaQueueDeps {
       return (data as OpenwaReportRow | null) ?? null;
     },
 
-    computeRetryAt({ attemptCount, failedAt }) {
-      return computeRetrySchedule({ attemptCount, failedAt });
+    computeRetryAt({ attemptCount, failedAt, triggerType }) {
+      return computeRetrySchedule({ attemptCount, failedAt, eventType: triggerType });
     },
   };
 }
@@ -471,6 +475,7 @@ export async function reportOpenwaNotification(
     ? deps.computeRetryAt({
         attemptCount: row.attempt_count,
         failedAt: now,
+        triggerType: row.trigger_type,
       })
     : null;
 
