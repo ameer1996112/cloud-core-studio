@@ -12,6 +12,7 @@ export type HypPaymentPageRequest = {
   amountAgorot: number;
   language?: "HEB" | "ENG";
   description?: string;
+  paymentMethod?: "card" | "bit";
 };
 
 function readEnv(name: string) {
@@ -97,6 +98,7 @@ export function parseHypPayResponse(body: string, config = getHypConfig()) {
 
 export async function createHypPaymentPage(input: HypPaymentPageRequest, config = getHypConfig()) {
   const language = input.language ?? "HEB";
+  const showWalletButtons = input.paymentMethod === "bit";
   const requestUrl = hypPayBaseUrl(config);
   requestUrl.search = new URLSearchParams({
     action: "APISign",
@@ -110,6 +112,10 @@ export async function createHypPaymentPage(input: HypPaymentPageRequest, config 
     Coin: "1",
     PageLang: language,
     Info: input.description ?? "Cloud & Core package",
+    MoreData: "True",
+    UTF8: "True",
+    UTF8out: "True",
+    hideBtns: showWalletButtons ? "false" : "true",
   }).toString();
 
   const response = await fetch(requestUrl, {

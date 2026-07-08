@@ -27,6 +27,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
 
 const BIT_PAYMENT_PHONE = "0523318478";
+type OnlinePaymentMethod = "bit" | "card";
 
 export const Route = createFileRoute("/_authenticated/member/packages")({
   component: MemberPackages,
@@ -68,7 +69,8 @@ function MemberPackages() {
   });
 
   const checkoutPayment = useMutation({
-    mutationFn: (v: { planId: string }) => createCheckout({ data: { plan_id: v.planId } }),
+    mutationFn: (v: { planId: string; method: OnlinePaymentMethod }) =>
+      createCheckout({ data: { plan_id: v.planId, payment_method: v.method } }),
     onSuccess: (res: any) => {
       if (res?.status === "ready" && res.checkout_url) {
         window.location.href = res.checkout_url;
@@ -89,7 +91,7 @@ function MemberPackages() {
 
   function submitPayment(plan: any, method: "cash" | "bit" | "card") {
     if (method === "card" || method === "bit") {
-      checkoutPayment.mutate({ planId: plan.id });
+      checkoutPayment.mutate({ planId: plan.id, method });
       return;
     }
     const planDisplay = getPlanDisplay(plan, lang);

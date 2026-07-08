@@ -164,7 +164,14 @@ export const confirmPaymentAndIssueReceipt = createServerFn({ method: "POST" })
 /** Member: create a hosted checkout session for the configured online payment provider. */
 export const createCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ plan_id: z.string().uuid() }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        plan_id: z.string().uuid(),
+        payment_method: z.enum(["card", "bit"]).default("card"),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { data: s } = await context.supabase
       .from("studio_settings")
@@ -206,6 +213,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const amountAgorot = Number(planRes.data.price_cents ?? 0);
     if (!Number.isFinite(amountAgorot) || amountAgorot <= 0) throw new Error("invalid_plan_amount");
+    const paymentMethod = data.payment_method;
 
     const { data: payment, error: insertError } = await supabaseAdmin
       .from("payments")
@@ -214,13 +222,14 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         plan_id: planRes.data.id,
         amount: amountAgorot / 100,
         currency: planRes.data.currency ?? "ILS",
-        method: "card",
+        method: paymentMethod,
         provider: "hyp",
         provider_status: "created",
         status: "pending",
-        notes: `HYP checkout for ${planRes.data.name}`,
+        notes: `HYP ${paymentMethod} checkout for ${planRes.data.name}`,
         metadata: {
           checkout_provider: "hyp",
+          requested_payment_method: paymentMethod,
           payments_mode: (s as any)?.payments_mode ?? "test",
         },
       })
@@ -234,6 +243,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         amountAgorot,
         language: "HEB",
         description: planRes.data.name ?? "Cloud & Core package",
+        paymentMethod,
       });
 
       await supabaseAdmin
@@ -244,6 +254,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           provider_payment_id: page.cgUid || null,
           metadata: {
             checkout_provider: "hyp",
+            requested_payment_method: paymentMethod,
             payments_mode: (s as any)?.payments_mode ?? "test",
             hyp_result: page.result,
             hyp_message: page.message,
@@ -265,6 +276,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           provider_status: "payment_page_failed",
           metadata: {
             checkout_provider: "hyp",
+            requested_payment_method: paymentMethod,
             payments_mode: (s as any)?.payments_mode ?? "test",
             error: error instanceof Error ? error.message : String(error),
           },
