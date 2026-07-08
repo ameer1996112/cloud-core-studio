@@ -1,6 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
-import { authLogo } from "@/lib/auth-assets";
 
 type PaymentResultStatus = "success" | "failed" | "cancelled" | "pending" | "missing";
 
@@ -88,21 +87,9 @@ function PaymentResultPage() {
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[linear-gradient(180deg,rgba(11,29,58,0.05),transparent)]" />
       <section className="relative mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-md items-center">
-        <div className="w-full rounded-[2rem] border border-gold/25 bg-white/88 p-6 text-center shadow-[0_34px_92px_rgba(11,29,58,0.18)] backdrop-blur-xl sm:p-8">
-          <div className="mx-auto mb-5 flex w-fit items-center justify-center rounded-full border border-gold/20 bg-ivory/80 px-5 py-3">
-            <img
-              src={authLogo.src}
-              alt={authLogo.alt}
-              width={authLogo.width}
-              height={authLogo.height}
-              className="h-14 w-auto object-contain"
-            />
-          </div>
-
-          <div className="mx-auto h-px w-28 bg-gradient-to-l from-transparent via-gold/70 to-transparent" />
-
+        <div className="w-full rounded-[2rem] border border-gold/25 bg-white/88 p-7 text-center shadow-[0_34px_92px_rgba(11,29,58,0.18)] backdrop-blur-xl sm:p-8">
           <div
-            className={`mx-auto mt-7 flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full border ${toneClass}`}
+            className={`mx-auto flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full border ${toneClass}`}
           >
             <Icon className="h-9 w-9" aria-hidden="true" />
           </div>
