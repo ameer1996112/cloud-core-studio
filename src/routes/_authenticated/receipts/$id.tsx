@@ -267,9 +267,9 @@ function ReceiptPage() {
           </div>
         </section>
 
-        <section className="mx-5 mb-5 rounded-[24px] bg-navy px-5 py-5 text-ivory shadow-[0_20px_45px_-30px_rgba(11,29,58,0.75)] sm:mx-8 sm:flex sm:items-center sm:justify-between sm:px-6 md:mx-10">
-          <p className="text-xs font-semibold text-ivory/70">{t("receipt.totalPaid")}</p>
-          <p className="numeric-display mt-2 font-display text-4xl leading-none sm:mt-0">
+        <section className="mx-5 mb-5 flex items-end justify-between gap-4 rounded-[24px] border border-navy/10 bg-white/75 px-5 py-5 shadow-[0_18px_46px_-34px_rgba(11,29,58,0.45)] sm:mx-8 sm:px-6 md:mx-10">
+          <p className="text-xs font-semibold text-slate">{t("receipt.totalPaid")}</p>
+          <p className="numeric-display font-display text-4xl leading-none text-navy whitespace-nowrap">
             {formatAmount(Number(r.amount))}
           </p>
         </section>

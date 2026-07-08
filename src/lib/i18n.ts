@@ -1801,7 +1801,7 @@ export const MESSAGES = {
     "receipt.creditGranted.one": "הוענקה כניסה אחת לשיעור",
     "receipt.creditGranted.other": "הוענקו {count} כניסות לשיעורים",
     "receipt.ref": "אסמכתא: {ref}",
-    "receipt.totalPaid": "סה״כ שולם",
+    "receipt.totalPaid": "סך הכל שולם",
     "receipt.legalNote":
       "זוהי קבלת תשלום פנימית של הסטודיו לרשומות שלך. זו אינה חשבונית מס ישראלית. לקבלת חשבונית מס רשמית, יש לפנות ישירות לסטודיו.",
     "method.cash": "מזומן",
