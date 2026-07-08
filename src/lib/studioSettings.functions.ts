@@ -91,7 +91,7 @@ const settingsSchema = z.object({
   energy_labels: z.array(z.string()).default([]),
   // Payments (provider-neutral foundation)
   payments_enabled: z.boolean().optional(),
-  payments_provider: z.enum(["none", "manual", "stripe", "paddle"]).optional(),
+  payments_provider: z.enum(["none", "manual", "hyp", "stripe", "paddle"]).optional(),
   payments_mode: z.enum(["test", "live"]).optional(),
   payments_success_url: z.string().nullable().optional(),
   payments_cancel_url: z.string().nullable().optional(),

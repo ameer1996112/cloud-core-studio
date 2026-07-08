@@ -13,6 +13,7 @@ import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
+import { notifyAdminMemberSignup } from "@/lib/adminPush.functions";
 
 import { authImages, authLogo } from "@/lib/auth-assets";
 
@@ -100,6 +101,18 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin, data: { name, phone } },
         });
         if (error) throw error;
+        if (signed.user?.id) {
+          try {
+            const notificationResult = await notifyAdminMemberSignup({
+              data: { memberId: signed.user.id },
+            });
+            if (!notificationResult.ok) {
+              console.warn("admin_signup_push_skipped", notificationResult);
+            }
+          } catch (error) {
+            console.error("admin_signup_push_failed", error);
+          }
+        }
         if (signed.session) {
           await supabase.auth.signOut();
           clearSupabaseAccessTokenCookie();

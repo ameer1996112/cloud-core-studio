@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, hasTestPlanRecord, isTestRecord } from "@/lib/test-records";
+import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
 
 export const optionalSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
@@ -85,11 +86,8 @@ async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
 function buildClassVariables(cls: any) {
   return {
     class_name: cls.title,
-    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
-    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    class_date: formatClassDate(cls.starts_at),
+    class_time: formatClassTime(cls.starts_at),
     instructor_name: cls.instructor?.name ?? "",
   };
 }

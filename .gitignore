@@ -11,6 +11,7 @@ lerna-debug.log*
 .env.*
 !.env.example
 !.env.staging.example
+.env.whatsapp.local
 
 node_modules
 dist

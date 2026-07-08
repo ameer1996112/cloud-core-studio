@@ -21,13 +21,17 @@
     "openwa:start": "bash scripts/openwa-dev.sh",
     "openwa:qr": "node scripts/openwa-qr.mjs",
     "openwa:logs": "docker logs -f openwa-api",
-    "openwa:stop": "OPENWA_MEM_LIMIT=${OPENWA_MEM_LIMIT:-2147483648} docker compose -f .openwa/OpenWA/docker-compose.dev.yml --env-file .openwa/OpenWA/.env down"
+    "openwa:stop": "OPENWA_MEM_LIMIT=${OPENWA_MEM_LIMIT:-2147483648} docker compose -f .openwa/OpenWA/docker-compose.dev.yml --env-file .openwa/OpenWA/.env down",
+    "whatsapp:templates:dry-run": "node scripts/create-whatsapp-templates.mjs --dry-run",
+    "whatsapp:templates:create": "node scripts/create-whatsapp-templates.mjs",
+    "whatsapp:templates:status": "node scripts/check-whatsapp-template-status.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
     "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/push-notifications": "^8.1.1",
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
     "@hookform/resolvers": "^5.2.2",

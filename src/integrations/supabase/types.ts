@@ -38,6 +38,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      admin_push_tokens: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          id: string;
+          last_seen_at: string;
+          platform: string;
+          token: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          last_seen_at?: string;
+          platform: string;
+          token: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          last_seen_at?: string;
+          platform?: string;
+          token?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "admin_push_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       attendance_records: {
         Row: {
           booking_id: string;

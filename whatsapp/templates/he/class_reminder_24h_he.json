@@ -1,0 +1,14 @@
+{
+  "name": "class_reminder_24h_he",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "תזכורת קטנה מ־Cloud & Core ✨\n\nהשיעור שלך {{1}} מתקיים מחר בשעה {{2}}.\n\nמומלץ להגיע כמה דקות לפני תחילת השיעור.\nנתראה בסטודיו.",
+      "example": {
+        "body_text": [["יוגה אווירית", "17:00"]]
+      }
+    }
+  ]
+}

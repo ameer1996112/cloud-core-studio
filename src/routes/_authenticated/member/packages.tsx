@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { getMyPackages } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { createManualPackagePayment, getMyPackageRequests } from "@/lib/memberRequests.functions";
+import { createCheckoutSession } from "@/lib/receipts.functions";
 import { LANG_META, labelForMethod, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
@@ -38,6 +39,7 @@ function MemberPackages() {
   const fetchSettings = useServerFn(getPublicStudioSettings);
   const fetchRequests = useServerFn(getMyPackageRequests);
   const createManualPayment = useServerFn(createManualPackagePayment);
+  const createCheckout = useServerFn(createCheckoutSession);
   const qc = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
 
@@ -65,6 +67,18 @@ function MemberPackages() {
     onError: () => toast.error(t("packages.manualPaymentError")),
   });
 
+  const checkoutPayment = useMutation({
+    mutationFn: (v: { planId: string }) => createCheckout({ data: { plan_id: v.planId } }),
+    onSuccess: (res: any) => {
+      if (res?.status === "ready" && res.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
+      }
+      toast.error(res?.message ?? t("packages.cardPaymentError"));
+    },
+    onError: () => toast.error(t("packages.cardPaymentError")),
+  });
+
   const active = data?.mine.find((p: any) => p.status === "active");
   const credits = data?.member?.remaining_credits ?? 0;
   const memberName = data?.member?.name?.split(" ")[0] ?? "";
@@ -73,7 +87,11 @@ function MemberPackages() {
     .filter((p: any) => !hasTestPlanRecord(p))
     .sort(comparePricingPlans);
 
-  function submitManualPayment(plan: any, method: "cash" | "bit") {
+  function submitPayment(plan: any, method: "cash" | "bit" | "card") {
+    if (method === "card" || method === "bit") {
+      checkoutPayment.mutate({ planId: plan.id });
+      return;
+    }
     const planDisplay = getPlanDisplay(plan, lang);
     const amount = formatPlanPrice(plan);
     const text =
@@ -209,7 +227,7 @@ function MemberPackages() {
                   (payment: any) => payment.plan?.id === p.id && payment.status === "pending",
                 )}
                 onRequest={() => setSelectedPlan(p)}
-                pending={manualPayment.isPending}
+                pending={manualPayment.isPending || checkoutPayment.isPending}
               />
             ))}
           </div>
@@ -221,9 +239,9 @@ function MemberPackages() {
           plan={selectedPlan}
           lang={lang}
           settings={settings}
-          pending={manualPayment.isPending}
+          pending={manualPayment.isPending || checkoutPayment.isPending}
           onClose={() => setSelectedPlan(null)}
-          onSubmit={(method) => submitManualPayment(selectedPlan, method)}
+          onSubmit={(method) => submitPayment(selectedPlan, method)}
         />
       )}
 
@@ -674,14 +692,16 @@ function PaymentMethodSheet({
   settings: any;
   pending: boolean;
   onClose: () => void;
-  onSubmit: (method: "cash" | "bit") => void;
+  onSubmit: (method: "cash" | "bit" | "card") => void;
 }) {
-  const [method, setMethod] = useState<"cash" | "bit" | null>(null);
+  const [method, setMethod] = useState<"cash" | "bit" | "card" | null>(null);
   const [confirming, setConfirming] = useState(false);
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
   const bitCopy = getBitPaymentCopy(lang);
+  const cardEnabled = Boolean(settings?.payments_enabled && settings?.payments_provider === "hyp");
+  const hypEnabled = cardEnabled;
   const bitMessage = t("member.packageBitConfirmationMessage", {
     studio: settings?.studio_name ?? "Cloud & Core",
     member: t("member.friend"),
@@ -750,16 +770,23 @@ function PaymentMethodSheet({
             />
             <PaymentOption
               active={method === "bit"}
+              disabled={!hypEnabled}
               icon={<Smartphone className="h-4 w-4" />}
               label={t("packages.bitLabel")}
-              description={bitCopy.optionDescription}
+              description={
+                hypEnabled ? t("packages.bitAutomaticDescription") : bitCopy.optionDescription
+              }
               onClick={() => setMethod("bit")}
             />
             <PaymentOption
-              disabled
+              active={method === "card"}
+              disabled={!cardEnabled}
               icon={<CreditCard className="h-4 w-4" />}
-              label={t("packages.cardSoonLabel")}
-              description={t("packages.cardSoonDescription")}
+              label={cardEnabled ? t("packages.cardLabel") : t("packages.cardSoonLabel")}
+              description={
+                cardEnabled ? t("packages.cardDescription") : t("packages.cardSoonDescription")
+              }
+              onClick={() => setMethod("card")}
             />
           </div>
         ) : (
@@ -770,7 +797,11 @@ function PaymentMethodSheet({
                 {method ? labelForMethod(method) : "—"}
               </p>
               <p className="mt-2 text-sm text-slate">
-                {method === "bit" ? bitCopy.confirmDescription : t("packages.cashDescription")}
+                {method === "bit"
+                  ? bitCopy.confirmDescription
+                  : method === "card"
+                    ? t("packages.cardConfirmDescription")
+                    : t("packages.cashDescription")}
               </p>
             </div>
             {method === "bit" && (
@@ -820,11 +851,22 @@ function PaymentMethodSheet({
           {!confirming ? (
             <button
               type="button"
-              disabled={!method}
-              onClick={() => setConfirming(true)}
+              disabled={!method || ((method === "card" || method === "bit") && pending)}
+              onClick={() => {
+                if (!method) return;
+                if (method === "card" || method === "bit") {
+                  onSubmit(method);
+                  return;
+                }
+                setConfirming(true);
+              }}
               className="btn-navy flex-1 disabled:opacity-50"
             >
-              {t("packages.continue")}
+              {pending && (method === "card" || method === "bit")
+                ? t("common.saving")
+                : method === "card" || method === "bit"
+                  ? t("packages.continueToCardPayment")
+                  : t("packages.continue")}
             </button>
           ) : (
             <button

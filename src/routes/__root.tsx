@@ -8,7 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { createIsomorphicFn } from "@tanstack/react-start";
+import { createClientOnlyFn, createIsomorphicFn } from "@tanstack/react-start";
 import { getStartContext } from "@tanstack/start-storage-context";
 
 import appCss from "../styles.css?url";
@@ -229,15 +229,20 @@ function readLangCookie(cookieHeader: string | null) {
   return null;
 }
 
+const registerAdminPushNotifications = createClientOnlyFn(() => {
+  void import("@/lib/adminPush.client")
+    .then(({ maybeRegisterAdminPushNotifications }) => maybeRegisterAdminPushNotifications())
+    .catch(() => undefined);
+});
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
     }
-    void getFreshSupabaseSession();
+    void getFreshSupabaseSession().then(() => registerAdminPushNotifications());
     if (typeof window !== "undefined") {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())
@@ -275,6 +280,7 @@ function RootComponent() {
         return;
       }
       syncSupabaseAccessTokenCookie(session);
+      registerAdminPushNotifications();
       if (event === "SIGNED_IN") return;
       router.invalidate();
       void queryClient.invalidateQueries();

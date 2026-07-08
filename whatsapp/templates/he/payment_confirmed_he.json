@@ -1,0 +1,14 @@
+{
+  "name": "payment_confirmed_he",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "שלום {{1}}, התשלום שלך אושר ✨\n\nהחבילה הופעלה:\n{{2}}\n\nקרדיטים זמינים: {{3}}\n\nאפשר להיכנס לאפליקציה ולהזמין שיעורים.",
+      "example": {
+        "body_text": [["נורה", "חבילת 8 שיעורים", "8"]]
+      }
+    }
+  ]
+}

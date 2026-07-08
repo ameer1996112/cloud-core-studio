@@ -12,6 +12,7 @@ import {
 import {
   getNextAllowedSendTime,
   resolveNotificationTimingState,
+  shouldAutoQueueOfficialWhatsappNotification,
   shouldAutoQueueOpenwaNotification,
   shouldBypassQuietHoursForOpenwaNotification,
 } from "@/lib/notificationDelivery";
@@ -102,6 +103,17 @@ function toDate(value: Date | string | null | undefined): Date | null {
   return value instanceof Date ? value : new Date(value);
 }
 
+function resolveWhatsappNotificationProvider() {
+  const configured = process.env.WHATSAPP_NOTIFICATION_PROVIDER?.trim().toLowerCase();
+  if (configured === "official_whatsapp" || configured === "meta" || configured === "cloud_api") {
+    return "official_whatsapp";
+  }
+  if (configured === "openwa") return "openwa";
+  return process.env.META_ACCESS_TOKEN?.trim() && process.env.META_WHATSAPP_PHONE_NUMBER_ID?.trim()
+    ? "official_whatsapp"
+    : "openwa";
+}
+
 export function buildNotificationDraftRows(
   input: NotificationDraftInput,
 ): NotificationLogInsertRow[] {
@@ -115,6 +127,7 @@ export function buildNotificationDraftRows(
   };
 
   return input.channels.map((channel) => {
+    const whatsappProvider = channel === "whatsapp" ? resolveWhatsappNotificationProvider() : null;
     const language =
       channel === "whatsapp"
         ? "he"
@@ -162,9 +175,13 @@ export function buildNotificationDraftRows(
         ? "draft"
         : timingState !== "queued"
           ? timingState
-          : shouldAutoQueueOpenwaNotification(input.eventKey)
-            ? "queued"
-            : "draft";
+          : whatsappProvider === "official_whatsapp"
+            ? shouldAutoQueueOfficialWhatsappNotification(input.eventKey)
+              ? "queued"
+              : "draft"
+            : shouldAutoQueueOpenwaNotification(input.eventKey)
+              ? "queued"
+              : "draft";
 
     return {
       template_key: `${input.eventKey}.${channel}.${language}.${audience}`,
@@ -187,7 +204,7 @@ export function buildNotificationDraftRows(
       generated_text: rendered.body,
       subject: rendered.subject,
       language,
-      provider: channel === "whatsapp" ? "openwa" : null,
+      provider: whatsappProvider,
       provider_message_id: null,
       scheduled_for: scheduledFor?.toISOString() ?? null,
       sent_at: null,

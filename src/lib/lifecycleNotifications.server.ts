@@ -3,6 +3,10 @@ import {
   buildNotificationDraftRows,
   type NotificationLogInsertRow,
 } from "@/lib/notificationDrafts";
+import {
+  formatClassDate as formatClassDateInStudioTime,
+  formatClassTime as formatClassTimeInStudioTime,
+} from "@/lib/messageTemplate";
 import type { NotificationEventKey } from "@/lib/notificationTemplates";
 
 type Member = {
@@ -83,15 +87,12 @@ function addDays(date: Date, days: number) {
 
 function formatClassDate(value: string | null | undefined) {
   if (!value) return "";
-  return new Date(value).toLocaleDateString("en-GB");
+  return formatClassDateInStudioTime(value);
 }
 
 function formatClassTime(value: string | null | undefined) {
   if (!value) return "";
-  return new Date(value).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatClassTimeInStudioTime(value);
 }
 
 function formatDate(value: string | null | undefined) {

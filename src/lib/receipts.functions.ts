@@ -161,16 +161,11 @@ export const confirmPaymentAndIssueReceipt = createServerFn({ method: "POST" })
     return typedResult;
   });
 
-/**
- * Stub for online checkout. Returns provider_not_configured until Stripe/Paddle
- * is enabled at the studio level. The signature is intentionally stable so the
- * UI can call this today and the implementation can be filled in later without
- * changing the call site.
- */
+/** Member: create a hosted checkout session for the configured online payment provider. */
 export const createCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ plan_id: z.string().uuid() }).parse(d))
-  .handler(async ({ context }) => {
+  .handler(async ({ data, context }) => {
     const { data: s } = await context.supabase
       .from("studio_settings")
       .select("payments_enabled, payments_provider, payments_mode")
@@ -185,10 +180,96 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           "Online payments are not connected yet. Please use the Request package option, and the studio will contact you.",
       };
     }
-    // Provider-specific implementation will land in the next pass once
-    // Stripe/Paddle is enabled. Server fn surface remains the same.
-    return {
-      status: "provider_not_configured" as const,
-      message: "This provider is configured but checkout is not implemented yet.",
-    };
+    if (provider !== "hyp") {
+      return {
+        status: "provider_not_configured" as const,
+        message: "This provider is configured but checkout is not implemented yet.",
+      };
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { createHypPaymentPage } = await import("@/lib/hyp.server");
+
+    const [memberRes, planRes] = await Promise.all([
+      context.supabase.from("members").select("id,name").eq("id", context.userId).maybeSingle(),
+      context.supabase
+        .from("plans")
+        .select("id,name,description,price_cents,currency,credits,duration_days,active")
+        .eq("id", data.plan_id)
+        .eq("active", true)
+        .maybeSingle(),
+    ]);
+    if (memberRes.error) throw memberRes.error;
+    if (planRes.error) throw planRes.error;
+    if (!memberRes.data) throw new Error("member_profile_missing");
+    if (!planRes.data) throw new Error("plan_not_found");
+
+    const amountAgorot = Number(planRes.data.price_cents ?? 0);
+    if (!Number.isFinite(amountAgorot) || amountAgorot <= 0) throw new Error("invalid_plan_amount");
+
+    const { data: payment, error: insertError } = await supabaseAdmin
+      .from("payments")
+      .insert({
+        member_id: context.userId,
+        plan_id: planRes.data.id,
+        amount: amountAgorot / 100,
+        currency: planRes.data.currency ?? "ILS",
+        method: "card",
+        provider: "hyp",
+        provider_status: "created",
+        status: "pending",
+        notes: `HYP checkout for ${planRes.data.name}`,
+        metadata: {
+          checkout_provider: "hyp",
+          payments_mode: (s as any)?.payments_mode ?? "test",
+        },
+      })
+      .select("id")
+      .single();
+    if (insertError) throw insertError;
+
+    try {
+      const page = await createHypPaymentPage({
+        paymentId: payment.id,
+        amountAgorot,
+        language: "HEB",
+        description: planRes.data.name ?? "Cloud & Core package",
+      });
+
+      await supabaseAdmin
+        .from("payments")
+        .update({
+          provider_status: "payment_page_created",
+          provider_session_id: page.token || null,
+          provider_payment_id: page.cgUid || null,
+          metadata: {
+            checkout_provider: "hyp",
+            payments_mode: (s as any)?.payments_mode ?? "test",
+            hyp_result: page.result,
+            hyp_message: page.message,
+          },
+        })
+        .eq("id", payment.id);
+
+      return {
+        status: "ready" as const,
+        provider: "hyp" as const,
+        payment_id: payment.id,
+        checkout_url: page.paymentUrl,
+      };
+    } catch (error) {
+      await supabaseAdmin
+        .from("payments")
+        .update({
+          status: "failed",
+          provider_status: "payment_page_failed",
+          metadata: {
+            checkout_provider: "hyp",
+            payments_mode: (s as any)?.payments_mode ?? "test",
+            error: error instanceof Error ? error.message : String(error),
+          },
+        })
+        .eq("id", payment.id);
+      throw error;
+    }
   });

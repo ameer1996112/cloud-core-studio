@@ -30,9 +30,9 @@ export function waUrl(opts: { to?: string | null; text: string }): string {
 
 export function formatClassDate(iso: string, tz = "Asia/Jerusalem"): string {
   return new Date(iso).toLocaleDateString("en-GB", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
     timeZone: tz,
   });
 }

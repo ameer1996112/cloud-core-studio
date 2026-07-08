@@ -1,0 +1,14 @@
+{
+  "name": "booking_confirmed_he",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "שלום {{1}}, המקום שלך נשמר ✨\n\nשיעור: {{2}}\nמועד: {{3}} בשעה {{4}}\nמדריכה: {{5}}\n\nנשמח לראות אותך ב־Cloud & Core Studio.",
+      "example": {
+        "body_text": [["נורה", "פילאטיס מזרן", "יום רביעי, 10.7", "18:00", "יארין"]]
+      }
+    }
+  ]
+}

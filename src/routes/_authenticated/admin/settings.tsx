@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { createClientOnlyFn, useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStudioSettingsFull, updateStudioSettings } from "@/lib/studioSettings.functions";
 import { useState, useEffect, useMemo } from "react";
@@ -16,6 +16,12 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 
 type FormState = any;
 
+const registerAdminPushFromSettings = createClientOnlyFn(() =>
+  import("@/lib/adminPush.client").then(({ maybeRegisterAdminPushNotifications }) =>
+    maybeRegisterAdminPushNotifications(),
+  ),
+);
+
 const technicalTextProps = {
   dir: "ltr" as const,
   autoCapitalize: "none" as const,
@@ -29,11 +35,10 @@ function formFromSettings(data: any): FormState {
     rooms: (data.rooms ?? []).join(", "),
     energy_labels: (data.energy_labels ?? []).join(", "),
     supported_languages: (data.supported_languages ?? ["he", "ar", "en"]).join(","),
-    payments_provider:
-      data.payments_provider === "manual" || data.payments_provider === "none"
-        ? data.payments_provider
-        : "manual",
-    payments_enabled: false,
+    payments_provider: ["manual", "none", "hyp"].includes(data.payments_provider)
+      ? data.payments_provider
+      : "manual",
+    payments_enabled: !!data.payments_enabled,
   };
 }
 
@@ -76,9 +81,11 @@ function payloadFromForm(f: FormState) {
       .split(",")
       .map((value: string) => value.trim())
       .filter(Boolean),
-    payments_enabled: false,
-    payments_provider: f.payments_provider === "manual" ? "manual" : "none",
-    payments_mode: "test",
+    payments_enabled: f.payments_provider === "hyp" ? true : !!f.payments_enabled,
+    payments_provider: ["manual", "none", "hyp"].includes(f.payments_provider)
+      ? f.payments_provider
+      : "none",
+    payments_mode: f.payments_mode || "test",
     payments_success_url: f.payments_success_url || null,
     payments_cancel_url: f.payments_cancel_url || null,
     receipt_prefix: f.receipt_prefix || "CC",
@@ -101,6 +108,8 @@ function Page() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["studio-settings-full"], queryFn: () => getFn() });
   const [f, setF] = useState<FormState>(null);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushStatus, setPushStatus] = useState("");
   const originalPayload = useMemo(
     () => (data ? payloadFromForm(formFromSettings(data)) : null),
     [data],
@@ -151,6 +160,47 @@ function Page() {
   const waNumberPreview = f.whatsapp_number || f.public_phone || "";
   const waLink = waDigits(waNumberPreview) ? "https://wa.me/" + waDigits(waNumberPreview) : "";
   const packageMsg = t("settings.packageMsg", { studio: f.studio_name || "the studio" });
+
+  async function enableAdminPushNotifications() {
+    setPushBusy(true);
+    setPushStatus("");
+    try {
+      const result = await registerAdminPushFromSettings();
+      if (!result) {
+        const message = "Open the installed iPhone app, not Safari or the browser.";
+        setPushStatus(message);
+        toast.error(message);
+        return;
+      }
+      if (result.ok) {
+        const message = "iPhone notification registration started. If iOS asks, tap Allow.";
+        setPushStatus(message);
+        toast.success(message);
+        return;
+      }
+
+      const message =
+        result.skipped === "not_native"
+          ? "Open the installed iPhone app, not Safari or the browser."
+          : result.skipped === "no_session"
+            ? "Log in as admin first, then try again."
+            : result.skipped === "not_admin"
+              ? "This account is not an admin."
+              : result.skipped === "permission_denied"
+                ? "Notifications are denied. Enable them in iPhone Settings > Cloud & Core > Notifications."
+                : result.skipped === "already_started"
+                  ? "Registration already started. Close and reopen the app if no prompt appears."
+                  : `Notifications were not granted (${result.permission ?? "unknown"}).`;
+      setPushStatus(message);
+      toast.error(message);
+    } catch (error) {
+      const message = friendlyErrorMessage(error, "Could not start iPhone notifications.");
+      setPushStatus(message);
+      toast.error(message);
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   return (
     <AdminPageShell className="settings-page" dir={dir}>
@@ -329,7 +379,13 @@ function Page() {
               <p className="settings-payment-title">{t("settings.creditCardComingSoon")}</p>
               <p className="settings-payment-copy">{t("settings.manualPaymentsActive")}</p>
             </div>
-            <span className="settings-status-pill">{t("settings.payment.manual")}</span>
+            <span className="settings-status-pill">
+              {f.payments_provider === "hyp"
+                ? t("settings.payment.hyp")
+                : f.payments_provider === "none"
+                  ? t("settings.payment.none")
+                  : t("settings.payment.manual")}
+            </span>
           </div>
           <Grid>
             <FieldRow
@@ -339,11 +395,16 @@ function Page() {
               <select
                 dir={dir}
                 className="settings-input"
-                value={f.payments_provider === "manual" ? "manual" : "none"}
+                value={
+                  ["manual", "none", "hyp"].includes(f.payments_provider)
+                    ? f.payments_provider
+                    : "none"
+                }
                 onChange={(e) => set({ payments_provider: e.target.value })}
               >
                 <option value="none">{t("settings.payment.none")}</option>
                 <option value="manual">{t("settings.payment.manual")}</option>
+                <option value="hyp">{t("settings.payment.hyp")}</option>
               </select>
             </FieldRow>
             <FieldRow label={t("settings.receiptPrefix")} hint={t("settings.receiptPrefixHint")}>
@@ -501,6 +562,30 @@ function Page() {
               onChange={(v) => set({ email_enabled: v })}
             />
           </Toggles>
+          <Divider />
+          <div className="rounded-xl border border-gold/18 bg-ivory/70 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="settings-toggle-label">iPhone admin notifications</p>
+                <p className="settings-toggle-hint">
+                  Enable alerts for new member signups on this admin device.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={pushBusy}
+                onClick={enableAdminPushNotifications}
+                className="settings-save-button w-full sm:w-auto"
+              >
+                {pushBusy ? "Checking..." : "Enable on this iPhone"}
+              </button>
+            </div>
+            {pushStatus ? (
+              <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-sm text-slate">
+                {pushStatus}
+              </p>
+            ) : null}
+          </div>
         </Section>
 
         <Section title={t("settings.legacy.title")} helper={t("settings.legacy.helper")} compact>

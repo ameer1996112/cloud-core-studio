@@ -1,0 +1,14 @@
+{
+  "name": "class_cancelled_by_admin_he",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "שלום {{1}}, השיעור {{2}} בתאריך {{3}} בשעה {{4}} בוטל.\n\nאם השתמשת בקרדיט להרשמה, הקרדיט יוחזר לחשבון שלך בהתאם למדיניות הסטודיו.\n\nCloud & Core Studio",
+      "example": {
+        "body_text": [["נורה", "פילאטיס מזרן", "יום ראשון, 14.7", "18:00"]]
+      }
+    }
+  ]
+}

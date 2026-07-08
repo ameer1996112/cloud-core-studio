@@ -32,6 +32,20 @@ export function requireOpenwaAutomationAuth(request: Request): Response | null {
   return null;
 }
 
+export function requireNotificationAutomationAuth(request: Request): Response | null {
+  const configuredToken =
+    process.env.NOTIFICATION_AUTOMATION_TOKEN?.trim() ||
+    process.env.OPENWA_AUTOMATION_TOKEN?.trim();
+  if (!configuredToken) return unauthorizedResponse();
+
+  const bearerToken = readBearerToken(request.headers.get("authorization"));
+  if (!bearerToken || bearerToken !== configuredToken) {
+    return unauthorizedResponse();
+  }
+
+  return null;
+}
+
 export async function readJsonBody(request: Request): Promise<unknown> {
   const rawBody = await request.text();
   if (!rawBody.trim()) return {};

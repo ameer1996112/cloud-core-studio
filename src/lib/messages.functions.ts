@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
+import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -23,11 +24,8 @@ async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
 function buildClassVariables(cls: any) {
   return {
     class_name: cls.title,
-    class_date: new Date(cls.starts_at).toLocaleDateString("en-GB"),
-    class_time: new Date(cls.starts_at).toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    class_date: formatClassDate(cls.starts_at),
+    class_time: formatClassTime(cls.starts_at),
     instructor_name: cls.instructor?.name ?? "",
   };
 }

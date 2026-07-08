@@ -17,6 +17,15 @@ const AUTOMATED_OPENWA_EVENT_TYPES = new Set([
   "no_upcoming_booking_14d",
 ]);
 
+const AUTOMATED_OFFICIAL_WHATSAPP_EVENT_TYPES = new Set([
+  "payment_confirmed",
+  "booking_confirmed",
+  "class_reminder_24h",
+  "waitlist_spot_available",
+  "class_cancelled_by_admin",
+  "class_time_changed",
+]);
+
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 
 type TimezoneParts = {
@@ -190,6 +199,10 @@ export function computeRetrySchedule(input: {
 
 export function shouldAutoQueueOpenwaNotification(eventType: string): boolean {
   return AUTOMATED_OPENWA_EVENT_TYPES.has(eventType.trim().toLowerCase());
+}
+
+export function shouldAutoQueueOfficialWhatsappNotification(eventType: string): boolean {
+  return AUTOMATED_OFFICIAL_WHATSAPP_EVENT_TYPES.has(eventType.trim().toLowerCase());
 }
 
 export function shouldBypassQuietHoursForOpenwaNotification(eventType: string): boolean {
