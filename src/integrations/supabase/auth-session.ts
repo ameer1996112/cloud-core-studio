@@ -1,6 +1,10 @@
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./client";
-import { clearSupabaseAccessTokenCookie, syncSupabaseAccessTokenCookie } from "./session-cookie";
+import {
+  clearSupabaseAccessTokenCookie,
+  readSupabaseRefreshTokenCookie,
+  syncSupabaseAccessTokenCookie,
+} from "./session-cookie";
 
 const REFRESH_MARGIN_SECONDS = 5 * 60;
 
@@ -15,14 +19,12 @@ function secondsUntilSessionExpires(session: Session) {
 export async function getFreshSupabaseSession() {
   const { data, error } = await supabase.auth.getSession();
   if (error) {
-    clearSupabaseAccessTokenCookie();
-    return null;
+    return restoreSessionFromRefreshCookie();
   }
 
   const session = data.session;
   if (!session) {
-    clearSupabaseAccessTokenCookie();
-    return null;
+    return restoreSessionFromRefreshCookie();
   }
 
   if (secondsUntilSessionExpires(session) > REFRESH_MARGIN_SECONDS) {
@@ -38,4 +40,21 @@ export async function getFreshSupabaseSession() {
 
   syncSupabaseAccessTokenCookie(refreshed.session);
   return refreshed.session;
+}
+
+async function restoreSessionFromRefreshCookie() {
+  const refreshToken = readSupabaseRefreshTokenCookie();
+  if (!refreshToken) {
+    clearSupabaseAccessTokenCookie();
+    return null;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+  if (error || !data.session) {
+    clearSupabaseAccessTokenCookie();
+    return null;
+  }
+
+  syncSupabaseAccessTokenCookie(data.session);
+  return data.session;
 }

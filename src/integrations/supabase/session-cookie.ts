@@ -1,7 +1,10 @@
 export const SUPABASE_ACCESS_TOKEN_COOKIE = "cc_sb_access_token";
+export const SUPABASE_REFRESH_TOKEN_COOKIE = "cc_sb_refresh_token";
+const REFRESH_TOKEN_COOKIE_MAX_AGE_SECONDS = 60 * 24 * 60 * 60;
 
 type SupabaseSessionLike = {
   access_token?: string | null;
+  refresh_token?: string | null;
   expires_at?: number | null;
   expires_in?: number | null;
 } | null;
@@ -45,6 +48,28 @@ export function writeSupabaseAccessTokenCookie(token: string, maxAgeSeconds = 36
     .join("; ");
 }
 
+function writeSupabaseRefreshTokenCookie(token: string) {
+  if (typeof document === "undefined") return;
+  document.cookie = [
+    `${SUPABASE_REFRESH_TOKEN_COOKIE}=${encodeURIComponent(token)}`,
+    "Path=/",
+    `Max-Age=${REFRESH_TOKEN_COOKIE_MAX_AGE_SECONDS}`,
+    "SameSite=Lax",
+    cookieSecureFlag().replace(/^; /, ""),
+  ]
+    .filter(Boolean)
+    .join("; ");
+}
+
+export function readSupabaseRefreshTokenCookie() {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${SUPABASE_REFRESH_TOKEN_COOKIE}=`));
+  return match ? decodeURIComponent(match.slice(SUPABASE_REFRESH_TOKEN_COOKIE.length + 1)) : null;
+}
+
 export function syncSupabaseAccessTokenCookie(session: SupabaseSessionLike) {
   const token = session?.access_token;
   if (!token) {
@@ -53,17 +78,20 @@ export function syncSupabaseAccessTokenCookie(session: SupabaseSessionLike) {
   }
 
   writeSupabaseAccessTokenCookie(token, getAccessTokenCookieMaxAgeSeconds(session));
+  if (session?.refresh_token) writeSupabaseRefreshTokenCookie(session.refresh_token);
 }
 
 export function clearSupabaseAccessTokenCookie() {
   if (typeof document === "undefined") return;
-  document.cookie = [
-    `${SUPABASE_ACCESS_TOKEN_COOKIE}=`,
-    "Path=/",
-    "Max-Age=0",
-    "SameSite=Lax",
-    cookieSecureFlag().replace(/^; /, ""),
-  ]
-    .filter(Boolean)
-    .join("; ");
+  for (const name of [SUPABASE_ACCESS_TOKEN_COOKIE, SUPABASE_REFRESH_TOKEN_COOKIE]) {
+    document.cookie = [
+      `${name}=`,
+      "Path=/",
+      "Max-Age=0",
+      "SameSite=Lax",
+      cookieSecureFlag().replace(/^; /, ""),
+    ]
+      .filter(Boolean)
+      .join("; ");
+  }
 }

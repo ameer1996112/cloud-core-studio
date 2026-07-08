@@ -1,7 +1,10 @@
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import { getRequest } from "@tanstack/react-start/server";
-import { SUPABASE_ACCESS_TOKEN_COOKIE } from "@/integrations/supabase/session-cookie";
+import {
+  SUPABASE_ACCESS_TOKEN_COOKIE,
+  SUPABASE_REFRESH_TOKEN_COOKIE,
+} from "@/integrations/supabase/session-cookie";
 import type { AppRole } from "@/lib/auth-redirect";
 import type { AuthRouteContext } from "./route-guards";
 
@@ -27,13 +30,22 @@ export async function getServerAuthRouteContext(): Promise<AuthRouteContext | nu
 
   const request = getRequest();
   const token = readCookie(request?.headers.get("cookie") ?? null, SUPABASE_ACCESS_TOKEN_COOKIE);
-  if (!token) return null;
+  const refreshToken = readCookie(
+    request?.headers.get("cookie") ?? null,
+    SUPABASE_REFRESH_TOKEN_COOKIE,
+  );
 
-  const serverSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
+  const refreshSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
-  const { data: claimsData, error: claimsError } = await serverSupabase.auth.getClaims(token);
+  const accessToken = token ?? (await refreshAccessToken(refreshSupabase, refreshToken));
+  if (!accessToken) return null;
+
+  const serverSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+  const { data: claimsData, error: claimsError } = await serverSupabase.auth.getClaims(accessToken);
   const userId = claimsData?.claims?.sub;
   if (claimsError || !userId) return null;
 
@@ -48,4 +60,15 @@ export async function getServerAuthRouteContext(): Promise<AuthRouteContext | nu
     user: { id: userId } as User,
     role: normalizeRouteRole(profile?.role),
   };
+}
+
+async function refreshAccessToken(
+  supabase: ReturnType<typeof createClient>,
+  refreshToken: string | null,
+) {
+  if (!refreshToken) return null;
+
+  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+  if (error || !data.session?.access_token) return null;
+  return data.session.access_token;
 }
