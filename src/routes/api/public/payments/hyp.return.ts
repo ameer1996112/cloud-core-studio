@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getHypConfig, hypRedirectMetadata, validateHypRedirect } from "@/lib/hyp.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 
 function pickSearchParam(params: URLSearchParams, ...names: string[]) {
   for (const name of names) {
@@ -19,6 +20,95 @@ async function firstAdminUserId() {
     .maybeSingle();
   if (error) throw error;
   return data?.id ?? null;
+}
+
+type ConfirmPaymentResult = {
+  status: string;
+  payment_id: string;
+  receipt_id: string;
+  receipt_number: string;
+  member_plan_id?: string | null;
+};
+
+async function insertNotificationDraftRows(rows: ReturnType<typeof buildNotificationDraftRows>) {
+  if (!rows.length) return;
+  const { error } = await supabaseAdmin
+    .from("notification_logs")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (error) console.error("hyp_return_notification_insert_failed", error.message);
+}
+
+async function enqueuePaymentConfirmedNotifications(result: ConfirmPaymentResult) {
+  if (!result.payment_id || !result.receipt_id) return;
+
+  try {
+    const [paymentRes, receiptRes, settingsRes] = await Promise.all([
+      supabaseAdmin
+        .from("payments")
+        .select(
+          "id,amount,currency,member:members(id,name,phone,email,preferred_language),plan:plans(name)",
+        )
+        .eq("id", result.payment_id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("receipts")
+        .select("id,receipt_number,plan_name_snapshot")
+        .eq("id", result.receipt_id)
+        .maybeSingle(),
+      supabaseAdmin.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
+    ]);
+
+    if (paymentRes.error) throw paymentRes.error;
+    if (receiptRes.error) throw receiptRes.error;
+    if (settingsRes.error) throw settingsRes.error;
+
+    const payment = paymentRes.data as any;
+    const receipt = receiptRes.data as any;
+    if (!payment?.member) return;
+
+    const packageName = payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
+    const paymentRows = buildNotificationDraftRows({
+      eventKey: "payment_confirmed",
+      channels: ["whatsapp", "email"],
+      audience: "member",
+      member: payment.member,
+      appLanguage: null,
+      studioSettings: settingsRes.data ?? null,
+      relatedIds: {
+        paymentId: result.payment_id,
+        receiptId: result.receipt_id,
+        memberPlanId: result.member_plan_id ?? null,
+      },
+      variables: {
+        package_name: packageName,
+        amount: payment.amount,
+        currency: payment.currency,
+      },
+    });
+    const receiptRows = receipt
+      ? buildNotificationDraftRows({
+          eventKey: "receipt_issued",
+          channels: ["whatsapp", "email"],
+          audience: "member",
+          member: payment.member,
+          appLanguage: null,
+          studioSettings: settingsRes.data ?? null,
+          relatedIds: {
+            paymentId: result.payment_id,
+            receiptId: result.receipt_id,
+            memberPlanId: result.member_plan_id ?? null,
+          },
+          variables: {
+            package_name: packageName,
+            receipt_number: receipt.receipt_number ?? result.receipt_number,
+          },
+        })
+      : [];
+
+    await insertNotificationDraftRows([...paymentRows, ...receiptRows]);
+  } catch (error) {
+    console.error("hyp_return_notification_prepare_failed", error);
+  }
 }
 
 function paymentResult(
@@ -107,6 +197,11 @@ export const Route = createFileRoute("/api/public/payments/hyp/return")({
         if (error || (data as any)?.status === "error") {
           console.error("hyp_return_confirm_failed", error ?? data);
           throw redirect(paymentResult("pending", paymentId));
+        }
+
+        const result = data as ConfirmPaymentResult;
+        if (result.status === "confirmed" || result.status === "already_confirmed") {
+          await enqueuePaymentConfirmedNotifications(result);
         }
 
         throw redirect(paymentResult("success", paymentId));
