@@ -21,6 +21,13 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const SESSION_RESTORE_TIMEOUT_MS = 6000;
+const SESSION_RESTORE_RETRY_MS = 650;
+
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 function AuthPage() {
   const { lang, dir } = useI18n();
   useDocumentTitle("page.auth.title");
@@ -61,22 +68,34 @@ function AuthPage() {
         return;
       }
 
-      try {
-        const session = await getFreshSupabaseSession();
-        const uid = session?.user?.id;
-        if (!uid) return;
+      let redirected = false;
+      const restoreStartedAt = Date.now();
 
-        const role = await getCurrentRole(uid);
-        const fallbackTo = roleHome(role);
-        const to = resolvePostAuthDestination({
-          fallbackTo,
-          origin: window.location.origin,
-          returnTo: url.searchParams.get("returnTo"),
-          storage: window.sessionStorage,
-        });
-        if (!cancelled) navigate({ to, replace: true });
+      try {
+        while (!cancelled && Date.now() - restoreStartedAt < SESSION_RESTORE_TIMEOUT_MS) {
+          const session = await getFreshSupabaseSession();
+          const uid = session?.user?.id;
+          if (!uid) {
+            await wait(SESSION_RESTORE_RETRY_MS);
+            continue;
+          }
+
+          const role = await getCurrentRole(uid);
+          const fallbackTo = roleHome(role);
+          const to = resolvePostAuthDestination({
+            fallbackTo,
+            origin: window.location.origin,
+            returnTo: url.searchParams.get("returnTo"),
+            storage: window.sessionStorage,
+          });
+          if (!cancelled) {
+            redirected = true;
+            navigate({ to, replace: true });
+          }
+          return;
+        }
       } finally {
-        if (!cancelled) setRestoringSession(false);
+        if (!cancelled && !redirected) setRestoringSession(false);
       }
     }
 
