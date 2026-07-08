@@ -171,50 +171,67 @@ function ReceiptPage() {
         </button>
       </div>
 
-      <article className="member-card bg-ivory p-5 sm:p-8 md:p-12 space-y-7 print:border-0 print:p-0">
-        <header className="grid grid-cols-1 gap-5 border-b border-gold/30 pb-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6">
-          <div className="min-w-0">
-            <p className="eyebrow text-slate">{t("receipt.paymentReceipt")}</p>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-navy mt-1 leading-tight break-words">
-              {studioName}
-            </h1>
-            <div className="mt-2 space-y-0.5 text-xs text-slate">
-              {settings?.address && <p className="break-words">{settings.address}</p>}
-              {(settings?.public_phone || settings?.whatsapp_number) && (
-                <p dir="ltr" className="member-ltr-value break-words">
-                  {settings.public_phone ?? settings.whatsapp_number}
-                </p>
-              )}
-              {settings?.contact_email && (
-                <p dir="ltr" className="member-ltr-value break-all">
-                  {settings.contact_email}
-                </p>
-              )}
+      <article className="member-card relative overflow-hidden bg-[#fffdf8] p-0 shadow-[0_28px_70px_-42px_rgba(11,29,58,0.45)] print:border-0 print:p-0 print:shadow-none">
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-gold/25 via-navy to-gold/35" />
+
+        <header className="px-5 pb-6 pt-7 sm:px-8 md:px-10">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="inline-flex rounded-full border border-gold/25 bg-white/70 px-3 py-1 text-xs font-semibold text-slate">
+                {t("receipt.paymentReceipt")}
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <img
+                  src="/brand/cloud-core-logo-full.png"
+                  alt="Cloud & Core"
+                  className="h-auto w-36 shrink-0 sm:w-44"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div className="mt-4 max-w-sm space-y-1 text-xs leading-5 text-slate">
+                <p className="font-semibold text-navy break-words">{studioName}</p>
+                {settings?.address && <p className="break-words">{settings.address}</p>}
+                {(settings?.public_phone || settings?.whatsapp_number) && (
+                  <p dir="ltr" className="member-ltr-value break-words">
+                    {settings.public_phone ?? settings.whatsapp_number}
+                  </p>
+                )}
+                {settings?.contact_email && (
+                  <p dir="ltr" className="member-ltr-value break-all">
+                    {settings.contact_email}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="min-w-0 text-start sm:text-end sm:shrink-0">
-            <p className="text-xs font-medium text-slate">{t("receipt.number")}</p>
-            <p
-              dir="ltr"
-              className="font-display text-lg sm:text-xl md:text-2xl text-navy mt-1 break-words"
-            >
-              {r.receipt_number}
-            </p>
-            <p className="text-xs text-slate mt-2">
-              <LtrInline>{formatDate(issuedAt)}</LtrInline>
-            </p>
-            <p className="mt-2 text-xs font-medium text-navy/70">{labelForStatus(status)}</p>
+
+            <div className="min-w-0 rounded-2xl border border-gold/25 bg-ivory/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:w-56 sm:shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-slate">{t("receipt.number")}</p>
+                <span className="rounded-full border border-navy/10 bg-navy/5 px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
+                  {labelForStatus(status)}
+                </span>
+              </div>
+              <p dir="ltr" className="mt-3 font-display text-2xl leading-tight text-navy break-all">
+                {r.receipt_number}
+              </p>
+              <p className="mt-2 text-xs font-medium text-slate">
+                <LtrInline>{formatDate(issuedAt)}</LtrInline>
+              </p>
+            </div>
           </div>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
-          <div className="min-w-0">
+        <div className="mx-5 border-t border-gold/20 sm:mx-8 md:mx-10" />
+
+        <section className="grid gap-3 px-5 py-5 text-sm sm:grid-cols-2 sm:px-8 md:px-10">
+          <div className="min-w-0 rounded-2xl border border-gold/20 bg-white/55 p-4">
             <p className="eyebrow text-slate/80">{t("receipt.issuedTo")}</p>
-            <p className="text-navy mt-1.5 font-medium truncate">{memberName}</p>
+            <p className="mt-2 text-base font-semibold text-navy break-words">{memberName}</p>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 rounded-2xl border border-gold/20 bg-white/55 p-4">
             <p className="eyebrow text-slate/80">{t("receipt.paymentMethod")}</p>
-            <p className="text-navy mt-1.5 text-sm font-medium">{methodLabel}</p>
+            <p className="mt-2 text-base font-semibold text-navy">{methodLabel}</p>
             {provider && (
               <p className="mt-1 text-xs font-medium text-slate">
                 {t("receipt.via", { provider })}
@@ -228,39 +245,48 @@ function ReceiptPage() {
           </div>
         </section>
 
-        <section className="border-t border-b border-gold/20 py-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-            <div className="min-w-0">
-              <p className="text-navy text-base sm:text-lg break-words">{planDisplayName}</p>
-              {creditLine && <p className="text-xs text-slate mt-1">{creditLine}</p>}
-              {r.payment?.reference && (
-                <p dir="ltr" className="text-xs text-slate mt-1 break-all">
-                  {t("receipt.ref", { ref: r.payment.reference })}
+        <section className="px-5 pb-5 sm:px-8 md:px-10">
+          <div className="rounded-[22px] border border-gold/25 bg-ivory/70 p-4 sm:p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="eyebrow text-slate/80">{t("receipt.studioPayment")}</p>
+                <p className="mt-2 text-lg font-semibold leading-tight text-navy break-words">
+                  {planDisplayName}
                 </p>
-              )}
+                {creditLine && <p className="mt-1 text-xs text-slate">{creditLine}</p>}
+                {r.payment?.reference && (
+                  <p dir="ltr" className="mt-1 text-xs text-slate break-all">
+                    {t("receipt.ref", { ref: r.payment.reference })}
+                  </p>
+                )}
+              </div>
+              <p className="numeric-display font-display text-4xl leading-none text-navy sm:text-end">
+                {formatAmount(Number(r.amount))}
+              </p>
             </div>
-            <p className="font-display text-2xl sm:text-3xl numeric-display text-navy whitespace-nowrap sm:text-end">
-              {formatAmount(Number(r.amount))}
-            </p>
           </div>
         </section>
 
-        <section className="flex items-center justify-between text-sm">
-          <p className="eyebrow text-slate/80">{t("receipt.totalPaid")}</p>
-          <p className="font-display text-xl sm:text-2xl numeric-display text-navy">
+        <section className="mx-5 mb-5 rounded-[24px] bg-navy px-5 py-5 text-ivory shadow-[0_20px_45px_-30px_rgba(11,29,58,0.75)] sm:mx-8 sm:flex sm:items-center sm:justify-between sm:px-6 md:mx-10">
+          <p className="text-xs font-semibold text-ivory/70">{t("receipt.totalPaid")}</p>
+          <p className="numeric-display mt-2 font-display text-4xl leading-none sm:mt-0">
             {formatAmount(Number(r.amount))}
           </p>
         </section>
 
-        {r.footer_note && (
-          <p className="text-xs text-slate leading-relaxed border-t border-gold/20 pt-4 whitespace-pre-wrap">
-            {r.footer_note}
-          </p>
-        )}
+        <div className="space-y-4 px-5 pb-7 sm:px-8 md:px-10">
+          {r.footer_note && (
+            <div className="rounded-2xl border border-gold/20 bg-white/50 p-4 text-center">
+              <p className="text-sm leading-relaxed text-slate whitespace-pre-wrap">
+                {r.footer_note}
+              </p>
+            </div>
+          )}
 
-        <p className="border-t border-gold/10 pt-4 text-xs leading-relaxed text-slate/70">
-          {t("receipt.legalNote")}
-        </p>
+          <p className="border-t border-gold/10 pt-4 text-xs leading-relaxed text-slate/70">
+            {t("receipt.legalNote")}
+          </p>
+        </div>
       </article>
     </div>
   );
