@@ -83,11 +83,29 @@ function PaymentResultPage() {
   return (
     <main
       dir="rtl"
-      className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_50%_-12%,rgba(212,175,106,0.16),transparent_34%),linear-gradient(180deg,#fffdf9_0%,#faf7f2_52%,#f4efe7_100%)] px-5 py-[max(2.5rem,env(safe-area-inset-top))] text-navy"
+      className="relative min-h-screen overflow-hidden bg-[#f7f1e8] px-5 py-[max(2.5rem,env(safe-area-inset-top))] text-navy"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[linear-gradient(180deg,rgba(11,29,58,0.05),transparent)]" />
+      <img
+        src="/images/auth/cloud-core-auth-hero.webp"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.13] blur-[1px] saturate-[0.85]"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.92),rgba(255,253,249,0.84)_44%,rgba(244,238,228,0.92)_100%)]" />
+      <div className="pointer-events-none absolute inset-x-10 top-8 h-32 rounded-full bg-white/55 blur-3xl" />
       <section className="relative mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-md items-center">
-        <div className="w-full rounded-[2rem] border border-gold/25 bg-white/88 p-7 text-center shadow-[0_34px_92px_rgba(11,29,58,0.18)] backdrop-blur-xl sm:p-8">
+        <div className="w-full rounded-[2rem] border border-white/80 bg-white/92 p-7 text-center shadow-[0_34px_92px_rgba(11,29,58,0.16)] backdrop-blur-xl sm:p-8">
+          <div className="mx-auto mb-6 flex flex-col items-center">
+            <img
+              src="/brand/cloud-core-wordmark.svg"
+              alt="Cloud & Core"
+              width={520}
+              height={120}
+              className="h-auto w-44 max-w-full"
+            />
+            <div className="mt-3 h-px w-24 bg-gradient-to-l from-transparent via-gold/70 to-transparent" />
+          </div>
+
           <div
             className={`mx-auto flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full border ${toneClass}`}
           >
