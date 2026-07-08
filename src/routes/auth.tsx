@@ -212,12 +212,12 @@ function AuthPage() {
           src={authImages.hero.src}
           alt=""
           aria-hidden="true"
-          className="h-full w-full object-cover opacity-[0.56] md:opacity-[0.72]"
+          className="h-full w-full object-cover opacity-[0.48] contrast-[1.08] saturate-[0.94] md:opacity-[0.66]"
           loading="eager"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(250,247,242,0.44)_0%,rgba(250,247,242,0.78)_34%,rgba(250,247,242,0.98)_100%)] md:bg-[linear-gradient(90deg,rgba(250,247,242,0.98)_0%,rgba(250,247,242,0.90)_44%,rgba(250,247,242,0.36)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(212,175,106,0.18),transparent_34%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(246,238,226,0.28)_0%,rgba(246,238,226,0.58)_36%,rgba(246,238,226,0.92)_100%)] md:bg-[linear-gradient(90deg,rgba(246,238,226,0.94)_0%,rgba(246,238,226,0.74)_46%,rgba(246,238,226,0.18)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.38),transparent_30%),linear-gradient(180deg,rgba(11,29,58,0.08),transparent_42%,rgba(11,29,58,0.07))]" />
       </div>
 
       <header className="auth-mobile-topbar">
@@ -255,7 +255,10 @@ function AuthPage() {
                   role="status"
                   aria-live="polite"
                 >
-                  <p>{t("auth.restoringSession")}</p>
+                  <span className="auth-restoring-orbit" aria-hidden="true">
+                    <span />
+                  </span>
+                  <p className="auth-restoring-text">{t("auth.restoringSession")}</p>
                 </div>
               ) : (
                 <form
