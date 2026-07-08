@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
+import { buildAuthReturnToHref } from "@/lib/guest-auth-intent";
 
 type PaymentResultStatus = "success" | "failed" | "cancelled" | "pending" | "missing";
 
@@ -20,7 +21,7 @@ const RESULT_COPY: Record<
   success: {
     title: "התשלום התקבל",
     body: "החבילה הופעלה והקרדיטים נוספו לחשבון שלך.",
-    detail: "אם הועברת למסך התחברות, אפשר להתחבר שוב ולראות את החבילה בעמוד החבילות.",
+    detail: "בגלל המעבר דרך HYP ייתכן שתצטרכי להתחבר שוב כדי לראות את החבילה בחשבון.",
     tone: "success",
   },
   pending: {
@@ -73,6 +74,7 @@ function PaymentResultPage() {
   const { status, paymentId } = Route.useSearch();
   const copy = RESULT_COPY[status];
   const Icon = copy.tone === "success" ? CheckCircle2 : copy.tone === "warning" ? Clock : XCircle;
+  const isSuccess = status === "success";
   const toneClass =
     copy.tone === "success"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700 shadow-[0_0_0_9px_rgba(209,250,229,0.64)]"
@@ -141,17 +143,17 @@ function PaymentResultPage() {
 
           <div className="mt-7 grid gap-3">
             <Link
-              to="/member/packages"
+              to={isSuccess ? buildAuthReturnToHref("/member/packages") : "/auth"}
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-navy px-5 py-3 text-base font-semibold text-ivory shadow-[0_18px_38px_rgba(11,29,58,0.22)] transition hover:bg-[#10274c]"
             >
-              מעבר לחבילות
+              {isSuccess ? "התחברות לצפייה בחבילה" : "חזרה להתחברות"}
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
-              to="/auth"
+              to="/member/schedule"
               className="inline-flex min-h-14 items-center justify-center rounded-full border border-gold/35 bg-white/80 px-5 py-3 text-base font-semibold text-navy transition hover:border-gold/60 hover:bg-ivory"
             >
-              התחברות מחדש
+              חזרה ללוח שיעורים
             </Link>
           </div>
         </div>
