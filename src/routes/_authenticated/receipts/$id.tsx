@@ -152,7 +152,7 @@ function ReceiptPage() {
   return (
     <div
       dir={dir}
-      className="member-page member-receipt-shell max-w-2xl mx-auto p-4 sm:p-6 space-y-6 print:p-0 print:max-w-none"
+      className="member-page member-receipt-shell max-w-2xl mx-auto p-4 pb-28 sm:p-6 sm:pb-10 space-y-6 print:p-0 print:max-w-none"
     >
       <style>{`
         @media print {
@@ -171,32 +171,32 @@ function ReceiptPage() {
         </button>
       </div>
 
-      <article className="member-card bg-ivory p-6 sm:p-8 md:p-12 space-y-7 print:border-0 print:p-0">
-        <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 sm:gap-6 border-b border-gold/30 pb-5">
+      <article className="member-card bg-ivory p-5 sm:p-8 md:p-12 space-y-7 print:border-0 print:p-0">
+        <header className="grid grid-cols-1 gap-5 border-b border-gold/30 pb-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6">
           <div className="min-w-0">
             <p className="eyebrow text-slate">{t("receipt.paymentReceipt")}</p>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-navy mt-1 truncate">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-navy mt-1 leading-tight break-words">
               {studioName}
             </h1>
             <div className="mt-2 space-y-0.5 text-xs text-slate">
-              {settings?.address && <p className="truncate">{settings.address}</p>}
+              {settings?.address && <p className="break-words">{settings.address}</p>}
               {(settings?.public_phone || settings?.whatsapp_number) && (
-                <p dir="ltr" className="member-ltr-value">
+                <p dir="ltr" className="member-ltr-value break-words">
                   {settings.public_phone ?? settings.whatsapp_number}
                 </p>
               )}
               {settings?.contact_email && (
-                <p dir="ltr" className="member-ltr-value truncate">
+                <p dir="ltr" className="member-ltr-value break-all">
                   {settings.contact_email}
                 </p>
               )}
             </div>
           </div>
-          <div className="text-end shrink-0">
+          <div className="min-w-0 text-start sm:text-end sm:shrink-0">
             <p className="text-xs font-medium text-slate">{t("receipt.number")}</p>
             <p
               dir="ltr"
-              className="font-display text-lg sm:text-xl md:text-2xl text-navy mt-1 break-all"
+              className="font-display text-lg sm:text-xl md:text-2xl text-navy mt-1 break-words"
             >
               {r.receipt_number}
             </p>
@@ -229,9 +229,9 @@ function ReceiptPage() {
         </section>
 
         <section className="border-t border-b border-gold/20 py-5">
-          <div className="flex items-baseline justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <p className="text-navy text-base sm:text-lg truncate">{planDisplayName}</p>
+              <p className="text-navy text-base sm:text-lg break-words">{planDisplayName}</p>
               {creditLine && <p className="text-xs text-slate mt-1">{creditLine}</p>}
               {r.payment?.reference && (
                 <p dir="ltr" className="text-xs text-slate mt-1 break-all">
@@ -239,7 +239,7 @@ function ReceiptPage() {
                 </p>
               )}
             </div>
-            <p className="font-display text-2xl sm:text-3xl numeric-display text-navy whitespace-nowrap">
+            <p className="font-display text-2xl sm:text-3xl numeric-display text-navy whitespace-nowrap sm:text-end">
               {formatAmount(Number(r.amount))}
             </p>
           </div>
