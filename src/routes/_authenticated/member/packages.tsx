@@ -29,6 +29,21 @@ import { LtrInline } from "@/components/ui/bidi";
 const BIT_PAYMENT_PHONE = "0523318478";
 type OnlinePaymentMethod = "bit" | "card";
 
+function isOnlineCheckoutAttempt(payment: any) {
+  return payment?.provider === "hyp";
+}
+
+function isManualPendingPayment(payment: any) {
+  return payment?.status === "pending" && !isOnlineCheckoutAttempt(payment);
+}
+
+function isVisiblePaymentHistory(payment: any) {
+  if (!isOnlineCheckoutAttempt(payment)) return true;
+  return (
+    payment?.status !== "pending" && payment?.status !== "cancelled" && payment?.status !== "failed"
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/member/packages")({
   component: MemberPackages,
 });
@@ -84,7 +99,8 @@ function MemberPackages() {
   const active = data?.mine.find((p: any) => p.status === "active");
   const credits = data?.member?.remaining_credits ?? 0;
   const memberName = data?.member?.name?.split(" ")[0] ?? "";
-  const pendingPayments = (data?.payments ?? []).filter((p: any) => p.status === "pending");
+  const pendingPayments = (data?.payments ?? []).filter(isManualPendingPayment);
+  const visiblePaymentHistory = (data?.payments ?? []).filter(isVisiblePaymentHistory);
   const visiblePlans = (data?.plans ?? [])
     .filter((p: any) => !hasTestPlanRecord(p))
     .sort(comparePricingPlans);
@@ -225,9 +241,7 @@ function MemberPackages() {
                 plan={p}
                 lang={lang}
                 request={requestsByPlan[p.id]}
-                payment={pendingPayments.find(
-                  (payment: any) => payment.plan?.id === p.id && payment.status === "pending",
-                )}
+                payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
                 onRequest={() => setSelectedPlan(p)}
                 pending={manualPayment.isPending || checkoutPayment.isPending}
               />
@@ -288,7 +302,7 @@ function MemberPackages() {
         <div className="member-section-heading">
           <h2 className="member-section-title">{t("packages.paymentHistory")}</h2>
         </div>
-        {data?.payments.length === 0 ? (
+        {visiblePaymentHistory.length === 0 ? (
           <MemberEmptyState
             variant="payments"
             title={t("packages.noPayments")}
@@ -298,7 +312,7 @@ function MemberPackages() {
           />
         ) : (
           <div className="member-card divide-y hairline">
-            {data?.payments.map((p: any) => {
+            {visiblePaymentHistory.map((p: any) => {
               const receipt = Array.isArray(p.receipt) ? p.receipt[0] : p.receipt;
               return (
                 <div
