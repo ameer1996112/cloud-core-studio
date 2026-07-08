@@ -36,11 +36,13 @@ function AuthPage() {
   const [formSuccess, setFormSuccess] = useState("");
   const [formVersion, setFormVersion] = useState(0);
   const [restoringSession, setRestoringSession] = useState(true);
+  const [returnToPath, setReturnToPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const searchParams = new URL(window.location.href).searchParams;
       const requestedMode = searchParams.get("mode");
+      setReturnToPath(searchParams.get("returnTo"));
       if (requestedMode === "forgot") {
         setMode("forgot");
         window.history.replaceState(null, document.title, window.location.pathname);
@@ -201,6 +203,7 @@ function AuthPage() {
   const guestEntryBody = t("auth.guestBody");
   const browseScheduleLabel = t("auth.browseSchedule");
   const guestSupportLabel = t("auth.guestSupport");
+  const isPackageReturn = returnToPath === "/member/packages";
 
   return (
     <main
@@ -248,6 +251,11 @@ function AuthPage() {
                   {mode === "forgot" ? t("auth.forgotBody") : t("auth.resetSent")}
                 </p>
               )}
+              {!restoringSession && mode === "signin" && isPackageReturn && (
+                <p className="auth-form-helper mt-3 text-sm text-slate text-start">
+                  {t("auth.returnToPackagesBody")}
+                </p>
+              )}
 
               {restoringSession ? (
                 <div
@@ -258,7 +266,7 @@ function AuthPage() {
                   <span className="auth-restoring-orbit" aria-hidden="true">
                     <span />
                   </span>
-                  <p className="auth-restoring-text">{t("auth.restoringSession")}</p>
+                  <p className="auth-restoring-text">{t("auth.checkingSession")}</p>
                 </div>
               ) : (
                 <form

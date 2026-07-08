@@ -90,6 +90,9 @@ export const MESSAGES = {
     "auth.forgotHeadline": "Reset password",
     "auth.forgotBody": "Enter your email and we’ll send a secure link to reset your password.",
     "auth.restoringSession": "Opening your studio…",
+    "auth.checkingSession": "Checking your connection…",
+    "auth.returnToPackagesBody":
+      "Sign in again to view the package and credits that were added after payment.",
     "auth.checkEmailTitle": "Check your email",
     "auth.name": "Name",
     "auth.phone": "Phone number",
@@ -1314,6 +1317,8 @@ export const MESSAGES = {
     "auth.forgotHeadline": "איפוס סיסמה",
     "auth.forgotBody": "הכניסי את כתובת האימייל ונשלח קישור מאובטח לאיפוס הסיסמה.",
     "auth.restoringSession": "מחזירים אותך לסטודיו…",
+    "auth.checkingSession": "בודקים את החיבור שלך…",
+    "auth.returnToPackagesBody": "התחברי שוב כדי לראות את החבילה והקרדיטים שנוספו אחרי התשלום.",
     "auth.checkEmailTitle": "בדקי את האימייל",
     "auth.name": "שם",
     "auth.phone": "מספר טלפון",
@@ -2560,6 +2565,9 @@ export const MESSAGES = {
     "auth.forgotHeadline": "إعادة تعيين كلمة المرور",
     "auth.forgotBody": "أدخلي البريد الإلكتروني وسنرسل رابطًا آمنًا لإعادة تعيين كلمة المرور.",
     "auth.restoringSession": "نُعيدك إلى الاستوديو…",
+    "auth.checkingSession": "نتحقق من اتصالك…",
+    "auth.returnToPackagesBody":
+      "سجّلي الدخول مرة أخرى لعرض الباقة والأرصدة التي أُضيفت بعد الدفع.",
     "auth.checkEmailTitle": "تحققي من البريد الإلكتروني",
     "auth.name": "الاسم",
     "auth.phone": "رقم الهاتف",
