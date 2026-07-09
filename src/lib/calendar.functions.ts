@@ -18,7 +18,7 @@ export const calendarRange = createServerFn({ method: "GET" })
       context.supabase
         .from("classes")
         .select(
-          "id, title, starts_at, duration_minutes, capacity, booked_count, waitlist_count, status, room, room_id, image_url, instructor:instructors(id,name,avatar_url), room_ref:rooms(id,name,color,capacity), program:program_types(id,name_en,name_he,name_ar,color:color_tag)",
+          "id, title, starts_at, duration_minutes, capacity, booked_count, waitlist_count, status, member_visible, room, room_id, image_url, instructor:instructors(id,name,avatar_url), room_ref:rooms(id,name,color,capacity), program:program_types(id,name_en,name_he,name_ar,color:color_tag)",
         )
         .gte("starts_at", data.fromIso)
         .lte("starts_at", data.toIso)

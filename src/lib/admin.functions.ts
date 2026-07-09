@@ -104,7 +104,7 @@ export const adminOverview = createServerFn({ method: "GET" })
       supabase
         .from("classes")
         .select(
-          "id, title, starts_at, capacity, booked_count, status, room, instructor:instructors(id,name), room_ref:rooms(id,name), program_type:program_types(id,name_en,name_he,name_ar,level)",
+          "id, title, starts_at, capacity, booked_count, status, room, member_visible, instructor:instructors(id,name), room_ref:rooms(id,name), program_type:program_types(id,name_en,name_he,name_ar,level)",
         )
         .gte("starts_at", now.toISOString())
         .order("starts_at")
@@ -112,7 +112,7 @@ export const adminOverview = createServerFn({ method: "GET" })
       supabase
         .from("classes")
         .select(
-          "id, title, starts_at, capacity, booked_count, room, instructor:instructors(id,name), room_ref:rooms(id,name), program_type:program_types(id,name_en,name_he,name_ar,level)",
+          "id, title, starts_at, capacity, booked_count, room, member_visible, instructor:instructors(id,name), room_ref:rooms(id,name), program_type:program_types(id,name_en,name_he,name_ar,level)",
         )
         .gte("starts_at", dayStart.toISOString())
         .lte("starts_at", dayEnd.toISOString())
@@ -199,6 +199,7 @@ const classInput = z.object({
   credit_cost: z.number().int().min(0),
   instructor_id: z.string().uuid().nullable().optional(),
   program_type_id: z.string().uuid().nullable().optional(),
+  member_visible: z.boolean().optional(),
   status: z.enum(["scheduled", "cancelled", "archived"]).optional(),
 });
 

@@ -62,6 +62,9 @@ function Page() {
                       {localizedClassTitle(c, lang)}
                     </p>
                     <StatusChip s={c.status} label={statusLabel(c.status, t)} />
+                    {c.member_visible === false && (
+                      <StatusChip s="staff_only" label={t("admin.classes.staffOnly")} />
+                    )}
                   </div>
                   <p className="mt-2 text-xs font-medium text-slate">
                     {d.toLocaleString(undefined, {
@@ -144,6 +147,7 @@ function StatusChip({ s, label }: { s: string; label: string }) {
     scheduled: "border-gold/50 text-foreground bg-gold/10",
     cancelled: "border-slate/30 text-slate",
     archived: "border-slate/20 text-slate/70",
+    staff_only: "border-navy/20 bg-navy/5 text-navy",
   };
   return (
     <span

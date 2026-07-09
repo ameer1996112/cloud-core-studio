@@ -833,7 +833,10 @@ function WeekMobile({
 function StatusBadge({ cls, compact = false }: { cls: any; compact?: boolean }) {
   let label = t("common.open");
   let cls2 = "border-gold/40 text-navy bg-white";
-  if (cls.status === "cancelled") {
+  if (cls.member_visible === false) {
+    label = t("admin.classes.staffOnly");
+    cls2 = "border-navy/20 text-navy bg-navy/5";
+  } else if (cls.status === "cancelled") {
     label = t("state.cancelled");
     cls2 = "border-slate/30 text-slate bg-sand line-through decoration-slate/50";
   } else if (cls.status === "closed") {

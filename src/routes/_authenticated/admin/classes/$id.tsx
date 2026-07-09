@@ -118,6 +118,7 @@ function Page() {
       credit_cost: cls.credit_cost,
       instructor_id: cls.instructor_id ?? "",
       program_type_id: cls.program_type_id ?? "",
+      member_visible: cls.member_visible ?? true,
       status: cls.status,
     });
     setEdit(true);
@@ -231,6 +232,11 @@ function Page() {
             {t("admin.classes.booked", { count: cls.booked_count })}/{cls.capacity} ·{" "}
             {t("admin.classes.waiting", { count: cls.waitlist_count })} · {clsStatus}
           </p>
+          {cls.member_visible === false && (
+            <p className="inline-flex rounded-full border border-navy/15 bg-navy/5 px-3 py-1 text-xs font-semibold text-navy">
+              {t("admin.classes.staffOnly")}
+            </p>
+          )}
           <div className="flex gap-2 flex-wrap">
             <button onClick={startEdit} className="btn-navy hover:btn-navy-hover">
               {t("admin.classes.edit")}

@@ -231,6 +231,7 @@ export type Database = {
           image_thumb_url: string | null;
           image_url: string | null;
           instructor_id: string | null;
+          member_visible: boolean;
           price_override: number | null;
           program_type_id: string | null;
           room: string;
@@ -255,6 +256,7 @@ export type Database = {
           image_thumb_url?: string | null;
           image_url?: string | null;
           instructor_id?: string | null;
+          member_visible?: boolean;
           price_override?: number | null;
           program_type_id?: string | null;
           room: string;
@@ -279,6 +281,7 @@ export type Database = {
           image_thumb_url?: string | null;
           image_url?: string | null;
           instructor_id?: string | null;
+          member_visible?: boolean;
           price_override?: number | null;
           program_type_id?: string | null;
           room?: string;

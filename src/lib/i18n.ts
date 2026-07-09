@@ -957,6 +957,15 @@ export const MESSAGES = {
     "admin.classes.sectionStaffLocationHelp": "For launch, these are selected automatically.",
     "admin.classes.sectionNotes": "Notes",
     "admin.classes.sectionNotesHelp": "Private planning context for this edit session.",
+    "admin.classes.sectionVisibility": "Member visibility",
+    "admin.classes.sectionVisibilityHelp":
+      "Choose whether this session appears in the member app or stays internal for staff.",
+    "admin.classes.memberVisible": "Visible to members",
+    "admin.classes.memberVisibleHelp":
+      "Members can see this class in the app schedule and book it normally.",
+    "admin.classes.staffOnly": "Staff only",
+    "admin.classes.staffOnlyHelp":
+      "Hidden from members. Use this for kids lessons, room blocks, or private planning time.",
     "admin.classes.notesPlaceholder":
       "Internal preparation notes, equipment reminders, or class setup…",
     "admin.classes.notesNotSaved":
@@ -2158,6 +2167,13 @@ export const MESSAGES = {
     "admin.classes.sectionStaffLocationHelp": "בהשקה הפרטים האלה נבחרים אוטומטית.",
     "admin.classes.sectionNotes": "הערות",
     "admin.classes.sectionNotesHelp": "מידע פנימי לתכנון העריכה הנוכחית.",
+    "admin.classes.sectionVisibility": "נראות לחברים",
+    "admin.classes.sectionVisibilityHelp":
+      "בחרו אם השיעור יופיע באפליקציה לחברים או יישאר פנימי לצוות.",
+    "admin.classes.memberVisible": "גלוי לחברים",
+    "admin.classes.memberVisibleHelp": "חברים יכולים לראות את השיעור בלוח ולהירשם כרגיל.",
+    "admin.classes.staffOnly": "פנימי לצוות",
+    "admin.classes.staffOnlyHelp": "מוסתר מחברים. מתאים לחוג ילדים, חסימת חדר או זמן תכנון פרטי.",
     "admin.classes.notesPlaceholder": "הערות הכנה, תזכורות ציוד או סידור שיעור…",
     "admin.classes.notesNotSaved": "ההערות עדיין לא נשמרות כי לשיעורים אין כרגע שדה הערות.",
     "admin.classes.ruleWindow": "חלון ביטול",
@@ -3356,6 +3372,14 @@ export const MESSAGES = {
     "admin.classes.sectionStaffLocationHelp": "في الإطلاق يتم اختيار هذه التفاصيل تلقائياً.",
     "admin.classes.sectionNotes": "ملاحظات",
     "admin.classes.sectionNotesHelp": "سياق داخلي لتخطيط هذه الجلسة.",
+    "admin.classes.sectionVisibility": "ظهور للأعضاء",
+    "admin.classes.sectionVisibilityHelp":
+      "اختاري إن كانت الحصة تظهر في تطبيق الأعضاء أو تبقى داخلية للطاقم.",
+    "admin.classes.memberVisible": "ظاهرة للأعضاء",
+    "admin.classes.memberVisibleHelp": "يمكن للأعضاء رؤية هذه الحصة في الجدول والحجز كالمعتاد.",
+    "admin.classes.staffOnly": "للطاقم فقط",
+    "admin.classes.staffOnlyHelp":
+      "مخفية عن الأعضاء. مناسبة لحصص الأطفال أو حجز الغرفة أو وقت تخطيط خاص.",
     "admin.classes.notesPlaceholder": "ملاحظات تحضير، تذكير بالمعدات، أو ترتيب الحصة…",
     "admin.classes.notesNotSaved":
       "لا يتم حفظ الملاحظات حالياً لأن الحصص لا تحتوي على حقل ملاحظات.",

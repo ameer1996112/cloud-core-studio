@@ -17,12 +17,10 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
   Clock3,
-  DoorOpen,
+  EyeOff,
   Info,
   Sparkles,
-  StickyNote,
   Users,
 } from "lucide-react";
 
@@ -39,6 +37,7 @@ type SessionFormState = {
   credit_cost: number;
   instructor_id: string;
   program_type_id: string;
+  member_visible: boolean;
   status?: "scheduled" | "cancelled" | "archived";
 };
 
@@ -93,6 +92,7 @@ function NewClass() {
     credit_cost: 1,
     instructor_id: "",
     program_type_id: "",
+    member_visible: true,
   }));
 
   useEffect(() => {
@@ -482,11 +482,31 @@ export function SessionForm({
 
       {/* 5. Member Visibility & Notes */}
       <SessionPanel
-        icon={<StickyNote className="h-4 w-4 text-gold" />}
-        title={t("admin.classes.sectionNotes")}
-        description={t("admin.classes.sectionNotesHelp")}
+        icon={<EyeOff className="h-4 w-4 text-gold" />}
+        title={t("admin.classes.sectionVisibility")}
+        description={t("admin.classes.sectionVisibilityHelp")}
       >
         <div className="space-y-3">
+          <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-gold/15 bg-white p-4 text-start">
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-navy">
+                {t("admin.classes.memberVisible")}
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-slate">
+                {form.member_visible
+                  ? t("admin.classes.memberVisibleHelp")
+                  : t("admin.classes.staffOnlyHelp")}
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={form.member_visible}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, member_visible: event.target.checked }))
+              }
+              className="mt-1 h-5 w-5 accent-navy"
+            />
+          </label>
           <textarea
             className="session-input session-textarea text-start"
             value={notes}
