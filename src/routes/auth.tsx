@@ -116,10 +116,14 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        const trimmedPhone = phone.trim();
         const { data: signed, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin, data: { name, phone } },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { name, ...(trimmedPhone ? { phone: trimmedPhone } : {}) },
+          },
         });
         if (error) throw error;
         if (signed.user?.id) {
@@ -198,6 +202,7 @@ function AuthPage() {
     setEmail("");
     setPassword("");
     setName("");
+    setPhone("");
     setShowPassword(false);
     setFormVersion((version) => version + 1);
   }
@@ -319,7 +324,7 @@ function AuthPage() {
                           spellCheck={false}
                         />
                       </Field>
-                      <Field label={t("auth.phone")}>
+                      <Field label={t("auth.phoneOptional")}>
                         <input
                           type="tel"
                           name={`signup-phone-${formVersion}`}
@@ -328,13 +333,15 @@ function AuthPage() {
                             setPhone(e.target.value);
                             clearError();
                           }}
-                          required
                           className="auth-text-input editorial-input focus:editorial-input-focus"
                           autoComplete="tel"
                           autoCapitalize="none"
                           autoCorrect="off"
                           spellCheck={false}
                         />
+                        <p className="mt-2 text-xs leading-5 text-slate text-start">
+                          {t("auth.phoneOptionalHelp")}
+                        </p>
                       </Field>
                     </>
                   )}
