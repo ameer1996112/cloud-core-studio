@@ -23,6 +23,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { studioDateTimeInputToIso } from "@/lib/studio-time";
 
 type SessionFormState = {
   id?: string;
@@ -821,7 +822,7 @@ function PremiumCalendar({
 export function serializeClass(form: SessionFormState) {
   return {
     ...form,
-    starts_at: parseLocalInputValue(form.starts_at).toISOString(),
+    starts_at: studioDateTimeInputToIso(form.starts_at),
     room_id: form.room_id || null,
     instructor_id: form.instructor_id || null,
     program_type_id: form.program_type_id || null,

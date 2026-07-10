@@ -28,6 +28,10 @@ export function buildAuthReturnToHref(returnTo: string) {
   return `/auth?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
+export function buildProtectedRouteAuthHref(pathname: string, search = "", hash = "") {
+  return buildAuthReturnToHref(`${pathname}${search}${hash}`);
+}
+
 export function readMemberScheduleClassId(href: string) {
   const url = new URL(href, INTERNAL_ORIGIN_FALLBACK);
   return normalizeClassId(url.searchParams.get("classId"));

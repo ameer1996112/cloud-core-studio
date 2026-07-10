@@ -4,8 +4,8 @@ import { requireAuthenticatedRoute } from "@/lib/route-guards";
 import { t } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated")({
-  beforeLoad: async () => {
-    return requireAuthenticatedRoute();
+  beforeLoad: async ({ location }) => {
+    return requireAuthenticatedRoute(`${location.pathname}${location.searchStr}${location.hash}`);
   },
   component: AuthedLayout,
   errorComponent: AuthedError,

@@ -32,6 +32,7 @@ import {
   localizedInstructorName,
   localizedRoomName,
 } from "@/lib/localized-content";
+import { formatStudioDateTimeInput } from "@/lib/studio-time";
 
 export const Route = createFileRoute("/_authenticated/admin/classes/$id")({
   component: Page,
@@ -108,7 +109,7 @@ function Page() {
     setForm({
       id: cls.id,
       title: cls.title,
-      starts_at: new Date(cls.starts_at).toISOString().slice(0, 16),
+      starts_at: formatStudioDateTimeInput(cls.starts_at),
       duration_minutes: cls.duration_minutes,
       capacity: cls.capacity,
       room: cls.room,

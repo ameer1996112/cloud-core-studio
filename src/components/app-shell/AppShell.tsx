@@ -180,7 +180,7 @@ export function AppShell({ role, children }: Props) {
         </>
       )}
 
-      <main className="member-shell-main flex-1 flex flex-col overflow-y-auto">
+      <main className="member-shell-main min-w-0 flex-1 flex flex-col overflow-y-auto">
         {/* Mobile bar */}
         <div
           className="member-mobile-header-pad lg:hidden sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]"

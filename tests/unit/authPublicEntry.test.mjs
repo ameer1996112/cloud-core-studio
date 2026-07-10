@@ -39,6 +39,8 @@ mock.module("@/integrations/supabase/client", () => ({
 
 mock.module("@/integrations/supabase/session-cookie", () => ({
   clearSupabaseAccessTokenCookie() {},
+  readSupabaseRefreshTokenCookie() { return null; },
+  syncSupabaseAccessTokenCookie() {},
   writeSupabaseAccessTokenCookie() {},
 }));
 
@@ -71,6 +73,11 @@ mock.module("@/lib/i18n", () => ({
       "auth.back": "Back to sign in",
       "auth.showPassword": "Show password",
       "auth.hidePassword": "Hide password",
+      "auth.checkingSession": currentLang === "he"
+        ? "בודקים את החיבור שלך"
+        : currentLang === "ar"
+          ? "نتحقق من اتصالك"
+          : "Checking your session",
       "auth.guestTitle": currentLang === "he"
         ? "לפני שמתחברים"
         : currentLang === "ar"
@@ -149,30 +156,24 @@ process.stdout.write(renderToStaticMarkup(React.createElement(routeModule.Route.
 }
 
 describe("auth public entry", () => {
-  test("keeps auth as the first screen while exposing a premium guest path", () => {
+  test("renders the session recovery state before interactive auth controls", () => {
     const html = renderAuthRoute("en");
 
     expect(html).toContain("Enter the studio");
-    expect(html).toContain("Before you sign in");
-    expect(html).toContain("Browse the schedule and open class details before signing in.");
-    expect(html).toContain('href="/member/schedule"');
-    expect(html).toContain("Browse Schedule");
+    expect(html).toContain("Checking your session");
     expect(html).toContain('href="/support"');
     expect(html).toContain(">Support</a>");
-    expect(countOccurrences(html, 'href="/support"')).toBe(2);
-    expect(html.indexOf("Enter the studio")).toBeLessThan(html.indexOf("Browse Schedule"));
+    expect(countOccurrences(html, 'href="/support"')).toBe(1);
   });
 
-  test("renders hebrew and arabic guest-entry copy with rtl direction", () => {
+  test("renders hebrew and arabic session recovery copy with rtl direction", () => {
     const hebrewHtml = renderAuthRoute("he");
     const arabicHtml = renderAuthRoute("ar");
 
     expect(hebrewHtml).toContain('<main dir="rtl"');
-    expect(hebrewHtml).toContain("לפני שמתחברים");
-    expect(hebrewHtml).toContain("עיון בלוח השיעורים");
+    expect(hebrewHtml).toContain("בודקים את החיבור שלך");
 
     expect(arabicHtml).toContain('<main dir="rtl"');
-    expect(arabicHtml).toContain("قبل تسجيل الدخول");
-    expect(arabicHtml).toContain("تصفح الجدول");
+    expect(arabicHtml).toContain("نتحقق من اتصالك");
   });
 });

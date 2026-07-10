@@ -28,7 +28,7 @@ describe("openwa client", () => {
     });
     expect(calls[0].url).toBe("http://localhost:2785/api/sessions/session-1/messages/send-text");
     expect(calls[0].init.headers["x-api-key"]).toBe("key-1");
-    expect(calls[0].init.body).toContain('"chatId":"972501234567@s.whatsapp.net"');
+    expect(calls[0].init.body).toContain('"chatId":"972501234567@c.us"');
   });
 
   test("marks provider 503 as retryable", async () => {
@@ -124,6 +124,6 @@ describe("openwa client", () => {
       ok: true,
       providerMessageId: "provider-msg-2",
     });
-    expect(calls[0].init.body).toContain('"chatId":"972523318478@s.whatsapp.net"');
+    expect(calls[0].init.body).toContain('"chatId":"972523318478@c.us"');
   });
 });

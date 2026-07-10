@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import {
   buildAuthReturnToHref,
+  buildProtectedRouteAuthHref,
   buildMemberScheduleReturnTo,
   buildMemberScheduleUrl,
   clearGuestAuthIntent,
@@ -32,6 +33,10 @@ assert.equal(buildMemberScheduleReturnTo("open-class"), "/member/schedule?classI
 assert.equal(
   buildAuthReturnToHref("/member/schedule?classId=open-class"),
   "/auth?returnTo=%2Fmember%2Fschedule%3FclassId%3Dopen-class",
+);
+assert.equal(
+  buildProtectedRouteAuthHref("/admin/calendar", "?view=week", "#today"),
+  "/auth?returnTo=%2Fadmin%2Fcalendar%3Fview%3Dweek%23today",
 );
 
 assert.equal(

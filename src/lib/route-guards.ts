@@ -3,6 +3,7 @@ import { createIsomorphicFn } from "@tanstack/react-start";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { roleHome, type AppRole } from "@/lib/auth-redirect";
+import { buildProtectedRouteAuthHref } from "@/lib/guest-auth-intent";
 
 export type AuthRouteContext = {
   user: User;
@@ -42,14 +43,17 @@ export async function getAuthRouteContext(): Promise<AuthRouteContext | null> {
   return getAuthRouteContextForEnv();
 }
 
-export async function requireAuthenticatedRoute(): Promise<AuthRouteContext> {
+export async function requireAuthenticatedRoute(returnTo?: string): Promise<AuthRouteContext> {
   const auth = await getAuthRouteContext();
-  if (!auth) throw redirect({ to: "/auth" });
+  if (!auth) throw redirect({ to: buildProtectedRouteAuthHref(returnTo || "/member") });
   return auth;
 }
 
-export async function requireRouteRole(allowedRoles: AppRole[]): Promise<AuthRouteContext> {
-  const auth = await requireAuthenticatedRoute();
+export async function requireRouteRole(
+  allowedRoles: AppRole[],
+  returnTo?: string,
+): Promise<AuthRouteContext> {
+  const auth = await requireAuthenticatedRoute(returnTo);
   if (!allowedRoles.includes(auth.role)) {
     throw redirect({ to: roleHome(auth.role), replace: true });
   }

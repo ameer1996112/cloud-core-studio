@@ -3710,15 +3710,8 @@ export function getBootLangScript() {
     try {
       const cookieMatch = document.cookie.match(/(?:^|; )${LANG_COOKIE}=([^;]+)/);
       const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
-      const storedLang = (() => {
-        try {
-          return window.localStorage.getItem(${JSON.stringify(LANG_KEY)});
-        } catch (_) {
-          return null;
-        }
-      })();
       const currentLang = document.documentElement.lang;
-      const candidate = storedLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
+      const candidate = cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
       const next = candidate === "en" || candidate === "he" || candidate === "ar"
         ? candidate
         : ${JSON.stringify(DEFAULT_LOCALE)};
