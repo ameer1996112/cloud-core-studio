@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
+import { getPlanDisplay } from "@/lib/planDisplay";
+import { getHypConfig } from "@/lib/hyp.server";
 
 async function isAdmin(supabase: any, userId: string) {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -15,6 +17,31 @@ async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
     .from("notification_logs")
     .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
   if (error) console.error("notification_draft_insert_failed", error.message);
+}
+
+async function assertNoUsableActivePackage(supabase: any, memberId: string) {
+  const now = new Date().toISOString();
+  const [memberRes, activePlanRes] = await Promise.all([
+    supabase.from("members").select("remaining_credits").eq("id", memberId).maybeSingle(),
+    supabase
+      .from("member_plans")
+      .select("id,expires_at")
+      .eq("member_id", memberId)
+      .eq("status", "active")
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .limit(1),
+  ]);
+  if (memberRes.error) throw memberRes.error;
+  if (activePlanRes.error) throw activePlanRes.error;
+  if (Number(memberRes.data?.remaining_credits ?? 0) > 0 && (activePlanRes.data ?? []).length > 0) {
+    throw new Error("active_package_exists");
+  }
+}
+
+function isRecurringEligiblePlan(plan: { description?: string | null; duration_days?: unknown }) {
+  const code = String(plan?.description ?? "").toLowerCase();
+  const durationDays = Number(plan?.duration_days ?? 0);
+  return code.includes("monthly") || (durationDays >= 27 && durationDays <= 31);
 }
 
 /** Member: list my own receipts. RLS enforces ownership. */
@@ -169,6 +196,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       .object({
         plan_id: z.string().uuid(),
         payment_method: z.enum(["card", "bit"]).default("card"),
+        recurring: z.boolean().default(false),
       })
       .parse(d),
   )
@@ -195,7 +223,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { createHypPaymentPage } = await import("@/lib/hyp.server");
+    const { buildHypReconciliationId, createHypPaymentPage } = await import("@/lib/hyp.server");
+
+    await assertNoUsableActivePackage(context.supabase, context.userId);
 
     const [memberRes, planRes] = await Promise.all([
       context.supabase.from("members").select("id,name").eq("id", context.userId).maybeSingle(),
@@ -214,6 +244,22 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     const amountAgorot = Number(planRes.data.price_cents ?? 0);
     if (!Number.isFinite(amountAgorot) || amountAgorot <= 0) throw new Error("invalid_plan_amount");
     const paymentMethod = data.payment_method;
+    const recurring = data.recurring === true;
+    const recurringMode = recurring ? getHypConfig().recurringMode : null;
+    const subscriptionManagement = recurring ? recurringMode : null;
+    if (recurring && paymentMethod !== "card") throw new Error("recurring_requires_card");
+    if (recurring && !isRecurringEligiblePlan(planRes.data)) throw new Error("plan_not_recurring");
+    if (recurring) {
+      const { data: existingSubscription, error: subscriptionError } = await (supabaseAdmin as any)
+        .from("member_subscriptions")
+        .select("id,status")
+        .eq("member_id", context.userId)
+        .in("status", ["active", "past_due", "incomplete"])
+        .limit(1)
+        .maybeSingle();
+      if (subscriptionError) throw subscriptionError;
+      if (existingSubscription) throw new Error("active_subscription_exists");
+    }
 
     const { data: payment, error: insertError } = await supabaseAdmin
       .from("payments")
@@ -231,19 +277,30 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           checkout_provider: "hyp",
           requested_payment_method: paymentMethod,
           payments_mode: (s as any)?.payments_mode ?? "test",
+          subscription_setup: recurring,
+          subscription_management: subscriptionManagement,
         },
       })
       .select("id")
       .single();
     if (insertError) throw insertError;
 
+    const hypReconciliationId = buildHypReconciliationId(payment.id);
+
     try {
+      const hebrewPlanName = getPlanDisplay(planRes.data, "he").name;
+      const hypDescription = recurring
+        ? `מנוי חודשי - חיוב ראשון היום ומתחדש כל חודש עד ביטול - ${hebrewPlanName}`
+        : hebrewPlanName;
       const page = await createHypPaymentPage({
         paymentId: payment.id,
         amountAgorot,
         language: "HEB",
-        description: planRes.data.name ?? "Cloud & Core package",
+        description: hypDescription,
         paymentMethod,
+        recurring,
+        recurringMode: recurringMode ?? undefined,
+        reconciliationId: hypReconciliationId,
       });
 
       await supabaseAdmin
@@ -252,10 +309,14 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           provider_status: "payment_page_created",
           provider_session_id: page.token || null,
           provider_payment_id: page.cgUid || null,
+          provider_customer_id: recurring ? hypReconciliationId : null,
           metadata: {
             checkout_provider: "hyp",
             requested_payment_method: paymentMethod,
             payments_mode: (s as any)?.payments_mode ?? "test",
+            subscription_setup: recurring,
+            subscription_management: subscriptionManagement,
+            hyp_reconciliation_id: recurring ? hypReconciliationId : null,
             hyp_result: page.result,
             hyp_message: page.message,
           },
@@ -278,6 +339,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
             checkout_provider: "hyp",
             requested_payment_method: paymentMethod,
             payments_mode: (s as any)?.payments_mode ?? "test",
+            subscription_setup: recurring,
+            subscription_management: subscriptionManagement,
+            hyp_reconciliation_id: recurring ? hypReconciliationId : null,
             error: error instanceof Error ? error.message : String(error),
           },
         })

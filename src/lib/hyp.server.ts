@@ -3,6 +3,10 @@ export type HypConfig = {
   user: string;
   password: string;
   terminalNumber: string;
+  recurringTerminalNumber?: string;
+  recurringPassword?: string;
+  tokenOwnerTerminalNumber?: string;
+  recurringMode: "hyp_managed_hk" | "merchant_token";
   publicBaseUrl: string;
   mode: "live" | "test";
 };
@@ -13,6 +17,36 @@ export type HypPaymentPageRequest = {
   language?: "HEB" | "ENG";
   description?: string;
   paymentMethod?: "card" | "bit";
+  recurring?: boolean;
+  recurringMode?: "hyp_managed_hk" | "merchant_token";
+  reconciliationId?: string;
+};
+
+export type HypSavedToken = {
+  transId: string;
+  token: string;
+  tokef: string;
+  month: string;
+  year: string;
+  raw: string;
+};
+
+export type HypInquiryTransaction = {
+  status: string;
+  statusText: string;
+  financialStatus: string;
+  validation: string;
+  terminalNumber: string;
+  cardMask: string;
+  cardExp: string;
+  user: string;
+  tranId: string;
+  cgUid: string;
+  authNumber: string;
+  total: string;
+  amount: string;
+  transactionDate: string;
+  rawXml: string;
 };
 
 function readEnv(name: string) {
@@ -34,6 +68,36 @@ export function getHypConfig(): HypConfig {
     mode === "test"
       ? readEnv("HYP_TEST_TERMINAL_NUMBER") || readEnv("HYP_TEST_MASOF_NUMBER")
       : readEnv("HYP_TERMINAL_NUMBER") || readEnv("HYP_MASOF_NUMBER");
+  const recurringTerminalNumber =
+    mode === "test"
+      ? readEnv("HYP_TEST_RECURRING_TERMINAL_NUMBER") ||
+        readEnv("HYP_TEST_RENEWAL_TERMINAL_NUMBER") ||
+        readEnv("HYP_TEST_SOFT_TERMINAL_NUMBER")
+      : readEnv("HYP_RECURRING_TERMINAL_NUMBER") ||
+        readEnv("HYP_RENEWAL_TERMINAL_NUMBER") ||
+        readEnv("HYP_SOFT_TERMINAL_NUMBER");
+  const recurringPassword =
+    mode === "test"
+      ? readEnv("HYP_TEST_RECURRING_API_PASSWORD") ||
+        readEnv("HYP_TEST_RECURRING_PASSP") ||
+        readEnv("HYP_TEST_RENEWAL_API_PASSWORD") ||
+        readEnv("HYP_TEST_RENEWAL_PASSP")
+      : readEnv("HYP_RECURRING_API_PASSWORD") ||
+        readEnv("HYP_RECURRING_PASSP") ||
+        readEnv("HYP_RENEWAL_API_PASSWORD") ||
+        readEnv("HYP_RENEWAL_PASSP");
+  const tokenOwnerTerminalNumber =
+    mode === "test"
+      ? readEnv("HYP_TEST_TOKEN_OWNER_TERMINAL_NUMBER") ||
+        readEnv("HYP_TEST_TOKEN_OWNER_TERMINAL") ||
+        readEnv("HYP_TEST_TOWNER")
+      : readEnv("HYP_TOKEN_OWNER_TERMINAL_NUMBER") ||
+        readEnv("HYP_TOKEN_OWNER_TERMINAL") ||
+        readEnv("HYP_TOWNER");
+  const recurringModeValue =
+    mode === "test" ? readEnv("HYP_TEST_RECURRING_MODE") : readEnv("HYP_RECURRING_MODE");
+  const recurringMode =
+    recurringModeValue === "merchant_token" ? "merchant_token" : "hyp_managed_hk";
   const publicBaseUrl =
     readEnv("HYP_PUBLIC_BASE_URL") ||
     readEnv("CLOUD_CORE_BASE_URL") ||
@@ -56,6 +120,10 @@ export function getHypConfig(): HypConfig {
     user,
     password,
     terminalNumber,
+    recurringTerminalNumber: recurringTerminalNumber || undefined,
+    recurringPassword: recurringPassword || undefined,
+    tokenOwnerTerminalNumber: tokenOwnerTerminalNumber || undefined,
+    recurringMode,
     publicBaseUrl: publicBaseUrl.replace(/\/+$/, ""),
     mode,
   };
@@ -72,6 +140,42 @@ function amountFromAgorot(amountAgorot: number) {
     .toFixed(2)
     .replace(/\.00$/, "")
     .replace(/(\.\d)0$/, "$1");
+}
+
+function amountFromHypTotal(total: string) {
+  const numeric = Number(total);
+  if (!Number.isFinite(numeric) || numeric <= 0) return "";
+  return amountFromAgorot(numeric);
+}
+
+function xmlEscape(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function xmlText(xml: string, tag: string) {
+  const match = xml.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i"));
+  if (!match) return "";
+  return match[1]
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+function transactionBlocks(xml: string) {
+  return [...xml.matchAll(/<transaction>([\s\S]*?)<\/transaction>/gi)].map((match) => match[0]);
+}
+
+export function buildHypReconciliationId(paymentId: string) {
+  return paymentId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 19);
 }
 
 export function parseHypPayResponse(body: string, config = getHypConfig()) {
@@ -100,7 +204,7 @@ export async function createHypPaymentPage(input: HypPaymentPageRequest, config 
   const language = input.language ?? "HEB";
   const showWalletButtons = input.paymentMethod === "bit";
   const requestUrl = hypPayBaseUrl(config);
-  requestUrl.search = new URLSearchParams({
+  const params = new URLSearchParams({
     action: "APISign",
     What: "SIGN",
     Sign: "True",
@@ -112,11 +216,21 @@ export async function createHypPaymentPage(input: HypPaymentPageRequest, config 
     Coin: "1",
     PageLang: language,
     Info: input.description ?? "Cloud & Core package",
+    user: input.reconciliationId ?? buildHypReconciliationId(input.paymentId),
     MoreData: "True",
     UTF8: "True",
     UTF8out: "True",
     hideBtns: showWalletButtons ? "false" : "true",
-  }).toString();
+  });
+
+  if (input.recurring && input.recurringMode !== "merchant_token") {
+    params.set("HK", "True");
+    params.set("freq", "1");
+    params.set("Tash", "999");
+    params.set("OnlyOnApprove", "True");
+  }
+
+  requestUrl.search = params.toString();
 
   const response = await fetch(requestUrl, {
     method: "GET",
@@ -129,6 +243,147 @@ export async function createHypPaymentPage(input: HypPaymentPageRequest, config 
   return parseHypPayResponse(responseText, config);
 }
 
+export async function getHypTokenForTransaction(transId: string, config = getHypConfig()) {
+  const requestUrl = hypPayBaseUrl(config);
+  requestUrl.search = new URLSearchParams({
+    action: "getToken",
+    Masof: config.terminalNumber,
+    PassP: config.password,
+    TransId: transId,
+  }).toString();
+
+  const response = await fetch(requestUrl);
+  const responseText = await response.text();
+  if (!response.ok) throw new Error(`hyp_get_token_http_${response.status}`);
+
+  const parsed = new URLSearchParams(responseText.trim());
+  const ccode = parsed.get("CCode") ?? "";
+  if (ccode !== "0") {
+    throw new Error(`hyp_get_token_failed:${ccode || responseText.slice(0, 120)}`);
+  }
+
+  const token = parsed.get("Token")?.trim() ?? "";
+  const tokef = parsed.get("Tokef")?.trim() ?? "";
+  if (!/^\d{19}$/.test(token)) throw new Error("hyp_get_token_missing_token");
+  if (!/^\d{4}$/.test(tokef)) throw new Error("hyp_get_token_missing_tokef");
+
+  return {
+    transId: parsed.get("Id") || transId,
+    token,
+    tokef,
+    year: tokef.slice(0, 2),
+    month: tokef.slice(2, 4),
+    raw: responseText,
+  } satisfies HypSavedToken;
+}
+
+export async function chargeHypSavedToken(
+  input: {
+    token: string;
+    expMonth: string;
+    expYear: string;
+    amount: number;
+    userId?: string | null;
+    clientName: string;
+    info: string;
+  },
+  config = getHypConfig(),
+) {
+  const requestUrl = hypPayBaseUrl(config);
+  const recurringTerminalNumber = config.recurringTerminalNumber || config.terminalNumber;
+  const tokenOwnerTerminalNumber =
+    config.tokenOwnerTerminalNumber ||
+    (recurringTerminalNumber !== config.terminalNumber ? config.terminalNumber : "");
+  const params = new URLSearchParams({
+    action: "soft",
+    Masof: recurringTerminalNumber,
+    PassP: config.recurringPassword || config.password,
+    Amount: String(input.amount),
+    CC: input.token,
+    Tmonth: input.expMonth.padStart(2, "0").slice(-2),
+    Tyear: input.expYear.padStart(2, "0").slice(-2),
+    Token: "True",
+    UserId: input.userId?.trim() || "000000000",
+    ClientName: input.clientName.trim() || "Cloud Core",
+    Info: input.info,
+    UTF8: "True",
+    UTF8out: "True",
+  });
+
+  if (tokenOwnerTerminalNumber) {
+    params.set("tOwner", tokenOwnerTerminalNumber);
+  }
+
+  requestUrl.search = params.toString();
+
+  const response = await fetch(requestUrl);
+  const responseText = await response.text();
+  if (!response.ok) throw new Error(`hyp_soft_http_${response.status}`);
+
+  const parsed = new URLSearchParams(responseText.trim());
+  const ccode = parsed.get("CCode") ?? "";
+  if (ccode !== "0") {
+    throw new Error(`hyp_soft_failed:${ccode || responseText.slice(0, 120)}`);
+  }
+
+  return {
+    id: parsed.get("Id") ?? "",
+    ccode,
+    amount: parsed.get("Amount") ?? String(input.amount),
+    acode: parsed.get("ACode") ?? "",
+    hesh: parsed.get("Hesh") ?? "",
+    raw: responseText,
+  };
+}
+
+export async function inquireHypTransactionsByUser(user: string, config = getHypConfig()) {
+  const relayUrl =
+    readEnv("HYP_RELAY_URL") || readEnv("HYP_RELAY_URI") || readEnv("HYP_RELAY_BASE_URL");
+  if (!relayUrl) throw new Error("hyp_relay_not_configured:HYP_RELAY_URL");
+
+  const xml = `<ashrait><request><version>2000</version><language>ENG</language><dateTime/><requestId/><command>inquireTransactions</command><inquireTransactions><terminalNumber>${xmlEscape(config.terminalNumber)}</terminalNumber><user>${xmlEscape(user)}</user></inquireTransactions></request></ashrait>`;
+  const body = new URLSearchParams({
+    user: config.user,
+    password: config.password,
+    int_in: xml,
+  });
+
+  const response = await fetch(relayUrl, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  const responseText = await response.text();
+  if (!response.ok) throw new Error(`hyp_inquire_http_${response.status}`);
+
+  const result = xmlText(responseText, "result");
+  if (result !== "000") {
+    const message = xmlText(responseText, "userMessage") || xmlText(responseText, "message");
+    throw new Error(`hyp_inquire_failed:${result || "unknown"}:${message}`);
+  }
+
+  return transactionBlocks(responseText).map((block): HypInquiryTransaction => {
+    const total = xmlText(block, "total");
+    return {
+      status: xmlText(block, "status"),
+      statusText: xmlText(block, "statusText"),
+      financialStatus: xmlText(block, "financialStatus"),
+      validation: xmlText(block, "validation"),
+      terminalNumber: xmlText(block, "terminalNumber"),
+      cardMask: xmlText(block, "cardMask"),
+      cardExp: xmlText(block, "cardExpiration"),
+      user: xmlText(block, "user"),
+      tranId: xmlText(block, "tranId"),
+      cgUid: xmlText(block, "cgUid"),
+      authNumber: xmlText(block, "authNumber"),
+      total,
+      amount: amountFromHypTotal(total),
+      transactionDate: xmlText(block, "transactionDate"),
+      rawXml: block,
+    };
+  });
+}
+
 function pickSearchParam(params: URLSearchParams, ...names: string[]) {
   for (const name of names) {
     const value = params.get(name);
@@ -138,9 +393,8 @@ function pickSearchParam(params: URLSearchParams, ...names: string[]) {
 }
 
 export async function validateHypRedirect(params: URLSearchParams, config = getHypConfig()) {
-  const orderId = pickSearchParam(params, "Order");
   const sign = pickSearchParam(params, "Sign");
-  if (!orderId || !sign) return false;
+  if (!sign) return false;
 
   const verifyParams = new URLSearchParams({
     action: "APISign",
@@ -160,6 +414,38 @@ export async function validateHypRedirect(params: URLSearchParams, config = getH
   const body = await response.text();
   if (!response.ok) return false;
   return new URLSearchParams(body.trim()).get("CCode") === "0";
+}
+
+export async function updateHypRecurringAgreementStatus(
+  hkId: string,
+  newStatus: "terminate" | "resume",
+  config = getHypConfig(),
+) {
+  const requestUrl = hypPayBaseUrl(config);
+  requestUrl.search = new URLSearchParams({
+    action: "HKStatus",
+    Masof: config.terminalNumber,
+    PassP: config.password,
+    HKId: hkId,
+    NewStat: newStatus === "terminate" ? "1" : "2",
+  }).toString();
+
+  const response = await fetch(requestUrl);
+  const responseText = await response.text();
+  if (!response.ok) throw new Error(`hyp_hkstatus_http_${response.status}`);
+
+  const parsed = new URLSearchParams(responseText.trim());
+  const ccode = parsed.get("CCode") ?? "";
+  if (ccode !== "0") {
+    throw new Error(`hyp_hkstatus_failed:${ccode || responseText.slice(0, 120)}`);
+  }
+
+  return {
+    ok: true,
+    hkId: parsed.get("HKId") || hkId,
+    ccode,
+    raw: responseText,
+  };
 }
 
 export function hypRedirectMetadata(params: URLSearchParams) {
@@ -182,6 +468,8 @@ export function hypRedirectMetadata(params: URLSearchParams) {
     "authNumber",
     "cardMask",
     "cardExp",
+    "keepCCDetails",
+    "HKId",
     "numberOfPayments",
     "errorCode",
     "errorText",
