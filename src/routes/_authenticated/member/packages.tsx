@@ -9,6 +9,7 @@ import {
   CreditCard,
   FileText,
   MessageCircle,
+  RefreshCw,
   Send,
   Smartphone,
   Wallet,
@@ -19,6 +20,7 @@ import { getMyPackages } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { createManualPackagePayment, getMyPackageRequests } from "@/lib/memberRequests.functions";
 import { createCheckoutSession } from "@/lib/receipts.functions";
+import { cancelMySubscription } from "@/lib/subscriptions.functions";
 import { LANG_META, labelForMethod, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
@@ -56,6 +58,7 @@ function MemberPackages() {
   const fetchRequests = useServerFn(getMyPackageRequests);
   const createManualPayment = useServerFn(createManualPackagePayment);
   const createCheckout = useServerFn(createCheckoutSession);
+  const cancelSubscription = useServerFn(cancelMySubscription);
   const qc = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
 
@@ -84,8 +87,10 @@ function MemberPackages() {
   });
 
   const checkoutPayment = useMutation({
-    mutationFn: (v: { planId: string; method: OnlinePaymentMethod }) =>
-      createCheckout({ data: { plan_id: v.planId, payment_method: v.method } }),
+    mutationFn: (v: { planId: string; method: OnlinePaymentMethod; recurring?: boolean }) =>
+      createCheckout({
+        data: { plan_id: v.planId, payment_method: v.method, recurring: v.recurring === true },
+      }),
     onSuccess: (res: any) => {
       if (res?.status === "ready" && res.checkout_url) {
         window.location.href = res.checkout_url;
@@ -95,9 +100,22 @@ function MemberPackages() {
     },
     onError: () => toast.error(t("packages.cardPaymentError")),
   });
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: () => cancelSubscription(),
+    onSuccess: () => {
+      toast.success(t("packages.subscriptionCancelSuccess"));
+      qc.invalidateQueries({ queryKey: ["member-packages"] });
+    },
+    onError: () => toast.error(t("packages.subscriptionCancelError")),
+  });
 
   const active = data?.mine.find((p: any) => p.status === "active");
+  const activeSubscription = (data?.subscriptions ?? []).find((subscription: any) =>
+    ["active", "past_due", "incomplete"].includes(subscription.status),
+  );
   const credits = data?.member?.remaining_credits ?? 0;
+  const hasUsableActivePackage = Boolean(active && credits > 0);
+  const hasRunningSubscription = Boolean(activeSubscription);
   const memberName = data?.member?.name?.split(" ")[0] ?? "";
   const pendingPayments = (data?.payments ?? []).filter(isManualPendingPayment);
   const visiblePaymentHistory = (data?.payments ?? []).filter(isVisiblePaymentHistory);
@@ -105,9 +123,13 @@ function MemberPackages() {
     .filter((p: any) => !hasTestPlanRecord(p))
     .sort(comparePricingPlans);
 
-  function submitPayment(plan: any, method: "cash" | "bit" | "card") {
+  function submitPayment(plan: any, method: "cash" | "bit" | "card", recurring = false) {
+    if (hasUsableActivePackage || hasRunningSubscription) {
+      toast.error(t("packages.activePackageExists"));
+      return;
+    }
     if (method === "card" || method === "bit") {
-      checkoutPayment.mutate({ planId: plan.id, method });
+      checkoutPayment.mutate({ planId: plan.id, method, recurring });
       return;
     }
     const planDisplay = getPlanDisplay(plan, lang);
@@ -174,6 +196,44 @@ function MemberPackages() {
               </p>
             )}
           </div>
+          {activeSubscription && (
+            <div className="mt-4 rounded-xl border border-gold/25 bg-white/55 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
+                    <RefreshCw className="h-4 w-4 text-gold" />
+                    {activeSubscription.status === "past_due"
+                      ? t("packages.subscriptionPastDue")
+                      : t("packages.subscriptionActive")}
+                  </p>
+                  <p className="mt-1 text-sm text-slate">
+                    {t("packages.subscriptionRenews", {
+                      date: new Date(
+                        activeSubscription.next_charge_at ??
+                          activeSubscription.current_period_end ??
+                          Date.now(),
+                      ).toLocaleDateString(locale),
+                    })}
+                  </p>
+                  {activeSubscription.card_mask && (
+                    <p className="mt-1 text-xs font-medium text-slate">
+                      {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => cancelSubscriptionMutation.mutate()}
+                  disabled={cancelSubscriptionMutation.isPending}
+                  className="btn-outline shrink-0 disabled:opacity-50"
+                >
+                  {cancelSubscriptionMutation.isPending
+                    ? t("common.saving")
+                    : t("packages.subscriptionCancel")}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -243,7 +303,13 @@ function MemberPackages() {
                 request={requestsByPlan[p.id]}
                 payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
                 onRequest={() => setSelectedPlan(p)}
-                pending={manualPayment.isPending || checkoutPayment.isPending}
+                pending={
+                  manualPayment.isPending ||
+                  checkoutPayment.isPending ||
+                  hasUsableActivePackage ||
+                  hasRunningSubscription
+                }
+                blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
               />
             ))}
           </div>
@@ -257,7 +323,7 @@ function MemberPackages() {
           settings={settings}
           pending={manualPayment.isPending || checkoutPayment.isPending}
           onClose={() => setSelectedPlan(null)}
-          onSubmit={(method) => submitPayment(selectedPlan, method)}
+          onSubmit={(method, recurring) => submitPayment(selectedPlan, method, recurring)}
         />
       )}
 
@@ -368,6 +434,7 @@ function PackagePricingCard({
   payment,
   onRequest,
   pending,
+  blockedByActivePackage,
 }: {
   plan: any;
   lang: Lang;
@@ -375,12 +442,14 @@ function PackagePricingCard({
   payment?: any;
   onRequest: () => void;
   pending: boolean;
+  blockedByActivePackage: boolean;
 }) {
   const isUnlimited = plan.credits >= 999 || /unlim/i.test(plan.name);
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
   const marketing = getPackageMarketing(plan, lang);
   const isRecommended = marketing.kind === "recommended";
+  const isRecurringMonthly = isRecurringCardPlan(plan);
   const creditsLine = getPackageCreditsLine(plan.credits, lang);
   return (
     <div
@@ -395,8 +464,19 @@ function PackagePricingCard({
             {marketing.secondaryBadge && (
               <span className="package-plan-badge is-secondary">{marketing.secondaryBadge}</span>
             )}
+            {isRecurringMonthly && (
+              <span className="package-plan-badge is-secondary">
+                {t("packages.subscriptionRecurringBadge")}
+              </span>
+            )}
           </div>
           <p className="text-sm text-slate mt-1.5">{marketing.subtitle || display.description}</p>
+          {isRecurringMonthly && (
+            <p className="package-recurring-disclosure">
+              <RefreshCw className="h-3.5 w-3.5" />
+              {t("packages.recurringDisclosure")}
+            </p>
+          )}
         </div>
         <span className="package-plan-icon" aria-hidden="true">
           <Sparkles className="h-4 w-4" />
@@ -430,6 +510,10 @@ function PackagePricingCard({
         {payment ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
             <Wallet className="h-3 w-3 text-gold" /> {t("packages.pendingPayment")}
+          </span>
+        ) : blockedByActivePackage ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
+            <Wallet className="h-3 w-3 text-gold" /> {t("packages.activePackageBadge")}
           </span>
         ) : request && request.status !== "cancelled" ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
@@ -500,6 +584,11 @@ function packageKind(plan: PricingPlanLike): PricingKind {
   if (code === "single_class" || Number(plan?.price_cents) === 8000) return "single";
   if (code === "cloud_10_entry_card" || Number(plan?.price_cents) === 70000) return "card10";
   return "default";
+}
+
+function isRecurringCardPlan(plan: PricingPlanLike) {
+  const kind = packageKind(plan);
+  return kind === "monthly5" || kind === "recommended";
 }
 
 function comparePricingPlans(a: PricingPlanLike, b: PricingPlanLike) {
@@ -708,13 +797,14 @@ function PaymentMethodSheet({
   settings: any;
   pending: boolean;
   onClose: () => void;
-  onSubmit: (method: "cash" | "bit" | "card") => void;
+  onSubmit: (method: "cash" | "bit" | "card", recurring?: boolean) => void;
 }) {
   const [method, setMethod] = useState<"cash" | "bit" | "card" | null>(null);
   const [confirming, setConfirming] = useState(false);
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
+  const recurringCard = isRecurringCardPlan(plan);
   const bitCopy = getBitPaymentCopy(lang);
   const cardEnabled = Boolean(settings?.payments_enabled && settings?.payments_provider === "hyp");
   const hypEnabled = cardEnabled;
@@ -770,6 +860,12 @@ function PaymentMethodSheet({
             <div>
               <p className="font-display text-2xl leading-tight text-navy">{display.name}</p>
               <p className="mt-1 text-sm text-slate">{display.memberLine}</p>
+              {recurringCard && (
+                <p className="package-recurring-disclosure mt-2">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  {t("packages.recurringDisclosure")}
+                </p>
+              )}
             </div>
             <p className="numeric-display text-3xl text-navy">{price}</p>
           </div>
@@ -798,9 +894,19 @@ function PaymentMethodSheet({
               active={method === "card"}
               disabled={!cardEnabled}
               icon={<CreditCard className="h-4 w-4" />}
-              label={cardEnabled ? t("packages.cardLabel") : t("packages.cardSoonLabel")}
+              label={
+                cardEnabled
+                  ? recurringCard
+                    ? t("packages.cardRecurringLabel")
+                    : t("packages.cardLabel")
+                  : t("packages.cardSoonLabel")
+              }
               description={
-                cardEnabled ? t("packages.cardDescription") : t("packages.cardSoonDescription")
+                cardEnabled
+                  ? recurringCard
+                    ? t("packages.cardRecurringDescription")
+                    : t("packages.cardDescription")
+                  : t("packages.cardSoonDescription")
               }
               onClick={() => setMethod("card")}
             />
@@ -816,7 +922,9 @@ function PaymentMethodSheet({
                 {method === "bit"
                   ? bitCopy.confirmDescription
                   : method === "card"
-                    ? t("packages.cardConfirmDescription")
+                    ? recurringCard
+                      ? t("packages.cardRecurringConfirmDescription")
+                      : t("packages.cardConfirmDescription")
                     : t("packages.cashDescription")}
               </p>
             </div>
@@ -871,7 +979,7 @@ function PaymentMethodSheet({
               onClick={() => {
                 if (!method) return;
                 if (method === "card" || method === "bit") {
-                  onSubmit(method);
+                  onSubmit(method, method === "card" && recurringCard);
                   return;
                 }
                 setConfirming(true);

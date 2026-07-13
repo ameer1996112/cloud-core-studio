@@ -37,6 +37,7 @@ import { getMemberViewerCacheKey } from "@/lib/memberQueryKeys";
 import { getPlanDisplay } from "@/lib/planDisplay";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { AutoInline, LtrInline } from "@/components/ui/bidi";
+import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
 
 export const Route = createFileRoute("/_authenticated/member/")({
   component: MemberHome,
@@ -137,6 +138,8 @@ function MemberHome() {
           </div>
         </div>
       )}
+
+      <WeeklyPromoBanner />
 
       {/* Next booking — Cloud Card */}
       {isLoading ? (

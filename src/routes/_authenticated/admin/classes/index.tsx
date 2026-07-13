@@ -98,7 +98,7 @@ function Page() {
                       <XCircle className="h-4 w-4" />
                     </IconAction>
                   )}
-                  {c.status === "cancelled" && (
+                  {c.status !== "scheduled" && (
                     <IconAction
                       onClick={() => mut.mutate({ id: c.id, status: "scheduled" })}
                       label={t("common.open")}
@@ -106,12 +106,14 @@ function Page() {
                       <CheckCircle className="h-4 w-4" />
                     </IconAction>
                   )}
-                  <IconAction
-                    onClick={() => mut.mutate({ id: c.id, status: "archived" })}
-                    label={t("admin.programs.archived")}
-                  >
-                    <Archive className="h-4 w-4" />
-                  </IconAction>
+                  {c.status !== "archived" && (
+                    <IconAction
+                      onClick={() => mut.mutate({ id: c.id, status: "archived" })}
+                      label={t("admin.programs.archived")}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </IconAction>
+                  )}
                 </div>
               </div>
             </div>

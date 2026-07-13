@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getHypConfig, hypRedirectMetadata, validateHypRedirect } from "@/lib/hyp.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
+import { createSubscriptionFromInitialPayment } from "@/lib/subscriptions.server";
 
 function pickSearchParam(params: URLSearchParams, ...names: string[]) {
   for (const name of names) {
@@ -201,6 +202,18 @@ export const Route = createFileRoute("/api/public/payments/hyp/return")({
 
         const result = data as ConfirmPaymentResult;
         if (result.status === "confirmed" || result.status === "already_confirmed") {
+          try {
+            await createSubscriptionFromInitialPayment({
+              paymentId,
+              memberPlanId: result.member_plan_id ?? null,
+              hkId: pickSearchParam(params, "HKId", "hkId"),
+              cardMask: pickSearchParam(params, "cardMask", "L4digit"),
+              transId: pickSearchParam(params, "Id", "txId"),
+              userId: pickSearchParam(params, "UserId"),
+            });
+          } catch (subscriptionError) {
+            console.error("hyp_return_subscription_setup_failed", subscriptionError);
+          }
           await enqueuePaymentConfirmedNotifications(result);
         }
 

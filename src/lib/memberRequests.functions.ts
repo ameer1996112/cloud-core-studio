@@ -19,6 +19,25 @@ async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
   if (error) console.error("notification_draft_insert_failed", error.message);
 }
 
+async function assertNoUsableActivePackage(supabase: any, memberId: string) {
+  const now = new Date().toISOString();
+  const [memberRes, activePlanRes] = await Promise.all([
+    supabase.from("members").select("remaining_credits").eq("id", memberId).maybeSingle(),
+    supabase
+      .from("member_plans")
+      .select("id,expires_at")
+      .eq("member_id", memberId)
+      .eq("status", "active")
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .limit(1),
+  ]);
+  if (memberRes.error) throw memberRes.error;
+  if (activePlanRes.error) throw activePlanRes.error;
+  if (Number(memberRes.data?.remaining_credits ?? 0) > 0 && (activePlanRes.data ?? []).length > 0) {
+    throw new Error("active_package_exists");
+  }
+}
+
 export const createMyPackageRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -30,6 +49,7 @@ export const createMyPackageRequest = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    await assertNoUsableActivePackage(context.supabase, context.userId);
     const { error, data: row } = await context.supabase
       .from("package_requests")
       .insert({
@@ -89,6 +109,7 @@ export const createManualPackagePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => manualPaymentInput.parse(d))
   .handler(async ({ data, context }) => {
+    await assertNoUsableActivePackage(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [memberRes, planRes] = await Promise.all([
       context.supabase.from("members").select("id").eq("id", context.userId).maybeSingle(),

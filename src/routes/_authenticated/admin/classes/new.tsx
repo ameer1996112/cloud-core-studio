@@ -534,6 +534,23 @@ export function SessionForm({
         </button>
         {showAdvanced && (
           <div className="p-4 border-t border-gold/10 bg-white/30 space-y-4 animate-fadeIn">
+            <PremiumField label={t("admin.classes.status")} helper={t("admin.classes.statusHelp")}>
+              <PremiumSelect
+                value={form.status ?? "scheduled"}
+                onChange={(value) =>
+                  setForm((current) => ({
+                    ...current,
+                    status: value as SessionFormState["status"],
+                  }))
+                }
+              >
+                {(["scheduled", "cancelled", "archived"] as const).map((status) => (
+                  <option key={status} value={status}>
+                    {t(`admin.classStatus.${status}` as any)}
+                  </option>
+                ))}
+              </PremiumSelect>
+            </PremiumField>
             <PremiumField label={t("member.filter.energy")}>
               <PremiumSelect
                 value={form.energy}

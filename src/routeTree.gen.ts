@@ -56,6 +56,7 @@ import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminMembersIndexRouteImport } from './routes/_authenticated/admin/members/index'
 import { Route as AuthenticatedAdminClassesIndexRouteImport } from './routes/_authenticated/admin/classes/index'
 import { Route as ApiPublicWebhooksWhatsappRouteImport } from './routes/api/public/webhooks/whatsapp'
+import { Route as ApiInternalSubscriptionsHypSyncRouteImport } from './routes/api/internal/subscriptions/hyp-sync'
 import { Route as ApiInternalNotificationsOpenwaRunRouteImport } from './routes/api/internal/notifications/openwa-run'
 import { Route as ApiInternalNotificationsOpenwaReportRouteImport } from './routes/api/internal/notifications/openwa-report'
 import { Route as ApiInternalNotificationsOpenwaClaimRouteImport } from './routes/api/internal/notifications/openwa-claim'
@@ -325,6 +326,12 @@ const ApiPublicWebhooksWhatsappRoute =
     path: '/api/public/webhooks/whatsapp',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalSubscriptionsHypSyncRoute =
+  ApiInternalSubscriptionsHypSyncRouteImport.update({
+    id: '/api/internal/subscriptions/hyp-sync',
+    path: '/api/internal/subscriptions/hyp-sync',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInternalNotificationsOpenwaRunRoute =
   ApiInternalNotificationsOpenwaRunRouteImport.update({
     id: '/api/internal/notifications/openwa-run',
@@ -438,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
   '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
+  '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
   '/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
@@ -493,6 +501,7 @@ export interface FileRoutesByTo {
   '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
   '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
+  '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
   '/admin/classes': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members': typeof AuthenticatedAdminMembersIndexRoute
@@ -553,6 +562,7 @@ export interface FileRoutesById {
   '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
   '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
+  '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
   '/_authenticated/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/_authenticated/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
@@ -613,6 +623,7 @@ export interface FileRouteTypes {
     | '/api/internal/notifications/openwa-claim'
     | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
+    | '/api/internal/subscriptions/hyp-sync'
     | '/api/public/webhooks/whatsapp'
     | '/admin/classes/'
     | '/admin/members/'
@@ -668,6 +679,7 @@ export interface FileRouteTypes {
     | '/api/internal/notifications/openwa-claim'
     | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
+    | '/api/internal/subscriptions/hyp-sync'
     | '/api/public/webhooks/whatsapp'
     | '/admin/classes'
     | '/admin/members'
@@ -727,6 +739,7 @@ export interface FileRouteTypes {
     | '/api/internal/notifications/openwa-claim'
     | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
+    | '/api/internal/subscriptions/hyp-sync'
     | '/api/public/webhooks/whatsapp'
     | '/_authenticated/admin/classes/'
     | '/_authenticated/admin/members/'
@@ -752,6 +765,7 @@ export interface RootRouteChildren {
   ApiInternalNotificationsOpenwaClaimRoute: typeof ApiInternalNotificationsOpenwaClaimRoute
   ApiInternalNotificationsOpenwaReportRoute: typeof ApiInternalNotificationsOpenwaReportRoute
   ApiInternalNotificationsOpenwaRunRoute: typeof ApiInternalNotificationsOpenwaRunRoute
+  ApiInternalSubscriptionsHypSyncRoute: typeof ApiInternalSubscriptionsHypSyncRoute
   ApiPublicWebhooksWhatsappRoute: typeof ApiPublicWebhooksWhatsappRoute
   ApiPublicPaymentsHypReturnRoute: typeof ApiPublicPaymentsHypReturnRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
@@ -1088,6 +1102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/subscriptions/hyp-sync': {
+      id: '/api/internal/subscriptions/hyp-sync'
+      path: '/api/internal/subscriptions/hyp-sync'
+      fullPath: '/api/internal/subscriptions/hyp-sync'
+      preLoaderRoute: typeof ApiInternalSubscriptionsHypSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/notifications/openwa-run': {
       id: '/api/internal/notifications/openwa-run'
       path: '/api/internal/notifications/openwa-run'
@@ -1304,6 +1325,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiInternalNotificationsOpenwaReportRoute,
   ApiInternalNotificationsOpenwaRunRoute:
     ApiInternalNotificationsOpenwaRunRoute,
+  ApiInternalSubscriptionsHypSyncRoute: ApiInternalSubscriptionsHypSyncRoute,
   ApiPublicWebhooksWhatsappRoute: ApiPublicWebhooksWhatsappRoute,
   ApiPublicPaymentsHypReturnRoute: ApiPublicPaymentsHypReturnRoute,
   ApiPublicWebhooksPaymentsProviderRoute:

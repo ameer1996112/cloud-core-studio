@@ -13,6 +13,7 @@ import {
   MemberScheduleFilterPanel,
   type DateScope,
 } from "@/components/member/MemberScheduleFilterPanel";
+import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
 import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getMemberScheduleQueryKey, getViewerCacheKey } from "@/lib/memberQueryKeys";
@@ -498,6 +499,8 @@ export function MemberScheduleContent({
           </div>
         </div>
       </div>
+
+      <WeeklyPromoBanner onThisWeekClick={() => setDateScope("week")} />
 
       <MemberScheduleFilterPanel
         dir={dir}
