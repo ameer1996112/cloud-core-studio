@@ -3,17 +3,23 @@
 The iPhone notification queue must be swept by a hosted process. It must not depend on the local
 OpenWA Mac worker.
 
-## Railway cron service
+## Google Cloud Run job and Cloud Scheduler
 
-Create a second Railway service from this repository and set its config-as-code path to
-`/railway.notifications.json`. Give the cron service these variables:
+Production uses a short-lived Cloud Run job triggered every 15 minutes by Cloud Scheduler. The job
+calls the authenticated sweep on the main `cloud-core-studio` service and exits. This keeps reminder
+delivery hosted without coupling it to the web container or the studio Mac.
 
-- `CLOUD_CORE_BASE_URL`: the public HTTPS origin of the main app, without a trailing slash.
-- `NOTIFICATION_AUTOMATION_TOKEN`: a long random secret shared with the main app service.
-- `NOTIFICATION_SWEEP_LIMIT`: optional; defaults to `50` and is capped at `100`.
+Create a Secret Manager secret named `notification-automation-token` with a long random value. Then
+run `scripts/configure-notification-cloud-run.sh` with `NOTIFICATION_JOB_IMAGE` set to the deployed
+application image. The script:
 
-The committed Railway config executes `scripts/member-notification-cron.mjs` every 15 minutes and
-exits after one authenticated sweep. Configure Railway alerts for failed cron executions.
+- attaches the shared secret to the main service and notification job;
+- deploys the `cloud-core-notification-sweep` Cloud Run job;
+- creates least-privilege runtime and scheduler service accounts; and
+- creates or updates the `cloud-core-notification-sweep-15m` Cloud Scheduler job.
+
+Optional environment overrides are documented at the top of the script. After setup, execute the
+job once manually and inspect Cloud Logging before enabling member campaigns.
 
 The local OpenWA worker intentionally defaults `OPENWA_WORKER_LIFECYCLE_SWEEP` to `0`. It remains
 responsible for OpenWA delivery only. Set it to `1` only for temporary manual recovery.
