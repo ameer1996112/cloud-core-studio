@@ -5,12 +5,12 @@ describe("member notification copy", () => {
   test("localizes activation copy and links directly to the schedule", () => {
     expect(buildMemberNotificationCopy("registered_no_action", "he", {})).toEqual({
       category: "activation",
-      title: "השיעור הראשון שלך מחכה",
-      body: "פתחי את המערכת ובחרי את השיעור שמתאים לשבוע שלך.",
+      title: "רגע קטן לעצמך מחכה ✨",
+      body: "השיעורים הקרובים כבר פתוחים. לחצי לבחור את הרגע שלך השבוע.",
       actionUrl: "/member/schedule",
     });
     expect(buildMemberNotificationCopy("registered_no_action", "ar", {}).title).toBe(
-      "حصتك الأولى بانتظارك",
+      "لحظة جميلة لنفسك بانتظارك ✨",
     );
     expect(
       buildMemberNotificationCopy("registered_no_action", "en", { notification_stage: "day3" })
@@ -30,8 +30,8 @@ describe("member notification copy", () => {
       }),
     ).toEqual({
       category: "lesson_reminder",
-      title: "Core Balance starts soon",
-      body: "Your lesson begins at 18:00. See you at the studio.",
+      title: "Starting soon — Core Balance",
+      body: "18:00 · Everything is ready for you. Tap for class details.",
       actionUrl: "/member/schedule?class=class-1",
     });
   });
@@ -45,15 +45,17 @@ describe("member notification copy", () => {
       }),
     ).toEqual({
       category: "schedule",
-      title: "Aerial Flow is now open",
-      body: "A new lesson at 18:00 is available in the schedule.",
+      title: "New in the schedule: Aerial Flow ✨",
+      body: "18:00 · Spots are open now. Tap to save yours.",
       actionUrl: "/member/schedule?class=class-1",
     });
   });
 
   test("uses private lock-screen wording for failed payments", () => {
     const copy = buildMemberNotificationCopy("payment_failed", "en", { amount: "999" });
-    expect(copy.body).toBe("Open the app to review your payment and keep your package active.");
+    expect(copy.body).toBe(
+      "Your package is still waiting. Tap for a quick review or to try again.",
+    );
     expect(copy.body).not.toContain("999");
   });
 
@@ -65,7 +67,7 @@ describe("member notification copy", () => {
       }),
     ).toMatchObject({
       category: "urgent_class_change",
-      title: "Core Balance was cancelled",
+      title: "Important update: Core Balance was cancelled",
       actionUrl: "/member/schedule?class=class-1",
     });
     expect(
@@ -84,8 +86,8 @@ describe("member notification copy", () => {
       }),
     ).toEqual({
       category: "waitlist",
-      title: "A place opened in Pilates Sculpt",
-      body: "Open the app now to claim it before the offer expires.",
+      title: "Your spot opened in Pilates Sculpt 🤍",
+      body: "It’s held for a limited time. Tap now to claim it.",
       actionUrl: "/member/schedule?class=class-2",
     });
   });
