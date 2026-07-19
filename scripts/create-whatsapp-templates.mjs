@@ -6,7 +6,7 @@ import process from "node:process";
 
 const ROOT = process.cwd();
 const ENV_FILE = path.join(ROOT, ".env.whatsapp.local");
-const TEMPLATE_DIR = path.join(ROOT, "whatsapp/templates/he");
+const TEMPLATE_ROOT = path.join(ROOT, "whatsapp/templates");
 const REQUIRED_ENV = ["META_GRAPH_API_VERSION", "META_WABA_ID", "META_ACCESS_TOKEN"];
 const DRY_RUN = process.argv.includes("--dry-run");
 const ONLY_TEMPLATE = process.argv
@@ -68,7 +68,9 @@ function validateTemplate(template, fileName) {
   assertNoBadValues(template, fileName);
   if (!template.name) throw new Error(`${fileName}: template name is required`);
   if (template.category !== "UTILITY") throw new Error(`${fileName}: category must be UTILITY`);
-  if (template.language !== "he") throw new Error(`${fileName}: language must be he`);
+  if (!["he", "ar", "en_US"].includes(template.language)) {
+    throw new Error(`${fileName}: unsupported language ${template.language}`);
+  }
   if (!Array.isArray(template.components))
     throw new Error(`${fileName}: components must be an array`);
 
@@ -96,14 +98,21 @@ function validateTemplate(template, fileName) {
 }
 
 async function readTemplates() {
-  const files = (await readdir(TEMPLATE_DIR)).filter((file) => file.endsWith(".json")).sort();
+  const languageDirectories = (await readdir(TEMPLATE_ROOT, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
   const templates = [];
-  for (const file of files) {
-    const fullPath = path.join(TEMPLATE_DIR, file);
-    const template = JSON.parse(await readFile(fullPath, "utf8"));
-    if (ONLY_TEMPLATE && template.name !== ONLY_TEMPLATE) continue;
-    validateTemplate(template, file);
-    templates.push({ file, template });
+  for (const directory of languageDirectories) {
+    const directoryPath = path.join(TEMPLATE_ROOT, directory);
+    const files = (await readdir(directoryPath)).filter((file) => file.endsWith(".json")).sort();
+    for (const file of files) {
+      const fullPath = path.join(directoryPath, file);
+      const template = JSON.parse(await readFile(fullPath, "utf8"));
+      if (ONLY_TEMPLATE && template.name !== ONLY_TEMPLATE) continue;
+      validateTemplate(template, `${directory}/${file}`);
+      templates.push({ file: `${directory}/${file}`, template });
+    }
   }
   if (ONLY_TEMPLATE && templates.length === 0) {
     throw new Error(`No template found for --only=${ONLY_TEMPLATE}`);
@@ -206,10 +215,10 @@ async function createTemplate(template) {
 loadLocalEnv();
 const missing = requireEnvUnlessDryRun();
 const templates = await readTemplates();
-console.log(`Validated ${templates.length} Hebrew utility templates.`);
+console.log(`Validated ${templates.length} localized utility templates.`);
 
 let existing = new Map();
-if (envReady()) {
+if (envReady() && !DRY_RUN) {
   const [readiness, existingTemplates] = await Promise.all([
     fetchWabaReadiness(),
     fetchExistingTemplates(),
@@ -218,7 +227,11 @@ if (envReady()) {
   existing = existingTemplates;
   console.log(`Fetched ${existing.size} existing templates from Meta.`);
 } else if (DRY_RUN) {
-  console.log(`Dry run without Meta lookup. Missing env vars: ${missing.join(", ")}`);
+  console.log(
+    missing.length
+      ? `Dry run without Meta lookup. Missing env vars: ${missing.join(", ")}`
+      : "Dry run: Meta lookup skipped.",
+  );
 }
 
 const results = { created: 0, skipped: 0, failed: 0, dryRun: 0 };

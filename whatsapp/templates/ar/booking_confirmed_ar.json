@@ -1,0 +1,10 @@
+{
+  "name": "booking_confirmed_ar",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "مرحبًا {{1}}، تم حجز مكانك ✨\n\nالحصة: {{2}}\nالموعد: {{3}} الساعة {{4}}\nالمدرّبة: {{5}}\n\nيسعدنا رؤيتك في Cloud & Core Studio.",
+    "example": { "body_text": [["نورا", "بيلاتس أرضي", "الأربعاء 10.7", "18:00", "يارين"]] }
+  }]
+}

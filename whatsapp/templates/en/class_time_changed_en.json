@@ -1,0 +1,10 @@
+{
+  "name": "class_time_changed_en",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "Hi {{1}}, the time for {{2}} was updated.\n\nNew time:\n{{3}} at {{4}}\n\nYou can see all the details in the app.",
+    "example": { "body_text": [["Nora", "Aerial Yoga", "Monday, July 15", "17:30"]] }
+  }]
+}

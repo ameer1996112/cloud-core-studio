@@ -152,10 +152,14 @@ export function decideLifecycleWhatsappFallback(input: {
   isThirtyDayEscalation: boolean;
   marketingConsent: boolean;
   requiresMarketingConsent: boolean;
+  reminderConsent: boolean;
+  requiresReminderConsent: boolean;
 }) {
-  if (input.isThirtyDayEscalation || input.requiresMarketingConsent) {
-    return input.marketingConsent;
+  if (input.isThirtyDayEscalation) return input.marketingConsent;
+  if (input.requiresMarketingConsent) {
+    return input.marketingConsent && !input.hasActivePushDevice;
   }
+  if (input.requiresReminderConsent && !input.reminderConsent) return false;
   return !input.hasActivePushDevice;
 }
 

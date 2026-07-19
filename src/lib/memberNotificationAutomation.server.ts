@@ -156,6 +156,27 @@ async function runPaymentReminderSweep(now: Date, limit: number) {
   if (error) throw error;
   if (settingsResult.error) throw settingsResult.error;
 
+  const memberIds = [
+    ...new Set(
+      ((data ?? []) as PaymentCandidate[])
+        .map((payment) => payment.member_id)
+        .filter((memberId): memberId is string => Boolean(memberId)),
+    ),
+  ];
+  const { data: preferences, error: preferencesError } = memberIds.length
+    ? await db
+        .from("member_notification_preferences")
+        .select("member_id,package_reminders")
+        .in("member_id", memberIds)
+    : { data: [], error: null };
+  if (preferencesError) throw preferencesError;
+  const packageReminderConsent = new Map<string, boolean>(
+    (preferences ?? []).map((preference: { member_id: string; package_reminders: boolean }) => [
+      preference.member_id,
+      Boolean(preference.package_reminders),
+    ]),
+  );
+
   let prepared = 0;
   let whatsappPrepared = 0;
   for (const payment of (data ?? []) as PaymentCandidate[]) {
@@ -189,7 +210,10 @@ async function runPaymentReminderSweep(now: Date, limit: number) {
     });
     if (!result.duplicate) prepared += 1;
 
-    if (actions.sendWhatsapp) {
+    if (
+      actions.sendWhatsapp &&
+      (payment.status !== "pending" || packageReminderConsent.get(payment.member_id) !== false)
+    ) {
       const eventKey = payment.status === "failed" ? "payment_failed" : "payment_pending_reminder";
       const [row] = buildNotificationDraftRows({
         eventKey,

@@ -4,7 +4,7 @@ import { runLifecycleNotificationSweep } from "@/lib/lifecycleNotifications.serv
 import {
   jsonResponse,
   readJsonBody,
-  requireOpenwaAutomationAuth,
+  requireNotificationAutomationAuth,
 } from "@/lib/internalAutomationAuth.server";
 
 const lifecycleSweepRequestSchema = z.object({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/api/internal/notifications/lifecycle-swee
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const unauthorized = requireOpenwaAutomationAuth(request);
+        const unauthorized = requireNotificationAutomationAuth(request);
         if (unauthorized) return unauthorized;
 
         let body: unknown;

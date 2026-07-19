@@ -104,6 +104,21 @@ export const registerMemberPushToken = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+export const deactivateMemberPushTokens = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ token: z.string().min(1) }).parse(data))
+  .handler(async ({ context, data }) => {
+    const db = await requireMember(context.userId);
+    const { error } = await db
+      .from("member_push_tokens")
+      .update({ active: false, updated_at: new Date().toISOString() })
+      .eq("member_id", context.userId)
+      .eq("token", data.token)
+      .eq("active", true);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
 export const updateMemberNotificationPreferences = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => memberNotificationPreferencesSchema.parse(data))
@@ -133,7 +148,7 @@ export const markMemberNotificationRead = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     const { data: existing, error: findError } = await db
       .from("member_notifications")
-      .select("id,campaign_id,opened_at")
+      .select("id,campaign_id")
       .eq("id", data.notificationId)
       .eq("member_id", context.userId)
       .maybeSingle();
@@ -144,17 +159,18 @@ export const markMemberNotificationRead = createServerFn({ method: "POST" })
       .update({ read_at: now, opened_at: now })
       .eq("id", data.notificationId)
       .eq("member_id", context.userId)
+      .is("opened_at", null)
       .select("id")
       .maybeSingle();
     if (error) throw error;
-    if (updated && existing.campaign_id && !existing.opened_at) {
+    if (updated && existing.campaign_id) {
       const { error: metricError } = await db.rpc("increment_notification_campaign_metric", {
         p_campaign_id: existing.campaign_id,
         p_metric: "opened",
       });
       if (metricError) console.warn("notification_campaign_open_metric_failed", metricError);
     }
-    return { ok: Boolean(updated) };
+    return { ok: true };
   });
 
 export const markAllMemberNotificationsRead = createServerFn({ method: "POST" })

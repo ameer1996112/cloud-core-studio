@@ -23,11 +23,13 @@ export type MemberPushRegistrationResult =
 
 let registrationStarted = false;
 let listenersInstalled = false;
+let registeredUserId: string | null = null;
+let initializationPromise: Promise<MemberPushRegistrationResult> | null = null;
+const MEMBER_PUSH_TOKEN_KEY = "member_push_token";
 
 async function initializeMemberPush(input: {
   requestPermission: boolean;
 }): Promise<MemberPushRegistrationResult> {
-  if (registrationStarted) return { ok: false, skipped: "already_started" };
   if (typeof window === "undefined" || !Capacitor.isNativePlatform()) {
     return { ok: false, skipped: "not_native" };
   }
@@ -40,17 +42,24 @@ async function initializeMemberPush(input: {
   if ((await getCurrentRole(userId)) !== "member") {
     return { ok: false, skipped: "not_member" };
   }
+  if (registrationStarted && registeredUserId === userId) {
+    return { ok: false, skipped: "already_started" };
+  }
+  registrationStarted = false;
+  registeredUserId = userId;
 
   try {
     const { PushNotifications } = await import("@capacitor/push-notifications");
     if (!listenersInstalled) {
       await PushNotifications.addListener("registration", (token) => {
+        window.localStorage.setItem(MEMBER_PUSH_TOKEN_KEY, token.value);
         void registerMemberPushToken({ data: { token: token.value, platform: "ios" } })
           .then(() => window.dispatchEvent(new CustomEvent("cc:member-notifications-changed")))
           .catch((error) => console.warn("member_push_token_register_failed", error));
       });
       await PushNotifications.addListener("registrationError", (error) => {
         registrationStarted = false;
+        registeredUserId = null;
         console.warn("member_push_registration_error", error);
       });
       await PushNotifications.addListener("pushNotificationReceived", (notification) => {
@@ -104,14 +113,46 @@ async function initializeMemberPush(input: {
     };
   } catch (error) {
     registrationStarted = false;
+    registeredUserId = null;
     throw error;
   }
 }
 
 export function startMemberPushRegistration() {
-  return initializeMemberPush({ requestPermission: true });
+  return runMemberPushInitialization(true);
 }
 
 export function bootstrapMemberPushRegistration() {
-  return initializeMemberPush({ requestPermission: false });
+  return runMemberPushInitialization(false);
+}
+
+function runMemberPushInitialization(requestPermission: boolean) {
+  if (initializationPromise) return initializationPromise;
+  initializationPromise = initializeMemberPush({ requestPermission }).finally(() => {
+    initializationPromise = null;
+  });
+  return initializationPromise;
+}
+
+export function resetMemberPushSession() {
+  registrationStarted = false;
+  registeredUserId = null;
+  initializationPromise = null;
+}
+
+export async function disconnectMemberPushSession() {
+  resetMemberPushSession();
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { PushNotifications } = await import("@capacitor/push-notifications");
+      await PushNotifications.unregister();
+    } catch (error) {
+      console.warn("member_push_native_unregister_failed", error);
+    }
+  }
+  window.localStorage.removeItem(MEMBER_PUSH_TOKEN_KEY);
+}
+
+export function getCurrentMemberPushToken() {
+  return window.localStorage.getItem(MEMBER_PUSH_TOKEN_KEY);
 }

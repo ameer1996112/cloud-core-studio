@@ -34,7 +34,7 @@ const rows = buildNotificationDraftRows({
 
 assert.equal(rows.length, 2);
 assert.equal(rows[0].status, "queued");
-assert.equal(rows[0].language, "he");
+assert.equal(rows[0].language, "en");
 assert.equal(rows[0].staff_visibility, "operational");
 assert.equal(rows[0].related_booking_id, "booking-1");
 assert.equal(rows[0].related_class_id, "class-1");
@@ -511,7 +511,7 @@ const cancelledWaitlistRows = buildNotificationDraftRows({
 
 assert.equal(cancelledWaitlistRows[0].status, "cancelled");
 
-const hebrewOnlyWhatsAppRows = buildNotificationDraftRows({
+const localizedWhatsAppRows = buildNotificationDraftRows({
   eventKey: "registered_no_action",
   channels: ["whatsapp"],
   audience: "member",
@@ -536,8 +536,7 @@ const hebrewOnlyWhatsAppRows = buildNotificationDraftRows({
   variables: {},
 });
 
-assert.equal(hebrewOnlyWhatsAppRows[0].language, "he");
-assert.ok(hebrewOnlyWhatsAppRows[0].generated_text?.includes("ברוכה הבאה"));
-assert.ok(!hebrewOnlyWhatsAppRows[0].generated_text?.includes("welcome"));
+assert.equal(localizedWhatsAppRows[0].language, "en");
+assert.ok(localizedWhatsAppRows[0].generated_text?.toLowerCase().includes("welcome"));
 
 console.log("notification draft rows OK");

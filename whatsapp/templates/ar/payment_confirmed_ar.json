@@ -1,0 +1,10 @@
+{
+  "name": "payment_confirmed_ar",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "مرحبًا {{1}}، تم تأكيد دفعتك ✨\n\nتم تفعيل الباقة:\n{{2}}\n\nالرصيد المتاح: {{3}}\n\nيمكنك الآن فتح التطبيق وحجز الحصص.",
+    "example": { "body_text": [["نورا", "باقة 8 حصص", "8"]] }
+  }]
+}

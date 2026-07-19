@@ -1,0 +1,10 @@
+{
+  "name": "booking_confirmed_en",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "Hi {{1}}, your place is reserved ✨\n\nLesson: {{2}}\nWhen: {{3}} at {{4}}\nInstructor: {{5}}\n\nWe look forward to seeing you at Cloud & Core Studio.",
+    "example": { "body_text": [["Nora", "Mat Pilates", "Wednesday, July 10", "18:00", "Yarin"]] }
+  }]
+}

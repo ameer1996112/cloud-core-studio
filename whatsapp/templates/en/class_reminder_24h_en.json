@@ -1,0 +1,10 @@
+{
+  "name": "class_reminder_24h_en",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "A quick reminder from Cloud & Core ✨\n\nYour {{1}} lesson is tomorrow at {{2}}.\n\nPlease arrive a few minutes before it begins. See you at the studio.",
+    "example": { "body_text": [["Aerial Yoga", "17:00"]] }
+  }]
+}

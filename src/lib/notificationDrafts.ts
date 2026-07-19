@@ -128,14 +128,11 @@ export function buildNotificationDraftRows(
 
   return input.channels.map((channel) => {
     const whatsappProvider = channel === "whatsapp" ? resolveWhatsappNotificationProvider() : null;
-    const language =
-      channel === "whatsapp"
-        ? "he"
-        : resolveNotificationLanguage({
-            memberPreferredLanguage: input.member.preferred_language,
-            appLanguage: input.appLanguage,
-            studioDefaultLanguage: input.studioSettings?.default_language,
-          });
+    const language = resolveNotificationLanguage({
+      memberPreferredLanguage: input.member.preferred_language,
+      appLanguage: input.appLanguage,
+      studioDefaultLanguage: input.studioSettings?.default_language,
+    });
     const template = findNotificationTemplate({
       eventKey: input.eventKey,
       channel,

@@ -125,6 +125,8 @@ describe("lifecycle WhatsApp fallback policy", () => {
         isThirtyDayEscalation: false,
         marketingConsent: false,
         requiresMarketingConsent: false,
+        reminderConsent: true,
+        requiresReminderConsent: false,
       }),
     ).toBe(true);
     expect(
@@ -133,6 +135,8 @@ describe("lifecycle WhatsApp fallback policy", () => {
         isThirtyDayEscalation: false,
         marketingConsent: true,
         requiresMarketingConsent: false,
+        reminderConsent: true,
+        requiresReminderConsent: false,
       }),
     ).toBe(false);
   });
@@ -144,6 +148,8 @@ describe("lifecycle WhatsApp fallback policy", () => {
         isThirtyDayEscalation: true,
         marketingConsent: true,
         requiresMarketingConsent: true,
+        reminderConsent: true,
+        requiresReminderConsent: false,
       }),
     ).toBe(true);
     expect(
@@ -152,6 +158,8 @@ describe("lifecycle WhatsApp fallback policy", () => {
         isThirtyDayEscalation: true,
         marketingConsent: false,
         requiresMarketingConsent: true,
+        reminderConsent: true,
+        requiresReminderConsent: false,
       }),
     ).toBe(false);
   });
@@ -163,6 +171,34 @@ describe("lifecycle WhatsApp fallback policy", () => {
         isThirtyDayEscalation: false,
         marketingConsent: false,
         requiresMarketingConsent: true,
+        reminderConsent: true,
+        requiresReminderConsent: false,
+      }),
+    ).toBe(false);
+  });
+
+  test("does not duplicate ordinary lifecycle marketing on push and WhatsApp", () => {
+    expect(
+      decideLifecycleWhatsappFallback({
+        hasActivePushDevice: true,
+        isThirtyDayEscalation: false,
+        marketingConsent: true,
+        requiresMarketingConsent: true,
+        reminderConsent: true,
+        requiresReminderConsent: false,
+      }),
+    ).toBe(false);
+  });
+
+  test("respects package reminder consent for WhatsApp fallbacks", () => {
+    expect(
+      decideLifecycleWhatsappFallback({
+        hasActivePushDevice: false,
+        isThirtyDayEscalation: false,
+        marketingConsent: false,
+        requiresMarketingConsent: false,
+        reminderConsent: false,
+        requiresReminderConsent: true,
       }),
     ).toBe(false);
   });

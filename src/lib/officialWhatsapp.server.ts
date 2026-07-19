@@ -24,7 +24,7 @@ export type OfficialWhatsappTemplateEventType =
 
 export type OfficialWhatsappTemplatePayload = {
   name: string;
-  languageCode: "he";
+  languageCode: "he" | "ar" | "en_US";
   bodyParameters: string[];
 };
 
@@ -55,9 +55,20 @@ function textValue(value: unknown, fallback = "-") {
   return text || fallback;
 }
 
-function configuredTemplateName(eventType: OfficialWhatsappTemplateEventType) {
-  const key = `WHATSAPP_TEMPLATE_${eventType.toUpperCase()}`;
-  return process.env[key]?.trim() || `${eventType}_he`;
+function templateLanguage(language: string | null | undefined) {
+  if (language === "ar") return { suffix: "ar", code: "ar" as const };
+  if (language === "en") return { suffix: "en", code: "en_US" as const };
+  return { suffix: "he", code: "he" as const };
+}
+
+function configuredTemplateName(eventType: OfficialWhatsappTemplateEventType, language: string) {
+  const languageKey = `WHATSAPP_TEMPLATE_${eventType.toUpperCase()}_${language.toUpperCase()}`;
+  const fallbackKey = `WHATSAPP_TEMPLATE_${eventType.toUpperCase()}`;
+  return (
+    process.env[languageKey]?.trim() ||
+    process.env[fallbackKey]?.trim() ||
+    `${eventType}_${language}`
+  );
 }
 
 export function isOfficialWhatsappTemplateEventType(
@@ -69,7 +80,7 @@ export function isOfficialWhatsappTemplateEventType(
 }
 
 export function buildOfficialWhatsappTemplatePayload(
-  row: Pick<NotificationLogRow, "payload" | "trigger_type">,
+  row: Pick<NotificationLogRow, "payload" | "trigger_type" | "language">,
 ): OfficialWhatsappTemplatePayload | null {
   if (!isOfficialWhatsappTemplateEventType(row.trigger_type)) return null;
 
@@ -84,49 +95,51 @@ export function buildOfficialWhatsappTemplatePayload(
     variables.credits_available ?? variables.credits_remaining ?? variables.credits,
     "עודכן",
   );
+  const language = templateLanguage(row.language);
+  const name = configuredTemplateName(row.trigger_type, language.suffix);
 
   switch (row.trigger_type) {
     case "booking_confirmed":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [memberName, className, classDate, classTime, instructorName],
       };
     case "class_cancelled_by_admin":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [memberName, className, classDate, classTime],
       };
     case "class_reminder_24h":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [className, classTime],
       };
     case "class_time_changed":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [memberName, className, classDate, classTime],
       };
     case "payment_confirmed":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [memberName, packageName, creditsAvailable],
       };
     case "payment_pending_reminder":
     case "payment_failed":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [memberName],
       };
     case "waitlist_spot_available":
       return {
-        name: configuredTemplateName(row.trigger_type),
-        languageCode: "he",
+        name,
+        languageCode: language.code,
         bodyParameters: [memberName, className, classDate, classTime],
       };
     default:

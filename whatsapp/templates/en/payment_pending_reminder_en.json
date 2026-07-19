@@ -1,0 +1,10 @@
+{
+  "name": "payment_pending_reminder_en",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "Hi {{1}}, your payment is still waiting to be completed. Return to the app whenever it suits you. If anything is unclear, we are here to help.",
+    "example": { "body_text": [["Nora"]] }
+  }]
+}

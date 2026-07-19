@@ -1,0 +1,10 @@
+{
+  "name": "class_reminder_24h_ar",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "تذكير صغير من Cloud & Core ✨\n\nحصتك {{1}} غدًا الساعة {{2}}.\n\nنوصي بالوصول قبل البداية ببضع دقائق. نراك في الاستوديو.",
+    "example": { "body_text": [["يوغا هوائية", "17:00"]] }
+  }]
+}

@@ -499,7 +499,7 @@ async function filterLifecycleWhatsappRows(rows: NotificationLogInsertRow[]) {
     db.from("member_push_tokens").select("member_id").in("member_id", memberIds).eq("active", true),
     db
       .from("member_notification_preferences")
-      .select("member_id,marketing")
+      .select("member_id,marketing,package_reminders")
       .in("member_id", memberIds),
   ]);
   if (devicesResult.error) throw devicesResult.error;
@@ -507,11 +507,16 @@ async function filterLifecycleWhatsappRows(rows: NotificationLogInsertRow[]) {
   const activePushMembers = new Set<string>(
     (devicesResult.data ?? []).map((row: { member_id: string }) => row.member_id),
   );
-  const marketingConsent = new Map<string, boolean>(
-    (preferencesResult.data ?? []).map((row: { member_id: string; marketing: boolean }) => [
-      row.member_id,
-      Boolean(row.marketing),
-    ]),
+  const notificationConsent = new Map<string, { marketing: boolean; packageReminders: boolean }>(
+    (preferencesResult.data ?? []).map(
+      (row: { member_id: string; marketing: boolean; package_reminders: boolean }) => [
+        row.member_id,
+        {
+          marketing: Boolean(row.marketing),
+          packageReminders: Boolean(row.package_reminders),
+        },
+      ],
+    ),
   );
   const marketingEvents = new Set([
     "registered_no_action",
@@ -519,6 +524,7 @@ async function filterLifecycleWhatsappRows(rows: NotificationLogInsertRow[]) {
     "first_lesson_followup",
     "no_upcoming_booking_14d",
   ]);
+  const packageReminderEvents = new Set(["low_credits", "package_expiring_soon"]);
 
   return rows.filter((row) => {
     if (
@@ -536,8 +542,10 @@ async function filterLifecycleWhatsappRows(rows: NotificationLogInsertRow[]) {
     return decideLifecycleWhatsappFallback({
       hasActivePushDevice: activePushMembers.has(row.recipient_member_id),
       isThirtyDayEscalation: row.payload.variables.notification_stage === "30d",
-      marketingConsent: marketingConsent.get(row.recipient_member_id) ?? false,
+      marketingConsent: notificationConsent.get(row.recipient_member_id)?.marketing ?? false,
       requiresMarketingConsent: marketingEvents.has(row.trigger_type),
+      reminderConsent: notificationConsent.get(row.recipient_member_id)?.packageReminders ?? false,
+      requiresReminderConsent: packageReminderEvents.has(row.trigger_type),
     });
   });
 }

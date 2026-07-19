@@ -63,6 +63,15 @@ describe("official WhatsApp template payloads", () => {
     });
   });
 
+  test("uses the member language for Arabic and English template variants", () => {
+    expect(
+      buildOfficialWhatsappTemplatePayload({ ...row("payment_failed"), language: "ar" }),
+    ).toMatchObject({ name: "payment_failed_ar", languageCode: "ar" });
+    expect(
+      buildOfficialWhatsappTemplatePayload({ ...row("payment_failed"), language: "en" }),
+    ).toMatchObject({ name: "payment_failed_en", languageCode: "en_US" });
+  });
+
   test("normalizes local Israeli phone numbers for Meta Cloud API", () => {
     expect(normalizeOfficialWhatsappRecipient("052-331-8478")).toBe("972523318478");
     expect(normalizeOfficialWhatsappRecipient("+972 52 331 8478")).toBe("972523318478");

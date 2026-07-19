@@ -3,16 +3,28 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Globe2, X, LogOut } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRoleNav";
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
+import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 
 type Props = {
   role: AppRole;
   children: ReactNode;
 };
+
+const disconnectMemberPushSession = createClientOnlyFn(async () => {
+  const memberPush = await import("@/lib/memberPush.client");
+  await memberPush.disconnectMemberPushSession();
+});
+
+const getCurrentMemberPushToken = createClientOnlyFn(async () => {
+  const memberPush = await import("@/lib/memberPush.client");
+  return memberPush.getCurrentMemberPushToken();
+});
 
 export function AppShell({ role, children }: Props) {
   const { lang } = useI18n();
@@ -97,6 +109,15 @@ export function AppShell({ role, children }: Props) {
   async function signOut() {
     if (isSigningOut) return;
     flushSync(() => setIsSigningOut(true));
+    if (role === "member") {
+      try {
+        const token = await getCurrentMemberPushToken();
+        if (token) await deactivateMemberPushTokens({ data: { token } });
+      } catch (error) {
+        console.warn("member_push_deactivate_on_signout_failed", error);
+      }
+      await disconnectMemberPushSession();
+    }
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();

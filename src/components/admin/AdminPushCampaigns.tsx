@@ -172,7 +172,12 @@ export function AdminPushCampaigns() {
           sendAt: sendAt ? new Date(sendAt).toISOString() : null,
         },
       }),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (!result.ok) {
+        toast.error("Campaign delivery failed");
+        void queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
+        return;
+      }
       toast.success(copy.sent);
       setPreview(null);
       void queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });

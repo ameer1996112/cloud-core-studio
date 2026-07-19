@@ -1,0 +1,10 @@
+{
+  "name": "payment_failed_ar",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "مرحبًا {{1}}، لم نتمكن من إتمام الدفع. يمكنك المحاولة مجددًا في التطبيق أو مراسلتنا لنساعدك.",
+    "example": { "body_text": [["نورا"]] }
+  }]
+}

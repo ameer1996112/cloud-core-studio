@@ -1,0 +1,10 @@
+{
+  "name": "payment_pending_reminder_ar",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "مرحبًا {{1}}، ما زالت دفعتك بانتظار الإكمال. يمكنك العودة إلى التطبيق والمتابعة عندما يناسبك. نحن هنا للمساعدة إن احتجت.",
+    "example": { "body_text": [["نورا"]] }
+  }]
+}

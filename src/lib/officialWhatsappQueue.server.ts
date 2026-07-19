@@ -21,6 +21,7 @@ type OfficialWhatsappNotificationRow = Pick<
   | "id"
   | "attempt_count"
   | "created_at"
+  | "language"
   | "last_attempt_at"
   | "next_attempt_at"
   | "payload"
@@ -150,7 +151,7 @@ function buildQueueDeps(): OfficialWhatsappQueueDeps {
       let query = supabaseAdmin
         .from("notification_logs")
         .select(
-          "id,attempt_count,created_at,last_attempt_at,next_attempt_at,payload,provider,scheduled_for,status,trigger_type,member:members(phone)",
+          "id,attempt_count,created_at,language,last_attempt_at,next_attempt_at,payload,provider,scheduled_for,status,trigger_type,member:members(phone)",
         )
         .eq("channel", OFFICIAL_WHATSAPP_CHANNEL)
         .in("provider", providersForRun(claimOpenwaBacklog))

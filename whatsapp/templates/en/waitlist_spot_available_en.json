@@ -1,0 +1,10 @@
+{
+  "name": "waitlist_spot_available_en",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "Hi {{1}}, a place opened in {{2}} ✨\n\nWhen: {{3}} at {{4}}\n\nTo keep the place, open the app and confirm your registration.",
+    "example": { "body_text": [["Nora", "Hot Pilates", "Thursday, July 11", "19:00"]] }
+  }]
+}

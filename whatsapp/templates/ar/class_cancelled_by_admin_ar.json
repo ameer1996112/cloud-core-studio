@@ -1,0 +1,10 @@
+{
+  "name": "class_cancelled_by_admin_ar",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "مرحبًا {{1}}، تم إلغاء حصة {{2}} بتاريخ {{3}} الساعة {{4}}.\n\nإذا استخدمت رصيدًا للحجز، فسيُعاد إلى حسابك وفق سياسة الاستوديو.\n\nCloud & Core Studio",
+    "example": { "body_text": [["نورا", "بيلاتس أرضي", "الأحد 14.7", "18:00"]] }
+  }]
+}

@@ -354,7 +354,7 @@ export async function reconcileSendingNotificationCampaigns(now = new Date()) {
   const db = supabaseAdmin as any;
   const { data: campaigns, error } = await db
     .from("notification_campaigns")
-    .select("id")
+    .select("id,recipient_count,updated_at")
     .eq("status", "sending")
     .limit(50);
   if (error) throw error;
@@ -369,6 +369,26 @@ export async function reconcileSendingNotificationCampaigns(now = new Date()) {
     const statuses = (notifications ?? []).map(
       (row: { delivery_status: string }) => row.delivery_status,
     );
+    if (statuses.length < campaign.recipient_count) {
+      const dispatchIsStale =
+        new Date(campaign.updated_at).getTime() <= now.getTime() - 30 * 60_000;
+      if (!dispatchIsStale) continue;
+      const { error: incompleteError } = await db
+        .from("notification_campaigns")
+        .update({
+          status: "failed",
+          sent_count: statuses.filter(
+            (status: string) => status === "sent" || status === "delivered",
+          ).length,
+          sent_at: now.toISOString(),
+          updated_at: now.toISOString(),
+        })
+        .eq("id", campaign.id)
+        .eq("status", "sending");
+      if (incompleteError) throw incompleteError;
+      completed += 1;
+      continue;
+    }
     if (statuses.some((status: string) => status === "queued" || status === "sending")) continue;
     const sent = statuses.filter(
       (status: string) => status === "sent" || status === "delivered",

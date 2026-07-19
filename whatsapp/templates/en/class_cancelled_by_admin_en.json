@@ -1,0 +1,10 @@
+{
+  "name": "class_cancelled_by_admin_en",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [{
+    "type": "BODY",
+    "text": "Hi {{1}}, the {{2}} lesson on {{3}} at {{4}} was cancelled.\n\nIf you used a credit to book, it will be returned to your account according to studio policy.\n\nCloud & Core Studio",
+    "example": { "body_text": [["Nora", "Mat Pilates", "Sunday, July 14", "18:00"]] }
+  }]
+}

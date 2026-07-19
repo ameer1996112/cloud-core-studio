@@ -147,13 +147,23 @@ async function enqueueWaitlistMemberPush(entry: any, expiresAt?: Date) {
 async function enqueueNewClassSchedulePushes(supabase: any, classId: string) {
   const { enqueueMemberNotification } = await import("@/lib/memberNotificationDelivery.server");
   const [classResult, membersResult] = await Promise.all([
-    supabase.from("classes").select("id,title,starts_at,status").eq("id", classId).maybeSingle(),
+    supabase
+      .from("classes")
+      .select("id,title,starts_at,status,member_visible")
+      .eq("id", classId)
+      .maybeSingle(),
     supabase.from("members").select("id,preferred_language").eq("status", "active").limit(500),
   ]);
   if (classResult.error) throw classResult.error;
   if (membersResult.error) throw membersResult.error;
   const cls = classResult.data;
-  if (!cls || cls.status !== "scheduled" || new Date(cls.starts_at) <= new Date()) return;
+  if (
+    !cls ||
+    cls.status !== "scheduled" ||
+    cls.member_visible !== true ||
+    new Date(cls.starts_at) <= new Date()
+  )
+    return;
 
   const results = await Promise.allSettled(
     (membersResult.data ?? []).map(async (member: any) => {
@@ -319,7 +329,7 @@ export const upsertClass = createServerFn({ method: "POST" })
     if (data.id) {
       const { data: previous, error: previousError } = await context.supabase
         .from("classes")
-        .select("id,starts_at,status")
+        .select("id,starts_at,status,member_visible")
         .eq("id", data.id)
         .maybeSingle();
       if (previousError) throw previousError;
@@ -330,6 +340,10 @@ export const upsertClass = createServerFn({ method: "POST" })
         new Date(previous.starts_at).getTime() !== new Date(data.starts_at).getTime() &&
         payload.status === "scheduled";
       const becameCancelled = previous?.status !== "cancelled" && payload.status === "cancelled";
+      const becameVisibleSchedule =
+        payload.status === "scheduled" &&
+        ((previous?.member_visible !== true && payload.member_visible === true) ||
+          (previous?.status !== "scheduled" && payload.member_visible !== false));
       if (timeChanged) {
         try {
           await insertNotificationDraftRows(
@@ -362,6 +376,13 @@ export const upsertClass = createServerFn({ method: "POST" })
           });
         } catch (draftError) {
           console.error("class_cancelled_by_admin_draft_prepare_failed", draftError);
+        }
+      }
+      if (becameVisibleSchedule) {
+        try {
+          await enqueueNewClassSchedulePushes(context.supabase, data.id);
+        } catch (notificationError) {
+          console.error("schedule_opened_push_prepare_failed", notificationError);
         }
       }
       // audit log entry is best-effort; _log_action is internal

@@ -23,5 +23,6 @@ COPY package.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/scripts/serve-production.mjs ./scripts/serve-production.mjs
+COPY --from=build /app/scripts/member-notification-cron.mjs ./scripts/member-notification-cron.mjs
 EXPOSE 8080
 CMD ["node", "scripts/serve-production.mjs"]
