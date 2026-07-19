@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { ArrowRight, CalendarPlus, Clock, MapPin, Sparkles, Users, X } from "lucide-react";
 import { getClassDetail, joinWaitlist, leaveWaitlist } from "@/lib/member.functions";
 import { bookClass } from "@/lib/cloud-core.functions";
+import { recordMemberNotificationCampaignBooking } from "@/lib/memberNotifications.functions";
+import { readCampaignAttribution } from "@/lib/memberNotificationsApi";
 import {
   ClassImage,
   StateBadge,
@@ -227,6 +229,7 @@ export function ClassDetailSheet({
   });
 
   const bookFn = useServerFn(bookClass);
+  const recordCampaignBooking = useServerFn(recordMemberNotificationCampaignBooking);
   const joinFn = useServerFn(joinWaitlist);
   const leaveFn = useServerFn(leaveWaitlist);
 
@@ -234,6 +237,17 @@ export function ClassDetailSheet({
     mutationFn: () => bookFn({ data: { classId: classId! } }),
     onSuccess: (res: BookClassResult) => {
       if (hasBookingId(res)) {
+        const attribution =
+          typeof window === "undefined"
+            ? null
+            : readCampaignAttribution(
+                window.localStorage.getItem("cc-member-campaign-attribution"),
+              );
+        if (attribution) {
+          void recordCampaignBooking({
+            data: { campaignId: attribution.campaignId, bookingId: res.booking_id },
+          }).catch((error) => console.warn("campaign_booking_attribution_failed", error));
+        }
         toast.success(t("booking.confirmed"));
         setConfirmation({ bookingId: res.booking_id, remaining: res.remaining_credits ?? 0 });
         qc.invalidateQueries({ queryKey: ["member-home"] });

@@ -17,6 +17,8 @@ export const OPENWA_APPROVED_AUTOMATION_EVENT_TYPES = [
   "low_credits",
   "package_expiring_soon",
   "no_upcoming_booking_14d",
+  "payment_pending_reminder",
+  "payment_failed",
 ] as const;
 
 export const OPENWA_LIFECYCLE_EVENT_TYPES = [

@@ -9,6 +9,10 @@ import {
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, isTestRecord } from "@/lib/test-records";
 import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
+import {
+  buildMemberNotificationCopy,
+  normalizeMemberNotificationLanguage,
+} from "@/lib/memberNotificationCopy";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -75,6 +79,68 @@ async function buildClassMemberDraftRows(
         })
       : [],
   );
+}
+
+async function enqueueClassMemberPushNotifications(
+  supabase: any,
+  input: {
+    classId: string;
+    eventKey: "class_cancelled_by_admin" | "class_time_changed";
+  },
+) {
+  const { enqueueMemberNotification } = await import("@/lib/memberNotificationDelivery.server");
+  const [bookingsResult, classResult] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("id,member_id,member:members(id,preferred_language,status)")
+      .eq("class_id", input.classId)
+      .in("status", input.eventKey === "class_time_changed" ? ["booked"] : ["booked", "cancelled"]),
+    supabase.from("classes").select("id,title,starts_at").eq("id", input.classId).maybeSingle(),
+  ]);
+  if (bookingsResult.error) throw bookingsResult.error;
+  if (classResult.error) throw classResult.error;
+  if (!classResult.data) return;
+
+  await Promise.all(
+    (bookingsResult.data ?? []).map(async (booking: any) => {
+      if (!booking.member || booking.member.status !== "active") return;
+      const language = normalizeMemberNotificationLanguage(booking.member.preferred_language);
+      const copy = buildMemberNotificationCopy(input.eventKey, language, {
+        class_id: classResult.data.id,
+        class_name: classResult.data.title,
+        class_time: formatClassTime(classResult.data.starts_at),
+      });
+      await enqueueMemberNotification({
+        memberId: booking.member_id,
+        category: copy.category,
+        title: copy.title,
+        body: copy.body,
+        actionUrl: copy.actionUrl,
+        idempotencyKey: `booking:${booking.id}:${input.eventKey}:member_push`,
+        relatedIds: { bookingId: booking.id, classId: input.classId },
+      });
+    }),
+  );
+}
+
+async function enqueueWaitlistMemberPush(entry: any) {
+  if (!entry?.member || entry.member.status !== "active" || !entry.class) return;
+  const language = normalizeMemberNotificationLanguage(entry.member.preferred_language);
+  const copy = buildMemberNotificationCopy("waitlist_spot_available", language, {
+    class_id: entry.class_id,
+    class_name: entry.class.title,
+    class_time: formatClassTime(entry.class.starts_at),
+  });
+  const { enqueueMemberNotification } = await import("@/lib/memberNotificationDelivery.server");
+  await enqueueMemberNotification({
+    memberId: entry.member.id,
+    category: copy.category,
+    title: copy.title,
+    body: copy.body,
+    actionUrl: copy.actionUrl,
+    idempotencyKey: `waitlist:${entry.id}:waitlist_spot_available:member_push`,
+    relatedIds: { classId: entry.class_id },
+  });
 }
 
 // ===== Overview =====
@@ -232,6 +298,10 @@ export const upsertClass = createServerFn({ method: "POST" })
               eventKey: "class_time_changed",
             }),
           );
+          await enqueueClassMemberPushNotifications(context.supabase, {
+            classId: data.id,
+            eventKey: "class_time_changed",
+          });
         } catch (draftError) {
           console.error("class_time_changed_draft_prepare_failed", draftError);
         }
@@ -245,6 +315,10 @@ export const upsertClass = createServerFn({ method: "POST" })
               eventKey: "class_cancelled_by_admin",
             }),
           );
+          await enqueueClassMemberPushNotifications(context.supabase, {
+            classId: data.id,
+            eventKey: "class_cancelled_by_admin",
+          });
         } catch (draftError) {
           console.error("class_cancelled_by_admin_draft_prepare_failed", draftError);
         }
@@ -285,6 +359,10 @@ export const setClassStatus = createServerFn({ method: "POST" })
             eventKey: "class_cancelled_by_admin",
           }),
         );
+        await enqueueClassMemberPushNotifications(context.supabase, {
+          classId: data.id,
+          eventKey: "class_cancelled_by_admin",
+        });
       } catch (draftError) {
         console.error("class_cancelled_by_admin_draft_prepare_failed", draftError);
       }
@@ -446,6 +524,15 @@ export const adminCancelClass = createServerFn({ method: "POST" })
         warnings.push("notification_drafts_failed");
         notificationsPrepared = 0;
         notificationsManualReview = Math.max(cancelledBookingIds.length, notificationsManualReview);
+      }
+      try {
+        await enqueueClassMemberPushNotifications(context.supabase, {
+          classId: data.classId,
+          eventKey: "class_cancelled_by_admin",
+        });
+      } catch (pushError) {
+        warnings.push("member_push_failed");
+        console.error("class_cancelled_member_push_failed", pushError);
       }
     }
 
@@ -1118,7 +1205,7 @@ export const waitlistPromote = createServerFn({ method: "POST" })
           context.supabase
             .from("waitlist_entries")
             .select(
-              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+              "id,class_id,member:members(id,name,phone,email,preferred_language,status),class:classes(id,title,starts_at,instructor:instructors(name))",
             )
             .eq("id", data.entryId)
             .maybeSingle(),
@@ -1147,6 +1234,7 @@ export const waitlistPromote = createServerFn({ method: "POST" })
               },
             }),
           );
+          await enqueueWaitlistMemberPush(entry);
         }
       }
     } catch (draftError) {

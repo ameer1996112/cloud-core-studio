@@ -131,6 +131,8 @@ describe("claimOpenwaNotifications", () => {
       "low_credits",
       "package_expiring_soon",
       "no_upcoming_booking_14d",
+      "payment_pending_reminder",
+      "payment_failed",
     ]);
   });
 

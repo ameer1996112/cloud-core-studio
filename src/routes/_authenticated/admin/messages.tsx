@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPageShell, AdminPageHeader } from "@/components/admin-shared";
+import { AdminPushCampaigns } from "@/components/admin/AdminPushCampaigns";
 import {
   listMessageTemplates,
   upsertMessageTemplate,
@@ -53,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/admin/messages")({
   component: Page,
 });
 
-type Tab = "templates" | "composer" | "logs" | "requests";
+type Tab = "push" | "templates" | "composer" | "logs" | "requests";
 
 type LogStatusSummary = {
   status?: string | null;
@@ -95,6 +96,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     templates: "Templates",
     requests: "Package requests",
     logs: "Activity log",
+    push: "iPhone campaigns",
     audience: "Audience",
     specificMembers: "Specific member(s)",
     searchMember: "Search member by name...",
@@ -141,6 +143,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     templates: "תבניות",
     requests: "בקשות חבילה",
     logs: "יומן פעילות",
+    push: "קמפיינים ל-iPhone",
     audience: "קהל יעד",
     specificMembers: "חבר/ה מסוימים",
     searchMember: "חיפוש חבר/ה לפי שם...",
@@ -188,6 +191,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     templates: "القوالب",
     requests: "طلبات الباقات",
     logs: "سجل النشاط",
+    push: "حملات iPhone",
     audience: "الجمهور",
     specificMembers: "أعضاء محددون",
     searchMember: "ابحثي عن عضو بالاسم...",
@@ -317,6 +321,7 @@ function Page() {
         {(
           [
             { k: "composer", l: "Compose" },
+            { k: "push", l: "iPhone campaigns" },
             { k: "templates", l: "Templates" },
             { k: "requests", l: "Package requests" },
             { k: "logs", l: "Activity log" },
@@ -337,6 +342,7 @@ function Page() {
       </div>
 
       {tab === "composer" && <ComposerTab />}
+      {tab === "push" && <AdminPushCampaigns />}
       {tab === "templates" && <TemplatesTab />}
       {tab === "requests" && <RequestsTab />}
       {tab === "logs" && <LogsTab />}

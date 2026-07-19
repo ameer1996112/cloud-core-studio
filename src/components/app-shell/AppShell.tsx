@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRoleNav";
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
+import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
 
 type Props = {
   role: AppRole;
@@ -78,9 +79,10 @@ export function AppShell({ role, children }: Props) {
       <StandardMenuIcon />
     </button>
   ) : (
-    <span className="inline-flex h-10 w-10 items-center justify-center" aria-hidden>
-      <BrandMark className="h-4 w-4" tone="gold" />
-    </span>
+    <MemberNotificationCenter
+      inviteAfterScheduleView={pathname === "/member/schedule"}
+      viewport="mobile"
+    />
   );
   const signOutControl = (
     <button
@@ -183,7 +185,7 @@ export function AppShell({ role, children }: Props) {
       <main className="member-shell-main min-w-0 flex-1 flex flex-col overflow-y-auto">
         {/* Mobile bar */}
         <div
-          className="member-mobile-header-pad lg:hidden sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]"
+          className={`member-mobile-header-pad ${useBottomNav ? "md:hidden" : "lg:hidden"} sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]`}
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="flex h-[52px] w-11 shrink-0 items-center justify-start">
@@ -211,7 +213,15 @@ export function AppShell({ role, children }: Props) {
               </h1>
             </div>
             <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
-              {useBottomNav ? <BrandHeaderWordmark className="scale-[0.95]" /> : null}
+              {useBottomNav ? (
+                <>
+                  <MemberNotificationCenter
+                    inviteAfterScheduleView={pathname === "/member/schedule"}
+                    viewport="desktop"
+                  />
+                  <BrandHeaderWordmark className="scale-[0.95]" />
+                </>
+              ) : null}
             </div>
           </div>
         </header>

@@ -13,6 +13,9 @@ export type ApnsAlertPayload = {
   title: string;
   body: string;
   url?: string;
+  sound?: boolean;
+  badge?: number;
+  notificationId?: string;
 };
 
 type CachedJwt = {
@@ -115,6 +118,21 @@ export function isApnsConfigured() {
   return Boolean(apnsConfig());
 }
 
+export function buildApnsAlertBody(payload: ApnsAlertPayload) {
+  return {
+    aps: {
+      alert: {
+        title: payload.title,
+        body: payload.body,
+      },
+      ...(payload.sound === false ? {} : { sound: "default" }),
+      ...(payload.badge == null ? {} : { badge: Math.max(0, Math.trunc(payload.badge)) }),
+    },
+    ...(payload.url ? { url: payload.url } : {}),
+    ...(payload.notificationId ? { notificationId: payload.notificationId } : {}),
+  };
+}
+
 export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPayload) {
   const config = apnsConfig();
   if (!config) return { ok: false as const, skipped: "missing_apns_config" };
@@ -123,21 +141,14 @@ export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPaylo
     config.environment === "sandbox"
       ? "https://api.sandbox.push.apple.com"
       : "https://api.push.apple.com";
-  const body = JSON.stringify({
-    aps: {
-      alert: {
-        title: payload.title,
-        body: payload.body,
-      },
-      sound: "default",
-    },
-    ...(payload.url ? { url: payload.url } : {}),
-  });
+  const body = JSON.stringify(buildApnsAlertBody(payload));
 
-  return await new Promise<{ ok: true } | { ok: false; error: string }>((resolve) => {
+  return await new Promise<
+    { ok: true; apnsId: string | null } | { ok: false; error: string; apnsId: string | null }
+  >((resolve) => {
     const client = http2.connect(host);
     client.on("error", (error) => {
-      resolve({ ok: false, error: error.message });
+      resolve({ ok: false, error: error.message, apnsId: null });
     });
 
     const request = client.request({
@@ -151,10 +162,12 @@ export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPaylo
     });
 
     let status = 0;
+    let apnsId: string | null = null;
     let responseBody = "";
     request.setEncoding("utf8");
     request.on("response", (headers) => {
       status = Number(headers[":status"] ?? 0);
+      apnsId = typeof headers["apns-id"] === "string" ? headers["apns-id"] : null;
     });
     request.on("data", (chunk) => {
       responseBody += chunk;
@@ -162,14 +175,14 @@ export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPaylo
     request.on("end", () => {
       client.close();
       if (status >= 200 && status < 300) {
-        resolve({ ok: true });
+        resolve({ ok: true, apnsId });
         return;
       }
-      resolve({ ok: false, error: responseBody || `APNs returned HTTP ${status}` });
+      resolve({ ok: false, error: responseBody || `APNs returned HTTP ${status}`, apnsId });
     });
     request.on("error", (error) => {
       client.close();
-      resolve({ ok: false, error: error.message });
+      resolve({ ok: false, error: error.message, apnsId });
     });
     request.end(body);
   });

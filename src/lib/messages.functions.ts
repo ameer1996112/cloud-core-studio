@@ -3,6 +3,10 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
+import {
+  buildMemberNotificationCopy,
+  normalizeMemberNotificationLanguage,
+} from "@/lib/memberNotificationCopy";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -425,6 +429,8 @@ const draftSchema = z.object({
     "low_credits",
     "package_expiring_soon",
     "no_upcoming_booking_14d",
+    "payment_pending_reminder",
+    "payment_failed",
   ]),
   channels: z.array(z.enum(["whatsapp", "email"])).default(["whatsapp", "email"]),
   audience: z.enum(["member", "admin"]).default("member"),
@@ -617,7 +623,7 @@ export const waitlistOffer = createServerFn({ method: "POST" })
           context.supabase
             .from("waitlist_entries")
             .select(
-              "id,class_id,member:members(id,name,phone,email,preferred_language),class:classes(id,title,starts_at,instructor:instructors(name))",
+              "id,class_id,member:members(id,name,phone,email,preferred_language,status),class:classes(id,title,starts_at,instructor:instructors(name))",
             )
             .eq("id", data.entryId)
             .maybeSingle(),
@@ -646,6 +652,25 @@ export const waitlistOffer = createServerFn({ method: "POST" })
               },
             }),
           );
+          if (entry.member.status === "active") {
+            const language = normalizeMemberNotificationLanguage(entry.member.preferred_language);
+            const copy = buildMemberNotificationCopy("waitlist_spot_available", language, {
+              class_id: entry.class_id,
+              class_name: entry.class.title,
+              class_time: formatClassTime(entry.class.starts_at),
+            });
+            const { enqueueMemberNotification } =
+              await import("@/lib/memberNotificationDelivery.server");
+            await enqueueMemberNotification({
+              memberId: entry.member.id,
+              category: copy.category,
+              title: copy.title,
+              body: copy.body,
+              actionUrl: copy.actionUrl,
+              idempotencyKey: `waitlist:${entry.id}:waitlist_spot_available:member_push`,
+              relatedIds: { classId: entry.class_id },
+            });
+          }
         }
       }
     } catch (draftError) {

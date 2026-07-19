@@ -293,6 +293,30 @@ assert.equal(
   "נועה, התגעגענו אלייך בסטודיו 🤍\n\nאם מתאים לך לחזור השבוע, אעזור לך למצוא שיעור שמתאים לקצב שלך.\nירין",
 );
 
+const paymentPendingReminderTemplate = findNotificationTemplate({
+  eventKey: "payment_pending_reminder",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(paymentPendingReminderTemplate, premiumHebrewVariables).body,
+  "נועה, התשלום עדיין מחכה להשלמה. אפשר לחזור לאפליקציה ולהמשיך כשנוח לך. אם משהו לא ברור, אני כאן לעזור.\nירין",
+);
+
+const paymentFailedTemplate = findNotificationTemplate({
+  eventKey: "payment_failed",
+  channel: "whatsapp",
+  language: "he",
+  audience: "member",
+});
+
+assert.equal(
+  renderNotificationCopy(paymentFailedTemplate, premiumHebrewVariables).body,
+  "נועה, לא הצלחנו להשלים את התשלום. אפשר לנסות שוב באפליקציה או לכתוב לי ואעזור.\nירין",
+);
+
 const waitlistJoinedTemplate = findNotificationTemplate({
   eventKey: "waitlist_joined",
   channel: "whatsapp",

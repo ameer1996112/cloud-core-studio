@@ -23,7 +23,9 @@ export type NotificationEventKey =
   | "first_lesson_followup"
   | "low_credits"
   | "package_expiring_soon"
-  | "no_upcoming_booking_14d";
+  | "no_upcoming_booking_14d"
+  | "payment_pending_reminder"
+  | "payment_failed";
 
 export type NotificationTemplateDefinition = {
   eventKey: NotificationEventKey;
@@ -206,6 +208,16 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     ar: "{{member_name}}، افتقدناك في الاستوديو 🤍\n\nإذا كان مناسباً أن تعودي هذا الأسبوع، نساعدك في إيجاد حصة تناسبك.",
     en: "Hi {{member_name}}, we missed you at the studio 🤍\n\nIf this week feels right, we can help you find a class that fits your rhythm.",
   },
+  payment_pending_reminder: {
+    he: "{{member_name}}, התשלום עדיין מחכה להשלמה. אפשר לחזור לאפליקציה ולהמשיך כשנוח לך. אם משהו לא ברור, אני כאן לעזור.\nירין",
+    ar: "{{member_name}}، ما زال الدفع بانتظار الإكمال. يمكنك العودة إلى التطبيق والمتابعة عندما يناسبك، ونحن هنا للمساعدة.",
+    en: "Hi {{member_name}}, your payment is still waiting to be completed. You can return to the app whenever it suits you, and we are here to help.",
+  },
+  payment_failed: {
+    he: "{{member_name}}, לא הצלחנו להשלים את התשלום. אפשר לנסות שוב באפליקציה או לכתוב לי ואעזור.\nירין",
+    ar: "{{member_name}}، لم نتمكن من إكمال الدفع. يمكنك المحاولة مرة أخرى في التطبيق أو مراسلتنا للمساعدة.",
+    en: "Hi {{member_name}}, we could not complete the payment. You can try again in the app or message us for help.",
+  },
 };
 
 const ADMIN_FALLBACK_BODIES: Partial<
@@ -314,6 +326,16 @@ const EMAIL_SUBJECTS: Record<NotificationEventKey, Record<NotificationLanguage, 
     ar: "افتقدناك في الاستوديو",
     en: "We missed you at the studio",
   },
+  payment_pending_reminder: {
+    he: "תזכורת להשלמת תשלום",
+    ar: "تذكير بإكمال الدفع",
+    en: "Payment reminder",
+  },
+  payment_failed: {
+    he: "נדרשת פעולה בתשלום",
+    ar: "الدفع يحتاج إلى إجراء",
+    en: "Payment needs attention",
+  },
 };
 
 const ADMIN_EMAIL_SUBJECTS: Partial<
@@ -413,6 +435,9 @@ export function buildNotificationIdempotencyKey(input: {
   }
   if (input.eventKey === "no_upcoming_booking_14d") {
     return `member:${input.relatedIds.memberId}:no_upcoming_booking_14d:${input.channel}`;
+  }
+  if (input.eventKey === "payment_pending_reminder" || input.eventKey === "payment_failed") {
+    return `payment:${input.relatedIds.paymentId}:${input.eventKey}:${input.channel}`;
   }
   if (input.eventKey === "payment_request_received") {
     const sourceId = input.relatedIds.packageRequestId ?? input.relatedIds.paymentId;

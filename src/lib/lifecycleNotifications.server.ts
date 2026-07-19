@@ -8,6 +8,14 @@ import {
   formatClassTime as formatClassTimeInStudioTime,
 } from "@/lib/messageTemplate";
 import type { NotificationEventKey } from "@/lib/notificationTemplates";
+import {
+  buildMemberNotificationCopy,
+  normalizeMemberNotificationLanguage,
+  type MemberAutomationEvent,
+} from "@/lib/memberNotificationCopy";
+import { enqueueMemberNotification } from "@/lib/memberNotificationDelivery.server";
+import { runMemberNotificationAutomation } from "@/lib/memberNotificationAutomation.server";
+import { decideLifecycleWhatsappFallback } from "@/lib/memberNotificationPolicy";
 
 type Member = {
   id: string;
@@ -18,6 +26,8 @@ type Member = {
   created_at?: string | null;
   last_visit_at?: string | null;
   remaining_credits?: number | null;
+  status?: string | null;
+  attendance_count?: number | null;
 };
 
 type StudioSettings = {
@@ -57,6 +67,10 @@ export type LifecycleNotificationSweepResult = {
   scanned: Record<string, number>;
   prepared: Record<string, number>;
   inserted: number;
+  memberPush: {
+    lifecyclePrepared: number;
+    automation: Awaited<ReturnType<typeof runMemberNotificationAutomation>> | null;
+  };
 };
 
 type LifecycleSweepInput = {
@@ -104,8 +118,8 @@ function compactRows(rows: Array<NotificationLogInsertRow | null>) {
   return rows.filter((row): row is NotificationLogInsertRow => row != null);
 }
 
-function isDeliverableMember(member: Member | null | undefined) {
-  return Boolean(member?.id && member.phone?.trim());
+function isEligibleMember(member: Member | null | undefined) {
+  return Boolean(member?.id);
 }
 
 function buildRows(input: {
@@ -276,9 +290,14 @@ async function listPackageExpiringCandidates(input: { now: Date; limit: number }
   return (data ?? []) as MemberPlan[];
 }
 
-async function listNoUpcomingCandidates(input: { now: Date; limit: number }) {
-  const after = addDays(input.now, -21).toISOString();
-  const before = addDays(input.now, -14).toISOString();
+async function listNoUpcomingCandidates(input: {
+  now: Date;
+  limit: number;
+  minimumDaysInactive: number;
+  maximumDaysInactive: number;
+}) {
+  const after = addDays(input.now, -input.maximumDaysInactive).toISOString();
+  const before = addDays(input.now, -input.minimumDaysInactive).toISOString();
   const { data, error } = await supabaseAdmin
     .from("members")
     .select("id,name,phone,email,preferred_language,remaining_credits,status,last_visit_at")
@@ -299,7 +318,7 @@ async function prepareRegisteredNoAction(input: {
   const candidates = await listRegisteredNoActionCandidates(input);
   const rows = await Promise.all(
     candidates.map(async (member) => {
-      if (!isDeliverableMember(member)) return null;
+      if (!isEligibleMember(member)) return null;
       if (member.remaining_credits && member.remaining_credits > 0) return null;
       if (await hasAnyBooking(member.id)) return null;
       if (await hasAnyPackageRequest(member.id)) return null;
@@ -325,7 +344,7 @@ async function preparePackageNoBooking(input: {
   const rows = await Promise.all(
     candidates.map(async (plan) => {
       const member = await getMember(plan.member_id);
-      if (!isDeliverableMember(member) || member?.status !== "active") return null;
+      if (!isEligibleMember(member) || member?.status !== "active") return null;
       if (await hasUpcomingBooking(plan.member_id, input.now)) return null;
       return buildRows({
         eventKey: "package_approved_no_booking",
@@ -347,7 +366,7 @@ async function prepareFirstLessonFollowup(input: {
 }) {
   const candidates = await listFirstLessonCandidates(input);
   const rows = candidates
-    .filter((booking) => isDeliverableMember(booking.member) && booking.member?.status === "active")
+    .filter((booking) => isEligibleMember(booking.member) && booking.member?.status === "active")
     .filter((booking) => Number(booking.member?.attendance_count ?? 0) <= 1)
     .map(
       (booking) =>
@@ -379,7 +398,7 @@ async function prepareLowCredits(input: {
 }) {
   const candidates = await listLowCreditCandidates(input);
   const rows = candidates
-    .filter((member) => isDeliverableMember(member))
+    .filter((member) => isEligibleMember(member))
     .map(
       (member) =>
         buildRows({
@@ -403,7 +422,7 @@ async function preparePackageExpiring(input: {
   const rows = await Promise.all(
     candidates.map(async (plan) => {
       const member = await getMember(plan.member_id);
-      if (!isDeliverableMember(member) || member?.status !== "active") return null;
+      if (!isEligibleMember(member) || member?.status !== "active") return null;
       return buildRows({
         eventKey: "package_expiring_soon",
         member,
@@ -424,22 +443,62 @@ async function prepareNoUpcoming(input: {
   now: Date;
   limit: number;
   settings: StudioSettings | null;
+  isThirtyDayEscalation?: boolean;
 }) {
-  const candidates = await listNoUpcomingCandidates(input);
+  const candidates = await listNoUpcomingCandidates({
+    ...input,
+    minimumDaysInactive: input.isThirtyDayEscalation ? 30 : 14,
+    maximumDaysInactive: input.isThirtyDayEscalation ? 37 : 21,
+  });
   const rows = await Promise.all(
     candidates.map(async (member) => {
-      if (!isDeliverableMember(member)) return null;
+      if (!isEligibleMember(member)) return null;
       if (await hasUpcomingBooking(member.id, input.now)) return null;
       return buildRows({
         eventKey: "no_upcoming_booking_14d",
         member,
         studioSettings: input.settings,
         relatedIds: { memberId: member.id },
+        variables: {
+          notification_stage: input.isThirtyDayEscalation ? "30d" : "14d",
+        },
         scheduledFor: input.now,
       })[0];
     }),
   );
   return compactRows(rows);
+}
+
+async function filterLifecycleWhatsappRows(rows: NotificationLogInsertRow[]) {
+  const memberIds = Array.from(new Set(rows.map((row) => row.recipient_member_id)));
+  if (!memberIds.length) return [];
+  const db = supabaseAdmin as any;
+  const [devicesResult, preferencesResult] = await Promise.all([
+    db.from("member_push_tokens").select("member_id").in("member_id", memberIds).eq("active", true),
+    db
+      .from("member_notification_preferences")
+      .select("member_id,marketing")
+      .in("member_id", memberIds),
+  ]);
+  if (devicesResult.error) throw devicesResult.error;
+  if (preferencesResult.error) throw preferencesResult.error;
+  const activePushMembers = new Set<string>(
+    (devicesResult.data ?? []).map((row: { member_id: string }) => row.member_id),
+  );
+  const marketingConsent = new Map<string, boolean>(
+    (preferencesResult.data ?? []).map((row: { member_id: string; marketing: boolean }) => [
+      row.member_id,
+      Boolean(row.marketing),
+    ]),
+  );
+
+  return rows.filter((row) =>
+    decideLifecycleWhatsappFallback({
+      hasActivePushDevice: activePushMembers.has(row.recipient_member_id),
+      isThirtyDayEscalation: row.payload.variables.notification_stage === "30d",
+      marketingConsent: marketingConsent.get(row.recipient_member_id) ?? false,
+    }),
+  );
 }
 
 async function insertRows(rows: NotificationLogInsertRow[]) {
@@ -466,6 +525,53 @@ async function insertRows(rows: NotificationLogInsertRow[]) {
     .upsert(newRows, { onConflict: "idempotency_key", ignoreDuplicates: true });
   if (error) throw error;
   return newRows.length;
+}
+
+const MEMBER_PUSH_LIFECYCLE_EVENTS = new Set<MemberAutomationEvent>([
+  "registered_no_action",
+  "package_approved_no_booking",
+  "first_lesson_followup",
+  "low_credits",
+  "package_expiring_soon",
+  "no_upcoming_booking_14d",
+]);
+
+async function enqueueLifecycleMemberPushes(rows: NotificationLogInsertRow[], now: Date) {
+  const memberIds = Array.from(new Set(rows.map((row) => row.recipient_member_id)));
+  if (!memberIds.length) return 0;
+  const { data: members, error } = await supabaseAdmin
+    .from("members")
+    .select("id,preferred_language")
+    .in("id", memberIds);
+  if (error) throw error;
+  const languages = new Map(
+    (members ?? []).map((member) => [member.id, member.preferred_language] as const),
+  );
+
+  let prepared = 0;
+  for (const row of rows) {
+    const event = row.trigger_type as MemberAutomationEvent;
+    if (!MEMBER_PUSH_LIFECYCLE_EVENTS.has(event)) continue;
+    const language = normalizeMemberNotificationLanguage(languages.get(row.recipient_member_id));
+    const copy = buildMemberNotificationCopy(event, language, row.payload.variables);
+    const result = await enqueueMemberNotification({
+      memberId: row.recipient_member_id,
+      category: copy.category,
+      title: copy.title,
+      body: copy.body,
+      actionUrl: copy.actionUrl,
+      idempotencyKey: `${row.idempotency_key}:member_push`,
+      relatedIds: {
+        bookingId: row.related_booking_id,
+        classId: row.related_class_id,
+        paymentId: row.related_payment_id,
+        memberPlanId: row.related_member_plan_id,
+      },
+      now,
+    });
+    if (!result.duplicate) prepared += 1;
+  }
+  return prepared;
 }
 
 export async function runLifecycleNotificationSweep(
@@ -502,17 +608,25 @@ export async function runLifecycleNotificationSweep(
     },
     {
       eventKey: "no_upcoming_booking_14d",
-      rows: await prepareNoUpcoming({ now, limit, settings }),
+      rows: [
+        ...(await prepareNoUpcoming({ now, limit, settings })),
+        ...(await prepareNoUpcoming({ now, limit, settings, isThirtyDayEscalation: true })),
+      ],
     },
   ];
 
   for (const group of groups) {
     scanned[group.eventKey] = group.rows.length;
-    prepared[group.eventKey] = group.rows.filter((row) => row.status === "queued").length;
   }
 
   const rows = groups.flatMap((group) => group.rows);
-  const inserted = dryRun || paused ? 0 : await insertRows(rows);
+  const whatsappRows = await filterLifecycleWhatsappRows(rows);
+  for (const row of whatsappRows) {
+    if (row.status === "queued") prepared[row.trigger_type] += 1;
+  }
+  const inserted = dryRun || paused ? 0 : await insertRows(whatsappRows);
+  const lifecyclePrepared = dryRun ? 0 : await enqueueLifecycleMemberPushes(rows, now);
+  const automation = dryRun ? null : await runMemberNotificationAutomation({ now, limit });
 
   return {
     dryRun,
@@ -520,5 +634,9 @@ export async function runLifecycleNotificationSweep(
     scanned,
     prepared,
     inserted,
+    memberPush: {
+      lifecyclePrepared,
+      automation,
+    },
   };
 }

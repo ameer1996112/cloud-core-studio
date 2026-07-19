@@ -15,6 +15,8 @@ const AUTOMATED_OPENWA_EVENT_TYPES = new Set([
   "low_credits",
   "package_expiring_soon",
   "no_upcoming_booking_14d",
+  "payment_pending_reminder",
+  "payment_failed",
 ]);
 
 const AUTOMATED_OFFICIAL_WHATSAPP_EVENT_TYPES = new Set([
@@ -149,10 +151,10 @@ export function isWithinQuietHours(now: Date): boolean {
 export function getNextAllowedSendTime(input: {
   now: Date;
   timezone: "Asia/Jerusalem";
-  startHour: 8;
-  startMinute: 0;
-  endHour: 20;
-  endMinute: 30;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
 }): Date {
   const parts = getTimezoneParts(input.now, input.timezone);
   const currentMinutes = getMinutesSinceMidnight(parts.hour, parts.minute);
