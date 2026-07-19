@@ -17,6 +17,20 @@ export const memberNotificationIdSchema = z.object({
   notificationId: z.string().uuid(),
 });
 
+export function optimisticallyMarkAllNotificationsRead<
+  T extends { unreadCount: number; notifications: Array<{ read_at: string | null }> },
+>(center: T, readAt = new Date().toISOString()): T {
+  if (center.unreadCount === 0) return center;
+
+  return {
+    ...center,
+    unreadCount: 0,
+    notifications: center.notifications.map((notification) =>
+      notification.read_at ? notification : { ...notification, read_at: readAt },
+    ),
+  };
+}
+
 const ALLOWED_MEMBER_PATHS = [
   "/member",
   "/member/schedule",

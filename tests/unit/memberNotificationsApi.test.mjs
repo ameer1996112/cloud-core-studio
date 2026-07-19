@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  optimisticallyMarkAllNotificationsRead,
   memberNotificationPreferencesSchema,
   memberPushTokenSchema,
   readCampaignAttribution,
@@ -57,5 +58,24 @@ describe("member notification API contract", () => {
     });
     expect(readCampaignAttribution(active, 2_001)).toBeNull();
     expect(readCampaignAttribution("not-json", 1_000)).toBeNull();
+  });
+
+  test("marks the complete notification center read without waiting for the server", () => {
+    const notifications = Array.from({ length: 100 }, (_, index) => ({
+      id: `notification-${index}`,
+      read_at: index % 5 === 0 ? "2026-07-19T09:00:00.000Z" : null,
+    }));
+    const center = {
+      unreadCount: 80,
+      notifications,
+    };
+
+    const updated = optimisticallyMarkAllNotificationsRead(center, "2026-07-19T10:00:00.000Z");
+
+    expect(updated.unreadCount).toBe(0);
+    expect(updated.notifications.every((notification) => notification.read_at !== null)).toBe(true);
+    expect(updated.notifications[0]).toBe(notifications[0]);
+    expect(updated.notifications[1]).not.toBe(notifications[1]);
+    expect(center.unreadCount).toBe(80);
   });
 });

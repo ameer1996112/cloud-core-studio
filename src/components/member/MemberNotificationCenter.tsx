@@ -10,7 +10,10 @@ import {
   markMemberNotificationRead,
   updateMemberNotificationPreferences,
 } from "@/lib/memberNotifications.functions";
-import { safeNotificationActionUrl } from "@/lib/memberNotificationsApi";
+import {
+  optimisticallyMarkAllNotificationsRead,
+  safeNotificationActionUrl,
+} from "@/lib/memberNotificationsApi";
 
 type MemberNotificationItem = {
   id: string;
@@ -46,6 +49,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     unread: "unread",
     empty: "Your reminders and studio updates will appear here.",
     markAll: "Mark all read",
+    markAllFailed: "Could not mark notifications as read. Please try again.",
     enableTitle: "Stay connected to your practice",
     enableBody: "Get lesson reminders, schedule openings, and package updates on your iPhone.",
     enable: "Enable iPhone reminders",
@@ -65,6 +69,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     unread: "לא נקראו",
     empty: "תזכורות ועדכוני הסטודיו יופיעו כאן.",
     markAll: "סימון הכול כנקרא",
+    markAllFailed: "לא הצלחנו לסמן את ההתראות כנקראו. אפשר לנסות שוב.",
     enableTitle: "להישאר מחוברת לאימונים",
     enableBody: "לקבלת תזכורות לשיעורים, פתיחת מערכת ועדכוני חבילה ב-iPhone.",
     enable: "הפעלת תזכורות ב-iPhone",
@@ -84,6 +89,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     unread: "غير مقروءة",
     empty: "ستظهر تذكيراتك وتحديثات الاستوديو هنا.",
     markAll: "تحديد الكل كمقروء",
+    markAllFailed: "تعذر تحديد الإشعارات كمقروءة. حاولي مرة أخرى.",
     enableTitle: "ابقَي على تواصل مع تمارينك",
     enableBody: "احصلي على تذكيرات الحصص وفتح الجدول وتحديثات الباقة على iPhone.",
     enable: "تفعيل تذكيرات iPhone",
@@ -110,6 +116,8 @@ const bootstrapMemberPushRegistration = createClientOnlyFn(async () => {
   return memberPush.bootstrapMemberPushRegistration();
 });
 
+const NOTIFICATION_CENTER_QUERY_KEY = ["member-notification-center"] as const;
+
 export function MemberNotificationCenter({
   inviteAfterScheduleView = false,
   className = "",
@@ -135,7 +143,7 @@ export function MemberNotificationCenter({
       window.localStorage.getItem("cc-member-push-invite-dismissed") === "1",
   );
   const query = useQuery<NotificationCenterData>({
-    queryKey: ["member-notification-center"],
+    queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
     staleTime: 30_000,
   });
@@ -145,7 +153,7 @@ export function MemberNotificationCenter({
       console.warn("member_push_bootstrap_failed", error),
     );
     const refresh = () => {
-      void queryClient.invalidateQueries({ queryKey: ["member-notification-center"] });
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
     };
     const foreground = (event: Event) => {
       const isDesktop = window.matchMedia("(min-width: 768px)").matches;
@@ -164,18 +172,39 @@ export function MemberNotificationCenter({
 
   const markReadMutation = useMutation({
     mutationFn: (notificationId: string) => markRead({ data: { notificationId } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["member-notification-center"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY }),
   });
   const markAllMutation = useMutation({
     mutationFn: () => markAllRead({ data: {} }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["member-notification-center"] }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+      const previous = queryClient.getQueryData<NotificationCenterData>(
+        NOTIFICATION_CENTER_QUERY_KEY,
+      );
+      if (previous) {
+        queryClient.setQueryData<NotificationCenterData>(
+          NOTIFICATION_CENTER_QUERY_KEY,
+          optimisticallyMarkAllNotificationsRead(previous),
+        );
+      }
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(NOTIFICATION_CENTER_QUERY_KEY, context.previous);
+      }
+      toast.error(copy.markAllFailed);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+    },
   });
   const preferencesMutation = useMutation({
     mutationFn: (preferences: NotificationCenterData["preferences"]) =>
       updatePreferences({ data: preferences }),
     onSuccess: () => {
       toast.success(copy.preferencesSaved);
-      void queryClient.invalidateQueries({ queryKey: ["member-notification-center"] });
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
     },
   });
 
@@ -358,8 +387,10 @@ export function MemberNotificationCenter({
               {(data?.unreadCount ?? 0) > 0 && (
                 <button
                   type="button"
+                  disabled={markAllMutation.isPending}
+                  aria-busy={markAllMutation.isPending}
                   onClick={() => markAllMutation.mutate()}
-                  className="inline-flex items-center gap-2 text-xs font-medium text-slate hover:text-navy"
+                  className="inline-flex items-center gap-2 text-xs font-medium text-slate hover:text-navy disabled:pointer-events-none disabled:opacity-50"
                 >
                   <CheckCheck className="h-4 w-4" />
                   {copy.markAll}
