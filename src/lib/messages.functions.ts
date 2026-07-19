@@ -669,6 +669,7 @@ export const waitlistOffer = createServerFn({ method: "POST" })
               actionUrl: copy.actionUrl,
               idempotencyKey: `waitlist:${entry.id}:waitlist_spot_available:member_push`,
               relatedIds: { classId: entry.class_id },
+              expiresAt: waitlistExpiresAt,
             });
           }
         }

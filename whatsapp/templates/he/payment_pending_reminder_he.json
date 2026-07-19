@@ -1,0 +1,14 @@
+{
+  "name": "payment_pending_reminder_he",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "שלום {{1}}, התשלום עדיין מחכה להשלמה. אפשר לחזור לאפליקציה ולהמשיך כשנוח לך. אם משהו לא ברור, אנחנו כאן לעזור.",
+      "example": {
+        "body_text": [["נורה"]]
+      }
+    }
+  ]
+}

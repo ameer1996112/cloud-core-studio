@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  activationCadenceStage,
   decideLifecycleWhatsappFallback,
   decideMemberNotificationDelivery,
   decidePaymentReminderActions,
@@ -58,6 +59,14 @@ describe("member notification delivery policy", () => {
     });
   });
 
+  test("does not defer a short-lived waitlist offer past its expiry", () => {
+    expect(decide({ category: "waitlist", isQuietHours: true })).toMatchObject({
+      sendPush: true,
+      deferredByQuietHours: false,
+      suppressedReason: null,
+    });
+  });
+
   test("keeps payment confirmation out of push while retaining WhatsApp receipt delivery", () => {
     expect(decide({ category: "payment_confirmed" })).toEqual({
       createInboxItem: true,
@@ -69,14 +78,32 @@ describe("member notification delivery policy", () => {
     });
   });
 
+  test("sends a payment failure immediately while the member is completing checkout", () => {
+    expect(decide({ category: "payment_failed", isQuietHours: true })).toMatchObject({
+      sendPush: true,
+      sendWhatsapp: true,
+      deferredByQuietHours: false,
+      suppressedReason: null,
+    });
+  });
+
   test("respects marketing consent and weekly frequency limits", () => {
     expect(
       decide({ category: "marketing", preferences: { ...enabledPreferences, marketing: false } }),
-    ).toMatchObject({ sendPush: false, suppressedReason: "preference_disabled" });
+    ).toMatchObject({
+      createInboxItem: false,
+      sendPush: false,
+      suppressedReason: "preference_disabled",
+    });
 
     expect(decide({ category: "marketing", marketingPushesLast7Days: 3 })).toMatchObject({
       sendPush: false,
       suppressedReason: "weekly_frequency_limit",
+    });
+
+    expect(decide({ category: "marketing", duplicateWithin7Days: true })).toMatchObject({
+      sendPush: false,
+      suppressedReason: "duplicate",
     });
   });
 
@@ -97,6 +124,7 @@ describe("lifecycle WhatsApp fallback policy", () => {
         hasActivePushDevice: false,
         isThirtyDayEscalation: false,
         marketingConsent: false,
+        requiresMarketingConsent: false,
       }),
     ).toBe(true);
     expect(
@@ -104,6 +132,7 @@ describe("lifecycle WhatsApp fallback policy", () => {
         hasActivePushDevice: true,
         isThirtyDayEscalation: false,
         marketingConsent: true,
+        requiresMarketingConsent: false,
       }),
     ).toBe(false);
   });
@@ -114,6 +143,7 @@ describe("lifecycle WhatsApp fallback policy", () => {
         hasActivePushDevice: true,
         isThirtyDayEscalation: true,
         marketingConsent: true,
+        requiresMarketingConsent: true,
       }),
     ).toBe(true);
     expect(
@@ -121,6 +151,18 @@ describe("lifecycle WhatsApp fallback policy", () => {
         hasActivePushDevice: true,
         isThirtyDayEscalation: true,
         marketingConsent: false,
+        requiresMarketingConsent: true,
+      }),
+    ).toBe(false);
+  });
+
+  test("does not route activation or retention marketing around an opt-out", () => {
+    expect(
+      decideLifecycleWhatsappFallback({
+        hasActivePushDevice: false,
+        isThirtyDayEscalation: false,
+        marketingConsent: false,
+        requiresMarketingConsent: true,
       }),
     ).toBe(false);
   });
@@ -156,5 +198,17 @@ describe("payment reminder policy", () => {
       sendPush: false,
       sendWhatsapp: false,
     });
+  });
+});
+
+describe("activation cadence", () => {
+  test("uses day 1, day 3, day 7, then one stable bucket per week", () => {
+    expect(activationCadenceStage(0.9)).toBeNull();
+    expect(activationCadenceStage(1)).toBe("day1");
+    expect(activationCadenceStage(3)).toBe("day3");
+    expect(activationCadenceStage(7)).toBe("day7");
+    expect(activationCadenceStage(14)).toBe("week2");
+    expect(activationCadenceStage(20.9)).toBe("week2");
+    expect(activationCadenceStage(21)).toBe("week3");
   });
 });

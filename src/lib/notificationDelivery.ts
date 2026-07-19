@@ -26,6 +26,8 @@ const AUTOMATED_OFFICIAL_WHATSAPP_EVENT_TYPES = new Set([
   "waitlist_spot_available",
   "class_cancelled_by_admin",
   "class_time_changed",
+  "payment_pending_reminder",
+  "payment_failed",
 ]);
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
@@ -143,6 +145,15 @@ export function getIsraelNowParts(now: Date): { date: string; hour: number; minu
   };
 }
 
+export function getPreviousIsraelEvening(date: Date) {
+  return buildDateInTimezone({
+    date: addDays(getIsraelNowParts(date).date, -1),
+    hour: 20,
+    minute: 0,
+    timezone: "Asia/Jerusalem",
+  });
+}
+
 export function isWithinQuietHours(now: Date): boolean {
   const parts = getIsraelNowParts(now);
   return !isAllowedSendTime(parts.hour, parts.minute);
@@ -208,7 +219,7 @@ export function shouldAutoQueueOfficialWhatsappNotification(eventType: string): 
 }
 
 export function shouldBypassQuietHoursForOpenwaNotification(eventType: string): boolean {
-  return eventType.trim().toLowerCase() === "booking_confirmed";
+  return ["booking_confirmed", "payment_failed"].includes(eventType.trim().toLowerCase());
 }
 
 export function resolveNotificationTimingState(input: {

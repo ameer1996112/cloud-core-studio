@@ -15,6 +15,8 @@ export const OFFICIAL_WHATSAPP_TEMPLATE_EVENT_TYPES = [
   "waitlist_spot_available",
   "class_cancelled_by_admin",
   "class_time_changed",
+  "payment_pending_reminder",
+  "payment_failed",
 ] as const;
 
 export type OfficialWhatsappTemplateEventType =
@@ -113,6 +115,13 @@ export function buildOfficialWhatsappTemplatePayload(
         name: configuredTemplateName(row.trigger_type),
         languageCode: "he",
         bodyParameters: [memberName, packageName, creditsAvailable],
+      };
+    case "payment_pending_reminder":
+    case "payment_failed":
+      return {
+        name: configuredTemplateName(row.trigger_type),
+        languageCode: "he",
+        bodyParameters: [memberName],
       };
     case "waitlist_spot_available":
       return {

@@ -12,6 +12,13 @@ describe("member notification copy", () => {
     expect(buildMemberNotificationCopy("registered_no_action", "ar", {}).title).toBe(
       "حصتك الأولى بانتظارك",
     );
+    expect(
+      buildMemberNotificationCopy("registered_no_action", "en", { notification_stage: "day3" })
+        .body,
+    ).not.toBe(
+      buildMemberNotificationCopy("registered_no_action", "en", { notification_stage: "day1" })
+        .body,
+    );
   });
 
   test("creates a lesson reminder without exposing private account data", () => {
@@ -25,6 +32,21 @@ describe("member notification copy", () => {
       category: "lesson_reminder",
       title: "Core Balance starts soon",
       body: "Your lesson begins at 18:00. See you at the studio.",
+      actionUrl: "/member/schedule?class=class-1",
+    });
+  });
+
+  test("announces a newly opened lesson with a direct schedule link", () => {
+    expect(
+      buildMemberNotificationCopy("schedule_opened", "en", {
+        class_id: "class-1",
+        class_name: "Aerial Flow",
+        class_time: "18:00",
+      }),
+    ).toEqual({
+      category: "schedule",
+      title: "Aerial Flow is now open",
+      body: "A new lesson at 18:00 is available in the schedule.",
       actionUrl: "/member/schedule?class=class-1",
     });
   });

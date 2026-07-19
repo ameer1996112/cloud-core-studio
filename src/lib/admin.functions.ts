@@ -123,7 +123,7 @@ async function enqueueClassMemberPushNotifications(
   );
 }
 
-async function enqueueWaitlistMemberPush(entry: any) {
+async function enqueueWaitlistMemberPush(entry: any, expiresAt?: Date) {
   if (!entry?.member || entry.member.status !== "active" || !entry.class) return;
   const language = normalizeMemberNotificationLanguage(entry.member.preferred_language);
   const copy = buildMemberNotificationCopy("waitlist_spot_available", language, {
@@ -140,7 +140,48 @@ async function enqueueWaitlistMemberPush(entry: any) {
     actionUrl: copy.actionUrl,
     idempotencyKey: `waitlist:${entry.id}:waitlist_spot_available:member_push`,
     relatedIds: { classId: entry.class_id },
+    expiresAt,
   });
+}
+
+async function enqueueNewClassSchedulePushes(supabase: any, classId: string) {
+  const { enqueueMemberNotification } = await import("@/lib/memberNotificationDelivery.server");
+  const [classResult, membersResult] = await Promise.all([
+    supabase.from("classes").select("id,title,starts_at,status").eq("id", classId).maybeSingle(),
+    supabase.from("members").select("id,preferred_language").eq("status", "active").limit(500),
+  ]);
+  if (classResult.error) throw classResult.error;
+  if (membersResult.error) throw membersResult.error;
+  const cls = classResult.data;
+  if (!cls || cls.status !== "scheduled" || new Date(cls.starts_at) <= new Date()) return;
+
+  const results = await Promise.allSettled(
+    (membersResult.data ?? []).map(async (member: any) => {
+      const copy = buildMemberNotificationCopy(
+        "schedule_opened",
+        normalizeMemberNotificationLanguage(member.preferred_language),
+        {
+          class_id: cls.id,
+          class_name: cls.title,
+          class_time: formatClassTime(cls.starts_at),
+        },
+      );
+      return enqueueMemberNotification({
+        memberId: member.id,
+        category: copy.category,
+        title: copy.title,
+        body: copy.body,
+        actionUrl: copy.actionUrl,
+        idempotencyKey: `class:${cls.id}:schedule_opened:member:${member.id}:push`,
+        relatedIds: { classId: cls.id },
+      });
+    }),
+  );
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.error("schedule_opened_member_push_failed", result.reason);
+    }
+  }
 }
 
 // ===== Overview =====
@@ -332,6 +373,11 @@ export const upsertClass = createServerFn({ method: "POST" })
         .select("id")
         .single();
       if (error) throw error;
+      try {
+        await enqueueNewClassSchedulePushes(context.supabase, row.id);
+      } catch (notificationError) {
+        console.error("schedule_opened_push_prepare_failed", notificationError);
+      }
       return { id: row.id };
     }
   });
@@ -1234,7 +1280,7 @@ export const waitlistPromote = createServerFn({ method: "POST" })
               },
             }),
           );
-          await enqueueWaitlistMemberPush(entry);
+          await enqueueWaitlistMemberPush(entry, waitlistExpiresAt);
         }
       }
     } catch (draftError) {

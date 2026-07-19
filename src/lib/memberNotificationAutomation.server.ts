@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
-import { getIsraelNowParts } from "@/lib/notificationDelivery";
+import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import {
   buildMemberNotificationCopy,
   normalizeMemberNotificationLanguage,
@@ -11,7 +11,10 @@ import {
   enqueueMemberNotification,
 } from "@/lib/memberNotificationDelivery.server";
 import { decidePaymentReminderActions } from "@/lib/memberNotificationPolicy";
-import { dispatchDueNotificationCampaigns } from "@/lib/adminNotificationCampaigns.functions";
+import {
+  dispatchDueNotificationCampaigns,
+  reconcileSendingNotificationCampaigns,
+} from "@/lib/adminNotificationCampaigns.functions";
 
 type BookingCandidate = {
   id: string;
@@ -60,7 +63,9 @@ function formatClassTime(value: string, language: string | null) {
 function finalReminderAt(startsAt: Date) {
   const { hour, minute } = getIsraelNowParts(startsAt);
   const earlyMorning = hour * 60 + minute < 10 * 60 + 30;
-  return new Date(startsAt.getTime() - (earlyMorning ? 13 : 2) * 60 * 60_000);
+  return earlyMorning
+    ? getPreviousIsraelEvening(startsAt)
+    : new Date(startsAt.getTime() - 2 * 60 * 60_000);
 }
 
 async function enqueueBookingReminder(
@@ -93,17 +98,18 @@ async function runLessonReminderSweep(now: Date, limit: number) {
   const { data, error } = await db
     .from("bookings")
     .select(
-      "id,member_id,class_id,member:members(preferred_language,status),class:classes(id,title,starts_at,cancellation_window_hours,status)",
+      "id,member_id,class_id,member:members!inner(preferred_language,status),class:classes!inner(id,title,starts_at,cancellation_window_hours,status)",
     )
     .in("status", ["booked", "checked_in"])
-    .limit(Math.max(limit * 10, 100));
+    .gte("class.starts_at", now.toISOString())
+    .lte("class.starts_at", horizon)
+    .limit(Math.max(limit * 20, 500));
   if (error) throw error;
 
   const candidates = ((data ?? []) as BookingCandidate[])
     .filter((booking) => booking.class?.status === "scheduled")
     .filter((booking) => booking.class && booking.class.starts_at <= horizon)
-    .filter((booking) => booking.class && new Date(booking.class.starts_at) > now)
-    .slice(0, limit);
+    .filter((booking) => booking.class && new Date(booking.class.starts_at) > now);
 
   let planning = 0;
   let final = 0;
@@ -144,7 +150,7 @@ async function runPaymentReminderSweep(now: Date, limit: number) {
       .in("status", ["pending", "failed", "paid"])
       .gte("created_at", since)
       .order("created_at", { ascending: true })
-      .limit(limit),
+      .limit(Math.max(limit * 20, 500)),
     db.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
   ]);
   if (error) throw error;
@@ -221,5 +227,6 @@ export async function runMemberNotificationAutomation(input?: { now?: Date; limi
   ]);
   const campaigns = await dispatchDueNotificationCampaigns({ now, limit: Math.min(limit, 10) });
   const queuedDelivery = await deliverQueuedMemberNotifications({ now, limit });
-  return { lessonReminders, paymentReminders, campaigns, queuedDelivery };
+  const campaignReconciliation = await reconcileSendingNotificationCampaigns(now);
+  return { lessonReminders, paymentReminders, campaigns, queuedDelivery, campaignReconciliation };
 }

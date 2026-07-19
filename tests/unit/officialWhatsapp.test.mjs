@@ -50,6 +50,19 @@ describe("official WhatsApp template payloads", () => {
     });
   });
 
+  test("maps payment reminders and failures to approved utility templates", () => {
+    expect(buildOfficialWhatsappTemplatePayload(row("payment_pending_reminder"))).toEqual({
+      name: "payment_pending_reminder_he",
+      languageCode: "he",
+      bodyParameters: ["נורה"],
+    });
+    expect(buildOfficialWhatsappTemplatePayload(row("payment_failed"))).toEqual({
+      name: "payment_failed_he",
+      languageCode: "he",
+      bodyParameters: ["נורה"],
+    });
+  });
+
   test("normalizes local Israeli phone numbers for Meta Cloud API", () => {
     expect(normalizeOfficialWhatsappRecipient("052-331-8478")).toBe("972523318478");
     expect(normalizeOfficialWhatsappRecipient("+972 52 331 8478")).toBe("972523318478");

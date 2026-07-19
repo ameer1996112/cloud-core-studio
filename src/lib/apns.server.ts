@@ -16,6 +16,7 @@ export type ApnsAlertPayload = {
   sound?: boolean;
   badge?: number;
   notificationId?: string;
+  campaignId?: string;
 };
 
 type CachedJwt = {
@@ -130,6 +131,7 @@ export function buildApnsAlertBody(payload: ApnsAlertPayload) {
     },
     ...(payload.url ? { url: payload.url } : {}),
     ...(payload.notificationId ? { notificationId: payload.notificationId } : {}),
+    ...(payload.campaignId ? { campaignId: payload.campaignId } : {}),
   };
 }
 
@@ -147,8 +149,24 @@ export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPaylo
     { ok: true; apnsId: string | null } | { ok: false; error: string; apnsId: string | null }
   >((resolve) => {
     const client = http2.connect(host);
+    let settled = false;
+    const finish = (
+      result:
+        | { ok: true; apnsId: string | null }
+        | { ok: false; error: string; apnsId: string | null },
+    ) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      client.close();
+      resolve(result);
+    };
+    const timeout = setTimeout(() => {
+      client.destroy();
+      finish({ ok: false, error: "APNs request timed out", apnsId: null });
+    }, 15_000);
     client.on("error", (error) => {
-      resolve({ ok: false, error: error.message, apnsId: null });
+      finish({ ok: false, error: error.message, apnsId: null });
     });
 
     const request = client.request({
@@ -173,16 +191,20 @@ export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPaylo
       responseBody += chunk;
     });
     request.on("end", () => {
-      client.close();
       if (status >= 200 && status < 300) {
-        resolve({ ok: true, apnsId });
+        finish({ ok: true, apnsId });
         return;
       }
-      resolve({ ok: false, error: responseBody || `APNs returned HTTP ${status}`, apnsId });
+      finish({
+        ok: false,
+        error: responseBody
+          ? `APNs returned HTTP ${status}: ${responseBody}`
+          : `APNs returned HTTP ${status}`,
+        apnsId,
+      });
     });
     request.on("error", (error) => {
-      client.close();
-      resolve({ ok: false, error: error.message, apnsId });
+      finish({ ok: false, error: error.message, apnsId });
     });
     request.end(body);
   });

@@ -14,6 +14,7 @@ export type MemberAutomationEvent =
   | "payment_confirmed"
   | "payment_pending"
   | "registered_no_action"
+  | "schedule_opened"
   | "waitlist_spot_available";
 
 export type MemberNotificationLanguage = "he" | "ar" | "en";
@@ -52,6 +53,9 @@ export function buildMemberNotificationCopy(
   const classTime = value(variables, "class_time");
   const credits = value(variables, "credits_remaining");
   const expires = value(variables, "expires_on");
+  const notificationStage = value(variables, "notification_stage");
+  const weeklyStage = Number(notificationStage.replace("week", ""));
+  const alternateWeeklyCopy = Number.isFinite(weeklyStage) && weeklyStage % 2 === 1;
 
   const copy: Record<
     MemberAutomationEvent,
@@ -117,23 +121,64 @@ export function buildMemberNotificationCopy(
         actionUrl: scheduleUrl(variables),
       },
     },
+    schedule_opened: {
+      he: {
+        category: "schedule",
+        title: `${className} נפתח להרשמה`,
+        body: `שיעור חדש בשעה ${classTime} מחכה לך במערכת.`,
+        actionUrl: scheduleUrl(variables),
+      },
+      ar: {
+        category: "schedule",
+        title: `فُتح التسجيل في ${className}`,
+        body: `حصة جديدة الساعة ${classTime} متاحة الآن في الجدول.`,
+        actionUrl: scheduleUrl(variables),
+      },
+      en: {
+        category: "schedule",
+        title: `${className} is now open`,
+        body: `A new lesson at ${classTime} is available in the schedule.`,
+        actionUrl: scheduleUrl(variables),
+      },
+    },
     registered_no_action: {
       he: {
         category: "activation",
         title: "השיעור הראשון שלך מחכה",
-        body: "פתחי את המערכת ובחרי את השיעור שמתאים לשבוע שלך.",
+        body:
+          notificationStage === "day3"
+            ? "אפשר להתחיל בקצב שלך — פתחי את המערכת ובחרי זמן שנוח לך."
+            : notificationStage === "day7"
+              ? "שבוע חדש הוא הזדמנות נעימה להתחיל. השיעורים הפתוחים מחכים במערכת."
+              : alternateWeeklyCopy
+                ? "כשתרגישי שזה הזמן להתחיל, תוכלי לראות במערכת מה מתאים לשבוע שלך."
+                : "פתחי את המערכת ובחרי את השיעור שמתאים לשבוע שלך.",
         actionUrl: "/member/schedule",
       },
       ar: {
         category: "activation",
         title: "حصتك الأولى بانتظارك",
-        body: "افتحي الجدول واختاري الحصة المناسبة لأسبوعك.",
+        body:
+          notificationStage === "day3"
+            ? "ابدئي بإيقاعك — افتحي الجدول واختاري الوقت المناسب لك."
+            : notificationStage === "day7"
+              ? "أسبوع جديد فرصة لطيفة للبدء. الحصص المفتوحة بانتظارك في الجدول."
+              : alternateWeeklyCopy
+                ? "عندما تشعرين أن الوقت مناسب، ستجدين في الجدول ما يلائم أسبوعك."
+                : "افتحي الجدول واختاري الحصة المناسبة لأسبوعك.",
         actionUrl: "/member/schedule",
       },
       en: {
         category: "activation",
         title: "Your first lesson is waiting",
-        body: "Open the schedule and choose the class that fits your week.",
+        body:
+          notificationStage === "day3"
+            ? "Start at your pace—open the schedule and choose a time that suits you."
+            : notificationStage === "day7"
+              ? "A new week is a gentle chance to begin. Open classes are waiting in the schedule."
+              : alternateWeeklyCopy
+                ? "When the time feels right, the schedule can help you find what fits your week."
+                : "Open the schedule and choose the class that fits your week.",
         actionUrl: "/member/schedule",
       },
     },
@@ -223,19 +268,25 @@ export function buildMemberNotificationCopy(
       he: {
         category: "retention",
         title: "התגעגענו אלייך בסטודיו",
-        body: "רוצה לחזור השבוע? בחרי שיעור שמתאים לקצב שלך.",
+        body: alternateWeeklyCopy
+          ? "אפשר לחזור בעדינות ובקצב שלך — השיעורים הקרובים מחכים במערכת."
+          : "רוצה לחזור השבוע? בחרי שיעור שמתאים לקצב שלך.",
         actionUrl: "/member/schedule",
       },
       ar: {
         category: "retention",
         title: "افتقدناك في الاستوديو",
-        body: "هل ترغبين بالعودة هذا الأسبوع؟ اختاري حصة تناسب إيقاعك.",
+        body: alternateWeeklyCopy
+          ? "يمكنك العودة بلطف وبإيقاعك — الحصص القريبة بانتظارك في الجدول."
+          : "هل ترغبين بالعودة هذا الأسبوع؟ اختاري حصة تناسب إيقاعك.",
         actionUrl: "/member/schedule",
       },
       en: {
         category: "retention",
         title: "We missed you at the studio",
-        body: "Ready to return this week? Choose a class that fits your rhythm.",
+        body: alternateWeeklyCopy
+          ? "Come back gently, at your pace—the next classes are waiting in the schedule."
+          : "Ready to return this week? Choose a class that fits your rhythm.",
         actionUrl: "/member/schedule",
       },
     },

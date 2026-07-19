@@ -105,6 +105,11 @@ const startMemberPushRegistration = createClientOnlyFn(async () => {
   return memberPush.startMemberPushRegistration();
 });
 
+const bootstrapMemberPushRegistration = createClientOnlyFn(async () => {
+  const memberPush = await import("@/lib/memberPush.client");
+  return memberPush.bootstrapMemberPushRegistration();
+});
+
 export function MemberNotificationCenter({
   inviteAfterScheduleView = false,
   className = "",
@@ -136,6 +141,9 @@ export function MemberNotificationCenter({
   });
 
   useEffect(() => {
+    void bootstrapMemberPushRegistration().catch((error) =>
+      console.warn("member_push_bootstrap_failed", error),
+    );
     const refresh = () => {
       void queryClient.invalidateQueries({ queryKey: ["member-notification-center"] });
     };
@@ -196,8 +204,14 @@ export function MemberNotificationCenter({
     setPermissionMessage("");
   }
 
-  function openNotification(notification: NotificationCenterData["notifications"][number]) {
-    if (!notification.read_at) markReadMutation.mutate(notification.id);
+  async function openNotification(notification: NotificationCenterData["notifications"][number]) {
+    if (!notification.read_at) {
+      try {
+        await markReadMutation.mutateAsync(notification.id);
+      } catch (error) {
+        console.warn("member_notification_open_tracking_failed", error);
+      }
+    }
     if (notification.campaign_id) {
       window.localStorage.setItem(
         "cc-member-campaign-attribution",
@@ -364,7 +378,7 @@ export function MemberNotificationCenter({
                     <button
                       type="button"
                       key={notification.id}
-                      onClick={() => openNotification(notification)}
+                      onClick={() => void openNotification(notification)}
                       className={`flex w-full items-start gap-3 rounded-[var(--radius-lg)] border p-4 text-start transition-colors ${
                         notification.read_at
                           ? "border-transparent bg-white/42"

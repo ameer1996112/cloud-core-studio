@@ -15,7 +15,10 @@ import {
 } from "@/lib/memberNotificationCopy";
 import { enqueueMemberNotification } from "@/lib/memberNotificationDelivery.server";
 import { runMemberNotificationAutomation } from "@/lib/memberNotificationAutomation.server";
-import { decideLifecycleWhatsappFallback } from "@/lib/memberNotificationPolicy";
+import {
+  activationCadenceStage,
+  decideLifecycleWhatsappFallback,
+} from "@/lib/memberNotificationPolicy";
 
 type Member = {
   id: string;
@@ -97,6 +100,10 @@ function eventCounts() {
 
 function addDays(date: Date, days: number) {
   return new Date(date.getTime() + days * 86_400_000);
+}
+
+function candidateLimit(limit: number) {
+  return Math.max(100, Math.min(500, limit * 20));
 }
 
 function formatClassDate(value: string | null | undefined) {
@@ -217,16 +224,14 @@ async function getMember(memberId: string) {
 }
 
 async function listRegisteredNoActionCandidates(input: { now: Date; limit: number }) {
-  const after = addDays(input.now, -7).toISOString();
   const before = addDays(input.now, -1).toISOString();
   const { data, error } = await supabaseAdmin
     .from("members")
     .select("id,name,phone,email,preferred_language,created_at,remaining_credits,status")
     .eq("status", "active")
-    .gte("created_at", after)
     .lte("created_at", before)
-    .order("created_at", { ascending: true })
-    .limit(input.limit);
+    .order("created_at", { ascending: false })
+    .limit(candidateLimit(input.limit));
   if (error) throw error;
   return (data ?? []) as Member[];
 }
@@ -241,7 +246,7 @@ async function listPackageNoBookingCandidates(input: { now: Date; limit: number 
     .gte("created_at", after)
     .lte("created_at", before)
     .order("created_at", { ascending: true })
-    .limit(input.limit);
+    .limit(candidateLimit(input.limit));
   if (error) throw error;
   return (data ?? []) as MemberPlan[];
 }
@@ -258,7 +263,7 @@ async function listFirstLessonCandidates(input: { now: Date; limit: number }) {
     .gte("class.starts_at", after)
     .lte("class.starts_at", before)
     .order("created_at", { ascending: true })
-    .limit(input.limit);
+    .limit(candidateLimit(input.limit));
   if (error) throw error;
   return (data ?? []) as AttendedBooking[];
 }
@@ -272,7 +277,7 @@ async function listLowCreditCandidates(input: { limit: number }) {
     .lte("remaining_credits", 2)
     .not("last_visit_at", "is", null)
     .order("last_visit_at", { ascending: false })
-    .limit(input.limit);
+    .limit(candidateLimit(input.limit));
   if (error) throw error;
   return (data ?? []) as Member[];
 }
@@ -285,7 +290,7 @@ async function listPackageExpiringCandidates(input: { now: Date; limit: number }
     .gte("expires_at", input.now.toISOString())
     .lte("expires_at", addDays(input.now, 7).toISOString())
     .order("expires_at", { ascending: true })
-    .limit(input.limit);
+    .limit(candidateLimit(input.limit));
   if (error) throw error;
   return (data ?? []) as MemberPlan[];
 }
@@ -305,7 +310,7 @@ async function listNoUpcomingCandidates(input: {
     .gte("last_visit_at", after)
     .lte("last_visit_at", before)
     .order("last_visit_at", { ascending: true })
-    .limit(input.limit);
+    .limit(candidateLimit(input.limit));
   if (error) throw error;
   return (data ?? []) as Member[];
 }
@@ -323,13 +328,21 @@ async function prepareRegisteredNoAction(input: {
       if (await hasAnyBooking(member.id)) return null;
       if (await hasAnyPackageRequest(member.id)) return null;
       if (await hasActiveMemberPlan(member.id, input.now)) return null;
-      return buildRows({
+      const accountAgeDays = member.created_at
+        ? (input.now.getTime() - new Date(member.created_at).getTime()) / 86_400_000
+        : 0;
+      const stage = activationCadenceStage(accountAgeDays);
+      if (!stage) return null;
+      const row = buildRows({
         eventKey: "registered_no_action",
         member,
         studioSettings: input.settings,
         relatedIds: { memberId: member.id },
+        variables: { notification_stage: stage },
         scheduledFor: input.now,
       })[0];
+      row.idempotency_key = `member:${member.id}:registered_no_action:${stage}:whatsapp`;
+      return row;
     }),
   );
   return compactRows(rows);
@@ -448,22 +461,31 @@ async function prepareNoUpcoming(input: {
   const candidates = await listNoUpcomingCandidates({
     ...input,
     minimumDaysInactive: input.isThirtyDayEscalation ? 30 : 14,
-    maximumDaysInactive: input.isThirtyDayEscalation ? 37 : 21,
+    maximumDaysInactive: input.isThirtyDayEscalation ? 37 : 365,
   });
   const rows = await Promise.all(
     candidates.map(async (member) => {
       if (!isEligibleMember(member)) return null;
       if (await hasUpcomingBooking(member.id, input.now)) return null;
-      return buildRows({
+      const inactiveDays = member.last_visit_at
+        ? (input.now.getTime() - new Date(member.last_visit_at).getTime()) / 86_400_000
+        : 14;
+      const stage = input.isThirtyDayEscalation
+        ? "30d"
+        : `week${Math.max(2, Math.floor(inactiveDays / 7))}`;
+      const row = buildRows({
         eventKey: "no_upcoming_booking_14d",
         member,
         studioSettings: input.settings,
         relatedIds: { memberId: member.id },
         variables: {
-          notification_stage: input.isThirtyDayEscalation ? "30d" : "14d",
+          notification_stage: stage,
+          whatsapp_only: input.isThirtyDayEscalation ? "true" : "false",
         },
         scheduledFor: input.now,
       })[0];
+      row.idempotency_key = `member:${member.id}:no_upcoming_booking:${stage}:whatsapp`;
+      return row;
     }),
   );
   return compactRows(rows);
@@ -491,14 +513,33 @@ async function filterLifecycleWhatsappRows(rows: NotificationLogInsertRow[]) {
       Boolean(row.marketing),
     ]),
   );
+  const marketingEvents = new Set([
+    "registered_no_action",
+    "package_approved_no_booking",
+    "first_lesson_followup",
+    "no_upcoming_booking_14d",
+  ]);
 
-  return rows.filter((row) =>
-    decideLifecycleWhatsappFallback({
+  return rows.filter((row) => {
+    if (
+      row.trigger_type === "registered_no_action" &&
+      row.payload.variables.notification_stage !== "day1"
+    ) {
+      return false;
+    }
+    if (
+      row.trigger_type === "no_upcoming_booking_14d" &&
+      !["week2", "30d"].includes(String(row.payload.variables.notification_stage))
+    ) {
+      return false;
+    }
+    return decideLifecycleWhatsappFallback({
       hasActivePushDevice: activePushMembers.has(row.recipient_member_id),
       isThirtyDayEscalation: row.payload.variables.notification_stage === "30d",
       marketingConsent: marketingConsent.get(row.recipient_member_id) ?? false,
-    }),
-  );
+      requiresMarketingConsent: marketingEvents.has(row.trigger_type),
+    });
+  });
 }
 
 async function insertRows(rows: NotificationLogInsertRow[]) {
@@ -550,6 +591,7 @@ async function enqueueLifecycleMemberPushes(rows: NotificationLogInsertRow[], no
 
   let prepared = 0;
   for (const row of rows) {
+    if (row.payload.variables.whatsapp_only === "true") continue;
     const event = row.trigger_type as MemberAutomationEvent;
     if (!MEMBER_PUSH_LIFECYCLE_EVENTS.has(event)) continue;
     const language = normalizeMemberNotificationLanguage(languages.get(row.recipient_member_id));

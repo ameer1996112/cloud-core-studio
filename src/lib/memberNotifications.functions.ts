@@ -53,6 +53,7 @@ export const getMemberNotificationCenter = createServerFn({ method: "GET" })
           "id,category,title,body,action_url,sound,campaign_id,delivery_status,read_at,opened_at,created_at",
         )
         .eq("member_id", context.userId)
+        .neq("delivery_status", "suppressed")
         .order("created_at", { ascending: false })
         .limit(100),
     ]);

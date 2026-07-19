@@ -24,6 +24,7 @@ export type EnqueueMemberNotificationInput = {
   actionUrl?: string | null;
   idempotencyKey: string;
   relatedIds?: RelatedIds;
+  expiresAt?: Date | string | null;
   now?: Date;
 };
 
@@ -80,22 +81,42 @@ function apnsErrorText(result: { ok: false; error?: string; skipped?: string }) 
 
 async function deliverNotification(row: any, tokens: Array<{ id: string; token: string }>) {
   const db = supabaseAdmin as any;
+  const attemptCount = Number(row.attempt_count ?? 0) + 1;
+  const attemptedAt = new Date();
   const { data: claim, error: claimError } = await db
     .from("member_notifications")
-    .update({ delivery_status: "sending" })
+    .update({
+      delivery_status: "sending",
+      attempt_count: attemptCount,
+      last_attempt_at: attemptedAt.toISOString(),
+    })
     .eq("id", row.id)
     .eq("delivery_status", "queued")
     .select("id")
     .maybeSingle();
   if (claimError) throw claimError;
-  if (!claim) return { sent: 0, failed: 0, missingConfig: false, alreadyClaimed: true };
+  if (!claim) {
+    return {
+      sent: 0,
+      failed: 0,
+      missingConfig: false,
+      alreadyClaimed: true,
+      retryScheduled: false,
+    };
+  }
 
   if (!isApnsConfigured()) {
     await db
       .from("member_notifications")
       .update({ delivery_status: "failed", suppression_reason: "missing_apns_config" })
       .eq("id", row.id);
-    return { sent: 0, failed: tokens.length, missingConfig: true, alreadyClaimed: false };
+    return {
+      sent: 0,
+      failed: tokens.length,
+      missingConfig: true,
+      alreadyClaimed: false,
+      retryScheduled: false,
+    };
   }
 
   const { count } = await db
@@ -113,6 +134,7 @@ async function deliverNotification(row: any, tokens: Array<{ id: string; token: 
         sound: row.sound,
         badge: count ?? 1,
         notificationId: row.id,
+        campaignId: row.campaign_id ?? undefined,
       }),
     })),
   );
@@ -136,13 +158,22 @@ async function deliverNotification(row: any, tokens: Array<{ id: string; token: 
     .join("; ")
     .slice(0, 1000);
   const now = new Date().toISOString();
+  const retryScheduled =
+    successes.length === 0 &&
+    failures.some(({ result }) => !result.ok && !invalidDeviceToken(apnsErrorText(result))) &&
+    attemptCount < 3;
+  const retryAt = retryScheduled
+    ? new Date(attemptedAt.getTime() + [5, 15, 30][attemptCount - 1] * 60_000)
+    : null;
   await db
     .from("member_notifications")
     .update({
-      delivery_status: successes.length ? "sent" : "failed",
+      delivery_status: successes.length ? "sent" : retryScheduled ? "queued" : "failed",
       sent_at: successes.length ? now : null,
       apns_id: firstSuccess?.ok ? firstSuccess.apnsId : null,
       suppression_reason: errorText || null,
+      scheduled_for: retryAt?.toISOString() ?? row.scheduled_for,
+      next_attempt_at: retryAt?.toISOString() ?? null,
     })
     .eq("id", row.id);
 
@@ -151,17 +182,20 @@ async function deliverNotification(row: any, tokens: Array<{ id: string; token: 
     failed: failures.length,
     missingConfig: false,
     alreadyClaimed: false,
+    retryScheduled,
   };
 }
 
 export async function enqueueMemberNotification(input: EnqueueMemberNotificationInput) {
   const db = supabaseAdmin as any;
   const now = input.now ?? new Date();
+  const title = input.title.trim();
+  const body = input.body.trim();
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
   const dayAgo = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
   const isMarketing = MARKETING_CATEGORIES.includes(input.category);
 
-  const [preferencesResult, devicesResult, weekResult, dayResult, duplicateResult] =
+  const [preferencesResult, devicesResult, weekResult, dayResult, repeatResult, duplicateResult] =
     await Promise.all([
       db
         .from("member_notification_preferences")
@@ -179,7 +213,8 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
             .select("id", { count: "exact", head: true })
             .eq("member_id", input.memberId)
             .in("category", MARKETING_CATEGORIES)
-            .gte("sent_at", weekAgo)
+            .in("delivery_status", ["queued", "sending", "sent", "delivered"])
+            .gte("created_at", weekAgo)
         : Promise.resolve({ count: 0, error: null }),
       isMarketing
         ? db
@@ -187,7 +222,19 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
             .select("id", { count: "exact", head: true })
             .eq("member_id", input.memberId)
             .in("category", MARKETING_CATEGORIES)
-            .gte("sent_at", dayAgo)
+            .in("delivery_status", ["queued", "sending", "sent", "delivered"])
+            .gte("created_at", dayAgo)
+        : Promise.resolve({ count: 0, error: null }),
+      isMarketing
+        ? db
+            .from("member_notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("member_id", input.memberId)
+            .eq("category", input.category)
+            .eq("title", title)
+            .eq("body", body)
+            .in("delivery_status", ["queued", "sending", "sent", "delivered"])
+            .gte("created_at", weekAgo)
         : Promise.resolve({ count: 0, error: null }),
       db
         .from("member_notifications")
@@ -196,7 +243,14 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
         .maybeSingle(),
     ]);
 
-  for (const result of [preferencesResult, devicesResult, weekResult, dayResult, duplicateResult]) {
+  for (const result of [
+    preferencesResult,
+    devicesResult,
+    weekResult,
+    dayResult,
+    repeatResult,
+    duplicateResult,
+  ]) {
     if (result.error) throw result.error;
   }
 
@@ -212,8 +266,17 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
     isQuietHours: memberQuietHours(now),
     marketingPushesLast7Days: weekResult.count ?? 0,
     marketingPushesToday: dayResult.count ?? 0,
-    duplicateWithin7Days: false,
+    duplicateWithin7Days: (repeatResult.count ?? 0) > 0,
   });
+  if (!decision.createInboxItem) {
+    return {
+      ok: true as const,
+      duplicate: false as const,
+      notificationId: null,
+      decision,
+      delivery: null,
+    };
+  }
   const scheduledFor = decision.deferredByQuietHours ? nextMemberSendTime(now) : now;
   const deliveryStatus = decision.sendPush
     ? "queued"
@@ -228,8 +291,8 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
     .insert({
       member_id: input.memberId,
       category: input.category,
-      title: input.title.trim(),
-      body: input.body.trim(),
+      title,
+      body,
       action_url: safeNotificationActionUrl(input.actionUrl),
       sound: decision.pushSound,
       campaign_id: input.relatedIds?.campaignId ?? null,
@@ -241,6 +304,7 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
       suppression_reason: decision.suppressedReason,
       idempotency_key: input.idempotencyKey,
       scheduled_for: scheduledFor.toISOString(),
+      expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null,
     })
     .select("*")
     .single();
@@ -266,10 +330,117 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
   };
 }
 
+async function reevaluateQueuedNotification(
+  row: any,
+  tokens: Array<{ id: string; token: string }>,
+  now: Date,
+) {
+  const db = supabaseAdmin as any;
+  if (row.expires_at && new Date(row.expires_at) <= now) {
+    await db
+      .from("member_notifications")
+      .update({ delivery_status: "suppressed", suppression_reason: "expired" })
+      .eq("id", row.id)
+      .eq("delivery_status", "queued");
+    return null;
+  }
+
+  const isMarketing = MARKETING_CATEGORIES.includes(row.category);
+  const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
+  const [preferencesResult, weekResult, dayResult, repeatResult] = await Promise.all([
+    db
+      .from("member_notification_preferences")
+      .select("lesson_reminders,schedule_updates,package_reminders,marketing,sound")
+      .eq("member_id", row.member_id)
+      .maybeSingle(),
+    isMarketing
+      ? db
+          .from("member_notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("member_id", row.member_id)
+          .neq("id", row.id)
+          .in("category", MARKETING_CATEGORIES)
+          .in("delivery_status", ["queued", "sending", "sent", "delivered"])
+          .gte("created_at", weekAgo)
+      : Promise.resolve({ count: 0, error: null }),
+    isMarketing
+      ? db
+          .from("member_notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("member_id", row.member_id)
+          .neq("id", row.id)
+          .in("category", MARKETING_CATEGORIES)
+          .in("delivery_status", ["queued", "sending", "sent", "delivered"])
+          .gte("created_at", dayAgo)
+      : Promise.resolve({ count: 0, error: null }),
+    isMarketing
+      ? db
+          .from("member_notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("member_id", row.member_id)
+          .neq("id", row.id)
+          .eq("category", row.category)
+          .eq("title", row.title)
+          .eq("body", row.body)
+          .in("delivery_status", ["queued", "sending", "sent", "delivered"])
+          .gte("created_at", weekAgo)
+      : Promise.resolve({ count: 0, error: null }),
+  ]);
+  for (const result of [preferencesResult, weekResult, dayResult, repeatResult]) {
+    if (result.error) throw result.error;
+  }
+
+  const decision = decideMemberNotificationDelivery({
+    category: row.category,
+    preferences: preferencesFromRow(preferencesResult.data),
+    hasActivePushDevice: tokens.length > 0,
+    isQuietHours: memberQuietHours(now),
+    marketingPushesLast7Days: weekResult.count ?? 0,
+    marketingPushesToday: dayResult.count ?? 0,
+    duplicateWithin7Days: (repeatResult.count ?? 0) > 0,
+  });
+  if (!decision.sendPush) {
+    const keepQueued = decision.deferredByQuietHours;
+    await db
+      .from("member_notifications")
+      .update({
+        delivery_status: keepQueued
+          ? "queued"
+          : decision.suppressedReason === "no_active_push_device"
+            ? "inbox"
+            : "suppressed",
+        suppression_reason: decision.suppressedReason,
+        scheduled_for: keepQueued ? nextMemberSendTime(now).toISOString() : row.scheduled_for,
+      })
+      .eq("id", row.id)
+      .eq("delivery_status", "queued");
+    return null;
+  }
+
+  await db
+    .from("member_notifications")
+    .update({ sound: decision.pushSound, suppression_reason: null })
+    .eq("id", row.id)
+    .eq("delivery_status", "queued");
+  return { ...row, sound: decision.pushSound };
+}
+
 export async function deliverQueuedMemberNotifications(input?: { limit?: number; now?: Date }) {
   const db = supabaseAdmin as any;
   const now = input?.now ?? new Date();
   const limit = Math.max(1, Math.min(100, Math.trunc(input?.limit ?? 50)));
+  const staleBefore = new Date(now.getTime() - 10 * 60_000).toISOString();
+  const { error: recoveryError } = await db
+    .from("member_notifications")
+    .update({
+      delivery_status: "queued",
+      scheduled_for: now.toISOString(),
+      suppression_reason: "stale_sending_recovered",
+    })
+    .eq("delivery_status", "sending")
+    .lt("last_attempt_at", staleBefore);
+  if (recoveryError) throw recoveryError;
   const { data: rows, error } = await db
     .from("member_notifications")
     .select("*")
@@ -288,14 +459,9 @@ export async function deliverQueuedMemberNotifications(input?: { limit?: number;
       .eq("member_id", row.member_id)
       .eq("active", true);
     if (tokenError) throw tokenError;
-    if (!tokens?.length) {
-      await db
-        .from("member_notifications")
-        .update({ delivery_status: "inbox", suppression_reason: "no_active_push_device" })
-        .eq("id", row.id);
-      continue;
-    }
-    const delivery = await deliverNotification(row, tokens);
+    const ready = await reevaluateQueuedNotification(row, tokens ?? [], now);
+    if (!ready) continue;
+    const delivery = await deliverNotification(ready, tokens ?? []);
     sent += delivery.sent;
     failed += delivery.failed;
   }

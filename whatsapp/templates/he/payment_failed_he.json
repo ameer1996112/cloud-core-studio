@@ -1,0 +1,14 @@
+{
+  "name": "payment_failed_he",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "שלום {{1}}, לא הצלחנו להשלים את התשלום. אפשר לנסות שוב באפליקציה או לכתוב לנו ונעזור.",
+      "example": {
+        "body_text": [["נורה"]]
+      }
+    }
+  ]
+}

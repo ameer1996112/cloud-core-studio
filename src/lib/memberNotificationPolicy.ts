@@ -29,7 +29,7 @@ export type MemberNotificationDeliveryInput = {
 };
 
 export type MemberNotificationDeliveryDecision = {
-  createInboxItem: true;
+  createInboxItem: boolean;
   sendPush: boolean;
   pushSound: boolean;
   sendWhatsapp: boolean;
@@ -96,9 +96,12 @@ export function decideMemberNotificationDelivery(
     };
   }
 
-  const bypassQuietHours = input.category === "urgent_class_change";
+  const bypassQuietHours =
+    input.category === "urgent_class_change" ||
+    input.category === "payment_failed" ||
+    input.category === "waitlist";
   if (!isPreferenceEnabled(input.category, input.preferences)) {
-    return suppressed("preference_disabled", sendWhatsapp);
+    return suppressed("preference_disabled", sendWhatsapp, false);
   }
   if (MARKETING_CATEGORIES.has(input.category)) {
     if (input.duplicateWithin7Days) return suppressed("duplicate", sendWhatsapp);
@@ -132,9 +135,10 @@ export function decideMemberNotificationDelivery(
 function suppressed(
   reason: Exclude<MemberNotificationDeliveryDecision["suppressedReason"], null>,
   sendWhatsapp: boolean,
+  createInboxItem = true,
 ): MemberNotificationDeliveryDecision {
   return {
-    createInboxItem: true,
+    createInboxItem,
     sendPush: false,
     pushSound: false,
     sendWhatsapp,
@@ -147,8 +151,11 @@ export function decideLifecycleWhatsappFallback(input: {
   hasActivePushDevice: boolean;
   isThirtyDayEscalation: boolean;
   marketingConsent: boolean;
+  requiresMarketingConsent: boolean;
 }) {
-  if (input.isThirtyDayEscalation) return input.marketingConsent;
+  if (input.isThirtyDayEscalation || input.requiresMarketingConsent) {
+    return input.marketingConsent;
+  }
   return !input.hasActivePushDevice;
 }
 
@@ -170,4 +177,12 @@ export function decidePaymentReminderActions(input: {
     sendPush: true,
     sendWhatsapp: input.ageHours >= 72,
   };
+}
+
+export function activationCadenceStage(accountAgeDays: number) {
+  if (!Number.isFinite(accountAgeDays) || accountAgeDays < 1) return null;
+  if (accountAgeDays < 3) return "day1";
+  if (accountAgeDays < 7) return "day3";
+  if (accountAgeDays < 14) return "day7";
+  return `week${Math.floor(accountAgeDays / 7)}`;
 }

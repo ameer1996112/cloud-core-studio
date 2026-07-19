@@ -215,6 +215,7 @@ export async function dispatchNotificationCampaign(campaignId: string, now = new
       .eq("id", campaignId);
 
     let sent = 0;
+    let queued = 0;
     let prepared = 0;
     const failures: Array<{ memberId: string; error: string }> = [];
     for (const member of audience.members) {
@@ -233,6 +234,21 @@ export async function dispatchNotificationCampaign(campaignId: string, now = new
         });
         if (!result.duplicate) prepared += 1;
         if ((result.delivery?.sent ?? 0) > 0) sent += 1;
+        if (
+          result.decision?.deferredByQuietHours ||
+          result.delivery?.alreadyClaimed ||
+          result.delivery?.retryScheduled ||
+          (result.decision?.sendPush && !result.delivery)
+        ) {
+          queued += 1;
+        }
+        if (
+          (result.delivery?.failed ?? 0) > 0 &&
+          (result.delivery?.sent ?? 0) === 0 &&
+          !result.delivery?.retryScheduled
+        ) {
+          failures.push({ memberId: member.id, error: "apns_delivery_failed" });
+        }
       } catch (memberError) {
         failures.push({
           memberId: member.id,
@@ -241,16 +257,26 @@ export async function dispatchNotificationCampaign(campaignId: string, now = new
       }
     }
 
+    const status =
+      queued > 0 ? "sending" : failures.length || (prepared > 0 && sent === 0) ? "failed" : "sent";
     await db
       .from("notification_campaigns")
       .update({
-        status: failures.length ? "failed" : "sent",
+        status,
         sent_count: sent,
-        sent_at: now.toISOString(),
+        sent_at: status === "sending" ? null : now.toISOString(),
         updated_at: now.toISOString(),
       })
       .eq("id", campaignId);
-    return { ok: failures.length === 0, prepared, sent, audience, failures };
+    return {
+      ok: status !== "failed",
+      status,
+      prepared,
+      queued,
+      sent,
+      audience,
+      failures,
+    };
   } catch (dispatchError) {
     await db
       .from("notification_campaigns")
@@ -285,7 +311,7 @@ export const createAdminNotificationCampaign = createServerFn({ method: "POST" }
     if (error) throw error;
     if (scheduled) return { ok: true as const, scheduled: true as const, campaignId: campaign.id };
     const result = await dispatchNotificationCampaign(campaign.id, now);
-    return { ok: true as const, scheduled: false as const, campaignId: campaign.id, result };
+    return { ok: result.ok, scheduled: false as const, campaignId: campaign.id, result };
   });
 
 export const listAdminNotificationCampaigns = createServerFn({ method: "GET" })
@@ -321,4 +347,46 @@ export async function dispatchDueNotificationCampaigns(input?: { now?: Date; lim
     results.push(await dispatchNotificationCampaign(campaign.id, now));
   }
   return { scanned: data?.length ?? 0, results };
+}
+
+export async function reconcileSendingNotificationCampaigns(now = new Date()) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const db = supabaseAdmin as any;
+  const { data: campaigns, error } = await db
+    .from("notification_campaigns")
+    .select("id")
+    .eq("status", "sending")
+    .limit(50);
+  if (error) throw error;
+
+  let completed = 0;
+  for (const campaign of campaigns ?? []) {
+    const { data: notifications, error: notificationError } = await db
+      .from("member_notifications")
+      .select("delivery_status")
+      .eq("campaign_id", campaign.id);
+    if (notificationError) throw notificationError;
+    const statuses = (notifications ?? []).map(
+      (row: { delivery_status: string }) => row.delivery_status,
+    );
+    if (statuses.some((status: string) => status === "queued" || status === "sending")) continue;
+    const sent = statuses.filter(
+      (status: string) => status === "sent" || status === "delivered",
+    ).length;
+    const failed = statuses.filter((status: string) => status === "failed").length;
+    const status = failed > 0 || sent === 0 ? "failed" : "sent";
+    const { error: updateError } = await db
+      .from("notification_campaigns")
+      .update({
+        status,
+        sent_count: sent,
+        sent_at: now.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq("id", campaign.id)
+      .eq("status", "sending");
+    if (updateError) throw updateError;
+    completed += 1;
+  }
+  return { scanned: campaigns?.length ?? 0, completed };
 }

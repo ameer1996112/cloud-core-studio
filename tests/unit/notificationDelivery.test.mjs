@@ -1,9 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
   computeRetrySchedule,
+  getPreviousIsraelEvening,
   shouldAutoQueueOpenwaNotification,
   shouldBypassQuietHoursForOpenwaNotification,
 } from "../../src/lib/notificationDelivery.ts";
+
+test("previous-evening reminders use a fixed local studio time", () => {
+  expect(getPreviousIsraelEvening(new Date("2026-07-20T07:00:00.000Z")).toISOString()).toBe(
+    "2026-07-19T17:00:00.000Z",
+  );
+});
 
 describe("shouldAutoQueueOpenwaNotification", () => {
   test("enables only the approved automatic OpenWA event set", () => {
@@ -27,6 +34,10 @@ describe("shouldBypassQuietHoursForOpenwaNotification", () => {
     expect(shouldBypassQuietHoursForOpenwaNotification("payment_confirmed")).toBe(false);
     expect(shouldBypassQuietHoursForOpenwaNotification("class_reminder_24h")).toBe(false);
     expect(shouldBypassQuietHoursForOpenwaNotification("waitlist_spot_available")).toBe(false);
+  });
+
+  test("sends an interactive payment failure immediately", () => {
+    expect(shouldBypassQuietHoursForOpenwaNotification("payment_failed")).toBe(true);
   });
 });
 

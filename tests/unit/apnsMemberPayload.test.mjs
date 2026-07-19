@@ -11,6 +11,7 @@ describe("APNs member payload", () => {
         sound: false,
         badge: 2,
         notificationId: "notification-1",
+        campaignId: "campaign-1",
       }),
     ).toEqual({
       aps: {
@@ -22,6 +23,7 @@ describe("APNs member payload", () => {
       },
       url: "/member/schedule",
       notificationId: "notification-1",
+      campaignId: "campaign-1",
     });
   });
 
