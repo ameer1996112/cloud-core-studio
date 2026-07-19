@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createClientOnlyFn, createIsomorphicFn } from "@tanstack/react-start";
 import { getStartContext } from "@tanstack/start-storage-context";
 
@@ -30,6 +30,8 @@ import {
   setActiveLang,
   t,
 } from "@/lib/i18n";
+import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
+import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
 
 function NotFoundComponent() {
   return (
@@ -179,9 +181,47 @@ const registerAdminPushNotifications = createClientOnlyFn(() => {
     .catch(() => undefined);
 });
 
+const checkRequiredIosAppUpdate = createClientOnlyFn(() =>
+  import("@/lib/appUpdate.client").then(({ findRequiredIosAppUpdate }) =>
+    findRequiredIosAppUpdate(),
+  ),
+);
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
+  useEffect(() => {
+    let active = true;
+    let checkInFlight = false;
+
+    const checkForRequiredUpdate = async () => {
+      if (checkInFlight) return;
+      checkInFlight = true;
+      try {
+        const requirement = await checkRequiredIosAppUpdate();
+        if (active) setRequiredAppUpdate(requirement);
+      } catch (error) {
+        console.warn("ios_required_update_check_failed", error);
+        if (active) setRequiredAppUpdate(null);
+      } finally {
+        checkInFlight = false;
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void checkForRequiredUpdate();
+    };
+
+    void checkForRequiredUpdate();
+    window.addEventListener("focus", checkForRequiredUpdate);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", checkForRequiredUpdate);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
   useEffect(() => {
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
@@ -235,6 +275,17 @@ function RootComponent() {
       sub.subscription.unsubscribe();
     };
   }, [router, queryClient]);
+
+  if (requiredAppUpdate) {
+    return (
+      <RequiredAppUpdate
+        lang={getStoredLang()}
+        appStoreUrl={requiredAppUpdate.appStoreUrl}
+        installedVersion={requiredAppUpdate.installedVersion}
+        minimumVersion={requiredAppUpdate.minimumVersion}
+      />
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
