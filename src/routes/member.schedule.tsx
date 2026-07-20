@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SUPABASE_ACCESS_TOKEN_COOKIE } from "@/integrations/supabase/session-cookie";
 import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { VisualClassCard, ScheduleDaySection } from "@/components/visual/VisualClassCard";
@@ -143,15 +142,6 @@ function startOfDay(d: Date) {
   return x;
 }
 
-function hasSupabaseAccessTokenCookie() {
-  if (typeof document === "undefined") return false;
-
-  return document.cookie
-    .split(";")
-    .map((part) => part.trim())
-    .some((part) => part.startsWith(`${SUPABASE_ACCESS_TOKEN_COOKIE}=`));
-}
-
 // eslint-disable-next-line react-refresh/only-export-components
 export function getGuestOpenClassesCount(classes: ScheduleClass[]) {
   return classes.filter((cls) => {
@@ -168,9 +158,7 @@ function MemberSchedulePublic({
   const { lang, dir } = useI18n();
   const isAuthSnapshotInitialized = authSnapshot?.initialized === true;
   const [session, setSession] = useState<any>(authSnapshot?.session ?? null);
-  const [checkingSession, setCheckingSession] = useState(
-    !isAuthSnapshotInitialized && hasSupabaseAccessTokenCookie(),
-  );
+  const [checkingSession, setCheckingSession] = useState(!isAuthSnapshotInitialized);
   const guestCopy = GUEST_SCHEDULE_COPY[lang];
   const authHref = buildAuthReturnToHref(buildMemberScheduleReturnTo(selectedClassId));
 

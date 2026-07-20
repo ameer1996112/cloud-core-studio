@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { createClientOnlyFn, useServerFn } from "@tanstack/react-start";
 import { Bell, CheckCheck, ChevronRight, Settings2, Smartphone, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -136,6 +137,7 @@ export function MemberNotificationCenter({
   viewport: "mobile" | "desktop";
 }) {
   const { lang } = useI18n();
+  const navigate = useNavigate();
   const copy = COPY[lang];
   const queryClient = useQueryClient();
   const getCenter = useServerFn(getMemberNotificationCenter);
@@ -243,11 +245,9 @@ export function MemberNotificationCenter({
 
   async function openNotification(notification: NotificationCenterData["notifications"][number]) {
     if (!notification.read_at) {
-      try {
-        await markReadMutation.mutateAsync(notification.id);
-      } catch (error) {
+      void markReadMutation.mutateAsync(notification.id).catch((error) => {
         console.warn("member_notification_open_tracking_failed", error);
-      }
+      });
     }
     if (notification.campaign_id) {
       window.localStorage.setItem(
@@ -258,7 +258,12 @@ export function MemberNotificationCenter({
         }),
       );
     }
-    window.location.assign(safeNotificationActionUrl(notification.action_url));
+    setOpen(false);
+    try {
+      await navigate({ href: safeNotificationActionUrl(notification.action_url) });
+    } catch (error) {
+      console.warn("member_notification_navigation_failed", error);
+    }
   }
 
   return (

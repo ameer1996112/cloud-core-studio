@@ -333,13 +333,13 @@ function renderPublicRoute(routeModule, { session, selectedClassId, onSelectedCl
 }
 
 describe("guest schedule handoff", () => {
-  test("renders the public schedule immediately before session probing completes", async () => {
+  test("renders a hydration-safe placeholder before session probing completes", async () => {
     const routeModule = await import("../../src/routes/member.schedule.tsx");
 
     const html = renderToStaticMarkup(React.createElement(routeModule.Route.options.component));
 
-    expect(html).toContain("Guest schedule preview");
-    expect(html).not.toContain("animate-spin");
+    expect(html).toContain("skeleton-brand");
+    expect(html).not.toContain("Guest schedule preview");
   });
 
   test("separates guest and member schedule/detail query scopes across the real public route", async () => {
