@@ -1,271 +1,211 @@
-#!/usr/bin/env node
-import { readdir, readFile } from "node:fs/promises";
+#!/usr/bin/env bun
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import {
+  META_TEMPLATE_CATALOG,
+  toMetaTemplateJson,
+  validateMetaTemplateCatalog,
+} from "../src/lib/messageTemplateCatalog.ts";
+import {
+  buildTemplateReconciliationPlan,
+  parseTemplateProvisioningArgs,
+  provisionWhatsappTemplates,
+  templateContentHash,
+} from "../src/lib/whatsappTemplateProvisioning.ts";
 
 const ROOT = process.cwd();
 const ENV_FILE = path.join(ROOT, ".env.whatsapp.local");
-const TEMPLATE_ROOT = path.join(ROOT, "whatsapp/templates");
-const REQUIRED_ENV = ["META_GRAPH_API_VERSION", "META_WABA_ID", "META_ACCESS_TOKEN"];
-const DRY_RUN = process.argv.includes("--dry-run");
-const ONLY_TEMPLATE = process.argv
-  .find((argument) => argument.startsWith("--only="))
-  ?.slice("--only=".length);
 
 function loadLocalEnv() {
   if (!existsSync(ENV_FILE)) return;
-  const raw = readFileSync(ENV_FILE, "utf8");
-  for (const line of raw.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
-    if (!match) continue;
-    const [, key, rawValue] = match;
-    if (process.env[key]) continue;
-    process.env[key] = rawValue.trim().replace(/^["']|["']$/g, "");
+  for (const line of readFileSync(ENV_FILE, "utf8").split(/\r?\n/)) {
+    const match = line.trim().match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match || line.trim().startsWith("#") || process.env[match[1]]) continue;
+    process.env[match[1]] = match[2].trim().replace(/^["']|["']$/g, "");
   }
 }
 
-function envReady() {
-  return REQUIRED_ENV.every((key) => process.env[key]?.trim());
-}
-
-function requireEnvUnlessDryRun() {
-  const missing = REQUIRED_ENV.filter((key) => !process.env[key]?.trim());
-  if (missing.length && !DRY_RUN) {
-    throw new Error(`Missing required env vars: ${missing.join(", ")}`);
-  }
-  return missing;
+function requireValue(name) {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`missing_environment:${name}`);
+  return value;
 }
 
 function graphBaseUrl() {
-  return `https://graph.facebook.com/${process.env.META_GRAPH_API_VERSION}`;
-}
-
-function countVariables(text) {
-  const matches = [...text.matchAll(/{{\s*(\d+)\s*}}/g)];
-  return matches.length ? Math.max(...matches.map((match) => Number(match[1]))) : 0;
-}
-
-function assertNoBadValues(value, pathLabel) {
-  if (value === null) throw new Error(`${pathLabel} must not be null`);
-  if (typeof value === "string") {
-    if (value.includes("undefined")) throw new Error(`${pathLabel} contains undefined`);
-    if (value.trim() === "") throw new Error(`${pathLabel} must not be empty`);
-  }
-  if (Array.isArray(value)) {
-    if (!value.length) throw new Error(`${pathLabel} must not be empty`);
-    value.forEach((entry, index) => assertNoBadValues(entry, `${pathLabel}[${index}]`));
-  } else if (value && typeof value === "object") {
-    for (const [key, entry] of Object.entries(value)) {
-      assertNoBadValues(entry, `${pathLabel}.${key}`);
-    }
-  }
-}
-
-function validateTemplate(template, fileName) {
-  assertNoBadValues(template, fileName);
-  if (!template.name) throw new Error(`${fileName}: template name is required`);
-  if (template.category !== "UTILITY") throw new Error(`${fileName}: category must be UTILITY`);
-  if (!["he", "ar", "en_US"].includes(template.language)) {
-    throw new Error(`${fileName}: unsupported language ${template.language}`);
-  }
-  if (!Array.isArray(template.components))
-    throw new Error(`${fileName}: components must be an array`);
-
-  const body = template.components.find((component) => component.type === "BODY");
-  if (!body?.text?.trim()) throw new Error(`${fileName}: BODY text is required`);
-
-  const expectedExamples = countVariables(body.text);
-  const exampleRows = body.example?.body_text;
-  const firstExampleRow = Array.isArray(exampleRows) ? exampleRows[0] : null;
-  if (expectedExamples > 0) {
-    if (!Array.isArray(firstExampleRow)) {
-      throw new Error(`${fileName}: BODY examples are required for all variables`);
-    }
-    if (firstExampleRow.length < expectedExamples) {
-      throw new Error(
-        `${fileName}: expected ${expectedExamples} example values, found ${firstExampleRow.length}`,
-      );
-    }
-    firstExampleRow.slice(0, expectedExamples).forEach((value, index) => {
-      if (typeof value !== "string" || !value.trim()) {
-        throw new Error(`${fileName}: example value for {{${index + 1}}} is empty`);
-      }
-    });
-  }
-}
-
-async function readTemplates() {
-  const languageDirectories = (await readdir(TEMPLATE_ROOT, { withFileTypes: true }))
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-  const templates = [];
-  for (const directory of languageDirectories) {
-    const directoryPath = path.join(TEMPLATE_ROOT, directory);
-    const files = (await readdir(directoryPath)).filter((file) => file.endsWith(".json")).sort();
-    for (const file of files) {
-      const fullPath = path.join(directoryPath, file);
-      const template = JSON.parse(await readFile(fullPath, "utf8"));
-      if (ONLY_TEMPLATE && template.name !== ONLY_TEMPLATE) continue;
-      validateTemplate(template, `${directory}/${file}`);
-      templates.push({ file: `${directory}/${file}`, template });
-    }
-  }
-  if (ONLY_TEMPLATE && templates.length === 0) {
-    throw new Error(`No template found for --only=${ONLY_TEMPLATE}`);
-  }
-  return templates;
-}
-
-function formatMetaError(response, json) {
-  const error = json?.error;
-  if (!error) return `Meta API error ${response.status}`;
-
-  const parts = [
-    error.message,
-    error.code ? `code=${error.code}` : "",
-    error.error_subcode ? `subcode=${error.error_subcode}` : "",
-    error.error_user_title ? `title=${error.error_user_title}` : "",
-    error.error_user_msg ? `user_msg=${error.error_user_msg}` : "",
-    error.error_data?.details ? `details=${error.error_data.details}` : "",
-    error.fbtrace_id ? `fbtrace_id=${error.fbtrace_id}` : "",
-  ].filter(Boolean);
-
-  return parts.join(" | ");
+  return `https://graph.facebook.com/${requireValue("META_GRAPH_API_VERSION")}`;
 }
 
 async function metaRequest(url, init = {}) {
   const response = await fetch(url, {
     ...init,
     headers: {
-      authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+      authorization: `Bearer ${requireValue("META_ACCESS_TOKEN")}`,
       "content-type": "application/json",
       ...(init.headers ?? {}),
     },
   });
-  const json = await response.json().catch(() => ({}));
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(formatMetaError(response, json));
-  }
-  return json;
-}
-
-async function fetchExistingTemplates() {
-  const existing = new Map();
-  let after = "";
-  do {
-    const url = new URL(`${graphBaseUrl()}/${process.env.META_WABA_ID}/message_templates`);
-    url.searchParams.set("fields", "name,language,status,category,rejected_reason");
-    url.searchParams.set("limit", "100");
-    if (after) url.searchParams.set("after", after);
-    const json = await metaRequest(url);
-    for (const template of json.data ?? []) {
-      existing.set(`${template.name}:${template.language}`, template);
-    }
-    after = json.paging?.cursors?.after ?? "";
-  } while (after);
-  return existing;
-}
-
-async function fetchWabaReadiness() {
-  const wabaUrl = new URL(`${graphBaseUrl()}/${process.env.META_WABA_ID}`);
-  wabaUrl.searchParams.set("fields", "id,name,account_review_status,business_verification_status");
-  const phoneUrl = new URL(`${graphBaseUrl()}/${process.env.META_WABA_ID}/phone_numbers`);
-  phoneUrl.searchParams.set(
-    "fields",
-    "display_phone_number,verified_name,code_verification_status,platform_type,quality_rating,status",
-  );
-
-  const [waba, phones] = await Promise.all([metaRequest(wabaUrl), metaRequest(phoneUrl)]);
-  return {
-    waba,
-    phones: phones.data ?? [],
-  };
-}
-
-function logWabaReadiness(readiness) {
-  const { waba, phones } = readiness;
-  console.log(
-    `WABA: ${waba.name ?? waba.id} review=${waba.account_review_status ?? "UNKNOWN"} business=${waba.business_verification_status ?? "UNKNOWN"}`,
-  );
-
-  if (!phones.length) {
-    console.log("WABA phones: none");
-    return;
-  }
-
-  for (const phone of phones) {
-    console.log(
-      `WABA phone: ${phone.display_phone_number ?? phone.verified_name ?? "unknown"} status=${phone.status ?? "UNKNOWN"} platform=${phone.platform_type ?? "UNKNOWN"} code=${phone.code_verification_status ?? "UNKNOWN"}`,
+    const error = payload?.error;
+    throw new Error(
+      [error?.message ?? `Meta API error ${response.status}`, error?.code && `code=${error.code}`]
+        .filter(Boolean)
+        .join(" | "),
     );
   }
+  return payload;
 }
 
-async function createTemplate(template) {
-  const url = `${graphBaseUrl()}/${process.env.META_WABA_ID}/message_templates`;
-  return metaRequest(url, {
+async function listAllMetaTemplates(wabaId) {
+  const templates = [];
+  let nextUrl = new URL(`${graphBaseUrl()}/${wabaId}/message_templates`);
+  nextUrl.searchParams.set("fields", "name,language,status,category,components,rejected_reason");
+  nextUrl.searchParams.set("limit", "100");
+  while (nextUrl) {
+    const payload = await metaRequest(nextUrl);
+    templates.push(...(payload.data ?? []));
+    nextUrl = payload.paging?.next ? new URL(payload.paging.next) : null;
+  }
+  return templates;
+}
+
+async function createMetaTemplate(wabaId, template) {
+  return metaRequest(`${graphBaseUrl()}/${wabaId}/message_templates`, {
     method: "POST",
     body: JSON.stringify(template),
   });
 }
 
-loadLocalEnv();
-const missing = requireEnvUnlessDryRun();
-const templates = await readTemplates();
-console.log(`Validated ${templates.length} localized utility templates.`);
+function supabaseConfiguration() {
+  return {
+    url: process.env.SUPABASE_URL?.trim() || process.env.VITE_SUPABASE_URL?.trim(),
+    key: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  };
+}
 
-let existing = new Map();
-if (envReady() && !DRY_RUN) {
-  const [readiness, existingTemplates] = await Promise.all([
-    fetchWabaReadiness(),
-    fetchExistingTemplates(),
-  ]);
-  logWabaReadiness(readiness);
-  existing = existingTemplates;
-  console.log(`Fetched ${existing.size} existing templates from Meta.`);
-} else if (DRY_RUN) {
-  console.log(
-    missing.length
-      ? `Dry run without Meta lookup. Missing env vars: ${missing.join(", ")}`
-      : "Dry run: Meta lookup skipped.",
+async function supabaseRequest(resource, body) {
+  const { url, key } = supabaseConfiguration();
+  if (!url || !key) throw new Error("missing_supabase_service_configuration");
+  const response = await fetch(`${url}/rest/v1/${resource}`, {
+    method: "POST",
+    headers: {
+      apikey: key,
+      authorization: `Bearer ${key}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(`supabase_template_lease_failed:${response.status}`);
+  return payload;
+}
+
+async function syncDeploymentRecords(wabaId, localTemplates, remoteTemplates) {
+  const { url, key } = supabaseConfiguration();
+  if (!url || !key) return { synced: false, reason: "missing_supabase_service_configuration" };
+  const rows = localTemplates.map((template) => {
+    const remote = remoteTemplates.filter(
+      (candidate) => candidate.name === template.name && candidate.language === template.language,
+    );
+    const exact = remote.find(
+      (candidate) => templateContentHash(candidate) === templateContentHash(template),
+    );
+    return {
+      waba_id: wabaId,
+      template_name: template.name,
+      language: template.language,
+      version: "v2",
+      category: template.category,
+      content_hash: templateContentHash(template),
+      provider_template_id: exact?.id ?? remote[0]?.id ?? null,
+      approval_status:
+        remote.length > 1
+          ? "REMOTE_DUPLICATE"
+          : exact
+            ? (exact.status ?? "UNKNOWN")
+            : remote.length
+              ? "CONTENT_DRIFT"
+              : "NOT_CREATED",
+      provider_payload: {
+        rejected_reason: exact?.rejected_reason ?? remote[0]?.rejected_reason ?? null,
+      },
+      last_synced_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  });
+  const response = await fetch(
+    `${url}/rest/v1/whatsapp_template_deployments?on_conflict=waba_id,template_name,language`,
+    {
+      method: "POST",
+      headers: {
+        apikey: key,
+        authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify(rows),
+    },
   );
+  if (!response.ok) throw new Error(`supabase_template_sync_failed:${response.status}`);
+  return { synced: true, count: rows.length };
 }
 
-const results = { created: 0, skipped: 0, failed: 0, dryRun: 0 };
-for (const { template } of templates) {
-  const key = `${template.name}:${template.language}`;
-  const current = existing.get(key);
-  if (current) {
-    results.skipped += 1;
-    console.log(`skipped existing: ${template.name} status=${current.status ?? "UNKNOWN"}`);
-    if (current.status === "REJECTED") {
-      console.error(`rejected: ${template.name} reason=${current.rejected_reason ?? "unknown"}`);
-      process.exitCode = 1;
-      break;
-    }
-    continue;
-  }
+loadLocalEnv();
+const args = parseTemplateProvisioningArgs(process.argv.slice(2));
+const catalogValidation = validateMetaTemplateCatalog();
+if (!catalogValidation.ok)
+  throw new Error(`invalid_template_catalog:${catalogValidation.errors.join(",")}`);
 
-  if (DRY_RUN) {
-    results.dryRun += 1;
-    console.log(`dry-run would create: ${template.name}`);
-    continue;
-  }
+let templates = META_TEMPLATE_CATALOG.map(toMetaTemplateJson);
+if (args.only) templates = templates.filter((template) => template.name === args.only);
+if (!templates.length) throw new Error(`template_not_found:${args.only}`);
 
-  try {
-    const created = await createTemplate(template);
-    results.created += 1;
-    console.log(`created: ${template.name} id=${created.id ?? "unknown"} status=pending approval`);
-  } catch (error) {
-    results.failed += 1;
-    console.error(`failed: ${template.name} ${error instanceof Error ? error.message : error}`);
-  }
+const lookupConfigured = Boolean(
+  process.env.META_GRAPH_API_VERSION?.trim() &&
+  process.env.META_ACCESS_TOKEN?.trim() &&
+  (args.wabaId || process.env.META_WABA_ID?.trim()),
+);
+const wabaId = args.wabaId || process.env.META_WABA_ID?.trim();
+
+if (!args.apply && !lookupConfigured) {
+  const plan = await buildTemplateReconciliationPlan(templates, []);
+  console.log(JSON.stringify({ mode: "plan", remoteLookup: false, plan }, null, 2));
+  process.exit(0);
 }
+
+if (!wabaId) throw new Error("missing_environment:META_WABA_ID");
+const result = await provisionWhatsappTemplates({
+  wabaId,
+  apply: args.apply,
+  templates,
+  lease: {
+    acquire: async (owner) =>
+      Boolean(
+        await supabaseRequest("rpc/acquire_whatsapp_provisioning_lease", {
+          p_waba_id: wabaId,
+          p_owner: owner,
+          p_lease_seconds: 300,
+        }),
+      ),
+    release: async (owner) =>
+      supabaseRequest("rpc/release_whatsapp_provisioning_lease", {
+        p_waba_id: wabaId,
+        p_owner: owner,
+      }),
+  },
+  meta: {
+    listAll: () => listAllMetaTemplates(wabaId),
+    create: (template) => createMetaTemplate(wabaId, template),
+  },
+});
+const synced = await syncDeploymentRecords(wabaId, templates, await listAllMetaTemplates(wabaId));
 
 console.log(
-  `Summary: created=${results.created} skipped=${results.skipped} dryRun=${results.dryRun} failed=${results.failed}`,
+  JSON.stringify(
+    { mode: args.apply ? "apply" : "plan", wabaId, ...result, deploymentSync: synced },
+    null,
+    2,
+  ),
 );
-if (results.failed > 0) process.exitCode = 1;
+if (result.errors?.length) process.exitCode = 1;

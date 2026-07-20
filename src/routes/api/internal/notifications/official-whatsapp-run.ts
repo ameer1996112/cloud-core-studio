@@ -22,6 +22,14 @@ export const Route = createFileRoute("/api/internal/notifications/official-whats
       POST: async ({ request }) => {
         const unauthorized = requireNotificationAutomationAuth(request);
         if (unauthorized) return unauthorized;
+        if (
+          process.env.OFFICIAL_WHATSAPP_LEGACY_DELIVERY_ENABLED?.trim().toLowerCase() !== "true"
+        ) {
+          return jsonResponse(
+            { ok: false, reason: "official_whatsapp_legacy_delivery_disabled" },
+            410,
+          );
+        }
 
         let body: unknown;
         try {

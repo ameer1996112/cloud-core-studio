@@ -1,0 +1,21 @@
+{
+  "name": "cc_class_time_changed_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, your class time was updated:\n\n{{2}}\n{{3}} · {{4}}\n\nIf the new time does not work, reply and we will help.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "19:00"
+          ]
+        ]
+      }
+    }
+  ]
+}

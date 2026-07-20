@@ -1,5 +1,10 @@
 # Member notification operations
 
+The canonical Phase 1/2 architecture, rollout flags, unified sweep endpoint, webhook security,
+retention, and rollback procedure are documented in
+[Unified Messaging System](./unified-messaging-system.md). The instructions below describe the
+legacy hosted member-notification job retained during the non-destructive transition.
+
 The iPhone notification queue must be swept by a hosted process. It must not depend on the local
 OpenWA Mac worker.
 
@@ -21,8 +26,8 @@ application image. The script:
 Optional environment overrides are documented at the top of the script. After setup, execute the
 job once manually and inspect Cloud Logging before enabling member campaigns.
 
-The local OpenWA worker intentionally defaults `OPENWA_WORKER_LIFECYCLE_SWEEP` to `0`. It remains
-responsible for OpenWA delivery only. Set it to `1` only for temporary manual recovery.
+The local OpenWA worker remains rollback-only. New claims also require
+`OPENWA_LEGACY_DELIVERY_ENABLED=true`; leave it false during canonical operation.
 
 ## APNs
 
@@ -31,6 +36,6 @@ environment expected by `src/lib/apns.server.ts`. Test on a real iPhone before e
 
 ## Official WhatsApp
 
-Create and obtain Meta approval for every JSON definition under `whatsapp/templates/he`,
-`whatsapp/templates/ar`, and `whatsapp/templates/en`. Do not enable the official provider for a
-language until its template variants show as approved.
+Use the generated v2 definitions under `whatsapp/templates/v2`. Do not enable WhatsApp for a locale
+until its deployment row is approved. Missing locales are suppressed; the worker never substitutes
+another language.

@@ -1,0 +1,22 @@
+{
+  "name": "cc_booking_confirmed_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "{{1}}، تم حفظ مكانك 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}\n\nننتظرك في Cloud & Core",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "18:00",
+            "ירין"
+          ]
+        ]
+      }
+    }
+  ]
+}

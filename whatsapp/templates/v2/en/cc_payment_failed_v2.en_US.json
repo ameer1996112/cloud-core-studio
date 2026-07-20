@@ -1,0 +1,19 @@
+{
+  "name": "cc_payment_failed_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, we could not complete payment for {{2}}. Try again in the app or reply and we will help.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי"
+          ]
+        ]
+      }
+    }
+  ]
+}

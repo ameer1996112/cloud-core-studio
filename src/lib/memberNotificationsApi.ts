@@ -6,6 +6,8 @@ export const memberNotificationPreferencesSchema = z.object({
   packageReminders: z.boolean(),
   marketing: z.boolean(),
   sound: z.boolean(),
+  whatsappEnabled: z.boolean().optional(),
+  emailEnabled: z.boolean().optional(),
 });
 
 export const memberPushTokenSchema = z.object({
@@ -37,6 +39,7 @@ const ALLOWED_MEMBER_PATHS = [
   "/member/bookings",
   "/member/packages",
   "/member/account",
+  "/receipts",
 ] as const;
 
 export function safeNotificationActionUrl(value: unknown) {
@@ -52,7 +55,14 @@ export function safeNotificationActionUrl(value: unknown) {
   }
 
   if (url.origin !== "https://cloudandcore.local") return "/member";
-  if (!ALLOWED_MEMBER_PATHS.some((path) => url.pathname === path)) return "/member";
+  if (
+    !ALLOWED_MEMBER_PATHS.some(
+      (path) =>
+        url.pathname === path ||
+        (path === "/receipts" && /^\/receipts\/[0-9a-f-]{36}$/i.test(url.pathname)),
+    )
+  )
+    return "/member";
   return `${url.pathname}${url.search}${url.hash}`;
 }
 

@@ -1,0 +1,21 @@
+{
+  "name": "cc_booking_cancelled_v2",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "{{1}}, הביטול נקלט.\n\n{{2}}\n{{3}} · {{4}}\n\nאם מגיע לך זיכוי, הוא עודכן בחשבון שלך.\nירין",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "18:00"
+          ]
+        ]
+      }
+    }
+  ]
+}

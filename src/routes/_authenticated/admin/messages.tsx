@@ -19,6 +19,17 @@ import {
   updatePackageRequest,
 } from "@/lib/messages.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
+import {
+  claimCanonicalConversation,
+  getCanonicalConversation,
+  listCanonicalConversations,
+  listCanonicalDeliveries,
+  listWhatsappTemplateDeployments,
+  releaseCanonicalConversation,
+  replyCanonicalConversation,
+  resolveCanonicalConversation,
+  retryCanonicalDeliveryAction,
+} from "@/lib/unifiedMessages.functions";
 import { listClasses, prepareClassReminderDrafts } from "@/lib/admin.functions";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -54,7 +65,7 @@ export const Route = createFileRoute("/_authenticated/admin/messages")({
   component: Page,
 });
 
-type Tab = "push" | "templates" | "composer" | "logs" | "requests";
+type Tab = "inbox" | "deliveries" | "push" | "templates" | "composer" | "logs" | "requests";
 
 type LogStatusSummary = {
   status?: string | null;
@@ -97,6 +108,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     requests: "Package requests",
     logs: "Activity log",
     push: "iPhone campaigns",
+    inbox: "Inbox",
+    deliveries: "Deliveries",
     audience: "Audience",
     specificMembers: "Specific member(s)",
     searchMember: "Search member by name...",
@@ -144,6 +157,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     requests: "בקשות חבילה",
     logs: "יומן פעילות",
     push: "קמפיינים ל-iPhone",
+    inbox: "תיבת שיחות",
+    deliveries: "מסירות",
     audience: "קהל יעד",
     specificMembers: "חבר/ה מסוימים",
     searchMember: "חיפוש חבר/ה לפי שם...",
@@ -192,6 +207,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     requests: "طلبات الباقات",
     logs: "سجل النشاط",
     push: "حملات iPhone",
+    inbox: "صندوق المحادثات",
+    deliveries: "عمليات التسليم",
     audience: "الجمهور",
     specificMembers: "أعضاء محددون",
     searchMember: "ابحثي عن عضو بالاسم...",
@@ -320,6 +337,8 @@ function Page() {
       <div className="flex gap-2 border-b border-gold/30 overflow-x-auto">
         {(
           [
+            { k: "inbox", l: "Inbox" },
+            { k: "deliveries", l: "Deliveries" },
             { k: "composer", l: "Compose" },
             { k: "push", l: "iPhone campaigns" },
             { k: "templates", l: "Templates" },
@@ -342,11 +361,297 @@ function Page() {
       </div>
 
       {tab === "composer" && <ComposerTab />}
+      {tab === "inbox" && <CanonicalInboxTab />}
+      {tab === "deliveries" && <CanonicalDeliveriesTab />}
       {tab === "push" && <AdminPushCampaigns />}
-      {tab === "templates" && <TemplatesTab />}
+      {tab === "templates" && (
+        <div className="space-y-6">
+          <TemplateDeploymentStatus />
+          <TemplatesTab />
+        </div>
+      )}
       {tab === "requests" && <RequestsTab />}
       {tab === "logs" && <LogsTab />}
     </AdminPageShell>
+  );
+}
+
+function CanonicalInboxTab() {
+  const queryClient = useQueryClient();
+  const listFn = useServerFn(listCanonicalConversations);
+  const detailFn = useServerFn(getCanonicalConversation);
+  const claimFn = useServerFn(claimCanonicalConversation);
+  const releaseFn = useServerFn(releaseCanonicalConversation);
+  const resolveFn = useServerFn(resolveCanonicalConversation);
+  const replyFn = useServerFn(replyCanonicalConversation);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reply, setReply] = useState("");
+  const conversations = useQuery({
+    queryKey: ["canonical-conversations"],
+    queryFn: () => listFn(),
+  });
+  const detail = useQuery({
+    queryKey: ["canonical-conversation", selectedId],
+    queryFn: () => detailFn({ data: { conversationId: selectedId! } }),
+    enabled: Boolean(selectedId),
+  });
+  const refresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["canonical-conversations"] }),
+      queryClient.invalidateQueries({ queryKey: ["canonical-conversation", selectedId] }),
+    ]);
+  };
+  const action = useMutation({
+    mutationFn: async (kind: "claim" | "release" | "resolve") => {
+      if (!selectedId) return;
+      if (kind === "claim") return claimFn({ data: { conversationId: selectedId } });
+      if (kind === "release") return releaseFn({ data: { conversationId: selectedId } });
+      return resolveFn({ data: { conversationId: selectedId } });
+    },
+    onSuccess: refresh,
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Conversation action failed"),
+  });
+  const sendReply = useMutation({
+    mutationFn: async (useHandoffTemplate: boolean) => {
+      if (!selectedId) return;
+      return replyFn({
+        data: {
+          conversationId: selectedId,
+          ...(useHandoffTemplate ? { useHandoffTemplate: true } : { text: reply }),
+        },
+      });
+    },
+    onSuccess: async () => {
+      setReply("");
+      await refresh();
+      toast.success("Reply queued");
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Reply failed"),
+  });
+  const selectedConversation = detail.data?.conversation;
+  const windowOpen = Boolean(
+    selectedConversation?.service_window_expires_at &&
+    new Date(selectedConversation.service_window_expires_at) > new Date(),
+  );
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
+      <section className="editorial-panel divide-y divide-gold/15 overflow-hidden">
+        {(conversations.data ?? []).map((conversation: any) => {
+          const member = Array.isArray(conversation.member)
+            ? conversation.member[0]
+            : conversation.member;
+          return (
+            <button
+              key={conversation.id}
+              type="button"
+              onClick={() => setSelectedId(conversation.id)}
+              className={`w-full p-4 text-start ${selectedId === conversation.id ? "bg-powder/50" : "hover:bg-sand/35"}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-medium text-navy">
+                  {member?.name ?? "Guest conversation"}
+                </span>
+                <span className="rounded-full bg-sand px-2 py-1 text-[10px] uppercase text-slate">
+                  {conversation.status}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate">
+                {conversation.last_inbound_at
+                  ? new Date(conversation.last_inbound_at).toLocaleString()
+                  : "No inbound timestamp"}
+              </p>
+            </button>
+          );
+        })}
+        {!conversations.isLoading && !conversations.data?.length && (
+          <p className="p-6 text-sm text-slate">No WhatsApp handoffs.</p>
+        )}
+      </section>
+
+      <section className="editorial-panel flex min-h-[520px] flex-col p-5">
+        {!selectedId ? (
+          <p className="m-auto text-sm text-slate">Choose a conversation.</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 pb-4">
+              <div>
+                <p className="font-semibold text-navy">WhatsApp handoff</p>
+                <p className="text-xs text-slate">
+                  {windowOpen ? "24-hour service window open" : "Service window closed"}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {selectedConversation?.status === "unassigned" && (
+                  <button
+                    className="btn-outline px-3 py-2 text-xs"
+                    onClick={() => action.mutate("claim")}
+                  >
+                    Claim
+                  </button>
+                )}
+                {selectedConversation?.status === "claimed" && (
+                  <button
+                    className="btn-outline px-3 py-2 text-xs"
+                    onClick={() => action.mutate("release")}
+                  >
+                    Release
+                  </button>
+                )}
+                {selectedConversation?.status !== "resolved" && (
+                  <button
+                    className="btn-outline px-3 py-2 text-xs"
+                    onClick={() => action.mutate("resolve")}
+                  >
+                    Resolve
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto py-4">
+              {(detail.data?.messages ?? []).map((message: any) => (
+                <div
+                  key={message.id}
+                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm ${
+                    message.direction === "inbound"
+                      ? "bg-sand text-navy"
+                      : "ms-auto bg-navy text-ivory"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">
+                    {message.body || `[${message.content?.message_type ?? "message"}]`}
+                  </p>
+                  <p className="mt-1 text-[10px] opacity-60">
+                    {new Date(message.created_at).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-gold/15 pt-4">
+              {windowOpen ? (
+                <div className="flex gap-2">
+                  <textarea
+                    className="editorial-input min-h-20 flex-1"
+                    value={reply}
+                    onChange={(event) => setReply(event.target.value)}
+                    placeholder="Reply within the customer-service window"
+                  />
+                  <button
+                    className="cta-navy self-end px-4 py-2 text-xs"
+                    disabled={!reply.trim() || sendReply.isPending}
+                    onClick={() => sendReply.mutate(false)}
+                  >
+                    Queue reply
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="cta-navy px-4 py-2 text-xs"
+                  disabled={sendReply.isPending}
+                  onClick={() => sendReply.mutate(true)}
+                >
+                  Queue approved handoff template
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function CanonicalDeliveriesTab() {
+  const queryClient = useQueryClient();
+  const listFn = useServerFn(listCanonicalDeliveries);
+  const retryFn = useServerFn(retryCanonicalDeliveryAction);
+  const deliveries = useQuery({ queryKey: ["canonical-deliveries"], queryFn: () => listFn() });
+  const retry = useMutation({
+    mutationFn: (deliveryId: string) => retryFn({ data: { deliveryId } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] }),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
+  });
+  return (
+    <div className="editorial-panel overflow-x-auto">
+      <table className="w-full min-w-[760px] text-start text-sm">
+        <thead className="border-b border-gold/20 text-xs uppercase text-slate">
+          <tr>
+            <th className="p-4">Message</th>
+            <th className="p-4">Channel</th>
+            <th className="p-4">Status</th>
+            <th className="p-4">Attempts</th>
+            <th className="p-4">Error</th>
+            <th className="p-4" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gold/15">
+          {(deliveries.data ?? []).map((delivery: any) => {
+            const message = Array.isArray(delivery.message)
+              ? delivery.message[0]
+              : delivery.message;
+            const retryable = ["failed", "dead_letter", "suppressed"].includes(delivery.status);
+            return (
+              <tr key={delivery.id}>
+                <td className="p-4 text-navy">
+                  {message?.subject ?? message?.event_type ?? delivery.message_id}
+                </td>
+                <td className="p-4 text-slate">{delivery.channel}</td>
+                <td className="p-4">
+                  <span className="rounded-full bg-sand px-2 py-1 text-xs">{delivery.status}</span>
+                </td>
+                <td className="p-4 text-slate">{delivery.attempt_count}</td>
+                <td className="max-w-xs truncate p-4 text-slate">
+                  {delivery.error_code ?? delivery.error_message ?? "—"}
+                </td>
+                <td className="p-4 text-end">
+                  {retryable && (
+                    <button
+                      className="btn-outline px-3 py-1.5 text-xs"
+                      onClick={() => retry.mutate(delivery.id)}
+                    >
+                      Retry
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function TemplateDeploymentStatus() {
+  const listFn = useServerFn(listWhatsappTemplateDeployments);
+  const deployments = useQuery({
+    queryKey: ["whatsapp-template-deployments"],
+    queryFn: () => listFn(),
+  });
+  return (
+    <section className="editorial-panel p-5">
+      <div className="mb-4">
+        <p className="eyebrow">WhatsApp Cloud API</p>
+        <h3 className="text-lg font-semibold text-navy">Versioned deployment status</h3>
+      </div>
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+        {(deployments.data ?? []).map((deployment: any) => (
+          <div key={deployment.id} className="rounded-xl border border-gold/15 bg-white/60 p-3">
+            <p className="truncate text-sm font-medium text-navy">{deployment.template_name}</p>
+            <div className="mt-1 flex items-center justify-between text-xs text-slate">
+              <span>{deployment.language}</span>
+              <span>{deployment.approval_status}</span>
+            </div>
+          </div>
+        ))}
+        {!deployments.data?.length && (
+          <p className="text-sm text-slate">
+            No v2 deployment status synced yet. Run plan mode first; apply remains explicit.
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 

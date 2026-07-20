@@ -56,17 +56,20 @@ import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminMembersIndexRouteImport } from './routes/_authenticated/admin/members/index'
 import { Route as AuthenticatedAdminClassesIndexRouteImport } from './routes/_authenticated/admin/classes/index'
 import { Route as ApiPublicWebhooksWhatsappRouteImport } from './routes/api/public/webhooks/whatsapp'
+import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks/resend'
 import { Route as ApiInternalSubscriptionsHypSyncRouteImport } from './routes/api/internal/subscriptions/hyp-sync'
 import { Route as ApiInternalNotificationsOpenwaRunRouteImport } from './routes/api/internal/notifications/openwa-run'
 import { Route as ApiInternalNotificationsOpenwaReportRouteImport } from './routes/api/internal/notifications/openwa-report'
 import { Route as ApiInternalNotificationsOpenwaClaimRouteImport } from './routes/api/internal/notifications/openwa-claim'
 import { Route as ApiInternalNotificationsOfficialWhatsappRunRouteImport } from './routes/api/internal/notifications/official-whatsapp-run'
 import { Route as ApiInternalNotificationsLifecycleSweepRouteImport } from './routes/api/internal/notifications/lifecycle-sweep'
+import { Route as ApiInternalMessagesSweepRouteImport } from './routes/api/internal/messages/sweep'
 import { Route as AuthenticatedAdminMembersIdRouteImport } from './routes/_authenticated/admin/members/$id'
 import { Route as AuthenticatedAdminClassesNewRouteImport } from './routes/_authenticated/admin/classes/new'
 import { Route as AuthenticatedAdminClassesIdRouteImport } from './routes/_authenticated/admin/classes/$id'
 import { Route as ApiPublicWebhooksPaymentsProviderRouteImport } from './routes/api/public/webhooks/payments.$provider'
 import { Route as ApiPublicPaymentsHypReturnRouteImport } from './routes/api/public/payments/hyp.return'
+import { Route as ApiInternalMessagesMediaMediaIdRouteImport } from './routes/api/internal/messages/media/$mediaId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -326,6 +329,11 @@ const ApiPublicWebhooksWhatsappRoute =
     path: '/api/public/webhooks/whatsapp',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWebhooksResendRoute = ApiPublicWebhooksResendRouteImport.update({
+  id: '/api/public/webhooks/resend',
+  path: '/api/public/webhooks/resend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInternalSubscriptionsHypSyncRoute =
   ApiInternalSubscriptionsHypSyncRouteImport.update({
     id: '/api/internal/subscriptions/hyp-sync',
@@ -362,6 +370,12 @@ const ApiInternalNotificationsLifecycleSweepRoute =
     path: '/api/internal/notifications/lifecycle-sweep',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalMessagesSweepRoute =
+  ApiInternalMessagesSweepRouteImport.update({
+    id: '/api/internal/messages/sweep',
+    path: '/api/internal/messages/sweep',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminMembersIdRoute =
   AuthenticatedAdminMembersIdRouteImport.update({
     id: '/members/$id',
@@ -390,6 +404,12 @@ const ApiPublicPaymentsHypReturnRoute =
   ApiPublicPaymentsHypReturnRouteImport.update({
     id: '/api/public/payments/hyp/return',
     path: '/api/public/payments/hyp/return',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInternalMessagesMediaMediaIdRoute =
+  ApiInternalMessagesMediaMediaIdRouteImport.update({
+    id: '/api/internal/messages/media/$mediaId',
+    path: '/api/internal/messages/media/$mediaId',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -440,15 +460,18 @@ export interface FileRoutesByFullPath {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/messages/sweep': typeof ApiInternalMessagesSweepRoute
   '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
   '/api/internal/notifications/official-whatsapp-run': typeof ApiInternalNotificationsOfficialWhatsappRunRoute
   '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
   '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
   '/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
+  '/api/internal/messages/media/$mediaId': typeof ApiInternalMessagesMediaMediaIdRoute
   '/api/public/payments/hyp/return': typeof ApiPublicPaymentsHypReturnRoute
   '/api/public/webhooks/payments/$provider': typeof ApiPublicWebhooksPaymentsProviderRoute
 }
@@ -496,15 +519,18 @@ export interface FileRoutesByTo {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/messages/sweep': typeof ApiInternalMessagesSweepRoute
   '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
   '/api/internal/notifications/official-whatsapp-run': typeof ApiInternalNotificationsOfficialWhatsappRunRoute
   '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
   '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
   '/admin/classes': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members': typeof AuthenticatedAdminMembersIndexRoute
+  '/api/internal/messages/media/$mediaId': typeof ApiInternalMessagesMediaMediaIdRoute
   '/api/public/payments/hyp/return': typeof ApiPublicPaymentsHypReturnRoute
   '/api/public/webhooks/payments/$provider': typeof ApiPublicWebhooksPaymentsProviderRoute
 }
@@ -557,15 +583,18 @@ export interface FileRoutesById {
   '/_authenticated/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/_authenticated/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/_authenticated/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/messages/sweep': typeof ApiInternalMessagesSweepRoute
   '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
   '/api/internal/notifications/official-whatsapp-run': typeof ApiInternalNotificationsOfficialWhatsappRunRoute
   '/api/internal/notifications/openwa-claim': typeof ApiInternalNotificationsOpenwaClaimRoute
   '/api/internal/notifications/openwa-report': typeof ApiInternalNotificationsOpenwaReportRoute
   '/api/internal/notifications/openwa-run': typeof ApiInternalNotificationsOpenwaRunRoute
   '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
   '/_authenticated/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/_authenticated/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
+  '/api/internal/messages/media/$mediaId': typeof ApiInternalMessagesMediaMediaIdRoute
   '/api/public/payments/hyp/return': typeof ApiPublicPaymentsHypReturnRoute
   '/api/public/webhooks/payments/$provider': typeof ApiPublicWebhooksPaymentsProviderRoute
 }
@@ -618,15 +647,18 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/messages/sweep'
     | '/api/internal/notifications/lifecycle-sweep'
     | '/api/internal/notifications/official-whatsapp-run'
     | '/api/internal/notifications/openwa-claim'
     | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
     | '/api/internal/subscriptions/hyp-sync'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/whatsapp'
     | '/admin/classes/'
     | '/admin/members/'
+    | '/api/internal/messages/media/$mediaId'
     | '/api/public/payments/hyp/return'
     | '/api/public/webhooks/payments/$provider'
   fileRoutesByTo: FileRoutesByTo
@@ -674,15 +706,18 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/messages/sweep'
     | '/api/internal/notifications/lifecycle-sweep'
     | '/api/internal/notifications/official-whatsapp-run'
     | '/api/internal/notifications/openwa-claim'
     | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
     | '/api/internal/subscriptions/hyp-sync'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/whatsapp'
     | '/admin/classes'
     | '/admin/members'
+    | '/api/internal/messages/media/$mediaId'
     | '/api/public/payments/hyp/return'
     | '/api/public/webhooks/payments/$provider'
   id:
@@ -734,15 +769,18 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/classes/$id'
     | '/_authenticated/admin/classes/new'
     | '/_authenticated/admin/members/$id'
+    | '/api/internal/messages/sweep'
     | '/api/internal/notifications/lifecycle-sweep'
     | '/api/internal/notifications/official-whatsapp-run'
     | '/api/internal/notifications/openwa-claim'
     | '/api/internal/notifications/openwa-report'
     | '/api/internal/notifications/openwa-run'
     | '/api/internal/subscriptions/hyp-sync'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/whatsapp'
     | '/_authenticated/admin/classes/'
     | '/_authenticated/admin/members/'
+    | '/api/internal/messages/media/$mediaId'
     | '/api/public/payments/hyp/return'
     | '/api/public/webhooks/payments/$provider'
   fileRoutesById: FileRoutesById
@@ -760,13 +798,16 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
+  ApiInternalMessagesSweepRoute: typeof ApiInternalMessagesSweepRoute
   ApiInternalNotificationsLifecycleSweepRoute: typeof ApiInternalNotificationsLifecycleSweepRoute
   ApiInternalNotificationsOfficialWhatsappRunRoute: typeof ApiInternalNotificationsOfficialWhatsappRunRoute
   ApiInternalNotificationsOpenwaClaimRoute: typeof ApiInternalNotificationsOpenwaClaimRoute
   ApiInternalNotificationsOpenwaReportRoute: typeof ApiInternalNotificationsOpenwaReportRoute
   ApiInternalNotificationsOpenwaRunRoute: typeof ApiInternalNotificationsOpenwaRunRoute
   ApiInternalSubscriptionsHypSyncRoute: typeof ApiInternalSubscriptionsHypSyncRoute
+  ApiPublicWebhooksResendRoute: typeof ApiPublicWebhooksResendRoute
   ApiPublicWebhooksWhatsappRoute: typeof ApiPublicWebhooksWhatsappRoute
+  ApiInternalMessagesMediaMediaIdRoute: typeof ApiInternalMessagesMediaMediaIdRoute
   ApiPublicPaymentsHypReturnRoute: typeof ApiPublicPaymentsHypReturnRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
 }
@@ -1102,6 +1143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/resend': {
+      id: '/api/public/webhooks/resend'
+      path: '/api/public/webhooks/resend'
+      fullPath: '/api/public/webhooks/resend'
+      preLoaderRoute: typeof ApiPublicWebhooksResendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/subscriptions/hyp-sync': {
       id: '/api/internal/subscriptions/hyp-sync'
       path: '/api/internal/subscriptions/hyp-sync'
@@ -1144,6 +1192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInternalNotificationsLifecycleSweepRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/messages/sweep': {
+      id: '/api/internal/messages/sweep'
+      path: '/api/internal/messages/sweep'
+      fullPath: '/api/internal/messages/sweep'
+      preLoaderRoute: typeof ApiInternalMessagesSweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/members/$id': {
       id: '/_authenticated/admin/members/$id'
       path: '/members/$id'
@@ -1177,6 +1232,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/payments/hyp/return'
       fullPath: '/api/public/payments/hyp/return'
       preLoaderRoute: typeof ApiPublicPaymentsHypReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/messages/media/$mediaId': {
+      id: '/api/internal/messages/media/$mediaId'
+      path: '/api/internal/messages/media/$mediaId'
+      fullPath: '/api/internal/messages/media/$mediaId'
+      preLoaderRoute: typeof ApiInternalMessagesMediaMediaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1315,6 +1377,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
+  ApiInternalMessagesSweepRoute: ApiInternalMessagesSweepRoute,
   ApiInternalNotificationsLifecycleSweepRoute:
     ApiInternalNotificationsLifecycleSweepRoute,
   ApiInternalNotificationsOfficialWhatsappRunRoute:
@@ -1326,7 +1389,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalNotificationsOpenwaRunRoute:
     ApiInternalNotificationsOpenwaRunRoute,
   ApiInternalSubscriptionsHypSyncRoute: ApiInternalSubscriptionsHypSyncRoute,
+  ApiPublicWebhooksResendRoute: ApiPublicWebhooksResendRoute,
   ApiPublicWebhooksWhatsappRoute: ApiPublicWebhooksWhatsappRoute,
+  ApiInternalMessagesMediaMediaIdRoute: ApiInternalMessagesMediaMediaIdRoute,
   ApiPublicPaymentsHypReturnRoute: ApiPublicPaymentsHypReturnRoute,
   ApiPublicWebhooksPaymentsProviderRoute:
     ApiPublicWebhooksPaymentsProviderRoute,

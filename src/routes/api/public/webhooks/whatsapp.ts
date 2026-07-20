@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  recordOfficialWhatsappStatuses,
-  verifyMetaSignature,
-} from "@/lib/officialWhatsappWebhook.server";
+import { ingestOfficialWhatsappWebhook } from "@/lib/officialWhatsappWebhook.server";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -34,25 +31,16 @@ export const Route = createFileRoute("/api/public/webhooks/whatsapp")({
         return new Response("Forbidden", { status: 403 });
       },
       POST: async ({ request }) => {
+        const contentLength = Number(request.headers.get("content-length") ?? 0);
+        if (Number.isFinite(contentLength) && contentLength > 1_048_576) {
+          return jsonResponse({ ok: false, reason: "webhook_body_too_large" }, 413);
+        }
         const rawBody = await request.text();
-        const appSecret = process.env.WHATSAPP_APP_SECRET?.trim();
-
-        if (
-          appSecret &&
-          !verifyMetaSignature(rawBody, request.headers.get("x-hub-signature-256"), appSecret)
-        ) {
-          return jsonResponse({ ok: false, reason: "invalid_signature" }, 401);
-        }
-
-        let payload: unknown;
-        try {
-          payload = rawBody.trim() ? JSON.parse(rawBody) : {};
-        } catch {
-          return jsonResponse({ ok: false, reason: "invalid_json_body" }, 400);
-        }
-
-        const result = await recordOfficialWhatsappStatuses(payload);
-        return jsonResponse({ ok: true, ...result });
+        const result = await ingestOfficialWhatsappWebhook({
+          rawBody,
+          signature: request.headers.get("x-hub-signature-256"),
+        });
+        return jsonResponse(result, result.status);
       },
     },
   },

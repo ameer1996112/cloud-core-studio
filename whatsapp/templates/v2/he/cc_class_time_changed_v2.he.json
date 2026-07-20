@@ -1,0 +1,21 @@
+{
+  "name": "cc_class_time_changed_v2",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "{{1}}, שעת השיעור עודכנה:\n\n{{2}}\n{{3}} · {{4}}\n\nאם השעה החדשה לא מסתדרת לך, כתבי לי.\nירין",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "19:00"
+          ]
+        ]
+      }
+    }
+  ]
+}

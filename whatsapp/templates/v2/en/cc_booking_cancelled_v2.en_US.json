@@ -1,0 +1,21 @@
+{
+  "name": "cc_booking_cancelled_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, your cancellation is confirmed.\n\n{{2}}\n{{3}} · {{4}}\n\nIf a credit is due, it has been returned to your account.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "18:00"
+          ]
+        ]
+      }
+    }
+  ]
+}

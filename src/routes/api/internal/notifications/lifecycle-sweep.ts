@@ -18,6 +18,11 @@ export const Route = createFileRoute("/api/internal/notifications/lifecycle-swee
       POST: async ({ request }) => {
         const unauthorized = requireNotificationAutomationAuth(request);
         if (unauthorized) return unauthorized;
+        if (
+          process.env.LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED?.trim().toLowerCase() !== "true"
+        ) {
+          return jsonResponse({ ok: false, reason: "legacy_member_delivery_disabled" }, 409);
+        }
 
         let body: unknown;
         try {

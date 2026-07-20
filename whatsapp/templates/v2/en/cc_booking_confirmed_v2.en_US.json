@@ -1,0 +1,22 @@
+{
+  "name": "cc_booking_confirmed_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, your spot is saved 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}\n\nSee you at Cloud & Core",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "18:00",
+            "ירין"
+          ]
+        ]
+      }
+    }
+  ]
+}

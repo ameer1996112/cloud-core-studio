@@ -36,6 +36,8 @@ type NotificationCenterData = {
     packageReminders: boolean;
     marketing: boolean;
     sound: boolean;
+    whatsappEnabled: boolean;
+    emailEnabled: boolean;
   };
   hasActiveDevice: boolean;
   unreadCount: number;
@@ -61,6 +63,8 @@ const COPY: Record<Lang, Record<string, string>> = {
     packageReminders: "Credits, packages, and payment reminders",
     marketing: "Offers and studio news",
     sound: "Sound for important reminders",
+    whatsappEnabled: "WhatsApp transactional updates",
+    emailEnabled: "Email transactional updates",
     preferencesSaved: "Notification choices saved.",
     unavailable: "Open the Cloud & Core iPhone app to enable phone notifications.",
   },
@@ -81,6 +85,8 @@ const COPY: Record<Lang, Record<string, string>> = {
     packageReminders: "קרדיטים, חבילות ותשלומים",
     marketing: "הטבות וחדשות מהסטודיו",
     sound: "צליל לתזכורות חשובות",
+    whatsappEnabled: "עדכונים תפעוליים ב-WhatsApp",
+    emailEnabled: "עדכונים תפעוליים באימייל",
     preferencesSaved: "בחירת ההתראות נשמרה.",
     unavailable: "יש לפתוח את אפליקציית Cloud & Core ב-iPhone כדי להפעיל התראות.",
   },
@@ -101,6 +107,8 @@ const COPY: Record<Lang, Record<string, string>> = {
     packageReminders: "الأرصدة والباقات والمدفوعات",
     marketing: "العروض وأخبار الاستوديو",
     sound: "صوت للتذكيرات المهمة",
+    whatsappEnabled: "تحديثات المعاملات عبر WhatsApp",
+    emailEnabled: "تحديثات المعاملات عبر البريد الإلكتروني",
     preferencesSaved: "تم حفظ اختيارات الإشعارات.",
     unavailable: "افتحي تطبيق Cloud & Core على iPhone لتفعيل إشعارات الهاتف.",
   },
@@ -350,6 +358,8 @@ export function MemberNotificationCenter({
                     "packageReminders",
                     "marketing",
                     "sound",
+                    "whatsappEnabled",
+                    "emailEnabled",
                   ] as PreferenceKey[]
                 ).map((key) => (
                   <label

@@ -1,0 +1,19 @@
+{
+  "name": "cc_payment_pending_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "{{1}}، ما زال دفع {{2}} بانتظار الإكمال. يمكنك المتابعة من التطبيق، ونحن هنا للمساعدة.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "cc_waitlist_spot_available_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, a spot opened for you 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nComplete the booking in the app by {{5}}.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "18:00",
+            "17:15"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "cc_waitlist_spot_available_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "{{1}}، أصبح مكان متاحاً لك 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nيمكنك إكمال الحجز عبر التطبيق حتى {{5}}.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "18:00",
+            "17:15"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "cc_payment_confirmed_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, payment confirmed ✨\n\n{{2}} · {{3}}\n\nYour package has been updated. Thank you for choosing Cloud & Core.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי",
+            "₪350"
+          ]
+        ]
+      }
+    }
+  ]
+}

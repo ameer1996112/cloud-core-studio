@@ -1,0 +1,19 @@
+{
+  "name": "cc_payment_failed_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "{{1}}، لم نتمكن من إكمال دفع {{2}}. يمكنك المحاولة مجدداً في التطبيق أو الكتابة لنا للمساعدة.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי"
+          ]
+        ]
+      }
+    }
+  ]
+}

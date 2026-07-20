@@ -24,6 +24,9 @@ export const Route = createFileRoute("/api/internal/notifications/openwa-claim")
       POST: async ({ request }) => {
         const unauthorized = requireOpenwaAutomationAuth(request);
         if (unauthorized) return unauthorized;
+        if (process.env.OPENWA_LEGACY_DELIVERY_ENABLED?.trim().toLowerCase() !== "true") {
+          return jsonResponse({ ok: false, reason: "openwa_legacy_delivery_disabled" }, 410);
+        }
 
         let body: unknown;
         try {

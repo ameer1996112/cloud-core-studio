@@ -1,110 +1,27 @@
-# WhatsApp Template Automation
+# WhatsApp template automation
 
-This workflow creates Hebrew utility message templates for Cloud & Core Studio through the official Meta Graph API. It never sends WhatsApp messages and it never deletes or recreates existing templates.
+The authoritative v2 workflow is documented in [Unified Messaging System](./unified-messaging-system.md#template-catalog-and-provisioning).
 
-## Required Meta Access
+The template catalog is immutable application code in `src/lib/messageTemplateCatalog.ts`. Generated Meta JSON lives under `whatsapp/templates/v2/{he,ar,en}`. The legacy v1 JSON remains untouched for rollback/history.
 
-The access token must belong to a Meta app/user or system user with access to the Cloud & Core WhatsApp Business Account.
+Safe commands:
 
-Required permissions:
-
-- `whatsapp_business_management`
-- `whatsapp_business_messaging`
-
-The token must be able to call:
-
-- `GET /{WABA_ID}/message_templates`
-- `POST /{WABA_ID}/message_templates`
-
-## Local Env
-
-Create a local file named `.env.whatsapp.local`. This file is ignored by git.
-
-```bash
-META_GRAPH_API_VERSION="v25.0"
-META_WABA_ID="your_whatsapp_business_account_id"
-META_ACCESS_TOKEN="your_meta_access_token"
-```
-
-Do not commit this file or paste the token in logs.
-
-## Dry Run
-
-Dry-run validates all local JSON templates. It does not create templates.
-
-```bash
-bun run whatsapp:templates:dry-run
-```
-
-If the env vars are present, the script also fetches existing templates and reports which ones would be skipped. If env vars are missing, dry-run still validates local files without calling Meta.
-
-To validate or create only one template:
-
-```bash
-bun run whatsapp:templates:dry-run -- --only=booking_confirmed_he
-bun run whatsapp:templates:create -- --only=booking_confirmed_he
-```
-
-## Create Templates
-
-```bash
-bun run whatsapp:templates:create
-```
-
-Behavior:
-
-- reads all JSON files under `whatsapp/templates/he`
-- validates Hebrew `UTILITY` template structure
-- fetches existing templates from Meta
-- skips existing templates by default and prints their current status
-- creates only missing templates
-- prints created, skipped, failed, and pending approval results
-
-The script does not recreate or delete templates.
-
-Before creating templates, the script prints the selected WABA and its phone status. If Meta returns `WABA not allowed to manage templates`, check that `META_WABA_ID` points at the Cloud API WABA, not an old on-premise WhatsApp account. A phone showing `platform=ON_PREMISE`, `status=DISCONNECTED`, or `code=NOT_VERIFIED` is not ready for production Cloud API template management.
-
-If Meta returns `Permissions error` while status checks still work, regenerate the access token from the app/business that owns the selected WABA and make sure the user or system user has full WhatsApp management access for that WABA.
-
-## Check Status
-
-```bash
+```sh
+bun run whatsapp:templates:check
+bun run whatsapp:templates:plan
 bun run whatsapp:templates:status
 ```
 
-The status script prints:
+`check` is local-only. `plan` is read/reconcile only and uses paginated Meta lookup when credentials exist. Neither command sends customer messages, deletes templates, or creates templates.
 
-- template name
-- language
-- category
-- status
-- rejection reason when Meta returns one
+Creation is intentionally difficult and requires separate authorization:
 
-It exits non-zero only for API/auth failures. Pending templates are not treated as failures.
+```sh
+bun run whatsapp:templates:apply
+```
 
-## Rejections
+Apply refuses any WABA other than `1009561255148806`, requires a Supabase-backed WABA lease, creates sequentially, and reconciles after errors. Exact content is skipped. Same-name content drift requires a new version; it is never updated or deleted in place.
 
-If Meta rejects a template:
+Required Meta access is `whatsapp_business_management` and `whatsapp_business_messaging` through a permanent system-user token attached to the correct business/WABA. Never commit `.env.whatsapp.local` or copy tokens into logs.
 
-1. Run `bun run whatsapp:templates:status`.
-2. Read the rejection reason.
-3. Edit the matching JSON file.
-4. Create a new template name if Meta does not allow editing the rejected one.
-5. Rerun dry-run before creating again.
-
-Do not switch rejected utility templates to marketing templates unless the business use case really changed.
-
-## Template Names And App Events
-
-Approved V1 templates map to the app notification event scope:
-
-| App event                  | WhatsApp template             |
-| -------------------------- | ----------------------------- |
-| `booking_confirmed`        | `booking_confirmed_he`        |
-| `payment_confirmed`        | `payment_confirmed_he`        |
-| `class_reminder_24h`       | `class_reminder_24h_he`       |
-| `waitlist_spot_available`  | `waitlist_spot_available_he`  |
-| `class_cancelled_by_admin` | `class_cancelled_by_admin_he` |
-| `class_time_changed`       | `class_time_changed_he`       |
-
-Keep this mapping stable when wiring official WhatsApp sending into `notification_logs`.
+The 35 existing Meta rows—including nine duplicate pairs and the incorrectly categorized Hebrew waitlist row—are intentionally out of scope and must remain untouched.

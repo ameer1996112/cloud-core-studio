@@ -23,8 +23,11 @@
     "openwa:logs": "docker logs -f openwa-api",
     "openwa:stop": "OPENWA_MEM_LIMIT=${OPENWA_MEM_LIMIT:-2147483648} docker compose -f .openwa/OpenWA/docker-compose.dev.yml --env-file .openwa/OpenWA/.env down",
     "notifications:cron": "node scripts/member-notification-cron.mjs",
-    "whatsapp:templates:dry-run": "node scripts/create-whatsapp-templates.mjs --dry-run",
-    "whatsapp:templates:create": "node scripts/create-whatsapp-templates.mjs",
+    "test": "bun test tests/unit tests/integration",
+    "whatsapp:templates:generate": "bun scripts/generate-whatsapp-templates.ts --write",
+    "whatsapp:templates:check": "bun scripts/generate-whatsapp-templates.ts --check",
+    "whatsapp:templates:plan": "bun scripts/create-whatsapp-templates.mjs --plan",
+    "whatsapp:templates:apply": "bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806",
     "whatsapp:templates:status": "node scripts/check-whatsapp-template-status.mjs"
   },
   "dependencies": {
