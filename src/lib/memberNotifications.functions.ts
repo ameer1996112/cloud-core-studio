@@ -7,16 +7,10 @@ import {
   memberPushTokenSchema,
   safeNotificationActionUrl,
 } from "@/lib/memberNotificationsApi";
-
-const DEFAULT_PREFERENCES = {
-  lessonReminders: true,
-  scheduleUpdates: true,
-  packageReminders: true,
-  marketing: false,
-  sound: true,
-  whatsappEnabled: false,
-  emailEnabled: false,
-};
+import {
+  mapMemberNotificationPreferences,
+  readMemberNotificationPreferences,
+} from "@/lib/memberNotificationPreferences";
 
 async function requireMember(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -25,19 +19,6 @@ async function requireMember(userId: string) {
   if (error) throw error;
   if (data?.role !== "member") throw new Error("Member access required");
   return db;
-}
-
-function mapPreferences(row: any) {
-  if (!row) return DEFAULT_PREFERENCES;
-  return {
-    lessonReminders: Boolean(row.lesson_reminders),
-    scheduleUpdates: Boolean(row.schedule_updates),
-    packageReminders: Boolean(row.package_reminders),
-    marketing: Boolean(row.marketing),
-    sound: Boolean(row.sound),
-    whatsappEnabled: Boolean(row.whatsapp_enabled),
-    emailEnabled: Boolean(row.email_enabled),
-  };
 }
 
 function canonicalReadsEnabled() {
@@ -59,13 +40,7 @@ export const getMemberNotificationCenter = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const db = await requireMember(context.userId);
     const [preferencesResult, devicesResult, notificationsResult] = await Promise.all([
-      db
-        .from("member_notification_preferences")
-        .select(
-          "lesson_reminders,schedule_updates,package_reminders,marketing,sound,whatsapp_enabled,email_enabled",
-        )
-        .eq("member_id", context.userId)
-        .maybeSingle(),
+      readMemberNotificationPreferences(db, context.userId),
       db.from("member_push_tokens").select("id").eq("member_id", context.userId).eq("active", true),
       canonicalReadsEnabled()
         ? db
@@ -128,7 +103,7 @@ export const getMemberNotificationCenter = createServerFn({ method: "GET" })
         }));
 
     return {
-      preferences: mapPreferences(preferencesResult.data),
+      preferences: mapMemberNotificationPreferences(preferencesResult.data),
       hasActiveDevice: Boolean(devicesResult.data?.length),
       unreadCount: notifications.filter((row: any) => !row.read_at).length,
       notifications,
