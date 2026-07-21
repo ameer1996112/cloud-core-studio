@@ -35,6 +35,10 @@ import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import {
+  applyPremiumJourneyTestVariables,
+  requiresPromotionalFrequencyReservation,
+} from "@/lib/premiumJourneyLab";
+import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
 } from "@/lib/memberNotificationPreferences";
@@ -109,6 +113,7 @@ function relation<T>(value: T | T[] | null | undefined): T | null {
 
 function notificationDeepLink(outbox: OutboxRow) {
   const payload = outbox.payload ?? {};
+  if (outbox.event_type === "member_welcome") return "/member/schedule";
   if (typeof payload.receipt_id === "string") return `/receipts/${payload.receipt_id}`;
   if (typeof payload.class_id === "string") return `/member/schedule?class=${payload.class_id}`;
   if (outbox.event_type.startsWith("booking_")) return "/member/bookings";
@@ -279,11 +284,13 @@ async function loadOutboxContext(outbox: OutboxRow) {
     variables.receipt_url = authenticatedReceiptUrl(receiptResult.data.id);
   }
 
+  Object.assign(variables, applyPremiumJourneyTestVariables(variables, payload));
+
   if (outbox.event_type === "payment_pending_reminder" && !variables.package_name) {
     variables.package_name = "Cloud & Core";
   }
   if (outbox.event_type === "class_open_spots") {
-    const spotsAvailable = Number(payload.spots_available);
+    const spotsAvailable = Number(variables.spots_available ?? payload.spots_available);
     if (!Number.isFinite(spotsAvailable) || spotsAvailable < 1) {
       throw new Error("invalid_open_class_spots_available");
     }
@@ -387,6 +394,18 @@ async function materializeOutbox(
         ),
       );
     }
+    if (outbox.payload.staff_test === true && Array.isArray(outbox.payload.test_channels)) {
+      const supported = new Set<MessageChannel>(definition.channels);
+      enabledChannels = new Set<MessageChannel>(
+        outbox.payload.test_channels.filter(
+          (channel: unknown): channel is MessageChannel =>
+            typeof channel === "string" &&
+            ["in_app", "push", "email", "whatsapp"].includes(channel) &&
+            supported.has(channel as MessageChannel),
+        ),
+      );
+      if (!enabledChannels.size) throw new Error("staff_test_channel_required");
+    }
     const context = await loadOutboxContext(outbox);
     const plan = materializeMessagePlan({
       outboxId: outbox.id,
@@ -403,8 +422,14 @@ async function materializeOutbox(
       now,
       expiresAt: outbox.expires_at ? new Date(outbox.expires_at) : null,
     });
+    if (outbox.payload.staff_test === true && outbox.payload.staff_test_force_now === true) {
+      for (const delivery of plan.deliveries) delivery.scheduledFor = now.toISOString();
+    }
     if (
-      definition.frequencyPolicy === "promotional" &&
+      requiresPromotionalFrequencyReservation(
+        outbox.event_type,
+        outbox.payload.staff_test === true,
+      ) &&
       plan.deliveries.some((delivery) => delivery.status === "queued")
     ) {
       const reservation = await db.rpc("reserve_promotional_notification", {

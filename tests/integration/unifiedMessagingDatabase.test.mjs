@@ -41,6 +41,10 @@ describe("unified messaging database integration", () => {
         path.join(root, "supabase/migrations/20260721170000_premium_notification_foundation.sql"),
         "utf8",
       );
+      const premiumAllEventsMigration = await readFile(
+        path.join(root, "supabase/migrations/20260721190000_premium_notification_all_events.sql"),
+        "utf8",
+      );
       const rollbackReconciliation = await readFile(
         path.join(root, "docs/sql/unified-messaging-rollback-reconciliation.sql"),
         "utf8",
@@ -49,6 +53,7 @@ describe("unified messaging database integration", () => {
       await psql(migration);
       await psql(openClassAlertMigration);
       await psql(premiumNotificationMigration);
+      await psql(premiumAllEventsMigration);
 
       expect(
         await psql("SELECT count(*) FROM public.messages WHERE legacy_source_table IS NOT NULL;"),
@@ -73,6 +78,11 @@ describe("unified messaging database integration", () => {
           "SELECT has_table_privilege('authenticated','public.member_push_tokens','SELECT')::text;",
         ),
       ).toBe("false");
+      expect(
+        await psql(
+          "SELECT count(*)::text FROM public.notification_event_rollouts WHERE enabled AND copy_reviewed AND allowlist_only;",
+        ),
+      ).toBe("43");
 
       await psql(`
         INSERT INTO public.member_push_tokens (
@@ -209,6 +219,11 @@ describe("unified messaging database integration", () => {
       ).toBe("false");
       await psql(`
         UPDATE public.studio_settings SET messaging_canonical_writes_enabled=true WHERE id=1;
+        INSERT INTO public.members (id, name, preferred_language, phone, email)
+        VALUES (
+          '00000000-0000-0000-0000-000000000002', 'Welcome Member', 'en',
+          '+972500000002', 'welcome@example.com'
+        );
         INSERT INTO public.classes (
           id, title, starts_at, cancellation_window_hours, instructor_id, status
         ) VALUES (
@@ -226,11 +241,19 @@ describe("unified messaging database integration", () => {
       `);
       expect(
         await psql(
-          "SELECT event_type || ':' || count(*) FROM public.message_outbox WHERE aggregate_id='20000000-0000-0000-0000-000000000002' GROUP BY event_type;",
+          "SELECT event_type || ':' || count(*) FROM public.message_outbox WHERE aggregate_id='20000000-0000-0000-0000-000000000002' AND event_type='class_cancelled_by_admin' GROUP BY event_type;",
         ),
       ).toBe("class_cancelled_by_admin:1");
+      expect(
+        await psql(
+          "SELECT event_type || ':' || deduplication_key FROM public.message_outbox WHERE member_id='00000000-0000-0000-0000-000000000002' AND event_type='member_welcome';",
+        ),
+      ).toBe("member_welcome:member:welcome:00000000-0000-0000-0000-000000000002:v2");
 
       await psql(`
+        UPDATE public.notification_event_rollouts
+        SET enabled=false
+        WHERE event_type='booking_checked_in';
         INSERT INTO public.classes (
           id, title, starts_at, cancellation_window_hours, instructor_id, status
         ) VALUES (
@@ -398,7 +421,7 @@ describe("unified messaging database integration", () => {
           );
         `),
       ).toBe(
-        "payment_confirmed,payment_failed,payment_request_received,receipt_issued,waitlist_joined,waitlist_spot_available",
+        "payment_confirmed,payment_failed,payment_request_received,receipt_issued,subscription_renewal_failed,waitlist_joined,waitlist_spot_available",
       );
       expect(
         await psql(

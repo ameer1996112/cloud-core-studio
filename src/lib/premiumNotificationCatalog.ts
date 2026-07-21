@@ -30,10 +30,6 @@ const current = (
   definition: Omit<NotificationEventDefinition, "copyStatus" | "defaultEnabled">,
 ): NotificationEventDefinition => ({ ...definition, copyStatus: "approved", defaultEnabled: true });
 
-const future = (
-  definition: Omit<NotificationEventDefinition, "copyStatus" | "defaultEnabled">,
-): NotificationEventDefinition => ({ ...definition, copyStatus: "draft", defaultEnabled: false });
-
 const transactional = {
   fallbackChannels: [] as const,
   preference: null,
@@ -75,6 +71,14 @@ const promotional = {
 };
 
 export const NOTIFICATION_EVENT_CATALOG = {
+  member_welcome: current({
+    ...transactional,
+    family: "membership",
+    tier: "transactional",
+    channels: ["in_app", "push", "email"],
+    immediate: true,
+    actions: ["view_schedule"],
+  }),
   booking_confirmed: current({
     ...transactional,
     family: "booking",
@@ -91,7 +95,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_schedule"],
   }),
-  booking_changed: future({
+  booking_changed: current({
     ...transactional,
     family: "booking",
     tier: "transactional",
@@ -99,7 +103,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_class"],
   }),
-  booking_checked_in: future({
+  booking_checked_in: current({
     ...transactional,
     family: "booking",
     tier: "inbox_only",
@@ -109,7 +113,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     sound: "none",
     actions: ["view_class"],
   }),
-  booking_no_show_followup: future({
+  booking_no_show_followup: current({
     ...promotional,
     family: "booking",
     preference: "marketing",
@@ -129,14 +133,14 @@ export const NOTIFICATION_EVENT_CATALOG = {
     preference: "classOperations",
     actions: ["view_class", "contact_studio"],
   }),
-  class_location_changed: future({
+  class_location_changed: current({
     ...critical,
     family: "class",
     channels: ["in_app", "push", "whatsapp", "email"],
     preference: "classOperations",
     actions: ["view_class", "contact_studio"],
   }),
-  class_instructor_changed: future({
+  class_instructor_changed: current({
     ...transactional,
     family: "class",
     tier: "transactional",
@@ -159,7 +163,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     preference: "classReminders",
     actions: ["view_class"],
   }),
-  class_published: future({
+  class_published: current({
     ...promotional,
     family: "class",
     preference: "scheduleOpenings",
@@ -172,7 +176,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     actions: ["book_now", "view_schedule", "choose_package"],
     zeroCreditAction: "choose_package",
   }),
-  class_recommendation: future({
+  class_recommendation: current({
     ...promotional,
     family: "class",
     preference: "recommendations",
@@ -186,7 +190,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     preference: "waitlist",
     actions: ["view_class"],
   }),
-  waitlist_position_changed: future({
+  waitlist_position_changed: current({
     ...transactional,
     family: "waitlist",
     tier: "inbox_only",
@@ -204,7 +208,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     preference: "waitlist",
     actions: ["claim_spot", "view_class"],
   }),
-  waitlist_accepted: future({
+  waitlist_accepted: current({
     ...transactional,
     family: "waitlist",
     tier: "transactional",
@@ -213,7 +217,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_class"],
   }),
-  waitlist_offer_expired: future({
+  waitlist_offer_expired: current({
     ...transactional,
     family: "waitlist",
     tier: "inbox_only",
@@ -224,7 +228,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     sound: "none",
     actions: ["view_schedule"],
   }),
-  waitlist_removed: future({
+  waitlist_removed: current({
     ...transactional,
     family: "waitlist",
     tier: "transactional",
@@ -265,7 +269,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     preference: "payments",
     actions: ["fix_payment", "contact_studio"],
   }),
-  payment_refunded: future({
+  payment_refunded: current({
     ...transactional,
     family: "payment",
     tier: "transactional",
@@ -285,7 +289,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     sound: "none",
     actions: ["view_receipt"],
   }),
-  membership_activated: future({
+  membership_activated: current({
     ...transactional,
     family: "membership",
     tier: "transactional",
@@ -294,28 +298,28 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_membership", "view_schedule"],
   }),
-  credits_low: future({
+  credits_low: current({
     ...reminder,
     family: "membership",
     channels: ["in_app", "push"],
     preference: "membership",
     actions: ["choose_package"],
   }),
-  credits_depleted: future({
+  credits_depleted: current({
     ...reminder,
     family: "membership",
     channels: ["in_app", "push"],
     preference: "membership",
     actions: ["choose_package"],
   }),
-  membership_expiring: future({
+  membership_expiring: current({
     ...reminder,
     family: "membership",
     channels: ["in_app", "push", "email"],
     preference: "membership",
     actions: ["view_membership", "choose_package"],
   }),
-  membership_expired: future({
+  membership_expired: current({
     ...transactional,
     family: "membership",
     tier: "transactional",
@@ -324,14 +328,14 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["choose_package"],
   }),
-  subscription_renewal_upcoming: future({
+  subscription_renewal_upcoming: current({
     ...reminder,
     family: "membership",
     channels: ["in_app", "push", "email"],
     preference: "membership",
     actions: ["view_membership"],
   }),
-  subscription_renewal_succeeded: future({
+  subscription_renewal_succeeded: current({
     ...transactional,
     family: "membership",
     tier: "transactional",
@@ -340,14 +344,14 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_membership"],
   }),
-  subscription_renewal_failed: future({
+  subscription_renewal_failed: current({
     ...critical,
     family: "membership",
     channels: ["in_app", "push", "whatsapp", "email"],
     preference: "membership",
     actions: ["fix_payment", "contact_studio"],
   }),
-  subscription_paused: future({
+  subscription_paused: current({
     ...transactional,
     family: "membership",
     tier: "transactional",
@@ -356,7 +360,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_membership", "contact_studio"],
   }),
-  subscription_cancelled: future({
+  subscription_cancelled: current({
     ...transactional,
     family: "membership",
     tier: "transactional",
@@ -373,14 +377,14 @@ export const NOTIFICATION_EVENT_CATALOG = {
     actions: ["reply"],
     memberVisible: false,
   }),
-  staff_reply: future({
+  staff_reply: current({
     ...critical,
     family: "communication",
     channels: ["in_app", "push"],
     preference: "staffReplies",
     actions: ["reply"],
   }),
-  human_handoff_resolved: future({
+  human_handoff_resolved: current({
     ...transactional,
     family: "communication",
     tier: "inbox_only",
@@ -392,20 +396,20 @@ export const NOTIFICATION_EVENT_CATALOG = {
     actions: [],
     memberVisible: true,
   }),
-  urgent_studio_announcement: future({
+  urgent_studio_announcement: current({
     ...critical,
     family: "communication",
     channels: ["in_app", "push", "whatsapp", "email"],
     preference: "classOperations",
     actions: ["contact_studio"],
   }),
-  trial_followup: future({
+  trial_followup: current({
     ...promotional,
     family: "engagement",
     preference: "marketing",
     actions: ["view_schedule", "contact_studio"],
   }),
-  retention_reminder: future({
+  retention_reminder: current({
     ...promotional,
     family: "engagement",
     preference: "marketing",

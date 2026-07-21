@@ -1,0 +1,19 @@
+{
+  "name": "cc_subscription_renewal_failed_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "مرحباً {{1}}، تعذر تجديد {{2}}. راجعي وسيلة الدفع في التطبيق، ونحن هنا للمساعدة.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי"
+          ]
+        ]
+      }
+    }
+  ]
+}

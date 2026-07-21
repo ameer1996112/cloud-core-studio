@@ -63,8 +63,19 @@ Automatic `class_open_spots` alerts use the member's **New schedules and lesson 
 require an active APNs token and remaining credits, and are limited to one alert per day and three per
 week. They do not use WhatsApp.
 
+## Private all-events verification
+
+Admin Messages includes a Journey Lab for the complete 43-event catalog. It can queue only one
+channel for one active member already matched by global allowlist mode. A staff test never consumes
+the member's real promotional frequency budget, but it still respects preferences, channel flags,
+verified APNs installation scope, and provider configuration. Use the
+[manual test runbook](./premium-messaging-manual-test-runbook.md) for the exact domain action and
+expected result for every event. Keep every rollout row Allowlist only until the evidence is clean.
+
 ## Official WhatsApp
 
 Use the generated v2 definitions under `whatsapp/templates/v2`. Do not enable WhatsApp for a locale
 until its deployment row is approved. Missing locales are suppressed; the worker never substitutes
 another language.
+The checked-in v2 catalog currently has 16 semantic templates and 48 locale variants. Run local
+generation check and remote plan before any separately authorized apply.

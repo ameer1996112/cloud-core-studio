@@ -73,10 +73,11 @@ function recipientFor(
   channel: MessageChannel,
   memberId: string,
   recipients: { whatsapp?: string | null; email?: string | null },
+  memberVisible: boolean,
 ) {
   if (channel === "whatsapp") return recipients.whatsapp?.trim() || null;
   if (channel === "email") return recipients.email?.trim() || null;
-  return memberId;
+  return memberVisible ? memberId : "admin_group";
 }
 
 export function materializeMessagePlan(input: {
@@ -106,7 +107,12 @@ export function materializeMessagePlan(input: {
   const routineScheduledFor = definition.immediate ? input.now : nextRoutineWindow(input.now);
 
   const deliveries = channelsForEvent(input.eventType).map((channel) => {
-    const recipientAddress = recipientFor(channel, input.memberId, input.recipients);
+    const recipientAddress = recipientFor(
+      channel,
+      input.memberId,
+      input.recipients,
+      definition.memberVisible,
+    );
     let status: DeliveryStatus = "queued";
     let failureClass: DeliveryFailureClass | null = null;
     let errorCode: string | null = null;

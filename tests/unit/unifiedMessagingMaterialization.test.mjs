@@ -78,6 +78,28 @@ describe("outbox message materialization", () => {
     });
   });
 
+  test("routes admin-only handoff alerts to the admin device group", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "human_handoff",
+      deduplicationKey: "handoff:staff-test",
+      preferences: { ...base.preferences, staffReplies: true },
+      variables: { member_name: "נועה" },
+      approvedWhatsappVariants: new Set(["cc_human_handoff_v2:he"]),
+    });
+
+    expect(result.message).toMatchObject({ memberVisible: false, audience: "admin" });
+    expect(result.deliveries.find((delivery) => delivery.channel === "in_app")).toMatchObject({
+      recipientAddress: "admin_group",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      recipientAddress: "admin_group",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      recipientAddress: "972501234567",
+    });
+  });
+
   test("materializes open-class alerts as consented inbox and APNs deliveries only", () => {
     const eligible = materializeMessagePlan({
       ...base,

@@ -58,13 +58,27 @@ describe("unified messaging template catalog", () => {
     expect(getMetaTemplateVariant("class_open_spots", "he")).toBeUndefined();
   });
 
-  test("has localized in-app and push copy for every premium event while draft events stay out of Meta", () => {
+  test("has localized content for every premium event and templates for every WhatsApp route", () => {
     expect(Object.keys(MESSAGE_CONTENT_CATALOG).sort()).toEqual(
       Object.keys(NOTIFICATION_EVENT_CATALOG).sort(),
     );
-    const approvedMetaEvents = new Set(META_TEMPLATE_CATALOG.map((variant) => variant.eventType));
     for (const [eventType, definition] of Object.entries(NOTIFICATION_EVENT_CATALOG)) {
-      if (definition.copyStatus === "draft") expect(approvedMetaEvents.has(eventType)).toBe(false);
+      if (!definition.channels.includes("whatsapp")) continue;
+      const variants = META_TEMPLATE_CATALOG.filter((variant) => variant.eventType === eventType);
+      expect(variants.map((variant) => variant.language).sort()).toEqual(["ar", "en", "he"]);
     }
+  });
+
+  test("renders the one-time member welcome in every supported language", () => {
+    expect(renderMessageContent("member_welcome", "he", { member_name: "נועה" })).toMatchObject({
+      subject: "ברוכה הבאה ל-Cloud & Core",
+      metaTemplate: null,
+    });
+    expect(renderMessageContent("member_welcome", "ar", { member_name: "نور" }).subject).toBe(
+      "أهلاً بك في Cloud & Core",
+    );
+    expect(renderMessageContent("member_welcome", "en", { member_name: "Noa" }).subject).toBe(
+      "Welcome to Cloud & Core",
+    );
   });
 });

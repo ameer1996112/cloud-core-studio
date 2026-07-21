@@ -20,6 +20,16 @@ type LocalizedTemplate = {
 };
 
 const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
+  member_welcome: {
+    name: null,
+    parameters: ["member_name"],
+    examples: ["נועה"],
+    bodies: {
+      he: "היי {{1}}, ברוכה הבאה ל-Cloud & Core 🤍 המקום שלך להתחזק, לנשום ולהתקדם בקצב שלך. לוח השיעורים כבר מחכה לך באפליקציה.",
+      ar: "مرحباً {{1}}، أهلاً بك في Cloud & Core 🤍 مساحتك للقوة والتنفس والتقدم بوتيرتك. جدول الحصص بانتظارك في التطبيق.",
+      en: "Hi {{1}}, welcome to Cloud & Core 🤍 Your space to grow stronger, breathe, and move at your pace. The class schedule is ready in the app.",
+    },
+  },
   booking_confirmed: {
     name: "cc_booking_confirmed_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time", "instructor_name"],
@@ -201,7 +211,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   class_location_changed: {
-    name: null,
+    name: "cc_class_location_changed_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time", "location_name"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00", "סטודיו ראשי"],
     bodies: {
@@ -251,7 +261,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   waitlist_accepted: {
-    name: null,
+    name: "cc_waitlist_accepted_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00"],
     bodies: {
@@ -351,7 +361,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   subscription_renewal_succeeded: {
-    name: null,
+    name: "cc_subscription_renewal_succeeded_v2",
     parameters: ["member_name", "package_name", "amount"],
     examples: ["נועה", "מינוי חודשי", "₪350"],
     bodies: {
@@ -361,7 +371,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   subscription_renewal_failed: {
-    name: null,
+    name: "cc_subscription_renewal_failed_v2",
     parameters: ["member_name", "package_name"],
     examples: ["נועה", "מינוי חודשי"],
     bodies: {
@@ -411,7 +421,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   urgent_studio_announcement: {
-    name: null,
+    name: "cc_urgent_studio_announcement_v2",
     parameters: ["member_name"],
     examples: ["נועה"],
     bodies: {
@@ -468,6 +478,7 @@ export const META_TEMPLATE_CATALOG: readonly MetaTemplateVariant[] = Object.entr
 
 const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>>> = {
   he: {
+    member_welcome: "ברוכה הבאה ל-Cloud & Core",
     booking_confirmed: "ההזמנה אושרה",
     booking_cancelled: "ההזמנה בוטלה",
     booking_changed: "פרטי ההזמנה עודכנו",
@@ -512,6 +523,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     retention_reminder: "התגעגענו אלייך",
   },
   ar: {
+    member_welcome: "أهلاً بك في Cloud & Core",
     booking_confirmed: "تم تأكيد الحجز",
     booking_cancelled: "تم إلغاء الحجز",
     booking_changed: "تم تحديث تفاصيل الحجز",
@@ -556,6 +568,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     retention_reminder: "اشتقنا لرؤيتك",
   },
   en: {
+    member_welcome: "Welcome to Cloud & Core",
     booking_confirmed: "Booking confirmed",
     booking_cancelled: "Booking cancelled",
     booking_changed: "Booking details updated",

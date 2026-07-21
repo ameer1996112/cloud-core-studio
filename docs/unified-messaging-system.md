@@ -72,12 +72,18 @@ Studio one-time/manual/HYP payments and `member_subscriptions` are covered by ou
 
 ### Premium event policy and iPhone experience
 
-`src/lib/premiumNotificationCatalog.ts` is the channel-neutral policy for 42 booking, class,
+`src/lib/premiumNotificationCatalog.ts` is the channel-neutral policy for all 43 booking, class,
 waitlist, payment, membership, communication, and engagement events. It defines tier, channels,
 fallbacks, preference, quiet-hours behavior, APNs interruption level, sound, and branded actions.
-The previously active Phase 1/2 events remain approved. Every additional event ships with Hebrew,
-Arabic, and English in-app/push copy but remains `draft`, disabled in code, and disabled in
-`notification_event_rollouts`. Draft events are deliberately absent from the Meta template catalog.
+Every event has reviewed Hebrew, Arabic, and English copy and is enabled at the database event gate
+by `20260721190000_premium_notification_all_events.sql`, but every row remains
+`allowlist_only=true`. Disabled runtime mode therefore sends nothing, allowlist mode reaches only a
+verified staff contact, and live mode still suppresses the row until an administrator explicitly
+promotes it to Live eligible.
+
+New active members receive one deduplicated `member_welcome` message through in-app, APNs, and
+email. Welcome deliberately has no WhatsApp delivery. Existing members are not backfilled with a
+welcome during migration.
 
 The iPhone registration stores a random installation ID, token hash, app/build version, locale,
 environment, capability set, permission sync time, logout time, and stale deadline. Raw APNs tokens
@@ -99,7 +105,12 @@ events may be enabled.
 The member notification center has All/Unread views, family filters, Today/This Week/Earlier
 grouping, pin-aware ordering, archive and expired-action handling, critical treatment, safe deep
 links, and granular practice/account/communication controls. The admin Messages page exposes Inbox,
-Deliveries (including per-device success counts), Event matrix, Templates, and Activity views.
+Deliveries (including per-device success counts), Event matrix, Templates, Activity, and a Journey
+Lab. Journey Lab previews all 43 localized journeys and queues exactly one channel for one active,
+allowlisted staff member. Tests expire after 24 hours, bypass quiet hours and customer promotional
+frequency reservations, and still honor consent, provider gates, APNs staff-device verification,
+contact data, and WhatsApp locale approval. The complete manual procedure is in
+[Premium messaging manual test runbook](./premium-messaging-manual-test-runbook.md).
 
 ### Open-class iPhone alerts
 
@@ -161,7 +172,7 @@ Every inbound reply creates or reopens a handoff, extends the service window, al
 
 ## Template catalog and provisioning
 
-`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, and Meta name. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog.
+`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, and Meta name. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog. The current catalog contains 16 semantic Meta names and 48 checked-in locale variants (16 each for `he`, `ar`, and `en_US`).
 
 Local commands:
 
@@ -218,10 +229,10 @@ of an environment mismatch. Legacy tokens with no trustworthy environment are de
 expand migration and become eligible again only after the native build re-registers them with its
 declared `VITE_APNS_ENV`.
 
-The Admin Messages event matrix is the per-event and per-channel kill-switch. Existing approved
-events begin enabled at the database rollout layer; every new event begins disabled,
-allowlist-only, and copy-review blocked. Enabling a new event requires reviewed localized copy and
-always retains in-app delivery. Promotional events reserve an atomic one-per-24-hours,
+The Admin Messages event matrix is the per-event and per-channel kill-switch. All 43 reviewed
+events begin enabled but allowlist-only at the database rollout layer. Moving an event to Live
+eligible is a separate explicit action and always retains in-app delivery. Promotional customer
+events reserve an atomic one-per-24-hours,
 three-per-seven-days budget before materialization.
 The matrix exposes an explicit `Allowlist only` / `Live eligible` control. Global allowlist mode
 still restricts every channel, including in-app, regardless of the per-event setting. A draft event
@@ -279,7 +290,8 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 1. Back up the database and capture all legacy/canonical counts.
 2. Apply `20260720140000_unified_messaging_phases_1_2.sql`,
    `20260721143000_open_class_alert_reservations.sql`, and
-   `20260721170000_premium_notification_foundation.sql` with immediate dispatch, the scheduler, and
+   `20260721170000_premium_notification_foundation.sql`, then
+   `20260721190000_premium_notification_all_events.sql` with immediate dispatch, the scheduler, and
    channels disabled.
 3. Validate backfill counts, preference backfill, waitlist expiry, RLS, and worker functions.
 4. Deploy the schema-compatible app with delivery mode disabled, canonical reads false, scheduler false, and all external channel flags false.
@@ -297,13 +309,13 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 11. Validate exactly one delivery per channel and per iPhone installation, badge/action/deep-link
     behavior, engagement receipts, status callbacks, reply handoff, service-window rules, retries,
     expiry, and replay suppression. Then enable the post-commit kick and verify scheduler recovery.
-12. Keep new event rollouts dark. For each event, review all three languages, set
-    `copy_reviewed=true`, and enable only the intended allowlist channels. Observe seven clean days.
+12. Keep all event rows Allowlist only. Use Journey Lab and the domain-trigger matrix in the manual
+    test runbook to validate every locale/channel, then observe seven clean days.
 13. Monitor dead letters, ambiguous WhatsApp outcomes, per-device failures, webhook duplicates, and
     template configuration failures.
-14. Promote only the validated event rows from `Allowlist only` to `Live eligible`, set
+14. Promote only individually validated event rows from `Allowlist only` to `Live eligible`, set
     `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806`, and switch to `live` only after every gate
-    passes. Expand event rollouts independently; never bulk-enable draft events.
+    passes. Expand event rollouts independently; never bulk-promote the catalog.
 
 ## Known risks
 

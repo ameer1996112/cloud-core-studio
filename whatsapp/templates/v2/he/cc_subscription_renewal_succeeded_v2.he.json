@@ -1,0 +1,20 @@
+{
+  "name": "cc_subscription_renewal_succeeded_v2",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "היי {{1}}, {{2}} חודש בהצלחה בסך {{3}}. המנוי שלך ממשיך כרגיל ✨",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי",
+            "₪350"
+          ]
+        ]
+      }
+    }
+  ]
+}

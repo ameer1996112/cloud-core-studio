@@ -1,0 +1,18 @@
+{
+  "name": "cc_urgent_studio_announcement_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "مرحباً {{1}}، لديك تحديث مهم من الاستوديو. افتحي التطبيق للاطلاع على التفاصيل.",
+      "example": {
+        "body_text": [
+          [
+            "נועה"
+          ]
+        ]
+      }
+    }
+  ]
+}

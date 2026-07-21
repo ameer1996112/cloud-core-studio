@@ -1,0 +1,19 @@
+{
+  "name": "cc_subscription_renewal_failed_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, we could not renew {{2}}. Review your payment method in the app, or contact us for help.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "מינוי חודשי"
+          ]
+        ]
+      }
+    }
+  ]
+}

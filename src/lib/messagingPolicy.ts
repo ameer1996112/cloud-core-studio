@@ -43,7 +43,12 @@ export function channelsForEvent(eventType: MessageEventType): MessageChannel[] 
 }
 
 export function isEssentialMessageEvent(eventType: MessageEventType) {
-  return ["class_cancelled_by_admin", "class_time_changed", "payment_failed"].includes(eventType);
+  return [
+    "member_welcome",
+    "class_cancelled_by_admin",
+    "class_time_changed",
+    "payment_failed",
+  ].includes(eventType);
 }
 
 export function shouldCancelReminderForDomainState(
