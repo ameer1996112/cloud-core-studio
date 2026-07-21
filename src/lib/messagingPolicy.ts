@@ -168,6 +168,21 @@ function flag(value: string | undefined) {
   return value?.trim().toLowerCase() === "true";
 }
 
+function canonicalRecipientKey(value: string) {
+  const normalized = value.trim().toLowerCase();
+  const compactPhone = normalized.replace(/[\s().-]/g, "");
+  if (!/^\+?\d+$/.test(compactPhone)) return normalized;
+
+  const digits = compactPhone.replace(/\D/g, "");
+  // Member records historically store Israeli mobile numbers in local 05xxxxxxxx form,
+  // while the production allowlist and Meta use E.164. Canonicalize only that
+  // unambiguous studio-local form; do not guess a country for arbitrary numbers.
+  if (/^05\d{8}$/.test(digits)) return `+972${digits.slice(1)}`;
+  if (/^9725\d{8}$/.test(digits)) return `+${digits}`;
+  if (compactPhone.startsWith("+") && /^[1-9]\d{7,14}$/.test(digits)) return `+${digits}`;
+  return normalized;
+}
+
 export function resolveMessagingRuntime(env: Record<string, string | undefined>): MessagingRuntime {
   const requestedMode = env.MESSAGING_DELIVERY_MODE?.trim() || "disabled";
   if (!(["disabled", "allowlist", "live"] as const).includes(requestedMode as never)) {
@@ -175,10 +190,7 @@ export function resolveMessagingRuntime(env: Record<string, string | undefined>)
   }
   const mode = requestedMode as MessagingRuntime["mode"];
   const allowlist = new Set(
-    (env.MESSAGING_RECIPIENT_ALLOWLIST ?? "")
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean),
+    (env.MESSAGING_RECIPIENT_ALLOWLIST ?? "").split(",").map(canonicalRecipientKey).filter(Boolean),
   );
   if (mode === "allowlist" && allowlist.size === 0) throw new Error("messaging_allowlist_required");
   if (mode === "live" && env.MESSAGING_LIVE_WABA_CONFIRMATION !== "1009561255148806") {
@@ -204,7 +216,7 @@ export function runtimeAllowsRecipient(
   if (runtime.mode === "disabled") return false;
   if (!runtime.channels[channel]) return false;
   if (runtime.mode === "live") return true;
-  return Boolean(recipient && runtime.recipientAllowlist.has(recipient.trim().toLowerCase()));
+  return Boolean(recipient && runtime.recipientAllowlist.has(canonicalRecipientKey(recipient)));
 }
 
 export function runtimeAllowsRolloutRecipient(
@@ -214,7 +226,7 @@ export function runtimeAllowsRolloutRecipient(
   if (runtime.mode === "disabled") return false;
   if (runtime.mode === "live") return true;
   return recipients.some((recipient) =>
-    recipient ? runtime.recipientAllowlist.has(recipient.trim().toLowerCase()) : false,
+    recipient ? runtime.recipientAllowlist.has(canonicalRecipientKey(recipient)) : false,
   );
 }
 

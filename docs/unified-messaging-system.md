@@ -53,6 +53,10 @@ Legacy writes are mirrored into the canonical model. Historical legacy rows are 
 
 All dispatcher and channel gates default to disabled. Transactional domain triggers also remain off until `studio_settings.messaging_canonical_writes_enabled` is explicitly set to `true`; while it is false, legacy rows may mirror into canonical storage for validation but the v2 dispatcher never claims legacy deliveries. `MESSAGING_RECIPIENT_ALLOWLIST` is mandatory in allowlist mode. Live mode additionally requires `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806`.
 
+Allowlist comparison is case-insensitive for email/UUID values and canonicalizes the studio's
+historical Israeli mobile forms (`05xxxxxxxx`, formatted local values, and `972...`) to E.164 before
+comparison. Provider requests still receive the recipient format selected by the channel adapter.
+
 The database release gate is `MESSAGING_TEST_DATABASE_URL=... bun run test:integration`. Unlike the
 general local suite, this command fails closed when the ephemeral PostgreSQL/Supabase database is
 missing, so CI cannot report migration, concurrency, or RLS coverage as passing without executing it.

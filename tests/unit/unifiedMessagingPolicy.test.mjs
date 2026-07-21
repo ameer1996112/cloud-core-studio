@@ -124,6 +124,10 @@ describe("unified messaging delivery policy", () => {
       MESSAGING_PUSH_ENABLED: "true",
     });
     expect(runtimeAllowsRecipient(runtime, "whatsapp", "+972546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "0546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "054-646-4437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "972546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "0546464438")).toBe(false);
     expect(runtimeAllowsRecipient(runtime, "push", "755538ce-8c17-4cf2-a732-8534bea23258")).toBe(
       true,
     );
@@ -139,6 +143,7 @@ describe("unified messaging delivery policy", () => {
     });
 
     expect(runtimeAllowsRolloutRecipient(runtime, [null, "+972500000001"])).toBe(true);
+    expect(runtimeAllowsRolloutRecipient(runtime, ["0500000001"])).toBe(true);
     expect(runtimeAllowsRolloutRecipient(runtime, ["staff@example.com"])).toBe(true);
     expect(runtimeAllowsRolloutRecipient(runtime, ["member@example.com", "+972500000002"])).toBe(
       false,
