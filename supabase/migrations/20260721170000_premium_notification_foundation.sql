@@ -128,7 +128,7 @@ ALTER TABLE public.admin_push_tokens
   ADD COLUMN IF NOT EXISTS apns_environment text;
 
 UPDATE public.member_push_tokens
-SET token_hash = COALESCE(token_hash, encode(digest(token, 'sha256'), 'hex')),
+SET token_hash = COALESCE(token_hash, encode(sha256(convert_to(token, 'UTF8')), 'hex')),
     last_permission_synced_at = COALESCE(last_permission_synced_at, updated_at, now()),
     stale_after = COALESCE(stale_after, last_seen_at + interval '90 days');
 

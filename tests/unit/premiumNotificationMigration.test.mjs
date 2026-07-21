@@ -60,6 +60,7 @@ describe("premium notification foundation migration", () => {
     for (const fragment of [
       "register_member_push_installation",
       "pg_advisory_xact_lock",
+      "encode(sha256(convert_to(token, 'UTF8')), 'hex')",
       "notification_frequency_reservations",
       "reserve_promotional_notification",
       "DELETE FROM public.message_delivery_targets",
@@ -68,6 +69,7 @@ describe("premium notification foundation migration", () => {
     ]) {
       expect(sql).toContain(fragment);
     }
+    expect(sql).not.toContain("digest(token, 'sha256')");
   });
 
   test("supports verified member and admin staff devices without mixing APNs environments", async () => {
