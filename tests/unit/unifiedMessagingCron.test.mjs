@@ -56,6 +56,16 @@ test("production image includes the unified messaging cron runner", async () => 
   );
 });
 
+test("production build explicitly embeds the APNs environment used by device registration", async () => {
+  const [dockerfile, cloudbuild] = await Promise.all([
+    readFile("Dockerfile", "utf8"),
+    readFile("cloudbuild.yaml", "utf8"),
+  ]);
+  expect(dockerfile).toContain("ARG VITE_APNS_ENV");
+  expect(dockerfile).toContain("ENV VITE_APNS_ENV=$VITE_APNS_ENV");
+  expect(cloudbuild).toContain("VITE_APNS_ENV=${_VITE_APNS_ENV}");
+});
+
 test("Cloud Run setup reuses the production automation-token secret", async () => {
   const setup = await readFile("scripts/configure-unified-messaging-cloud-run.sh", "utf8");
   expect(setup).toContain(
