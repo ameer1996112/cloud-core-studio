@@ -325,3 +325,6 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 - Ambiguous WhatsApp network outcomes require staff reconciliation to avoid duplicates.
 - Backfill and compatibility mirroring increase storage until the retention job runs.
 - Existing uncommitted kids/payment work is outside this change and must remain preserved during integration.
+- This branch has no child/guardian persistence or routing relationship. Guardian-facing child
+  journeys cannot be enabled safely until the retained kids module provides an authoritative
+  guardian recipient; the dispatcher never infers that relationship from names or contact data.

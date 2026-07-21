@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
-  applyPremiumJourneyTestVariables,
   buildPremiumJourneyPreviews,
   buildPremiumJourneyTestOutbox,
-  requiresPromotionalFrequencyReservation,
 } from "../../src/lib/premiumJourneyLab.ts";
+import { applyStaffTestVariables } from "../../src/lib/messagingStaffTest.ts";
 
 describe("premium notification Journey Lab", () => {
   test("renders every event in every supported language without unresolved variables", () => {
@@ -62,14 +61,8 @@ describe("premium notification Journey Lab", () => {
     ).toThrow("event_channel_not_supported");
   });
 
-  test("keeps staff previews out of the real member promotional frequency budget", () => {
-    expect(requiresPromotionalFrequencyReservation("retention_reminder", true)).toBe(false);
-    expect(requiresPromotionalFrequencyReservation("retention_reminder", false)).toBe(true);
-    expect(requiresPromotionalFrequencyReservation("booking_confirmed", false)).toBe(false);
-  });
-
   test("makes validated staff variables available before event-specific materialization", () => {
-    const variables = applyPremiumJourneyTestVariables(
+    const variables = applyStaffTestVariables(
       { member_name: "Real member" },
       {
         staff_test: true,

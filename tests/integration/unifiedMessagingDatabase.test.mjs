@@ -224,6 +224,15 @@ describe("unified messaging database integration", () => {
           '00000000-0000-0000-0000-000000000002', 'Welcome Member', 'en',
           '+972500000002', 'welcome@example.com'
         );
+        INSERT INTO public.members (id, name, preferred_language, phone, email, status)
+        VALUES (
+          '00000000-0000-0000-0000-000000000003', 'Inactive Member', 'en',
+          '+972500000003', 'inactive@example.com', 'inactive'
+        );
+        INSERT INTO public.members (id, name, preferred_language, phone, status)
+        VALUES (
+          '00000000-0000-0000-0000-000000000004', 'Invalid Phone Member', 'en', '+', 'active'
+        );
         INSERT INTO public.classes (
           id, title, starts_at, cancellation_window_hours, instructor_id, status
         ) VALUES (
@@ -249,6 +258,21 @@ describe("unified messaging database integration", () => {
           "SELECT event_type || ':' || deduplication_key FROM public.message_outbox WHERE member_id='00000000-0000-0000-0000-000000000002' AND event_type='member_welcome';",
         ),
       ).toBe("member_welcome:member:welcome:00000000-0000-0000-0000-000000000002:v2");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE member_id='00000000-0000-0000-0000-000000000003' AND event_type='member_welcome';",
+        ),
+      ).toBe("0");
+      expect(
+        await psql(
+          "SELECT whatsapp_enabled::text || ',' || email_enabled::text || ',' || whatsapp_consent_source || ',' || email_consent_source FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000002';",
+        ),
+      ).toBe("true,true,new_active_member_auto_enable,new_active_member_auto_enable");
+      expect(
+        await psql(
+          "SELECT whatsapp_enabled::text FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000004';",
+        ),
+      ).toBe("false");
 
       await psql(`
         UPDATE public.notification_event_rollouts
@@ -406,8 +430,20 @@ describe("unified messaging database integration", () => {
           '20000000-0000-0000-0000-000000000001',
           '00000000-0000-0000-0000-000000000001', 'waiting'
         );
+        INSERT INTO public.bookings VALUES (
+          '30000000-0000-0000-0000-000000000005',
+          '20000000-0000-0000-0000-000000000001',
+          '00000000-0000-0000-0000-000000000001', 'booked', now()
+        );
         UPDATE public.waitlist_entries SET status='promoted'
           WHERE id='74000000-0000-0000-0000-000000000001';
+        INSERT INTO public.waitlist_entries (id, class_id, member_id, status) VALUES (
+          '74000000-0000-0000-0000-000000000002',
+          '20000000-0000-0000-0000-000000000004',
+          '00000000-0000-0000-0000-000000000002', 'waiting'
+        );
+        UPDATE public.waitlist_entries SET status='promoted'
+          WHERE id='74000000-0000-0000-0000-000000000002';
       `);
       expect(
         await psql(`
@@ -421,13 +457,28 @@ describe("unified messaging database integration", () => {
           );
         `),
       ).toBe(
-        "payment_confirmed,payment_failed,payment_request_received,receipt_issued,subscription_renewal_failed,waitlist_joined,waitlist_spot_available",
+        "payment_confirmed,payment_failed,payment_request_received,receipt_issued,subscription_renewal_failed,waitlist_joined",
       );
       expect(
         await psql(
           "SELECT (offered_at IS NOT NULL AND offer_expires_at > offered_at)::text FROM public.waitlist_entries WHERE id='74000000-0000-0000-0000-000000000001';",
         ),
       ).toBe("true");
+      expect(
+        await psql(
+          "SELECT string_agg(event_type, ',' ORDER BY event_type) FROM public.message_outbox WHERE aggregate_id='30000000-0000-0000-0000-000000000005';",
+        ),
+      ).toBe("waitlist_accepted");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE aggregate_id='74000000-0000-0000-0000-000000000001' AND event_type='waitlist_spot_available';",
+        ),
+      ).toBe("0");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE aggregate_id='74000000-0000-0000-0000-000000000002' AND event_type='waitlist_spot_available';",
+        ),
+      ).toBe("1");
 
       const retention = JSON.parse(
         await psql("SELECT public.redact_and_purge_message_audit(now())::text;"),

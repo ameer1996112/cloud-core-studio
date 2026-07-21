@@ -11,6 +11,7 @@ import {
   resolveMessagingRuntime,
   runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
+  requiresPromotionalFrequencyReservation,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
 
@@ -40,6 +41,7 @@ describe("unified messaging delivery policy", () => {
   test("only essential events bypass a later external opt-out", () => {
     const optedOut = { whatsappEnabled: false, emailEnabled: false };
     expect(deliveryAllowedByConsent("booking_confirmed", "whatsapp", optedOut)).toBe(false);
+    expect(deliveryAllowedByConsent("member_welcome", "email", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("class_cancelled_by_admin", "whatsapp", optedOut)).toBe(true);
     expect(deliveryAllowedByConsent("class_time_changed", "email", optedOut)).toBe(true);
     expect(deliveryAllowedByConsent("payment_failed", "whatsapp", optedOut)).toBe(true);
@@ -54,6 +56,12 @@ describe("unified messaging delivery policy", () => {
         membership: false,
       }),
     ).toBe(true);
+  });
+
+  test("does not charge staff previews against the real member promotional frequency budget", () => {
+    expect(requiresPromotionalFrequencyReservation("retention_reminder", true)).toBe(false);
+    expect(requiresPromotionalFrequencyReservation("retention_reminder", false)).toBe(true);
+    expect(requiresPromotionalFrequencyReservation("booking_confirmed", false)).toBe(false);
   });
 
   test("enforces Jerusalem quiet hours for routine sends", () => {

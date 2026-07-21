@@ -38,6 +38,7 @@ import { listClasses, prepareClassReminderDrafts } from "@/lib/admin.functions";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
+import type { MessageChannel, MessageEventType } from "@/lib/messaging.types";
 import {
   CHANNELS,
   LANGUAGES,
@@ -659,11 +660,11 @@ function NotificationEventRolloutsTab() {
   const events = useQuery({ queryKey: ["notification-event-rollouts"], queryFn: () => listFn() });
   const updateRollout = useMutation({
     mutationFn: (input: {
-      eventType: string;
+      eventType: MessageEventType;
       enabled: boolean;
       copyReviewed: boolean;
       allowlistOnly: boolean;
-      enabledChannels: Array<"in_app" | "push" | "email" | "whatsapp">;
+      enabledChannels: MessageChannel[];
     }) => updateFn({ data: input }),
     onSuccess: () => {
       toast.success("Notification rollout updated");
@@ -699,9 +700,8 @@ function NotificationEventRolloutsTab() {
               const enabled = event.rollout?.enabled ?? event.defaultEnabled;
               const reviewed = event.rollout?.copy_reviewed ?? event.copyStatus === "approved";
               const allowlistOnly = event.rollout?.allowlist_only ?? !event.defaultEnabled;
-              const enabledChannels = (event.rollout?.enabled_channels ?? event.channels) as Array<
-                "in_app" | "push" | "email" | "whatsapp"
-              >;
+              const enabledChannels = (event.rollout?.enabled_channels ??
+                event.channels) as MessageChannel[];
               const save = (
                 changes: Partial<{
                   enabled: boolean;
@@ -730,7 +730,7 @@ function NotificationEventRolloutsTab() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {event.channels.map((channel: "in_app" | "push" | "email" | "whatsapp") => (
+                    {event.channels.map((channel: MessageChannel) => (
                       <label
                         key={channel}
                         className="flex items-center gap-1.5 rounded-full bg-white/60 px-2.5 py-1 text-[10px] uppercase text-slate"
@@ -815,7 +815,7 @@ function PremiumJourneyLabTab() {
     queryFn: () => searchFn({ data: { q: memberSearch } }),
   });
   const enqueue = useMutation({
-    mutationFn: (input: { eventType: string; channel: "in_app" | "push" | "email" | "whatsapp" }) =>
+    mutationFn: (input: { eventType: MessageEventType; channel: MessageChannel }) =>
       enqueueFn({
         data: {
           memberId: selectedMember.id,
@@ -935,7 +935,7 @@ function PremiumJourneyLabTab() {
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate">{preview.body}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {preview.channels.map((channel: "in_app" | "push" | "email" | "whatsapp") => (
+                  {preview.channels.map((channel: MessageChannel) => (
                     <button
                       key={channel}
                       type="button"

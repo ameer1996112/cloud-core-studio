@@ -1,9 +1,15 @@
 # Premium messaging manual test runbook
 
-This runbook validates all 43 canonical messaging events without opening delivery to customers.
+This runbook validates all 43 current studio and recurring-subscription canonical messaging events
+without opening delivery to customers.
 Use one active staff member whose member UUID, E.164 phone number, and email address are in
 `MESSAGING_RECIPIENT_ALLOWLIST`. Keep `MESSAGING_DELIVERY_MODE=allowlist` and keep every row in
 `notification_event_rollouts` set to `allowlist_only=true` throughout testing.
+
+The retained/uncommitted kids module is not part of this branch and exposes no authoritative
+child-to-guardian identity relationship. Guardian delivery must remain disabled until that domain
+model lands and can be integrated without guessing a recipient or exposing child details. Kids
+payment events remain explicitly out of scope.
 
 ## What a successful delivery looks like
 
@@ -92,14 +98,14 @@ waitlist rows, and payments owned by the allowlisted staff member.
 
 ### Waitlist
 
-| Event                       | Domain action to trigger automatically                                      | Expected channels and result                                                                                           |
-| --------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `waitlist_joined`           | Join a full class waitlist.                                                 | In-app and push.                                                                                                       |
-| `waitlist_position_changed` | Remove or promote a person ahead of the staff member.                       | Quiet in-app update with the new numeric position.                                                                     |
-| `waitlist_spot_available`   | Promote the staff waitlist row and give it `offered_at`/`offer_expires_at`. | Immediate Time Sensitive in-app, push, WhatsApp; all retries expire at the claim deadline.                             |
-| `waitlist_accepted`         | Convert the promoted offer into a booked booking.                           | Immediate in-app, push, WhatsApp, email; a booking confirmation may also be present as a distinct transactional event. |
-| `waitlist_offer_expired`    | Change the promoted row to `expired` or `no_response`.                      | One quiet in-app update; claim action is no longer active.                                                             |
-| `waitlist_removed`          | Change the waitlist row to `left`, `cancelled`, or `removed`.               | Immediate in-app and push.                                                                                             |
+| Event                       | Domain action to trigger automatically                                      | Expected channels and result                                                               |
+| --------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `waitlist_joined`           | Join a full class waitlist.                                                 | In-app and push.                                                                           |
+| `waitlist_position_changed` | Remove or promote a person ahead of the staff member.                       | Quiet in-app update with the new numeric position.                                         |
+| `waitlist_spot_available`   | Promote the staff waitlist row and give it `offered_at`/`offer_expires_at`. | Immediate Time Sensitive in-app, push, WhatsApp; all retries expire at the claim deadline. |
+| `waitlist_accepted`         | Convert the promoted offer into a booked booking.                           | Immediate in-app, push, WhatsApp, email; no duplicate `booking_confirmed` event.           |
+| `waitlist_offer_expired`    | Change the promoted row to `expired` or `no_response`.                      | One quiet in-app update; claim action is no longer active.                                 |
+| `waitlist_removed`          | Change the waitlist row to `left`, `cancelled`, or `removed`.               | Immediate in-app and push.                                                                 |
 
 ### Payments and receipts
 

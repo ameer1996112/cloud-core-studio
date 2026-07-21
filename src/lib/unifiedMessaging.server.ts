@@ -18,9 +18,11 @@ import type {
   MessageLanguage,
 } from "@/lib/messaging.types";
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
+import { applyStaffTestVariables } from "@/lib/messagingStaffTest";
 import {
   computeDeliveryRetry,
   isEssentialMessageEvent,
+  requiresPromotionalFrequencyReservation,
   resolveMessagingRuntime,
   runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
@@ -34,10 +36,6 @@ import {
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
-import {
-  applyPremiumJourneyTestVariables,
-  requiresPromotionalFrequencyReservation,
-} from "@/lib/premiumJourneyLab";
 import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
@@ -284,7 +282,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
     variables.receipt_url = authenticatedReceiptUrl(receiptResult.data.id);
   }
 
-  Object.assign(variables, applyPremiumJourneyTestVariables(variables, payload));
+  Object.assign(variables, applyStaffTestVariables(variables, payload));
 
   if (outbox.event_type === "payment_pending_reminder" && !variables.package_name) {
     variables.package_name = "Cloud & Core";

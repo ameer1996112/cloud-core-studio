@@ -43,12 +43,14 @@ export function channelsForEvent(eventType: MessageEventType): MessageChannel[] 
 }
 
 export function isEssentialMessageEvent(eventType: MessageEventType) {
-  return [
-    "member_welcome",
-    "class_cancelled_by_admin",
-    "class_time_changed",
-    "payment_failed",
-  ].includes(eventType);
+  return ["class_cancelled_by_admin", "class_time_changed", "payment_failed"].includes(eventType);
+}
+
+export function requiresPromotionalFrequencyReservation(
+  eventType: MessageEventType,
+  staffTest: boolean,
+) {
+  return !staffTest && notificationDefinition(eventType).frequencyPolicy === "promotional";
 }
 
 export function shouldCancelReminderForDomainState(

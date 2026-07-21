@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
+import { MESSAGE_CHANNELS, type MessageEventType } from "@/lib/messaging.types";
 import {
   conversationReplyMode,
   resolveMessagingRuntime,
@@ -14,6 +15,10 @@ import {
   buildPremiumJourneyTestOutbox,
 } from "@/lib/premiumJourneyLab";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
+
+const messageEventSchema = z.enum(
+  Object.keys(NOTIFICATION_EVENT_CATALOG) as [MessageEventType, ...MessageEventType[]],
+);
 
 async function requireAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -105,14 +110,14 @@ export const enqueuePremiumJourneyTest = createServerFn({ method: "POST" })
     z
       .object({
         memberId: z.string().uuid(),
-        eventType: z.string().min(1),
-        channel: z.enum(["in_app", "push", "email", "whatsapp"]),
+        eventType: messageEventSchema,
+        channel: z.enum(MESSAGE_CHANNELS),
       })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
     const db = await requireAdmin(context.userId);
-    const eventType = data.eventType as keyof typeof NOTIFICATION_EVENT_CATALOG;
+    const eventType = data.eventType;
     const definition = NOTIFICATION_EVENT_CATALOG[eventType];
     if (!definition) throw new Error("unknown_notification_event");
     const runtime = resolveMessagingRuntime(process.env);
@@ -160,19 +165,17 @@ export const updateNotificationEventRollout = createServerFn({ method: "POST" })
   .inputValidator((data) =>
     z
       .object({
-        eventType: z.string().min(1),
+        eventType: messageEventSchema,
         enabled: z.boolean(),
         copyReviewed: z.boolean(),
         allowlistOnly: z.boolean(),
-        enabledChannels: z.array(z.enum(["in_app", "push", "email", "whatsapp"])).min(1),
+        enabledChannels: z.array(z.enum(MESSAGE_CHANNELS)).min(1),
       })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
     const db = await requireAdmin(context.userId);
-    const definition =
-      NOTIFICATION_EVENT_CATALOG[data.eventType as keyof typeof NOTIFICATION_EVENT_CATALOG];
-    if (!definition) throw new Error("unknown_notification_event");
+    const definition = NOTIFICATION_EVENT_CATALOG[data.eventType];
     if (!data.enabledChannels.includes("in_app")) throw new Error("in_app_channel_required");
     if (
       data.enabledChannels.some(
