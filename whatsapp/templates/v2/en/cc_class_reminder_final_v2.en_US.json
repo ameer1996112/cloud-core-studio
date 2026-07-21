@@ -5,7 +5,7 @@
   "components": [
     {
       "type": "BODY",
-      "text": "Hi {{1}}, see you very soon 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}",
+      "text": "Hi {{1}}, see you very soon 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}\n\nSee you at Cloud & Core.",
       "example": {
         "body_text": [
           [

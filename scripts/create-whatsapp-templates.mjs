@@ -49,7 +49,15 @@ async function metaRequest(url, init = {}) {
   if (!response.ok) {
     const error = payload?.error;
     throw new Error(
-      [error?.message ?? `Meta API error ${response.status}`, error?.code && `code=${error.code}`]
+      [
+        error?.message ?? `Meta API error ${response.status}`,
+        error?.code && `code=${error.code}`,
+        error?.error_subcode && `subcode=${error.error_subcode}`,
+        error?.error_user_title && `title=${error.error_user_title}`,
+        error?.error_user_msg && `user_msg=${error.error_user_msg}`,
+        error?.error_data?.details && `details=${error.error_data.details}`,
+        error?.fbtrace_id && `fbtrace_id=${error.fbtrace_id}`,
+      ]
         .filter(Boolean)
         .join(" | "),
     );

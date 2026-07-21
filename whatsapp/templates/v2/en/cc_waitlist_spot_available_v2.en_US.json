@@ -5,7 +5,7 @@
   "components": [
     {
       "type": "BODY",
-      "text": "Hi {{1}}, a spot opened for you 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nComplete the booking in the app by {{5}}.",
+      "text": "Hi {{1}}, a spot opened for you 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nComplete the booking in the app by {{5}}. The spot is held until then.",
       "example": {
         "body_text": [
           [

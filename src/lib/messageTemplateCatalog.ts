@@ -25,8 +25,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time", "instructor_name"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "18:00", "ירין"],
     bodies: {
-      he: "{{1}}, איזה כיף שהמקום שלך נשמר 🤍\n\n{{2}}\n{{3}} · {{4}}\nעם {{5}}\n\nמחכה לראות אותך בסטודיו\nירין",
-      ar: "{{1}}، تم حفظ مكانك 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}\n\nننتظرك في Cloud & Core",
+      he: "היי {{1}}, איזה כיף שהמקום שלך נשמר 🤍\n\n{{2}}\n{{3}} · {{4}}\nעם {{5}}\n\nמחכה לראות אותך בסטודיו\nירין",
+      ar: "مرحباً {{1}}، تم حفظ مكانك 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}\n\nننتظرك في Cloud & Core",
       en: "Hi {{1}}, your spot is saved 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}\n\nSee you at Cloud & Core",
     },
   },
@@ -35,8 +35,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "18:00"],
     bodies: {
-      he: "{{1}}, הביטול נקלט.\n\n{{2}}\n{{3}} · {{4}}\n\nאם מגיע לך זיכוי, הוא עודכן בחשבון שלך.\nירין",
-      ar: "{{1}}، تم تأكيد الإلغاء.\n\n{{2}}\n{{3}} · {{4}}\n\nإذا كان لك رصيد مستحق فقد تم تحديثه في حسابك.",
+      he: "היי {{1}}, הביטול נקלט.\n\n{{2}}\n{{3}} · {{4}}\n\nאם מגיע לך זיכוי, הוא עודכן בחשבון שלך.\nירין",
+      ar: "مرحباً {{1}}، تم تأكيد الإلغاء.\n\n{{2}}\n{{3}} · {{4}}\n\nإذا كان لك رصيد مستحق فقد تم تحديثه في حسابك.",
       en: "Hi {{1}}, your cancellation is confirmed.\n\n{{2}}\n{{3}} · {{4}}\n\nIf a credit is due, it has been returned to your account.",
     },
   },
@@ -45,8 +45,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "18:00"],
     bodies: {
-      he: "{{1}}, עדכון מהסטודיו:\n\n{{2}}\n{{3}} · {{4}}\n\nהשיעור לא יתקיים הפעם. אם תרצי, אעזור לך למצוא שיעור חלופי.\nירין",
-      ar: "{{1}}، تحديث من الاستوديو:\n\n{{2}}\n{{3}} · {{4}}\n\nلن تقام الحصة. يسعدنا مساعدتك في اختيار موعد بديل.",
+      he: "היי {{1}}, עדכון מהסטודיו:\n\n{{2}}\n{{3}} · {{4}}\n\nהשיעור לא יתקיים הפעם. אם תרצי, אעזור לך למצוא שיעור חלופי.\nירין",
+      ar: "مرحباً {{1}}، تحديث من الاستوديو:\n\n{{2}}\n{{3}} · {{4}}\n\nلن تقام الحصة. يسعدنا مساعدتك في اختيار موعد بديل.",
       en: "Hi {{1}}, a studio update:\n\n{{2}}\n{{3}} · {{4}}\n\nThis class will not take place. We can help you find an alternative.",
     },
   },
@@ -55,8 +55,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00"],
     bodies: {
-      he: "{{1}}, שעת השיעור עודכנה:\n\n{{2}}\n{{3}} · {{4}}\n\nאם השעה החדשה לא מסתדרת לך, כתבי לי.\nירין",
-      ar: "{{1}}، تم تحديث موعد الحصة:\n\n{{2}}\n{{3}} · {{4}}\n\nإذا لم يناسبك الموعد الجديد، اكتبي لنا.",
+      he: "היי {{1}}, שעת השיעור עודכנה:\n\n{{2}}\n{{3}} · {{4}}\n\nאם השעה החדשה לא מסתדרת לך, כתבי לי.\nירין",
+      ar: "مرحباً {{1}}، تم تحديث موعد الحصة:\n\n{{2}}\n{{3}} · {{4}}\n\nإذا لم يناسبك الموعد الجديد، اكتبي لنا.",
       en: "Hi {{1}}, your class time was updated:\n\n{{2}}\n{{3}} · {{4}}\n\nIf the new time does not work, reply and we will help.",
     },
   },
@@ -65,8 +65,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "18:00"],
     bodies: {
-      he: "{{1}}, תזכורת קטנה לקראת השיעור 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nאם משהו השתנה, עדיין אפשר לעדכן דרך האפליקציה.\nירין",
-      ar: "{{1}}، تذكير لطيف قبل الحصة 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nإذا تغير شيء، يمكنك تحديث الحجز من التطبيق.",
+      he: "היי {{1}}, תזכורת קטנה לקראת השיעור 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nאם משהו השתנה, עדיין אפשר לעדכן דרך האפליקציה.\nירין",
+      ar: "مرحباً {{1}}، تذكير لطيف قبل الحصة 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nإذا تغير شيء، يمكنك تحديث الحجز من التطبيق.",
       en: "Hi {{1}}, a gentle class reminder 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nIf plans changed, you can still update your booking in the app.",
     },
   },
@@ -75,9 +75,9 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time", "instructor_name"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "18:00", "ירין"],
     bodies: {
-      he: "{{1}}, נתראה ממש בקרוב 🤍\n\n{{2}}\n{{3}} · {{4}}\nעם {{5}}\n\nירין",
-      ar: "{{1}}، نراك قريباً 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}",
-      en: "Hi {{1}}, see you very soon 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}",
+      he: "היי {{1}}, נתראה ממש בקרוב 🤍\n\nהנה הפרטים של השיעור שלך:\n{{2}}\nבתאריך {{3}} בשעה {{4}}\nעם {{5}}\n\nזוהי תזכורת אחרונה לקראת השיעור. כל הפרטים זמינים גם באפליקציה.\nירין",
+      ar: "مرحباً {{1}}، نراك قريباً 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}\n\nننتظرك في Cloud & Core.",
+      en: "Hi {{1}}, see you very soon 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}\n\nSee you at Cloud & Core.",
     },
   },
   waitlist_spot_available: {
@@ -85,9 +85,9 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "class_name", "class_date", "class_time", "offer_expires_at"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "18:00", "17:15"],
     bodies: {
-      he: "{{1}}, התפנה לך מקום 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nאפשר להשלים את ההזמנה עד {{5}} דרך האפליקציה.\nירין",
-      ar: "{{1}}، أصبح مكان متاحاً لك 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nيمكنك إكمال الحجز عبر التطبيق حتى {{5}}.",
-      en: "Hi {{1}}, a spot opened for you 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nComplete the booking in the app by {{5}}.",
+      he: "היי {{1}}, התפנה לך מקום 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nאפשר להשלים את ההזמנה עד {{5}} דרך האפליקציה.\nירין",
+      ar: "مرحباً {{1}}، أصبح مكان متاحاً لك 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nيمكنك إكمال الحجز عبر التطبيق حتى {{5}}. المكان محفوظ لك حتى ذلك الوقت.",
+      en: "Hi {{1}}, a spot opened for you 🤍\n\n{{2}}\n{{3}} · {{4}}\n\nComplete the booking in the app by {{5}}. The spot is held until then.",
     },
   },
   waitlist_joined: {
@@ -115,8 +115,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "package_name"],
     examples: ["נועה", "מינוי חודשי"],
     bodies: {
-      he: "{{1}}, התשלום עבור {{2}} עדיין מחכה להשלמה. אפשר לחזור לאפליקציה כשנוח לך. אם משהו לא ברור, אני כאן לעזור.\nירין",
-      ar: "{{1}}، ما زال دفع {{2}} بانتظار الإكمال. يمكنك المتابعة من التطبيق، ونحن هنا للمساعدة.",
+      he: "היי {{1}}, התשלום עבור {{2}} עדיין מחכה להשלמה. אפשר לחזור לאפליקציה כשנוח לך. אם משהו לא ברור, אני כאן לעזור.\nירין",
+      ar: "مرحباً {{1}}، ما زال دفع {{2}} بانتظار الإكمال. يمكنك المتابعة من التطبيق، ونحن هنا للمساعدة.",
       en: "Hi {{1}}, payment for {{2}} is still awaiting completion. You can continue in the app, and we are here to help.",
     },
   },
@@ -125,8 +125,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "package_name", "amount"],
     examples: ["נועה", "מינוי חודשי", "₪350"],
     bodies: {
-      he: "{{1}}, התשלום אושר ✨\n\n{{2}} · {{3}}\n\nהחבילה עודכנה בחשבון שלך. תודה שבחרת ב-Cloud & Core.\nירין",
-      ar: "{{1}}، تم تأكيد الدفع ✨\n\n{{2}} · {{3}}\n\nتم تحديث الباقة في حسابك. شكراً لاختيارك Cloud & Core.",
+      he: "היי {{1}}, התשלום אושר ✨\n\n{{2}} · {{3}}\n\nהחבילה עודכנה בחשבון שלך. תודה שבחרת ב-Cloud & Core.\nירין",
+      ar: "مرحباً {{1}}، تم تأكيد الدفع ✨\n\n{{2}} · {{3}}\n\nتم تحديث الباقة في حسابك. شكراً لاختيارك Cloud & Core.",
       en: "Hi {{1}}, payment confirmed ✨\n\n{{2}} · {{3}}\n\nYour package has been updated. Thank you for choosing Cloud & Core.",
     },
   },
@@ -135,8 +135,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name", "package_name"],
     examples: ["נועה", "מינוי חודשי"],
     bodies: {
-      he: "{{1}}, לא הצלחנו להשלים את התשלום עבור {{2}}. אפשר לנסות שוב באפליקציה או לכתוב לי ואעזור.\nירין",
-      ar: "{{1}}، لم نتمكن من إكمال دفع {{2}}. يمكنك المحاولة مجدداً في التطبيق أو الكتابة لنا للمساعدة.",
+      he: "היי {{1}}, לא הצלחנו להשלים את התשלום עבור {{2}}. אפשר לנסות שוב באפליקציה או לכתוב לי ואעזור.\nירין",
+      ar: "مرحباً {{1}}، لم نتمكن من إكمال دفع {{2}}. يمكنك المحاولة مجدداً في التطبيق أو الكتابة لنا للمساعدة.",
       en: "Hi {{1}}, we could not complete payment for {{2}}. Try again in the app or reply and we will help.",
     },
   },
@@ -155,8 +155,8 @@ const DEFINITIONS: Record<MessageEventType, LocalizedTemplate> = {
     parameters: ["member_name"],
     examples: ["נועה"],
     bodies: {
-      he: "{{1}}, ראיתי את ההודעה שלך ואשמח להמשיך לעזור לך כאן. אפשר להשיב להודעה הזו.\nירין",
-      ar: "{{1}}، وصلتنا رسالتك ويسعدنا متابعة المساعدة هنا. يمكنك الرد على هذه الرسالة.",
+      he: "היי {{1}}, ראיתי את ההודעה שלך ואשמח להמשיך לעזור לך כאן. אפשר להשיב להודעה הזו.\nירין",
+      ar: "مرحباً {{1}}، وصلتنا رسالتك ويسعدنا متابعة المساعدة هنا. يمكنك الرد على هذه الرسالة.",
       en: "Hi {{1}}, we received your message and are happy to continue helping here. You can reply to this message.",
     },
   },
@@ -302,6 +302,10 @@ export function validateMetaTemplateCatalog(): { ok: boolean; errors: string[] }
     if (variant.category !== "UTILITY") errors.push(`invalid_category:${key}`);
     if (placeholderCount(variant.body) !== variant.parameters.length) {
       errors.push(`parameter_count:${key}`);
+    }
+    if (/^\s*\{\{\d+\}\}/.test(variant.body)) errors.push(`parameter_at_start:${key}`);
+    if (/\{\{\d+\}\}\s*[.!?,:؛،؟。、]*\s*$/.test(variant.body)) {
+      errors.push(`parameter_at_end:${key}`);
     }
     if (variant.examples.length !== variant.parameters.length) errors.push(`examples:${key}`);
     events.set(variant.eventType, [...(events.get(variant.eventType) ?? []), variant]);

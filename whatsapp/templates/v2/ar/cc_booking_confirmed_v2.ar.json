@@ -5,7 +5,7 @@
   "components": [
     {
       "type": "BODY",
-      "text": "{{1}}، تم حفظ مكانك 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}\n\nننتظرك في Cloud & Core",
+      "text": "مرحباً {{1}}، تم حفظ مكانك 🤍\n\n{{2}}\n{{3}} · {{4}}\nمع {{5}}\n\nننتظرك في Cloud & Core",
       "example": {
         "body_text": [
           [

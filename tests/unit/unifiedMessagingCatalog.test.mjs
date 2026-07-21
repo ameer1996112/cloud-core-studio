@@ -22,5 +22,13 @@ describe("unified messaging template catalog", () => {
       new Set(["member_name,class_name,class_date,class_time,instructor_name"]),
     );
     expect(getMetaTemplateVariant("booking_confirmed", "en")?.metaLanguage).toBe("en_US");
+    expect(META_TEMPLATE_CATALOG.every((variant) => !/^\s*\{\{\d+\}\}/.test(variant.body))).toBe(
+      true,
+    );
+    expect(
+      META_TEMPLATE_CATALOG.every(
+        (variant) => !/\{\{\d+\}\}\s*[.!?,:؛،؟。、]*\s*$/.test(variant.body),
+      ),
+    ).toBe(true);
   });
 });
