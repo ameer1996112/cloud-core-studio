@@ -2,7 +2,7 @@ export const OPEN_CLASS_ALERT_MIN_LEAD_HOURS = 2;
 export const OPEN_CLASS_ALERT_MAX_LEAD_HOURS = 24;
 export const OPEN_CLASS_ALERT_MAX_FILL_RATIO = 0.7;
 export const OPEN_CLASS_ALERT_DAILY_LIMIT = 1;
-export const OPEN_CLASS_ALERT_WEEKLY_LIMIT = 2;
+export const OPEN_CLASS_ALERT_WEEKLY_LIMIT = 3;
 
 export type OpenClassAlertClass = {
   id: string;
@@ -18,6 +18,7 @@ export type OpenClassAlertMember = {
   status: string;
   remainingCredits: number;
   scheduleUpdates: boolean;
+  zeroCreditUpsellConsent: boolean;
   hasActivePushToken: boolean;
   bookedClassIds: ReadonlySet<string>;
   waitlistedClassIds: ReadonlySet<string>;
@@ -43,6 +44,7 @@ export function shouldCancelOpenClassAlert(input: {
   memberStatus: string | null | undefined;
   remainingCredits: number | null | undefined;
   scheduleUpdates: boolean;
+  zeroCreditUpsellConsent: boolean;
   hasActivePushToken: boolean;
 }) {
   return (
@@ -51,7 +53,7 @@ export function shouldCancelOpenClassAlert(input: {
     input.memberBooked ||
     input.memberWaitlisted ||
     input.memberStatus !== "active" ||
-    Number(input.remainingCredits ?? 0) <= 0 ||
+    (Number(input.remainingCredits ?? 0) <= 0 && !input.zeroCreditUpsellConsent) ||
     !input.scheduleUpdates ||
     !input.hasActivePushToken
   );
@@ -76,7 +78,7 @@ function eligibleClass(studioClass: OpenClassAlertClass, now: Date) {
 function eligibleMember(member: OpenClassAlertMember) {
   return (
     member.status === "active" &&
-    member.remainingCredits > 0 &&
+    (member.remainingCredits > 0 || member.zeroCreditUpsellConsent) &&
     member.scheduleUpdates &&
     member.hasActivePushToken &&
     member.alertsLast24Hours < OPEN_CLASS_ALERT_DAILY_LIMIT &&

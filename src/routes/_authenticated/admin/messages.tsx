@@ -24,11 +24,13 @@ import {
   getCanonicalConversation,
   listCanonicalConversations,
   listCanonicalDeliveries,
+  listNotificationEventRollouts,
   listWhatsappTemplateDeployments,
   releaseCanonicalConversation,
   replyCanonicalConversation,
   resolveCanonicalConversation,
   retryCanonicalDeliveryAction,
+  updateNotificationEventRollout,
 } from "@/lib/unifiedMessages.functions";
 import { listClasses, prepareClassReminderDrafts } from "@/lib/admin.functions";
 import { useI18n, type Lang } from "@/lib/i18n";
@@ -65,7 +67,15 @@ export const Route = createFileRoute("/_authenticated/admin/messages")({
   component: Page,
 });
 
-type Tab = "inbox" | "deliveries" | "push" | "templates" | "composer" | "logs" | "requests";
+type Tab =
+  | "inbox"
+  | "deliveries"
+  | "events"
+  | "push"
+  | "templates"
+  | "composer"
+  | "logs"
+  | "requests";
 
 type LogStatusSummary = {
   status?: string | null;
@@ -110,6 +120,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "iPhone campaigns",
     inbox: "Inbox",
     deliveries: "Deliveries",
+    events: "Event matrix",
     audience: "Audience",
     specificMembers: "Specific member(s)",
     searchMember: "Search member by name...",
@@ -159,6 +170,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "קמפיינים ל-iPhone",
     inbox: "תיבת שיחות",
     deliveries: "מסירות",
+    events: "מפת אירועים",
     audience: "קהל יעד",
     specificMembers: "חבר/ה מסוימים",
     searchMember: "חיפוש חבר/ה לפי שם...",
@@ -209,6 +221,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "حملات iPhone",
     inbox: "صندوق المحادثات",
     deliveries: "عمليات التسليم",
+    events: "مصفوفة الأحداث",
     audience: "الجمهور",
     specificMembers: "أعضاء محددون",
     searchMember: "ابحثي عن عضو بالاسم...",
@@ -339,6 +352,7 @@ function Page() {
           [
             { k: "inbox", l: "Inbox" },
             { k: "deliveries", l: "Deliveries" },
+            { k: "events", l: "Event matrix" },
             { k: "composer", l: "Compose" },
             { k: "push", l: "iPhone campaigns" },
             { k: "templates", l: "Templates" },
@@ -363,6 +377,7 @@ function Page() {
       {tab === "composer" && <ComposerTab />}
       {tab === "inbox" && <CanonicalInboxTab />}
       {tab === "deliveries" && <CanonicalDeliveriesTab />}
+      {tab === "events" && <NotificationEventRolloutsTab />}
       {tab === "push" && <AdminPushCampaigns />}
       {tab === "templates" && (
         <div className="space-y-6">
@@ -581,6 +596,7 @@ function CanonicalDeliveriesTab() {
             <th className="p-4">Channel</th>
             <th className="p-4">Status</th>
             <th className="p-4">Attempts</th>
+            <th className="p-4">Devices</th>
             <th className="p-4">Error</th>
             <th className="p-4" />
           </tr>
@@ -601,6 +617,11 @@ function CanonicalDeliveriesTab() {
                   <span className="rounded-full bg-sand px-2 py-1 text-xs">{delivery.status}</span>
                 </td>
                 <td className="p-4 text-slate">{delivery.attempt_count}</td>
+                <td className="p-4 text-slate">
+                  {delivery.channel === "push"
+                    ? `${(delivery.targets ?? []).filter((target: any) => ["sent", "device_received"].includes(target.status)).length}/${(delivery.targets ?? []).length}`
+                    : "—"}
+                </td>
                 <td className="max-w-xs truncate p-4 text-slate">
                   {delivery.error_code ?? delivery.error_message ?? "—"}
                 </td>
@@ -619,6 +640,152 @@ function CanonicalDeliveriesTab() {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function NotificationEventRolloutsTab() {
+  const listFn = useServerFn(listNotificationEventRollouts);
+  const updateFn = useServerFn(updateNotificationEventRollout);
+  const queryClient = useQueryClient();
+  const events = useQuery({ queryKey: ["notification-event-rollouts"], queryFn: () => listFn() });
+  const updateRollout = useMutation({
+    mutationFn: (input: {
+      eventType: string;
+      enabled: boolean;
+      copyReviewed: boolean;
+      allowlistOnly: boolean;
+      enabledChannels: Array<"in_app" | "push" | "email" | "whatsapp">;
+    }) => updateFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Notification rollout updated");
+      void queryClient.invalidateQueries({ queryKey: ["notification-event-rollouts"] });
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Update failed"),
+  });
+  const grouped = useMemo(() => {
+    const values = new Map<string, any[]>();
+    for (const event of events.data ?? []) {
+      values.set(event.family, [...(values.get(event.family) ?? []), event]);
+    }
+    return [...values.entries()];
+  }, [events.data]);
+
+  return (
+    <div className="space-y-5">
+      <section className="editorial-panel p-5">
+        <p className="eyebrow">Safe rollout control</p>
+        <h3 className="text-lg font-semibold text-navy">Premium notification event matrix</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate">
+          New event families remain dark until localized copy is reviewed and the database rollout
+          is enabled. Global disabled/allowlist mode and channel kill switches still apply.
+        </p>
+      </section>
+      {grouped.map(([family, familyEvents]) => (
+        <section key={family} className="editorial-panel overflow-hidden">
+          <div className="border-b border-gold/15 px-5 py-4">
+            <h3 className="font-semibold capitalize text-navy">{family}</h3>
+          </div>
+          <div className="divide-y divide-gold/10">
+            {familyEvents.map((event: any) => {
+              const enabled = event.rollout?.enabled ?? event.defaultEnabled;
+              const reviewed = event.rollout?.copy_reviewed ?? event.copyStatus === "approved";
+              const allowlistOnly = event.rollout?.allowlist_only ?? !event.defaultEnabled;
+              const enabledChannels = (event.rollout?.enabled_channels ?? event.channels) as Array<
+                "in_app" | "push" | "email" | "whatsapp"
+              >;
+              const save = (
+                changes: Partial<{
+                  enabled: boolean;
+                  copyReviewed: boolean;
+                  allowlistOnly: boolean;
+                  enabledChannels: typeof enabledChannels;
+                }>,
+              ) =>
+                updateRollout.mutate({
+                  eventType: event.eventType,
+                  enabled,
+                  copyReviewed: reviewed,
+                  allowlistOnly,
+                  enabledChannels,
+                  ...changes,
+                });
+              return (
+                <div
+                  key={event.eventType}
+                  className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(220px,1fr)_minmax(220px,auto)_auto] md:items-center"
+                >
+                  <div>
+                    <p className="font-medium text-navy">{event.eventType.replaceAll("_", " ")}</p>
+                    <p className="mt-1 text-xs text-slate">
+                      {event.tier} · {event.channels.join(" · ")}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {event.channels.map((channel: "in_app" | "push" | "email" | "whatsapp") => (
+                      <label
+                        key={channel}
+                        className="flex items-center gap-1.5 rounded-full bg-white/60 px-2.5 py-1 text-[10px] uppercase text-slate"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={enabledChannels.includes(channel)}
+                          disabled={channel === "in_app" || updateRollout.isPending}
+                          onChange={(input) =>
+                            save({
+                              enabledChannels: input.target.checked
+                                ? [...enabledChannels, channel]
+                                : enabledChannels.filter((value) => value !== channel),
+                            })
+                          }
+                          className="accent-navy"
+                        />
+                        {channel}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {enabled && reviewed && (
+                      <button
+                        type="button"
+                        disabled={updateRollout.isPending}
+                        onClick={() => save({ allowlistOnly: !allowlistOnly })}
+                        className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase ${
+                          allowlistOnly
+                            ? "border-amber-300 bg-amber-50 text-amber-800"
+                            : "border-emerald-300 bg-emerald-50 text-emerald-800"
+                        }`}
+                      >
+                        {allowlistOnly ? "Allowlist only" : "Live eligible"}
+                      </button>
+                    )}
+                    {!reviewed && (
+                      <button
+                        type="button"
+                        disabled={updateRollout.isPending}
+                        onClick={() => save({ copyReviewed: true })}
+                        className="rounded-full border border-gold/30 px-3 py-1.5 text-[10px] font-semibold uppercase text-navy"
+                      >
+                        Mark copy reviewed
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={!reviewed || updateRollout.isPending}
+                      onClick={() => save({ enabled: !enabled })}
+                      className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase ${
+                        enabled ? "bg-navy text-white" : "bg-sand text-slate"
+                      }`}
+                    >
+                      {enabled ? "Disable" : "Enable"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

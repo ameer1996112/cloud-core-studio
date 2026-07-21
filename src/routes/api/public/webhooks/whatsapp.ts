@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ingestOfficialWhatsappWebhook } from "@/lib/officialWhatsappWebhook.server";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/api/public/webhooks/whatsapp")({
           rawBody,
           signature: request.headers.get("x-hub-signature-256"),
         });
+        if (result.status === 200) await kickUnifiedMessagingAfterCommit();
         return jsonResponse(result, result.status);
       },
     },

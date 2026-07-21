@@ -6,30 +6,7 @@ import type {
   MessageEventType,
   MessagingDeliveryPreferences,
 } from "@/lib/messaging.types";
-
-const CHANNEL_MATRIX: Record<MessageEventType, readonly MessageChannel[]> = {
-  booking_confirmed: ["in_app", "push", "whatsapp", "email"],
-  booking_cancelled: ["in_app", "push", "whatsapp", "email"],
-  class_cancelled_by_admin: ["in_app", "push", "whatsapp", "email"],
-  class_time_changed: ["in_app", "push", "whatsapp", "email"],
-  class_reminder_planning: ["in_app", "push", "whatsapp"],
-  class_reminder_final: ["in_app", "push", "whatsapp"],
-  class_open_spots: ["in_app", "push"],
-  waitlist_joined: ["in_app", "push"],
-  waitlist_spot_available: ["in_app", "push", "whatsapp"],
-  payment_request_received: ["in_app", "push", "email"],
-  payment_pending_reminder: ["in_app", "push", "whatsapp"],
-  payment_confirmed: ["in_app", "push", "whatsapp", "email"],
-  payment_failed: ["in_app", "push", "whatsapp", "email"],
-  receipt_issued: ["in_app", "email"],
-  human_handoff: ["whatsapp", "in_app", "push"],
-};
-
-const ESSENTIAL_EVENTS = new Set<MessageEventType>([
-  "class_cancelled_by_admin",
-  "class_time_changed",
-  "payment_failed",
-]);
+import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 
 const STATUS_RANK: Partial<Record<DeliveryStatus, number>> = {
   queued: 0,
@@ -62,11 +39,11 @@ export type MessagingRuntime = {
 };
 
 export function channelsForEvent(eventType: MessageEventType): MessageChannel[] {
-  return [...CHANNEL_MATRIX[eventType]];
+  return [...notificationDefinition(eventType).channels];
 }
 
 export function isEssentialMessageEvent(eventType: MessageEventType) {
-  return ESSENTIAL_EVENTS.has(eventType);
+  return ["class_cancelled_by_admin", "class_time_changed", "payment_failed"].includes(eventType);
 }
 
 export function shouldCancelReminderForDomainState(
@@ -85,11 +62,41 @@ export function deliveryAllowedByConsent(
   channel: MessageChannel,
   preferences: MessagingDeliveryPreferences,
 ) {
-  if (eventType === "class_open_spots") return preferences.scheduleUpdates === true;
-  if (channel === "in_app" || channel === "push") return true;
+  const definition = notificationDefinition(eventType);
   if (isEssentialMessageEvent(eventType)) return true;
+  // The inbox is the durable transactional record. Granular preferences govern
+  // interruption/external delivery, never whether that record exists.
+  if (channel === "in_app") return true;
+  if (definition.preference && !preferenceEnabled(definition.preference, preferences)) return false;
+  if (channel === "push") return true;
   if (channel === "whatsapp") return preferences.whatsappEnabled === true;
   return preferences.emailEnabled === true;
+}
+
+function preferenceEnabled(
+  preference: NonNullable<ReturnType<typeof notificationDefinition>["preference"]>,
+  preferences: MessagingDeliveryPreferences,
+) {
+  switch (preference) {
+    case "classOperations":
+      return preferences.classOperations !== false;
+    case "classReminders":
+      return preferences.classReminders !== false;
+    case "scheduleOpenings":
+      return (preferences.scheduleOpenings ?? preferences.scheduleUpdates) === true;
+    case "waitlist":
+      return preferences.waitlist !== false;
+    case "payments":
+      return preferences.payments !== false;
+    case "membership":
+      return preferences.membership !== false;
+    case "staffReplies":
+      return preferences.staffReplies !== false;
+    case "recommendations":
+      return preferences.recommendations === true;
+    case "marketing":
+      return preferences.marketing === true;
+  }
 }
 
 export function isQuietHours(at: Date) {
@@ -191,6 +198,17 @@ export function runtimeAllowsRecipient(
   if (!runtime.channels[channel]) return false;
   if (runtime.mode === "live") return true;
   return Boolean(recipient && runtime.recipientAllowlist.has(recipient.trim().toLowerCase()));
+}
+
+export function runtimeAllowsRolloutRecipient(
+  runtime: MessagingRuntime,
+  recipients: readonly (string | null | undefined)[],
+) {
+  if (runtime.mode === "disabled") return false;
+  if (runtime.mode === "live") return true;
+  return recipients.some((recipient) =>
+    recipient ? runtime.recipientAllowlist.has(recipient.trim().toLowerCase()) : false,
+  );
 }
 
 export function conversationReplyMode(

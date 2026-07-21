@@ -9,16 +9,8 @@ import type {
 } from "@/lib/messaging.types";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
 import { channelsForEvent, deliveryAllowedByConsent, isQuietHours } from "@/lib/messagingPolicy";
+import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import { studioDateTimeInputToIso } from "@/lib/studio-time";
-
-const IMMEDIATE_EVENTS = new Set<MessageEventType>([
-  "booking_confirmed",
-  "booking_cancelled",
-  "class_cancelled_by_admin",
-  "class_time_changed",
-  "payment_failed",
-  "human_handoff",
-]);
 
 export type MaterializedDeliveryPlan = {
   channel: MessageChannel;
@@ -48,6 +40,12 @@ export type MaterializedMessagePlan = {
     memberVisible: boolean;
     audience: "member" | "admin";
     idempotencyKey: string;
+    notificationFamily: ReturnType<typeof notificationDefinition>["family"];
+    notificationTier: ReturnType<typeof notificationDefinition>["tier"];
+    preferenceKey: ReturnType<typeof notificationDefinition>["preference"];
+    interruptionLevel: ReturnType<typeof notificationDefinition>["interruptionLevel"];
+    soundKey: ReturnType<typeof notificationDefinition>["sound"];
+    actions: ReturnType<typeof notificationDefinition>["actions"];
   };
   deliveries: MaterializedDeliveryPlan[];
 };
@@ -92,15 +90,20 @@ export function materializeMessagePlan(input: {
   preferences: MessagingDeliveryPreferences;
   externalChannels: ExternalChannelAvailability;
   approvedWhatsappVariants: ReadonlySet<string>;
+  enabledChannels?: ReadonlySet<MessageChannel>;
   now: Date;
   expiresAt?: Date | null;
 }): MaterializedMessagePlan {
   const rendered = renderMessageContent(input.eventType, input.language, input.variables);
+  const definition = notificationDefinition(input.eventType);
+  const actions =
+    (input.eventType === "class_open_spots" || input.eventType === "class_recommendation") &&
+    Number(input.variables.credits_remaining ?? 0) <= 0
+      ? definition.actions.filter((action) => action !== "book_now")
+      : definition.actions;
   const messageIdempotencyKey = `message:${input.deduplicationKey}`;
   const metaVariant = getMetaTemplateVariant(input.eventType, input.language);
-  const routineScheduledFor = IMMEDIATE_EVENTS.has(input.eventType)
-    ? input.now
-    : nextRoutineWindow(input.now);
+  const routineScheduledFor = definition.immediate ? input.now : nextRoutineWindow(input.now);
 
   const deliveries = channelsForEvent(input.eventType).map((channel) => {
     const recipientAddress = recipientFor(channel, input.memberId, input.recipients);
@@ -108,7 +111,10 @@ export function materializeMessagePlan(input: {
     let failureClass: DeliveryFailureClass | null = null;
     let errorCode: string | null = null;
 
-    if (channel !== "in_app" && !input.externalChannels[channel]) {
+    if (input.enabledChannels && !input.enabledChannels.has(channel)) {
+      status = "suppressed";
+      errorCode = "event_channel_not_enabled";
+    } else if (channel !== "in_app" && !input.externalChannels[channel]) {
       status = "suppressed";
       errorCode = `${channel}_channel_disabled`;
     } else if (!deliveryAllowedByConsent(input.eventType, channel, input.preferences)) {
@@ -127,6 +133,11 @@ export function materializeMessagePlan(input: {
       }
     }
 
+    const scheduledFor =
+      input.eventType === "payment_pending_reminder" && channel === "whatsapp"
+        ? nextRoutineWindow(new Date(input.now.getTime() + 48 * 60 * 60_000))
+        : routineScheduledFor;
+
     return {
       channel,
       provider:
@@ -140,8 +151,7 @@ export function materializeMessagePlan(input: {
       recipientAddress,
       status,
       idempotencyKey: `${messageIdempotencyKey}:${channel}`,
-      scheduledFor:
-        channel === "in_app" ? input.now.toISOString() : routineScheduledFor.toISOString(),
+      scheduledFor: channel === "in_app" ? input.now.toISOString() : scheduledFor.toISOString(),
       expiresAt: input.expiresAt?.toISOString() ?? null,
       failureClass,
       errorCode,
@@ -164,9 +174,19 @@ export function materializeMessagePlan(input: {
       templateVersion: "v2",
       subject: rendered.subject,
       body: rendered.body,
-      memberVisible: input.eventType !== "human_handoff",
-      audience: input.eventType === "human_handoff" ? "admin" : "member",
+      memberVisible: definition.memberVisible,
+      audience: definition.memberVisible ? "member" : "admin",
       idempotencyKey: messageIdempotencyKey,
+      notificationFamily: definition.family,
+      notificationTier: definition.tier,
+      preferenceKey: definition.preference,
+      interruptionLevel:
+        definition.interruptionLevel === "time-sensitive" &&
+        input.preferences.timeSensitive === false
+          ? "active"
+          : definition.interruptionLevel,
+      soundKey: input.preferences.sound === false ? "none" : definition.sound,
+      actions,
     },
     deliveries,
   };

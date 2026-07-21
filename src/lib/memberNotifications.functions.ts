@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   memberNotificationIdSchema,
+  memberNotificationEngagementSchema,
   memberNotificationPreferencesSchema,
   memberPushTokenSchema,
   safeNotificationActionUrl,
@@ -46,11 +47,12 @@ export const getMemberNotificationCenter = createServerFn({ method: "GET" })
         ? db
             .from("messages")
             .select(
-              "id,event_type,subject,body,content,created_at,message_deliveries!inner(channel,status,read_at)",
+              "id,event_type,subject,body,content,notification_family,notification_tier,deep_link,action_schema,pinned_until,archived_at,created_at,message_deliveries!inner(channel,status,read_at,expires_at)",
             )
             .eq("member_id", context.userId)
             .eq("member_visible", true)
             .eq("direction", "outbound")
+            .is("archived_at", null)
             .eq("message_deliveries.channel", "in_app")
             .neq("message_deliveries.status", "suppressed")
             .order("created_at", { ascending: false })
@@ -86,9 +88,16 @@ export const getMemberNotificationCenter = createServerFn({ method: "GET" })
           return {
             id: row.id,
             category: canonicalCategory(row.event_type),
+            family: row.notification_family ?? null,
+            tier: row.notification_tier ?? null,
             title: row.subject ?? "Cloud & Core",
             body: row.body ?? "",
-            action_url: safeNotificationActionUrl(content.action_url ?? content.receipt_url),
+            action_url: safeNotificationActionUrl(
+              row.deep_link ?? content.action_url ?? content.receipt_url,
+            ),
+            actions: Array.isArray(row.action_schema) ? row.action_schema : [],
+            pinned_until: row.pinned_until ?? null,
+            expires_at: delivery?.expires_at ?? null,
             sound: false,
             campaign_id: content.campaign_id ?? null,
             delivery_status: delivery?.status ?? "delivered",
@@ -99,10 +108,21 @@ export const getMemberNotificationCenter = createServerFn({ method: "GET" })
         })
       : (notificationsResult.data ?? []).map((row: any) => ({
           ...row,
+          family:
+            row.category === "payment_confirmed" || row.category === "payment_failed"
+              ? "payment"
+              : row.category === "waitlist"
+                ? "waitlist"
+                : "class",
+          tier: row.category === "urgent_class_change" ? "critical" : "transactional",
+          actions: [],
+          pinned_until: null,
+          expires_at: null,
           action_url: safeNotificationActionUrl(row.action_url),
         }));
 
     return {
+      canonical: canonicalReadsEnabled(),
       preferences: mapMemberNotificationPreferences(preferencesResult.data),
       hasActiveDevice: Boolean(devicesResult.data?.length),
       unreadCount: notifications.filter((row: any) => !row.read_at).length,
@@ -116,35 +136,73 @@ export const registerMemberPushToken = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = await requireMember(context.userId);
     const now = new Date().toISOString();
-    const { error } = await db.from("member_push_tokens").upsert(
-      {
-        member_id: context.userId,
-        token: data.token,
-        platform: data.platform,
-        active: true,
-        permission_status: "granted",
-        last_seen_at: now,
-        updated_at: now,
-      },
-      { onConflict: "token" },
-    );
+    const tokenHash = (await import("node:crypto"))
+      .createHash("sha256")
+      .update(data.token)
+      .digest("hex");
+    const { error } = await db.rpc("register_member_push_installation", {
+      p_member_id: context.userId,
+      p_token: data.token,
+      p_token_hash: tokenHash,
+      p_platform: data.platform,
+      p_installation_id: data.installationId ?? null,
+      p_app_version: data.appVersion ?? null,
+      p_build_number: data.buildNumber ?? null,
+      p_device_locale: data.locale ?? null,
+      p_apns_environment: data.environment ?? "production",
+      p_capabilities: data.capabilities ?? {},
+      p_permission_status:
+        data.permissionStatus === "prompt-with-rationale"
+          ? "prompt"
+          : (data.permissionStatus ?? "granted"),
+      p_seen_at: now,
+    });
     if (error) throw error;
     return { ok: true as const };
   });
 
 export const deactivateMemberPushTokens = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ token: z.string().min(1) }).parse(data))
+  .inputValidator((data) =>
+    z
+      .object({ token: z.string().min(1).optional(), installationId: z.string().uuid().optional() })
+      .refine((value) => Boolean(value.token || value.installationId), "device identity required")
+      .parse(data),
+  )
   .handler(async ({ context, data }) => {
     const db = await requireMember(context.userId);
-    const { error } = await db
+    let query = db
       .from("member_push_tokens")
-      .update({ active: false, updated_at: new Date().toISOString() })
+      .update({
+        active: false,
+        logged_out_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq("member_id", context.userId)
-      .eq("token", data.token)
       .eq("active", true);
-    if (error) throw error;
+    query = data.installationId
+      ? query.eq("installation_id", data.installationId)
+      : query.eq("token", data.token);
+    const result = await query;
+    if (result.error) throw result.error;
     return { ok: true as const };
+  });
+
+export const recordMemberNotificationEngagement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => memberNotificationEngagementSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const db = await requireMember(context.userId);
+    const { data: engagementId, error } = await db.rpc("record_message_engagement", {
+      p_message_id: data.notificationId,
+      p_event_type: data.eventType,
+      p_installation_id: data.installationId ?? null,
+      p_action_id: data.actionId ?? null,
+      p_occurred_at: data.occurredAt ?? new Date().toISOString(),
+      p_metadata: data.metadata ?? {},
+    });
+    if (error) throw error;
+    return { ok: true as const, engagementId: engagementId ?? null };
   });
 
 export const updateMemberNotificationPreferences = createServerFn({ method: "POST" })
@@ -174,6 +232,21 @@ export const updateMemberNotificationPreferences = createServerFn({ method: "POS
       preferenceUpdate.email_opted_out_at = data.emailEnabled ? null : new Date().toISOString();
       preferenceUpdate.email_consent_source = "member_notification_settings";
       if (data.emailEnabled) preferenceUpdate.email_consented_at = new Date().toISOString();
+    }
+    const granularPreferences: Array<[keyof typeof data, string]> = [
+      ["classOperationsEnabled", "class_operations_enabled"],
+      ["classRemindersEnabled", "class_reminders_enabled"],
+      ["scheduleOpeningsEnabled", "schedule_openings_enabled"],
+      ["waitlistEnabled", "waitlist_enabled"],
+      ["paymentsEnabled", "payments_enabled"],
+      ["membershipEnabled", "membership_enabled"],
+      ["staffRepliesEnabled", "staff_replies_enabled"],
+      ["recommendationsEnabled", "recommendations_enabled"],
+      ["marketingAnalyticsEnabled", "marketing_analytics_enabled"],
+      ["timeSensitiveEnabled", "time_sensitive_enabled"],
+    ];
+    for (const [inputKey, column] of granularPreferences) {
+      if (typeof data[inputKey] === "boolean") preferenceUpdate[column] = data[inputKey];
     }
     const { error } = await db
       .from("member_notification_preferences")

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -386,6 +387,7 @@ export const upsertClass = createServerFn({ method: "POST" })
         }
       }
       // audit log entry is best-effort; _log_action is internal
+      await kickUnifiedMessagingAfterCommit();
       return { id: data.id };
     } else {
       const { data: row, error } = await context.supabase
@@ -399,6 +401,7 @@ export const upsertClass = createServerFn({ method: "POST" })
       } catch (notificationError) {
         console.error("schedule_opened_push_prepare_failed", notificationError);
       }
+      await kickUnifiedMessagingAfterCommit();
       return { id: row.id };
     }
   });
@@ -434,6 +437,7 @@ export const setClassStatus = createServerFn({ method: "POST" })
         console.error("class_cancelled_by_admin_draft_prepare_failed", draftError);
       }
     }
+    await kickUnifiedMessagingAfterCommit();
     return { ok: true };
   });
 
@@ -603,6 +607,7 @@ export const adminCancelClass = createServerFn({ method: "POST" })
       }
     }
 
+    await kickUnifiedMessagingAfterCommit();
     return {
       status: rpcResult?.status === "already_cancelled" ? "already_cancelled" : "cancelled",
       classId: data.classId,
@@ -935,6 +940,7 @@ export const adminCreateBooking = createServerFn({ method: "POST" })
         console.error("admin_booking_confirmed_draft_prepare_failed", draftError);
       }
     }
+    await kickUnifiedMessagingAfterCommit();
     return r;
   });
 
@@ -986,6 +992,7 @@ export const adminCancelBooking = createServerFn({ method: "POST" })
         console.error("admin_booking_cancelled_draft_prepare_failed", draftError);
       }
     }
+    await kickUnifiedMessagingAfterCommit();
     return r;
   });
 
@@ -1067,6 +1074,7 @@ export const markAttendance = createServerFn({ method: "POST" })
         console.error("no_show_followup_draft_prepare_failed", draftError);
       }
     }
+    await kickUnifiedMessagingAfterCommit();
     return r;
   });
 
@@ -1208,6 +1216,7 @@ export const waitlistAdd = createServerFn({ method: "POST" })
     } catch (draftError) {
       console.error("admin_waitlist_joined_draft_prepare_failed", draftError);
     }
+    await kickUnifiedMessagingAfterCommit();
     return { ok: true };
   });
 
@@ -1221,6 +1230,7 @@ export const waitlistRemove = createServerFn({ method: "POST" })
       .update({ status: "removed" })
       .eq("id", data.entryId);
     if (error) throw error;
+    await kickUnifiedMessagingAfterCommit();
     return { ok: true };
   });
 
@@ -1307,6 +1317,7 @@ export const waitlistPromote = createServerFn({ method: "POST" })
     } catch (draftError) {
       console.error("waitlist_promote_draft_prepare_failed", draftError);
     }
+    await kickUnifiedMessagingAfterCommit();
     return r;
   });
 

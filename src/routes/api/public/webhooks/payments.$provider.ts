@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import { processHypPaymentNotification } from "@/lib/subscriptions.server";
 
 type HypSnsEnvelope = {
@@ -191,6 +192,7 @@ export const Route = createFileRoute("/api/public/webhooks/payments/$provider")(
             }
 
             const result = await processHypPaymentNotification(notificationParams, source);
+            await kickUnifiedMessagingAfterCommit();
             return new Response(JSON.stringify({ ok: true, ...result }), {
               status: 200,
               headers: { "content-type": "application/json" },
