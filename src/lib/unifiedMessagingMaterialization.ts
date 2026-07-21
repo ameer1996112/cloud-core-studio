@@ -1,6 +1,7 @@
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
+  ExternalChannelAvailability,
   MessageChannel,
   MessageEventType,
   MessageLanguage,
@@ -88,7 +89,7 @@ export function materializeMessagePlan(input: {
   variables: Record<string, unknown>;
   recipients: { whatsapp?: string | null; email?: string | null };
   preferences: { whatsappEnabled?: boolean | null; emailEnabled?: boolean | null };
-  externalChannels: Record<"whatsapp" | "email" | "push", boolean>;
+  externalChannels: ExternalChannelAvailability;
   approvedWhatsappVariants: ReadonlySet<string>;
   now: Date;
   expiresAt?: Date | null;

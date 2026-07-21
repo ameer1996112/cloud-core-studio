@@ -5,6 +5,8 @@ import { sendApnsDelivery } from "@/lib/messagingApnsAdapter.server";
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
+  ExternalChannelAvailability,
+  ExternalMessageChannel,
   MessageChannel,
   MessageEventType,
   MessageLanguage,
@@ -266,7 +268,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
 async function materializeOutbox(
   outbox: OutboxRow,
   now: Date,
-  externalChannels: Record<"whatsapp" | "email" | "push", boolean>,
+  externalChannels: ExternalChannelAvailability,
 ) {
   const db = supabaseAdmin as any;
   try {
@@ -878,6 +880,65 @@ export function normalizeUnifiedMessagingSweepLimit(value: unknown) {
   return Number.isFinite(parsed) ? Math.max(1, Math.min(200, Math.trunc(parsed))) : 50;
 }
 
+async function suppressDisabledExternalDeliveryBacklog(
+  externalChannels: ExternalChannelAvailability,
+) {
+  const db = supabaseAdmin as any;
+  let suppressed = 0;
+
+  for (const channel of Object.keys(externalChannels) as ExternalMessageChannel[]) {
+    if (externalChannels[channel]) continue;
+
+    const candidates = await db
+      .from("message_deliveries")
+      .select("id,message_id")
+      .eq("channel", channel)
+      .in("status", ["queued", "failed"])
+      .limit(1_000);
+    if (candidates.error) throw candidates.error;
+    if (!candidates.data?.length) continue;
+
+    const messageIds = [
+      ...new Set(candidates.data.map((row: { message_id: string }) => row.message_id)),
+    ];
+    const messages = await db
+      .from("messages")
+      .select("id")
+      .in("id", messageIds)
+      .eq("template_version", "v2");
+    if (messages.error) throw messages.error;
+
+    const v2MessageIds = new Set(
+      (messages.data ?? []).map((message: { id: string }) => message.id),
+    );
+    const deliveryIds = candidates.data
+      .filter((row: { message_id: string }) => v2MessageIds.has(row.message_id))
+      .map((row: { id: string }) => row.id);
+    if (!deliveryIds.length) continue;
+
+    const updated = await db
+      .from("message_deliveries")
+      .update({
+        status: "suppressed",
+        provider_status: "suppressed",
+        failure_class: "configuration",
+        error_code: `${channel}_channel_disabled`,
+        error_message: null,
+        next_attempt_at: null,
+        lease_owner: null,
+        lease_expires_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .in("id", deliveryIds)
+      .in("status", ["queued", "failed"])
+      .select("id");
+    if (updated.error) throw updated.error;
+    suppressed += updated.data?.length ?? 0;
+  }
+
+  return suppressed;
+}
+
 export async function runUnifiedMessagingSweep(input?: {
   limit?: number;
   now?: Date;
@@ -890,6 +951,7 @@ export async function runUnifiedMessagingSweep(input?: {
   const runtime = resolveMessagingRuntime(process.env);
   const externalChannels =
     runtime.mode === "disabled" ? { whatsapp: false, email: false, push: false } : runtime.channels;
+  const disabledBacklogSuppressed = await suppressDisabledExternalDeliveryBacklog(externalChannels);
   const scheduled = await enqueueDueCanonicalEvents(now, limit);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
@@ -906,12 +968,10 @@ export async function runUnifiedMessagingSweep(input?: {
   const { reconcilePendingProviderWebhookLedger } = await import("@/lib/messageStatus.server");
   const webhookReconciliation = await reconcilePendingProviderWebhookLedger(limit);
 
-  const channels: MessageChannel[] = ["in_app"];
-  if (runtime.mode !== "disabled") {
-    if (runtime.channels.push) channels.push("push");
-    if (runtime.channels.email) channels.push("email");
-    if (runtime.channels.whatsapp) channels.push("whatsapp");
-  }
+  const enabledExternalChannels = (
+    Object.keys(externalChannels) as ExternalMessageChannel[]
+  ).filter((channel) => externalChannels[channel]);
+  const channels: MessageChannel[] = ["in_app", ...enabledExternalChannels];
   const deliveryClaim = await db.rpc("claim_message_deliveries", {
     p_worker: workerId,
     p_limit: limit,
@@ -948,6 +1008,7 @@ export async function runUnifiedMessagingSweep(input?: {
   return {
     workerId,
     mode: runtime.mode,
+    disabledBacklogSuppressed,
     scheduled,
     outboxClaimed: outboxClaim.data?.length ?? 0,
     materialized,

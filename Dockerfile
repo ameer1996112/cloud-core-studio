@@ -24,5 +24,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/scripts/serve-production.mjs ./scripts/serve-production.mjs
 COPY --from=build /app/scripts/member-notification-cron.mjs ./scripts/member-notification-cron.mjs
+COPY --from=build /app/scripts/unified-messaging-cron.mjs ./scripts/unified-messaging-cron.mjs
 EXPOSE 8080
 CMD ["node", "scripts/serve-production.mjs"]

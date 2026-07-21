@@ -17,6 +17,8 @@ export type MessageEventType =
   | "human_handoff";
 
 export type MessageChannel = "in_app" | "push" | "email" | "whatsapp";
+export type ExternalMessageChannel = Exclude<MessageChannel, "in_app">;
+export type ExternalChannelAvailability = Record<ExternalMessageChannel, boolean>;
 export type MessageDirection = "inbound" | "outbound";
 export type TemplateVersion = "v2";
 export type ConversationStatus = "unassigned" | "claimed" | "resolved";

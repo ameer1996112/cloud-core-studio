@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { readFile } from "node:fs/promises";
 
 test("unified messaging cron calls the protected sweep endpoint", async () => {
   const originalFetch = globalThis.fetch;
@@ -46,4 +47,11 @@ test("unified messaging cron calls the protected sweep endpoint", async () => {
       else process.env[name] = value;
     }
   }
+});
+
+test("production image includes the unified messaging cron runner", async () => {
+  const dockerfile = await readFile("Dockerfile", "utf8");
+  expect(dockerfile).toContain(
+    "COPY --from=build /app/scripts/unified-messaging-cron.mjs ./scripts/unified-messaging-cron.mjs",
+  );
 });

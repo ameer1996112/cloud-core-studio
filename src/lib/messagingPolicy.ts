@@ -1,6 +1,7 @@
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
+  ExternalChannelAvailability,
   MessageChannel,
   MessageEventType,
 } from "@/lib/messaging.types";
@@ -55,7 +56,7 @@ const RETRY_DELAYS_MINUTES: Record<MessageChannel, readonly number[]> = {
 export type MessagingRuntime = {
   mode: "disabled" | "allowlist" | "live";
   recipientAllowlist: ReadonlySet<string>;
-  channels: Record<"whatsapp" | "email" | "push", boolean>;
+  channels: ExternalChannelAvailability;
 };
 
 export function channelsForEvent(eventType: MessageEventType): MessageChannel[] {
