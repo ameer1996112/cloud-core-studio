@@ -88,6 +88,7 @@ export function materializeMessagePlan(input: {
   variables: Record<string, unknown>;
   recipients: { whatsapp?: string | null; email?: string | null };
   preferences: { whatsappEnabled?: boolean | null; emailEnabled?: boolean | null };
+  externalChannels: Record<"whatsapp" | "email" | "push", boolean>;
   approvedWhatsappVariants: ReadonlySet<string>;
   now: Date;
   expiresAt?: Date | null;
@@ -105,7 +106,10 @@ export function materializeMessagePlan(input: {
     let failureClass: DeliveryFailureClass | null = null;
     let errorCode: string | null = null;
 
-    if (!deliveryAllowedByConsent(input.eventType, channel, input.preferences)) {
+    if (channel !== "in_app" && !input.externalChannels[channel]) {
+      status = "suppressed";
+      errorCode = `${channel}_channel_disabled`;
+    } else if (!deliveryAllowedByConsent(input.eventType, channel, input.preferences)) {
       status = "suppressed";
       errorCode = `${channel}_opted_out`;
     } else if ((channel === "whatsapp" || channel === "email") && !recipientAddress) {

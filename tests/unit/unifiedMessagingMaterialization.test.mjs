@@ -16,6 +16,7 @@ const base = {
   },
   recipients: { whatsapp: "972501234567", email: "noa@example.com" },
   preferences: { whatsappEnabled: true, emailEnabled: true },
+  externalChannels: { whatsapp: true, email: true, push: true },
   approvedWhatsappVariants: new Set(["cc_booking_confirmed_v2:he"]),
   now: new Date("2026-07-20T09:00:00.000Z"),
 };
@@ -46,6 +47,30 @@ describe("outbox message materialization", () => {
       errorCode: "whatsapp_template_locale_unapproved",
     });
     expect(result.message.language).toBe("he");
+  });
+
+  test("suppresses disabled external channels instead of leaving a future-send backlog", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      externalChannels: { whatsapp: true, email: false, push: false },
+    });
+
+    expect(result.deliveries.find((delivery) => delivery.channel === "in_app")?.status).toBe(
+      "queued",
+    );
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
+      "queued",
+    );
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      status: "suppressed",
+      failureClass: null,
+      errorCode: "push_channel_disabled",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "email")).toMatchObject({
+      status: "suppressed",
+      failureClass: null,
+      errorCode: "email_channel_disabled",
+    });
   });
 
   test("expires every waitlist delivery at the offer claim deadline", () => {

@@ -263,7 +263,11 @@ async function loadOutboxContext(outbox: OutboxRow) {
   };
 }
 
-async function materializeOutbox(outbox: OutboxRow, now: Date) {
+async function materializeOutbox(
+  outbox: OutboxRow,
+  now: Date,
+  externalChannels: Record<"whatsapp" | "email" | "push", boolean>,
+) {
   const db = supabaseAdmin as any;
   try {
     const context = await loadOutboxContext(outbox);
@@ -276,6 +280,7 @@ async function materializeOutbox(outbox: OutboxRow, now: Date) {
       variables: context.variables,
       recipients: { whatsapp: context.member.phone, email: context.member.email },
       preferences: context.preferences,
+      externalChannels,
       approvedWhatsappVariants: context.approvedWhatsappVariants,
       now,
       expiresAt: outbox.expires_at ? new Date(outbox.expires_at) : null,
@@ -883,6 +888,8 @@ export async function runUnifiedMessagingSweep(input?: {
   const limit = normalizeUnifiedMessagingSweepLimit(input?.limit);
   const workerId = input?.workerId ?? `messaging:${randomUUID()}`;
   const runtime = resolveMessagingRuntime(process.env);
+  const externalChannels =
+    runtime.mode === "disabled" ? { whatsapp: false, email: false, push: false } : runtime.channels;
   const scheduled = await enqueueDueCanonicalEvents(now, limit);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
@@ -892,7 +899,7 @@ export async function runUnifiedMessagingSweep(input?: {
   if (outboxClaim.error) throw outboxClaim.error;
   const materialized = { succeeded: 0, failed: 0 };
   for (const outbox of (outboxClaim.data ?? []) as OutboxRow[]) {
-    const result = await materializeOutbox(outbox, now);
+    const result = await materializeOutbox(outbox, now, externalChannels);
     if (result.ok) materialized.succeeded += 1;
     else materialized.failed += 1;
   }

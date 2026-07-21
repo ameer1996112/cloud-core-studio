@@ -114,6 +114,26 @@ Apply performs a paginated preflight, acquires a WABA database lease, creates se
 
 The internal worker endpoint is `POST /api/internal/messages/sweep` with `Authorization: Bearer $NOTIFICATION_AUTOMATION_TOKEN`. It also requires `MESSAGING_SCHEDULER_ENABLED=true`. Start with delivery mode disabled and all external channel flags false.
 
+Production automation uses a dedicated `cloud-core-unified-messaging-sweep` Cloud Run job and the
+`cloud-core-unified-messaging-sweep-1m` Cloud Scheduler job. The job runs
+`scripts/unified-messaging-cron.mjs` and calls only the protected canonical sweep endpoint. It is
+separate from the retained 15-minute legacy notification job.
+
+Configure the canonical job with the exact deployed application image:
+
+```sh
+UNIFIED_MESSAGING_JOB_IMAGE="REGION-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE:TAG" \
+  scripts/configure-unified-messaging-cloud-run.sh
+```
+
+The configuration script creates or updates the scheduler in a paused state by default. Verify the
+job, service flags, database write gate, queue counts, and allowlist before resuming it. Set
+`UNIFIED_MESSAGING_START_PAUSED=false` only for an already-validated rollout.
+
+When an external channel flag is off, newly materialized v2 deliveries for that channel are stored
+as `suppressed` with `<channel>_channel_disabled`; they are not left queued for a surprise late send
+when the channel is enabled later. In-app delivery remains independent.
+
 Structured JSON logs go to stdout with correlation, message, delivery, attempt, provider, outcome, duration, and retry classification fields. The logging allowlist rejects names, addresses, bodies, tokens, and signatures.
 
 Run `select public.redact_and_purge_message_audit();` from the protected retention scheduler. It redacts message bodies and rendered variables after 180 days; after 13 months it clears delivery recipients, provider IDs/payloads/errors and deletes delivery-attempt/webhook audit rows.

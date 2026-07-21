@@ -29,6 +29,15 @@ job once manually and inspect Cloud Logging before enabling member campaigns.
 The local OpenWA worker remains rollback-only. New claims also require
 `OPENWA_LEGACY_DELIVERY_ENABLED=true`; leave it false during canonical operation.
 
+## Unified messaging scheduler
+
+The canonical Phase 1/2 worker uses a separate one-minute job so its rollout can be paused or rolled
+back without changing this legacy scheduler. Configure it with
+`scripts/configure-unified-messaging-cloud-run.sh`; the script deploys
+`scripts/unified-messaging-cron.mjs` and creates the scheduler paused by default. Follow the staged
+activation and queue checks in [Unified Messaging System](./unified-messaging-system.md) before
+resuming it.
+
 ## APNs
 
 Configure the main app service with the APNs key, key ID, team ID, bundle ID, and production/sandbox
