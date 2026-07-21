@@ -72,8 +72,10 @@ capacity. A member is eligible only when all of the following are true:
 
 At most one class is selected per member in a sweep. Allowlist mode filters candidates by the member
 ID before an outbox event is created, so non-allowlisted members do not receive or accumulate a
-hidden in-app promotion. Before a delayed push is sent, the worker cancels it if the class filled,
-was cancelled, or the member booked/joined its waitlist. The message opens `/member/schedule`.
+hidden in-app promotion. `enqueue_open_class_alert` serializes reservations per member and counts
+pending as well as processed outbox rows, so concurrent sweeps cannot exceed the rolling limits.
+Before a delayed delivery is sent, the worker rechecks class/booking/waitlist state, account status,
+credits, consent, and a permission-granted APNs token. The message opens `/member/schedule`.
 
 This event intentionally has no Meta template. A future WhatsApp version must use separate explicit
 marketing consent and a separately authorized `MARKETING` template; it must not be added to the
@@ -200,7 +202,8 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 ## Exact pre-production sequence
 
 1. Back up the database and capture all legacy/canonical counts.
-2. Apply `20260720140000_unified_messaging_phases_1_2.sql` with the scheduler and channels disabled.
+2. Apply `20260720140000_unified_messaging_phases_1_2.sql` and
+   `20260721143000_open_class_alert_reservations.sql` with the scheduler and channels disabled.
 3. Validate backfill counts, preference backfill, waitlist expiry, RLS, and worker functions.
 4. Deploy the schema-compatible app with delivery mode disabled, canonical reads false, scheduler false, and all external channel flags false.
 5. Verify WABA `1009561255148806`, its connected production phone number, webhook subscription, callback GET verification, app secret, and permanent system-user token.

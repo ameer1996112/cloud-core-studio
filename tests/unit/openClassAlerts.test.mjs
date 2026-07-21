@@ -31,6 +31,21 @@ function member(overrides = {}) {
   };
 }
 
+function deliveryState(overrides = {}) {
+  return {
+    classStatus: "scheduled",
+    capacity: 10,
+    bookedCount: 5,
+    memberBooked: false,
+    memberWaitlisted: false,
+    memberStatus: "active",
+    remainingCredits: 2,
+    scheduleUpdates: true,
+    hasActivePushToken: true,
+    ...overrides,
+  };
+}
+
 describe("open-class alert planning", () => {
   test("plans one deduplicated alert for an underfilled class starting within 24 hours", () => {
     expect(
@@ -94,50 +109,17 @@ describe("open-class alert planning", () => {
   });
 
   test("cancels a delayed push if the class closes or the member already joined", () => {
-    expect(
-      shouldCancelOpenClassAlert({
-        classStatus: "scheduled",
-        capacity: 10,
-        bookedCount: 9,
-        memberBooked: false,
-        memberWaitlisted: false,
-      }),
-    ).toBe(false);
-    expect(
-      shouldCancelOpenClassAlert({
-        classStatus: "scheduled",
-        capacity: 10,
-        bookedCount: 10,
-        memberBooked: false,
-        memberWaitlisted: false,
-      }),
-    ).toBe(true);
-    expect(
-      shouldCancelOpenClassAlert({
-        classStatus: "cancelled",
-        capacity: 10,
-        bookedCount: 5,
-        memberBooked: false,
-        memberWaitlisted: false,
-      }),
-    ).toBe(true);
-    expect(
-      shouldCancelOpenClassAlert({
-        classStatus: "scheduled",
-        capacity: 10,
-        bookedCount: 5,
-        memberBooked: true,
-        memberWaitlisted: false,
-      }),
-    ).toBe(true);
-    expect(
-      shouldCancelOpenClassAlert({
-        classStatus: "scheduled",
-        capacity: 10,
-        bookedCount: 5,
-        memberBooked: false,
-        memberWaitlisted: true,
-      }),
-    ).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ bookedCount: 9 }))).toBe(false);
+    expect(shouldCancelOpenClassAlert(deliveryState({ bookedCount: 10 }))).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ classStatus: "cancelled" }))).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ memberBooked: true }))).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ memberWaitlisted: true }))).toBe(true);
+  });
+
+  test("rechecks member, consent, and device eligibility before a delayed delivery", () => {
+    expect(shouldCancelOpenClassAlert(deliveryState({ memberStatus: "inactive" }))).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ remainingCredits: 0 }))).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ scheduleUpdates: false }))).toBe(true);
+    expect(shouldCancelOpenClassAlert(deliveryState({ hasActivePushToken: false }))).toBe(true);
   });
 });

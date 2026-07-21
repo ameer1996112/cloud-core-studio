@@ -5,6 +5,7 @@ import type {
   MessageChannel,
   MessageEventType,
   MessageLanguage,
+  MessagingDeliveryPreferences,
 } from "@/lib/messaging.types";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
 import { channelsForEvent, deliveryAllowedByConsent, isQuietHours } from "@/lib/messagingPolicy";
@@ -88,11 +89,7 @@ export function materializeMessagePlan(input: {
   language: MessageLanguage;
   variables: Record<string, unknown>;
   recipients: { whatsapp?: string | null; email?: string | null };
-  preferences: {
-    whatsappEnabled?: boolean | null;
-    emailEnabled?: boolean | null;
-    scheduleUpdates?: boolean | null;
-  };
+  preferences: MessagingDeliveryPreferences;
   externalChannels: ExternalChannelAvailability;
   approvedWhatsappVariants: ReadonlySet<string>;
   now: Date;

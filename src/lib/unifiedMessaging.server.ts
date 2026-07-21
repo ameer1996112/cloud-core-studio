@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendApnsAlert } from "@/lib/apns.server";
 import { sendApnsDelivery } from "@/lib/messagingApnsAdapter.server";
-import { planOpenClassAlerts, shouldCancelOpenClassAlert } from "@/lib/openClassAlerts";
+import {
+  OPEN_CLASS_ALERT_MAX_LEAD_HOURS,
+  OPEN_CLASS_ALERT_MIN_LEAD_HOURS,
+  planOpenClassAlerts,
+  shouldCancelOpenClassAlert,
+} from "@/lib/openClassAlerts";
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
@@ -485,7 +490,14 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
   }
 
   const db = supabaseAdmin as any;
-  const [classResult, bookingResult, waitlistResult] = await Promise.all([
+  const [
+    classResult,
+    bookingResult,
+    waitlistResult,
+    memberResult,
+    preferencesResult,
+    tokensResult,
+  ] = await Promise.all([
     db
       .from("classes")
       .select("status,capacity,booked_count")
@@ -503,10 +515,30 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
       .select("id")
       .eq("member_id", message.member_id)
       .eq("class_id", message.related_class_id)
-      .in("status", ["waiting", "offered"])
+      .in("status", ["waiting", "ready", "offered", "promoted"])
+      .limit(1),
+    db.from("members").select("status,remaining_credits").eq("id", message.member_id).maybeSingle(),
+    db
+      .from("member_notification_preferences")
+      .select("schedule_updates")
+      .eq("member_id", message.member_id)
+      .maybeSingle(),
+    db
+      .from("member_push_tokens")
+      .select("id")
+      .eq("member_id", message.member_id)
+      .eq("active", true)
+      .eq("permission_status", "granted")
       .limit(1),
   ]);
-  for (const result of [classResult, bookingResult, waitlistResult]) {
+  for (const result of [
+    classResult,
+    bookingResult,
+    waitlistResult,
+    memberResult,
+    preferencesResult,
+    tokensResult,
+  ]) {
     if (result.error) throw result.error;
   }
   if (
@@ -516,6 +548,10 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
       bookedCount: classResult.data?.booked_count,
       memberBooked: Boolean(bookingResult.data?.length),
       memberWaitlisted: Boolean(waitlistResult.data?.length),
+      memberStatus: memberResult.data?.status,
+      remainingCredits: memberResult.data?.remaining_credits,
+      scheduleUpdates: preferencesResult.data?.schedule_updates === true,
+      hasActivePushToken: Boolean(tokensResult.data?.length),
     })
   ) {
     return false;
@@ -525,7 +561,7 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
     .from("message_deliveries")
     .update({
       status: "cancelled",
-      error_code: "class_no_longer_open_or_member_joined",
+      error_code: "open_class_alert_no_longer_eligible",
       lease_owner: null,
       lease_expires_at: null,
       updated_at: now.toISOString(),
@@ -607,6 +643,7 @@ async function sendPush(delivery: DeliveryRow, message: any) {
         .select("id,token")
         .in("member_id", memberIds)
         .eq("active", true)
+        .eq("permission_status", "granted")
     : { data: [], error: null };
   if (tokens.error) throw tokens.error;
   return sendApnsDelivery(
@@ -877,8 +914,12 @@ async function enqueueOpenClassAlerts(
   }
 
   const db = supabaseAdmin as any;
-  const windowStart = new Date(now.getTime() + 2 * 60 * 60_000).toISOString();
-  const windowEnd = new Date(now.getTime() + 24 * 60 * 60_000).toISOString();
+  const windowStart = new Date(
+    now.getTime() + OPEN_CLASS_ALERT_MIN_LEAD_HOURS * 60 * 60_000,
+  ).toISOString();
+  const windowEnd = new Date(
+    now.getTime() + OPEN_CLASS_ALERT_MAX_LEAD_HOURS * 60 * 60_000,
+  ).toISOString();
   const classesResult = await db
     .from("classes")
     .select("id,starts_at,status,member_visible,capacity,booked_count")
@@ -893,12 +934,27 @@ async function enqueueOpenClassAlerts(
     return { scannedClasses: 0, eligibleMembers: 0, prepared: 0 };
   }
 
-  const membersResult = await db
+  let membersQuery = db
     .from("members")
     .select("id,status,remaining_credits")
     .eq("status", "active")
-    .gt("remaining_credits", 0)
-    .limit(1_000);
+    .gt("remaining_credits", 0);
+  if (runtime.mode === "allowlist") {
+    const allowlistedMemberIds = [...runtime.recipientAllowlist].filter((value) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value),
+    );
+    if (!allowlistedMemberIds.length) {
+      return {
+        scannedClasses: classesResult.data.length,
+        eligibleMembers: 0,
+        prepared: 0,
+      };
+    }
+    membersQuery = membersQuery.in("id", allowlistedMemberIds);
+  } else {
+    membersQuery = membersQuery.limit(1_000);
+  }
+  const membersResult = await membersQuery;
   if (membersResult.error) throw membersResult.error;
   const allowedMembers = (membersResult.data ?? []).filter((member: { id: string }) =>
     runtimeAllowsRecipient(runtime, "push", member.id),
@@ -914,7 +970,7 @@ async function enqueueOpenClassAlerts(
   const memberIds = allowedMembers.map((member: { id: string }) => member.id);
   const classIds = classesResult.data.map((studioClass: { id: string }) => studioClass.id);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
-  const [preferencesResult, tokensResult, bookingsResult, waitlistResult, messagesResult] =
+  const [preferencesResult, tokensResult, bookingsResult, waitlistResult, alertsResult] =
     await Promise.all([
       db
         .from("member_notification_preferences")
@@ -937,10 +993,10 @@ async function enqueueOpenClassAlerts(
         .select("member_id,class_id")
         .in("member_id", memberIds)
         .in("class_id", classIds)
-        .in("status", ["waiting", "offered"]),
+        .in("status", ["waiting", "ready", "offered", "promoted"]),
       db
-        .from("messages")
-        .select("member_id,related_class_id,created_at")
+        .from("message_outbox")
+        .select("member_id,aggregate_id,created_at")
         .in("member_id", memberIds)
         .eq("event_type", "class_open_spots")
         .gte("created_at", sevenDaysAgo),
@@ -950,7 +1006,7 @@ async function enqueueOpenClassAlerts(
     tokensResult,
     bookingsResult,
     waitlistResult,
-    messagesResult,
+    alertsResult,
   ]) {
     if (result.error) throw result.error;
   }
@@ -981,8 +1037,8 @@ async function enqueueOpenClassAlerts(
     addClass(waitlistedByMember, row.member_id, row.class_id);
   }
   const oneDayAgo = now.getTime() - 86_400_000;
-  for (const row of messagesResult.data ?? []) {
-    if (row.related_class_id) addClass(alertedByMember, row.member_id, row.related_class_id);
+  for (const row of alertsResult.data ?? []) {
+    if (row.aggregate_id) addClass(alertedByMember, row.member_id, row.aggregate_id);
     alertsLast7Days.set(row.member_id, (alertsLast7Days.get(row.member_id) ?? 0) + 1);
     if (new Date(row.created_at).getTime() >= oneDayAgo) {
       alertsLast24Hours.set(row.member_id, (alertsLast24Hours.get(row.member_id) ?? 0) + 1);
@@ -1027,27 +1083,14 @@ async function enqueueOpenClassAlerts(
 
   let prepared = 0;
   for (const plan of plans) {
-    const result = await db
-      .from("message_outbox")
-      .upsert(
-        {
-          event_type: "class_open_spots",
-          aggregate_type: "class",
-          aggregate_id: plan.classId,
-          member_id: plan.memberId,
-          payload: {
-            class_id: plan.classId,
-            spots_available: plan.spotsAvailable,
-          },
-          deduplication_key: plan.deduplicationKey,
-          available_at: now.toISOString(),
-          expires_at: plan.startsAt,
-        },
-        { onConflict: "deduplication_key", ignoreDuplicates: true },
-      )
-      .select("id");
+    const result = await db.rpc("enqueue_open_class_alert", {
+      p_class_id: plan.classId,
+      p_member_id: plan.memberId,
+      p_spots_available: plan.spotsAvailable,
+      p_starts_at: plan.startsAt,
+    });
     if (result.error) throw result.error;
-    prepared += result.data?.length ?? 0;
+    if (result.data) prepared += 1;
   }
 
   return {

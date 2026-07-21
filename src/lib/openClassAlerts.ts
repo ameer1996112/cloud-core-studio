@@ -40,12 +40,20 @@ export function shouldCancelOpenClassAlert(input: {
   bookedCount: number | null | undefined;
   memberBooked: boolean;
   memberWaitlisted: boolean;
+  memberStatus: string | null | undefined;
+  remainingCredits: number | null | undefined;
+  scheduleUpdates: boolean;
+  hasActivePushToken: boolean;
 }) {
   return (
     input.classStatus !== "scheduled" ||
     Number(input.bookedCount ?? 0) >= Number(input.capacity ?? 0) ||
     input.memberBooked ||
-    input.memberWaitlisted
+    input.memberWaitlisted ||
+    input.memberStatus !== "active" ||
+    Number(input.remainingCredits ?? 0) <= 0 ||
+    !input.scheduleUpdates ||
+    !input.hasActivePushToken
   );
 }
 

@@ -39,3 +39,9 @@ export type DeliveryStatus =
   | "delivery_unknown";
 
 export type DeliveryFailureClass = "transient" | "permanent" | "ambiguous" | "configuration";
+
+export type MessagingDeliveryPreferences = {
+  whatsappEnabled?: boolean | null;
+  emailEnabled?: boolean | null;
+  scheduleUpdates?: boolean | null;
+};

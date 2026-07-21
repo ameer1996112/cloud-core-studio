@@ -4,6 +4,7 @@ import type {
   ExternalChannelAvailability,
   MessageChannel,
   MessageEventType,
+  MessagingDeliveryPreferences,
 } from "@/lib/messaging.types";
 
 const CHANNEL_MATRIX: Record<MessageEventType, readonly MessageChannel[]> = {
@@ -82,11 +83,7 @@ export function shouldCancelReminderForDomainState(
 export function deliveryAllowedByConsent(
   eventType: MessageEventType,
   channel: MessageChannel,
-  preferences: {
-    whatsappEnabled?: boolean | null;
-    emailEnabled?: boolean | null;
-    scheduleUpdates?: boolean | null;
-  },
+  preferences: MessagingDeliveryPreferences,
 ) {
   if (eventType === "class_open_spots") return preferences.scheduleUpdates === true;
   if (channel === "in_app" || channel === "push") return true;

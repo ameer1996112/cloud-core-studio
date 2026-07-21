@@ -33,12 +33,17 @@ describe("unified messaging database integration", () => {
         path.join(root, "supabase/migrations/20260720140000_unified_messaging_phases_1_2.sql"),
         "utf8",
       );
+      const openClassAlertMigration = await readFile(
+        path.join(root, "supabase/migrations/20260721143000_open_class_alert_reservations.sql"),
+        "utf8",
+      );
       const rollbackReconciliation = await readFile(
         path.join(root, "docs/sql/unified-messaging-rollback-reconciliation.sql"),
         "utf8",
       );
       await psql(fixture);
       await psql(migration);
+      await psql(openClassAlertMigration);
 
       expect(
         await psql("SELECT count(*) FROM public.messages WHERE legacy_source_table IS NOT NULL;"),
@@ -79,6 +84,25 @@ describe("unified messaging database integration", () => {
       const claimed = [...firstClaim.split("\n"), ...secondClaim.split("\n")].filter(Boolean);
       expect(claimed.length).toBe(12);
       expect(new Set(claimed).size).toBe(12);
+
+      await psql(`INSERT INTO public.classes VALUES (
+        '20000000-0000-0000-0000-000000000003', 'Second open class', now() + interval '1 day',
+        24, '10000000-0000-0000-0000-000000000001', 'scheduled'
+      );`);
+      const reservations = await Promise.all([
+        psql(
+          "SELECT public.enqueue_open_class_alert('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001',4,now() + interval '1 day')::text;",
+        ),
+        psql(
+          "SELECT public.enqueue_open_class_alert('20000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000001',4,now() + interval '1 day')::text;",
+        ),
+      ]);
+      expect(reservations.filter(Boolean)).toHaveLength(1);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE event_type='class_open_spots' AND member_id='00000000-0000-0000-0000-000000000001';",
+        ),
+      ).toBe("1");
 
       const leases = await Promise.all([
         psql("SELECT public.acquire_whatsapp_provisioning_lease('waba-1','owner-a',300);"),

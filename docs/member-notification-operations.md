@@ -14,7 +14,7 @@ Production uses a short-lived Cloud Run job triggered every 15 minutes by Cloud 
 calls the authenticated sweep on the main `cloud-core-studio` service and exits. This keeps reminder
 delivery hosted without coupling it to the web container or the studio Mac.
 
-Create a Secret Manager secret named `NOTIFICATION_AUTOMATION_TOKEN` with a long random value. Then
+Create a Secret Manager secret named `notification-automation-token` with a long random value. Then
 run `scripts/configure-notification-cloud-run.sh` with `NOTIFICATION_JOB_IMAGE` set to the deployed
 application image. The script:
 
