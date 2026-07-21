@@ -55,3 +55,10 @@ test("production image includes the unified messaging cron runner", async () => 
     "COPY --from=build /app/scripts/unified-messaging-cron.mjs ./scripts/unified-messaging-cron.mjs",
   );
 });
+
+test("Cloud Run setup reuses the production automation-token secret", async () => {
+  const setup = await readFile("scripts/configure-unified-messaging-cloud-run.sh", "utf8");
+  expect(setup).toContain(
+    'SECRET_NAME="${NOTIFICATION_SECRET_NAME:-NOTIFICATION_AUTOMATION_TOKEN}"',
+  );
+});
