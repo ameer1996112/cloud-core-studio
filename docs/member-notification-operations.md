@@ -14,7 +14,7 @@ Production uses a short-lived Cloud Run job triggered every 15 minutes by Cloud 
 calls the authenticated sweep on the main `cloud-core-studio` service and exits. This keeps reminder
 delivery hosted without coupling it to the web container or the studio Mac.
 
-Create a Secret Manager secret named `notification-automation-token` with a long random value. Then
+Create a Secret Manager secret named `NOTIFICATION_AUTOMATION_TOKEN` with a long random value. Then
 run `scripts/configure-notification-cloud-run.sh` with `NOTIFICATION_JOB_IMAGE` set to the deployed
 application image. The script:
 
@@ -42,6 +42,12 @@ resuming it.
 
 Configure the main app service with the APNs key, key ID, team ID, bundle ID, and production/sandbox
 environment expected by `src/lib/apns.server.ts`. Test on a real iPhone before enabling campaigns.
+In allowlist mode, add the verified member UUID to `MESSAGING_RECIPIENT_ALLOWLIST`; a phone number
+alone authorizes WhatsApp but cannot authorize an APNs delivery.
+
+Automatic `class_open_spots` alerts use the member's **New schedules and lesson openings** setting,
+require an active APNs token and remaining credits, and are limited to one alert per day and two per
+week. They do not use WhatsApp.
 
 ## Official WhatsApp
 

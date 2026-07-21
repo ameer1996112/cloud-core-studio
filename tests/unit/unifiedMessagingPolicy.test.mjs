@@ -9,6 +9,7 @@ import {
   isQuietHours,
   isWhatsappOptOut,
   resolveMessagingRuntime,
+  runtimeAllowsRecipient,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
 
@@ -16,7 +17,23 @@ describe("unified messaging delivery policy", () => {
   test("fans out each event to its approved channel matrix", () => {
     expect(channelsForEvent("booking_confirmed")).toEqual(["in_app", "push", "whatsapp", "email"]);
     expect(channelsForEvent("waitlist_joined")).toEqual(["in_app", "push"]);
+    expect(channelsForEvent("class_open_spots")).toEqual(["in_app", "push"]);
     expect(channelsForEvent("receipt_issued")).toEqual(["in_app", "email"]);
+  });
+
+  test("requires schedule-opening consent for open-class inbox and push alerts", () => {
+    expect(deliveryAllowedByConsent("class_open_spots", "in_app", { scheduleUpdates: true })).toBe(
+      true,
+    );
+    expect(deliveryAllowedByConsent("class_open_spots", "push", { scheduleUpdates: true })).toBe(
+      true,
+    );
+    expect(deliveryAllowedByConsent("class_open_spots", "in_app", { scheduleUpdates: false })).toBe(
+      false,
+    );
+    expect(deliveryAllowedByConsent("class_open_spots", "push", { scheduleUpdates: false })).toBe(
+      false,
+    );
   });
 
   test("only essential events bypass a later external opt-out", () => {
@@ -78,6 +95,22 @@ describe("unified messaging delivery policy", () => {
     ).toThrow("messaging_live_waba_confirmation_mismatch");
     expect(() => resolveMessagingRuntime({ MESSAGING_DELIVERY_MODE: "allowlist" })).toThrow(
       "messaging_allowlist_required",
+    );
+  });
+
+  test("allowlist mode independently protects WhatsApp phone and APNs member recipients", () => {
+    const runtime = resolveMessagingRuntime({
+      MESSAGING_DELIVERY_MODE: "allowlist",
+      MESSAGING_RECIPIENT_ALLOWLIST: "+972546464437,755538ce-8c17-4cf2-a732-8534bea23258",
+      MESSAGING_WHATSAPP_ENABLED: "true",
+      MESSAGING_PUSH_ENABLED: "true",
+    });
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "+972546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "push", "755538ce-8c17-4cf2-a732-8534bea23258")).toBe(
+      true,
+    );
+    expect(runtimeAllowsRecipient(runtime, "push", "00000000-0000-0000-0000-000000000000")).toBe(
+      false,
     );
   });
 

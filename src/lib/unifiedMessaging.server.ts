@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendApnsAlert } from "@/lib/apns.server";
 import { sendApnsDelivery } from "@/lib/messagingApnsAdapter.server";
+import { planOpenClassAlerts, shouldCancelOpenClassAlert } from "@/lib/openClassAlerts";
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
@@ -152,7 +153,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
   if (!locale) throw new Error(`unsupported_member_language:${member.preferred_language}`);
   const preferencesResult = await db
     .from("member_notification_preferences")
-    .select("whatsapp_enabled,email_enabled")
+    .select("whatsapp_enabled,email_enabled,schedule_updates")
     .eq("member_id", outbox.member_id)
     .maybeSingle();
   if (preferencesResult.error) throw preferencesResult.error;
@@ -240,6 +241,13 @@ async function loadOutboxContext(outbox: OutboxRow) {
   if (outbox.event_type === "payment_pending_reminder" && !variables.package_name) {
     variables.package_name = "Cloud & Core";
   }
+  if (outbox.event_type === "class_open_spots") {
+    const spotsAvailable = Number(payload.spots_available);
+    if (!Number.isFinite(spotsAvailable) || spotsAvailable < 1) {
+      throw new Error("invalid_open_class_spots_available");
+    }
+    variables.spots_available = Math.trunc(spotsAvailable);
+  }
 
   const deployments = await db
     .from("whatsapp_template_deployments")
@@ -259,6 +267,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
     preferences: {
       whatsappEnabled: preferencesResult.data?.whatsapp_enabled === true,
       emailEnabled: preferencesResult.data?.email_enabled === true,
+      scheduleUpdates: preferencesResult.data?.schedule_updates === true,
     },
     variables,
     approvedWhatsappVariants,
@@ -306,6 +315,7 @@ async function materializeOutbox(
             ...(typeof outbox.payload.receipt_id === "string"
               ? { action_url: `/receipts/${outbox.payload.receipt_id}` }
               : {}),
+            ...(outbox.event_type === "class_open_spots" ? { action_url: "/member/schedule" } : {}),
           },
           member_visible: plan.message.memberVisible,
           related_booking_id:
@@ -458,6 +468,64 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
     .update({
       status: "cancelled",
       error_code: "booking_or_class_cancelled",
+      lease_owner: null,
+      lease_expires_at: null,
+      updated_at: now.toISOString(),
+    })
+    .eq("id", delivery.id)
+    .eq("status", "sending");
+  if (cancelled.error) throw cancelled.error;
+  return true;
+}
+
+async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: any, now: Date) {
+  if (message.event_type !== "class_open_spots") return false;
+  if (!message.related_class_id || !message.member_id) {
+    throw new Error("open_class_alert_context_missing");
+  }
+
+  const db = supabaseAdmin as any;
+  const [classResult, bookingResult, waitlistResult] = await Promise.all([
+    db
+      .from("classes")
+      .select("status,capacity,booked_count")
+      .eq("id", message.related_class_id)
+      .maybeSingle(),
+    db
+      .from("bookings")
+      .select("id")
+      .eq("member_id", message.member_id)
+      .eq("class_id", message.related_class_id)
+      .in("status", ["booked", "checked_in"])
+      .limit(1),
+    db
+      .from("waitlist_entries")
+      .select("id")
+      .eq("member_id", message.member_id)
+      .eq("class_id", message.related_class_id)
+      .in("status", ["waiting", "offered"])
+      .limit(1),
+  ]);
+  for (const result of [classResult, bookingResult, waitlistResult]) {
+    if (result.error) throw result.error;
+  }
+  if (
+    !shouldCancelOpenClassAlert({
+      classStatus: classResult.data?.status,
+      capacity: classResult.data?.capacity,
+      bookedCount: classResult.data?.booked_count,
+      memberBooked: Boolean(bookingResult.data?.length),
+      memberWaitlisted: Boolean(waitlistResult.data?.length),
+    })
+  ) {
+    return false;
+  }
+
+  const cancelled = await db
+    .from("message_deliveries")
+    .update({
+      status: "cancelled",
+      error_code: "class_no_longer_open_or_member_joined",
       lease_owner: null,
       lease_expires_at: null,
       updated_at: now.toISOString(),
@@ -690,6 +758,7 @@ async function processDelivery(
     return "expired";
   }
   if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
+  if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
   if (delivery.channel === "in_app") {
     const delivered = await db
       .from("message_deliveries")
@@ -798,7 +867,201 @@ function finalReminderAt(startsAt: Date) {
     : new Date(startsAt.getTime() - 2 * 60 * 60_000);
 }
 
-async function enqueueDueCanonicalEvents(now: Date, limit: number) {
+async function enqueueOpenClassAlerts(
+  now: Date,
+  limit: number,
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
+) {
+  if (runtime.mode === "disabled" || !runtime.channels.push) {
+    return { scannedClasses: 0, eligibleMembers: 0, prepared: 0 };
+  }
+
+  const db = supabaseAdmin as any;
+  const windowStart = new Date(now.getTime() + 2 * 60 * 60_000).toISOString();
+  const windowEnd = new Date(now.getTime() + 24 * 60 * 60_000).toISOString();
+  const classesResult = await db
+    .from("classes")
+    .select("id,starts_at,status,member_visible,capacity,booked_count")
+    .eq("status", "scheduled")
+    .eq("member_visible", true)
+    .gte("starts_at", windowStart)
+    .lte("starts_at", windowEnd)
+    .order("starts_at", { ascending: true })
+    .limit(Math.max(25, limit * 4));
+  if (classesResult.error) throw classesResult.error;
+  if (!classesResult.data?.length) {
+    return { scannedClasses: 0, eligibleMembers: 0, prepared: 0 };
+  }
+
+  const membersResult = await db
+    .from("members")
+    .select("id,status,remaining_credits")
+    .eq("status", "active")
+    .gt("remaining_credits", 0)
+    .limit(1_000);
+  if (membersResult.error) throw membersResult.error;
+  const allowedMembers = (membersResult.data ?? []).filter((member: { id: string }) =>
+    runtimeAllowsRecipient(runtime, "push", member.id),
+  );
+  if (!allowedMembers.length) {
+    return {
+      scannedClasses: classesResult.data.length,
+      eligibleMembers: 0,
+      prepared: 0,
+    };
+  }
+
+  const memberIds = allowedMembers.map((member: { id: string }) => member.id);
+  const classIds = classesResult.data.map((studioClass: { id: string }) => studioClass.id);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
+  const [preferencesResult, tokensResult, bookingsResult, waitlistResult, messagesResult] =
+    await Promise.all([
+      db
+        .from("member_notification_preferences")
+        .select("member_id,schedule_updates")
+        .in("member_id", memberIds),
+      db
+        .from("member_push_tokens")
+        .select("member_id")
+        .in("member_id", memberIds)
+        .eq("active", true)
+        .eq("permission_status", "granted"),
+      db
+        .from("bookings")
+        .select("member_id,class_id")
+        .in("member_id", memberIds)
+        .in("class_id", classIds)
+        .in("status", ["booked", "checked_in"]),
+      db
+        .from("waitlist_entries")
+        .select("member_id,class_id")
+        .in("member_id", memberIds)
+        .in("class_id", classIds)
+        .in("status", ["waiting", "offered"]),
+      db
+        .from("messages")
+        .select("member_id,related_class_id,created_at")
+        .in("member_id", memberIds)
+        .eq("event_type", "class_open_spots")
+        .gte("created_at", sevenDaysAgo),
+    ]);
+  for (const result of [
+    preferencesResult,
+    tokensResult,
+    bookingsResult,
+    waitlistResult,
+    messagesResult,
+  ]) {
+    if (result.error) throw result.error;
+  }
+
+  const preferences = new Map<string, boolean>(
+    (preferencesResult.data ?? []).map((row: { member_id: string; schedule_updates: boolean }) => [
+      row.member_id,
+      row.schedule_updates === true,
+    ]),
+  );
+  const pushMembers = new Set<string>(
+    (tokensResult.data ?? []).map((row: { member_id: string }) => row.member_id),
+  );
+  const bookedByMember = new Map<string, Set<string>>();
+  const waitlistedByMember = new Map<string, Set<string>>();
+  const alertedByMember = new Map<string, Set<string>>();
+  const alertsLast24Hours = new Map<string, number>();
+  const alertsLast7Days = new Map<string, number>();
+  const addClass = (target: Map<string, Set<string>>, memberId: string, classId: string) => {
+    const values = target.get(memberId) ?? new Set<string>();
+    values.add(classId);
+    target.set(memberId, values);
+  };
+  for (const row of bookingsResult.data ?? []) {
+    addClass(bookedByMember, row.member_id, row.class_id);
+  }
+  for (const row of waitlistResult.data ?? []) {
+    addClass(waitlistedByMember, row.member_id, row.class_id);
+  }
+  const oneDayAgo = now.getTime() - 86_400_000;
+  for (const row of messagesResult.data ?? []) {
+    if (row.related_class_id) addClass(alertedByMember, row.member_id, row.related_class_id);
+    alertsLast7Days.set(row.member_id, (alertsLast7Days.get(row.member_id) ?? 0) + 1);
+    if (new Date(row.created_at).getTime() >= oneDayAgo) {
+      alertsLast24Hours.set(row.member_id, (alertsLast24Hours.get(row.member_id) ?? 0) + 1);
+    }
+  }
+
+  const plans = planOpenClassAlerts({
+    now,
+    limit,
+    classes: classesResult.data.map(
+      (studioClass: {
+        id: string;
+        starts_at: string;
+        status: string;
+        member_visible: boolean;
+        capacity: number;
+        booked_count: number;
+      }) => ({
+        id: studioClass.id,
+        startsAt: studioClass.starts_at,
+        status: studioClass.status,
+        memberVisible: studioClass.member_visible,
+        capacity: studioClass.capacity,
+        bookedCount: studioClass.booked_count,
+      }),
+    ),
+    members: allowedMembers.map(
+      (member: { id: string; status: string; remaining_credits: number }) => ({
+        id: member.id,
+        status: member.status,
+        remainingCredits: Number(member.remaining_credits ?? 0),
+        scheduleUpdates: preferences.get(member.id) === true,
+        hasActivePushToken: pushMembers.has(member.id),
+        bookedClassIds: bookedByMember.get(member.id) ?? new Set<string>(),
+        waitlistedClassIds: waitlistedByMember.get(member.id) ?? new Set<string>(),
+        alertedClassIds: alertedByMember.get(member.id) ?? new Set<string>(),
+        alertsLast24Hours: alertsLast24Hours.get(member.id) ?? 0,
+        alertsLast7Days: alertsLast7Days.get(member.id) ?? 0,
+      }),
+    ),
+  });
+
+  let prepared = 0;
+  for (const plan of plans) {
+    const result = await db
+      .from("message_outbox")
+      .upsert(
+        {
+          event_type: "class_open_spots",
+          aggregate_type: "class",
+          aggregate_id: plan.classId,
+          member_id: plan.memberId,
+          payload: {
+            class_id: plan.classId,
+            spots_available: plan.spotsAvailable,
+          },
+          deduplication_key: plan.deduplicationKey,
+          available_at: now.toISOString(),
+          expires_at: plan.startsAt,
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      )
+      .select("id");
+    if (result.error) throw result.error;
+    prepared += result.data?.length ?? 0;
+  }
+
+  return {
+    scannedClasses: classesResult.data.length,
+    eligibleMembers: allowedMembers.length,
+    prepared,
+  };
+}
+
+async function enqueueDueCanonicalEvents(
+  now: Date,
+  limit: number,
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
+) {
   const db = supabaseAdmin as any;
   const horizon = new Date(now.getTime() + 72 * 60 * 60_000).toISOString();
   const bookings = await db
@@ -872,7 +1135,12 @@ async function enqueueDueCanonicalEvents(now: Date, limit: number) {
     );
     if (result.error) throw result.error;
   }
-  return { reminders, paymentReminders: pendingPayments.data?.length ?? 0 };
+  const openClassAlerts = await enqueueOpenClassAlerts(now, limit, runtime);
+  return {
+    reminders,
+    paymentReminders: pendingPayments.data?.length ?? 0,
+    openClassAlerts,
+  };
 }
 
 export function normalizeUnifiedMessagingSweepLimit(value: unknown) {
@@ -952,7 +1220,7 @@ export async function runUnifiedMessagingSweep(input?: {
   const externalChannels =
     runtime.mode === "disabled" ? { whatsapp: false, email: false, push: false } : runtime.channels;
   const disabledBacklogSuppressed = await suppressDisabledExternalDeliveryBacklog(externalChannels);
-  const scheduled = await enqueueDueCanonicalEvents(now, limit);
+  const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
     p_limit: limit,

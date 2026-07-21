@@ -88,7 +88,11 @@ export function materializeMessagePlan(input: {
   language: MessageLanguage;
   variables: Record<string, unknown>;
   recipients: { whatsapp?: string | null; email?: string | null };
-  preferences: { whatsappEnabled?: boolean | null; emailEnabled?: boolean | null };
+  preferences: {
+    whatsappEnabled?: boolean | null;
+    emailEnabled?: boolean | null;
+    scheduleUpdates?: boolean | null;
+  };
   externalChannels: ExternalChannelAvailability;
   approvedWhatsappVariants: ReadonlySet<string>;
   now: Date;

@@ -56,6 +56,29 @@ Waitlist deliveries inherit `offer_expires_at`; no retry is scheduled at or beyo
 
 Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged.
 
+### Open-class iPhone alerts
+
+`class_open_spots` is a push-first schedule-opening event. It creates independent in-app and APNs
+deliveries and never creates a WhatsApp or email delivery. The one-minute canonical sweep considers
+only scheduled, member-visible classes starting 2–24 hours from the sweep and at no more than 70%
+capacity. A member is eligible only when all of the following are true:
+
+- the account is active, has remaining credits, and has an active permission-granted iPhone token;
+- the member enabled the existing **New schedules and lesson openings** preference;
+- the member is neither booked nor waitlisted for that class;
+- that member/class pair has not already been alerted; and
+- the member has received fewer than one open-class alert in 24 hours and fewer than two in seven
+  days.
+
+At most one class is selected per member in a sweep. Allowlist mode filters candidates by the member
+ID before an outbox event is created, so non-allowlisted members do not receive or accumulate a
+hidden in-app promotion. Before a delayed push is sent, the worker cancels it if the class filled,
+was cancelled, or the member booked/joined its waitlist. The message opens `/member/schedule`.
+
+This event intentionally has no Meta template. A future WhatsApp version must use separate explicit
+marketing consent and a separately authorized `MARKETING` template; it must not be added to the
+existing utility template catalog.
+
 ## Delivery states and retries
 
 Canonical states are `queued`, `sending`, `accepted`, `sent`, `delivered`, `read`, `failed`, `dead_letter`, `suppressed`, `expired`, `cancelled`, and `delivery_unknown`.
@@ -133,6 +156,9 @@ job, service flags, database write gate, queue counts, and allowlist before resu
 When an external channel flag is off, newly materialized v2 deliveries for that channel are stored
 as `suppressed` with `<channel>_channel_disabled`; they are not left queued for a surprise late send
 when the channel is enabled later. In-app delivery remains independent.
+
+For push allowlist testing, include the verified member UUID in `MESSAGING_RECIPIENT_ALLOWLIST` in
+addition to any WhatsApp phone number. Push delivery addresses are member UUIDs, not phone numbers.
 
 Structured JSON logs go to stdout with correlation, message, delivery, attempt, provider, outcome, duration, and retry classification fields. The logging allowlist rejects names, addresses, bodies, tokens, and signatures.
 

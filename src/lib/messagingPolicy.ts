@@ -13,6 +13,7 @@ const CHANNEL_MATRIX: Record<MessageEventType, readonly MessageChannel[]> = {
   class_time_changed: ["in_app", "push", "whatsapp", "email"],
   class_reminder_planning: ["in_app", "push", "whatsapp"],
   class_reminder_final: ["in_app", "push", "whatsapp"],
+  class_open_spots: ["in_app", "push"],
   waitlist_joined: ["in_app", "push"],
   waitlist_spot_available: ["in_app", "push", "whatsapp"],
   payment_request_received: ["in_app", "push", "email"],
@@ -81,8 +82,13 @@ export function shouldCancelReminderForDomainState(
 export function deliveryAllowedByConsent(
   eventType: MessageEventType,
   channel: MessageChannel,
-  preferences: { whatsappEnabled?: boolean | null; emailEnabled?: boolean | null },
+  preferences: {
+    whatsappEnabled?: boolean | null;
+    emailEnabled?: boolean | null;
+    scheduleUpdates?: boolean | null;
+  },
 ) {
+  if (eventType === "class_open_spots") return preferences.scheduleUpdates === true;
   if (channel === "in_app" || channel === "push") return true;
   if (isEssentialMessageEvent(eventType)) return true;
   if (channel === "whatsapp") return preferences.whatsappEnabled === true;

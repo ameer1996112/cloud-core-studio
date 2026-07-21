@@ -7,6 +7,7 @@ export type MessageEventType =
   | "class_time_changed"
   | "class_reminder_planning"
   | "class_reminder_final"
+  | "class_open_spots"
   | "waitlist_joined"
   | "waitlist_spot_available"
   | "payment_request_received"

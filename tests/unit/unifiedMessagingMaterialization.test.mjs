@@ -73,6 +73,48 @@ describe("outbox message materialization", () => {
     });
   });
 
+  test("materializes open-class alerts as consented inbox and APNs deliveries only", () => {
+    const eligible = materializeMessagePlan({
+      ...base,
+      eventType: "class_open_spots",
+      deduplicationKey: "class:class-1:open-spots:member:member-1",
+      preferences: { ...base.preferences, scheduleUpdates: true },
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        spots_available: "3",
+      },
+    });
+    expect(eligible.deliveries.map((delivery) => delivery.channel)).toEqual(["in_app", "push"]);
+    expect(eligible.deliveries.every((delivery) => delivery.status === "queued")).toBe(true);
+    expect(eligible.deliveries.find((delivery) => delivery.channel === "push")?.provider).toBe(
+      "apns",
+    );
+
+    const optedOut = materializeMessagePlan({
+      ...base,
+      eventType: "class_open_spots",
+      deduplicationKey: "class:class-1:open-spots:member:member-2",
+      preferences: { ...base.preferences, scheduleUpdates: false },
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        spots_available: "3",
+      },
+    });
+    expect(optedOut.deliveries.every((delivery) => delivery.status === "suppressed")).toBe(true);
+    expect(
+      optedOut.deliveries.every(
+        (delivery) =>
+          delivery.errorCode === "in_app_opted_out" || delivery.errorCode === "push_opted_out",
+      ),
+    ).toBe(true);
+  });
+
   test("expires every waitlist delivery at the offer claim deadline", () => {
     const expiresAt = new Date("2026-07-20T10:15:00.000Z");
     const result = materializeMessagePlan({
