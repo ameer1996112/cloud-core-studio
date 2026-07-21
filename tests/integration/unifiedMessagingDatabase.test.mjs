@@ -186,7 +186,9 @@ describe("unified messaging database integration", () => {
       SELECT count(*) FROM public.messages;
       RESET ROLE;
     `);
-      expect(memberVisible.split("\n").find((line) => /^\d+$/.test(line))).toBe("1");
+      // The member can see the backfilled inbox row plus the premium message
+      // inserted above, but not the member-invisible legacy notification log.
+      expect(memberVisible.split("\n").find((line) => /^\d+$/.test(line))).toBe("2");
 
       await psql(rollbackReconciliation, ["-v", "cutover_at=2000-01-01T00:00:00Z"]);
       expect(
