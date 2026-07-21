@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   META_TEMPLATE_CATALOG,
+  MESSAGE_CONTENT_CATALOG,
   getMetaTemplateVariant,
   renderMessageContent,
   validateMessageContentCatalog,
   validateMetaTemplateCatalog,
 } from "../../src/lib/messageTemplateCatalog.ts";
+import { NOTIFICATION_EVENT_CATALOG } from "../../src/lib/premiumNotificationCatalog.ts";
 
 describe("unified messaging template catalog", () => {
   test("uses one versioned semantic template name across every supported language", () => {
@@ -44,7 +46,7 @@ describe("unified messaging template catalog", () => {
 
     expect(renderMessageContent("class_open_spots", "he", variables)).toMatchObject({
       subject: "נשארו מקומות בשיעור",
-      body: "נועה, נשארו 3 מקומות בפילאטיס מזרן ב-22/07/2026 בשעה 18:00. אפשר להירשם עכשיו באפליקציה.",
+      body: "נועה, נשארו 3 מקומות בפילאטיס מזרן ב-22/07/2026 בשעה 18:00. כל הפרטים והאפשרויות מחכים לך באפליקציה.",
       metaTemplate: null,
     });
     expect(renderMessageContent("class_open_spots", "ar", variables).subject).toBe(
@@ -54,5 +56,15 @@ describe("unified messaging template catalog", () => {
       "Open spots in class",
     );
     expect(getMetaTemplateVariant("class_open_spots", "he")).toBeUndefined();
+  });
+
+  test("has localized in-app and push copy for every premium event while draft events stay out of Meta", () => {
+    expect(Object.keys(MESSAGE_CONTENT_CATALOG).sort()).toEqual(
+      Object.keys(NOTIFICATION_EVENT_CATALOG).sort(),
+    );
+    const approvedMetaEvents = new Set(META_TEMPLATE_CATALOG.map((variant) => variant.eventType));
+    for (const [eventType, definition] of Object.entries(NOTIFICATION_EVENT_CATALOG)) {
+      if (definition.copyStatus === "draft") expect(approvedMetaEvents.has(eventType)).toBe(false);
+    }
   });
 });

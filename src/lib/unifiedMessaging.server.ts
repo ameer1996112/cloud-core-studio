@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendApnsAlert } from "@/lib/apns.server";
-import { sendApnsDelivery } from "@/lib/messagingApnsAdapter.server";
+import { configuredApnsEnvironment, sendApnsAlert } from "@/lib/apns.server";
+import { ApnsPersistenceUncertainError, sendApnsDelivery } from "@/lib/messagingApnsAdapter.server";
 import {
   OPEN_CLASS_ALERT_MAX_LEAD_HOURS,
   OPEN_CLASS_ALERT_MIN_LEAD_HOURS,
@@ -22,6 +22,7 @@ import {
   computeDeliveryRetry,
   isEssentialMessageEvent,
   resolveMessagingRuntime,
+  runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
   shouldCancelReminderForDomainState,
 } from "@/lib/messagingPolicy";
@@ -32,6 +33,11 @@ import {
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
+import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
+import {
+  mapMemberNotificationPreferences,
+  readMemberNotificationPreferences,
+} from "@/lib/memberNotificationPreferences";
 
 type OutboxRow = {
   id: string;
@@ -101,6 +107,23 @@ function relation<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 }
 
+function notificationDeepLink(outbox: OutboxRow) {
+  const payload = outbox.payload ?? {};
+  if (typeof payload.receipt_id === "string") return `/receipts/${payload.receipt_id}`;
+  if (typeof payload.class_id === "string") return `/member/schedule?class=${payload.class_id}`;
+  if (outbox.event_type.startsWith("booking_")) return "/member/bookings";
+  if (
+    outbox.event_type.startsWith("payment_") ||
+    outbox.event_type.startsWith("membership_") ||
+    outbox.event_type.startsWith("subscription_") ||
+    outbox.event_type.startsWith("credits_")
+  ) {
+    return "/member/packages";
+  }
+  if (outbox.event_type.startsWith("waitlist_")) return "/member/schedule";
+  return "/member";
+}
+
 async function createAdminAlert(input: {
   idempotencyKey: string;
   subject: string;
@@ -149,19 +172,16 @@ async function loadOutboxContext(outbox: OutboxRow) {
   const db = supabaseAdmin as any;
   const memberResult = await db
     .from("members")
-    .select("id,name,phone,email,preferred_language,status")
+    .select("id,name,phone,email,preferred_language,status,remaining_credits")
     .eq("id", outbox.member_id)
     .single();
   if (memberResult.error) throw memberResult.error;
   const member = memberResult.data;
   const locale = language(member.preferred_language);
   if (!locale) throw new Error(`unsupported_member_language:${member.preferred_language}`);
-  const preferencesResult = await db
-    .from("member_notification_preferences")
-    .select("whatsapp_enabled,email_enabled,schedule_updates")
-    .eq("member_id", outbox.member_id)
-    .maybeSingle();
+  const preferencesResult = await readMemberNotificationPreferences(db, outbox.member_id);
   if (preferencesResult.error) throw preferencesResult.error;
+  const mappedPreferences = mapMemberNotificationPreferences(preferencesResult.data);
 
   const payload = outbox.payload ?? {};
   const classId = typeof payload.class_id === "string" ? payload.class_id : null;
@@ -172,6 +192,22 @@ async function loadOutboxContext(outbox: OutboxRow) {
   const subscriptionId =
     typeof payload.subscription_id === "string" ? payload.subscription_id : null;
   const variables: Record<string, unknown> = { member_name: member.name };
+  if (member.remaining_credits != null) {
+    variables.credits_remaining = Math.max(0, Number(member.remaining_credits));
+  }
+
+  for (const key of ["location_name", "package_name"] as const) {
+    if (typeof payload[key] === "string" && payload[key].trim()) variables[key] = payload[key];
+  }
+  if (payload.waitlist_position != null && Number.isFinite(Number(payload.waitlist_position))) {
+    variables.waitlist_position = Math.max(1, Math.trunc(Number(payload.waitlist_position)));
+  }
+  for (const key of ["expiry_date", "renewal_date"] as const) {
+    if (typeof payload[key] !== "string") continue;
+    const parsed = new Date(payload[key]);
+    if (!Number.isNaN(parsed.getTime()))
+      variables[key] = localizedDate(parsed.toISOString(), locale);
+  }
 
   if (classId) {
     const classResult = await db
@@ -270,9 +306,20 @@ async function loadOutboxContext(outbox: OutboxRow) {
     locale,
     member,
     preferences: {
-      whatsappEnabled: preferencesResult.data?.whatsapp_enabled === true,
-      emailEnabled: preferencesResult.data?.email_enabled === true,
-      scheduleUpdates: preferencesResult.data?.schedule_updates === true,
+      whatsappEnabled: mappedPreferences.whatsappEnabled,
+      emailEnabled: mappedPreferences.emailEnabled,
+      scheduleUpdates: mappedPreferences.scheduleUpdates,
+      classOperations: mappedPreferences.classOperationsEnabled,
+      classReminders: mappedPreferences.classRemindersEnabled,
+      scheduleOpenings: mappedPreferences.scheduleOpeningsEnabled,
+      waitlist: mappedPreferences.waitlistEnabled,
+      payments: mappedPreferences.paymentsEnabled,
+      membership: mappedPreferences.membershipEnabled,
+      staffReplies: mappedPreferences.staffRepliesEnabled,
+      recommendations: mappedPreferences.recommendationsEnabled,
+      marketing: mappedPreferences.marketing,
+      sound: mappedPreferences.sound,
+      timeSensitive: mappedPreferences.timeSensitiveEnabled,
     },
     variables,
     approvedWhatsappVariants,
@@ -283,9 +330,63 @@ async function materializeOutbox(
   outbox: OutboxRow,
   now: Date,
   externalChannels: ExternalChannelAvailability,
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
 ) {
   const db = supabaseAdmin as any;
   try {
+    const definition = notificationDefinition(outbox.event_type);
+    let enabledChannels: ReadonlySet<MessageChannel> | undefined;
+    const rollout = await db
+      .from("notification_event_rollouts")
+      .select("enabled,copy_reviewed,allowlist_only,enabled_channels")
+      .eq("event_type", outbox.event_type)
+      .maybeSingle();
+    if (rollout.error) throw rollout.error;
+    let rolloutRecipientAllowed = true;
+    if (runtime.mode === "allowlist" || rollout.data?.allowlist_only) {
+      const member = await db
+        .from("members")
+        .select("phone,email")
+        .eq("id", outbox.member_id)
+        .maybeSingle();
+      if (member.error) throw member.error;
+      rolloutRecipientAllowed = runtimeAllowsRolloutRecipient(runtime, [
+        outbox.member_id,
+        member.data?.phone,
+        member.data?.email,
+      ]);
+    }
+    const allowed = rollout.data
+      ? rollout.data.enabled === true &&
+        rollout.data.copy_reviewed === true &&
+        (!rollout.data.allowlist_only ||
+          (runtime.mode === "allowlist" && rolloutRecipientAllowed)) &&
+        (runtime.mode !== "allowlist" || rolloutRecipientAllowed)
+      : definition.defaultEnabled && (runtime.mode !== "allowlist" || rolloutRecipientAllowed);
+    if (!allowed) {
+      const suppressed = await db
+        .from("message_outbox")
+        .update({
+          processed_at: now.toISOString(),
+          claimed_at: null,
+          claimed_by: null,
+          last_error: "premium_event_rollout_disabled",
+          updated_at: now.toISOString(),
+        })
+        .eq("id", outbox.id);
+      if (suppressed.error) throw suppressed.error;
+      return { ok: true as const, suppressed: "premium_event_rollout_disabled" as const };
+    }
+    if (rollout.data) {
+      const configuredChannels = Array.isArray(rollout.data.enabled_channels)
+        ? rollout.data.enabled_channels
+        : [];
+      enabledChannels = new Set<MessageChannel>(
+        configuredChannels.filter((channel: string): channel is MessageChannel =>
+          ["in_app", "push", "email", "whatsapp"].includes(channel),
+        ),
+      );
+    }
     const context = await loadOutboxContext(outbox);
     const plan = materializeMessagePlan({
       outboxId: outbox.id,
@@ -298,9 +399,39 @@ async function materializeOutbox(
       preferences: context.preferences,
       externalChannels,
       approvedWhatsappVariants: context.approvedWhatsappVariants,
+      enabledChannels,
       now,
       expiresAt: outbox.expires_at ? new Date(outbox.expires_at) : null,
     });
+    if (
+      definition.frequencyPolicy === "promotional" &&
+      plan.deliveries.some((delivery) => delivery.status === "queued")
+    ) {
+      const reservation = await db.rpc("reserve_promotional_notification", {
+        p_outbox_id: outbox.id,
+        p_member_id: outbox.member_id,
+        p_event_type: outbox.event_type,
+        p_now: now.toISOString(),
+      });
+      if (reservation.error) throw reservation.error;
+      if (reservation.data !== true) {
+        const capped = await db
+          .from("message_outbox")
+          .update({
+            processed_at: now.toISOString(),
+            claimed_at: null,
+            claimed_by: null,
+            last_error: "promotional_frequency_cap",
+            updated_at: now.toISOString(),
+          })
+          .eq("id", outbox.id);
+        if (capped.error) throw capped.error;
+        return { ok: true as const, suppressed: "promotional_frequency_cap" as const };
+      }
+    }
+    const deepLink = notificationDeepLink(outbox);
+    const threadKey = `${plan.message.notificationFamily}:${outbox.aggregate_id ?? outbox.member_id}`;
+    const collapseKey = `${outbox.event_type}:${outbox.aggregate_id ?? outbox.member_id}`;
     const message = await db
       .from("messages")
       .upsert(
@@ -317,11 +448,18 @@ async function materializeOutbox(
           body: plan.message.body,
           content: {
             variables: context.variables,
-            ...(typeof outbox.payload.receipt_id === "string"
-              ? { action_url: `/receipts/${outbox.payload.receipt_id}` }
-              : {}),
-            ...(outbox.event_type === "class_open_spots" ? { action_url: "/member/schedule" } : {}),
+            action_url: deepLink,
           },
+          notification_family: plan.message.notificationFamily,
+          notification_tier: plan.message.notificationTier,
+          preference_key: plan.message.preferenceKey,
+          deep_link: deepLink,
+          action_schema: plan.message.actions,
+          thread_key: threadKey,
+          collapse_key: collapseKey,
+          interruption_level: plan.message.interruptionLevel,
+          sound_key: plan.message.soundKey,
+          badge_eligible: true,
           member_visible: plan.message.memberVisible,
           related_booking_id:
             typeof outbox.payload.booking_id === "string" ? outbox.payload.booking_id : null,
@@ -520,7 +658,7 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
     db.from("members").select("status,remaining_credits").eq("id", message.member_id).maybeSingle(),
     db
       .from("member_notification_preferences")
-      .select("schedule_updates")
+      .select("schedule_updates,marketing,package_reminders")
       .eq("member_id", message.member_id)
       .maybeSingle(),
     db
@@ -529,6 +667,9 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
       .eq("member_id", message.member_id)
       .eq("active", true)
       .eq("permission_status", "granted")
+      .eq("apns_environment", configuredApnsEnvironment())
+      .is("logged_out_at", null)
+      .gt("stale_after", now.toISOString())
       .limit(1),
   ]);
   for (const result of [
@@ -551,6 +692,9 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
       memberStatus: memberResult.data?.status,
       remainingCredits: memberResult.data?.remaining_credits,
       scheduleUpdates: preferencesResult.data?.schedule_updates === true,
+      zeroCreditUpsellConsent:
+        preferencesResult.data?.marketing === true ||
+        preferencesResult.data?.package_reminders === true,
       hasActivePushToken: Boolean(tokensResult.data?.length),
     })
   ) {
@@ -627,44 +771,223 @@ async function alertRecoveredStaleWhatsappDeliveries() {
   }
 }
 
-async function sendPush(delivery: DeliveryRow, message: any) {
+async function sendPush(
+  delivery: DeliveryRow,
+  message: any,
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
+) {
   const db = supabaseAdmin as any;
-  let memberIds: string[] = [];
-  if (delivery.recipient_address === "admin_group") {
-    const admins = await db.from("profiles").select("id").eq("role", "admin");
-    if (admins.error) throw admins.error;
-    memberIds = (admins.data ?? []).map((admin: { id: string }) => admin.id);
+  const isAdminGroup = delivery.recipient_address === "admin_group";
+  const nowIso = new Date().toISOString();
+  const environment = configuredApnsEnvironment();
+  const verifiedJoin = "notification_staff_test_devices!inner(id,revoked_at)";
+  let tokens;
+  if (isAdminGroup) {
+    let query = db
+      .from("admin_push_tokens")
+      .select(
+        runtime.mode === "allowlist"
+          ? `id,token,user_id,profiles!inner(role),${verifiedJoin}`
+          : "id,token,user_id,profiles!inner(role)",
+      )
+      .eq("active", true)
+      .eq("platform", "ios")
+      .eq("apns_environment", environment)
+      .eq("profiles.role", "admin")
+      .gt("last_seen_at", new Date(Date.now() - 90 * 24 * 60 * 60_000).toISOString());
+    if (runtime.mode === "allowlist") {
+      query = query.is("notification_staff_test_devices.revoked_at", null);
+    }
+    tokens = await query;
   } else if (delivery.recipient_address) {
-    memberIds = [delivery.recipient_address];
+    let query = db
+      .from("member_push_tokens")
+      .select(
+        runtime.mode === "allowlist"
+          ? `id,token,member_id,installation_id,${verifiedJoin}`
+          : "id,token,member_id,installation_id",
+      )
+      .eq("member_id", delivery.recipient_address)
+      .eq("active", true)
+      .eq("permission_status", "granted")
+      .eq("apns_environment", environment)
+      .is("logged_out_at", null)
+      .gt("stale_after", nowIso);
+    if (runtime.mode === "allowlist") {
+      query = query.is("notification_staff_test_devices.revoked_at", null);
+    }
+    tokens = await query;
+  } else {
+    tokens = { data: [], error: null };
   }
-  const tokens = memberIds.length
-    ? await db
-        .from("member_push_tokens")
-        .select("id,token")
-        .in("member_id", memberIds)
-        .eq("active", true)
-        .eq("permission_status", "granted")
-    : { data: [], error: null };
   if (tokens.error) throw tokens.error;
-  return sendApnsDelivery(
-    (tokens.data ?? []) as Array<{ id: string; token: string }>,
-    {
-      title: message.subject ?? "Cloud & Core",
-      body: message.body ?? "",
-      notificationId: message.id,
-      url: message.content?.action_url,
-    },
-    {
-      send: sendApnsAlert,
-      deactivate: async (tokenId) => {
-        const deactivated = await db
-          .from("member_push_tokens")
-          .update({ active: false, updated_at: new Date().toISOString() })
-          .eq("id", tokenId);
-        if (deactivated.error) throw deactivated.error;
+  const activeTokens = (tokens.data ?? []).map((token: any) => ({
+    id: token.id as string,
+    token: token.token as string,
+    ownerId: (isAdminGroup ? token.user_id : token.member_id) as string,
+  }));
+  if (!activeTokens.length) {
+    return sendApnsDelivery(
+      [],
+      { title: "", body: "" },
+      {
+        send: sendApnsAlert,
+        deactivate: async () => {},
       },
-    },
+    );
+  }
+
+  const tokenColumn = isAdminGroup ? "admin_push_token_id" : "push_token_id";
+  const ownerColumn = isAdminGroup ? "admin_user_id" : "member_id";
+  const seededTargets = await db.from("message_delivery_targets").upsert(
+    activeTokens.map((token: any) => ({
+      delivery_id: delivery.id,
+      [tokenColumn]: token.id,
+      [ownerColumn]: token.ownerId,
+      status: "queued",
+    })),
+    { onConflict: `delivery_id,${tokenColumn}`, ignoreDuplicates: true },
   );
+  if (seededTargets.error) throw seededTargets.error;
+  const targets = await db
+    .from("message_delivery_targets")
+    .select(`${tokenColumn},status,provider_message_id`)
+    .eq("delivery_id", delivery.id);
+  if (targets.error) throw targets.error;
+  const targetByToken = new Map<string, { status: string; provider_message_id: string | null }>(
+    (targets.data ?? []).map((target: any) => [target[tokenColumn], target]),
+  );
+  const pendingTokens = activeTokens.filter(
+    (token: any) =>
+      !["sent", "device_received", "delivery_unknown"].includes(
+        targetByToken.get(token.id)?.status ?? "queued",
+      ),
+  );
+  if (!pendingTokens.length) {
+    const providerMessageId = [...targetByToken.values()].find(
+      (target) => target.provider_message_id,
+    )?.provider_message_id;
+    return {
+      ok: true as const,
+      providerMessageId: providerMessageId ?? null,
+      status: "sent" as const,
+    };
+  }
+
+  const sending = await db
+    .from("message_delivery_targets")
+    .update({
+      status: "sending",
+      attempt_count: delivery.attempt_count,
+      last_attempt_at: nowIso,
+      updated_at: nowIso,
+    })
+    .eq("delivery_id", delivery.id)
+    .in(
+      tokenColumn,
+      pendingTokens.map((token: any) => token.id),
+    );
+  if (sending.error) throw sending.error;
+
+  let badge: number | undefined;
+  if (!isAdminGroup && delivery.recipient_address) {
+    const unread = await db
+      .from("message_deliveries")
+      .select("id,messages!inner(member_id)", { count: "exact", head: true })
+      .eq("channel", "in_app")
+      .eq("messages.member_id", delivery.recipient_address)
+      .is("read_at", null)
+      .neq("status", "suppressed");
+    if (!unread.error && typeof unread.count === "number") badge = Math.max(0, unread.count);
+  }
+
+  const category = notificationCategory(
+    message.event_type as MessageEventType,
+    Array.isArray(message.action_schema) ? message.action_schema : undefined,
+  );
+  try {
+    return await sendApnsDelivery(
+      pendingTokens,
+      {
+        title: message.subject ?? "Cloud & Core",
+        body: message.body ?? "",
+        notificationId: message.id,
+        url: message.deep_link ?? message.content?.action_url,
+        ...(badge == null ? {} : { badge }),
+        sound:
+          message.sound_key === "none"
+            ? false
+            : message.sound_key === "brand_important"
+              ? "cloud_core_important.caf"
+              : true,
+        category,
+        threadId: message.thread_key ?? undefined,
+        interruptionLevel: message.interruption_level ?? "active",
+        relevanceScore: message.notification_tier === "critical" ? 1 : 0.5,
+        actions: Array.isArray(message.action_schema) ? message.action_schema : [],
+        collapseId: message.collapse_key ?? undefined,
+        expiresAt: delivery.expires_at ? new Date(delivery.expires_at) : undefined,
+        ...(typeof message.content?.image_url === "string"
+          ? { imageUrl: message.content.image_url, mutableContent: true }
+          : {}),
+      },
+      {
+        send: sendApnsAlert,
+        deactivate: async (tokenId) => {
+          const deactivated = await db
+            .from(isAdminGroup ? "admin_push_tokens" : "member_push_tokens")
+            .update({ active: false, updated_at: new Date().toISOString() })
+            .eq("id", tokenId);
+          if (deactivated.error) throw deactivated.error;
+        },
+        report: async (outcome) => {
+          const reportedAt = new Date().toISOString();
+          const targetStatus =
+            outcome.failureClass === "permanent" ? "dead_letter" : outcome.status;
+          const updated = await db
+            .from("message_delivery_targets")
+            .update({
+              status: targetStatus,
+              provider_message_id: outcome.providerMessageId,
+              failure_class: outcome.failureClass,
+              error_code: outcome.errorCode,
+              error_message: null,
+              accepted_at: outcome.status === "sent" ? reportedAt : null,
+              failed_at: outcome.status === "failed" ? reportedAt : null,
+              updated_at: reportedAt,
+            })
+            .eq("delivery_id", delivery.id)
+            .eq(tokenColumn, outcome.tokenId);
+          if (updated.error) throw updated.error;
+        },
+      },
+    );
+  } catch (error) {
+    if (!(error instanceof ApnsPersistenceUncertainError)) throw error;
+    const uncertain = await db
+      .from("message_delivery_targets")
+      .update({
+        status: "delivery_unknown",
+        provider_message_id: error.providerMessageId,
+        failure_class: "ambiguous",
+        error_code: "provider_result_persistence_uncertain",
+        next_attempt_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("delivery_id", delivery.id)
+      .eq(tokenColumn, error.tokenId);
+    if (uncertain.error) {
+      console.warn("apns_target_persistence_uncertain", {
+        deliveryId: delivery.id,
+        errorCode: "target_status_update_failed",
+      });
+    }
+    return {
+      ok: false as const,
+      failureClass: "ambiguous" as const,
+      error: "apns_provider_result_persistence_uncertain",
+    };
+  }
 }
 
 async function recordDeliveryResult(
@@ -741,15 +1064,16 @@ async function recordDeliveryResult(
   const updated = await db.from("message_deliveries").update(update).eq("id", delivery.id);
   if (updated.error) throw updated.error;
   if (status === "dead_letter" || status === "delivery_unknown") {
+    const ambiguousProvider = delivery.channel === "whatsapp" ? "WhatsApp" : "push provider";
     await createAdminAlert({
       idempotencyKey: `admin:delivery:${delivery.id}:${status}`,
       subject:
         status === "delivery_unknown"
-          ? "WhatsApp outcome requires reconciliation"
+          ? `${ambiguousProvider} outcome requires reconciliation`
           : "Message delivery failed",
       body:
         status === "delivery_unknown"
-          ? "A WhatsApp request may have been transmitted. Do not retry until staff checks Meta."
+          ? `A ${ambiguousProvider} request may have been transmitted. Do not retry until staff reconciles the provider result.`
           : "A transactional delivery exhausted its safe retry policy.",
       content: { delivery_id: delivery.id, channel: delivery.channel, status },
     });
@@ -869,7 +1193,7 @@ async function processDelivery(
       idempotencyKey: delivery.idempotency_key,
     });
   } else {
-    result = await sendPush(delivery, message);
+    result = await sendPush(delivery, message, runtime);
   }
   let recordedStatus: DeliveryStatus;
   try {
@@ -937,8 +1261,7 @@ async function enqueueOpenClassAlerts(
   let membersQuery = db
     .from("members")
     .select("id,status,remaining_credits")
-    .eq("status", "active")
-    .gt("remaining_credits", 0);
+    .eq("status", "active");
   if (runtime.mode === "allowlist") {
     const allowlistedMemberIds = [...runtime.recipientAllowlist].filter((value) =>
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value),
@@ -974,7 +1297,7 @@ async function enqueueOpenClassAlerts(
     await Promise.all([
       db
         .from("member_notification_preferences")
-        .select("member_id,schedule_updates")
+        .select("member_id,schedule_updates,marketing,package_reminders")
         .in("member_id", memberIds),
       db
         .from("member_push_tokens")
@@ -1011,11 +1334,24 @@ async function enqueueOpenClassAlerts(
     if (result.error) throw result.error;
   }
 
-  const preferences = new Map<string, boolean>(
-    (preferencesResult.data ?? []).map((row: { member_id: string; schedule_updates: boolean }) => [
-      row.member_id,
-      row.schedule_updates === true,
-    ]),
+  const preferences = new Map<
+    string,
+    { scheduleUpdates: boolean; zeroCreditUpsellConsent: boolean }
+  >(
+    (preferencesResult.data ?? []).map(
+      (row: {
+        member_id: string;
+        schedule_updates: boolean;
+        marketing: boolean;
+        package_reminders: boolean;
+      }) => [
+        row.member_id,
+        {
+          scheduleUpdates: row.schedule_updates === true,
+          zeroCreditUpsellConsent: row.marketing === true || row.package_reminders === true,
+        },
+      ],
+    ),
   );
   const pushMembers = new Set<string>(
     (tokensResult.data ?? []).map((row: { member_id: string }) => row.member_id),
@@ -1070,7 +1406,10 @@ async function enqueueOpenClassAlerts(
         id: member.id,
         status: member.status,
         remainingCredits: Number(member.remaining_credits ?? 0),
-        scheduleUpdates: preferences.get(member.id) === true,
+        scheduleUpdates: preferences.get(member.id)?.scheduleUpdates === true,
+        zeroCreditUpsellConsent:
+          Number(member.remaining_credits ?? 0) <= 0 &&
+          preferences.get(member.id)?.zeroCreditUpsellConsent === true,
         hasActivePushToken: pushMembers.has(member.id),
         bookedClassIds: bookedByMember.get(member.id) ?? new Set<string>(),
         waitlistedClassIds: waitlistedByMember.get(member.id) ?? new Set<string>(),
@@ -1098,6 +1437,121 @@ async function enqueueOpenClassAlerts(
     eligibleMembers: allowedMembers.length,
     prepared,
   };
+}
+
+async function enqueueClassRecommendations(
+  now: Date,
+  limit: number,
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
+) {
+  const db = supabaseAdmin as any;
+  const classes = await db
+    .from("classes")
+    .select("id,starts_at")
+    .eq("status", "scheduled")
+    .eq("member_visible", true)
+    .gte("starts_at", now.toISOString())
+    .lte("starts_at", new Date(now.getTime() + 7 * 86_400_000).toISOString())
+    .order("starts_at", { ascending: true })
+    .limit(100);
+  if (classes.error) throw classes.error;
+  if (!classes.data?.length) return { eligibleMembers: 0, prepared: 0 };
+
+  const preferences = await db
+    .from("member_notification_preferences")
+    .select("member_id")
+    .eq("recommendations_enabled", true)
+    .limit(5_000);
+  if (preferences.error) throw preferences.error;
+  const memberIds = (preferences.data ?? []).map((row: { member_id: string }) => row.member_id);
+  if (!memberIds.length) return { eligibleMembers: 0, prepared: 0 };
+  const members = await db
+    .from("members")
+    .select("id,phone,email")
+    .in("id", memberIds)
+    .eq("status", "active")
+    .gt("remaining_credits", 0);
+  if (members.error) throw members.error;
+  const allowedMembers = (members.data ?? []).filter((member: any) =>
+    runtime.mode === "allowlist"
+      ? runtimeAllowsRolloutRecipient(runtime, [member.id, member.phone, member.email])
+      : true,
+  );
+  if (!allowedMembers.length) return { eligibleMembers: 0, prepared: 0 };
+
+  const allowedIds = allowedMembers.map((member: { id: string }) => member.id);
+  const classIds = classes.data.map((studioClass: { id: string }) => studioClass.id);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
+  const [bookings, waitlist, recent] = await Promise.all([
+    db
+      .from("bookings")
+      .select("member_id,class_id")
+      .in("member_id", allowedIds)
+      .in("class_id", classIds)
+      .in("status", ["booked", "checked_in"]),
+    db
+      .from("waitlist_entries")
+      .select("member_id,class_id")
+      .in("member_id", allowedIds)
+      .in("class_id", classIds)
+      .in("status", ["waiting", "promoted"]),
+    db
+      .from("message_outbox")
+      .select("member_id,aggregate_id,created_at,event_type")
+      .in("member_id", allowedIds)
+      .in("event_type", [
+        "booking_no_show_followup",
+        "class_published",
+        "class_open_spots",
+        "class_recommendation",
+        "trial_followup",
+        "retention_reminder",
+      ])
+      .gte("created_at", sevenDaysAgo),
+  ]);
+  for (const result of [bookings, waitlist, recent]) if (result.error) throw result.error;
+  const blocked = new Set<string>(
+    [...(bookings.data ?? []), ...(waitlist.data ?? [])].map(
+      (row: { member_id: string; class_id: string }) => `${row.member_id}:${row.class_id}`,
+    ),
+  );
+  const oneDayAgo = now.getTime() - 86_400_000;
+  let prepared = 0;
+  for (const member of allowedMembers) {
+    const memberRecent = (recent.data ?? []).filter((row: any) => row.member_id === member.id);
+    if (
+      memberRecent.length >= 3 ||
+      memberRecent.some((row: any) => new Date(row.created_at).getTime() >= oneDayAgo)
+    ) {
+      continue;
+    }
+    const studioClass = classes.data.find(
+      (candidate: { id: string }) =>
+        !blocked.has(`${member.id}:${candidate.id}`) &&
+        !memberRecent.some(
+          (row: any) =>
+            row.event_type === "class_recommendation" && row.aggregate_id === candidate.id,
+        ),
+    );
+    if (!studioClass) continue;
+    const result = await db.from("message_outbox").upsert(
+      {
+        event_type: "class_recommendation",
+        aggregate_type: "class",
+        aggregate_id: studioClass.id,
+        member_id: member.id,
+        payload: { class_id: studioClass.id },
+        deduplication_key: `class:${studioClass.id}:recommendation:member:${member.id}`,
+        available_at: now.toISOString(),
+        expires_at: studioClass.starts_at,
+      },
+      { onConflict: "deduplication_key", ignoreDuplicates: true },
+    );
+    if (result.error) throw result.error;
+    prepared += 1;
+    if (prepared >= limit) break;
+  }
+  return { eligibleMembers: allowedMembers.length, prepared };
 }
 
 async function enqueueDueCanonicalEvents(
@@ -1178,10 +1632,215 @@ async function enqueueDueCanonicalEvents(
     );
     if (result.error) throw result.error;
   }
+  const failedBefore = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
+  const failedPayments = await db
+    .from("payments")
+    .select("id,member_id,subscription_id")
+    .eq("status", "failed")
+    .lte("updated_at", failedBefore)
+    .limit(limit);
+  if (failedPayments.error) throw failedPayments.error;
+  for (const payment of failedPayments.data ?? []) {
+    const result = await db.from("message_outbox").upsert(
+      {
+        event_type: "payment_failed",
+        aggregate_type: "payment",
+        aggregate_id: payment.id,
+        member_id: payment.member_id,
+        payload: { payment_id: payment.id, subscription_id: payment.subscription_id },
+        deduplication_key: `payment:${payment.id}:payment_failed:followup_24h`,
+        available_at: now.toISOString(),
+      },
+      { onConflict: "deduplication_key", ignoreDuplicates: true },
+    );
+    if (result.error) throw result.error;
+  }
+  const subscriptionFailureRollout = await db
+    .from("notification_event_rollouts")
+    .select("enabled,copy_reviewed")
+    .eq("event_type", "subscription_renewal_failed")
+    .maybeSingle();
+  if (subscriptionFailureRollout.error) throw subscriptionFailureRollout.error;
+  if (
+    subscriptionFailureRollout.data?.enabled === true &&
+    subscriptionFailureRollout.data?.copy_reviewed === true
+  ) {
+    const unresolvedSubscriptions = await db
+      .from("member_subscriptions")
+      .select("id,member_id,last_payment_id")
+      .in("status", ["past_due", "incomplete"])
+      .lte("updated_at", failedBefore)
+      .limit(limit);
+    if (unresolvedSubscriptions.error) throw unresolvedSubscriptions.error;
+    for (const subscription of unresolvedSubscriptions.data ?? []) {
+      const result = await db.from("message_outbox").upsert(
+        {
+          event_type: "subscription_renewal_failed",
+          aggregate_type: "subscription",
+          aggregate_id: subscription.id,
+          member_id: subscription.member_id,
+          payload: {
+            subscription_id: subscription.id,
+            payment_id: subscription.last_payment_id,
+          },
+          deduplication_key: `subscription:${subscription.id}:subscription_renewal_failed:followup_24h`,
+          available_at: now.toISOString(),
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (result.error) throw result.error;
+    }
+  }
+  const dueRollouts = await db
+    .from("notification_event_rollouts")
+    .select("event_type")
+    .eq("enabled", true)
+    .eq("copy_reviewed", true)
+    .in("event_type", [
+      "membership_expiring",
+      "subscription_renewal_upcoming",
+      "trial_followup",
+      "retention_reminder",
+      "class_recommendation",
+    ]);
+  if (dueRollouts.error) throw dueRollouts.error;
+  const enabledDueEvents = new Set(
+    (dueRollouts.data ?? []).map((row: { event_type: MessageEventType }) => row.event_type),
+  );
+
+  let membershipReminders = 0;
+  if (enabledDueEvents.has("membership_expiring")) {
+    const expiringPlans = await db
+      .from("member_plans")
+      .select("id,member_id,plan_id,expires_at,plan:plans(name)")
+      .eq("status", "active")
+      .gt("expires_at", now.toISOString())
+      .lte("expires_at", new Date(now.getTime() + 7 * 86_400_000).toISOString())
+      .limit(limit);
+    if (expiringPlans.error) throw expiringPlans.error;
+    for (const memberPlan of expiringPlans.data ?? []) {
+      const days = (new Date(memberPlan.expires_at).getTime() - now.getTime()) / 86_400_000;
+      const milestone = days <= 2 ? "2d" : "7d";
+      const result = await db.from("message_outbox").upsert(
+        {
+          event_type: "membership_expiring",
+          aggregate_type: "member_plan",
+          aggregate_id: memberPlan.id,
+          member_id: memberPlan.member_id,
+          payload: {
+            member_plan_id: memberPlan.id,
+            plan_id: memberPlan.plan_id,
+            package_name: relation(memberPlan.plan)?.name ?? "Cloud & Core",
+            expiry_date: memberPlan.expires_at,
+          },
+          deduplication_key: `member_plan:${memberPlan.id}:membership_expiring:${milestone}`,
+          available_at: now.toISOString(),
+          expires_at: memberPlan.expires_at,
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (result.error) throw result.error;
+      membershipReminders += 1;
+    }
+  }
+
+  let renewalReminders = 0;
+  if (enabledDueEvents.has("subscription_renewal_upcoming")) {
+    const subscriptions = await db
+      .from("member_subscriptions")
+      .select("id,member_id,next_charge_at")
+      .eq("status", "active")
+      .gt("next_charge_at", now.toISOString())
+      .lte("next_charge_at", new Date(now.getTime() + 7 * 86_400_000).toISOString())
+      .limit(limit);
+    if (subscriptions.error) throw subscriptions.error;
+    for (const subscription of subscriptions.data ?? []) {
+      const days = (new Date(subscription.next_charge_at).getTime() - now.getTime()) / 86_400_000;
+      const milestone = days <= 1 ? "1d" : "7d";
+      const result = await db.from("message_outbox").upsert(
+        {
+          event_type: "subscription_renewal_upcoming",
+          aggregate_type: "member_subscription",
+          aggregate_id: subscription.id,
+          member_id: subscription.member_id,
+          payload: { subscription_id: subscription.id, renewal_date: subscription.next_charge_at },
+          deduplication_key: `subscription:${subscription.id}:renewal_upcoming:${milestone}`,
+          available_at: now.toISOString(),
+          expires_at: subscription.next_charge_at,
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (result.error) throw result.error;
+      renewalReminders += 1;
+    }
+  }
+
+  let engagementReminders = 0;
+  if (enabledDueEvents.has("trial_followup")) {
+    const trialMembers = await db
+      .from("members")
+      .select("id,last_visit_at")
+      .eq("status", "active")
+      .eq("attendance_count", 1)
+      .gte("last_visit_at", new Date(now.getTime() - 7 * 86_400_000).toISOString())
+      .lte("last_visit_at", new Date(now.getTime() - 24 * 60 * 60_000).toISOString())
+      .limit(limit);
+    if (trialMembers.error) throw trialMembers.error;
+    for (const member of trialMembers.data ?? []) {
+      const result = await db.from("message_outbox").upsert(
+        {
+          event_type: "trial_followup",
+          aggregate_type: "member",
+          aggregate_id: member.id,
+          member_id: member.id,
+          payload: {},
+          deduplication_key: `member:${member.id}:trial_followup:first_visit`,
+          available_at: now.toISOString(),
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (result.error) throw result.error;
+      engagementReminders += 1;
+    }
+  }
+  if (enabledDueEvents.has("retention_reminder")) {
+    const inactiveMembers = await db
+      .from("members")
+      .select("id,last_visit_at")
+      .eq("status", "active")
+      .lt("last_visit_at", new Date(now.getTime() - 21 * 86_400_000).toISOString())
+      .limit(limit);
+    if (inactiveMembers.error) throw inactiveMembers.error;
+    const cycle = now.toISOString().slice(0, 7);
+    for (const member of inactiveMembers.data ?? []) {
+      const result = await db.from("message_outbox").upsert(
+        {
+          event_type: "retention_reminder",
+          aggregate_type: "member",
+          aggregate_id: member.id,
+          member_id: member.id,
+          payload: {},
+          deduplication_key: `member:${member.id}:retention_reminder:${cycle}`,
+          available_at: now.toISOString(),
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (result.error) throw result.error;
+      engagementReminders += 1;
+    }
+  }
+  const classRecommendations = enabledDueEvents.has("class_recommendation")
+    ? await enqueueClassRecommendations(now, limit, runtime)
+    : { eligibleMembers: 0, prepared: 0 };
   const openClassAlerts = await enqueueOpenClassAlerts(now, limit, runtime);
   return {
     reminders,
     paymentReminders: pendingPayments.data?.length ?? 0,
+    paymentFailureFollowups: failedPayments.data?.length ?? 0,
+    membershipReminders,
+    renewalReminders,
+    engagementReminders,
+    classRecommendations,
     openClassAlerts,
   };
 }
@@ -1272,7 +1931,7 @@ export async function runUnifiedMessagingSweep(input?: {
   if (outboxClaim.error) throw outboxClaim.error;
   const materialized = { succeeded: 0, failed: 0 };
   for (const outbox of (outboxClaim.data ?? []) as OutboxRow[]) {
-    const result = await materializeOutbox(outbox, now, externalChannels);
+    const result = await materializeOutbox(outbox, now, externalChannels, runtime);
     if (result.ok) materialized.succeeded += 1;
     else materialized.failed += 1;
   }

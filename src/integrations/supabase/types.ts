@@ -41,6 +41,7 @@ export type Database = {
       admin_push_tokens: {
         Row: {
           active: boolean;
+          apns_environment: string | null;
           created_at: string;
           id: string;
           last_seen_at: string;
@@ -51,6 +52,7 @@ export type Database = {
         };
         Insert: {
           active?: boolean;
+          apns_environment?: string | null;
           created_at?: string;
           id?: string;
           last_seen_at?: string;
@@ -61,6 +63,7 @@ export type Database = {
         };
         Update: {
           active?: boolean;
+          apns_environment?: string | null;
           created_at?: string;
           id?: string;
           last_seen_at?: string;

@@ -29,6 +29,11 @@ describe("outbox message materialization", () => {
       templateKey: "cc_booking_confirmed_v2",
       templateVersion: "v2",
       memberVisible: true,
+      notificationFamily: "booking",
+      notificationTier: "transactional",
+      interruptionLevel: "active",
+      soundKey: "default",
+      actions: ["view_class", "cancel_booking"],
     });
     expect(result.deliveries.map((delivery) => delivery.channel)).toEqual([
       "in_app",
@@ -85,6 +90,7 @@ describe("outbox message materialization", () => {
         class_date: "22/07/2026",
         class_time: "18:00",
         spots_available: "3",
+        credits_remaining: 2,
       },
     });
     expect(eligible.deliveries.map((delivery) => delivery.channel)).toEqual(["in_app", "push"]);
@@ -104,15 +110,34 @@ describe("outbox message materialization", () => {
         class_date: "22/07/2026",
         class_time: "18:00",
         spots_available: "3",
+        credits_remaining: 2,
       },
     });
-    expect(optedOut.deliveries.every((delivery) => delivery.status === "suppressed")).toBe(true);
-    expect(
-      optedOut.deliveries.every(
-        (delivery) =>
-          delivery.errorCode === "in_app_opted_out" || delivery.errorCode === "push_opted_out",
-      ),
-    ).toBe(true);
+    expect(optedOut.deliveries.find((delivery) => delivery.channel === "in_app")?.status).toBe(
+      "queued",
+    );
+    expect(optedOut.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      status: "suppressed",
+      errorCode: "push_opted_out",
+    });
+  });
+
+  test("offers a package instead of an impossible booking action when credits are depleted", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "class_open_spots",
+      deduplicationKey: "class:class-1:open-spots:member:member-zero-credit",
+      preferences: { ...base.preferences, scheduleUpdates: true },
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        spots_available: "3",
+        credits_remaining: 0,
+      },
+    });
+    expect(result.message.actions).toEqual(["view_schedule", "choose_package"]);
   });
 
   test("expires every waitlist delivery at the offer claim deadline", () => {
@@ -136,7 +161,7 @@ describe("outbox message materialization", () => {
     ).toBe(true);
   });
 
-  test("delivers in-app immediately even when external waitlist sends are in quiet hours", () => {
+  test("delivers an expiring waitlist offer immediately even during routine quiet hours", () => {
     const now = new Date("2026-07-20T18:00:00.000Z");
     const result = materializeMessagePlan({
       ...base,
@@ -156,8 +181,72 @@ describe("outbox message materialization", () => {
     expect(result.deliveries.find((delivery) => delivery.channel === "in_app")?.scheduledFor).toBe(
       now.toISOString(),
     );
-    expect(
-      result.deliveries.find((delivery) => delivery.channel === "push")?.scheduledFor,
-    ).not.toBe(now.toISOString());
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")?.scheduledFor).toBe(
+      now.toISOString(),
+    );
+  });
+
+  test("suppresses channels that are outside a reviewed event rollout", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "class_location_changed",
+      deduplicationKey: "class:1:location",
+      enabledChannels: new Set(["in_app", "push"]),
+      preferences: { ...base.preferences, classOperations: true },
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        location_name: "Main studio",
+      },
+    });
+
+    expect(result.deliveries.find((delivery) => delivery.channel === "in_app")?.status).toBe(
+      "queued",
+    );
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")?.status).toBe(
+      "queued",
+    );
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "suppressed",
+      errorCode: "event_channel_not_enabled",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "email")).toMatchObject({
+      status: "suppressed",
+      errorCode: "event_channel_not_enabled",
+    });
+  });
+
+  test("honors member sound and Time Sensitive preferences in the immutable message snapshot", () => {
+    const plan = materializeMessagePlan({
+      ...base,
+      eventType: "payment_failed",
+      variables: { member_name: "נועה", package_name: "מינוי חודשי" },
+      preferences: {
+        whatsappEnabled: true,
+        emailEnabled: true,
+        sound: false,
+        timeSensitive: false,
+      },
+    });
+
+    expect(plan.message.soundKey).toBe("none");
+    expect(plan.message.interruptionLevel).toBe("active");
+  });
+
+  test("escalates an unresolved payment reminder to WhatsApp 48 hours after push", () => {
+    const now = new Date("2026-07-20T09:00:00.000Z");
+    const plan = materializeMessagePlan({
+      ...base,
+      eventType: "payment_pending_reminder",
+      now,
+      variables: { member_name: "נועה", package_name: "מינוי חודשי" },
+    });
+    const push = plan.deliveries.find((delivery) => delivery.channel === "push");
+    const whatsapp = plan.deliveries.find((delivery) => delivery.channel === "whatsapp");
+
+    expect(push?.scheduledFor).toBe(now.toISOString());
+    expect(whatsapp?.scheduledFor).toBe("2026-07-22T09:00:00.000Z");
   });
 });

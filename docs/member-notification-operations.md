@@ -38,15 +38,29 @@ back without changing this legacy scheduler. Configure it with
 activation and queue checks in [Unified Messaging System](./unified-messaging-system.md) before
 resuming it.
 
+Application mutations can also request an immediate post-commit sweep when
+`MESSAGING_IMMEDIATE_DISPATCH_ENABLED=true` and `MESSAGING_INTERNAL_SWEEP_URL` points at the same
+protected endpoint. This is only a latency optimization. Keep the one-minute job enabled for stale
+worker and failed-target recovery.
+
 ## APNs
 
 Configure the main app service with the APNs key, key ID, team ID, bundle ID, and production/sandbox
 environment expected by `src/lib/apns.server.ts`. Test on a real iPhone before enabling campaigns.
 In allowlist mode, add the verified member UUID to `MESSAGING_RECIPIENT_ALLOWLIST`; a phone number
 alone authorizes WhatsApp but cannot authorize an APNs delivery.
+For canonical admin handoff alerts, add the literal `admin_group` and verify the specific admin
+installation in `notification_staff_test_devices`. Allowlist dispatch joins this table and never
+fans out to an unverified member or admin installation.
+
+The premium native build registers actionable class, waitlist, account, and staff-reply categories.
+Before a real-device allowlist test, confirm the installation appears once, its `apns_environment`
+matches the build/key, and it is marked in `notification_staff_test_devices`. Do not enable draft
+rich-media events until the Notification Service Extension and approved sound asset are included in
+the App Store build.
 
 Automatic `class_open_spots` alerts use the member's **New schedules and lesson openings** setting,
-require an active APNs token and remaining credits, and are limited to one alert per day and two per
+require an active APNs token and remaining credits, and are limited to one alert per day and three per
 week. They do not use WhatsApp.
 
 ## Official WhatsApp

@@ -15,6 +15,10 @@ type AdminPushToken = {
   platform: "ios" | "android";
 };
 
+function apnsEnvironment() {
+  return process.env.APNS_ENV === "sandbox" ? "sandbox" : "production";
+}
+
 const RECENT_SIGNUP_WINDOW_MS = 15 * 60_000;
 
 function cleanText(value: string | null | undefined, fallback = "-") {
@@ -56,6 +60,7 @@ export const registerAdminPushToken = createServerFn({ method: "POST" })
       .object({
         token: z.string().min(20).max(1000),
         platform: z.enum(["ios", "android"]),
+        environment: z.enum(["sandbox", "production"]),
       })
       .parse(data),
   )
@@ -76,6 +81,7 @@ export const registerAdminPushToken = createServerFn({ method: "POST" })
         user_id: context.userId,
         token: data.token,
         platform: data.platform,
+        apns_environment: data.environment,
         active: true,
         last_seen_at: now,
         updated_at: now,
@@ -98,9 +104,11 @@ export const notifyAdminMemberSignup = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: tokens, error } = await supabaseAdmin
       .from("admin_push_tokens")
-      .select("token,platform")
+      .select("token,platform,profiles!inner(role)")
       .eq("active", true)
-      .eq("platform", "ios");
+      .eq("platform", "ios")
+      .eq("apns_environment", apnsEnvironment())
+      .eq("profiles.role", "admin");
 
     if (error) throw error;
     const rows = (tokens ?? []) as AdminPushToken[];

@@ -2,9 +2,11 @@ import { describe, expect, test } from "bun:test";
 import {
   optimisticallyMarkAllNotificationsRead,
   memberNotificationPreferencesSchema,
+  memberNotificationEngagementSchema,
   memberPushTokenSchema,
   readCampaignAttribution,
   safeNotificationActionUrl,
+  safeNotificationActionUrlForAction,
 } from "../../src/lib/memberNotificationsApi.ts";
 
 describe("member notification API contract", () => {
@@ -37,6 +39,44 @@ describe("member notification API contract", () => {
     ).toThrow();
   });
 
+  test("accepts stable installation metadata without exposing device identity", () => {
+    expect(
+      memberPushTokenSchema.parse({
+        token: "a".repeat(64),
+        platform: "ios",
+        installationId: "11111111-1111-4111-8111-111111111111",
+        appVersion: "2.4.0",
+        buildNumber: "20400",
+        locale: "he-IL",
+        environment: "production",
+        permissionStatus: "granted",
+        capabilities: { richMedia: true, actions: true, timeSensitive: true },
+      }),
+    ).toMatchObject({
+      installationId: "11111111-1111-4111-8111-111111111111",
+      locale: "he-IL",
+      capabilities: { richMedia: true, actions: true, timeSensitive: true },
+    });
+  });
+
+  test("validates an idempotent member engagement receipt", () => {
+    expect(
+      memberNotificationEngagementSchema.parse({
+        notificationId: "11111111-1111-4111-8111-111111111111",
+        installationId: "22222222-2222-4222-8222-222222222222",
+        eventType: "actioned",
+        actionId: "view_class",
+        occurredAt: "2026-07-21T12:30:00.000Z",
+      }),
+    ).toMatchObject({ eventType: "actioned", actionId: "view_class" });
+    expect(() =>
+      memberNotificationEngagementSchema.parse({
+        notificationId: "11111111-1111-4111-8111-111111111111",
+        eventType: "clicked_anything",
+      }),
+    ).toThrow();
+  });
+
   test("allows only authenticated in-app deep links", () => {
     expect(safeNotificationActionUrl("/member/schedule?class=class-1")).toBe(
       "/member/schedule?class=class-1",
@@ -45,6 +85,18 @@ describe("member notification API contract", () => {
     expect(safeNotificationActionUrl("https://attacker.example/member")).toBe("/member");
     expect(safeNotificationActionUrl("//attacker.example/member")).toBe("/member");
     expect(safeNotificationActionUrl("/admin/members")).toBe("/member");
+  });
+
+  test("routes branded notification actions to a safe member destination", () => {
+    expect(safeNotificationActionUrlForAction("choose_package", "/member/schedule")).toBe(
+      "/member/packages",
+    );
+    expect(safeNotificationActionUrlForAction("cancel_booking", "/member/schedule")).toBe(
+      "/member/bookings",
+    );
+    expect(
+      safeNotificationActionUrlForAction("view_class", "https://attacker.example/member/schedule"),
+    ).toBe("/member");
   });
 
   test("accepts campaign attribution only within its conversion window", () => {

@@ -4,6 +4,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
 import { conversationReplyMode } from "@/lib/messagingPolicy";
+import { NOTIFICATION_EVENT_CATALOG } from "@/lib/premiumNotificationCatalog";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 
 async function requireAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -55,12 +57,74 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
     const result = await db
       .from("message_deliveries")
       .select(
-        "id,message_id,channel,provider,status,provider_status,attempt_count,error_code,error_message,created_at,updated_at,message:messages(event_type,subject)",
+        "id,message_id,channel,provider,status,provider_status,attempt_count,error_code,error_message,created_at,updated_at,message:messages(event_type,subject),targets:message_delivery_targets(status,failure_class)",
       )
       .order("created_at", { ascending: false })
       .limit(300);
     if (result.error) throw result.error;
     return result.data ?? [];
+  });
+
+export const listNotificationEventRollouts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await requireAdmin(context.userId);
+    const result = await db.from("notification_event_rollouts").select("*");
+    if (result.error) throw result.error;
+    const rows = new Map(
+      (result.data ?? []).map((row: { event_type: string }) => [row.event_type, row]),
+    );
+    return Object.entries(NOTIFICATION_EVENT_CATALOG).map(([eventType, definition]) => ({
+      eventType,
+      ...definition,
+      rollout: rows.get(eventType) ?? null,
+    }));
+  });
+
+export const updateNotificationEventRollout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        eventType: z.string().min(1),
+        enabled: z.boolean(),
+        copyReviewed: z.boolean(),
+        allowlistOnly: z.boolean(),
+        enabledChannels: z.array(z.enum(["in_app", "push", "email", "whatsapp"])).min(1),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await requireAdmin(context.userId);
+    const definition =
+      NOTIFICATION_EVENT_CATALOG[data.eventType as keyof typeof NOTIFICATION_EVENT_CATALOG];
+    if (!definition) throw new Error("unknown_notification_event");
+    if (!data.enabledChannels.includes("in_app")) throw new Error("in_app_channel_required");
+    if (
+      data.enabledChannels.some(
+        (channel) => !(definition.channels as readonly string[]).includes(channel),
+      )
+    ) {
+      throw new Error("event_channel_not_supported");
+    }
+    if (data.enabled && !data.copyReviewed) throw new Error("copy_review_required");
+    const now = new Date().toISOString();
+    const result = await db
+      .from("notification_event_rollouts")
+      .update({
+        enabled: data.enabled,
+        copy_reviewed: data.copyReviewed,
+        enabled_channels: data.enabledChannels,
+        allowlist_only: data.allowlistOnly,
+        enabled_by: data.enabled ? context.userId : null,
+        enabled_at: data.enabled ? now : null,
+        updated_at: now,
+      })
+      .eq("event_type", data.eventType)
+      .select("*")
+      .single();
+    if (result.error) throw result.error;
+    return result.data;
   });
 
 export const listWhatsappTemplateDeployments = createServerFn({ method: "GET" })
@@ -124,10 +188,63 @@ export const resolveCanonicalConversation = createServerFn({ method: "POST" })
       .from("message_conversations")
       .update({ status: "resolved", assigned_to: null, resolved_at: now, updated_at: now })
       .eq("id", data.conversationId)
-      .select("id")
+      .select("id,member_id")
       .maybeSingle();
     if (result.error) throw result.error;
+    if (result.data?.member_id) {
+      const outbox = await db.from("message_outbox").upsert(
+        {
+          event_type: "human_handoff_resolved",
+          aggregate_type: "message_conversation",
+          aggregate_id: data.conversationId,
+          member_id: result.data.member_id,
+          payload: { conversation_id: data.conversationId },
+          deduplication_key: `conversation:${data.conversationId}:resolved:${now}`,
+          available_at: now,
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (outbox.error) throw outbox.error;
+      await kickUnifiedMessagingAfterCommit();
+    }
     return { ok: Boolean(result.data) };
+  });
+
+export const emitUrgentStudioAnnouncement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        memberIds: z.array(z.string().uuid()).max(5_000).optional(),
+        confirmation: z.literal("SEND_URGENT_STUDIO_ANNOUNCEMENT"),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await requireAdmin(context.userId);
+    let query = db.from("members").select("id").eq("status", "active").limit(5_000);
+    if (data.memberIds?.length) query = query.in("id", data.memberIds);
+    const members = await query;
+    if (members.error) throw members.error;
+    const announcementId = randomUUID();
+    const rows = (members.data ?? []).map((member: { id: string }) => ({
+      event_type: "urgent_studio_announcement",
+      aggregate_type: "studio_announcement",
+      aggregate_id: announcementId,
+      member_id: member.id,
+      payload: { announcement_id: announcementId },
+      deduplication_key: `announcement:${announcementId}:member:${member.id}`,
+      available_at: new Date().toISOString(),
+    }));
+    if (rows.length) {
+      const result = await db.from("message_outbox").upsert(rows, {
+        onConflict: "deduplication_key",
+        ignoreDuplicates: true,
+      });
+      if (result.error) throw result.error;
+      await kickUnifiedMessagingAfterCommit();
+    }
+    return { ok: true as const, announcementId, recipients: rows.length };
   });
 
 export const linkCanonicalGuestConversation = createServerFn({ method: "POST" })
@@ -247,6 +364,22 @@ export const replyCanonicalConversation = createServerFn({ method: "POST" })
       idempotency_key: `${messageKey}:whatsapp`,
     });
     if (delivery.error) throw delivery.error;
+    if (conversation.data.member_id) {
+      const notification = await db.from("message_outbox").upsert(
+        {
+          event_type: "staff_reply",
+          aggregate_type: "message_conversation",
+          aggregate_id: data.conversationId,
+          member_id: conversation.data.member_id,
+          payload: { conversation_id: data.conversationId },
+          deduplication_key: `${messageKey}:staff_reply`,
+          available_at: new Date().toISOString(),
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (notification.error) throw notification.error;
+    }
+    await kickUnifiedMessagingAfterCommit();
     return { ok: true, queued: true, windowOpen: Boolean(windowOpen) };
   });
 

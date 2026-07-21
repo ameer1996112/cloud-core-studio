@@ -24,6 +24,7 @@
     "openwa:stop": "OPENWA_MEM_LIMIT=${OPENWA_MEM_LIMIT:-2147483648} docker compose -f .openwa/OpenWA/docker-compose.dev.yml --env-file .openwa/OpenWA/.env down",
     "notifications:cron": "node scripts/member-notification-cron.mjs",
     "test": "bun test tests/unit tests/integration",
+    "test:integration": "bun scripts/run-messaging-integration-tests.ts",
     "whatsapp:templates:generate": "bun scripts/generate-whatsapp-templates.ts --write",
     "whatsapp:templates:check": "bun scripts/generate-whatsapp-templates.ts --check",
     "whatsapp:templates:plan": "bun scripts/create-whatsapp-templates.mjs --plan",

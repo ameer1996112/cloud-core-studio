@@ -9,6 +9,7 @@ import {
   isQuietHours,
   isWhatsappOptOut,
   resolveMessagingRuntime,
+  runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
@@ -21,7 +22,7 @@ describe("unified messaging delivery policy", () => {
     expect(channelsForEvent("receipt_issued")).toEqual(["in_app", "email"]);
   });
 
-  test("requires schedule-opening consent for open-class inbox and push alerts", () => {
+  test("keeps the durable inbox record while schedule-opening consent governs push", () => {
     expect(deliveryAllowedByConsent("class_open_spots", "in_app", { scheduleUpdates: true })).toBe(
       true,
     );
@@ -29,7 +30,7 @@ describe("unified messaging delivery policy", () => {
       true,
     );
     expect(deliveryAllowedByConsent("class_open_spots", "in_app", { scheduleUpdates: false })).toBe(
-      false,
+      true,
     );
     expect(deliveryAllowedByConsent("class_open_spots", "push", { scheduleUpdates: false })).toBe(
       false,
@@ -42,8 +43,17 @@ describe("unified messaging delivery policy", () => {
     expect(deliveryAllowedByConsent("class_cancelled_by_admin", "whatsapp", optedOut)).toBe(true);
     expect(deliveryAllowedByConsent("class_time_changed", "email", optedOut)).toBe(true);
     expect(deliveryAllowedByConsent("payment_failed", "whatsapp", optedOut)).toBe(true);
+    expect(deliveryAllowedByConsent("waitlist_spot_available", "whatsapp", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("payment_confirmed", "email", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("booking_confirmed", "in_app", optedOut)).toBe(true);
+    expect(deliveryAllowedByConsent("waitlist_spot_available", "in_app", { waitlist: false })).toBe(
+      true,
+    );
+    expect(
+      deliveryAllowedByConsent("subscription_renewal_failed", "in_app", {
+        membership: false,
+      }),
+    ).toBe(true);
   });
 
   test("enforces Jerusalem quiet hours for routine sends", () => {
@@ -111,6 +121,22 @@ describe("unified messaging delivery policy", () => {
     );
     expect(runtimeAllowsRecipient(runtime, "push", "00000000-0000-0000-0000-000000000000")).toBe(
       false,
+    );
+  });
+
+  test("restricts every allowlist-only rollout channel to a matched member contact", () => {
+    const runtime = resolveMessagingRuntime({
+      MESSAGING_DELIVERY_MODE: "allowlist",
+      MESSAGING_RECIPIENT_ALLOWLIST: "+972500000001,staff@example.com",
+    });
+
+    expect(runtimeAllowsRolloutRecipient(runtime, [null, "+972500000001"])).toBe(true);
+    expect(runtimeAllowsRolloutRecipient(runtime, ["staff@example.com"])).toBe(true);
+    expect(runtimeAllowsRolloutRecipient(runtime, ["member@example.com", "+972500000002"])).toBe(
+      false,
+    );
+    expect(runtimeAllowsRolloutRecipient({ ...runtime, mode: "live" }, ["staff@example.com"])).toBe(
+      true,
     );
   });
 

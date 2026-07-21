@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 
 export type BookingStatus =
   | "booked"
@@ -156,6 +157,7 @@ export const bookClass = createServerFn({ method: "POST" })
         console.error("booking_confirmed_draft_prepare_failed", draftError);
       }
     }
+    if ((typedResult as any)?.status === "booked") await kickUnifiedMessagingAfterCommit();
     return typedResult;
   });
 

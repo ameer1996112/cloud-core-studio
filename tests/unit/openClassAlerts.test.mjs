@@ -21,6 +21,7 @@ function member(overrides = {}) {
     status: "active",
     remainingCredits: 2,
     scheduleUpdates: true,
+    zeroCreditUpsellConsent: false,
     hasActivePushToken: true,
     bookedClassIds: new Set(),
     waitlistedClassIds: new Set(),
@@ -41,6 +42,7 @@ function deliveryState(overrides = {}) {
     memberStatus: "active",
     remainingCredits: 2,
     scheduleUpdates: true,
+    zeroCreditUpsellConsent: false,
     hasActivePushToken: true,
     ...overrides,
   };
@@ -83,13 +85,32 @@ describe("open-class alert planning", () => {
     expect(planOpenClassAlerts({ now, classes: [studioClass()], members, limit: 50 })).toEqual([]);
   });
 
+  test("allows zero-credit members only with the additional package or marketing consent", () => {
+    expect(
+      planOpenClassAlerts({
+        now,
+        classes: [studioClass()],
+        members: [member({ remainingCredits: 0, zeroCreditUpsellConsent: true })],
+        limit: 50,
+      }),
+    ).toHaveLength(1);
+    expect(
+      planOpenClassAlerts({
+        now,
+        classes: [studioClass()],
+        members: [member({ remainingCredits: 0, zeroCreditUpsellConsent: false })],
+        limit: 50,
+      }),
+    ).toEqual([]);
+  });
+
   test("excludes booked, waitlisted, duplicate, and frequency-capped members", () => {
     const members = [
       member({ id: "booked", bookedClassIds: new Set(["class-1"]) }),
       member({ id: "waitlisted", waitlistedClassIds: new Set(["class-1"]) }),
       member({ id: "duplicate", alertedClassIds: new Set(["class-1"]) }),
       member({ id: "daily-cap", alertsLast24Hours: 1 }),
-      member({ id: "weekly-cap", alertsLast7Days: 2 }),
+      member({ id: "weekly-cap", alertsLast7Days: 3 }),
     ];
     expect(planOpenClassAlerts({ now, classes: [studioClass()], members, limit: 50 })).toEqual([]);
   });
@@ -119,6 +140,11 @@ describe("open-class alert planning", () => {
   test("rechecks member, consent, and device eligibility before a delayed delivery", () => {
     expect(shouldCancelOpenClassAlert(deliveryState({ memberStatus: "inactive" }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ remainingCredits: 0 }))).toBe(true);
+    expect(
+      shouldCancelOpenClassAlert(
+        deliveryState({ remainingCredits: 0, zeroCreditUpsellConsent: true }),
+      ),
+    ).toBe(false);
     expect(shouldCancelOpenClassAlert(deliveryState({ scheduleUpdates: false }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ hasActivePushToken: false }))).toBe(true);
   });

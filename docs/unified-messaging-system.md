@@ -28,20 +28,34 @@ The main records are:
 - `message_conversations`: guest/member identity, handoff assignment, resolution, and 24-hour service window.
 - `whatsapp_template_deployments`: WABA-scoped content hash and approval status.
 - `whatsapp_provisioning_leases`: distributed provisioning lock.
+- `message_delivery_targets`: one APNs outcome per installation beneath the aggregate push delivery.
+- `message_engagement_events`: idempotent device-received, opened, actioned, converted, archived,
+  and dismissed receipts owned by the authenticated member.
+- `notification_event_rollouts`: copy-review and disabled-by-default gates for premium event types.
+- `notification_preference_events`: immutable preference-change audit without message content.
 
 Legacy writes are mirrored into the canonical model. Historical legacy rows are backfilled with their original table and row ID. Canonical reads in the member notification center remain behind `MESSAGING_CANONICAL_READS_ENABLED`.
 
 ## Required configuration
 
 - Supabase: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and server-only `SUPABASE_SERVICE_ROLE_KEY`.
-- Dispatcher gates: `MESSAGING_SCHEDULER_ENABLED`, `MESSAGING_CANONICAL_READS_ENABLED`, `MESSAGING_DELIVERY_MODE`, `MESSAGING_RECIPIENT_ALLOWLIST`, `MESSAGING_WHATSAPP_ENABLED`, `MESSAGING_EMAIL_ENABLED`, `MESSAGING_PUSH_ENABLED`, and `MESSAGING_LIVE_WABA_CONFIRMATION`.
+- Dispatcher gates: `MESSAGING_SCHEDULER_ENABLED`, `MESSAGING_IMMEDIATE_DISPATCH_ENABLED`,
+  `MESSAGING_INTERNAL_SWEEP_URL`, `MESSAGING_CANONICAL_READS_ENABLED`,
+  `MESSAGING_DELIVERY_MODE`, `MESSAGING_RECIPIENT_ALLOWLIST`,
+  `MESSAGING_WHATSAPP_ENABLED`, `MESSAGING_EMAIL_ENABLED`, `MESSAGING_PUSH_ENABLED`, and
+  `MESSAGING_LIVE_WABA_CONFIRMATION`.
 - Meta: `META_GRAPH_API_VERSION`, `META_WABA_ID`, `META_WHATSAPP_PHONE_NUMBER_ID`, `META_ACCESS_TOKEN`, `WHATSAPP_WEBHOOK_VERIFY_TOKEN`, and `WHATSAPP_APP_SECRET`.
 - Email/links: `RESEND_API_KEY`, `MESSAGING_EMAIL_FROM`, `MESSAGING_EMAIL_REPLY_TO`, `MESSAGING_PUBLIC_BASE_URL` (HTTPS), and `RESEND_WEBHOOK_SECRET`.
-- APNs: `APNS_ENV`, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, and `APNS_PRIVATE_KEY`.
+- APNs: `APNS_ENV`, build-time `VITE_APNS_ENV`, `APNS_KEY_ID`, `APNS_TEAM_ID`,
+  `APNS_BUNDLE_ID`, and `APNS_PRIVATE_KEY`.
 - Internal sweep: `NOTIFICATION_AUTOMATION_TOKEN`.
 - Rollback-only legacy gates: `OPENWA_LEGACY_DELIVERY_ENABLED`, `OFFICIAL_WHATSAPP_LEGACY_DELIVERY_ENABLED`, and `LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED`.
 
 All dispatcher and channel gates default to disabled. Transactional domain triggers also remain off until `studio_settings.messaging_canonical_writes_enabled` is explicitly set to `true`; while it is false, legacy rows may mirror into canonical storage for validation but the v2 dispatcher never claims legacy deliveries. `MESSAGING_RECIPIENT_ALLOWLIST` is mandatory in allowlist mode. Live mode additionally requires `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806`.
+
+The database release gate is `MESSAGING_TEST_DATABASE_URL=... bun run test:integration`. Unlike the
+general local suite, this command fails closed when the ephemeral PostgreSQL/Supabase database is
+missing, so CI cannot report migration, concurrency, or RLS coverage as passing without executing it.
 
 ## Event and channel behavior
 
@@ -54,7 +68,38 @@ Routine external delivery is scheduled inside 08:00–20:30 Asia/Jerusalem. Book
 
 Waitlist deliveries inherit `offer_expires_at`; no retry is scheduled at or beyond that deadline. Missing or unapproved locale-specific WhatsApp templates are suppressed as configuration failures. No language fallback is used.
 
-Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged.
+Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged. Pending payments create the in-app/push reminder after 24 hours and schedule WhatsApp escalation 48 hours later (72 hours after the original pending state). Payment/subscription failures send immediately and receive one deduplicated follow-up while still failed after 24 hours.
+
+### Premium event policy and iPhone experience
+
+`src/lib/premiumNotificationCatalog.ts` is the channel-neutral policy for 42 booking, class,
+waitlist, payment, membership, communication, and engagement events. It defines tier, channels,
+fallbacks, preference, quiet-hours behavior, APNs interruption level, sound, and branded actions.
+The previously active Phase 1/2 events remain approved. Every additional event ships with Hebrew,
+Arabic, and English in-app/push copy but remains `draft`, disabled in code, and disabled in
+`notification_event_rollouts`. Draft events are deliberately absent from the Meta template catalog.
+
+The iPhone registration stores a random installation ID, token hash, app/build version, locale,
+environment, capability set, permission sync time, logout time, and stale deadline. Raw APNs tokens
+are service-role-only. A transaction-safe registration RPC locks token/installation identity so
+concurrent token rotation updates one installation instead of creating a second active device. A
+member can have multiple installations; successful targets are not resent while a transiently
+failed target remains retryable. Permanent APNs errors deactivate only that token; an accepted send
+whose target status cannot be persisted becomes `delivery_unknown` and is never automatically
+retried.
+
+APNs payloads support category actions, thread/collapse IDs, expiry, badge, Time Sensitive
+interruption, relevance, privacy-safe deep links, and optional rich-media metadata. Native action
+categories are registered in `ios/App/App/AppDelegate.swift` with Hebrew/Arabic/English labels.
+The server uses `cloud_core_important.caf` for brand-important alerts; before the native rollout,
+add the approved licensed sound asset to the app target or iOS will use its normal fallback sound.
+Rich recommendation images require the native Notification Service Extension before those draft
+events may be enabled.
+
+The member notification center has All/Unread views, family filters, Today/This Week/Earlier
+grouping, pin-aware ordering, archive and expired-action handling, critical treatment, safe deep
+links, and granular practice/account/communication controls. The admin Messages page exposes Inbox,
+Deliveries (including per-device success counts), Event matrix, Templates, and Activity views.
 
 ### Open-class iPhone alerts
 
@@ -67,7 +112,7 @@ capacity. A member is eligible only when all of the following are true:
 - the member enabled the existing **New schedules and lesson openings** preference;
 - the member is neither booked nor waitlisted for that class;
 - that member/class pair has not already been alerted; and
-- the member has received fewer than one open-class alert in 24 hours and fewer than two in seven
+- the member has received fewer than one open-class alert in 24 hours and fewer than three in seven
   days.
 
 At most one class is selected per member in a sweep. Allowlist mode filters candidates by the member
@@ -139,6 +184,11 @@ Apply performs a paginated preflight, acquires a WABA database lease, creates se
 
 The internal worker endpoint is `POST /api/internal/messages/sweep` with `Authorization: Bearer $NOTIFICATION_AUTOMATION_TOKEN`. It also requires `MESSAGING_SCHEDULER_ENABLED=true`. Start with delivery mode disabled and all external channel flags false.
 
+When `MESSAGING_IMMEDIATE_DISPATCH_ENABLED=true`, successful application mutations make a bounded,
+authenticated post-commit request to `MESSAGING_INTERNAL_SWEEP_URL`. The request is best-effort and
+never replaces the one-minute scheduler: a timeout leaves the durable outbox for recovery. Keep this
+flag false until the protected internal URL and allowlist behavior have been validated.
+
 Production automation uses a dedicated `cloud-core-unified-messaging-sweep` Cloud Run job and the
 `cloud-core-unified-messaging-sweep-1m` Cloud Scheduler job. The job runs
 `scripts/unified-messaging-cron.mjs` and calls only the protected canonical sweep endpoint. It is
@@ -161,10 +211,28 @@ when the channel is enabled later. In-app delivery remains independent.
 
 For push allowlist testing, include the verified member UUID in `MESSAGING_RECIPIENT_ALLOWLIST` in
 addition to any WhatsApp phone number. Push delivery addresses are member UUIDs, not phone numbers.
+Add `admin_group` only when testing handoff alerts. In allowlist mode, both member and admin APNs
+queries require a non-revoked `notification_staff_test_devices` row and the matching APNs
+environment. Sandbox tokens are never sent through the production endpoint or deactivated because
+of an environment mismatch. Legacy tokens with no trustworthy environment are deactivated by the
+expand migration and become eligible again only after the native build re-registers them with its
+declared `VITE_APNS_ENV`.
+
+The Admin Messages event matrix is the per-event and per-channel kill-switch. Existing approved
+events begin enabled at the database rollout layer; every new event begins disabled,
+allowlist-only, and copy-review blocked. Enabling a new event requires reviewed localized copy and
+always retains in-app delivery. Promotional events reserve an atomic one-per-24-hours,
+three-per-seven-days budget before materialization.
+The matrix exposes an explicit `Allowlist only` / `Live eligible` control. Global allowlist mode
+still restricts every channel, including in-app, regardless of the per-event setting. A draft event
+marked allowlist-only remains suppressed in global live mode until an admin promotes that event.
 
 Structured JSON logs go to stdout with correlation, message, delivery, attempt, provider, outcome, duration, and retry classification fields. The logging allowlist rejects names, addresses, bodies, tokens, and signatures.
 
-Run `select public.redact_and_purge_message_audit();` from the protected retention scheduler. It redacts message bodies and rendered variables after 180 days; after 13 months it clears delivery recipients, provider IDs/payloads/errors and deletes delivery-attempt/webhook audit rows.
+Run `select public.redact_and_purge_message_audit();` from the protected retention scheduler. It
+redacts message bodies and rendered variables after 180 days; after 13 months it clears delivery
+recipients, provider IDs/payloads/errors and deletes attempts, webhooks, per-device targets,
+engagement, preference-audit, and promotional-frequency rows.
 
 Troubleshooting sequence:
 
@@ -175,6 +243,8 @@ Troubleshooting sequence:
 5. For `delivery_unknown`, inspect Meta Manager/API before any staff reconciliation; do not retry blindly.
 6. For Resend, verify the sender domain, sender, Reply-To, webhook secret, and selected delivery events.
 7. For APNs, verify credentials/environment and whether only one token was deactivated.
+8. If an APNs target is `delivery_unknown`, reconcile it manually; the provider accepted the alert
+   but target-status persistence was uncertain, so an automatic retry could duplicate the pop-up.
 
 ## Migration validation
 
@@ -192,7 +262,12 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 
 ## Non-destructive rollback
 
-1. Set `MESSAGING_DELIVERY_MODE=disabled`, `MESSAGING_SCHEDULER_ENABLED=false`, every new channel flag to false, and `studio_settings.messaging_canonical_writes_enabled=false`. Re-enable `LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED=true` only when intentionally returning to the legacy APNs worker.
+1. Set `MESSAGING_DELIVERY_MODE=disabled`, `MESSAGING_SCHEDULER_ENABLED=false`,
+   `MESSAGING_IMMEDIATE_DISPATCH_ENABLED=false`, every new channel flag to false, and
+   `studio_settings.messaging_canonical_writes_enabled=false`. Set every
+   `notification_event_rollouts.enabled=false`. Re-enable
+   `LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED=true` only when intentionally returning to the
+   legacy APNs worker.
 2. Record the cutover timestamp and run `docs/sql/unified-messaging-rollback-reconciliation.sql` with that value. The script inserts only missing legacy projections and disables mirror recursion for its transaction.
 3. Verify projected counts and statuses.
 4. Revert the application to the prior release.
@@ -202,18 +277,33 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 ## Exact pre-production sequence
 
 1. Back up the database and capture all legacy/canonical counts.
-2. Apply `20260720140000_unified_messaging_phases_1_2.sql` and
-   `20260721143000_open_class_alert_reservations.sql` with the scheduler and channels disabled.
+2. Apply `20260720140000_unified_messaging_phases_1_2.sql`,
+   `20260721143000_open_class_alert_reservations.sql`, and
+   `20260721170000_premium_notification_foundation.sql` with immediate dispatch, the scheduler, and
+   channels disabled.
 3. Validate backfill counts, preference backfill, waitlist expiry, RLS, and worker functions.
 4. Deploy the schema-compatible app with delivery mode disabled, canonical reads false, scheduler false, and all external channel flags false.
 5. Verify WABA `1009561255148806`, its connected production phone number, webhook subscription, callback GET verification, app secret, and permanent system-user token.
 6. With separate authorization, run local template check and remote plan. Only then run explicit apply. Wait for all required `he`, `ar`, and `en_US` variants to be approved and sync deployment status.
 7. Verify the Resend domain, `MESSAGING_EMAIL_FROM`, Reply-To, signed webhook endpoint, and event selections.
 8. Set `LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED=false` and stop its scheduled calls before setting `studio_settings.messaging_canonical_writes_enabled=true`. Then enable the canonical scheduler and reads while delivery mode remains disabled, and validate one authoritative outbox path plus in-app delivery only. Confirm legacy mirrors stop producing canonical duplicates.
-9. Obtain a verified staff phone/email, set `MESSAGING_DELIVERY_MODE=allowlist`, populate the allowlist, and enable push, then email, then WhatsApp one at a time.
-10. Validate exactly one delivery per channel, status callbacks, reply handoff, service-window rules, retries, expiry, and replay suppression.
-11. Monitor dead letters, ambiguous WhatsApp outcomes, webhook duplicates, and template configuration failures.
-12. Set `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806` and switch to `live` only after every gate passes.
+9. Build and install the iPhone release containing the native action categories. Add the approved
+   `cloud_core_important.caf` asset and Notification Service Extension before enabling branded sound
+   or rich-image events. Confirm the APNs environment recorded by the staff device matches the key.
+10. Obtain a verified staff phone/email, set `MESSAGING_DELIVERY_MODE=allowlist`, populate the
+    allowlist, verify the staff installation in `notification_staff_test_devices`, and enable push,
+    then email, then WhatsApp one at a time. Add `admin_group` only for the verified admin-device
+    handoff test.
+11. Validate exactly one delivery per channel and per iPhone installation, badge/action/deep-link
+    behavior, engagement receipts, status callbacks, reply handoff, service-window rules, retries,
+    expiry, and replay suppression. Then enable the post-commit kick and verify scheduler recovery.
+12. Keep new event rollouts dark. For each event, review all three languages, set
+    `copy_reviewed=true`, and enable only the intended allowlist channels. Observe seven clean days.
+13. Monitor dead letters, ambiguous WhatsApp outcomes, per-device failures, webhook duplicates, and
+    template configuration failures.
+14. Promote only the validated event rows from `Allowlist only` to `Live eligible`, set
+    `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806`, and switch to `live` only after every gate
+    passes. Expand event rollouts independently; never bulk-enable draft events.
 
 ## Known risks
 
