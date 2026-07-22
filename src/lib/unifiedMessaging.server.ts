@@ -38,6 +38,7 @@ import {
   sendWhatsappTemplate,
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
+import { renderTransactionalEmail } from "@/lib/transactionalEmail";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import {
@@ -676,16 +677,6 @@ async function materializeOutbox(
     }
     return { ok: false as const, error: message };
   }
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;")
-    .replaceAll("\n", "<br>");
 }
 
 async function activeHandoff(recipient: string | null) {
@@ -1342,10 +1333,29 @@ async function processDelivery(
               : [],
           });
   } else if (delivery.channel === "email") {
+    const publicBaseUrl =
+      process.env.MESSAGING_PUBLIC_BASE_URL?.trim() || process.env.HYP_PUBLIC_BASE_URL?.trim();
+    if (!publicBaseUrl) throw new Error("missing_messaging_public_base_url");
+    const renderedEmail = renderTransactionalEmail({
+      eventType: message.event_type as MessageEventType,
+      language: language(message.language) ?? "he",
+      subject: message.subject ?? "Cloud & Core",
+      body: message.body ?? "",
+      variables:
+        message.content?.variables && typeof message.content.variables === "object"
+          ? message.content.variables
+          : {},
+      actionUrl: message.deep_link ?? message.content?.action_url ?? null,
+      publicBaseUrl,
+      replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
+      messageKey: delivery.idempotency_key,
+    });
     result = await sendResendEmail({
       to: delivery.recipient_address ?? "",
-      subject: message.subject ?? "Cloud & Core",
-      html: `<div dir="auto">${escapeHtml(message.body ?? "")}</div>`,
+      subject: renderedEmail.subject,
+      html: renderedEmail.html,
+      text: renderedEmail.text,
+      headers: renderedEmail.headers,
       idempotencyKey: delivery.idempotency_key,
     });
   } else {

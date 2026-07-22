@@ -27,7 +27,8 @@ payment events remain explicitly out of scope.
      records `opened`/`actioned`; the app receipt can advance the device target to
      `device_received`.
    - `email`: `sent`, then `delivered` after the signed Resend webhook. The same delivery
-     idempotency key is retained on retries.
+     idempotency key is retained on retries. Verify the branded HTML, plain-text alternative, correct
+     RTL/LTR direction, event facts, CTA destination, From identity, and Reply-To.
    - `whatsapp`: `accepted`/`sent`, followed by `delivered` and `read` from Meta callbacks. The
      exact approved locale is used; there is no language fallback.
 4. `suppressed` is correct only when the named gate explains it, such as
@@ -46,6 +47,8 @@ payment events remain explicitly out of scope.
   matching non-revoked row in `notification_staff_test_devices`.
 - Email: the allowlisted email is verified, the Resend domain/sender/webhook are configured, and
   `MESSAGING_EMAIL_ENABLED=true` only while testing email.
+- Email authentication: SPF and DKIM are verified for the transactional subdomain and DMARC is
+  published at `_dmarc.cloudandcorestudio.com`. Keep Resend click/open tracking disabled.
 - WhatsApp: all needed `he`, `ar`, or `en_US` variants are approved and synchronized in
   `whatsapp_template_deployments`; `MESSAGING_WHATSAPP_ENABLED=true` only while testing WhatsApp.
 - Keep the legacy OpenWA, legacy official WhatsApp, and legacy APNs delivery gates off.
@@ -55,6 +58,11 @@ payment events remain explicitly out of scope.
 The Journey Lab action is the safest complete content/channel test. The domain action column is the
 separate end-to-end trigger test. Perform domain actions only with disposable classes, bookings,
 waitlist rows, and payments owned by the allowlisted staff member.
+
+For visual email QA, send one representative from each family (welcome, booking, class operation,
+payment, membership, receipt) with several minutes between messages. Do not send every email event
+to one Outlook mailbox in a single burst; that pattern can train mailbox reputation toward Junk even
+when provider delivery succeeds.
 
 ### Membership and account
 

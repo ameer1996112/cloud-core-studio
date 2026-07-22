@@ -167,7 +167,7 @@ existing utility template catalog.
 Canonical states are `queued`, `sending`, `accepted`, `sent`, `delivered`, `read`, `failed`, `dead_letter`, `suppressed`, `expired`, `cancelled`, and `delivery_unknown`.
 
 - WhatsApp: four total attempts with 1-, 5-, and 30-minute backoff; `Retry-After` wins when longer. A transmitted timeout is `delivery_unknown` and cannot be manually retried until reconciled.
-- Resend: the same delivery idempotency key is used on every attempt; five total attempts at 1 minute, 5 minutes, 30 minutes, and 2 hours.
+- Resend: the same delivery idempotency key and `X-Entity-Ref-ID` are used on every attempt; five total attempts at 1 minute, 5 minutes, 30 minutes, and 2 hours. Every request contains branded HTML plus a complete plain-text alternative.
 - APNs: initial attempt plus two retries. `BadDeviceToken`, `Unregistered`, and `DeviceTokenNotForTopic` deactivate only the affected token.
 
 Terminal failures create admin in-app alerts. Manual retry refuses expired and ambiguous deliveries.
@@ -194,6 +194,25 @@ Every inbound reply creates or reopens a handoff, extends the service window, al
 ### Resend
 
 `POST /api/public/webhooks/resend` verifies the raw Svix signature using `RESEND_WEBHOOK_SECRET`, checks timestamp freshness, and deduplicates by `svix-id`. Provider states remain in `provider_status`; the canonical delivery state advances monotonically. Complaints disable routine email for that member.
+
+`src/lib/transactionalEmail.ts` is the pure presentation boundary for email. It renders one compact,
+table-based Cloud & Core shell for every catalog event, with explicit Hebrew/Arabic RTL, English LTR,
+real paragraph spacing, localized event labels and calls to action, whitelisted structured facts, and
+same-origin HTTPS links. Member-controlled values are escaped. The provider adapter receives only the
+rendered subject, HTML, text, safe headers, recipient, and durable idempotency key.
+
+Transactional deliverability requirements:
+
+- use one stable From identity on the exact Resend-verified transactional subdomain;
+- keep a working Reply-To and invite replies instead of using `no-reply`;
+- publish SPF, DKIM, and DMARC for the organizational domain, beginning with `p=none` while all
+  sources are audited before moving to enforcement;
+- keep Resend click/open tracking disabled for transactional mail;
+- use the authenticated application origin for every action link;
+- send one representative visual QA email at a time. Never repeat the all-events burst against one
+  mailbox for visual testing because that traffic pattern resembles bulk mail;
+- retain the text alternative, compact body, single primary action, bounce/complaint suppression,
+  and existing provider idempotency on every retry.
 
 ## Template catalog and provisioning
 

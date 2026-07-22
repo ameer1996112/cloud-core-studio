@@ -93,6 +93,8 @@ describe("unified messaging provider adapters", () => {
       to: "staff@example.com",
       subject: "Booking confirmed",
       html: "<p>Confirmed</p>",
+      text: "Confirmed",
+      headers: { "X-Entity-Ref-ID": "cc-booking-delivery-123" },
       idempotencyKey: "delivery-123",
     };
     const env = {
@@ -110,5 +112,12 @@ describe("unified messaging provider adapters", () => {
       "delivery-123",
       "delivery-123",
     ]);
+    expect(requests.map((request) => JSON.parse(request.body).text)).toEqual([
+      "Confirmed",
+      "Confirmed",
+    ]);
+    expect(JSON.parse(requests[0].body).headers).toEqual({
+      "X-Entity-Ref-ID": "cc-booking-delivery-123",
+    });
   });
 });
