@@ -2,7 +2,7 @@
 
 The authoritative v2 workflow is documented in [Unified Messaging System](./unified-messaging-system.md#template-catalog-and-provisioning).
 
-The template catalog is immutable application code in `src/lib/messageTemplateCatalog.ts`. Generated Meta JSON lives under `whatsapp/templates/v2/{he,ar,en}`. The legacy v1 JSON remains untouched for rollback/history.
+The template catalog is immutable application code in `src/lib/messageTemplateCatalog.ts`. Generated Meta JSON lives under `whatsapp/templates/v2/{he,ar,en}`. The current v2 catalog contains 19 semantic names and 57 locale variants. The welcome template is `UTILITY`; recommendation and personal-return templates are `MARKETING`. The legacy v1 JSON remains untouched for rollback/history.
 
 Safe commands:
 

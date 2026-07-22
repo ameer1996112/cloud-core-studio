@@ -1,4 +1,5 @@
 import { createServerFn, createMiddleware } from "@tanstack/react-start";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -322,6 +323,7 @@ export const memberCancelBooking = createServerFn({ method: "POST" })
         console.error("booking_cancelled_by_member_draft_prepare_failed", draftError);
       }
     }
+    if (typedResult.status === "cancelled") await kickUnifiedMessagingAfterCommit();
     return typedResult;
   });
 
@@ -370,6 +372,7 @@ export const joinWaitlist = createServerFn({ method: "POST" })
         console.error("waitlist_joined_draft_prepare_failed", draftError);
       }
     }
+    if (typedResult.status === "waiting") await kickUnifiedMessagingAfterCommit();
     return typedResult;
   });
 
@@ -383,7 +386,9 @@ export const leaveWaitlist = createServerFn({ method: "POST" })
       p_entry_id: data.entryId,
     });
     if (error) return { status: "error", message: error.message } as const;
-    return result as { status: string };
+    const typedResult = result as { status: string };
+    if (["left", "removed"].includes(typedResult.status)) await kickUnifiedMessagingAfterCommit();
+    return typedResult;
   });
 
 export const getMyBookingsAll = createServerFn({ method: "GET" })

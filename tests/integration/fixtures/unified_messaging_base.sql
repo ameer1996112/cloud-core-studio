@@ -33,16 +33,23 @@ CREATE TABLE public.members (
   preferred_language text NOT NULL DEFAULT 'en',
   phone text,
   email text,
-  status text NOT NULL DEFAULT 'active'
+  status text NOT NULL DEFAULT 'active',
+  remaining_credits integer NOT NULL DEFAULT 0
 );
 CREATE TABLE public.instructors (id uuid PRIMARY KEY, name text NOT NULL);
+CREATE TABLE public.rooms (id uuid PRIMARY KEY, name text NOT NULL);
 CREATE TABLE public.classes (
   id uuid PRIMARY KEY,
   title text NOT NULL,
   starts_at timestamptz NOT NULL,
   cancellation_window_hours integer NOT NULL DEFAULT 24,
   instructor_id uuid REFERENCES public.instructors(id),
-  status text NOT NULL DEFAULT 'scheduled'
+  room_id uuid REFERENCES public.rooms(id),
+  room text,
+  status text NOT NULL DEFAULT 'scheduled',
+  member_visible boolean NOT NULL DEFAULT true,
+  capacity integer NOT NULL DEFAULT 10,
+  booked_count integer NOT NULL DEFAULT 0
 );
 CREATE TABLE public.bookings (
   id uuid PRIMARY KEY,
@@ -52,6 +59,16 @@ CREATE TABLE public.bookings (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE public.plans (id uuid PRIMARY KEY, name text NOT NULL);
+CREATE TABLE public.member_plans (
+  id uuid PRIMARY KEY,
+  member_id uuid NOT NULL REFERENCES public.members(id),
+  plan_id uuid NOT NULL REFERENCES public.plans(id),
+  credits_granted integer NOT NULL DEFAULT 0,
+  starts_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz,
+  status text NOT NULL DEFAULT 'active',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 CREATE TABLE public.member_subscriptions (
   id uuid PRIMARY KEY,
   member_id uuid NOT NULL REFERENCES public.members(id),
@@ -59,7 +76,10 @@ CREATE TABLE public.member_subscriptions (
   status text NOT NULL DEFAULT 'active',
   retry_count integer NOT NULL DEFAULT 0,
   amount numeric NOT NULL DEFAULT 100,
-  currency text NOT NULL DEFAULT 'ILS'
+  currency text NOT NULL DEFAULT 'ILS',
+  last_payment_id uuid,
+  next_charge_at timestamptz NOT NULL DEFAULT now() + interval '1 month',
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE public.payments (
   id uuid PRIMARY KEY,
@@ -69,7 +89,8 @@ CREATE TABLE public.payments (
   status text NOT NULL DEFAULT 'pending',
   plan_id uuid REFERENCES public.plans(id),
   subscription_id uuid REFERENCES public.member_subscriptions(id),
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE public.receipts (
   id uuid PRIMARY KEY,
@@ -109,6 +130,37 @@ CREATE TABLE public.member_notification_preferences (
   sound boolean NOT NULL DEFAULT true,
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TABLE public.member_push_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  member_id uuid NOT NULL REFERENCES public.members(id) ON DELETE CASCADE,
+  token text NOT NULL UNIQUE,
+  platform text NOT NULL DEFAULT 'ios',
+  active boolean NOT NULL DEFAULT true,
+  permission_status text NOT NULL DEFAULT 'granted',
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.member_push_tokens ENABLE ROW LEVEL SECURITY;
+GRANT SELECT ON public.member_push_tokens TO authenticated;
+GRANT ALL ON public.member_push_tokens TO service_role;
+CREATE POLICY "members read own push devices"
+  ON public.member_push_tokens FOR SELECT TO authenticated
+  USING (member_id = auth.uid());
+CREATE POLICY "admins read member push devices"
+  ON public.member_push_tokens FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+CREATE TABLE public.admin_push_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  token text NOT NULL UNIQUE,
+  platform text NOT NULL DEFAULT 'ios',
+  active boolean NOT NULL DEFAULT true,
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT ALL ON public.admin_push_tokens TO service_role;
 CREATE TABLE public.notification_logs (
   id uuid PRIMARY KEY,
   template_key text,
@@ -185,7 +237,7 @@ INSERT INTO public.member_notification_preferences (member_id) VALUES
   ('00000000-0000-0000-0000-000000000001');
 INSERT INTO public.instructors VALUES
   ('10000000-0000-0000-0000-000000000001', 'Instructor');
-INSERT INTO public.classes VALUES
+INSERT INTO public.classes (id, title, starts_at, cancellation_window_hours, instructor_id, status) VALUES
   ('20000000-0000-0000-0000-000000000001', 'Class', now() + interval '1 day', 24, '10000000-0000-0000-0000-000000000001', 'scheduled');
 INSERT INTO public.bookings VALUES
   ('30000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'booked', now());

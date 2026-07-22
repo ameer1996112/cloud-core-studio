@@ -26,6 +26,11 @@ const getCurrentMemberPushToken = createClientOnlyFn(async () => {
   return memberPush.getCurrentMemberPushToken();
 });
 
+const getCurrentMemberPushInstallationId = createClientOnlyFn(async () => {
+  const memberPush = await import("@/lib/memberPush.client");
+  return memberPush.getCurrentMemberPushInstallationId();
+});
+
 export function AppShell({ role, children }: Props) {
   const { lang } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -112,7 +117,12 @@ export function AppShell({ role, children }: Props) {
     if (role === "member") {
       try {
         const token = await getCurrentMemberPushToken();
-        if (token) await deactivateMemberPushTokens({ data: { token } });
+        const installationId = await getCurrentMemberPushInstallationId();
+        if (token || installationId) {
+          await deactivateMemberPushTokens({
+            data: { ...(token ? { token } : {}), ...(installationId ? { installationId } : {}) },
+          });
+        }
       } catch (error) {
         console.warn("member_push_deactivate_on_signout_failed", error);
       }

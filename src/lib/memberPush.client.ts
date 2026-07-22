@@ -1,9 +1,16 @@
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentRole } from "@/lib/auth-redirect";
-import { safeNotificationActionUrl } from "@/lib/memberNotificationsApi";
+import { safeNotificationActionUrlForAction } from "@/lib/memberNotificationsApi";
+import {
+  clientApnsEnvironment,
+  getOrCreateMemberPushInstallationId,
+  memberPushRegistrationMetadata,
+} from "@/lib/memberPushDevice";
 import {
   markMemberNotificationRead,
+  deactivateMemberPushTokens,
+  recordMemberNotificationEngagement,
   registerMemberPushToken,
 } from "@/lib/memberNotifications.functions";
 
@@ -26,6 +33,32 @@ let listenersInstalled = false;
 let registeredUserId: string | null = null;
 let initializationPromise: Promise<MemberPushRegistrationResult> | null = null;
 const MEMBER_PUSH_TOKEN_KEY = "member_push_token";
+let currentRegistrationMetadata: ReturnType<typeof memberPushRegistrationMetadata> | null = null;
+
+function currentInstallationId() {
+  return getOrCreateMemberPushInstallationId(window.localStorage);
+}
+
+async function reportEngagement(input: {
+  notificationId: unknown;
+  eventType: "device_received" | "opened" | "actioned";
+  actionId?: string;
+}) {
+  if (typeof input.notificationId !== "string") return;
+  try {
+    await recordMemberNotificationEngagement({
+      data: {
+        notificationId: input.notificationId,
+        installationId: currentInstallationId(),
+        eventType: input.eventType,
+        ...(input.actionId ? { actionId: input.actionId } : {}),
+        occurredAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.warn("member_push_engagement_tracking_failed", error);
+  }
+}
 
 async function initializeMemberPush(input: {
   requestPermission: boolean;
@@ -49,11 +82,25 @@ async function initializeMemberPush(input: {
   registeredUserId = userId;
 
   try {
+    const { App } = await import("@capacitor/app");
+    const appInfo = await App.getInfo().catch(() => null);
+    currentRegistrationMetadata = memberPushRegistrationMetadata({
+      installationId: currentInstallationId(),
+      appInfo,
+      locale: window.navigator.language,
+      environment: clientApnsEnvironment(import.meta.env.VITE_APNS_ENV),
+    });
     const { PushNotifications } = await import("@capacitor/push-notifications");
     if (!listenersInstalled) {
       await PushNotifications.addListener("registration", (token) => {
         window.localStorage.setItem(MEMBER_PUSH_TOKEN_KEY, token.value);
-        void registerMemberPushToken({ data: { token: token.value, platform: "ios" } })
+        void registerMemberPushToken({
+          data: {
+            token: token.value,
+            platform: "ios",
+            ...(currentRegistrationMetadata ?? {}),
+          },
+        })
           .then(() => window.dispatchEvent(new CustomEvent("cc:member-notifications-changed")))
           .catch((error) => console.warn("member_push_token_register_failed", error));
       });
@@ -63,6 +110,10 @@ async function initializeMemberPush(input: {
         console.warn("member_push_registration_error", error);
       });
       await PushNotifications.addListener("pushNotificationReceived", (notification) => {
+        void reportEngagement({
+          notificationId: notification.data?.notificationId,
+          eventType: "device_received",
+        });
         window.dispatchEvent(
           new CustomEvent("cc:member-push-received", {
             detail: {
@@ -76,7 +127,12 @@ async function initializeMemberPush(input: {
       await PushNotifications.addListener("pushNotificationActionPerformed", async (event) => {
         const notificationId = event.notification.data?.notificationId;
         const campaignId = event.notification.data?.campaignId;
-        const actionUrl = safeNotificationActionUrl(event.notification.data?.url);
+        const rawActionId = typeof event.actionId === "string" ? event.actionId : "";
+        const actionId = rawActionId && rawActionId !== "tap" ? rawActionId : undefined;
+        const actionUrl = safeNotificationActionUrlForAction(
+          actionId,
+          event.notification.data?.url,
+        );
         if (typeof campaignId === "string") {
           window.localStorage.setItem(
             "cc-member-campaign-attribution",
@@ -84,6 +140,11 @@ async function initializeMemberPush(input: {
           );
         }
         if (typeof notificationId === "string") {
+          void reportEngagement({
+            notificationId,
+            eventType: actionId ? "actioned" : "opened",
+            ...(actionId ? { actionId } : {}),
+          });
           try {
             await markMemberNotificationRead({ data: { notificationId } });
           } catch (error) {
@@ -104,6 +165,12 @@ async function initializeMemberPush(input: {
       registrationStarted = true;
       await PushNotifications.register();
       return { ok: true, status: "registration_started" };
+    }
+
+    if (permissions.receive === "denied") {
+      await deactivateMemberPushTokens({
+        data: { installationId: currentInstallationId() },
+      }).catch((error) => console.warn("member_push_permission_sync_failed", error));
     }
 
     return {
@@ -138,6 +205,7 @@ export function resetMemberPushSession() {
   registrationStarted = false;
   registeredUserId = null;
   initializationPromise = null;
+  currentRegistrationMetadata = null;
 }
 
 export async function disconnectMemberPushSession() {
@@ -155,4 +223,8 @@ export async function disconnectMemberPushSession() {
 
 export function getCurrentMemberPushToken() {
   return window.localStorage.getItem(MEMBER_PUSH_TOKEN_KEY);
+}
+
+export function getCurrentMemberPushInstallationId() {
+  return currentInstallationId();
 }

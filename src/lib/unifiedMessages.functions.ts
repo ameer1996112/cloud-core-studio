@@ -3,7 +3,74 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
-import { conversationReplyMode } from "@/lib/messagingPolicy";
+import {
+  MESSAGE_CHANNELS,
+  type DeliveryStatus,
+  type MessageEventType,
+} from "@/lib/messaging.types";
+import {
+  conversationReplyMode,
+  resolveMessagingRuntime,
+  runtimeAllowsRolloutRecipient,
+} from "@/lib/messagingPolicy";
+import { NOTIFICATION_EVENT_CATALOG } from "@/lib/premiumNotificationCatalog";
+import {
+  buildPremiumJourneyPreviews,
+  buildPremiumJourneyTestOutbox,
+} from "@/lib/premiumJourneyLab";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
+import {
+  classifyDeliveryTraffic,
+  firstRelation,
+  summarizeDeliveriesByTraffic,
+  type DeliveryMonitorAttempt,
+  type DeliveryMonitorMember,
+  type DeliveryMonitorMessage,
+  type DeliveryMonitorRow,
+  type DeliveryMonitorTarget,
+} from "@/lib/deliveryMonitoring";
+
+type RawDeliveryTrafficSource = {
+  member_id: string | null;
+  event_type: string | null;
+  audience: string | null;
+  template_version: string | null;
+  legacy_source_table: string | null;
+  content: { staff_test?: unknown } | null;
+  outbox: { aggregate_type: string | null } | Array<{ aggregate_type: string | null }> | null;
+};
+
+type RawDeliveryMonitorMessage = Omit<DeliveryMonitorMessage, "member"> &
+  RawDeliveryTrafficSource & {
+    member: DeliveryMonitorMember | DeliveryMonitorMember[] | null;
+  };
+
+type RawDeliveryMonitorRow = Omit<DeliveryMonitorRow, "message" | "attempts" | "targets"> & {
+  message: RawDeliveryMonitorMessage | RawDeliveryMonitorMessage[] | null;
+  attempts: DeliveryMonitorAttempt[] | null;
+  targets: DeliveryMonitorTarget[] | null;
+};
+
+type RawRecentDelivery = {
+  status: DeliveryStatus;
+  message: RawDeliveryTrafficSource | RawDeliveryTrafficSource[] | null;
+};
+
+function deliveryTrafficKind(message: RawDeliveryTrafficSource | null) {
+  const outbox = firstRelation(message?.outbox);
+  return classifyDeliveryTraffic({
+    eventType: message?.event_type,
+    audience: message?.audience,
+    staffTest: message?.content?.staff_test,
+    aggregateType: outbox?.aggregate_type,
+    templateVersion: message?.template_version,
+    legacySourceTable: message?.legacy_source_table,
+  });
+}
+
+const messageEventSchema = z.enum(
+  Object.keys(NOTIFICATION_EVENT_CATALOG) as [MessageEventType, ...MessageEventType[]],
+);
 
 async function requireAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -52,15 +119,190 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await requireAdmin(context.userId);
-    const result = await db
-      .from("message_deliveries")
-      .select(
-        "id,message_id,channel,provider,status,provider_status,attempt_count,error_code,error_message,created_at,updated_at,message:messages(event_type,subject)",
-      )
-      .order("created_at", { ascending: false })
-      .limit(300);
+    const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+    const [result, recentResult] = await Promise.all([
+      db
+        .from("message_deliveries")
+        .select(
+          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,legacy_source_table,created_at,audience,content,outbox:message_outbox(aggregate_type),member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(500),
+      db
+        .from("message_deliveries")
+        .select(
+          "status,message:messages(member_id,event_type,audience,template_version,legacy_source_table,content,outbox:message_outbox(aggregate_type))",
+        )
+        .gte("created_at", since)
+        .limit(5_000),
+    ]);
     if (result.error) throw result.error;
-    return result.data ?? [];
+    if (recentResult.error) throw recentResult.error;
+
+    const deliveries = ((result.data ?? []) as RawDeliveryMonitorRow[]).map((row) => {
+      const message = firstRelation(row.message);
+      const trafficKind = deliveryTrafficKind(message);
+      const {
+        audience: _audience,
+        content: _content,
+        outbox: _outbox,
+        legacy_source_table: _legacySourceTable,
+        ...safeMessage
+      } = message ?? ({} as RawDeliveryMonitorMessage);
+      return {
+        ...row,
+        traffic_kind: trafficKind,
+        message: message ? { ...safeMessage, member: firstRelation(message.member) } : null,
+        attempts: [...(row.attempts ?? [])].sort(
+          (a: { attempt_number: number }, b: { attempt_number: number }) =>
+            a.attempt_number - b.attempt_number,
+        ),
+        targets: row.targets ?? [],
+      } as DeliveryMonitorRow;
+    });
+    const recent = ((recentResult.data ?? []) as RawRecentDelivery[]).map((row) => {
+      const message = firstRelation(row.message);
+      return {
+        status: row.status,
+        traffic_kind: deliveryTrafficKind(message),
+        message: message ? { member_id: message.member_id } : null,
+      } as Pick<DeliveryMonitorRow, "status" | "message" | "traffic_kind">;
+    });
+    const summaries = summarizeDeliveriesByTraffic(recent);
+
+    return {
+      deliveries,
+      summary: summaries.live,
+      summaries,
+      generatedAt: new Date().toISOString(),
+      windowHours: 24,
+    };
+  });
+
+export const listNotificationEventRollouts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await requireAdmin(context.userId);
+    const result = await db.from("notification_event_rollouts").select("*");
+    if (result.error) throw result.error;
+    const rows = new Map(
+      (result.data ?? []).map((row: { event_type: string }) => [row.event_type, row]),
+    );
+    return Object.entries(NOTIFICATION_EVENT_CATALOG).map(([eventType, definition]) => ({
+      eventType,
+      ...definition,
+      rollout: rows.get(eventType) ?? null,
+    }));
+  });
+
+export const listPremiumJourneyPreviews = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ language: z.enum(["he", "ar", "en"]).default("en") }).parse(data ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.userId);
+    return buildPremiumJourneyPreviews(data.language);
+  });
+
+export const enqueuePremiumJourneyTest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        memberId: z.string().uuid(),
+        eventType: messageEventSchema,
+        channel: z.enum(MESSAGE_CHANNELS),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await requireAdmin(context.userId);
+    const eventType = data.eventType;
+    const definition = NOTIFICATION_EVENT_CATALOG[eventType];
+    if (!definition) throw new Error("unknown_notification_event");
+    const runtime = resolveMessagingRuntime(process.env);
+    if (runtime.mode !== "allowlist") throw new Error("journey_test_requires_allowlist_mode");
+    const member = await db
+      .from("members")
+      .select("id,phone,email,preferred_language,status")
+      .eq("id", data.memberId)
+      .maybeSingle();
+    if (member.error) throw member.error;
+    if (!member.data || member.data.status !== "active") throw new Error("active_member_required");
+    if (
+      !runtimeAllowsRolloutRecipient(runtime, [
+        member.data.id,
+        member.data.phone,
+        member.data.email,
+      ])
+    ) {
+      throw new Error("member_not_in_messaging_allowlist");
+    }
+    const language = ["he", "ar", "en"].includes(member.data.preferred_language)
+      ? member.data.preferred_language
+      : "en";
+    const row = buildPremiumJourneyTestOutbox({
+      eventType,
+      channel: data.channel,
+      memberId: member.data.id,
+      language,
+      runId: randomUUID(),
+      now: new Date(),
+    });
+    const inserted = await db.from("message_outbox").insert(row).select("id").single();
+    if (inserted.error) throw inserted.error;
+    await kickUnifiedMessagingAfterCommit();
+    return {
+      ok: true as const,
+      outboxId: inserted.data.id,
+      eventType,
+      channel: data.channel,
+    };
+  });
+
+export const updateNotificationEventRollout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        eventType: messageEventSchema,
+        enabled: z.boolean(),
+        copyReviewed: z.boolean(),
+        allowlistOnly: z.boolean(),
+        enabledChannels: z.array(z.enum(MESSAGE_CHANNELS)).min(1),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await requireAdmin(context.userId);
+    const definition = NOTIFICATION_EVENT_CATALOG[data.eventType];
+    if (!data.enabledChannels.includes("in_app")) throw new Error("in_app_channel_required");
+    if (
+      data.enabledChannels.some(
+        (channel) => !(definition.channels as readonly string[]).includes(channel),
+      )
+    ) {
+      throw new Error("event_channel_not_supported");
+    }
+    if (data.enabled && !data.copyReviewed) throw new Error("copy_review_required");
+    const now = new Date().toISOString();
+    const result = await db
+      .from("notification_event_rollouts")
+      .update({
+        enabled: data.enabled,
+        copy_reviewed: data.copyReviewed,
+        enabled_channels: data.enabledChannels,
+        allowlist_only: data.allowlistOnly,
+        enabled_by: data.enabled ? context.userId : null,
+        enabled_at: data.enabled ? now : null,
+        updated_at: now,
+      })
+      .eq("event_type", data.eventType)
+      .select("*")
+      .single();
+    if (result.error) throw result.error;
+    return result.data;
   });
 
 export const listWhatsappTemplateDeployments = createServerFn({ method: "GET" })
@@ -124,10 +366,63 @@ export const resolveCanonicalConversation = createServerFn({ method: "POST" })
       .from("message_conversations")
       .update({ status: "resolved", assigned_to: null, resolved_at: now, updated_at: now })
       .eq("id", data.conversationId)
-      .select("id")
+      .select("id,member_id")
       .maybeSingle();
     if (result.error) throw result.error;
+    if (result.data?.member_id) {
+      const outbox = await db.from("message_outbox").upsert(
+        {
+          event_type: "human_handoff_resolved",
+          aggregate_type: "message_conversation",
+          aggregate_id: data.conversationId,
+          member_id: result.data.member_id,
+          payload: { conversation_id: data.conversationId },
+          deduplication_key: `conversation:${data.conversationId}:resolved:${now}`,
+          available_at: now,
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (outbox.error) throw outbox.error;
+      await kickUnifiedMessagingAfterCommit();
+    }
     return { ok: Boolean(result.data) };
+  });
+
+export const emitUrgentStudioAnnouncement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        memberIds: z.array(z.string().uuid()).max(5_000).optional(),
+        confirmation: z.literal("SEND_URGENT_STUDIO_ANNOUNCEMENT"),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await requireAdmin(context.userId);
+    let query = db.from("members").select("id").eq("status", "active").limit(5_000);
+    if (data.memberIds?.length) query = query.in("id", data.memberIds);
+    const members = await query;
+    if (members.error) throw members.error;
+    const announcementId = randomUUID();
+    const rows = (members.data ?? []).map((member: { id: string }) => ({
+      event_type: "urgent_studio_announcement",
+      aggregate_type: "studio_announcement",
+      aggregate_id: announcementId,
+      member_id: member.id,
+      payload: { announcement_id: announcementId },
+      deduplication_key: `announcement:${announcementId}:member:${member.id}`,
+      available_at: new Date().toISOString(),
+    }));
+    if (rows.length) {
+      const result = await db.from("message_outbox").upsert(rows, {
+        onConflict: "deduplication_key",
+        ignoreDuplicates: true,
+      });
+      if (result.error) throw result.error;
+      await kickUnifiedMessagingAfterCommit();
+    }
+    return { ok: true as const, announcementId, recipients: rows.length };
   });
 
 export const linkCanonicalGuestConversation = createServerFn({ method: "POST" })
@@ -247,6 +542,22 @@ export const replyCanonicalConversation = createServerFn({ method: "POST" })
       idempotency_key: `${messageKey}:whatsapp`,
     });
     if (delivery.error) throw delivery.error;
+    if (conversation.data.member_id) {
+      const notification = await db.from("message_outbox").upsert(
+        {
+          event_type: "staff_reply",
+          aggregate_type: "message_conversation",
+          aggregate_id: data.conversationId,
+          member_id: conversation.data.member_id,
+          payload: { conversation_id: data.conversationId },
+          deduplication_key: `${messageKey}:staff_reply`,
+          available_at: new Date().toISOString(),
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (notification.error) throw notification.error;
+    }
+    await kickUnifiedMessagingAfterCommit();
     return { ok: true, queued: true, windowOpen: Boolean(windowOpen) };
   });
 

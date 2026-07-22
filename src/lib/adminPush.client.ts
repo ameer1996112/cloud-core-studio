@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentRole } from "@/lib/auth-redirect";
 import { registerAdminPushToken } from "@/lib/adminPush.functions";
+import { clientApnsEnvironment } from "@/lib/memberPushDevice";
 
 type AdminPushRegistrationResult =
   | { ok: true; status: "registration_started" }
@@ -40,7 +41,13 @@ export async function maybeRegisterAdminPushNotifications(): Promise<AdminPushRe
     const { PushNotifications } = await import("@capacitor/push-notifications");
     await PushNotifications.addListener("registration", (token) => {
       const platform = Capacitor.getPlatform() === "android" ? "android" : "ios";
-      registerAdminPushToken({ data: { token: token.value, platform } }).catch((error) => {
+      registerAdminPushToken({
+        data: {
+          token: token.value,
+          platform,
+          environment: clientApnsEnvironment(import.meta.env.VITE_APNS_ENV),
+        },
+      }).catch((error) => {
         console.warn("admin_push_token_register_failed", error);
       });
     });

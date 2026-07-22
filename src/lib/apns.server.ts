@@ -11,12 +11,22 @@ type ApnsConfig = {
 
 export type ApnsAlertPayload = {
   title: string;
+  subtitle?: string;
   body: string;
   url?: string;
-  sound?: boolean;
+  sound?: boolean | string;
   badge?: number;
   notificationId?: string;
   campaignId?: string;
+  category?: string;
+  threadId?: string;
+  interruptionLevel?: "passive" | "active" | "time-sensitive";
+  relevanceScore?: number;
+  mutableContent?: boolean;
+  imageUrl?: string;
+  actions?: string[];
+  collapseId?: string;
+  expiresAt?: Date;
 };
 
 type CachedJwt = {
@@ -119,19 +129,64 @@ export function isApnsConfigured() {
   return Boolean(apnsConfig());
 }
 
+export function configuredApnsEnvironment() {
+  return process.env.APNS_ENV === "sandbox" ? "sandbox" : "production";
+}
+
 export function buildApnsAlertBody(payload: ApnsAlertPayload) {
+  const sound =
+    payload.sound === false
+      ? undefined
+      : typeof payload.sound === "string"
+        ? payload.sound
+        : "default";
+  const relevanceScore =
+    payload.relevanceScore == null ? undefined : Math.min(1, Math.max(0, payload.relevanceScore));
+
   return {
     aps: {
       alert: {
         title: payload.title,
+        ...(payload.subtitle ? { subtitle: payload.subtitle } : {}),
         body: payload.body,
       },
-      ...(payload.sound === false ? {} : { sound: "default" }),
+      ...(sound == null ? {} : { sound }),
       ...(payload.badge == null ? {} : { badge: Math.max(0, Math.trunc(payload.badge)) }),
+      ...(payload.category ? { category: payload.category } : {}),
+      ...(payload.threadId ? { "thread-id": payload.threadId } : {}),
+      ...(payload.interruptionLevel ? { "interruption-level": payload.interruptionLevel } : {}),
+      ...(relevanceScore == null ? {} : { "relevance-score": relevanceScore }),
+      ...(payload.mutableContent ? { "mutable-content": 1 } : {}),
     },
     ...(payload.url ? { url: payload.url } : {}),
     ...(payload.notificationId ? { notificationId: payload.notificationId } : {}),
     ...(payload.campaignId ? { campaignId: payload.campaignId } : {}),
+    ...(payload.imageUrl ? { imageUrl: payload.imageUrl } : {}),
+    ...(payload.actions?.length ? { actions: payload.actions } : {}),
+  };
+}
+
+export function buildApnsRequestHeaders(input: {
+  bundleId: string;
+  authorization: string;
+  deviceToken: string;
+  payload: ApnsAlertPayload;
+}) {
+  const expiration = input.payload.expiresAt
+    ? Math.max(0, Math.floor(input.payload.expiresAt.getTime() / 1000)).toString()
+    : undefined;
+  const collapseId = input.payload.collapseId?.trim().slice(0, 64);
+
+  return {
+    ":method": "POST",
+    ":path": `/3/device/${input.deviceToken}`,
+    authorization: input.authorization,
+    "apns-topic": input.bundleId,
+    "apns-push-type": "alert",
+    "apns-priority": input.payload.interruptionLevel === "passive" ? "5" : "10",
+    "content-type": "application/json",
+    ...(collapseId ? { "apns-collapse-id": collapseId } : {}),
+    ...(expiration ? { "apns-expiration": expiration } : {}),
   };
 }
 
@@ -169,15 +224,14 @@ export async function sendApnsAlert(deviceToken: string, payload: ApnsAlertPaylo
       finish({ ok: false, error: error.message, apnsId: null });
     });
 
-    const request = client.request({
-      ":method": "POST",
-      ":path": `/3/device/${deviceToken}`,
-      authorization: `bearer ${buildJwt(config)}`,
-      "apns-topic": config.bundleId,
-      "apns-push-type": "alert",
-      "apns-priority": "10",
-      "content-type": "application/json",
-    });
+    const request = client.request(
+      buildApnsRequestHeaders({
+        bundleId: config.bundleId,
+        authorization: `bearer ${buildJwt(config)}`,
+        deviceToken,
+        payload,
+      }),
+    );
 
     let status = 0;
     let apnsId: string | null = null;

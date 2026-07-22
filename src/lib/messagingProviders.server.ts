@@ -182,6 +182,8 @@ export async function sendResendEmail(
     to: string;
     subject: string;
     html: string;
+    text: string;
+    headers?: Record<string, string>;
     idempotencyKey: string;
   },
   env: Record<string, string | undefined> = process.env,
@@ -208,6 +210,8 @@ export async function sendResendEmail(
         to: [input.to],
         subject: input.subject,
         html: input.html,
+        text: input.text,
+        ...(input.headers ? { headers: input.headers } : {}),
         ...(env.MESSAGING_EMAIL_REPLY_TO?.trim()
           ? { reply_to: env.MESSAGING_EMAIL_REPLY_TO.trim() }
           : {}),

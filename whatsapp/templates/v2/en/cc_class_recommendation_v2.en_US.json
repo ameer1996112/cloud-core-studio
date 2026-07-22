@@ -1,0 +1,19 @@
+{
+  "name": "cc_class_recommendation_v2",
+  "language": "en_US",
+  "category": "MARKETING",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, we thought these options may fit your week: {{2}}. The details are waiting in the app.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן ביום 20/07/2026 בשעה 19:00 או יוגה ביום 22/07/2026 בשעה 18:00"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,32 +1,12 @@
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
+  ExternalChannelAvailability,
   MessageChannel,
   MessageEventType,
+  MessagingDeliveryPreferences,
 } from "@/lib/messaging.types";
-
-const CHANNEL_MATRIX: Record<MessageEventType, readonly MessageChannel[]> = {
-  booking_confirmed: ["in_app", "push", "whatsapp", "email"],
-  booking_cancelled: ["in_app", "push", "whatsapp", "email"],
-  class_cancelled_by_admin: ["in_app", "push", "whatsapp", "email"],
-  class_time_changed: ["in_app", "push", "whatsapp", "email"],
-  class_reminder_planning: ["in_app", "push", "whatsapp"],
-  class_reminder_final: ["in_app", "push", "whatsapp"],
-  waitlist_joined: ["in_app", "push"],
-  waitlist_spot_available: ["in_app", "push", "whatsapp"],
-  payment_request_received: ["in_app", "push", "email"],
-  payment_pending_reminder: ["in_app", "push", "whatsapp"],
-  payment_confirmed: ["in_app", "push", "whatsapp", "email"],
-  payment_failed: ["in_app", "push", "whatsapp", "email"],
-  receipt_issued: ["in_app", "email"],
-  human_handoff: ["whatsapp", "in_app", "push"],
-};
-
-const ESSENTIAL_EVENTS = new Set<MessageEventType>([
-  "class_cancelled_by_admin",
-  "class_time_changed",
-  "payment_failed",
-]);
+import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 
 const STATUS_RANK: Partial<Record<DeliveryStatus, number>> = {
   queued: 0,
@@ -55,15 +35,37 @@ const RETRY_DELAYS_MINUTES: Record<MessageChannel, readonly number[]> = {
 export type MessagingRuntime = {
   mode: "disabled" | "allowlist" | "live";
   recipientAllowlist: ReadonlySet<string>;
-  channels: Record<"whatsapp" | "email" | "push", boolean>;
+  channels: ExternalChannelAvailability;
 };
 
 export function channelsForEvent(eventType: MessageEventType): MessageChannel[] {
-  return [...CHANNEL_MATRIX[eventType]];
+  return [...notificationDefinition(eventType).channels];
 }
 
 export function isEssentialMessageEvent(eventType: MessageEventType) {
-  return ESSENTIAL_EVENTS.has(eventType);
+  return ["class_cancelled_by_admin", "class_time_changed", "payment_failed"].includes(eventType);
+}
+
+export function requiresPromotionalFrequencyReservation(
+  eventType: MessageEventType,
+  staffTest: boolean,
+) {
+  return !staffTest && notificationDefinition(eventType).frequencyPolicy === "promotional";
+}
+
+export function isUnopenedSuccessfulPushMessage(input: {
+  message_deliveries?: readonly { channel?: string | null; status?: string | null }[] | null;
+  message_engagement_events?: readonly { event_type?: string | null }[] | null;
+}) {
+  const hasSuccessfulPush = (input.message_deliveries ?? []).some(
+    (delivery) =>
+      delivery.channel === "push" &&
+      ["accepted", "sent", "delivered", "read"].includes(delivery.status ?? ""),
+  );
+  if (!hasSuccessfulPush) return false;
+  return !(input.message_engagement_events ?? []).some((event) =>
+    ["opened", "actioned", "converted"].includes(event.event_type ?? ""),
+  );
 }
 
 export function shouldCancelReminderForDomainState(
@@ -77,15 +79,53 @@ export function shouldCancelReminderForDomainState(
   return bookingStatus !== "booked" || classStatus !== "scheduled";
 }
 
+export function shouldCancelPaymentReminderForDomainState(
+  eventType: MessageEventType,
+  paymentStatus: string | null | undefined,
+) {
+  return eventType === "payment_pending_reminder" && paymentStatus !== "pending";
+}
+
 export function deliveryAllowedByConsent(
   eventType: MessageEventType,
   channel: MessageChannel,
-  preferences: { whatsappEnabled?: boolean | null; emailEnabled?: boolean | null },
+  preferences: MessagingDeliveryPreferences,
 ) {
-  if (channel === "in_app" || channel === "push") return true;
+  const definition = notificationDefinition(eventType);
   if (isEssentialMessageEvent(eventType)) return true;
+  // The inbox is the durable transactional record. Granular preferences govern
+  // interruption/external delivery, never whether that record exists.
+  if (channel === "in_app") return true;
+  if (definition.preference && !preferenceEnabled(definition.preference, preferences)) return false;
+  if (channel === "push") return true;
   if (channel === "whatsapp") return preferences.whatsappEnabled === true;
   return preferences.emailEnabled === true;
+}
+
+function preferenceEnabled(
+  preference: NonNullable<ReturnType<typeof notificationDefinition>["preference"]>,
+  preferences: MessagingDeliveryPreferences,
+) {
+  switch (preference) {
+    case "classOperations":
+      return preferences.classOperations !== false;
+    case "classReminders":
+      return preferences.classReminders !== false;
+    case "scheduleOpenings":
+      return (preferences.scheduleOpenings ?? preferences.scheduleUpdates) === true;
+    case "waitlist":
+      return preferences.waitlist !== false;
+    case "payments":
+      return preferences.payments !== false;
+    case "membership":
+      return preferences.membership !== false;
+    case "staffReplies":
+      return preferences.staffReplies !== false;
+    case "recommendations":
+      return preferences.recommendations === true;
+    case "marketing":
+      return preferences.marketing === true;
+  }
 }
 
 export function isQuietHours(at: Date) {
@@ -150,6 +190,21 @@ function flag(value: string | undefined) {
   return value?.trim().toLowerCase() === "true";
 }
 
+function canonicalRecipientKey(value: string) {
+  const normalized = value.trim().toLowerCase();
+  const compactPhone = normalized.replace(/[\s().-]/g, "");
+  if (!/^\+?\d+$/.test(compactPhone)) return normalized;
+
+  const digits = compactPhone.replace(/\D/g, "");
+  // Member records historically store Israeli mobile numbers in local 05xxxxxxxx form,
+  // while the production allowlist and Meta use E.164. Canonicalize only that
+  // unambiguous studio-local form; do not guess a country for arbitrary numbers.
+  if (/^05\d{8}$/.test(digits)) return `+972${digits.slice(1)}`;
+  if (/^9725\d{8}$/.test(digits)) return `+${digits}`;
+  if (compactPhone.startsWith("+") && /^[1-9]\d{7,14}$/.test(digits)) return `+${digits}`;
+  return normalized;
+}
+
 export function resolveMessagingRuntime(env: Record<string, string | undefined>): MessagingRuntime {
   const requestedMode = env.MESSAGING_DELIVERY_MODE?.trim() || "disabled";
   if (!(["disabled", "allowlist", "live"] as const).includes(requestedMode as never)) {
@@ -157,10 +212,7 @@ export function resolveMessagingRuntime(env: Record<string, string | undefined>)
   }
   const mode = requestedMode as MessagingRuntime["mode"];
   const allowlist = new Set(
-    (env.MESSAGING_RECIPIENT_ALLOWLIST ?? "")
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean),
+    (env.MESSAGING_RECIPIENT_ALLOWLIST ?? "").split(",").map(canonicalRecipientKey).filter(Boolean),
   );
   if (mode === "allowlist" && allowlist.size === 0) throw new Error("messaging_allowlist_required");
   if (mode === "live" && env.MESSAGING_LIVE_WABA_CONFIRMATION !== "1009561255148806") {
@@ -186,7 +238,18 @@ export function runtimeAllowsRecipient(
   if (runtime.mode === "disabled") return false;
   if (!runtime.channels[channel]) return false;
   if (runtime.mode === "live") return true;
-  return Boolean(recipient && runtime.recipientAllowlist.has(recipient.trim().toLowerCase()));
+  return Boolean(recipient && runtime.recipientAllowlist.has(canonicalRecipientKey(recipient)));
+}
+
+export function runtimeAllowsRolloutRecipient(
+  runtime: MessagingRuntime,
+  recipients: readonly (string | null | undefined)[],
+) {
+  if (runtime.mode === "disabled") return false;
+  if (runtime.mode === "live") return true;
+  return recipients.some((recipient) =>
+    recipient ? runtime.recipientAllowlist.has(canonicalRecipientKey(recipient)) : false,
+  );
 }
 
 export function conversationReplyMode(

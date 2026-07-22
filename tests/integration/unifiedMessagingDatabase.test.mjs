@@ -33,12 +33,32 @@ describe("unified messaging database integration", () => {
         path.join(root, "supabase/migrations/20260720140000_unified_messaging_phases_1_2.sql"),
         "utf8",
       );
+      const openClassAlertMigration = await readFile(
+        path.join(root, "supabase/migrations/20260721143000_open_class_alert_reservations.sql"),
+        "utf8",
+      );
+      const premiumNotificationMigration = await readFile(
+        path.join(root, "supabase/migrations/20260721170000_premium_notification_foundation.sql"),
+        "utf8",
+      );
+      const premiumAllEventsMigration = await readFile(
+        path.join(root, "supabase/migrations/20260721190000_premium_notification_all_events.sql"),
+        "utf8",
+      );
+      const journeyTuningMigration = await readFile(
+        path.join(root, "supabase/migrations/20260722120000_premium_messaging_journey_tuning.sql"),
+        "utf8",
+      );
       const rollbackReconciliation = await readFile(
         path.join(root, "docs/sql/unified-messaging-rollback-reconciliation.sql"),
         "utf8",
       );
       await psql(fixture);
       await psql(migration);
+      await psql(openClassAlertMigration);
+      await psql(premiumNotificationMigration);
+      await psql(premiumAllEventsMigration);
+      await psql(journeyTuningMigration);
 
       expect(
         await psql("SELECT count(*) FROM public.messages WHERE legacy_source_table IS NOT NULL;"),
@@ -53,6 +73,89 @@ describe("unified messaging database integration", () => {
           "SELECT whatsapp_enabled::text || ',' || email_enabled::text FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000001';",
         ),
       ).toBe("true,true");
+      expect(
+        await psql(
+          "SELECT class_reminders_enabled::text || ',' || schedule_openings_enabled::text || ',' || recommendations_enabled::text FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000001';",
+        ),
+      ).toBe("true,true,false");
+      expect(
+        await psql(
+          "SELECT has_table_privilege('authenticated','public.member_push_tokens','SELECT')::text;",
+        ),
+      ).toBe("false");
+      expect(
+        await psql(
+          "SELECT count(*)::text FROM public.notification_event_rollouts WHERE enabled AND copy_reviewed AND allowlist_only;",
+        ),
+      ).toBe("43");
+      expect(
+        await psql(
+          "SELECT enabled_channels::text FROM public.notification_event_rollouts WHERE event_type='member_welcome';",
+        ),
+      ).toBe("{in_app,whatsapp,email}");
+      expect(
+        await psql(
+          "SELECT has_table_privilege('authenticated','public.notification_experiment_assignments','SELECT')::text;",
+        ),
+      ).toBe("false");
+      expect(
+        await psql(
+          "SELECT has_table_privilege('authenticated','public.notification_growth_cooldowns','SELECT')::text;",
+        ),
+      ).toBe("false");
+
+      await psql(`
+        INSERT INTO public.member_push_tokens (
+          id, member_id, token, installation_id, permission_status, active
+        ) VALUES (
+          '62000000-0000-0000-0000-000000000001',
+          '00000000-0000-0000-0000-000000000001', repeat('a', 64),
+          'installation-integration-1', 'granted', true
+        );
+        INSERT INTO public.messages (
+          id, member_id, event_type, language, template_key, template_version, subject, body,
+          member_visible, idempotency_key
+        ) VALUES (
+          '63000000-0000-0000-0000-000000000001',
+          '00000000-0000-0000-0000-000000000001', 'booking_confirmed', 'en',
+          'cc_booking_confirmed_v2', 'v2', 'Booking confirmed', 'Body', true,
+          'integration:premium-message'
+        );
+        INSERT INTO public.message_deliveries (
+          id, message_id, channel, provider, recipient_address, status, idempotency_key
+        ) VALUES (
+          '64000000-0000-0000-0000-000000000001',
+          '63000000-0000-0000-0000-000000000001', 'push', 'apns',
+          '00000000-0000-0000-0000-000000000001', 'sent', 'integration:premium-push'
+        );
+        INSERT INTO public.message_delivery_targets (
+          id, delivery_id, push_token_id, member_id, status
+        ) VALUES (
+          '65000000-0000-0000-0000-000000000001',
+          '64000000-0000-0000-0000-000000000001',
+          '62000000-0000-0000-0000-000000000001',
+          '00000000-0000-0000-0000-000000000001', 'sent'
+        );
+      `);
+      const engagement = await psql(`
+        SET ROLE authenticated;
+        SET request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+        SELECT public.record_message_engagement(
+          '63000000-0000-0000-0000-000000000001', 'device_received',
+          'installation-integration-1', NULL, now(), '{}'
+        );
+        SELECT public.record_message_engagement(
+          '63000000-0000-0000-0000-000000000001', 'device_received',
+          'installation-integration-1', NULL, now(), '{}'
+        );
+        RESET ROLE;
+      `);
+      expect(engagement.split("\n").filter((line) => /^[0-9a-f-]{36}$/.test(line))).toHaveLength(1);
+      expect(
+        await psql(
+          "SELECT status || ':' || (SELECT count(*) FROM public.message_engagement_events WHERE message_id='63000000-0000-0000-0000-000000000001')::text FROM public.message_delivery_targets WHERE id='65000000-0000-0000-0000-000000000001';",
+        ),
+      ).toBe("device_received:1");
 
       const insert = `INSERT INTO public.message_outbox (
       event_type, aggregate_type, aggregate_id, member_id, deduplication_key
@@ -80,6 +183,59 @@ describe("unified messaging database integration", () => {
       expect(claimed.length).toBe(12);
       expect(new Set(claimed).size).toBe(12);
 
+      await psql(`INSERT INTO public.classes (
+        id, title, starts_at, cancellation_window_hours, instructor_id, status
+      ) VALUES (
+        '20000000-0000-0000-0000-000000000003', 'Second open class', now() + interval '1 day',
+        24, '10000000-0000-0000-0000-000000000001', 'scheduled'
+      );`);
+      const reservations = await Promise.all([
+        psql(
+          "SELECT public.enqueue_open_class_alert('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001',4,now() + interval '1 day')::text;",
+        ),
+        psql(
+          "SELECT public.enqueue_open_class_alert('20000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000001',4,now() + interval '1 day')::text;",
+        ),
+      ]);
+      expect(reservations.filter(Boolean)).toHaveLength(1);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE event_type='class_open_spots' AND member_id='00000000-0000-0000-0000-000000000001';",
+        ),
+      ).toBe("1");
+
+      await psql(`
+        INSERT INTO public.members (id, name, status)
+        SELECT
+          ('81000000-0000-0000-0000-' || lpad(value::text, 12, '0'))::uuid,
+          'Class cap member ' || value, 'active'
+        FROM generate_series(1, 12) value;
+        INSERT INTO public.classes (
+          id, title, starts_at, cancellation_window_hours, instructor_id, status
+        ) VALUES (
+          '20000000-0000-0000-0000-000000000005', 'Atomic cap class',
+          now() + interval '1 day', 24,
+          '10000000-0000-0000-0000-000000000001', 'scheduled'
+        );
+      `);
+      const classCapReservations = await Promise.all(
+        Array.from({ length: 12 }, (_, index) => {
+          const memberSuffix = String(index + 1).padStart(12, "0");
+          return psql(
+            `SELECT public.enqueue_open_class_alert(
+              '20000000-0000-0000-0000-000000000005',
+              '81000000-0000-0000-0000-${memberSuffix}', 4, now() + interval '1 day'
+            );`,
+          );
+        }),
+      );
+      expect(classCapReservations.filter(Boolean)).toHaveLength(10);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE event_type='class_open_spots' AND aggregate_id='20000000-0000-0000-0000-000000000005';",
+        ),
+      ).toBe("10");
+
       const leases = await Promise.all([
         psql("SELECT public.acquire_whatsapp_provisioning_lease('waba-1','owner-a',300);"),
         psql("SELECT public.acquire_whatsapp_provisioning_lease('waba-1','owner-b',300);"),
@@ -92,7 +248,9 @@ describe("unified messaging database integration", () => {
       SELECT count(*) FROM public.messages;
       RESET ROLE;
     `);
-      expect(memberVisible.split("\n").find((line) => /^\d+$/.test(line))).toBe("1");
+      // The member can see the backfilled inbox row plus the premium message
+      // inserted above, but not the member-invisible legacy notification log.
+      expect(memberVisible.split("\n").find((line) => /^\d+$/.test(line))).toBe("2");
 
       await psql(rollbackReconciliation, ["-v", "cutover_at=2000-01-01T00:00:00Z"]);
       expect(
@@ -113,7 +271,23 @@ describe("unified messaging database integration", () => {
       ).toBe("false");
       await psql(`
         UPDATE public.studio_settings SET messaging_canonical_writes_enabled=true WHERE id=1;
-        INSERT INTO public.classes VALUES (
+        INSERT INTO public.members (id, name, preferred_language, phone, email)
+        VALUES (
+          '00000000-0000-0000-0000-000000000002', 'Welcome Member', 'en',
+          '+972500000002', 'welcome@example.com'
+        );
+        INSERT INTO public.members (id, name, preferred_language, phone, email, status)
+        VALUES (
+          '00000000-0000-0000-0000-000000000003', 'Inactive Member', 'en',
+          '+972500000003', 'inactive@example.com', 'inactive'
+        );
+        INSERT INTO public.members (id, name, preferred_language, phone, status)
+        VALUES (
+          '00000000-0000-0000-0000-000000000004', 'Invalid Phone Member', 'en', '+', 'active'
+        );
+        INSERT INTO public.classes (
+          id, title, starts_at, cancellation_window_hours, instructor_id, status
+        ) VALUES (
           '20000000-0000-0000-0000-000000000002', 'Cancelled class', now() + interval '2 days',
           24, '10000000-0000-0000-0000-000000000001', 'scheduled'
         );
@@ -128,9 +302,113 @@ describe("unified messaging database integration", () => {
       `);
       expect(
         await psql(
-          "SELECT event_type || ':' || count(*) FROM public.message_outbox WHERE aggregate_id='20000000-0000-0000-0000-000000000002' GROUP BY event_type;",
+          "SELECT event_type || ':' || count(*) FROM public.message_outbox WHERE aggregate_id='20000000-0000-0000-0000-000000000002' AND event_type='class_cancelled_by_admin' GROUP BY event_type;",
         ),
       ).toBe("class_cancelled_by_admin:1");
+      expect(
+        await psql(
+          "SELECT event_type || ':' || deduplication_key FROM public.message_outbox WHERE member_id='00000000-0000-0000-0000-000000000002' AND event_type='member_welcome';",
+        ),
+      ).toBe("member_welcome:member:welcome:00000000-0000-0000-0000-000000000002:v2");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE member_id='00000000-0000-0000-0000-000000000003' AND event_type='member_welcome';",
+        ),
+      ).toBe("0");
+      await psql(`
+        UPDATE public.members SET status='active'
+          WHERE id='00000000-0000-0000-0000-000000000003';
+        UPDATE public.members SET status='active'
+          WHERE id='00000000-0000-0000-0000-000000000003';
+      `);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE member_id='00000000-0000-0000-0000-000000000003' AND event_type='member_welcome';",
+        ),
+      ).toBe("1");
+      expect(
+        await psql(
+          "SELECT whatsapp_enabled::text || ',' || email_enabled::text FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000003';",
+        ),
+      ).toBe("true,true");
+      expect(
+        await psql(
+          "SELECT count(*)::text || ':' || min(source) FROM public.notification_preference_events WHERE member_id='00000000-0000-0000-0000-000000000003' AND preference_key IN ('whatsapp_enabled','email_enabled');",
+        ),
+      ).toBe("2:member_activation_auto_enable");
+      expect(
+        await psql(
+          "SELECT whatsapp_enabled::text || ',' || email_enabled::text || ',' || whatsapp_consent_source || ',' || email_consent_source FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000002';",
+        ),
+      ).toBe("true,true,new_active_member_auto_enable,new_active_member_auto_enable");
+      expect(
+        await psql(
+          "SELECT whatsapp_enabled::text FROM public.member_notification_preferences WHERE member_id='00000000-0000-0000-0000-000000000004';",
+        ),
+      ).toBe("false");
+
+      await psql(`
+        INSERT INTO public.payments (id, member_id, amount, currency, status)
+        VALUES (
+          '72000000-0000-0000-0000-000000000009',
+          '00000000-0000-0000-0000-000000000001', 100, 'ILS', 'paid'
+        );
+        UPDATE public.payments SET status='refunded'
+          WHERE id='72000000-0000-0000-0000-000000000009';
+      `);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE aggregate_id='72000000-0000-0000-0000-000000000009' AND event_type='payment_refunded';",
+        ),
+      ).toBe("1");
+
+      await psql(`
+        UPDATE public.notification_event_rollouts
+        SET enabled=false
+        WHERE event_type='booking_checked_in';
+        INSERT INTO public.classes (
+          id, title, starts_at, cancellation_window_hours, instructor_id, status
+        ) VALUES (
+          '20000000-0000-0000-0000-000000000004', 'Premium event class',
+          now() + interval '3 days', 24,
+          '10000000-0000-0000-0000-000000000001', 'scheduled'
+        );
+        INSERT INTO public.bookings VALUES (
+          '30000000-0000-0000-0000-000000000004',
+          '20000000-0000-0000-0000-000000000004',
+          '00000000-0000-0000-0000-000000000001', 'booked', now()
+        );
+        UPDATE public.bookings SET status='checked_in'
+          WHERE id='30000000-0000-0000-0000-000000000004';
+      `);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE event_type='booking_checked_in' AND aggregate_id='30000000-0000-0000-0000-000000000004';",
+        ),
+      ).toBe("0");
+      await psql(`
+        UPDATE public.notification_event_rollouts
+        SET copy_reviewed=true, enabled=true
+        WHERE event_type IN ('booking_checked_in', 'credits_depleted');
+        UPDATE public.bookings SET status='booked'
+          WHERE id='30000000-0000-0000-0000-000000000004';
+        UPDATE public.bookings SET status='checked_in'
+          WHERE id='30000000-0000-0000-0000-000000000004';
+        UPDATE public.members SET remaining_credits=3
+          WHERE id='00000000-0000-0000-0000-000000000001';
+        UPDATE public.members SET remaining_credits=0
+          WHERE id='00000000-0000-0000-0000-000000000001';
+      `);
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE event_type='booking_checked_in' AND aggregate_id='30000000-0000-0000-0000-000000000004';",
+        ),
+      ).toBe("1");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE event_type='credits_depleted' AND member_id='00000000-0000-0000-0000-000000000001';",
+        ),
+      ).toBe("1");
 
       await psql(`
         INSERT INTO public.messages (
@@ -240,8 +518,20 @@ describe("unified messaging database integration", () => {
           '20000000-0000-0000-0000-000000000001',
           '00000000-0000-0000-0000-000000000001', 'waiting'
         );
+        INSERT INTO public.bookings VALUES (
+          '30000000-0000-0000-0000-000000000005',
+          '20000000-0000-0000-0000-000000000001',
+          '00000000-0000-0000-0000-000000000001', 'booked', now()
+        );
         UPDATE public.waitlist_entries SET status='promoted'
           WHERE id='74000000-0000-0000-0000-000000000001';
+        INSERT INTO public.waitlist_entries (id, class_id, member_id, status) VALUES (
+          '74000000-0000-0000-0000-000000000002',
+          '20000000-0000-0000-0000-000000000004',
+          '00000000-0000-0000-0000-000000000002', 'waiting'
+        );
+        UPDATE public.waitlist_entries SET status='promoted'
+          WHERE id='74000000-0000-0000-0000-000000000002';
       `);
       expect(
         await psql(`
@@ -255,13 +545,28 @@ describe("unified messaging database integration", () => {
           );
         `),
       ).toBe(
-        "payment_confirmed,payment_failed,payment_request_received,receipt_issued,waitlist_joined,waitlist_spot_available",
+        "payment_confirmed,payment_failed,payment_request_received,receipt_issued,subscription_renewal_failed,waitlist_joined",
       );
       expect(
         await psql(
           "SELECT (offered_at IS NOT NULL AND offer_expires_at > offered_at)::text FROM public.waitlist_entries WHERE id='74000000-0000-0000-0000-000000000001';",
         ),
       ).toBe("true");
+      expect(
+        await psql(
+          "SELECT string_agg(event_type, ',' ORDER BY event_type) FROM public.message_outbox WHERE aggregate_id='30000000-0000-0000-0000-000000000005';",
+        ),
+      ).toBe("waitlist_accepted");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE aggregate_id='74000000-0000-0000-0000-000000000001' AND event_type='waitlist_spot_available';",
+        ),
+      ).toBe("0");
+      expect(
+        await psql(
+          "SELECT count(*) FROM public.message_outbox WHERE aggregate_id='74000000-0000-0000-0000-000000000002' AND event_type='waitlist_spot_available';",
+        ),
+      ).toBe("1");
 
       const retention = JSON.parse(
         await psql("SELECT public.redact_and_purge_message_audit(now())::text;"),
@@ -274,5 +579,6 @@ describe("unified messaging database integration", () => {
         ),
       ).toBe("true");
     },
+    30_000,
   );
 });

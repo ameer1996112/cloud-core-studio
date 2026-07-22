@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPageShell, AdminPageHeader } from "@/components/admin-shared";
 import { AdminPushCampaigns } from "@/components/admin/AdminPushCampaigns";
+import { DeliveryMonitoringConsole } from "@/components/admin/DeliveryMonitoringConsole";
 import {
   listMessageTemplates,
   upsertMessageTemplate,
@@ -23,17 +24,20 @@ import {
   claimCanonicalConversation,
   getCanonicalConversation,
   listCanonicalConversations,
-  listCanonicalDeliveries,
+  listNotificationEventRollouts,
+  listPremiumJourneyPreviews,
   listWhatsappTemplateDeployments,
   releaseCanonicalConversation,
   replyCanonicalConversation,
   resolveCanonicalConversation,
-  retryCanonicalDeliveryAction,
+  enqueuePremiumJourneyTest,
+  updateNotificationEventRollout,
 } from "@/lib/unifiedMessages.functions";
 import { listClasses, prepareClassReminderDrafts } from "@/lib/admin.functions";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
+import type { MessageChannel, MessageEventType } from "@/lib/messaging.types";
 import {
   CHANNELS,
   LANGUAGES,
@@ -65,7 +69,16 @@ export const Route = createFileRoute("/_authenticated/admin/messages")({
   component: Page,
 });
 
-type Tab = "inbox" | "deliveries" | "push" | "templates" | "composer" | "logs" | "requests";
+type Tab =
+  | "inbox"
+  | "deliveries"
+  | "events"
+  | "journeys"
+  | "push"
+  | "templates"
+  | "composer"
+  | "logs"
+  | "requests";
 
 type LogStatusSummary = {
   status?: string | null;
@@ -110,6 +123,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "iPhone campaigns",
     inbox: "Inbox",
     deliveries: "Deliveries",
+    events: "Event matrix",
+    journeys: "Journey Lab",
     audience: "Audience",
     specificMembers: "Specific member(s)",
     searchMember: "Search member by name...",
@@ -159,6 +174,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "קמפיינים ל-iPhone",
     inbox: "תיבת שיחות",
     deliveries: "מסירות",
+    events: "מפת אירועים",
+    journeys: "מעבדת מסעות",
     audience: "קהל יעד",
     specificMembers: "חבר/ה מסוימים",
     searchMember: "חיפוש חבר/ה לפי שם...",
@@ -209,6 +226,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "حملات iPhone",
     inbox: "صندوق المحادثات",
     deliveries: "عمليات التسليم",
+    events: "مصفوفة الأحداث",
+    journeys: "مختبر الرحلات",
     audience: "الجمهور",
     specificMembers: "أعضاء محددون",
     searchMember: "ابحثي عن عضو بالاسم...",
@@ -339,6 +358,8 @@ function Page() {
           [
             { k: "inbox", l: "Inbox" },
             { k: "deliveries", l: "Deliveries" },
+            { k: "events", l: "Event matrix" },
+            { k: "journeys", l: "Journey Lab" },
             { k: "composer", l: "Compose" },
             { k: "push", l: "iPhone campaigns" },
             { k: "templates", l: "Templates" },
@@ -362,7 +383,9 @@ function Page() {
 
       {tab === "composer" && <ComposerTab />}
       {tab === "inbox" && <CanonicalInboxTab />}
-      {tab === "deliveries" && <CanonicalDeliveriesTab />}
+      {tab === "deliveries" && <DeliveryMonitoringConsole />}
+      {tab === "events" && <NotificationEventRolloutsTab />}
+      {tab === "journeys" && <PremiumJourneyLabTab />}
       {tab === "push" && <AdminPushCampaigns />}
       {tab === "templates" && (
         <div className="space-y-6">
@@ -562,63 +585,305 @@ function CanonicalInboxTab() {
   );
 }
 
-function CanonicalDeliveriesTab() {
+function NotificationEventRolloutsTab() {
+  const listFn = useServerFn(listNotificationEventRollouts);
+  const updateFn = useServerFn(updateNotificationEventRollout);
   const queryClient = useQueryClient();
-  const listFn = useServerFn(listCanonicalDeliveries);
-  const retryFn = useServerFn(retryCanonicalDeliveryAction);
-  const deliveries = useQuery({ queryKey: ["canonical-deliveries"], queryFn: () => listFn() });
-  const retry = useMutation({
-    mutationFn: (deliveryId: string) => retryFn({ data: { deliveryId } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] }),
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
+  const events = useQuery({ queryKey: ["notification-event-rollouts"], queryFn: () => listFn() });
+  const updateRollout = useMutation({
+    mutationFn: (input: {
+      eventType: MessageEventType;
+      enabled: boolean;
+      copyReviewed: boolean;
+      allowlistOnly: boolean;
+      enabledChannels: MessageChannel[];
+    }) => updateFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Notification rollout updated");
+      void queryClient.invalidateQueries({ queryKey: ["notification-event-rollouts"] });
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Update failed"),
   });
+  const grouped = useMemo(() => {
+    const values = new Map<string, any[]>();
+    for (const event of events.data ?? []) {
+      values.set(event.family, [...(values.get(event.family) ?? []), event]);
+    }
+    return [...values.entries()];
+  }, [events.data]);
+
   return (
-    <div className="editorial-panel overflow-x-auto">
-      <table className="w-full min-w-[760px] text-start text-sm">
-        <thead className="border-b border-gold/20 text-xs uppercase text-slate">
-          <tr>
-            <th className="p-4">Message</th>
-            <th className="p-4">Channel</th>
-            <th className="p-4">Status</th>
-            <th className="p-4">Attempts</th>
-            <th className="p-4">Error</th>
-            <th className="p-4" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gold/15">
-          {(deliveries.data ?? []).map((delivery: any) => {
-            const message = Array.isArray(delivery.message)
-              ? delivery.message[0]
-              : delivery.message;
-            const retryable = ["failed", "dead_letter", "suppressed"].includes(delivery.status);
-            return (
-              <tr key={delivery.id}>
-                <td className="p-4 text-navy">
-                  {message?.subject ?? message?.event_type ?? delivery.message_id}
-                </td>
-                <td className="p-4 text-slate">{delivery.channel}</td>
-                <td className="p-4">
-                  <span className="rounded-full bg-sand px-2 py-1 text-xs">{delivery.status}</span>
-                </td>
-                <td className="p-4 text-slate">{delivery.attempt_count}</td>
-                <td className="max-w-xs truncate p-4 text-slate">
-                  {delivery.error_code ?? delivery.error_message ?? "—"}
-                </td>
-                <td className="p-4 text-end">
-                  {retryable && (
+    <div className="space-y-5">
+      <section className="editorial-panel p-5">
+        <p className="eyebrow">Safe rollout control</p>
+        <h3 className="text-lg font-semibold text-navy">Premium notification event matrix</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate">
+          New event families remain dark until localized copy is reviewed and the database rollout
+          is enabled. Global disabled/allowlist mode and channel kill switches still apply.
+        </p>
+      </section>
+      {grouped.map(([family, familyEvents]) => (
+        <section key={family} className="editorial-panel overflow-hidden">
+          <div className="border-b border-gold/15 px-5 py-4">
+            <h3 className="font-semibold capitalize text-navy">{family}</h3>
+          </div>
+          <div className="divide-y divide-gold/10">
+            {familyEvents.map((event: any) => {
+              const enabled = event.rollout?.enabled ?? event.defaultEnabled;
+              const reviewed = event.rollout?.copy_reviewed ?? event.copyStatus === "approved";
+              const allowlistOnly = event.rollout?.allowlist_only ?? !event.defaultEnabled;
+              const enabledChannels = (event.rollout?.enabled_channels ??
+                event.channels) as MessageChannel[];
+              const save = (
+                changes: Partial<{
+                  enabled: boolean;
+                  copyReviewed: boolean;
+                  allowlistOnly: boolean;
+                  enabledChannels: typeof enabledChannels;
+                }>,
+              ) =>
+                updateRollout.mutate({
+                  eventType: event.eventType,
+                  enabled,
+                  copyReviewed: reviewed,
+                  allowlistOnly,
+                  enabledChannels,
+                  ...changes,
+                });
+              return (
+                <div
+                  key={event.eventType}
+                  className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(220px,1fr)_minmax(220px,auto)_auto] md:items-center"
+                >
+                  <div>
+                    <p className="font-medium text-navy">{event.eventType.replaceAll("_", " ")}</p>
+                    <p className="mt-1 text-xs text-slate">
+                      {event.tier} · {event.channels.join(" · ")}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {event.channels.map((channel: MessageChannel) => (
+                      <label
+                        key={channel}
+                        className="flex items-center gap-1.5 rounded-full bg-white/60 px-2.5 py-1 text-[10px] uppercase text-slate"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={enabledChannels.includes(channel)}
+                          disabled={channel === "in_app" || updateRollout.isPending}
+                          onChange={(input) =>
+                            save({
+                              enabledChannels: input.target.checked
+                                ? [...enabledChannels, channel]
+                                : enabledChannels.filter((value) => value !== channel),
+                            })
+                          }
+                          className="accent-navy"
+                        />
+                        {channel}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {enabled && reviewed && (
+                      <button
+                        type="button"
+                        disabled={updateRollout.isPending}
+                        onClick={() => save({ allowlistOnly: !allowlistOnly })}
+                        className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase ${
+                          allowlistOnly
+                            ? "border-amber-300 bg-amber-50 text-amber-800"
+                            : "border-emerald-300 bg-emerald-50 text-emerald-800"
+                        }`}
+                      >
+                        {allowlistOnly ? "Allowlist only" : "Live eligible"}
+                      </button>
+                    )}
+                    {!reviewed && (
+                      <button
+                        type="button"
+                        disabled={updateRollout.isPending}
+                        onClick={() => save({ copyReviewed: true })}
+                        className="rounded-full border border-gold/30 px-3 py-1.5 text-[10px] font-semibold uppercase text-navy"
+                      >
+                        Mark copy reviewed
+                      </button>
+                    )}
                     <button
-                      className="btn-outline px-3 py-1.5 text-xs"
-                      onClick={() => retry.mutate(delivery.id)}
+                      type="button"
+                      disabled={!reviewed || updateRollout.isPending}
+                      onClick={() => save({ enabled: !enabled })}
+                      className={`rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase ${
+                        enabled ? "bg-navy text-white" : "bg-sand text-slate"
+                      }`}
                     >
-                      Retry
+                      {enabled ? "Disable" : "Enable"}
                     </button>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function PremiumJourneyLabTab() {
+  const previewFn = useServerFn(listPremiumJourneyPreviews);
+  const searchFn = useServerFn(searchMembersBasic);
+  const enqueueFn = useServerFn(enqueuePremiumJourneyTest);
+  const queryClient = useQueryClient();
+  const [language, setLanguage] = useState<Lang>("en");
+  const [memberSearch, setMemberSearch] = useState("");
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const previews = useQuery({
+    queryKey: ["premium-journey-previews", language],
+    queryFn: () => previewFn({ data: { language } }),
+  });
+  const members = useQuery({
+    queryKey: ["premium-journey-members", memberSearch],
+    queryFn: () => searchFn({ data: { q: memberSearch } }),
+  });
+  const enqueue = useMutation({
+    mutationFn: (input: { eventType: MessageEventType; channel: MessageChannel }) =>
+      enqueueFn({
+        data: {
+          memberId: selectedMember.id,
+          eventType: input.eventType,
+          channel: input.channel,
+        },
+      }),
+    onSuccess: (result) => {
+      toast.success(`${result.eventType.replaceAll("_", " ")} queued for ${result.channel}`);
+      void queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Journey test could not be queued"),
+  });
+  const grouped = useMemo(() => {
+    const values = new Map<string, any[]>();
+    for (const preview of previews.data ?? []) {
+      values.set(preview.family, [...(values.get(preview.family) ?? []), preview]);
+    }
+    return [...values.entries()];
+  }, [previews.data]);
+
+  return (
+    <div className="space-y-5">
+      <section className="editorial-panel p-5">
+        <p className="eyebrow">Private staff verification</p>
+        <h3 className="text-lg font-semibold text-navy">Premium notification Journey Lab</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate">
+          Preview every localized journey and queue one channel at a time. Tests require global
+          allowlist mode and a verified allowlisted member; they can never fan out to customers.
+        </p>
+        <div className="mt-4 grid gap-3 md:grid-cols-[180px_minmax(240px,1fr)]">
+          <label>
+            <span className="eyebrow">Preview language</span>
+            <select
+              className="editorial-input mt-1"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value as Lang)}
+            >
+              <option value="he">עברית</option>
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <div className="relative">
+            <label>
+              <span className="eyebrow">Allowlisted test member</span>
+              <input
+                className="editorial-input mt-1"
+                value={selectedMember ? selectedMember.name : memberSearch}
+                placeholder="Search by member name"
+                onChange={(event) => {
+                  setSelectedMember(null);
+                  setMemberSearch(event.target.value);
+                }}
+              />
+            </label>
+            {!selectedMember && memberSearch.trim() && (
+              <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-gold/20 bg-white p-2 shadow-lg">
+                {(members.data ?? []).map((member: any) => (
+                  <button
+                    key={member.id}
+                    type="button"
+                    onClick={() => setSelectedMember(member)}
+                    className="block w-full rounded-lg px-3 py-2 text-start text-sm hover:bg-sand/60"
+                  >
+                    <span className="font-medium text-navy">{member.name}</span>
+                    <span className="ms-2 text-xs text-slate">
+                      {member.phone ?? member.email ?? "No contact"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {selectedMember && (
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-sand/40 px-3 py-2 text-sm">
+            <span className="text-navy">
+              Testing only: <strong>{selectedMember.name}</strong>
+            </span>
+            <button
+              type="button"
+              className="text-xs text-slate underline"
+              onClick={() => {
+                setSelectedMember(null);
+                setMemberSearch("");
+              }}
+            >
+              Change
+            </button>
+          </div>
+        )}
+      </section>
+
+      {grouped.map(([family, familyPreviews]) => (
+        <section key={family} className="editorial-panel overflow-hidden">
+          <div className="border-b border-gold/15 px-5 py-4">
+            <h3 className="font-semibold capitalize text-navy">{family}</h3>
+          </div>
+          <div className="grid gap-3 p-4 lg:grid-cols-2">
+            {familyPreviews.map((preview: any) => (
+              <article
+                key={preview.eventType}
+                className="rounded-2xl border border-gold/15 bg-white/60 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-navy">{preview.subject}</p>
+                    <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate">
+                      {preview.eventType.replaceAll("_", " ")} · {preview.tier}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-amber-50 px-2 py-1 text-[9px] font-semibold uppercase text-amber-800">
+                    Allowlist
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate">{preview.body}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {preview.channels.map((channel: MessageChannel) => (
+                    <button
+                      key={channel}
+                      type="button"
+                      disabled={!selectedMember || enqueue.isPending}
+                      onClick={() => enqueue.mutate({ eventType: preview.eventType, channel })}
+                      className="btn-ghost px-3 py-1.5 text-[10px] uppercase hover:btn-ghost-hover disabled:opacity-40"
+                    >
+                      Test {channel.replaceAll("_", " ")}
+                    </button>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

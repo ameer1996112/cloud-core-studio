@@ -1,14 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { createClientOnlyFn, useServerFn } from "@tanstack/react-start";
-import { Bell, CheckCheck, ChevronRight, Settings2, Smartphone, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Bell,
+  Archive,
+  CalendarDays,
+  CheckCheck,
+  ChevronRight,
+  CircleDollarSign,
+  Clock3,
+  MessageCircle,
+  Settings2,
+  Smartphone,
+  Sparkles,
+  Users,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useI18n, type Lang } from "@/lib/i18n";
 import {
   getMemberNotificationCenter,
   markAllMemberNotificationsRead,
   markMemberNotificationRead,
+  recordMemberNotificationEngagement,
   updateMemberNotificationPreferences,
 } from "@/lib/memberNotifications.functions";
 import {
@@ -19,6 +34,8 @@ import {
 type MemberNotificationItem = {
   id: string;
   category: string;
+  family: string | null;
+  tier: string | null;
   title: string;
   body: string;
   action_url: string;
@@ -28,9 +45,13 @@ type MemberNotificationItem = {
   read_at: string | null;
   opened_at: string | null;
   created_at: string;
+  actions: string[];
+  pinned_until: string | null;
+  expires_at: string | null;
 };
 
 type NotificationCenterData = {
+  canonical: boolean;
   preferences: {
     lessonReminders: boolean;
     scheduleUpdates: boolean;
@@ -39,6 +60,16 @@ type NotificationCenterData = {
     sound: boolean;
     whatsappEnabled: boolean;
     emailEnabled: boolean;
+    classOperationsEnabled: boolean;
+    classRemindersEnabled: boolean;
+    scheduleOpeningsEnabled: boolean;
+    waitlistEnabled: boolean;
+    paymentsEnabled: boolean;
+    membershipEnabled: boolean;
+    staffRepliesEnabled: boolean;
+    recommendationsEnabled: boolean;
+    marketingAnalyticsEnabled: boolean;
+    timeSensitiveEnabled: boolean;
   };
   hasActiveDevice: boolean;
   unreadCount: number;
@@ -68,6 +99,32 @@ const COPY: Record<Lang, Record<string, string>> = {
     emailEnabled: "Email transactional updates",
     preferencesSaved: "Notification choices saved.",
     unavailable: "Open the Cloud & Core iPhone app to enable phone notifications.",
+    all: "All",
+    unreadOnly: "Unread",
+    today: "Today",
+    thisWeek: "This week",
+    earlier: "Earlier",
+    expired: "Expired",
+    archive: "Archive",
+    classes: "Classes",
+    waitlist: "Waitlist",
+    payments: "Payments",
+    membership: "Membership",
+    studio: "Studio",
+    critical: "Important",
+    practiceUpdates: "Practice & schedule",
+    accountUpdates: "Account & payments",
+    communicationUpdates: "Studio communication",
+    classOperationsEnabled: "Class cancellations, time and location changes",
+    classRemindersEnabled: "Planning and final class reminders",
+    scheduleOpeningsEnabled: "New schedules and open places",
+    waitlistEnabled: "Waitlist progress and available places",
+    paymentsEnabled: "Payments, receipts and payment issues",
+    membershipEnabled: "Membership, credits and renewals",
+    staffRepliesEnabled: "Replies from the studio team",
+    recommendationsEnabled: "Personal class recommendations",
+    marketingAnalyticsEnabled: "Measure whether recommendations are useful",
+    timeSensitiveEnabled: "Time Sensitive alerts for urgent updates",
   },
   he: {
     title: "התראות",
@@ -90,6 +147,32 @@ const COPY: Record<Lang, Record<string, string>> = {
     emailEnabled: "עדכונים תפעוליים באימייל",
     preferencesSaved: "בחירת ההתראות נשמרה.",
     unavailable: "יש לפתוח את אפליקציית Cloud & Core ב-iPhone כדי להפעיל התראות.",
+    all: "הכול",
+    unreadOnly: "לא נקראו",
+    today: "היום",
+    thisWeek: "השבוע",
+    earlier: "מוקדם יותר",
+    expired: "פג תוקף",
+    archive: "ארכוב",
+    classes: "שיעורים",
+    waitlist: "רשימת המתנה",
+    payments: "תשלומים",
+    membership: "מנוי",
+    studio: "סטודיו",
+    critical: "חשוב",
+    practiceUpdates: "אימונים ומערכת",
+    accountUpdates: "חשבון ותשלומים",
+    communicationUpdates: "תקשורת עם הסטודיו",
+    classOperationsEnabled: "ביטולי שיעור ושינויי שעה או מיקום",
+    classRemindersEnabled: "תזכורות תכנון ותזכורת אחרונה",
+    scheduleOpeningsEnabled: "מערכת חדשה ומקומות פנויים",
+    waitlistEnabled: "התקדמות ברשימת המתנה ומקום שהתפנה",
+    paymentsEnabled: "תשלומים, קבלות ובעיות תשלום",
+    membershipEnabled: "מנוי, קרדיטים וחידושים",
+    staffRepliesEnabled: "מענה מצוות הסטודיו",
+    recommendationsEnabled: "המלצות אישיות לשיעורים",
+    marketingAnalyticsEnabled: "מדידה אם ההמלצות מועילות",
+    timeSensitiveEnabled: "התראות דחופות מסוג Time Sensitive",
   },
   ar: {
     title: "الإشعارات",
@@ -112,6 +195,32 @@ const COPY: Record<Lang, Record<string, string>> = {
     emailEnabled: "تحديثات المعاملات عبر البريد الإلكتروني",
     preferencesSaved: "تم حفظ اختيارات الإشعارات.",
     unavailable: "افتحي تطبيق Cloud & Core على iPhone لتفعيل إشعارات الهاتف.",
+    all: "الكل",
+    unreadOnly: "غير مقروءة",
+    today: "اليوم",
+    thisWeek: "هذا الأسبوع",
+    earlier: "سابقاً",
+    expired: "انتهت الصلاحية",
+    archive: "أرشفة",
+    classes: "الحصص",
+    waitlist: "قائمة الانتظار",
+    payments: "المدفوعات",
+    membership: "الاشتراك",
+    studio: "الاستوديو",
+    critical: "مهم",
+    practiceUpdates: "التمارين والجدول",
+    accountUpdates: "الحساب والمدفوعات",
+    communicationUpdates: "التواصل مع الاستوديو",
+    classOperationsEnabled: "إلغاء الحصص وتغيير الوقت أو المكان",
+    classRemindersEnabled: "تذكيرات التخطيط والتذكير الأخير",
+    scheduleOpeningsEnabled: "الجداول الجديدة والأماكن المتاحة",
+    waitlistEnabled: "تقدم قائمة الانتظار وتوفر مكان",
+    paymentsEnabled: "المدفوعات والإيصالات ومشاكل الدفع",
+    membershipEnabled: "الاشتراك والأرصدة والتجديد",
+    staffRepliesEnabled: "ردود فريق الاستوديو",
+    recommendationsEnabled: "اقتراحات حصص شخصية",
+    marketingAnalyticsEnabled: "قياس مدى فائدة الاقتراحات",
+    timeSensitiveEnabled: "تنبيهات عاجلة من نوع Time Sensitive",
   },
 };
 
@@ -126,6 +235,16 @@ const bootstrapMemberPushRegistration = createClientOnlyFn(async () => {
 });
 
 const NOTIFICATION_CENTER_QUERY_KEY = ["member-notification-center"] as const;
+
+function NotificationFamilyIcon({ family }: { family: string | null }) {
+  const iconClass = "h-4 w-4";
+  if (family === "payment") return <CircleDollarSign className={iconClass} />;
+  if (family === "membership") return <Sparkles className={iconClass} />;
+  if (family === "waitlist") return <Users className={iconClass} />;
+  if (family === "communication") return <MessageCircle className={iconClass} />;
+  if (family === "class" || family === "booking") return <CalendarDays className={iconClass} />;
+  return <Bell className={iconClass} />;
+}
 
 export function MemberNotificationCenter({
   inviteAfterScheduleView = false,
@@ -144,8 +263,13 @@ export function MemberNotificationCenter({
   const markRead = useServerFn(markMemberNotificationRead);
   const markAllRead = useServerFn(markAllMemberNotificationsRead);
   const updatePreferences = useServerFn(updateMemberNotificationPreferences);
+  const recordEngagement = useServerFn(recordMemberNotificationEngagement);
   const [open, setOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [inboxFilter, setInboxFilter] = useState<"all" | "unread">("all");
+  const [familyFilter, setFamilyFilter] = useState<
+    "all" | "classes" | "waitlist" | "payments" | "membership" | "studio"
+  >("all");
   const [permissionMessage, setPermissionMessage] = useState("");
   const [inviteDismissed, setInviteDismissed] = useState(
     () =>
@@ -219,6 +343,69 @@ export function MemberNotificationCenter({
   });
 
   const data = query.data;
+  const groupedNotifications = useMemo(() => {
+    const familyMatches = (notification: MemberNotificationItem) => {
+      if (familyFilter === "all") return true;
+      if (familyFilter === "classes")
+        return ["class", "booking"].includes(notification.family ?? "");
+      if (familyFilter === "studio")
+        return ["communication", "engagement"].includes(notification.family ?? "");
+      return notification.family === familyFilter.replace(/s$/, "");
+    };
+    const visible = (data?.notifications ?? [])
+      .filter(
+        (notification) =>
+          (inboxFilter === "all" || !notification.read_at) && familyMatches(notification),
+      )
+      .sort((left, right) => {
+        const leftPinned = left.pinned_until && new Date(left.pinned_until) > new Date() ? 1 : 0;
+        const rightPinned = right.pinned_until && new Date(right.pinned_until) > new Date() ? 1 : 0;
+        return (
+          rightPinned - leftPinned ||
+          new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+        );
+      });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const week = new Date(today);
+    week.setDate(week.getDate() - 6);
+    return [
+      { key: "today", items: visible.filter((item) => new Date(item.created_at) >= today) },
+      {
+        key: "thisWeek",
+        items: visible.filter(
+          (item) => new Date(item.created_at) < today && new Date(item.created_at) >= week,
+        ),
+      },
+      { key: "earlier", items: visible.filter((item) => new Date(item.created_at) < week) },
+    ].filter((group) => group.items.length);
+  }, [data?.notifications, familyFilter, inboxFilter]);
+  const preferenceGroups = [
+    {
+      title: copy.practiceUpdates,
+      keys: [
+        "classOperationsEnabled",
+        "classRemindersEnabled",
+        "scheduleOpeningsEnabled",
+        "waitlistEnabled",
+        "recommendationsEnabled",
+      ] as PreferenceKey[],
+    },
+    {
+      title: copy.accountUpdates,
+      keys: ["paymentsEnabled", "membershipEnabled"] as PreferenceKey[],
+    },
+    {
+      title: copy.communicationUpdates,
+      keys: [
+        "staffRepliesEnabled",
+        "timeSensitiveEnabled",
+        "sound",
+        "whatsappEnabled",
+        "emailEnabled",
+      ] as PreferenceKey[],
+    },
+  ];
   const shouldInvite =
     inviteAfterScheduleView && !query.isLoading && !data?.hasActiveDevice && !inviteDismissed;
 
@@ -244,6 +431,15 @@ export function MemberNotificationCenter({
   }
 
   async function openNotification(notification: NotificationCenterData["notifications"][number]) {
+    void recordEngagement({
+      data: {
+        notificationId: notification.id,
+        eventType: "opened",
+        occurredAt: new Date().toISOString(),
+      },
+    }).catch(() => {
+      // Legacy notification IDs intentionally remain outside the canonical engagement ledger.
+    });
     if (!notification.read_at) {
       void markReadMutation.mutateAsync(notification.id).catch((error) => {
         console.warn("member_notification_open_tracking_failed", error);
@@ -259,11 +455,22 @@ export function MemberNotificationCenter({
       );
     }
     setOpen(false);
+    if (notification.expires_at && new Date(notification.expires_at) <= new Date()) return;
     try {
       await navigate({ href: safeNotificationActionUrl(notification.action_url) });
     } catch (error) {
       console.warn("member_notification_navigation_failed", error);
     }
+  }
+
+  function archiveNotification(notificationId: string) {
+    void recordEngagement({
+      data: {
+        notificationId,
+        eventType: "archived",
+        occurredAt: new Date().toISOString(),
+      },
+    }).then(() => queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY }));
   }
 
   return (
@@ -354,36 +561,34 @@ export function MemberNotificationCenter({
             </div>
 
             {showSettings && data && (
-              <div className="space-y-3 border-b border-gold/20 bg-white/50 px-5 py-4">
+              <div className="max-h-[55vh] space-y-5 overflow-y-auto border-b border-gold/20 bg-white/50 px-5 py-4">
                 <p className="text-sm font-semibold text-navy">{copy.settings}</p>
-                {(
-                  [
-                    "lessonReminders",
-                    "scheduleUpdates",
-                    "packageReminders",
-                    "marketing",
-                    "sound",
-                    "whatsappEnabled",
-                    "emailEnabled",
-                  ] as PreferenceKey[]
-                ).map((key) => (
-                  <label
-                    key={key}
-                    className="flex min-h-10 items-center justify-between gap-4 text-start text-sm text-slate"
-                  >
-                    <span>{copy[key]}</span>
-                    <input
-                      type="checkbox"
-                      checked={data.preferences[key]}
-                      onChange={(event) =>
-                        preferencesMutation.mutate({
-                          ...data.preferences,
-                          [key]: event.target.checked,
-                        })
-                      }
-                      className="h-5 w-5 accent-navy"
-                    />
-                  </label>
+                {preferenceGroups.map((group) => (
+                  <fieldset key={group.title} className="space-y-2.5">
+                    <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate/70">
+                      {group.title}
+                    </legend>
+                    {group.keys.map((key) => (
+                      <label
+                        key={key}
+                        className="flex min-h-11 items-center justify-between gap-4 rounded-xl bg-white/55 px-3 text-start text-sm text-slate"
+                      >
+                        <span>{copy[key]}</span>
+                        <input
+                          type="checkbox"
+                          checked={data.preferences[key]}
+                          disabled={preferencesMutation.isPending}
+                          onChange={(event) =>
+                            preferencesMutation.mutate({
+                              ...data.preferences,
+                              [key]: event.target.checked,
+                            })
+                          }
+                          className="h-5 w-5 shrink-0 accent-navy"
+                        />
+                      </label>
+                    ))}
+                  </fieldset>
                 ))}
                 {!data.hasActiveDevice && (
                   <button
@@ -398,7 +603,22 @@ export function MemberNotificationCenter({
               </div>
             )}
 
-            <div className="flex items-center justify-end px-5 py-3">
+            <div className="flex items-center justify-between gap-3 px-5 py-3">
+              <div className="inline-flex rounded-full bg-white/70 p-1 text-xs text-slate">
+                {(["all", "unread"] as const).map((filter) => (
+                  <button
+                    type="button"
+                    key={filter}
+                    aria-pressed={inboxFilter === filter}
+                    onClick={() => setInboxFilter(filter)}
+                    className={`rounded-full px-3 py-1.5 transition-colors ${
+                      inboxFilter === filter ? "bg-navy text-white" : "hover:text-navy"
+                    }`}
+                  >
+                    {filter === "all" ? copy.all : copy.unreadOnly}
+                  </button>
+                ))}
+              </div>
               {(data?.unreadCount ?? 0) > 0 && (
                 <button
                   type="button"
@@ -413,40 +633,115 @@ export function MemberNotificationCenter({
               )}
             </div>
 
+            <div className="flex gap-1.5 overflow-x-auto px-5 pb-3 text-[11px] text-slate">
+              {(["all", "classes", "waitlist", "payments", "membership", "studio"] as const).map(
+                (filter) => (
+                  <button
+                    type="button"
+                    key={filter}
+                    aria-pressed={familyFilter === filter}
+                    onClick={() => setFamilyFilter(filter)}
+                    className={`shrink-0 rounded-full border px-3 py-1.5 transition-colors ${
+                      familyFilter === filter
+                        ? "border-navy bg-navy text-white"
+                        : "border-gold/20 bg-white/50 hover:text-navy"
+                    }`}
+                  >
+                    {copy[filter]}
+                  </button>
+                ),
+              )}
+            </div>
+
             <div className="flex-1 overflow-y-auto px-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
-              {!data?.notifications.length ? (
+              {!groupedNotifications.length ? (
                 <div className="mx-1 mt-8 rounded-[var(--radius-lg)] border border-gold/20 bg-white/60 p-6 text-center text-sm leading-6 text-slate">
                   {copy.empty}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {data.notifications.map((notification) => (
-                    <button
-                      type="button"
-                      key={notification.id}
-                      onClick={() => void openNotification(notification)}
-                      className={`flex w-full items-start gap-3 rounded-[var(--radius-lg)] border p-4 text-start transition-colors ${
-                        notification.read_at
-                          ? "border-transparent bg-white/42"
-                          : "border-gold/25 bg-white shadow-[var(--shadow-card)]"
-                      }`}
-                    >
-                      <span
-                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.read_at ? "bg-sand" : "bg-gold"}`}
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-semibold text-navy">{notification.title}</span>
-                        <span className="mt-1 block text-sm leading-6 text-slate">
-                          {notification.body}
-                        </span>
-                        <span className="mt-2 block text-[11px] text-slate/80">
-                          {new Date(notification.created_at).toLocaleString(
-                            lang === "he" ? "he-IL" : lang === "ar" ? "ar" : "en-GB",
-                          )}
-                        </span>
-                      </span>
-                      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-gold rtl:rotate-180" />
-                    </button>
+                <div className="space-y-5">
+                  {groupedNotifications.map((group) => (
+                    <section key={group.key}>
+                      <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate/70">
+                        {copy[group.key]}
+                      </h3>
+                      <div className="space-y-2">
+                        {group.items.map((notification) => {
+                          const expired = Boolean(
+                            notification.expires_at &&
+                            new Date(notification.expires_at) <= new Date(),
+                          );
+                          return (
+                            <article
+                              key={notification.id}
+                              className={`relative flex items-start overflow-hidden rounded-[var(--radius-lg)] border transition-all hover:-translate-y-px hover:shadow-[var(--shadow-card)] ${
+                                notification.read_at
+                                  ? "border-transparent bg-white/42"
+                                  : "border-gold/25 bg-white shadow-[var(--shadow-card)]"
+                              }`}
+                            >
+                              {notification.tier === "critical" && (
+                                <span className="absolute inset-y-0 start-0 w-1 bg-gold" />
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => void openNotification(notification)}
+                                className="flex min-w-0 flex-1 items-start gap-3 p-4 text-start"
+                              >
+                                <span
+                                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                    notification.read_at
+                                      ? "bg-sand/35 text-slate"
+                                      : "bg-gold/15 text-navy"
+                                  }`}
+                                >
+                                  <NotificationFamilyIcon family={notification.family} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex flex-wrap items-center gap-2">
+                                    <span className="block font-semibold text-navy">
+                                      {notification.title}
+                                    </span>
+                                    {notification.tier === "critical" && (
+                                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-navy">
+                                        {copy.critical}
+                                      </span>
+                                    )}
+                                    {expired && (
+                                      <span className="rounded-full bg-sand px-2 py-0.5 text-[9px] font-semibold uppercase text-slate">
+                                        {copy.expired}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="mt-1 block text-sm leading-6 text-slate">
+                                    {notification.body}
+                                  </span>
+                                  <span className="mt-2 flex items-center gap-1 text-[11px] text-slate/80">
+                                    <Clock3 className="h-3 w-3" />
+                                    {new Date(notification.created_at).toLocaleString(
+                                      lang === "he" ? "he-IL" : lang === "ar" ? "ar" : "en-GB",
+                                    )}
+                                  </span>
+                                </span>
+                                {!expired && (
+                                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-gold rtl:rotate-180" />
+                                )}
+                              </button>
+                              {data?.canonical && (
+                                <button
+                                  type="button"
+                                  aria-label={copy.archive}
+                                  onClick={() => archiveNotification(notification.id)}
+                                  className="m-2 rounded-full p-2 text-slate/60 hover:bg-sand/50 hover:text-navy"
+                                >
+                                  <Archive className="h-4 w-4" />
+                                </button>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
                   ))}
                 </div>
               )}

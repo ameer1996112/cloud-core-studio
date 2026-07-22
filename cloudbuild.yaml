@@ -9,6 +9,8 @@ steps:
       - VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}
       - --build-arg
       - VITE_SUPABASE_PUBLISHABLE_KEY=${_VITE_SUPABASE_PUBLISHABLE_KEY}
+      - --build-arg
+      - VITE_APNS_ENV=${_VITE_APNS_ENV}
       - -t
       - ${_IMAGE}
       - .

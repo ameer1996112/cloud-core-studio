@@ -1,22 +1,16 @@
 import type {
   DeliveryFailureClass,
   DeliveryStatus,
+  ExternalChannelAvailability,
   MessageChannel,
   MessageEventType,
   MessageLanguage,
+  MessagingDeliveryPreferences,
 } from "@/lib/messaging.types";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
 import { channelsForEvent, deliveryAllowedByConsent, isQuietHours } from "@/lib/messagingPolicy";
+import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import { studioDateTimeInputToIso } from "@/lib/studio-time";
-
-const IMMEDIATE_EVENTS = new Set<MessageEventType>([
-  "booking_confirmed",
-  "booking_cancelled",
-  "class_cancelled_by_admin",
-  "class_time_changed",
-  "payment_failed",
-  "human_handoff",
-]);
 
 export type MaterializedDeliveryPlan = {
   channel: MessageChannel;
@@ -46,6 +40,12 @@ export type MaterializedMessagePlan = {
     memberVisible: boolean;
     audience: "member" | "admin";
     idempotencyKey: string;
+    notificationFamily: ReturnType<typeof notificationDefinition>["family"];
+    notificationTier: ReturnType<typeof notificationDefinition>["tier"];
+    preferenceKey: ReturnType<typeof notificationDefinition>["preference"];
+    interruptionLevel: ReturnType<typeof notificationDefinition>["interruptionLevel"];
+    soundKey: ReturnType<typeof notificationDefinition>["sound"];
+    actions: ReturnType<typeof notificationDefinition>["actions"];
   };
   deliveries: MaterializedDeliveryPlan[];
 };
@@ -73,10 +73,11 @@ function recipientFor(
   channel: MessageChannel,
   memberId: string,
   recipients: { whatsapp?: string | null; email?: string | null },
+  memberVisible: boolean,
 ) {
   if (channel === "whatsapp") return recipients.whatsapp?.trim() || null;
   if (channel === "email") return recipients.email?.trim() || null;
-  return memberId;
+  return memberVisible ? memberId : "admin_group";
 }
 
 export function materializeMessagePlan(input: {
@@ -87,31 +88,101 @@ export function materializeMessagePlan(input: {
   language: MessageLanguage;
   variables: Record<string, unknown>;
   recipients: { whatsapp?: string | null; email?: string | null };
-  preferences: { whatsappEnabled?: boolean | null; emailEnabled?: boolean | null };
+  preferences: MessagingDeliveryPreferences;
+  externalChannels: ExternalChannelAvailability;
   approvedWhatsappVariants: ReadonlySet<string>;
+  enabledChannels?: ReadonlySet<MessageChannel>;
   now: Date;
   expiresAt?: Date | null;
 }): MaterializedMessagePlan {
   const rendered = renderMessageContent(input.eventType, input.language, input.variables);
+  const definition = notificationDefinition(input.eventType);
+  const actions = (() => {
+    if (input.eventType === "member_welcome") {
+      if (input.variables.has_upcoming_booking === true) return ["view_class"] as const;
+      if (
+        input.variables.has_active_membership === false &&
+        Number(input.variables.credits_remaining ?? 0) <= 0
+      ) {
+        return ["choose_package"] as const;
+      }
+      return ["view_schedule"] as const;
+    }
+    if (
+      (input.eventType === "class_open_spots" || input.eventType === "class_recommendation") &&
+      Number(input.variables.credits_remaining ?? 0) <= 0
+    ) {
+      return definition.actions.filter((action) => action !== "book_now");
+    }
+    return definition.actions;
+  })();
   const messageIdempotencyKey = `message:${input.deduplicationKey}`;
   const metaVariant = getMetaTemplateVariant(input.eventType, input.language);
-  const routineScheduledFor = IMMEDIATE_EVENTS.has(input.eventType)
-    ? input.now
-    : nextRoutineWindow(input.now);
+  const routineScheduledFor = definition.immediate ? input.now : nextRoutineWindow(input.now);
 
   const deliveries = channelsForEvent(input.eventType).map((channel) => {
-    const recipientAddress = recipientFor(channel, input.memberId, input.recipients);
+    const recipientAddress = recipientFor(
+      channel,
+      input.memberId,
+      input.recipients,
+      definition.memberVisible,
+    );
     let status: DeliveryStatus = "queued";
     let failureClass: DeliveryFailureClass | null = null;
     let errorCode: string | null = null;
 
-    if (!deliveryAllowedByConsent(input.eventType, channel, input.preferences)) {
+    if (input.enabledChannels && !input.enabledChannels.has(channel)) {
+      status = "suppressed";
+      errorCode = "event_channel_not_enabled";
+    } else if (channel !== "in_app" && !input.externalChannels[channel]) {
+      status = "suppressed";
+      errorCode = `${channel}_channel_disabled`;
+    } else if (channel === "push" && input.variables.has_active_push_device === false) {
+      status = "suppressed";
+      errorCode = "no_active_push_device";
+    } else if (!deliveryAllowedByConsent(input.eventType, channel, input.preferences)) {
       status = "suppressed";
       errorCode = `${channel}_opted_out`;
     } else if ((channel === "whatsapp" || channel === "email") && !recipientAddress) {
       status = "suppressed";
       failureClass = "configuration";
       errorCode = `missing_${channel}_recipient`;
+    } else if (
+      definition.tier === "reminder" &&
+      definition.fallbackChannels.includes(channel as "whatsapp" | "email" | "push") &&
+      channel !== "push" &&
+      input.variables.has_active_push_device === true
+    ) {
+      status = "suppressed";
+      errorCode = "push_preferred_for_fallback_channel";
+    } else if (
+      input.eventType === "payment_confirmed" &&
+      channel === "whatsapp" &&
+      input.variables.payment_was_failing !== true
+    ) {
+      status = "suppressed";
+      errorCode = "payment_success_whatsapp_not_needed";
+    } else if (
+      input.eventType === "class_recommendation" &&
+      channel === "whatsapp" &&
+      input.variables.whatsapp_growth_escalation !== true
+    ) {
+      status = "suppressed";
+      errorCode = "push_first_recommendation";
+    } else if (
+      input.eventType === "retention_reminder" &&
+      channel === "whatsapp" &&
+      input.variables.retention_stage !== "personal_whatsapp"
+    ) {
+      status = "suppressed";
+      errorCode = "retention_whatsapp_not_due";
+    } else if (
+      input.eventType === "retention_reminder" &&
+      channel === "push" &&
+      input.variables.retention_stage === "personal_whatsapp"
+    ) {
+      status = "suppressed";
+      errorCode = "retention_personal_whatsapp_only";
     } else if (channel === "whatsapp") {
       const approvedKey = metaVariant ? `${metaVariant.name}:${metaVariant.metaLanguage}` : null;
       if (!metaVariant || !approvedKey || !input.approvedWhatsappVariants.has(approvedKey)) {
@@ -120,6 +191,11 @@ export function materializeMessagePlan(input: {
         errorCode = "whatsapp_template_locale_unapproved";
       }
     }
+
+    const scheduledFor =
+      input.eventType === "payment_pending_reminder" && channel === "whatsapp"
+        ? nextRoutineWindow(new Date(input.now.getTime() + 48 * 60 * 60_000))
+        : routineScheduledFor;
 
     return {
       channel,
@@ -134,8 +210,7 @@ export function materializeMessagePlan(input: {
       recipientAddress,
       status,
       idempotencyKey: `${messageIdempotencyKey}:${channel}`,
-      scheduledFor:
-        channel === "in_app" ? input.now.toISOString() : routineScheduledFor.toISOString(),
+      scheduledFor: channel === "in_app" ? input.now.toISOString() : scheduledFor.toISOString(),
       expiresAt: input.expiresAt?.toISOString() ?? null,
       failureClass,
       errorCode,
@@ -158,9 +233,19 @@ export function materializeMessagePlan(input: {
       templateVersion: "v2",
       subject: rendered.subject,
       body: rendered.body,
-      memberVisible: input.eventType !== "human_handoff",
-      audience: input.eventType === "human_handoff" ? "admin" : "member",
+      memberVisible: definition.memberVisible,
+      audience: definition.memberVisible ? "member" : "admin",
       idempotencyKey: messageIdempotencyKey,
+      notificationFamily: definition.family,
+      notificationTier: definition.tier,
+      preferenceKey: definition.preference,
+      interruptionLevel:
+        definition.interruptionLevel === "time-sensitive" &&
+        input.preferences.timeSensitive === false
+          ? "active"
+          : definition.interruptionLevel,
+      soundKey: input.preferences.sound === false ? "none" : definition.sound,
+      actions,
     },
     deliveries,
   };

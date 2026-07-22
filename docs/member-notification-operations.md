@@ -29,13 +29,56 @@ job once manually and inspect Cloud Logging before enabling member campaigns.
 The local OpenWA worker remains rollback-only. New claims also require
 `OPENWA_LEGACY_DELIVERY_ENABLED=true`; leave it false during canonical operation.
 
+## Unified messaging scheduler
+
+The canonical Phase 1/2 worker uses a separate one-minute job so its rollout can be paused or rolled
+back without changing this legacy scheduler. Configure it with
+`scripts/configure-unified-messaging-cloud-run.sh`; the script deploys
+`scripts/unified-messaging-cron.mjs` and creates the scheduler paused by default. Follow the staged
+activation and queue checks in [Unified Messaging System](./unified-messaging-system.md) before
+resuming it.
+
+Application mutations can also request an immediate post-commit sweep when
+`MESSAGING_IMMEDIATE_DISPATCH_ENABLED=true` and `MESSAGING_INTERNAL_SWEEP_URL` points at the same
+protected endpoint. This is only a latency optimization. Keep the one-minute job enabled for stale
+worker and failed-target recovery.
+
 ## APNs
 
 Configure the main app service with the APNs key, key ID, team ID, bundle ID, and production/sandbox
 environment expected by `src/lib/apns.server.ts`. Test on a real iPhone before enabling campaigns.
+In allowlist mode, add the verified member UUID to `MESSAGING_RECIPIENT_ALLOWLIST`; a phone number
+alone authorizes WhatsApp but cannot authorize an APNs delivery.
+For canonical admin handoff alerts, add the literal `admin_group` and verify the specific admin
+installation in `notification_staff_test_devices`. Allowlist dispatch joins this table and never
+fans out to an unverified member or admin installation.
+
+The premium native build registers actionable class, waitlist, account, and staff-reply categories.
+Before a real-device allowlist test, confirm the installation appears once, its `apns_environment`
+matches the build/key, and it is marked in `notification_staff_test_devices`. Do not enable draft
+rich-media events until the Notification Service Extension and approved sound asset are included in
+the App Store build.
+
+Automatic `class_open_spots` alerts use the member's **New schedules and lesson openings** setting,
+require an active APNs token and remaining credits, and are limited to one alert per day and three per
+week. Candidates are ranked by instructor/day/time attendance affinity, each class reaches at most
+ten recipients across repeated scheduler sweeps, and pending sends stop at 85% capacity. They do not
+use WhatsApp. Weekly recommendations rank the same attendance signals and include the best one or two
+available lessons in one member-facing message.
+
+## Private all-events verification
+
+Admin Messages includes a Journey Lab for the complete 43-event catalog. It can queue only one
+channel for one active member already matched by global allowlist mode. A staff test never consumes
+the member's real promotional frequency budget, but it still respects preferences, channel flags,
+verified APNs installation scope, and provider configuration. Use the
+[manual test runbook](./premium-messaging-manual-test-runbook.md) for the exact domain action and
+expected result for every event. Keep every rollout row Allowlist only until the evidence is clean.
 
 ## Official WhatsApp
 
 Use the generated v2 definitions under `whatsapp/templates/v2`. Do not enable WhatsApp for a locale
 until its deployment row is approved. Missing locales are suppressed; the worker never substitutes
 another language.
+The checked-in v2 catalog currently has 19 semantic templates and 57 locale variants. Run local
+generation check and remote plan before any separately authorized apply.
