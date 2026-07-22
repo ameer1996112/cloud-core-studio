@@ -4,11 +4,14 @@ import { ArrowLeft, Instagram, MapPin, MessageCircle, Smartphone } from "lucide-
 import aerialImage from "@/assets/classes/aerial-yoga-flow-hero.webp";
 import studioImage from "@/assets/studio-interior.webp";
 import {
-  getInstagramLandingSettings,
-  type InstagramLandingSettings,
+  getInstagramLandingData,
+  type InstagramLandingData,
 } from "@/lib/instagramLanding.functions";
 
-type InstagramRouteData = InstagramLandingSettings & {
+type InstagramRouteData = Pick<
+  InstagramLandingData,
+  "address" | "contactEmail" | "whatsappNumber"
+> & {
   whatsappHref: string;
 };
 
@@ -36,7 +39,7 @@ export const Route = createFileRoute("/instagram")({
   }),
   loader: async (): Promise<InstagramRouteData> => {
     try {
-      const settings = await getInstagramLandingSettings();
+      const settings = await getInstagramLandingData();
       return {
         ...settings,
         whatsappHref: buildWhatsappHref(settings.whatsappNumber),

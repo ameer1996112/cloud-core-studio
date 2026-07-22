@@ -72,10 +72,7 @@ export function getInstagramAnalytics() {
   return browserAnalytics;
 }
 
-export function trackTrialWhatsappClick(
-  audience: "women" | "kids",
-  ctaLocation: string,
-) {
+export function trackTrialWhatsappClick(audience: "women" | "kids", ctaLocation: string) {
   const analytics = getInstagramAnalytics();
   if (!analytics) return;
 
