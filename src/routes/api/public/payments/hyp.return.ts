@@ -1,8 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getHypConfig, hypRedirectMetadata, validateHypRedirect } from "@/lib/hyp.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
+import { enqueuePaymentConfirmedNotifications } from "@/lib/paymentNotifications.server";
 import { createSubscriptionFromInitialPayment } from "@/lib/subscriptions.server";
+import { processKidsHypReturn } from "@/lib/kids.server";
 
 function pickSearchParam(params: URLSearchParams, ...names: string[]) {
   for (const name of names) {
@@ -23,104 +24,17 @@ async function firstAdminUserId() {
   return data?.id ?? null;
 }
 
-type ConfirmPaymentResult = {
-  status: string;
-  payment_id: string;
-  receipt_id: string;
-  receipt_number: string;
-  member_plan_id?: string | null;
-};
-
-async function insertNotificationDraftRows(rows: ReturnType<typeof buildNotificationDraftRows>) {
-  if (!rows.length) return;
-  const { error } = await supabaseAdmin
-    .from("notification_logs")
-    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
-  if (error) console.error("hyp_return_notification_insert_failed", error.message);
-}
-
-async function enqueuePaymentConfirmedNotifications(result: ConfirmPaymentResult) {
-  if (!result.payment_id || !result.receipt_id) return;
-
-  try {
-    const [paymentRes, receiptRes, settingsRes] = await Promise.all([
-      supabaseAdmin
-        .from("payments")
-        .select(
-          "id,amount,currency,member:members(id,name,phone,email,preferred_language),plan:plans(name)",
-        )
-        .eq("id", result.payment_id)
-        .maybeSingle(),
-      supabaseAdmin
-        .from("receipts")
-        .select("id,receipt_number,plan_name_snapshot")
-        .eq("id", result.receipt_id)
-        .maybeSingle(),
-      supabaseAdmin.from("studio_settings").select("*").eq("id", 1).maybeSingle(),
-    ]);
-
-    if (paymentRes.error) throw paymentRes.error;
-    if (receiptRes.error) throw receiptRes.error;
-    if (settingsRes.error) throw settingsRes.error;
-
-    const payment = paymentRes.data as any;
-    const receipt = receiptRes.data as any;
-    if (!payment?.member) return;
-
-    const packageName = payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
-    const paymentRows = buildNotificationDraftRows({
-      eventKey: "payment_confirmed",
-      channels: ["whatsapp", "email"],
-      audience: "member",
-      member: payment.member,
-      appLanguage: null,
-      studioSettings: settingsRes.data ?? null,
-      relatedIds: {
-        paymentId: result.payment_id,
-        receiptId: result.receipt_id,
-        memberPlanId: result.member_plan_id ?? null,
-      },
-      variables: {
-        package_name: packageName,
-        amount: payment.amount,
-        currency: payment.currency,
-      },
-    });
-    const receiptRows = receipt
-      ? buildNotificationDraftRows({
-          eventKey: "receipt_issued",
-          channels: ["whatsapp", "email"],
-          audience: "member",
-          member: payment.member,
-          appLanguage: null,
-          studioSettings: settingsRes.data ?? null,
-          relatedIds: {
-            paymentId: result.payment_id,
-            receiptId: result.receipt_id,
-            memberPlanId: result.member_plan_id ?? null,
-          },
-          variables: {
-            package_name: packageName,
-            receipt_number: receipt.receipt_number ?? result.receipt_number,
-          },
-        })
-      : [];
-
-    await insertNotificationDraftRows([...paymentRows, ...receiptRows]);
-  } catch (error) {
-    console.error("hyp_return_notification_prepare_failed", error);
-  }
-}
-
 function paymentResult(
   status: "success" | "failed" | "cancelled" | "pending" | "missing",
   paymentId?: string,
+  audience?: "member" | "kids",
 ) {
   return {
     to: "/payment-result",
     search: {
       status,
       ...(paymentId ? { paymentId } : {}),
+      ...(audience ? { audience } : {}),
     },
   } as const;
 }
@@ -138,6 +52,50 @@ export const Route = createFileRoute("/api/public/payments/hyp/return")({
 
         if (!paymentId) {
           throw redirect(paymentResult("missing"));
+        }
+
+        const { data: kidsPayment, error: kidsPaymentError } = await (supabaseAdmin as any)
+          .from("kid_aerial_payments")
+          .select("id,status")
+          .eq("id", paymentId)
+          .maybeSingle();
+        if (kidsPaymentError) console.error("hyp_return_kids_lookup_failed", kidsPaymentError);
+
+        if (kidsPayment) {
+          if (returnStatus === "cancel") {
+            await processKidsHypReturn(params);
+            throw redirect(paymentResult("cancelled", paymentId, "kids"));
+          }
+
+          let isValid = false;
+          try {
+            isValid = await validateHypRedirect(params, getHypConfig());
+          } catch (error) {
+            console.error("hyp_return_kids_validation_config_failed", error);
+          }
+
+          if (!isValid) {
+            await (supabaseAdmin as any)
+              .from("kid_aerial_payments")
+              .update({
+                status: "failed",
+                provider_status: returnStatus || "invalid",
+                provider_payment_id: cgUid || null,
+                provider_session_id: txId || null,
+                metadata: hypRedirectMetadata(params),
+              })
+              .eq("id", paymentId)
+              .eq("provider", "hyp")
+              .eq("status", "pending");
+            throw redirect(paymentResult("failed", paymentId, "kids"));
+          }
+
+          const kidsResult = await processKidsHypReturn(params);
+          if (kidsResult.status === "success") {
+            throw redirect(paymentResult("success", paymentId, "kids"));
+          }
+          console.error("hyp_return_kids_confirm_failed", kidsResult);
+          throw redirect(paymentResult("pending", paymentId, "kids"));
         }
 
         if (returnStatus === "cancel") {
@@ -200,7 +158,13 @@ export const Route = createFileRoute("/api/public/payments/hyp/return")({
           throw redirect(paymentResult("pending", paymentId));
         }
 
-        const result = data as ConfirmPaymentResult;
+        const result = data as {
+          status: string;
+          payment_id: string;
+          receipt_id: string;
+          receipt_number: string;
+          member_plan_id?: string | null;
+        };
         if (result.status === "confirmed" || result.status === "already_confirmed") {
           try {
             await createSubscriptionFromInitialPayment({

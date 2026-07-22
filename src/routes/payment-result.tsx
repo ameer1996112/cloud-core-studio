@@ -7,6 +7,7 @@ type PaymentResultStatus = "success" | "failed" | "cancelled" | "pending" | "mis
 type PaymentResultSearch = {
   status: PaymentResultStatus;
   paymentId?: string;
+  audience?: "member" | "kids";
 };
 
 const RESULT_COPY: Record<
@@ -65,14 +66,24 @@ export const Route = createFileRoute("/payment-result")({
     return {
       status: safeStatus,
       paymentId: typeof search.paymentId === "string" ? search.paymentId : undefined,
+      audience: search.audience === "kids" ? "kids" : "member",
     };
   },
   component: PaymentResultPage,
 });
 
 function PaymentResultPage() {
-  const { status, paymentId } = Route.useSearch();
-  const copy = RESULT_COPY[status];
+  const { status, paymentId, audience } = Route.useSearch();
+  const copy =
+    audience === "kids" && status === "success"
+      ? {
+          title: "התשלום התקבל",
+          body: "התשלום לילדים נקלט והחבילה הופעלה בסטודיו.",
+          detail:
+            "אין צורך להתחבר לאפליקציה. הסטודיו יראה את התשלום, הקרדיטים והנוכחות בעמוד הניהול.",
+          tone: "success" as const,
+        }
+      : RESULT_COPY[status];
   const Icon = copy.tone === "success" ? CheckCircle2 : copy.tone === "warning" ? Clock : XCircle;
   const isSuccess = status === "success";
   const toneClass =
@@ -143,10 +154,20 @@ function PaymentResultPage() {
 
           <div className="mt-7 grid gap-3">
             <Link
-              to={isSuccess ? buildAuthReturnToHref("/member/packages") : "/auth"}
+              to={
+                audience === "kids"
+                  ? "/"
+                  : isSuccess
+                    ? buildAuthReturnToHref("/member/packages")
+                    : "/auth"
+              }
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-navy px-5 py-3 text-base font-semibold text-ivory shadow-[0_18px_38px_rgba(11,29,58,0.22)] transition hover:bg-[#10274c]"
             >
-              {isSuccess ? "התחברות לצפייה בחבילה" : "חזרה להתחברות"}
+              {audience === "kids"
+                ? "חזרה לאתר"
+                : isSuccess
+                  ? "התחברות לצפייה בחבילה"
+                  : "חזרה להתחברות"}
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link

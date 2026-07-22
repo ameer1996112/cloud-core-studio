@@ -305,6 +305,7 @@ export function SessionForm({
               value={form.program_type_id}
               onChange={(value) => {
                 const program = data.programs?.find((item: any) => item.id === value);
+                const isKidsAerial = program?.slug === "kids-aerial-yoga";
                 setForm((current) => ({
                   ...current,
                   program_type_id: value,
@@ -312,6 +313,7 @@ export function SessionForm({
                   duration_minutes: program?.default_duration_minutes ?? current.duration_minutes,
                   capacity: program?.default_capacity ?? current.capacity,
                   credit_cost: program?.default_credit_cost ?? current.credit_cost,
+                  member_visible: isKidsAerial ? false : current.member_visible,
                 }));
               }}
             >
