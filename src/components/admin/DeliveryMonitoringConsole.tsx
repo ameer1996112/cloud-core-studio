@@ -54,6 +54,7 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     trafficLive: "Live customers",
     trafficTest: "Staff tests",
     trafficSystem: "System alerts",
+    trafficHistorical: "Historical",
     trafficAll: "All activity",
     live: "Live · refreshes every 30 seconds",
     updated: "Updated",
@@ -146,6 +147,7 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     trafficLive: "לקוחות אמיתיים",
     trafficTest: "בדיקות צוות",
     trafficSystem: "התראות מערכת",
+    trafficHistorical: "היסטוריה",
     trafficAll: "כל הפעילות",
     live: "חי · מתעדכן כל 30 שניות",
     updated: "עודכן",
@@ -233,6 +235,7 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     trafficLive: "عملاء فعليون",
     trafficTest: "اختبارات الطاقم",
     trafficSystem: "تنبيهات النظام",
+    trafficHistorical: "السجل التاريخي",
     trafficAll: "كل النشاط",
     live: "مباشر · يتحدّث كل 30 ثانية",
     updated: "آخر تحديث",
@@ -338,7 +341,13 @@ const CHANNEL_OPTIONS: Array<"all" | MessageChannel> = [
   "email",
 ];
 
-const TRAFFIC_OPTIONS: Array<DeliveryTrafficKind | "all"> = ["live", "test", "system", "all"];
+const TRAFFIC_OPTIONS: Array<DeliveryTrafficKind | "all"> = [
+  "live",
+  "test",
+  "system",
+  "historical",
+  "all",
+];
 
 function statusLabel(copy: Record<string, string>, status: DeliveryStatus) {
   return copy[`status_${status}`] ?? status.replaceAll("_", " ");
@@ -644,7 +653,7 @@ export function DeliveryMonitoringConsole() {
             {copy.trafficScope}
           </p>
           <div
-            className="grid grid-cols-2 gap-1 rounded-2xl border border-gold/20 bg-white/65 p-1 sm:inline-grid sm:grid-cols-4"
+            className="grid grid-cols-2 gap-1 rounded-2xl border border-gold/20 bg-white/65 p-1 sm:inline-grid sm:grid-cols-5"
             role="group"
             aria-label={copy.trafficScope}
           >
@@ -666,7 +675,9 @@ export function DeliveryMonitoringConsole() {
                     ? copy.trafficTest
                     : value === "system"
                       ? copy.trafficSystem
-                      : copy.trafficAll}
+                      : value === "historical"
+                        ? copy.trafficHistorical
+                        : copy.trafficAll}
               </button>
             ))}
           </div>
