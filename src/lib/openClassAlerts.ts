@@ -1,6 +1,8 @@
 export const OPEN_CLASS_ALERT_MIN_LEAD_HOURS = 2;
 export const OPEN_CLASS_ALERT_MAX_LEAD_HOURS = 24;
 export const OPEN_CLASS_ALERT_MAX_FILL_RATIO = 0.7;
+export const OPEN_CLASS_ALERT_STOP_FILL_RATIO = 0.85;
+export const OPEN_CLASS_ALERT_MAX_RECIPIENTS_PER_CLASS = 10;
 export const OPEN_CLASS_ALERT_DAILY_LIMIT = 1;
 export const OPEN_CLASS_ALERT_WEEKLY_LIMIT = 3;
 
@@ -11,6 +13,14 @@ export type OpenClassAlertClass = {
   memberVisible: boolean;
   capacity: number;
   bookedCount: number;
+  instructorId?: string | null;
+  priorAlertCount?: number;
+};
+
+export type ClassRecommendationCandidate = {
+  id: string;
+  startsAt: string;
+  instructorId?: string | null;
 };
 
 export type OpenClassAlertMember = {
@@ -25,6 +35,7 @@ export type OpenClassAlertMember = {
   alertedClassIds: ReadonlySet<string>;
   alertsLast24Hours: number;
   alertsLast7Days: number;
+  classMatchScores?: ReadonlyMap<string, number>;
 };
 
 export type OpenClassAlertPlan = {
@@ -34,6 +45,65 @@ export type OpenClassAlertPlan = {
   spotsAvailable: number;
   deduplicationKey: string;
 };
+
+type OpenClassAffinityPoint = {
+  startsAt: string;
+  instructorId: string | null;
+};
+
+function israelClassSignature(startsAt: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jerusalem",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(startsAt));
+  const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return {
+    weekday: value("weekday"),
+    minuteOfDay: Number(value("hour")) * 60 + Number(value("minute")),
+  };
+}
+
+export function scoreOpenClassAffinity(
+  candidate: OpenClassAffinityPoint,
+  attendance: readonly OpenClassAffinityPoint[],
+) {
+  const target = israelClassSignature(candidate.startsAt);
+  const score = attendance.reduce((total, visit) => {
+    const previous = israelClassSignature(visit.startsAt);
+    const instructor =
+      candidate.instructorId && visit.instructorId === candidate.instructorId ? 6 : 0;
+    const weekday = previous.weekday === target.weekday ? 3 : 0;
+    const timeDistance = Math.abs(previous.minuteOfDay - target.minuteOfDay);
+    const time = timeDistance <= 90 ? 2 : timeDistance <= 180 ? 1 : 0;
+    return total + instructor + weekday + time;
+  }, 0);
+  return Math.min(50, score);
+}
+
+export function rankClassRecommendations(
+  candidates: readonly ClassRecommendationCandidate[],
+  attendance: readonly OpenClassAffinityPoint[],
+  limit = 2,
+) {
+  return [...candidates]
+    .sort(
+      (left, right) =>
+        scoreOpenClassAffinity(
+          { startsAt: right.startsAt, instructorId: right.instructorId ?? null },
+          attendance,
+        ) -
+          scoreOpenClassAffinity(
+            { startsAt: left.startsAt, instructorId: left.instructorId ?? null },
+            attendance,
+          ) ||
+        new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime() ||
+        left.id.localeCompare(right.id),
+    )
+    .slice(0, Math.max(0, Math.min(2, Math.trunc(limit))));
+}
 
 export function shouldCancelOpenClassAlert(input: {
   classStatus: string | null | undefined;
@@ -50,6 +120,9 @@ export function shouldCancelOpenClassAlert(input: {
   return (
     input.classStatus !== "scheduled" ||
     Number(input.bookedCount ?? 0) >= Number(input.capacity ?? 0) ||
+    (Number(input.capacity ?? 0) > 0 &&
+      Number(input.bookedCount ?? 0) / Number(input.capacity) >=
+        OPEN_CLASS_ALERT_STOP_FILL_RATIO) ||
     input.memberBooked ||
     input.memberWaitlisted ||
     input.memberStatus !== "active" ||
@@ -103,28 +176,44 @@ export function planOpenClassAlerts(input: {
         left.bookedCount / left.capacity - right.bookedCount / right.capacity ||
         left.id.localeCompare(right.id),
     );
-  const members = input.members
-    .filter(eligibleMember)
-    .slice()
-    .sort((left, right) => left.id.localeCompare(right.id));
+  const members = input.members.filter(eligibleMember);
   const plans: OpenClassAlertPlan[] = [];
+  const assignedMembers = new Set<string>();
 
-  for (const member of members) {
-    const studioClass = classes.find(
-      (candidate) =>
-        !member.bookedClassIds.has(candidate.id) &&
-        !member.waitlistedClassIds.has(candidate.id) &&
-        !member.alertedClassIds.has(candidate.id),
+  for (const studioClass of classes) {
+    const remainingClassRecipients = Math.max(
+      0,
+      OPEN_CLASS_ALERT_MAX_RECIPIENTS_PER_CLASS -
+        Math.max(0, Math.trunc(studioClass.priorAlertCount ?? 0)),
     );
-    if (!studioClass) continue;
-    plans.push({
-      classId: studioClass.id,
-      memberId: member.id,
-      startsAt: studioClass.startsAt,
-      spotsAvailable: Math.max(0, studioClass.capacity - studioClass.bookedCount),
-      deduplicationKey: `class:${studioClass.id}:class_open_spots:member:${member.id}`,
-    });
-    if (plans.length >= limit) break;
+    if (!remainingClassRecipients) continue;
+    const candidates = members
+      .filter(
+        (member) =>
+          !assignedMembers.has(member.id) &&
+          !member.bookedClassIds.has(studioClass.id) &&
+          !member.waitlistedClassIds.has(studioClass.id) &&
+          !member.alertedClassIds.has(studioClass.id),
+      )
+      .sort(
+        (left, right) =>
+          Number(right.classMatchScores?.get(studioClass.id) ?? 0) -
+            Number(left.classMatchScores?.get(studioClass.id) ?? 0) ||
+          left.id.localeCompare(right.id),
+      )
+      .slice(0, remainingClassRecipients);
+
+    for (const member of candidates) {
+      plans.push({
+        classId: studioClass.id,
+        memberId: member.id,
+        startsAt: studioClass.startsAt,
+        spotsAvailable: Math.max(0, studioClass.capacity - studioClass.bookedCount),
+        deduplicationKey: `class:${studioClass.id}:class_open_spots:member:${member.id}`,
+      });
+      assignedMembers.add(member.id);
+      if (plans.length >= limit) return plans;
+    }
   }
 
   return plans;

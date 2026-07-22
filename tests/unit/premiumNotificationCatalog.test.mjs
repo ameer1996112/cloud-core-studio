@@ -73,6 +73,43 @@ describe("premium notification event catalog", () => {
     });
   });
 
+  test("uses the approved premium channel cadence instead of broadcasting every event", () => {
+    expect(notificationDefinition("member_welcome").channels).toEqual([
+      "in_app",
+      "whatsapp",
+      "email",
+    ]);
+    expect(notificationDefinition("class_reminder_planning")).toMatchObject({
+      channels: ["in_app", "push", "whatsapp"],
+      fallbackChannels: ["whatsapp"],
+    });
+    expect(notificationDefinition("class_reminder_final").channels).toEqual(["in_app", "whatsapp"]);
+    expect(notificationDefinition("payment_request_received").channels).toEqual([
+      "in_app",
+      "email",
+    ]);
+    expect(notificationDefinition("payment_confirmed").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+      "email",
+    ]);
+    expect(notificationDefinition("payment_confirmed")).toMatchObject({
+      interruptionLevel: "passive",
+      sound: "none",
+    });
+    expect(notificationDefinition("class_recommendation").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+    ]);
+    expect(notificationDefinition("retention_reminder").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+    ]);
+  });
+
   test("marks genuine urgent operations as time-sensitive with fallback", () => {
     for (const eventType of [
       "class_cancelled_by_admin",

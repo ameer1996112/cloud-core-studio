@@ -33,6 +33,8 @@ The main records are:
   and dismissed receipts owned by the authenticated member.
 - `notification_event_rollouts`: copy-review and disabled-by-default gates for premium event types.
 - `notification_preference_events`: immutable preference-change audit without message content.
+- `notification_experiment_assignments`: stable 10% control/treatment assignment for nonessential
+  growth messaging.
 
 Legacy writes are mirrored into the canonical model. Historical legacy rows are backfilled with their original table and row ID. Canonical reads in the member notification center remain behind `MESSAGING_CANONICAL_READS_ENABLED`.
 
@@ -72,7 +74,7 @@ Routine external delivery is scheduled inside 08:00–20:30 Asia/Jerusalem. Book
 
 Waitlist deliveries inherit `offer_expires_at`; no retry is scheduled at or beyond that deadline. Missing or unapproved locale-specific WhatsApp templates are suppressed as configuration failures. No language fallback is used.
 
-Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged. Pending payments create the in-app/push reminder after 24 hours and schedule WhatsApp escalation 48 hours later (72 hours after the original pending state). Payment/subscription failures send immediately and receive one deduplicated follow-up while still failed after 24 hours.
+Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged. A payment request creates in-app and email immediately. Pending payments create the in-app/push reminder after 24 hours and schedule WhatsApp escalation 48 hours later (72 hours after the original pending state). The dispatcher rechecks payment state before every delayed attempt, so paid or failed payments cancel obsolete pending reminders. Payment/subscription failures send immediately and receive one deduplicated follow-up while still failed after 24 hours. A normal success uses in-app, quiet push, and email; WhatsApp success is used only when the payment recovered from `failed`.
 
 ### Premium event policy and iPhone experience
 
@@ -85,9 +87,28 @@ by `20260721190000_premium_notification_all_events.sql`, but every row remains
 verified staff contact, and live mode still suppresses the row until an administrator explicitly
 promotes it to Live eligible.
 
-New active members receive one deduplicated `member_welcome` message through in-app, APNs, and
-email. Welcome deliberately has no WhatsApp delivery. Existing members are not backfilled with a
-welcome during migration.
+Members receive one deduplicated `member_welcome` message when inserted active or when an existing
+pending/inactive record later becomes active. Consented channels are in-app, WhatsApp, and email.
+The primary app action is selected at materialization time: upcoming booking, first lesson, or
+membership/package. The scheduler normally materializes it within one minute and its five-minute
+service target is monitored operationally. Existing active members are not backfilled with a
+welcome during migration. WhatsApp remains suppressed until the exact locale of
+`cc_member_welcome_v2` is created, approved, and reconciled.
+
+Planning reminders create an in-app record and prefer push; WhatsApp is retained only as a fallback
+when no active push installation exists. Final reminders create in-app plus WhatsApp without a
+second push interruption. The final reminder remains two hours before class, or 20:00 the previous
+evening for classes before 10:30.
+
+Growth messages are push-first. Open-class candidates must be 2–24 hours away and at most 70% full,
+are ranked from the member's recent instructor/day/time attendance affinity, and are offered to at
+most ten members per class across all scheduler sweeps. Pending sends stop when the class reaches
+85%. A recommendation contains the best one or two unbooked lessons by recent instructor/day/time
+attendance affinity. It may add one weekly WhatsApp escalation only for a consented member with no
+future booking, no recent booking/planning message, two recent successfully sent but unopened growth
+pushes, and no prior escalation in seven days. Retention uses a caring push at 21 days and a personal
+WhatsApp message at 30 days. Ten percent of members are held out from nonessential growth messaging,
+and the third successfully sent but unengaged growth push starts a durable 30-day cooldown.
 
 The iPhone registration stores a random installation ID, token hash, app/build version, locale,
 environment, capability set, permission sync time, logout time, and stale deadline. Raw APNs tokens
@@ -176,7 +197,7 @@ Every inbound reply creates or reopens a handoff, extends the service window, al
 
 ## Template catalog and provisioning
 
-`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, and Meta name. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog. The current catalog contains 16 semantic Meta names and 48 checked-in locale variants (16 each for `he`, `ar`, and `en_US`).
+`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, Meta name, and category. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog. The current catalog contains 19 semantic Meta names and 57 checked-in locale variants (19 each for `he`, `ar`, and `en_US`). Welcome remains `UTILITY`; recommendation and personal-return templates are explicitly `MARKETING`. Checked-in does not mean created or approved in Meta.
 
 Local commands:
 
@@ -295,8 +316,9 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 2. Apply `20260720140000_unified_messaging_phases_1_2.sql`,
    `20260721143000_open_class_alert_reservations.sql`, and
    `20260721170000_premium_notification_foundation.sql`, then
-   `20260721190000_premium_notification_all_events.sql` with immediate dispatch, the scheduler, and
-   channels disabled.
+   `20260721190000_premium_notification_all_events.sql`, then
+   `20260722120000_premium_messaging_journey_tuning.sql` with immediate dispatch, the scheduler,
+   and channels disabled.
 3. Validate backfill counts, preference backfill, waitlist expiry, RLS, and worker functions.
 4. Deploy the schema-compatible app with delivery mode disabled, canonical reads false, scheduler false, and all external channel flags false.
 5. Verify WABA `1009561255148806`, its connected production phone number, webhook subscription, callback GET verification, app secret, and permanent system-user token.
@@ -326,6 +348,9 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 - The 35 existing Meta rows and nine duplicate pairs remain visible by design. The incorrectly categorized Hebrew waitlist template is untouched.
 - Meta can reject or reclassify utility templates; unavailable locale variants stay suppressed.
 - Automatic opt-in for existing members needs policy/legal review.
+- The three new semantic Meta names (`cc_member_welcome_v2`, `cc_class_recommendation_v2`, and
+  `cc_retention_reminder_v2`) have local definitions only until separately authorized, created, and
+  approved. Their WhatsApp deliveries fail safely as suppressed configuration rows meanwhile.
 - Ambiguous WhatsApp network outcomes require staff reconciliation to avoid duplicates.
 - Backfill and compatibility mirroring increase storage until the retention job runs.
 - Existing uncommitted kids/payment work is outside this change and must remain preserved during integration.

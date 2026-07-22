@@ -1,0 +1,18 @@
+{
+  "name": "cc_member_welcome_v2",
+  "language": "ar",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "مرحباً {{1}}، أهلاً بك في Cloud & Core 🤍 مساحتك للقوة والتنفس والتقدم بوتيرتك. جدول الحصص بانتظارك في التطبيق.",
+      "example": {
+        "body_text": [
+          [
+            "נועה"
+          ]
+        ]
+      }
+    }
+  ]
+}

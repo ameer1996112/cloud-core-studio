@@ -6,7 +6,7 @@ export type MetaTemplateVariant = {
   name: string;
   language: MessageLanguage;
   metaLanguage: "he" | "ar" | "en_US";
-  category: "UTILITY";
+  category: "UTILITY" | "MARKETING";
   body: string;
   parameters: readonly string[];
   examples: readonly string[];
@@ -14,6 +14,7 @@ export type MetaTemplateVariant = {
 
 type LocalizedTemplate = {
   name: string | null;
+  category?: MetaTemplateVariant["category"];
   parameters: readonly string[];
   examples: readonly string[];
   bodies: Record<MessageLanguage, string>;
@@ -21,7 +22,7 @@ type LocalizedTemplate = {
 
 const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
   member_welcome: {
-    name: null,
+    name: "cc_member_welcome_v2",
     parameters: ["member_name"],
     examples: ["נועה"],
     bodies: {
@@ -241,13 +242,17 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   class_recommendation: {
-    name: null,
-    parameters: ["member_name", "class_name", "class_date", "class_time"],
-    examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00"],
+    name: "cc_class_recommendation_v2",
+    category: "MARKETING",
+    parameters: ["member_name", "recommendation_summary"],
+    examples: [
+      "נועה",
+      "פילאטיס מזרן ביום 20/07/2026 בשעה 19:00 או יוגה ביום 22/07/2026 בשעה 18:00",
+    ],
     bodies: {
-      he: "היי {{1}}, חשבנו ש{{2}} ב-{{3}} בשעה {{4}} עשוי להתאים לשבוע שלך. הפרטים מחכים באפליקציה.",
-      ar: "مرحباً {{1}}، نعتقد أن {{2}} بتاريخ {{3}} الساعة {{4}} قد تناسب أسبوعك. التفاصيل في التطبيق.",
-      en: "Hi {{1}}, {{2}} on {{3}} at {{4}} may fit your week. The details are waiting in the app.",
+      he: "היי {{1}}, חשבנו שהאפשרויות האלה עשויות להתאים לשבוע שלך: {{2}}. הפרטים מחכים באפליקציה.",
+      ar: "مرحباً {{1}}، نعتقد أن هذه الخيارات قد تناسب أسبوعك: {{2}}. التفاصيل في التطبيق.",
+      en: "Hi {{1}}, we thought these options may fit your week: {{2}}. The details are waiting in the app.",
     },
   },
   waitlist_position_changed: {
@@ -441,7 +446,8 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   retention_reminder: {
-    name: null,
+    name: "cc_retention_reminder_v2",
+    category: "MARKETING",
     parameters: ["member_name"],
     examples: ["נועה"],
     bodies: {
@@ -469,7 +475,7 @@ export const META_TEMPLATE_CATALOG: readonly MetaTemplateVariant[] = Object.entr
     name,
     language,
     metaLanguage: META_LANGUAGES[language],
-    category: "UTILITY" as const,
+    category: definition.category ?? "UTILITY",
     body: definition.bodies[language],
     parameters: definition.parameters,
     examples: definition.examples,
@@ -678,7 +684,9 @@ export function validateMetaTemplateCatalog(): { ok: boolean; errors: string[] }
     if (keys.has(key)) errors.push(`duplicate:${key}`);
     keys.add(key);
     if (!/^cc_[a-z0-9_]+_v\d+$/.test(variant.name)) errors.push(`invalid_name:${variant.name}`);
-    if (variant.category !== "UTILITY") errors.push(`invalid_category:${key}`);
+    if (variant.category !== "UTILITY" && variant.category !== "MARKETING") {
+      errors.push(`invalid_category:${key}`);
+    }
     if (placeholderCount(variant.body) !== variant.parameters.length) {
       errors.push(`parameter_count:${key}`);
     }

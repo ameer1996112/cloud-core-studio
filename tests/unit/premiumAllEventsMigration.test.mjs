@@ -6,6 +6,10 @@ const migrationPath = new URL(
   "../../supabase/migrations/20260721190000_premium_notification_all_events.sql",
   import.meta.url,
 );
+const tuningMigrationPath = new URL(
+  "../../supabase/migrations/20260722120000_premium_messaging_journey_tuning.sql",
+  import.meta.url,
+);
 
 describe("premium notification all-events migration", () => {
   test("keeps the complete rollout private while enabling reviewed event behavior", () => {
@@ -49,7 +53,7 @@ describe("premium notification all-events migration", () => {
   });
 
   test("keeps the database rollout channel matrix exactly aligned with the code catalog", () => {
-    const sql = readFileSync(migrationPath, "utf8");
+    const sql = readFileSync(tuningMigrationPath, "utf8");
     const rolloutRows = new Map(
       [...sql.matchAll(/\('([^']+)', ARRAY\[([^\]]*)\]::text\[\]\)/g)].map((match) => [
         match[1],

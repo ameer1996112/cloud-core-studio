@@ -7,11 +7,13 @@ import {
   computeDeliveryRetry,
   deliveryAllowedByConsent,
   isQuietHours,
+  isUnopenedSuccessfulPushMessage,
   isWhatsappOptOut,
   resolveMessagingRuntime,
   runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
   requiresPromotionalFrequencyReservation,
+  shouldCancelPaymentReminderForDomainState,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
 
@@ -62,6 +64,26 @@ describe("unified messaging delivery policy", () => {
     expect(requiresPromotionalFrequencyReservation("retention_reminder", true)).toBe(false);
     expect(requiresPromotionalFrequencyReservation("retention_reminder", false)).toBe(true);
     expect(requiresPromotionalFrequencyReservation("booking_confirmed", false)).toBe(false);
+  });
+
+  test("counts escalation evidence only for a successful, unopened push delivery", () => {
+    const unopened = {
+      message_deliveries: [{ channel: "push", status: "sent" }],
+      message_engagement_events: [],
+    };
+    expect(isUnopenedSuccessfulPushMessage(unopened)).toBe(true);
+    expect(
+      isUnopenedSuccessfulPushMessage({
+        ...unopened,
+        message_deliveries: [{ channel: "push", status: "suppressed" }],
+      }),
+    ).toBe(false);
+    expect(
+      isUnopenedSuccessfulPushMessage({
+        ...unopened,
+        message_engagement_events: [{ event_type: "opened" }],
+      }),
+    ).toBe(false);
   });
 
   test("enforces Jerusalem quiet hours for routine sends", () => {
@@ -173,5 +195,18 @@ describe("unified messaging delivery policy", () => {
     expect(shouldCancelReminderForDomainState("booking_confirmed", "cancelled", "cancelled")).toBe(
       false,
     );
+  });
+
+  test("cancels the 72-hour payment escalation as soon as payment is resolved", () => {
+    expect(shouldCancelPaymentReminderForDomainState("payment_pending_reminder", "paid")).toBe(
+      true,
+    );
+    expect(shouldCancelPaymentReminderForDomainState("payment_pending_reminder", "failed")).toBe(
+      true,
+    );
+    expect(shouldCancelPaymentReminderForDomainState("payment_pending_reminder", "pending")).toBe(
+      false,
+    );
+    expect(shouldCancelPaymentReminderForDomainState("payment_confirmed", "paid")).toBe(false);
   });
 });

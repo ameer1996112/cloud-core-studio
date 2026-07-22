@@ -58,6 +58,15 @@ describe("unified messaging template catalog", () => {
     expect(getMetaTemplateVariant("class_open_spots", "he")).toBeUndefined();
   });
 
+  test("renders one premium recommendation containing up to two ranked lessons", () => {
+    expect(
+      renderMessageContent("class_recommendation", "en", {
+        member_name: "Noa",
+        recommendation_summary: "Mat Pilates on 22/07/2026 at 18:00 or Yoga on 24/07/2026 at 19:00",
+      }).body,
+    ).toContain("Mat Pilates on 22/07/2026 at 18:00 or Yoga on 24/07/2026 at 19:00");
+  });
+
   test("has localized content for every premium event and templates for every WhatsApp route", () => {
     expect(Object.keys(MESSAGE_CONTENT_CATALOG).sort()).toEqual(
       Object.keys(NOTIFICATION_EVENT_CATALOG).sort(),
@@ -72,7 +81,7 @@ describe("unified messaging template catalog", () => {
   test("renders the one-time member welcome in every supported language", () => {
     expect(renderMessageContent("member_welcome", "he", { member_name: "נועה" })).toMatchObject({
       subject: "ברוכה הבאה ל-Cloud & Core",
-      metaTemplate: null,
+      metaTemplate: "cc_member_welcome_v2",
     });
     expect(renderMessageContent("member_welcome", "ar", { member_name: "نور" }).subject).toBe(
       "أهلاً بك في Cloud & Core",
@@ -80,5 +89,17 @@ describe("unified messaging template catalog", () => {
     expect(renderMessageContent("member_welcome", "en", { member_name: "Noa" }).subject).toBe(
       "Welcome to Cloud & Core",
     );
+    expect(getMetaTemplateVariant("member_welcome", "he")).toMatchObject({
+      name: "cc_member_welcome_v2",
+      category: "UTILITY",
+    });
+  });
+
+  test("class recommendations and personal return messages are explicit marketing templates", () => {
+    for (const eventType of ["class_recommendation", "retention_reminder"]) {
+      const variants = META_TEMPLATE_CATALOG.filter((variant) => variant.eventType === eventType);
+      expect(variants.map((variant) => variant.language).sort()).toEqual(["ar", "en", "he"]);
+      expect(variants.every((variant) => variant.category === "MARKETING")).toBe(true);
+    }
   });
 });

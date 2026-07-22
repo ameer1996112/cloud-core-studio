@@ -61,7 +61,10 @@ the App Store build.
 
 Automatic `class_open_spots` alerts use the member's **New schedules and lesson openings** setting,
 require an active APNs token and remaining credits, and are limited to one alert per day and three per
-week. They do not use WhatsApp.
+week. Candidates are ranked by instructor/day/time attendance affinity, each class reaches at most
+ten recipients across repeated scheduler sweeps, and pending sends stop at 85% capacity. They do not
+use WhatsApp. Weekly recommendations rank the same attendance signals and include the best one or two
+available lessons in one member-facing message.
 
 ## Private all-events verification
 
@@ -77,5 +80,5 @@ expected result for every event. Keep every rollout row Allowlist only until the
 Use the generated v2 definitions under `whatsapp/templates/v2`. Do not enable WhatsApp for a locale
 until its deployment row is approved. Missing locales are suppressed; the worker never substitutes
 another language.
-The checked-in v2 catalog currently has 16 semantic templates and 48 locale variants. Run local
+The checked-in v2 catalog currently has 19 semantic templates and 57 locale variants. Run local
 generation check and remote plan before any separately authorized apply.

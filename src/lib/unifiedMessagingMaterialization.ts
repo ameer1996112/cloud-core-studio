@@ -97,11 +97,25 @@ export function materializeMessagePlan(input: {
 }): MaterializedMessagePlan {
   const rendered = renderMessageContent(input.eventType, input.language, input.variables);
   const definition = notificationDefinition(input.eventType);
-  const actions =
-    (input.eventType === "class_open_spots" || input.eventType === "class_recommendation") &&
-    Number(input.variables.credits_remaining ?? 0) <= 0
-      ? definition.actions.filter((action) => action !== "book_now")
-      : definition.actions;
+  const actions = (() => {
+    if (input.eventType === "member_welcome") {
+      if (input.variables.has_upcoming_booking === true) return ["view_class"] as const;
+      if (
+        input.variables.has_active_membership === false &&
+        Number(input.variables.credits_remaining ?? 0) <= 0
+      ) {
+        return ["choose_package"] as const;
+      }
+      return ["view_schedule"] as const;
+    }
+    if (
+      (input.eventType === "class_open_spots" || input.eventType === "class_recommendation") &&
+      Number(input.variables.credits_remaining ?? 0) <= 0
+    ) {
+      return definition.actions.filter((action) => action !== "book_now");
+    }
+    return definition.actions;
+  })();
   const messageIdempotencyKey = `message:${input.deduplicationKey}`;
   const metaVariant = getMetaTemplateVariant(input.eventType, input.language);
   const routineScheduledFor = definition.immediate ? input.now : nextRoutineWindow(input.now);
@@ -123,6 +137,9 @@ export function materializeMessagePlan(input: {
     } else if (channel !== "in_app" && !input.externalChannels[channel]) {
       status = "suppressed";
       errorCode = `${channel}_channel_disabled`;
+    } else if (channel === "push" && input.variables.has_active_push_device === false) {
+      status = "suppressed";
+      errorCode = "no_active_push_device";
     } else if (!deliveryAllowedByConsent(input.eventType, channel, input.preferences)) {
       status = "suppressed";
       errorCode = `${channel}_opted_out`;
@@ -130,6 +147,42 @@ export function materializeMessagePlan(input: {
       status = "suppressed";
       failureClass = "configuration";
       errorCode = `missing_${channel}_recipient`;
+    } else if (
+      definition.tier === "reminder" &&
+      definition.fallbackChannels.includes(channel as "whatsapp" | "email" | "push") &&
+      channel !== "push" &&
+      input.variables.has_active_push_device === true
+    ) {
+      status = "suppressed";
+      errorCode = "push_preferred_for_fallback_channel";
+    } else if (
+      input.eventType === "payment_confirmed" &&
+      channel === "whatsapp" &&
+      input.variables.payment_was_failing !== true
+    ) {
+      status = "suppressed";
+      errorCode = "payment_success_whatsapp_not_needed";
+    } else if (
+      input.eventType === "class_recommendation" &&
+      channel === "whatsapp" &&
+      input.variables.whatsapp_growth_escalation !== true
+    ) {
+      status = "suppressed";
+      errorCode = "push_first_recommendation";
+    } else if (
+      input.eventType === "retention_reminder" &&
+      channel === "whatsapp" &&
+      input.variables.retention_stage !== "personal_whatsapp"
+    ) {
+      status = "suppressed";
+      errorCode = "retention_whatsapp_not_due";
+    } else if (
+      input.eventType === "retention_reminder" &&
+      channel === "push" &&
+      input.variables.retention_stage === "personal_whatsapp"
+    ) {
+      status = "suppressed";
+      errorCode = "retention_personal_whatsapp_only";
     } else if (channel === "whatsapp") {
       const approvedKey = metaVariant ? `${metaVariant.name}:${metaVariant.metaLanguage}` : null;
       if (!metaVariant || !approvedKey || !input.approvedWhatsappVariants.has(approvedKey)) {

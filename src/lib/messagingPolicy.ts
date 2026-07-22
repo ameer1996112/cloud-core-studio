@@ -53,6 +53,21 @@ export function requiresPromotionalFrequencyReservation(
   return !staffTest && notificationDefinition(eventType).frequencyPolicy === "promotional";
 }
 
+export function isUnopenedSuccessfulPushMessage(input: {
+  message_deliveries?: readonly { channel?: string | null; status?: string | null }[] | null;
+  message_engagement_events?: readonly { event_type?: string | null }[] | null;
+}) {
+  const hasSuccessfulPush = (input.message_deliveries ?? []).some(
+    (delivery) =>
+      delivery.channel === "push" &&
+      ["accepted", "sent", "delivered", "read"].includes(delivery.status ?? ""),
+  );
+  if (!hasSuccessfulPush) return false;
+  return !(input.message_engagement_events ?? []).some((event) =>
+    ["opened", "actioned", "converted"].includes(event.event_type ?? ""),
+  );
+}
+
 export function shouldCancelReminderForDomainState(
   eventType: MessageEventType,
   bookingStatus: string | null | undefined,
@@ -62,6 +77,13 @@ export function shouldCancelReminderForDomainState(
     return false;
   }
   return bookingStatus !== "booked" || classStatus !== "scheduled";
+}
+
+export function shouldCancelPaymentReminderForDomainState(
+  eventType: MessageEventType,
+  paymentStatus: string | null | undefined,
+) {
+  return eventType === "payment_pending_reminder" && paymentStatus !== "pending";
 }
 
 export function deliveryAllowedByConsent(

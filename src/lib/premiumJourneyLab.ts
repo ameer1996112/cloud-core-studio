@@ -21,11 +21,18 @@ const TEST_PACKAGE_NAMES: Record<MessageLanguage, string> = {
 };
 
 export function premiumJourneyTestVariables(language: MessageLanguage) {
+  const recommendationSummary =
+    language === "he"
+      ? "פילאטיס מזרן ב-24/07/2026 בשעה 18:00 או יוגה ב-26/07/2026 בשעה 19:00"
+      : language === "ar"
+        ? "بيلاتس مات بتاريخ 24/07/2026 الساعة 18:00 أو يوغا بتاريخ 26/07/2026 الساعة 19:00"
+        : "Mat Pilates on 24/07/2026 at 18:00 or Yoga on 26/07/2026 at 19:00";
   return {
     member_name: TEST_NAMES[language],
     class_name: TEST_CLASS_NAMES[language],
     class_date: "24/07/2026",
     class_time: "18:00",
+    recommendation_summary: recommendationSummary,
     instructor_name: language === "ar" ? "يارين" : language === "he" ? "ירין" : "Yareen",
     location_name:
       language === "ar" ? "الاستوديو الرئيسي" : language === "he" ? "הסטודיו הראשי" : "Main studio",

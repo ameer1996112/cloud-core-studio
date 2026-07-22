@@ -17,7 +17,7 @@ describe("premium notification Journey Lab", () => {
       buildPremiumJourneyPreviews("en").find((preview) => preview.eventType === "member_welcome"),
     ).toMatchObject({
       subject: "Welcome to Cloud & Core",
-      channels: ["in_app", "push", "email"],
+      channels: ["in_app", "whatsapp", "email"],
       allowlistOnly: true,
     });
   });
@@ -52,7 +52,7 @@ describe("premium notification Journey Lab", () => {
     expect(() =>
       buildPremiumJourneyTestOutbox({
         eventType: "member_welcome",
-        channel: "whatsapp",
+        channel: "push",
         memberId: "00000000-0000-0000-0000-000000000001",
         language: "en",
         runId: "run-2",
