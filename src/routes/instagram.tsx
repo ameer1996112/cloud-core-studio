@@ -7,6 +7,7 @@ import {
   getInstagramLandingData,
   type InstagramLandingData,
 } from "@/lib/instagramLanding.functions";
+import { VERIFIED_STUDIO_WHATSAPP, buildWhatsappHref } from "@/lib/instagramLanding";
 
 type InstagramRouteData = Pick<
   InstagramLandingData,
@@ -40,16 +41,18 @@ export const Route = createFileRoute("/instagram")({
   loader: async (): Promise<InstagramRouteData> => {
     try {
       const settings = await getInstagramLandingData();
+      const whatsappNumber = settings.whatsappNumber || VERIFIED_STUDIO_WHATSAPP;
       return {
         ...settings,
-        whatsappHref: buildWhatsappHref(settings.whatsappNumber),
+        whatsappNumber,
+        whatsappHref: buildWhatsappHref(whatsappNumber, KIDS_WHATSAPP_MESSAGE),
       };
     } catch {
       return {
         address: null,
         contactEmail: null,
-        whatsappNumber: null,
-        whatsappHref: "",
+        whatsappNumber: VERIFIED_STUDIO_WHATSAPP,
+        whatsappHref: buildWhatsappHref(VERIFIED_STUDIO_WHATSAPP, KIDS_WHATSAPP_MESSAGE),
       };
     }
   },
@@ -190,10 +193,4 @@ function InstagramLandingPage() {
       </footer>
     </main>
   );
-}
-
-function buildWhatsappHref(phone: string | null) {
-  const digits = phone?.replace(/\D/g, "") || "";
-  if (!digits) return "";
-  return `https://wa.me/${digits}?text=${encodeURIComponent(KIDS_WHATSAPP_MESSAGE)}`;
 }
