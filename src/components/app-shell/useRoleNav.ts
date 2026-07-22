@@ -8,6 +8,7 @@ import {
   Settings,
   Home,
   Wallet,
+  Baby,
   MessageCircle,
   BarChart3,
   DoorOpen,
@@ -38,6 +39,7 @@ export function navForRole(role: AppRole): NavGroup[] {
         label: t("nav.group.people"),
         items: [
           { to: "/admin/members", label: t("nav.members"), icon: Users },
+          { to: "/admin/kids", label: t("nav.kids"), icon: Baby },
           { to: "/admin/instructors", label: t("nav.instructors"), icon: Sparkles },
           { to: "/admin/programs", label: t("nav.programs"), icon: BookOpen },
           { to: "/admin/plans", label: t("nav.plans"), icon: CreditCard },

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Cloud &amp; Core Women highlight cover</title>
+  <desc id="desc">Editorial number 02 with the word Women.</desc>
+  <rect width="1080" height="1080" fill="#0B1D3A"/>
+  <circle cx="540" cy="540" r="438" fill="#0B1D3A" stroke="#D4AF6A" stroke-width="4"/>
+  <circle cx="540" cy="540" r="400" fill="#0B1D3A" stroke="#FAF7F2" stroke-width="2" opacity=".18"/>
+  <text x="540" y="535" fill="#D4AF6A" font-family="Georgia, 'Times New Roman', serif" font-size="190" text-anchor="middle">02</text>
+  <text x="540" y="640" fill="#FAF7F2" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="600" letter-spacing="11" text-anchor="middle">WOMEN</text>
+  <path d="M478 702h124" stroke="#D4AF6A" stroke-width="4"/>
+</svg>

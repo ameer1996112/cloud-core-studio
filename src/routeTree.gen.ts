@@ -14,6 +14,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaymentResultRouteImport } from './routes/payment-result'
+import { Route as InstagramRouteImport } from './routes/instagram'
 import { Route as DownloadRouteImport } from './routes/download'
 import { Route as DownalodRouteImport } from './routes/downalod'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -47,6 +48,7 @@ import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminPlannerRouteImport } from './routes/_authenticated/admin/planner'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin/payments'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin/messages'
+import { Route as AuthenticatedAdminKidsRouteImport } from './routes/_authenticated/admin/kids'
 import { Route as AuthenticatedAdminInstructorsRouteImport } from './routes/_authenticated/admin/instructors'
 import { Route as AuthenticatedAdminCreditsRouteImport } from './routes/_authenticated/admin/credits'
 import { Route as AuthenticatedAdminCalendarRouteImport } from './routes/_authenticated/admin/calendar'
@@ -94,6 +96,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PaymentResultRoute = PaymentResultRouteImport.update({
   id: '/payment-result',
   path: '/payment-result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstagramRoute = InstagramRouteImport.update({
+  id: '/instagram',
+  path: '/instagram',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DownloadRoute = DownloadRouteImport.update({
@@ -276,6 +283,11 @@ const AuthenticatedAdminMessagesRoute =
     path: '/messages',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminKidsRoute = AuthenticatedAdminKidsRouteImport.update({
+  id: '/kids',
+  path: '/kids',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminInstructorsRoute =
   AuthenticatedAdminInstructorsRouteImport.update({
     id: '/instructors',
@@ -418,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
+  '/instagram': typeof InstagramRoute
   '/payment-result': typeof PaymentResultRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -437,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/admin/calendar': typeof AuthenticatedAdminCalendarRoute
   '/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/admin/instructors': typeof AuthenticatedAdminInstructorsRoute
+  '/admin/kids': typeof AuthenticatedAdminKidsRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/planner': typeof AuthenticatedAdminPlannerRoute
@@ -480,6 +494,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
+  '/instagram': typeof InstagramRoute
   '/payment-result': typeof PaymentResultRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -496,6 +511,7 @@ export interface FileRoutesByTo {
   '/admin/calendar': typeof AuthenticatedAdminCalendarRoute
   '/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/admin/instructors': typeof AuthenticatedAdminInstructorsRoute
+  '/admin/kids': typeof AuthenticatedAdminKidsRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/planner': typeof AuthenticatedAdminPlannerRoute
@@ -541,6 +557,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
+  '/instagram': typeof InstagramRoute
   '/payment-result': typeof PaymentResultRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -560,6 +577,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/calendar': typeof AuthenticatedAdminCalendarRoute
   '/_authenticated/admin/credits': typeof AuthenticatedAdminCreditsRoute
   '/_authenticated/admin/instructors': typeof AuthenticatedAdminInstructorsRoute
+  '/_authenticated/admin/kids': typeof AuthenticatedAdminKidsRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/planner': typeof AuthenticatedAdminPlannerRoute
@@ -605,6 +623,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/downalod'
     | '/download'
+    | '/instagram'
     | '/payment-result'
     | '/privacy'
     | '/reset-password'
@@ -624,6 +643,7 @@ export interface FileRouteTypes {
     | '/admin/calendar'
     | '/admin/credits'
     | '/admin/instructors'
+    | '/admin/kids'
     | '/admin/messages'
     | '/admin/payments'
     | '/admin/planner'
@@ -667,6 +687,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/downalod'
     | '/download'
+    | '/instagram'
     | '/payment-result'
     | '/privacy'
     | '/reset-password'
@@ -683,6 +704,7 @@ export interface FileRouteTypes {
     | '/admin/calendar'
     | '/admin/credits'
     | '/admin/instructors'
+    | '/admin/kids'
     | '/admin/messages'
     | '/admin/payments'
     | '/admin/planner'
@@ -727,6 +749,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/downalod'
     | '/download'
+    | '/instagram'
     | '/payment-result'
     | '/privacy'
     | '/reset-password'
@@ -746,6 +769,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/calendar'
     | '/_authenticated/admin/credits'
     | '/_authenticated/admin/instructors'
+    | '/_authenticated/admin/kids'
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/planner'
@@ -791,6 +815,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DownalodRoute: typeof DownalodRoute
   DownloadRoute: typeof DownloadRoute
+  InstagramRoute: typeof InstagramRoute
   PaymentResultRoute: typeof PaymentResultRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -847,6 +872,13 @@ declare module '@tanstack/react-router' {
       path: '/payment-result'
       fullPath: '/payment-result'
       preLoaderRoute: typeof PaymentResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instagram': {
+      id: '/instagram'
+      path: '/instagram'
+      fullPath: '/instagram'
+      preLoaderRoute: typeof InstagramRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/download': {
@@ -1080,6 +1112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMessagesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/kids': {
+      id: '/_authenticated/admin/kids'
+      path: '/kids'
+      fullPath: '/admin/kids'
+      preLoaderRoute: typeof AuthenticatedAdminKidsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/instructors': {
       id: '/_authenticated/admin/instructors'
       path: '/instructors'
@@ -1251,6 +1290,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCalendarRoute: typeof AuthenticatedAdminCalendarRoute
   AuthenticatedAdminCreditsRoute: typeof AuthenticatedAdminCreditsRoute
   AuthenticatedAdminInstructorsRoute: typeof AuthenticatedAdminInstructorsRoute
+  AuthenticatedAdminKidsRoute: typeof AuthenticatedAdminKidsRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminPlannerRoute: typeof AuthenticatedAdminPlannerRoute
@@ -1278,6 +1318,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCalendarRoute: AuthenticatedAdminCalendarRoute,
     AuthenticatedAdminCreditsRoute: AuthenticatedAdminCreditsRoute,
     AuthenticatedAdminInstructorsRoute: AuthenticatedAdminInstructorsRoute,
+    AuthenticatedAdminKidsRoute: AuthenticatedAdminKidsRoute,
     AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
     AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
     AuthenticatedAdminPlannerRoute: AuthenticatedAdminPlannerRoute,
@@ -1370,6 +1411,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DownalodRoute: DownalodRoute,
   DownloadRoute: DownloadRoute,
+  InstagramRoute: InstagramRoute,
   PaymentResultRoute: PaymentResultRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
