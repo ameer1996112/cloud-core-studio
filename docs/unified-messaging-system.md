@@ -33,6 +33,8 @@ The main records are:
   and dismissed receipts owned by the authenticated member.
 - `notification_event_rollouts`: copy-review and disabled-by-default gates for premium event types.
 - `notification_preference_events`: immutable preference-change audit without message content.
+- `notification_experiment_assignments`: stable 10% control/treatment assignment for nonessential
+  growth messaging.
 
 Legacy writes are mirrored into the canonical model. Historical legacy rows are backfilled with their original table and row ID. Canonical reads in the member notification center remain behind `MESSAGING_CANONICAL_READS_ENABLED`.
 
@@ -53,6 +55,10 @@ Legacy writes are mirrored into the canonical model. Historical legacy rows are 
 
 All dispatcher and channel gates default to disabled. Transactional domain triggers also remain off until `studio_settings.messaging_canonical_writes_enabled` is explicitly set to `true`; while it is false, legacy rows may mirror into canonical storage for validation but the v2 dispatcher never claims legacy deliveries. `MESSAGING_RECIPIENT_ALLOWLIST` is mandatory in allowlist mode. Live mode additionally requires `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806`.
 
+Allowlist comparison is case-insensitive for email/UUID values and canonicalizes the studio's
+historical Israeli mobile forms (`05xxxxxxxx`, formatted local values, and `972...`) to E.164 before
+comparison. Provider requests still receive the recipient format selected by the channel adapter.
+
 The database release gate is `MESSAGING_TEST_DATABASE_URL=... bun run test:integration`. Unlike the
 general local suite, this command fails closed when the ephemeral PostgreSQL/Supabase database is
 missing, so CI cannot report migration, concurrency, or RLS coverage as passing without executing it.
@@ -68,16 +74,41 @@ Routine external delivery is scheduled inside 08:00–20:30 Asia/Jerusalem. Book
 
 Waitlist deliveries inherit `offer_expires_at`; no retry is scheduled at or beyond that deadline. Missing or unapproved locale-specific WhatsApp templates are suppressed as configuration failures. No language fallback is used.
 
-Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged. Pending payments create the in-app/push reminder after 24 hours and schedule WhatsApp escalation 48 hours later (72 hours after the original pending state). Payment/subscription failures send immediately and receive one deduplicated follow-up while still failed after 24 hours.
+Studio one-time/manual/HYP payments and `member_subscriptions` are covered by outbox triggers. The kids payment module is intentionally unchanged. A payment request creates in-app and email immediately. Pending payments create the in-app/push reminder after 24 hours and schedule WhatsApp escalation 48 hours later (72 hours after the original pending state). The dispatcher rechecks payment state before every delayed attempt, so paid or failed payments cancel obsolete pending reminders. Payment/subscription failures send immediately and receive one deduplicated follow-up while still failed after 24 hours. A normal success uses in-app, quiet push, and email; WhatsApp success is used only when the payment recovered from `failed`.
 
 ### Premium event policy and iPhone experience
 
-`src/lib/premiumNotificationCatalog.ts` is the channel-neutral policy for 42 booking, class,
+`src/lib/premiumNotificationCatalog.ts` is the channel-neutral policy for all 43 booking, class,
 waitlist, payment, membership, communication, and engagement events. It defines tier, channels,
 fallbacks, preference, quiet-hours behavior, APNs interruption level, sound, and branded actions.
-The previously active Phase 1/2 events remain approved. Every additional event ships with Hebrew,
-Arabic, and English in-app/push copy but remains `draft`, disabled in code, and disabled in
-`notification_event_rollouts`. Draft events are deliberately absent from the Meta template catalog.
+Every event has reviewed Hebrew, Arabic, and English copy and is enabled at the database event gate
+by `20260721190000_premium_notification_all_events.sql`, but every row remains
+`allowlist_only=true`. Disabled runtime mode therefore sends nothing, allowlist mode reaches only a
+verified staff contact, and live mode still suppresses the row until an administrator explicitly
+promotes it to Live eligible.
+
+Members receive one deduplicated `member_welcome` message when inserted active or when an existing
+pending/inactive record later becomes active. Consented channels are in-app, WhatsApp, and email.
+The primary app action is selected at materialization time: upcoming booking, first lesson, or
+membership/package. The scheduler normally materializes it within one minute and its five-minute
+service target is monitored operationally. Existing active members are not backfilled with a
+welcome during migration. WhatsApp remains suppressed until the exact locale of
+`cc_member_welcome_v2` is created, approved, and reconciled.
+
+Planning reminders create an in-app record and prefer push; WhatsApp is retained only as a fallback
+when no active push installation exists. Final reminders create in-app plus WhatsApp without a
+second push interruption. The final reminder remains two hours before class, or 20:00 the previous
+evening for classes before 10:30.
+
+Growth messages are push-first. Open-class candidates must be 2–24 hours away and at most 70% full,
+are ranked from the member's recent instructor/day/time attendance affinity, and are offered to at
+most ten members per class across all scheduler sweeps. Pending sends stop when the class reaches
+85%. A recommendation contains the best one or two unbooked lessons by recent instructor/day/time
+attendance affinity. It may add one weekly WhatsApp escalation only for a consented member with no
+future booking, no recent booking/planning message, two recent successfully sent but unopened growth
+pushes, and no prior escalation in seven days. Retention uses a caring push at 21 days and a personal
+WhatsApp message at 30 days. Ten percent of members are held out from nonessential growth messaging,
+and the third successfully sent but unengaged growth push starts a durable 30-day cooldown.
 
 The iPhone registration stores a random installation ID, token hash, app/build version, locale,
 environment, capability set, permission sync time, logout time, and stale deadline. Raw APNs tokens
@@ -89,8 +120,14 @@ whose target status cannot be persisted becomes `delivery_unknown` and is never 
 retried.
 
 APNs payloads support category actions, thread/collapse IDs, expiry, badge, Time Sensitive
-interruption, relevance, privacy-safe deep links, and optional rich-media metadata. Native action
-categories are registered in `ios/App/App/AppDelegate.swift` with Hebrew/Arabic/English labels.
+interruption, relevance, privacy-safe deep links, and optional rich-media metadata. Push-capable
+canonical events are rendered through `src/lib/premiumPush.ts`, which produces a short localized
+title, contextual subtitle, and one caring lock-screen sentence instead of projecting the longer
+email/WhatsApp body. The renderer covers every push-capable event in Hebrew, Arabic, and English,
+removes line breaks, applies lock-screen length limits, never uses the member name, and never shows
+payment amounts, receipt URLs, or message bodies. Full content remains available in the authenticated
+in-app notification. Native action categories are registered in `ios/App/App/AppDelegate.swift` with
+Hebrew/Arabic/English labels.
 The server uses `cloud_core_important.caf` for brand-important alerts; before the native rollout,
 add the approved licensed sound asset to the app target or iOS will use its normal fallback sound.
 Rich recommendation images require the native Notification Service Extension before those draft
@@ -99,7 +136,12 @@ events may be enabled.
 The member notification center has All/Unread views, family filters, Today/This Week/Earlier
 grouping, pin-aware ordering, archive and expired-action handling, critical treatment, safe deep
 links, and granular practice/account/communication controls. The admin Messages page exposes Inbox,
-Deliveries (including per-device success counts), Event matrix, Templates, and Activity views.
+Deliveries (including per-device success counts), Event matrix, Templates, Activity, and a Journey
+Lab. Journey Lab previews all 43 localized journeys and queues exactly one channel for one active,
+allowlisted staff member. Tests expire after 24 hours, bypass quiet hours and customer promotional
+frequency reservations, and still honor consent, provider gates, APNs staff-device verification,
+contact data, and WhatsApp locale approval. The complete manual procedure is in
+[Premium messaging manual test runbook](./premium-messaging-manual-test-runbook.md).
 
 ### Open-class iPhone alerts
 
@@ -131,7 +173,7 @@ existing utility template catalog.
 Canonical states are `queued`, `sending`, `accepted`, `sent`, `delivered`, `read`, `failed`, `dead_letter`, `suppressed`, `expired`, `cancelled`, and `delivery_unknown`.
 
 - WhatsApp: four total attempts with 1-, 5-, and 30-minute backoff; `Retry-After` wins when longer. A transmitted timeout is `delivery_unknown` and cannot be manually retried until reconciled.
-- Resend: the same delivery idempotency key is used on every attempt; five total attempts at 1 minute, 5 minutes, 30 minutes, and 2 hours.
+- Resend: the same delivery idempotency key and `X-Entity-Ref-ID` are used on every attempt; five total attempts at 1 minute, 5 minutes, 30 minutes, and 2 hours. Every request contains branded HTML plus a complete plain-text alternative.
 - APNs: initial attempt plus two retries. `BadDeviceToken`, `Unregistered`, and `DeviceTokenNotForTopic` deactivate only the affected token.
 
 Terminal failures create admin in-app alerts. Manual retry refuses expired and ambiguous deliveries.
@@ -159,9 +201,28 @@ Every inbound reply creates or reopens a handoff, extends the service window, al
 
 `POST /api/public/webhooks/resend` verifies the raw Svix signature using `RESEND_WEBHOOK_SECRET`, checks timestamp freshness, and deduplicates by `svix-id`. Provider states remain in `provider_status`; the canonical delivery state advances monotonically. Complaints disable routine email for that member.
 
+`src/lib/transactionalEmail.ts` is the pure presentation boundary for email. It renders one compact,
+table-based Cloud & Core shell for every catalog event, with explicit Hebrew/Arabic RTL, English LTR,
+real paragraph spacing, localized event labels and calls to action, whitelisted structured facts, and
+same-origin HTTPS links. Member-controlled values are escaped. The provider adapter receives only the
+rendered subject, HTML, text, safe headers, recipient, and durable idempotency key.
+
+Transactional deliverability requirements:
+
+- use one stable From identity on the exact Resend-verified transactional subdomain;
+- keep a working Reply-To and invite replies instead of using `no-reply`;
+- publish SPF, DKIM, and DMARC for the organizational domain, beginning with `p=none` while all
+  sources are audited before moving to enforcement;
+- keep Resend click/open tracking disabled for transactional mail;
+- use the authenticated application origin for every action link;
+- send one representative visual QA email at a time. Never repeat the all-events burst against one
+  mailbox for visual testing because that traffic pattern resembles bulk mail;
+- retain the text alternative, compact body, single primary action, bounce/complaint suppression,
+  and existing provider idempotency on every retry.
+
 ## Template catalog and provisioning
 
-`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, and Meta name. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog.
+`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, Meta name, and category. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog. The current catalog contains 19 semantic Meta names and 57 checked-in locale variants (19 each for `he`, `ar`, and `en_US`). Welcome remains `UTILITY`; recommendation and personal-return templates are explicitly `MARKETING`. Checked-in does not mean created or approved in Meta.
 
 Local commands:
 
@@ -218,10 +279,10 @@ of an environment mismatch. Legacy tokens with no trustworthy environment are de
 expand migration and become eligible again only after the native build re-registers them with its
 declared `VITE_APNS_ENV`.
 
-The Admin Messages event matrix is the per-event and per-channel kill-switch. Existing approved
-events begin enabled at the database rollout layer; every new event begins disabled,
-allowlist-only, and copy-review blocked. Enabling a new event requires reviewed localized copy and
-always retains in-app delivery. Promotional events reserve an atomic one-per-24-hours,
+The Admin Messages event matrix is the per-event and per-channel kill-switch. All 43 reviewed
+events begin enabled but allowlist-only at the database rollout layer. Moving an event to Live
+eligible is a separate explicit action and always retains in-app delivery. Promotional customer
+events reserve an atomic one-per-24-hours,
 three-per-seven-days budget before materialization.
 The matrix exposes an explicit `Allowlist only` / `Live eligible` control. Global allowlist mode
 still restricts every channel, including in-app, regardless of the per-event setting. A draft event
@@ -279,8 +340,10 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 1. Back up the database and capture all legacy/canonical counts.
 2. Apply `20260720140000_unified_messaging_phases_1_2.sql`,
    `20260721143000_open_class_alert_reservations.sql`, and
-   `20260721170000_premium_notification_foundation.sql` with immediate dispatch, the scheduler, and
-   channels disabled.
+   `20260721170000_premium_notification_foundation.sql`, then
+   `20260721190000_premium_notification_all_events.sql`, then
+   `20260722120000_premium_messaging_journey_tuning.sql` with immediate dispatch, the scheduler,
+   and channels disabled.
 3. Validate backfill counts, preference backfill, waitlist expiry, RLS, and worker functions.
 4. Deploy the schema-compatible app with delivery mode disabled, canonical reads false, scheduler false, and all external channel flags false.
 5. Verify WABA `1009561255148806`, its connected production phone number, webhook subscription, callback GET verification, app secret, and permanent system-user token.
@@ -297,19 +360,25 @@ The two canonical legacy counts must equal their corresponding legacy table coun
 11. Validate exactly one delivery per channel and per iPhone installation, badge/action/deep-link
     behavior, engagement receipts, status callbacks, reply handoff, service-window rules, retries,
     expiry, and replay suppression. Then enable the post-commit kick and verify scheduler recovery.
-12. Keep new event rollouts dark. For each event, review all three languages, set
-    `copy_reviewed=true`, and enable only the intended allowlist channels. Observe seven clean days.
+12. Keep all event rows Allowlist only. Use Journey Lab and the domain-trigger matrix in the manual
+    test runbook to validate every locale/channel, then observe seven clean days.
 13. Monitor dead letters, ambiguous WhatsApp outcomes, per-device failures, webhook duplicates, and
     template configuration failures.
-14. Promote only the validated event rows from `Allowlist only` to `Live eligible`, set
+14. Promote only individually validated event rows from `Allowlist only` to `Live eligible`, set
     `MESSAGING_LIVE_WABA_CONFIRMATION=1009561255148806`, and switch to `live` only after every gate
-    passes. Expand event rollouts independently; never bulk-enable draft events.
+    passes. Expand event rollouts independently; never bulk-promote the catalog.
 
 ## Known risks
 
 - The 35 existing Meta rows and nine duplicate pairs remain visible by design. The incorrectly categorized Hebrew waitlist template is untouched.
 - Meta can reject or reclassify utility templates; unavailable locale variants stay suppressed.
 - Automatic opt-in for existing members needs policy/legal review.
+- The three new semantic Meta names (`cc_member_welcome_v2`, `cc_class_recommendation_v2`, and
+  `cc_retention_reminder_v2`) have local definitions only until separately authorized, created, and
+  approved. Their WhatsApp deliveries fail safely as suppressed configuration rows meanwhile.
 - Ambiguous WhatsApp network outcomes require staff reconciliation to avoid duplicates.
 - Backfill and compatibility mirroring increase storage until the retention job runs.
 - Existing uncommitted kids/payment work is outside this change and must remain preserved during integration.
+- This branch has no child/guardian persistence or routing relationship. Guardian-facing child
+  journeys cannot be enabled safely until the retained kids module provides an authoritative
+  guardian recipient; the dispatcher never infers that relationship from names or contact data.

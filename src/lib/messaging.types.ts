@@ -1,6 +1,7 @@
 export type MessageLanguage = "he" | "ar" | "en";
 
 export type MessageEventType =
+  | "member_welcome"
   | "booking_confirmed"
   | "booking_cancelled"
   | "booking_changed"
@@ -44,7 +45,8 @@ export type MessageEventType =
   | "trial_followup"
   | "retention_reminder";
 
-export type MessageChannel = "in_app" | "push" | "email" | "whatsapp";
+export const MESSAGE_CHANNELS = ["in_app", "push", "email", "whatsapp"] as const;
+export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
 export type ExternalMessageChannel = Exclude<MessageChannel, "in_app">;
 export type ExternalChannelAvailability = Record<ExternalMessageChannel, boolean>;
 export type MessageDirection = "inbound" | "outbound";

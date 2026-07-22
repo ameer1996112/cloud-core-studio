@@ -7,10 +7,13 @@ import {
   computeDeliveryRetry,
   deliveryAllowedByConsent,
   isQuietHours,
+  isUnopenedSuccessfulPushMessage,
   isWhatsappOptOut,
   resolveMessagingRuntime,
   runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
+  requiresPromotionalFrequencyReservation,
+  shouldCancelPaymentReminderForDomainState,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
 
@@ -40,6 +43,7 @@ describe("unified messaging delivery policy", () => {
   test("only essential events bypass a later external opt-out", () => {
     const optedOut = { whatsappEnabled: false, emailEnabled: false };
     expect(deliveryAllowedByConsent("booking_confirmed", "whatsapp", optedOut)).toBe(false);
+    expect(deliveryAllowedByConsent("member_welcome", "email", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("class_cancelled_by_admin", "whatsapp", optedOut)).toBe(true);
     expect(deliveryAllowedByConsent("class_time_changed", "email", optedOut)).toBe(true);
     expect(deliveryAllowedByConsent("payment_failed", "whatsapp", optedOut)).toBe(true);
@@ -54,6 +58,32 @@ describe("unified messaging delivery policy", () => {
         membership: false,
       }),
     ).toBe(true);
+  });
+
+  test("does not charge staff previews against the real member promotional frequency budget", () => {
+    expect(requiresPromotionalFrequencyReservation("retention_reminder", true)).toBe(false);
+    expect(requiresPromotionalFrequencyReservation("retention_reminder", false)).toBe(true);
+    expect(requiresPromotionalFrequencyReservation("booking_confirmed", false)).toBe(false);
+  });
+
+  test("counts escalation evidence only for a successful, unopened push delivery", () => {
+    const unopened = {
+      message_deliveries: [{ channel: "push", status: "sent" }],
+      message_engagement_events: [],
+    };
+    expect(isUnopenedSuccessfulPushMessage(unopened)).toBe(true);
+    expect(
+      isUnopenedSuccessfulPushMessage({
+        ...unopened,
+        message_deliveries: [{ channel: "push", status: "suppressed" }],
+      }),
+    ).toBe(false);
+    expect(
+      isUnopenedSuccessfulPushMessage({
+        ...unopened,
+        message_engagement_events: [{ event_type: "opened" }],
+      }),
+    ).toBe(false);
   });
 
   test("enforces Jerusalem quiet hours for routine sends", () => {
@@ -116,6 +146,10 @@ describe("unified messaging delivery policy", () => {
       MESSAGING_PUSH_ENABLED: "true",
     });
     expect(runtimeAllowsRecipient(runtime, "whatsapp", "+972546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "0546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "054-646-4437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "972546464437")).toBe(true);
+    expect(runtimeAllowsRecipient(runtime, "whatsapp", "0546464438")).toBe(false);
     expect(runtimeAllowsRecipient(runtime, "push", "755538ce-8c17-4cf2-a732-8534bea23258")).toBe(
       true,
     );
@@ -131,6 +165,7 @@ describe("unified messaging delivery policy", () => {
     });
 
     expect(runtimeAllowsRolloutRecipient(runtime, [null, "+972500000001"])).toBe(true);
+    expect(runtimeAllowsRolloutRecipient(runtime, ["0500000001"])).toBe(true);
     expect(runtimeAllowsRolloutRecipient(runtime, ["staff@example.com"])).toBe(true);
     expect(runtimeAllowsRolloutRecipient(runtime, ["member@example.com", "+972500000002"])).toBe(
       false,
@@ -160,5 +195,18 @@ describe("unified messaging delivery policy", () => {
     expect(shouldCancelReminderForDomainState("booking_confirmed", "cancelled", "cancelled")).toBe(
       false,
     );
+  });
+
+  test("cancels the 72-hour payment escalation as soon as payment is resolved", () => {
+    expect(shouldCancelPaymentReminderForDomainState("payment_pending_reminder", "paid")).toBe(
+      true,
+    );
+    expect(shouldCancelPaymentReminderForDomainState("payment_pending_reminder", "failed")).toBe(
+      true,
+    );
+    expect(shouldCancelPaymentReminderForDomainState("payment_pending_reminder", "pending")).toBe(
+      false,
+    );
+    expect(shouldCancelPaymentReminderForDomainState("payment_confirmed", "paid")).toBe(false);
   });
 });

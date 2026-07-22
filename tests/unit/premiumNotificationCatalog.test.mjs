@@ -7,6 +7,7 @@ import {
 } from "../../src/lib/premiumNotificationCatalog.ts";
 
 const APPROVED_EVENTS = [
+  "member_welcome",
   "booking_confirmed",
   "booking_cancelled",
   "booking_changed",
@@ -72,6 +73,43 @@ describe("premium notification event catalog", () => {
     });
   });
 
+  test("uses the approved premium channel cadence instead of broadcasting every event", () => {
+    expect(notificationDefinition("member_welcome").channels).toEqual([
+      "in_app",
+      "whatsapp",
+      "email",
+    ]);
+    expect(notificationDefinition("class_reminder_planning")).toMatchObject({
+      channels: ["in_app", "push", "whatsapp"],
+      fallbackChannels: ["whatsapp"],
+    });
+    expect(notificationDefinition("class_reminder_final").channels).toEqual(["in_app", "whatsapp"]);
+    expect(notificationDefinition("payment_request_received").channels).toEqual([
+      "in_app",
+      "email",
+    ]);
+    expect(notificationDefinition("payment_confirmed").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+      "email",
+    ]);
+    expect(notificationDefinition("payment_confirmed")).toMatchObject({
+      interruptionLevel: "passive",
+      sound: "none",
+    });
+    expect(notificationDefinition("class_recommendation").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+    ]);
+    expect(notificationDefinition("retention_reminder").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+    ]);
+  });
+
   test("marks genuine urgent operations as time-sensitive with fallback", () => {
     for (const eventType of [
       "class_cancelled_by_admin",
@@ -94,17 +132,20 @@ describe("premium notification event catalog", () => {
     }
   });
 
-  test("keeps new event families dark until localized copy and rollout are approved", () => {
+  test("ships every premium journey with reviewed copy while keeping consent and frequency gates", () => {
+    for (const definition of Object.values(NOTIFICATION_EVENT_CATALOG)) {
+      expect(definition).toMatchObject({
+        defaultEnabled: true,
+        copyStatus: "approved",
+      });
+    }
     expect(notificationDefinition("membership_activated")).toMatchObject({
-      defaultEnabled: false,
-      copyStatus: "draft",
       preference: "membership",
     });
     expect(notificationDefinition("class_recommendation")).toMatchObject({
       tier: "promotional",
       preference: "recommendations",
       frequencyPolicy: "promotional",
-      defaultEnabled: false,
     });
   });
 

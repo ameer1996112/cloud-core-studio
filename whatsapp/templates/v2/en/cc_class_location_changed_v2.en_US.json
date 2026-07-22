@@ -1,0 +1,22 @@
+{
+  "name": "cc_class_location_changed_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, the location for {{2}} on {{3}} at {{4}} changed to {{5}}. Please review it before leaving.",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "19:00",
+            "סטודיו ראשי"
+          ]
+        ]
+      }
+    }
+  ]
+}

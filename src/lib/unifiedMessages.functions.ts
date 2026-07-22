@@ -3,9 +3,22 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
-import { conversationReplyMode } from "@/lib/messagingPolicy";
+import { MESSAGE_CHANNELS, type MessageEventType } from "@/lib/messaging.types";
+import {
+  conversationReplyMode,
+  resolveMessagingRuntime,
+  runtimeAllowsRolloutRecipient,
+} from "@/lib/messagingPolicy";
 import { NOTIFICATION_EVENT_CATALOG } from "@/lib/premiumNotificationCatalog";
+import {
+  buildPremiumJourneyPreviews,
+  buildPremiumJourneyTestOutbox,
+} from "@/lib/premiumJourneyLab";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
+
+const messageEventSchema = z.enum(
+  Object.keys(NOTIFICATION_EVENT_CATALOG) as [MessageEventType, ...MessageEventType[]],
+);
 
 async function requireAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -81,24 +94,88 @@ export const listNotificationEventRollouts = createServerFn({ method: "GET" })
     }));
   });
 
-export const updateNotificationEventRollout = createServerFn({ method: "POST" })
+export const listPremiumJourneyPreviews = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ language: z.enum(["he", "ar", "en"]).default("en") }).parse(data ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.userId);
+    return buildPremiumJourneyPreviews(data.language);
+  });
+
+export const enqueuePremiumJourneyTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
       .object({
-        eventType: z.string().min(1),
-        enabled: z.boolean(),
-        copyReviewed: z.boolean(),
-        allowlistOnly: z.boolean(),
-        enabledChannels: z.array(z.enum(["in_app", "push", "email", "whatsapp"])).min(1),
+        memberId: z.string().uuid(),
+        eventType: messageEventSchema,
+        channel: z.enum(MESSAGE_CHANNELS),
       })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
     const db = await requireAdmin(context.userId);
-    const definition =
-      NOTIFICATION_EVENT_CATALOG[data.eventType as keyof typeof NOTIFICATION_EVENT_CATALOG];
+    const eventType = data.eventType;
+    const definition = NOTIFICATION_EVENT_CATALOG[eventType];
     if (!definition) throw new Error("unknown_notification_event");
+    const runtime = resolveMessagingRuntime(process.env);
+    if (runtime.mode !== "allowlist") throw new Error("journey_test_requires_allowlist_mode");
+    const member = await db
+      .from("members")
+      .select("id,phone,email,preferred_language,status")
+      .eq("id", data.memberId)
+      .maybeSingle();
+    if (member.error) throw member.error;
+    if (!member.data || member.data.status !== "active") throw new Error("active_member_required");
+    if (
+      !runtimeAllowsRolloutRecipient(runtime, [
+        member.data.id,
+        member.data.phone,
+        member.data.email,
+      ])
+    ) {
+      throw new Error("member_not_in_messaging_allowlist");
+    }
+    const language = ["he", "ar", "en"].includes(member.data.preferred_language)
+      ? member.data.preferred_language
+      : "en";
+    const row = buildPremiumJourneyTestOutbox({
+      eventType,
+      channel: data.channel,
+      memberId: member.data.id,
+      language,
+      runId: randomUUID(),
+      now: new Date(),
+    });
+    const inserted = await db.from("message_outbox").insert(row).select("id").single();
+    if (inserted.error) throw inserted.error;
+    await kickUnifiedMessagingAfterCommit();
+    return {
+      ok: true as const,
+      outboxId: inserted.data.id,
+      eventType,
+      channel: data.channel,
+    };
+  });
+
+export const updateNotificationEventRollout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        eventType: messageEventSchema,
+        enabled: z.boolean(),
+        copyReviewed: z.boolean(),
+        allowlistOnly: z.boolean(),
+        enabledChannels: z.array(z.enum(MESSAGE_CHANNELS)).min(1),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await requireAdmin(context.userId);
+    const definition = NOTIFICATION_EVENT_CATALOG[data.eventType];
     if (!data.enabledChannels.includes("in_app")) throw new Error("in_app_channel_required");
     if (
       data.enabledChannels.some(

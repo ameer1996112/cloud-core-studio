@@ -11,6 +11,7 @@ type ApnsConfig = {
 
 export type ApnsAlertPayload = {
   title: string;
+  subtitle?: string;
   body: string;
   url?: string;
   sound?: boolean | string;
@@ -146,6 +147,7 @@ export function buildApnsAlertBody(payload: ApnsAlertPayload) {
     aps: {
       alert: {
         title: payload.title,
+        ...(payload.subtitle ? { subtitle: payload.subtitle } : {}),
         body: payload.body,
       },
       ...(sound == null ? {} : { sound }),

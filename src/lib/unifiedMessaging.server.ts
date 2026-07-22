@@ -6,6 +6,8 @@ import {
   OPEN_CLASS_ALERT_MAX_LEAD_HOURS,
   OPEN_CLASS_ALERT_MIN_LEAD_HOURS,
   planOpenClassAlerts,
+  rankClassRecommendations,
+  scoreOpenClassAffinity,
   shouldCancelOpenClassAlert,
 } from "@/lib/openClassAlerts";
 import type {
@@ -18,12 +20,16 @@ import type {
   MessageLanguage,
 } from "@/lib/messaging.types";
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
+import { applyStaffTestVariables, isStaffTestMessageContent } from "@/lib/messagingStaffTest";
 import {
   computeDeliveryRetry,
   isEssentialMessageEvent,
+  isUnopenedSuccessfulPushMessage,
+  requiresPromotionalFrequencyReservation,
   resolveMessagingRuntime,
   runtimeAllowsRolloutRecipient,
   runtimeAllowsRecipient,
+  shouldCancelPaymentReminderForDomainState,
   shouldCancelReminderForDomainState,
 } from "@/lib/messagingPolicy";
 import {
@@ -32,8 +38,10 @@ import {
   sendWhatsappTemplate,
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
+import { renderTransactionalEmail } from "@/lib/transactionalEmail";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
+import { buildPremiumPushPayload } from "@/lib/premiumPush";
 import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
@@ -107,8 +115,19 @@ function relation<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 }
 
-function notificationDeepLink(outbox: OutboxRow) {
+function notificationDeepLink(
+  outbox: OutboxRow,
+  primaryAction?: string,
+  variables: Record<string, unknown> = {},
+) {
   const payload = outbox.payload ?? {};
+  if (outbox.event_type === "member_welcome") {
+    if (primaryAction === "choose_package") return "/member/packages";
+    if (primaryAction === "view_class" && typeof variables.upcoming_class_id === "string") {
+      return `/member/schedule?class=${variables.upcoming_class_id}`;
+    }
+    return "/member/schedule";
+  }
   if (typeof payload.receipt_id === "string") return `/receipts/${payload.receipt_id}`;
   if (typeof payload.class_id === "string") return `/member/schedule?class=${payload.class_id}`;
   if (outbox.event_type.startsWith("booking_")) return "/member/bookings";
@@ -195,6 +214,65 @@ async function loadOutboxContext(outbox: OutboxRow) {
   if (member.remaining_credits != null) {
     variables.credits_remaining = Math.max(0, Number(member.remaining_credits));
   }
+  for (const key of [
+    "payment_was_failing",
+    "whatsapp_growth_escalation",
+    "has_upcoming_booking",
+    "has_active_membership",
+  ] as const) {
+    if (typeof payload[key] === "boolean") variables[key] = payload[key];
+  }
+  if (typeof payload.retention_stage === "string") {
+    variables.retention_stage = payload.retention_stage;
+  }
+
+  const pushDevice = await db
+    .from("member_push_tokens")
+    .select("id")
+    .eq("member_id", outbox.member_id)
+    .eq("active", true)
+    .eq("permission_status", "granted")
+    .is("logged_out_at", null)
+    .gt("stale_after", new Date().toISOString())
+    .limit(1);
+  if (pushDevice.error) throw pushDevice.error;
+  variables.has_active_push_device = Boolean(pushDevice.data?.length);
+
+  if (outbox.event_type === "member_welcome") {
+    const nowIso = new Date().toISOString();
+    const [upcomingBooking, activePlan, activeSubscription] = await Promise.all([
+      db
+        .from("bookings")
+        .select("id,class_id,class:classes!inner(starts_at,status)")
+        .eq("member_id", outbox.member_id)
+        .eq("status", "booked")
+        .eq("class.status", "scheduled")
+        .gte("class.starts_at", nowIso)
+        .limit(1),
+      db
+        .from("member_plans")
+        .select("id")
+        .eq("member_id", outbox.member_id)
+        .eq("status", "active")
+        .limit(1),
+      db
+        .from("member_subscriptions")
+        .select("id")
+        .eq("member_id", outbox.member_id)
+        .eq("status", "active")
+        .limit(1),
+    ]);
+    for (const result of [upcomingBooking, activePlan, activeSubscription]) {
+      if (result.error) throw result.error;
+    }
+    const upcoming = upcomingBooking.data?.[0];
+    variables.has_upcoming_booking = Boolean(upcoming);
+    if (upcoming?.class_id) variables.upcoming_class_id = upcoming.class_id;
+    variables.has_active_membership =
+      Number(member.remaining_credits ?? 0) > 0 ||
+      Boolean(activePlan.data?.length) ||
+      Boolean(activeSubscription.data?.length);
+  }
 
   for (const key of ["location_name", "package_name"] as const) {
     if (typeof payload[key] === "string" && payload[key].trim()) variables[key] = payload[key];
@@ -221,6 +299,29 @@ async function loadOutboxContext(outbox: OutboxRow) {
     variables.class_date = localizedDate(studioClass.starts_at, locale);
     variables.class_time = localizedTime(studioClass.starts_at, locale);
     variables.instructor_name = relation(studioClass.instructor)?.name ?? "Cloud & Core";
+
+    if (outbox.event_type === "class_recommendation") {
+      const recommendationClasses = [studioClass];
+      if (typeof payload.secondary_class_id === "string" && payload.secondary_class_id) {
+        const secondaryResult = await db
+          .from("classes")
+          .select("id,title,starts_at")
+          .eq("id", payload.secondary_class_id)
+          .maybeSingle();
+        if (secondaryResult.error) throw secondaryResult.error;
+        if (secondaryResult.data) recommendationClasses.push(secondaryResult.data);
+      }
+      const localizedItems = recommendationClasses.map((candidate) => {
+        const date = localizedDate(candidate.starts_at, locale);
+        const time = localizedTime(candidate.starts_at, locale);
+        if (locale === "he") return `${candidate.title} ב-${date} בשעה ${time}`;
+        if (locale === "ar") return `${candidate.title} بتاريخ ${date} الساعة ${time}`;
+        return `${candidate.title} on ${date} at ${time}`;
+      });
+      variables.recommendation_summary = localizedItems.join(
+        locale === "he" ? " או " : locale === "ar" ? " أو " : " or ",
+      );
+    }
   }
 
   if (payload.offer_expires_at) {
@@ -279,11 +380,13 @@ async function loadOutboxContext(outbox: OutboxRow) {
     variables.receipt_url = authenticatedReceiptUrl(receiptResult.data.id);
   }
 
+  Object.assign(variables, applyStaffTestVariables(variables, payload));
+
   if (outbox.event_type === "payment_pending_reminder" && !variables.package_name) {
     variables.package_name = "Cloud & Core";
   }
   if (outbox.event_type === "class_open_spots") {
-    const spotsAvailable = Number(payload.spots_available);
+    const spotsAvailable = Number(variables.spots_available ?? payload.spots_available);
     if (!Number.isFinite(spotsAvailable) || spotsAvailable < 1) {
       throw new Error("invalid_open_class_spots_available");
     }
@@ -387,6 +490,18 @@ async function materializeOutbox(
         ),
       );
     }
+    if (outbox.payload.staff_test === true && Array.isArray(outbox.payload.test_channels)) {
+      const supported = new Set<MessageChannel>(definition.channels);
+      enabledChannels = new Set<MessageChannel>(
+        outbox.payload.test_channels.filter(
+          (channel: unknown): channel is MessageChannel =>
+            typeof channel === "string" &&
+            ["in_app", "push", "email", "whatsapp"].includes(channel) &&
+            supported.has(channel as MessageChannel),
+        ),
+      );
+      if (!enabledChannels.size) throw new Error("staff_test_channel_required");
+    }
     const context = await loadOutboxContext(outbox);
     const plan = materializeMessagePlan({
       outboxId: outbox.id,
@@ -403,8 +518,14 @@ async function materializeOutbox(
       now,
       expiresAt: outbox.expires_at ? new Date(outbox.expires_at) : null,
     });
+    if (outbox.payload.staff_test === true && outbox.payload.staff_test_force_now === true) {
+      for (const delivery of plan.deliveries) delivery.scheduledFor = now.toISOString();
+    }
     if (
-      definition.frequencyPolicy === "promotional" &&
+      requiresPromotionalFrequencyReservation(
+        outbox.event_type,
+        outbox.payload.staff_test === true,
+      ) &&
       plan.deliveries.some((delivery) => delivery.status === "queued")
     ) {
       const reservation = await db.rpc("reserve_promotional_notification", {
@@ -429,7 +550,7 @@ async function materializeOutbox(
         return { ok: true as const, suppressed: "promotional_frequency_cap" as const };
       }
     }
-    const deepLink = notificationDeepLink(outbox);
+    const deepLink = notificationDeepLink(outbox, plan.message.actions[0], context.variables);
     const threadKey = `${plan.message.notificationFamily}:${outbox.aggregate_id ?? outbox.member_id}`;
     const collapseKey = `${outbox.event_type}:${outbox.aggregate_id ?? outbox.member_id}`;
     const message = await db
@@ -449,6 +570,7 @@ async function materializeOutbox(
           content: {
             variables: context.variables,
             action_url: deepLink,
+            staff_test: outbox.payload.staff_test === true,
           },
           notification_family: plan.message.notificationFamily,
           notification_tier: plan.message.notificationTier,
@@ -558,16 +680,6 @@ async function materializeOutbox(
   }
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;")
-    .replaceAll("\n", "<br>");
-}
-
 async function activeHandoff(recipient: string | null) {
   if (!recipient) return false;
   const normalized = recipient.replace(/\D/g, "");
@@ -611,6 +723,38 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
     .update({
       status: "cancelled",
       error_code: "booking_or_class_cancelled",
+      lease_owner: null,
+      lease_expires_at: null,
+      updated_at: now.toISOString(),
+    })
+    .eq("id", delivery.id)
+    .eq("status", "sending");
+  if (cancelled.error) throw cancelled.error;
+  return true;
+}
+
+async function cancelInvalidPaymentReminderDelivery(
+  delivery: DeliveryRow,
+  message: any,
+  now: Date,
+) {
+  if (message.event_type !== "payment_pending_reminder") return false;
+  if (!message.related_payment_id) throw new Error("payment_reminder_context_missing");
+  const db = supabaseAdmin as any;
+  const payment = await db
+    .from("payments")
+    .select("status")
+    .eq("id", message.related_payment_id)
+    .maybeSingle();
+  if (payment.error) throw payment.error;
+  if (!shouldCancelPaymentReminderForDomainState(message.event_type, payment.data?.status)) {
+    return false;
+  }
+  const cancelled = await db
+    .from("message_deliveries")
+    .update({
+      status: "cancelled",
+      error_code: "payment_no_longer_pending",
       lease_owner: null,
       lease_expires_at: null,
       updated_at: now.toISOString(),
@@ -908,9 +1052,13 @@ async function sendPush(
   try {
     return await sendApnsDelivery(
       pendingTokens,
-      {
-        title: message.subject ?? "Cloud & Core",
-        body: message.body ?? "",
+      buildPremiumPushPayload({
+        eventType: message.event_type as MessageEventType,
+        language: language(message.language) ?? "he",
+        variables:
+          message.content?.variables && typeof message.content.variables === "object"
+            ? message.content.variables
+            : {},
         notificationId: message.id,
         url: message.deep_link ?? message.content?.action_url,
         ...(badge == null ? {} : { badge }),
@@ -930,7 +1078,7 @@ async function sendPush(
         ...(typeof message.content?.image_url === "string"
           ? { imageUrl: message.content.image_url, mutableContent: true }
           : {}),
-      },
+      }),
       {
         send: sendApnsAlert,
         deactivate: async (tokenId) => {
@@ -1118,8 +1266,12 @@ async function processDelivery(
     if (expired.error) throw expired.error;
     return "expired";
   }
-  if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
-  if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
+  if (!isStaffTestMessageContent(message.content)) {
+    if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
+    if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt))
+      return "cancelled";
+    if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
+  }
   if (delivery.channel === "in_app") {
     const delivered = await db
       .from("message_deliveries")
@@ -1186,10 +1338,29 @@ async function processDelivery(
               : [],
           });
   } else if (delivery.channel === "email") {
+    const publicBaseUrl =
+      process.env.MESSAGING_PUBLIC_BASE_URL?.trim() || process.env.HYP_PUBLIC_BASE_URL?.trim();
+    if (!publicBaseUrl) throw new Error("missing_messaging_public_base_url");
+    const renderedEmail = renderTransactionalEmail({
+      eventType: message.event_type as MessageEventType,
+      language: language(message.language) ?? "he",
+      subject: message.subject ?? "Cloud & Core",
+      body: message.body ?? "",
+      variables:
+        message.content?.variables && typeof message.content.variables === "object"
+          ? message.content.variables
+          : {},
+      actionUrl: message.deep_link ?? message.content?.action_url ?? null,
+      publicBaseUrl,
+      replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
+      messageKey: delivery.idempotency_key,
+    });
     result = await sendResendEmail({
       to: delivery.recipient_address ?? "",
-      subject: message.subject ?? "Cloud & Core",
-      html: `<div dir="auto">${escapeHtml(message.body ?? "")}</div>`,
+      subject: renderedEmail.subject,
+      html: renderedEmail.html,
+      text: renderedEmail.text,
+      headers: renderedEmail.headers,
       idempotencyKey: delivery.idempotency_key,
     });
   } else {
@@ -1246,7 +1417,7 @@ async function enqueueOpenClassAlerts(
   ).toISOString();
   const classesResult = await db
     .from("classes")
-    .select("id,starts_at,status,member_visible,capacity,booked_count")
+    .select("id,starts_at,status,member_visible,capacity,booked_count,instructor_id")
     .eq("status", "scheduled")
     .eq("member_visible", true)
     .gte("starts_at", windowStart)
@@ -1293,43 +1464,59 @@ async function enqueueOpenClassAlerts(
   const memberIds = allowedMembers.map((member: { id: string }) => member.id);
   const classIds = classesResult.data.map((studioClass: { id: string }) => studioClass.id);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
-  const [preferencesResult, tokensResult, bookingsResult, waitlistResult, alertsResult] =
-    await Promise.all([
-      db
-        .from("member_notification_preferences")
-        .select("member_id,schedule_updates,marketing,package_reminders")
-        .in("member_id", memberIds),
-      db
-        .from("member_push_tokens")
-        .select("member_id")
-        .in("member_id", memberIds)
-        .eq("active", true)
-        .eq("permission_status", "granted"),
-      db
-        .from("bookings")
-        .select("member_id,class_id")
-        .in("member_id", memberIds)
-        .in("class_id", classIds)
-        .in("status", ["booked", "checked_in"]),
-      db
-        .from("waitlist_entries")
-        .select("member_id,class_id")
-        .in("member_id", memberIds)
-        .in("class_id", classIds)
-        .in("status", ["waiting", "ready", "offered", "promoted"]),
-      db
-        .from("message_outbox")
-        .select("member_id,aggregate_id,created_at")
-        .in("member_id", memberIds)
-        .eq("event_type", "class_open_spots")
-        .gte("created_at", sevenDaysAgo),
-    ]);
+  const historyStart = new Date(now.getTime() - 120 * 86_400_000).toISOString();
+  const [
+    preferencesResult,
+    tokensResult,
+    bookingsResult,
+    waitlistResult,
+    alertsResult,
+    attendanceResult,
+  ] = await Promise.all([
+    db
+      .from("member_notification_preferences")
+      .select("member_id,schedule_updates,marketing,package_reminders")
+      .in("member_id", memberIds),
+    db
+      .from("member_push_tokens")
+      .select("member_id")
+      .in("member_id", memberIds)
+      .eq("active", true)
+      .eq("permission_status", "granted"),
+    db
+      .from("bookings")
+      .select("member_id,class_id")
+      .in("member_id", memberIds)
+      .in("class_id", classIds)
+      .in("status", ["booked", "checked_in"]),
+    db
+      .from("waitlist_entries")
+      .select("member_id,class_id")
+      .in("member_id", memberIds)
+      .in("class_id", classIds)
+      .in("status", ["waiting", "ready", "offered", "promoted"]),
+    db
+      .from("message_outbox")
+      .select("member_id,aggregate_id,created_at")
+      .in("member_id", memberIds)
+      .eq("event_type", "class_open_spots")
+      .gte("created_at", sevenDaysAgo),
+    db
+      .from("bookings")
+      .select("member_id,class:classes!inner(starts_at,instructor_id)")
+      .in("member_id", memberIds)
+      .eq("status", "checked_in")
+      .gte("class.starts_at", historyStart)
+      .lt("class.starts_at", now.toISOString())
+      .limit(20_000),
+  ]);
   for (const result of [
     preferencesResult,
     tokensResult,
     bookingsResult,
     waitlistResult,
     alertsResult,
+    attendanceResult,
   ]) {
     if (result.error) throw result.error;
   }
@@ -1361,6 +1548,10 @@ async function enqueueOpenClassAlerts(
   const alertedByMember = new Map<string, Set<string>>();
   const alertsLast24Hours = new Map<string, number>();
   const alertsLast7Days = new Map<string, number>();
+  const attendanceByMember = new Map<
+    string,
+    Array<{ startsAt: string; instructorId: string | null }>
+  >();
   const addClass = (target: Map<string, Set<string>>, memberId: string, classId: string) => {
     const values = target.get(memberId) ?? new Set<string>();
     values.add(classId);
@@ -1375,10 +1566,21 @@ async function enqueueOpenClassAlerts(
   const oneDayAgo = now.getTime() - 86_400_000;
   for (const row of alertsResult.data ?? []) {
     if (row.aggregate_id) addClass(alertedByMember, row.member_id, row.aggregate_id);
+    const alertTime = new Date(row.created_at).getTime();
     alertsLast7Days.set(row.member_id, (alertsLast7Days.get(row.member_id) ?? 0) + 1);
-    if (new Date(row.created_at).getTime() >= oneDayAgo) {
+    if (alertTime >= oneDayAgo) {
       alertsLast24Hours.set(row.member_id, (alertsLast24Hours.get(row.member_id) ?? 0) + 1);
     }
+  }
+  for (const row of attendanceResult.data ?? []) {
+    const attendedClass = relation(row.class);
+    if (!attendedClass?.starts_at) continue;
+    const values = attendanceByMember.get(row.member_id) ?? [];
+    values.push({
+      startsAt: attendedClass.starts_at,
+      instructorId: attendedClass.instructor_id ?? null,
+    });
+    attendanceByMember.set(row.member_id, values);
   }
 
   const plans = planOpenClassAlerts({
@@ -1392,6 +1594,7 @@ async function enqueueOpenClassAlerts(
         member_visible: boolean;
         capacity: number;
         booked_count: number;
+        instructor_id: string | null;
       }) => ({
         id: studioClass.id,
         startsAt: studioClass.starts_at,
@@ -1399,6 +1602,7 @@ async function enqueueOpenClassAlerts(
         memberVisible: studioClass.member_visible,
         capacity: studioClass.capacity,
         bookedCount: studioClass.booked_count,
+        instructorId: studioClass.instructor_id,
       }),
     ),
     members: allowedMembers.map(
@@ -1416,6 +1620,18 @@ async function enqueueOpenClassAlerts(
         alertedClassIds: alertedByMember.get(member.id) ?? new Set<string>(),
         alertsLast24Hours: alertsLast24Hours.get(member.id) ?? 0,
         alertsLast7Days: alertsLast7Days.get(member.id) ?? 0,
+        classMatchScores: new Map(
+          classesResult.data.map((studioClass: any) => [
+            studioClass.id,
+            scoreOpenClassAffinity(
+              {
+                startsAt: studioClass.starts_at,
+                instructorId: studioClass.instructor_id ?? null,
+              },
+              attendanceByMember.get(member.id) ?? [],
+            ),
+          ]),
+        ),
       }),
     ),
   });
@@ -1447,7 +1663,7 @@ async function enqueueClassRecommendations(
   const db = supabaseAdmin as any;
   const classes = await db
     .from("classes")
-    .select("id,starts_at")
+    .select("id,starts_at,instructor_id")
     .eq("status", "scheduled")
     .eq("member_visible", true)
     .gte("starts_at", now.toISOString())
@@ -1467,10 +1683,9 @@ async function enqueueClassRecommendations(
   if (!memberIds.length) return { eligibleMembers: 0, prepared: 0 };
   const members = await db
     .from("members")
-    .select("id,phone,email")
+    .select("id,phone,email,remaining_credits")
     .in("id", memberIds)
-    .eq("status", "active")
-    .gt("remaining_credits", 0);
+    .eq("status", "active");
   if (members.error) throw members.error;
   const allowedMembers = (members.data ?? []).filter((member: any) =>
     runtime.mode === "allowlist"
@@ -1482,65 +1697,147 @@ async function enqueueClassRecommendations(
   const allowedIds = allowedMembers.map((member: { id: string }) => member.id);
   const classIds = classes.data.map((studioClass: { id: string }) => studioClass.id);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
-  const [bookings, waitlist, recent] = await Promise.all([
-    db
-      .from("bookings")
-      .select("member_id,class_id")
-      .in("member_id", allowedIds)
-      .in("class_id", classIds)
-      .in("status", ["booked", "checked_in"]),
-    db
-      .from("waitlist_entries")
-      .select("member_id,class_id")
-      .in("member_id", allowedIds)
-      .in("class_id", classIds)
-      .in("status", ["waiting", "promoted"]),
-    db
-      .from("message_outbox")
-      .select("member_id,aggregate_id,created_at,event_type")
-      .in("member_id", allowedIds)
-      .in("event_type", [
-        "booking_no_show_followup",
-        "class_published",
-        "class_open_spots",
-        "class_recommendation",
-        "trial_followup",
-        "retention_reminder",
-      ])
-      .gte("created_at", sevenDaysAgo),
-  ]);
-  for (const result of [bookings, waitlist, recent]) if (result.error) throw result.error;
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 86_400_000).toISOString();
+  const historyStart = new Date(now.getTime() - 120 * 86_400_000).toISOString();
+  const [bookings, waitlist, recent, upcomingBookings, growthMessages, attendance] =
+    await Promise.all([
+      db
+        .from("bookings")
+        .select("member_id,class_id")
+        .in("member_id", allowedIds)
+        .in("class_id", classIds)
+        .in("status", ["booked", "checked_in"]),
+      db
+        .from("waitlist_entries")
+        .select("member_id,class_id")
+        .in("member_id", allowedIds)
+        .in("class_id", classIds)
+        .in("status", ["waiting", "promoted"]),
+      db
+        .from("message_outbox")
+        .select("member_id,aggregate_id,created_at,event_type,payload")
+        .in("member_id", allowedIds)
+        .in("event_type", [
+          "booking_confirmed",
+          "class_reminder_planning",
+          "booking_no_show_followup",
+          "class_published",
+          "class_open_spots",
+          "class_recommendation",
+          "trial_followup",
+          "retention_reminder",
+        ])
+        .gte("created_at", sevenDaysAgo),
+      db
+        .from("bookings")
+        .select("member_id,class:classes!inner(starts_at,status)")
+        .in("member_id", allowedIds)
+        .in("status", ["booked", "checked_in"])
+        .eq("class.status", "scheduled")
+        .gte("class.starts_at", now.toISOString()),
+      db
+        .from("messages")
+        .select(
+          "id,member_id,event_type,created_at,message_deliveries(channel,status),message_engagement_events(event_type)",
+        )
+        .in("member_id", allowedIds)
+        .in("event_type", ["class_open_spots", "class_recommendation", "retention_reminder"])
+        .gte("created_at", fourteenDaysAgo),
+      db
+        .from("bookings")
+        .select("member_id,class:classes!inner(starts_at,instructor_id)")
+        .in("member_id", allowedIds)
+        .eq("status", "checked_in")
+        .gte("class.starts_at", historyStart)
+        .lt("class.starts_at", now.toISOString())
+        .limit(20_000),
+    ]);
+  for (const result of [bookings, waitlist, recent, upcomingBookings, growthMessages, attendance]) {
+    if (result.error) throw result.error;
+  }
   const blocked = new Set<string>(
     [...(bookings.data ?? []), ...(waitlist.data ?? [])].map(
       (row: { member_id: string; class_id: string }) => `${row.member_id}:${row.class_id}`,
     ),
   );
   const oneDayAgo = now.getTime() - 86_400_000;
+  const membersWithFutureBooking = new Set<string>(
+    (upcomingBookings.data ?? []).map((row: { member_id: string }) => row.member_id),
+  );
+  const attendanceByMember = new Map<
+    string,
+    Array<{ startsAt: string; instructorId: string | null }>
+  >();
+  for (const row of attendance.data ?? []) {
+    const attendedClass = relation(row.class);
+    if (!attendedClass?.starts_at) continue;
+    const values = attendanceByMember.get(row.member_id) ?? [];
+    values.push({
+      startsAt: attendedClass.starts_at,
+      instructorId: attendedClass.instructor_id ?? null,
+    });
+    attendanceByMember.set(row.member_id, values);
+  }
   let prepared = 0;
   for (const member of allowedMembers) {
     const memberRecent = (recent.data ?? []).filter((row: any) => row.member_id === member.id);
+    const promotionalRecent = memberRecent.filter((row: any) =>
+      [
+        "booking_no_show_followup",
+        "class_published",
+        "class_open_spots",
+        "class_recommendation",
+        "trial_followup",
+        "retention_reminder",
+      ].includes(row.event_type),
+    );
     if (
-      memberRecent.length >= 3 ||
-      memberRecent.some((row: any) => new Date(row.created_at).getTime() >= oneDayAgo)
+      promotionalRecent.length >= 3 ||
+      promotionalRecent.some((row: any) => new Date(row.created_at).getTime() >= oneDayAgo)
     ) {
       continue;
     }
-    const studioClass = classes.data.find(
-      (candidate: { id: string }) =>
-        !blocked.has(`${member.id}:${candidate.id}`) &&
-        !memberRecent.some(
-          (row: any) =>
-            row.event_type === "class_recommendation" && row.aggregate_id === candidate.id,
-        ),
+    const recommendations = rankClassRecommendations(
+      classes.data.filter(
+        (candidate: { id: string }) =>
+          !blocked.has(`${member.id}:${candidate.id}`) &&
+          !memberRecent.some(
+            (row: any) =>
+              row.event_type === "class_recommendation" && row.aggregate_id === candidate.id,
+          ),
+      ),
+      attendanceByMember.get(member.id) ?? [],
     );
+    const studioClass = recommendations[0];
     if (!studioClass) continue;
+    const memberGrowthMessages = (growthMessages.data ?? []).filter(
+      (row: any) => row.member_id === member.id,
+    );
+    const unopenedGrowthMessages = memberGrowthMessages.filter(isUnopenedSuccessfulPushMessage);
+    const recentlyPlanned = memberRecent.some((row: any) =>
+      ["booking_confirmed", "class_reminder_planning"].includes(row.event_type),
+    );
+    const whatsappAlreadyUsed = memberRecent.some(
+      (row: any) =>
+        row.event_type === "class_recommendation" &&
+        row.payload?.whatsapp_growth_escalation === true,
+    );
+    const whatsappGrowthEscalation =
+      !membersWithFutureBooking.has(member.id) &&
+      !recentlyPlanned &&
+      !whatsappAlreadyUsed &&
+      unopenedGrowthMessages.length >= 2;
     const result = await db.from("message_outbox").upsert(
       {
         event_type: "class_recommendation",
         aggregate_type: "class",
         aggregate_id: studioClass.id,
         member_id: member.id,
-        payload: { class_id: studioClass.id },
+        payload: {
+          class_id: studioClass.id,
+          secondary_class_id: recommendations[1]?.id ?? null,
+          whatsapp_growth_escalation: whatsappGrowthEscalation,
+        },
         deduplication_key: `class:${studioClass.id}:recommendation:member:${member.id}`,
         available_at: now.toISOString(),
         expires_at: studioClass.starts_at,
@@ -1813,14 +2110,18 @@ async function enqueueDueCanonicalEvents(
     if (inactiveMembers.error) throw inactiveMembers.error;
     const cycle = now.toISOString().slice(0, 7);
     for (const member of inactiveMembers.data ?? []) {
+      const inactiveDays = Math.floor(
+        (now.getTime() - new Date(member.last_visit_at).getTime()) / 86_400_000,
+      );
+      const retentionStage = inactiveDays >= 30 ? "personal_whatsapp" : "caring_push";
       const result = await db.from("message_outbox").upsert(
         {
           event_type: "retention_reminder",
           aggregate_type: "member",
           aggregate_id: member.id,
           member_id: member.id,
-          payload: {},
-          deduplication_key: `member:${member.id}:retention_reminder:${cycle}`,
+          payload: { retention_stage: retentionStage, inactive_days: inactiveDays },
+          deduplication_key: `member:${member.id}:retention_reminder:${retentionStage}:${cycle}`,
           available_at: now.toISOString(),
         },
         { onConflict: "deduplication_key", ignoreDuplicates: true },

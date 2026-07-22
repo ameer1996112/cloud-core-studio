@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { planOpenClassAlerts, shouldCancelOpenClassAlert } from "../../src/lib/openClassAlerts.ts";
+import {
+  planOpenClassAlerts,
+  rankClassRecommendations,
+  scoreOpenClassAffinity,
+  shouldCancelOpenClassAlert,
+} from "../../src/lib/openClassAlerts.ts";
 
 const now = new Date("2026-07-21T08:00:00.000Z");
 
@@ -28,6 +33,7 @@ function member(overrides = {}) {
     alertedClassIds: new Set(),
     alertsLast24Hours: 0,
     alertsLast7Days: 0,
+    classMatchScores: new Map(),
     ...overrides,
   };
 }
@@ -49,6 +55,21 @@ function deliveryState(overrides = {}) {
 }
 
 describe("open-class alert planning", () => {
+  test("scores instructor, weekday and time-of-day attendance affinity", () => {
+    const candidate = {
+      startsAt: "2026-07-22T15:00:00.000Z",
+      instructorId: "instructor-a",
+    };
+    const strong = scoreOpenClassAffinity(candidate, [
+      { startsAt: "2026-07-15T15:30:00.000Z", instructorId: "instructor-a" },
+      { startsAt: "2026-07-08T15:00:00.000Z", instructorId: "instructor-a" },
+    ]);
+    const weak = scoreOpenClassAffinity(candidate, [
+      { startsAt: "2026-07-13T05:00:00.000Z", instructorId: "instructor-b" },
+    ]);
+    expect(strong).toBeGreaterThan(weak);
+  });
+
   test("plans one deduplicated alert for an underfilled class starting within 24 hours", () => {
     expect(
       planOpenClassAlerts({ now, classes: [studioClass()], members: [member()], limit: 50 }),
@@ -130,11 +151,61 @@ describe("open-class alert planning", () => {
   });
 
   test("cancels a delayed push if the class closes or the member already joined", () => {
-    expect(shouldCancelOpenClassAlert(deliveryState({ bookedCount: 9 }))).toBe(false);
+    expect(shouldCancelOpenClassAlert(deliveryState({ bookedCount: 8 }))).toBe(false);
+    expect(shouldCancelOpenClassAlert(deliveryState({ bookedCount: 17, capacity: 20 }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ bookedCount: 10 }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ classStatus: "cancelled" }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ memberBooked: true }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ memberWaitlisted: true }))).toBe(true);
+  });
+
+  test("offers each class to at most ten best-matching members", () => {
+    const members = Array.from({ length: 14 }, (_, index) =>
+      member({
+        id: `member-${String(index).padStart(2, "0")}`,
+        classMatchScores: new Map([["class-1", index]]),
+      }),
+    );
+    const plans = planOpenClassAlerts({ now, classes: [studioClass()], members, limit: 50 });
+    expect(plans).toHaveLength(10);
+    expect(plans.map((plan) => plan.memberId)).toEqual([
+      "member-13",
+      "member-12",
+      "member-11",
+      "member-10",
+      "member-09",
+      "member-08",
+      "member-07",
+      "member-06",
+      "member-05",
+      "member-04",
+    ]);
+  });
+
+  test("subtracts previously prepared recipients from the durable per-class cap", () => {
+    const members = Array.from({ length: 14 }, (_, index) =>
+      member({ id: `member-${String(index).padStart(2, "0")}` }),
+    );
+    const plans = planOpenClassAlerts({
+      now,
+      classes: [studioClass({ priorAlertCount: 7 })],
+      members,
+      limit: 50,
+    });
+    expect(plans).toHaveLength(3);
+  });
+
+  test("ranks and returns at most two recommendations by attendance affinity", () => {
+    const attendance = [{ startsAt: "2026-07-15T15:00:00.000Z", instructorId: "preferred" }];
+    const ranked = rankClassRecommendations(
+      [
+        { id: "early-weak", startsAt: "2026-07-22T06:00:00.000Z", instructorId: "other" },
+        { id: "best", startsAt: "2026-07-22T15:00:00.000Z", instructorId: "preferred" },
+        { id: "second", startsAt: "2026-07-22T14:30:00.000Z", instructorId: "other" },
+      ],
+      attendance,
+    );
+    expect(ranked.map((candidate) => candidate.id)).toEqual(["best", "second"]);
   });
 
   test("rechecks member, consent, and device eligibility before a delayed delivery", () => {

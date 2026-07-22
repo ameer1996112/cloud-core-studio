@@ -6,7 +6,7 @@ export type MetaTemplateVariant = {
   name: string;
   language: MessageLanguage;
   metaLanguage: "he" | "ar" | "en_US";
-  category: "UTILITY";
+  category: "UTILITY" | "MARKETING";
   body: string;
   parameters: readonly string[];
   examples: readonly string[];
@@ -14,12 +14,23 @@ export type MetaTemplateVariant = {
 
 type LocalizedTemplate = {
   name: string | null;
+  category?: MetaTemplateVariant["category"];
   parameters: readonly string[];
   examples: readonly string[];
   bodies: Record<MessageLanguage, string>;
 };
 
 const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
+  member_welcome: {
+    name: "cc_member_welcome_v2",
+    parameters: ["member_name"],
+    examples: ["נועה"],
+    bodies: {
+      he: "היי {{1}}, ברוכה הבאה ל-Cloud & Core 🤍 המקום שלך להתחזק, לנשום ולהתקדם בקצב שלך. לוח השיעורים כבר מחכה לך באפליקציה.",
+      ar: "مرحباً {{1}}، أهلاً بك في Cloud & Core 🤍 مساحتك للقوة والتنفس والتقدم بوتيرتك. جدول الحصص بانتظارك في التطبيق.",
+      en: "Hi {{1}}, welcome to Cloud & Core 🤍 Your space to grow stronger, breathe, and move at your pace. The class schedule is ready in the app.",
+    },
+  },
   booking_confirmed: {
     name: "cc_booking_confirmed_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time", "instructor_name"],
@@ -201,7 +212,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   class_location_changed: {
-    name: null,
+    name: "cc_class_location_changed_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time", "location_name"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00", "סטודיו ראשי"],
     bodies: {
@@ -231,13 +242,17 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   class_recommendation: {
-    name: null,
-    parameters: ["member_name", "class_name", "class_date", "class_time"],
-    examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00"],
+    name: "cc_class_recommendation_v2",
+    category: "MARKETING",
+    parameters: ["member_name", "recommendation_summary"],
+    examples: [
+      "נועה",
+      "פילאטיס מזרן ביום 20/07/2026 בשעה 19:00 או יוגה ביום 22/07/2026 בשעה 18:00",
+    ],
     bodies: {
-      he: "היי {{1}}, חשבנו ש{{2}} ב-{{3}} בשעה {{4}} עשוי להתאים לשבוע שלך. הפרטים מחכים באפליקציה.",
-      ar: "مرحباً {{1}}، نعتقد أن {{2}} بتاريخ {{3}} الساعة {{4}} قد تناسب أسبوعك. التفاصيل في التطبيق.",
-      en: "Hi {{1}}, {{2}} on {{3}} at {{4}} may fit your week. The details are waiting in the app.",
+      he: "היי {{1}}, חשבנו שהאפשרויות האלה עשויות להתאים לשבוע שלך: {{2}}. הפרטים מחכים באפליקציה.",
+      ar: "مرحباً {{1}}، نعتقد أن هذه الخيارات قد تناسب أسبوعك: {{2}}. التفاصيل في التطبيق.",
+      en: "Hi {{1}}, we thought these options may fit your week: {{2}}. The details are waiting in the app.",
     },
   },
   waitlist_position_changed: {
@@ -251,7 +266,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   waitlist_accepted: {
-    name: null,
+    name: "cc_waitlist_accepted_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time"],
     examples: ["נועה", "פילאטיס מזרן", "20/07/2026", "19:00"],
     bodies: {
@@ -351,7 +366,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   subscription_renewal_succeeded: {
-    name: null,
+    name: "cc_subscription_renewal_succeeded_v2",
     parameters: ["member_name", "package_name", "amount"],
     examples: ["נועה", "מינוי חודשי", "₪350"],
     bodies: {
@@ -361,7 +376,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   subscription_renewal_failed: {
-    name: null,
+    name: "cc_subscription_renewal_failed_v2",
     parameters: ["member_name", "package_name"],
     examples: ["נועה", "מינוי חודשי"],
     bodies: {
@@ -411,7 +426,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   urgent_studio_announcement: {
-    name: null,
+    name: "cc_urgent_studio_announcement_v2",
     parameters: ["member_name"],
     examples: ["נועה"],
     bodies: {
@@ -431,7 +446,8 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   retention_reminder: {
-    name: null,
+    name: "cc_retention_reminder_v2",
+    category: "MARKETING",
     parameters: ["member_name"],
     examples: ["נועה"],
     bodies: {
@@ -459,7 +475,7 @@ export const META_TEMPLATE_CATALOG: readonly MetaTemplateVariant[] = Object.entr
     name,
     language,
     metaLanguage: META_LANGUAGES[language],
-    category: "UTILITY" as const,
+    category: definition.category ?? "UTILITY",
     body: definition.bodies[language],
     parameters: definition.parameters,
     examples: definition.examples,
@@ -468,6 +484,7 @@ export const META_TEMPLATE_CATALOG: readonly MetaTemplateVariant[] = Object.entr
 
 const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>>> = {
   he: {
+    member_welcome: "ברוכה הבאה ל-Cloud & Core",
     booking_confirmed: "ההזמנה אושרה",
     booking_cancelled: "ההזמנה בוטלה",
     booking_changed: "פרטי ההזמנה עודכנו",
@@ -512,6 +529,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     retention_reminder: "התגעגענו אלייך",
   },
   ar: {
+    member_welcome: "أهلاً بك في Cloud & Core",
     booking_confirmed: "تم تأكيد الحجز",
     booking_cancelled: "تم إلغاء الحجز",
     booking_changed: "تم تحديث تفاصيل الحجز",
@@ -556,6 +574,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     retention_reminder: "اشتقنا لرؤيتك",
   },
   en: {
+    member_welcome: "Welcome to Cloud & Core",
     booking_confirmed: "Booking confirmed",
     booking_cancelled: "Booking cancelled",
     booking_changed: "Booking details updated",
@@ -665,7 +684,9 @@ export function validateMetaTemplateCatalog(): { ok: boolean; errors: string[] }
     if (keys.has(key)) errors.push(`duplicate:${key}`);
     keys.add(key);
     if (!/^cc_[a-z0-9_]+_v\d+$/.test(variant.name)) errors.push(`invalid_name:${variant.name}`);
-    if (variant.category !== "UTILITY") errors.push(`invalid_category:${key}`);
+    if (variant.category !== "UTILITY" && variant.category !== "MARKETING") {
+      errors.push(`invalid_category:${key}`);
+    }
     if (placeholderCount(variant.body) !== variant.parameters.length) {
       errors.push(`parameter_count:${key}`);
     }

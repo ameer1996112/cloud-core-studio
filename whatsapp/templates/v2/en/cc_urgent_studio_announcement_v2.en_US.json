@@ -1,0 +1,18 @@
+{
+  "name": "cc_urgent_studio_announcement_v2",
+  "language": "en_US",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, an important studio update is waiting. Open the app to review the details.",
+      "example": {
+        "body_text": [
+          [
+            "נועה"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -22,6 +22,48 @@ const base = {
 };
 
 describe("outbox message materialization", () => {
+  test("welcomes through durable inbox, WhatsApp and email with a context-aware primary action", () => {
+    const firstLesson = materializeMessagePlan({
+      ...base,
+      eventType: "member_welcome",
+      deduplicationKey: "member:welcome:member-1:v2",
+      variables: {
+        member_name: "נועה",
+        has_upcoming_booking: false,
+        has_active_membership: true,
+        credits_remaining: 2,
+      },
+      approvedWhatsappVariants: new Set(["cc_member_welcome_v2:he"]),
+    });
+    expect(firstLesson.deliveries.map((delivery) => delivery.channel)).toEqual([
+      "in_app",
+      "whatsapp",
+      "email",
+    ]);
+    expect(firstLesson.message.actions).toEqual(["view_schedule"]);
+
+    const upcoming = materializeMessagePlan({
+      ...base,
+      eventType: "member_welcome",
+      variables: { member_name: "נועה", has_upcoming_booking: true, credits_remaining: 2 },
+      approvedWhatsappVariants: new Set(["cc_member_welcome_v2:he"]),
+    });
+    expect(upcoming.message.actions).toEqual(["view_class"]);
+
+    const noPackage = materializeMessagePlan({
+      ...base,
+      eventType: "member_welcome",
+      variables: {
+        member_name: "נועה",
+        has_upcoming_booking: false,
+        has_active_membership: false,
+        credits_remaining: 0,
+      },
+      approvedWhatsappVariants: new Set(["cc_member_welcome_v2:he"]),
+    });
+    expect(noPackage.message.actions).toEqual(["choose_package"]);
+  });
+
   test("creates one channel-neutral message and one idempotent delivery per channel", () => {
     const result = materializeMessagePlan(base);
     expect(result.message).toMatchObject({
@@ -75,6 +117,28 @@ describe("outbox message materialization", () => {
       status: "suppressed",
       failureClass: null,
       errorCode: "email_channel_disabled",
+    });
+  });
+
+  test("routes admin-only handoff alerts to the admin device group", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "human_handoff",
+      deduplicationKey: "handoff:staff-test",
+      preferences: { ...base.preferences, staffReplies: true },
+      variables: { member_name: "נועה" },
+      approvedWhatsappVariants: new Set(["cc_human_handoff_v2:he"]),
+    });
+
+    expect(result.message).toMatchObject({ memberVisible: false, audience: "admin" });
+    expect(result.deliveries.find((delivery) => delivery.channel === "in_app")).toMatchObject({
+      recipientAddress: "admin_group",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      recipientAddress: "admin_group",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      recipientAddress: "972501234567",
     });
   });
 
@@ -248,5 +312,159 @@ describe("outbox message materialization", () => {
 
     expect(push?.scheduledFor).toBe(now.toISOString());
     expect(whatsapp?.scheduledFor).toBe("2026-07-22T09:00:00.000Z");
+  });
+
+  test("uses WhatsApp only as a planning-reminder fallback when push is unavailable", () => {
+    const withPush = materializeMessagePlan({
+      ...base,
+      eventType: "class_reminder_planning",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        has_active_push_device: true,
+      },
+      preferences: { ...base.preferences, classReminders: true },
+      approvedWhatsappVariants: new Set(["cc_class_reminder_planning_v2:he"]),
+    });
+    expect(withPush.deliveries.find((delivery) => delivery.channel === "push")?.status).toBe(
+      "queued",
+    );
+    expect(withPush.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "suppressed",
+      errorCode: "push_preferred_for_fallback_channel",
+    });
+
+    const withoutPush = materializeMessagePlan({
+      ...base,
+      eventType: "class_reminder_planning",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        has_active_push_device: false,
+      },
+      preferences: { ...base.preferences, classReminders: true },
+      approvedWhatsappVariants: new Set(["cc_class_reminder_planning_v2:he"]),
+    });
+    expect(withoutPush.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
+      "queued",
+    );
+  });
+
+  test("keeps final reminders focused and sends payment-success WhatsApp only after recovery", () => {
+    const finalReminder = materializeMessagePlan({
+      ...base,
+      eventType: "class_reminder_final",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס",
+        class_date: "22/07/2026",
+        class_time: "18:00",
+        instructor_name: "ירין",
+      },
+      preferences: { ...base.preferences, classReminders: true },
+      approvedWhatsappVariants: new Set(["cc_class_reminder_final_v2:he"]),
+    });
+    expect(finalReminder.deliveries.map((delivery) => delivery.channel)).toEqual([
+      "in_app",
+      "whatsapp",
+    ]);
+
+    const ordinarySuccess = materializeMessagePlan({
+      ...base,
+      eventType: "payment_confirmed",
+      variables: {
+        member_name: "נועה",
+        package_name: "מינוי חודשי",
+        amount: "₪350",
+        payment_was_failing: false,
+      },
+      preferences: { ...base.preferences, payments: true },
+      approvedWhatsappVariants: new Set(["cc_payment_confirmed_v2:he"]),
+    });
+    expect(
+      ordinarySuccess.deliveries.find((delivery) => delivery.channel === "whatsapp"),
+    ).toMatchObject({ status: "suppressed", errorCode: "payment_success_whatsapp_not_needed" });
+
+    const recovered = materializeMessagePlan({
+      ...base,
+      eventType: "payment_confirmed",
+      variables: {
+        member_name: "נועה",
+        package_name: "מינוי חודשי",
+        amount: "₪350",
+        payment_was_failing: true,
+      },
+      preferences: { ...base.preferences, payments: true },
+      approvedWhatsappVariants: new Set(["cc_payment_confirmed_v2:he"]),
+    });
+    expect(recovered.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
+      "queued",
+    );
+  });
+
+  test("keeps growth messaging push-first and unlocks WhatsApp only for qualified escalation", () => {
+    const recommendationVariables = {
+      member_name: "נועה",
+      recommendation_summary: "פילאטיס ב-22/07/2026 בשעה 18:00 או יוגה ב-24/07/2026 בשעה 19:00",
+      credits_remaining: 2,
+    };
+    const pushFirst = materializeMessagePlan({
+      ...base,
+      eventType: "class_recommendation",
+      variables: recommendationVariables,
+      preferences: { ...base.preferences, recommendations: true, marketing: true },
+      approvedWhatsappVariants: new Set(["cc_class_recommendation_v2:he"]),
+    });
+    expect(pushFirst.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "suppressed",
+      errorCode: "push_first_recommendation",
+    });
+
+    const escalation = materializeMessagePlan({
+      ...base,
+      eventType: "class_recommendation",
+      variables: { ...recommendationVariables, whatsapp_growth_escalation: true },
+      preferences: { ...base.preferences, recommendations: true, marketing: true },
+      approvedWhatsappVariants: new Set(["cc_class_recommendation_v2:he"]),
+    });
+    expect(escalation.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
+      "queued",
+    );
+  });
+
+  test("separates the caring 21-day push from the consented 30-day WhatsApp return note", () => {
+    const caring = materializeMessagePlan({
+      ...base,
+      eventType: "retention_reminder",
+      variables: { member_name: "נועה", retention_stage: "caring_push" },
+      preferences: { ...base.preferences, marketing: true },
+      approvedWhatsappVariants: new Set(["cc_retention_reminder_v2:he"]),
+    });
+    expect(caring.deliveries.find((delivery) => delivery.channel === "push")?.status).toBe(
+      "queued",
+    );
+    expect(caring.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "suppressed",
+      errorCode: "retention_whatsapp_not_due",
+    });
+
+    const personal = materializeMessagePlan({
+      ...base,
+      eventType: "retention_reminder",
+      variables: { member_name: "נועה", retention_stage: "personal_whatsapp" },
+      preferences: { ...base.preferences, marketing: true },
+      approvedWhatsappVariants: new Set(["cc_retention_reminder_v2:he"]),
+    });
+    expect(personal.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      status: "suppressed",
+      errorCode: "retention_personal_whatsapp_only",
+    });
+    expect(personal.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
+      "queued",
+    );
   });
 });

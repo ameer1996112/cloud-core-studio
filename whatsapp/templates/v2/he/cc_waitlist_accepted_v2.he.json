@@ -1,0 +1,21 @@
+{
+  "name": "cc_waitlist_accepted_v2",
+  "language": "he",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "היי {{1}}, המקום שלך ב{{2}} אושר ל-{{3}} בשעה {{4}}. נתראה בסטודיו 🤍",
+      "example": {
+        "body_text": [
+          [
+            "נועה",
+            "פילאטיס מזרן",
+            "20/07/2026",
+            "19:00"
+          ]
+        ]
+      }
+    }
+  ]
+}
