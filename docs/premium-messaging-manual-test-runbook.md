@@ -20,7 +20,8 @@ payment events remain explicitly out of scope.
    row and never fans out to another member. Staff tests bypass quiet hours and the customer
    promotional frequency budget, but still respect channel kill switches, contact data, consent,
    APNs installation verification, and WhatsApp template approval.
-3. Open **Deliveries**, search by the selected member's name, phone, email, or event, and open
+3. Open **Deliveries**, switch from **Live customers** to **Staff tests**, search by the selected
+   member's name, phone, email, or event, and open
    **Investigate** for the matching row. Confirm the member identity, channel, provider timeline,
    attempt count, and plain-language diagnosis. The view refreshes every 30 seconds. Expected channel
    results are:

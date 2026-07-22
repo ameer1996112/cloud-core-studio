@@ -138,7 +138,9 @@ grouping, pin-aware ordering, archive and expired-action handling, critical trea
 links, and granular practice/account/communication controls. The admin Messages page exposes Inbox,
 Deliveries, Event matrix, Templates, Activity, and a Journey Lab. The Deliveries observatory shows a
 24-hour operational summary, member identity with masked contact hints, member/contact/event search,
-channel and outcome filters, and automatic 30-second refresh. Its investigation drawer contains the
+channel and outcome filters, and automatic 30-second refresh. It defaults to live customer traffic and
+keeps staff tests, admin/system alerts, and the combined audit view in explicit separate scopes; each
+scope has independent 24-hour KPIs so test volume cannot inflate customer operations. Its investigation drawer contains the
 provider timeline, attempt results, push-device success counts, a plain-language diagnosis, and the
 member profile/history actions. Ambiguous, permanent, expired, cancelled, and policy-suppressed
 outcomes never expose a retry action; raw provider payloads and webhook bodies never reach the

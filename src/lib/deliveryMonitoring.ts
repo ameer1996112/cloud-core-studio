@@ -45,6 +45,8 @@ export type DeliveryMonitorTarget = {
   updated_at: string;
 };
 
+export type DeliveryTrafficKind = "live" | "test" | "system";
+
 export type DeliveryMonitorRow = {
   id: string;
   message_id: string;
@@ -66,6 +68,7 @@ export type DeliveryMonitorRow = {
   failed_at: string | null;
   created_at: string;
   updated_at: string;
+  traffic_kind: DeliveryTrafficKind;
   message: DeliveryMonitorMessage | null;
   attempts: DeliveryMonitorAttempt[];
   targets: DeliveryMonitorTarget[];
@@ -84,12 +87,14 @@ export type DeliveryMonitorSummary = {
 export type DeliveryMonitorResponse = {
   deliveries: DeliveryMonitorRow[];
   summary: DeliveryMonitorSummary;
+  summaries: Record<DeliveryTrafficKind | "all", DeliveryMonitorSummary>;
   generatedAt: string;
   windowHours: number;
 };
 
 export type DeliveryMonitorFilters = {
   query: string;
+  traffic: DeliveryTrafficKind | "all";
   channel: "all" | MessageChannel;
   status: "all" | DeliveryStatus | "attention" | "successful" | "not_sent";
   memberId: string | null;
@@ -108,6 +113,17 @@ const NOT_SENT_STATUSES = new Set<DeliveryStatus>(["suppressed", "expired", "can
 
 export function firstRelation<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+}
+
+export function classifyDeliveryTraffic(input: {
+  eventType?: string | null;
+  audience?: string | null;
+  staffTest?: unknown;
+  aggregateType?: string | null;
+}): DeliveryTrafficKind {
+  if (input.staffTest === true || input.aggregateType === "notification_staff_test") return "test";
+  if (input.audience === "admin" || input.eventType === "delivery_failure") return "system";
+  return "live";
 }
 
 export function isDeliveryAttention(status: DeliveryStatus) {
@@ -155,6 +171,19 @@ export function summarizeDeliveries(
   };
 }
 
+export function summarizeDeliveriesByTraffic(
+  deliveries: Array<Pick<DeliveryMonitorRow, "status" | "message" | "traffic_kind">>,
+): Record<DeliveryTrafficKind | "all", DeliveryMonitorSummary> {
+  return {
+    live: summarizeDeliveries(deliveries.filter((delivery) => delivery.traffic_kind === "live")),
+    test: summarizeDeliveries(deliveries.filter((delivery) => delivery.traffic_kind === "test")),
+    system: summarizeDeliveries(
+      deliveries.filter((delivery) => delivery.traffic_kind === "system"),
+    ),
+    all: summarizeDeliveries(deliveries),
+  };
+}
+
 export function filterDeliveryRows(
   deliveries: DeliveryMonitorRow[],
   filters: DeliveryMonitorFilters,
@@ -162,6 +191,7 @@ export function filterDeliveryRows(
   const query = filters.query.trim().toLocaleLowerCase();
   return deliveries.filter((delivery) => {
     const member = delivery.message?.member;
+    if (filters.traffic !== "all" && delivery.traffic_kind !== filters.traffic) return false;
     if (filters.memberId && member?.id !== filters.memberId) return false;
     if (filters.channel !== "all" && delivery.channel !== filters.channel) return false;
     if (filters.status !== "all") {
