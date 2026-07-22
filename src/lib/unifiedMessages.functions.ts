@@ -3,7 +3,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
-import { MESSAGE_CHANNELS, type MessageEventType } from "@/lib/messaging.types";
+import {
+  MESSAGE_CHANNELS,
+  type DeliveryStatus,
+  type MessageEventType,
+} from "@/lib/messaging.types";
 import {
   conversationReplyMode,
   resolveMessagingRuntime,
@@ -15,6 +19,33 @@ import {
   buildPremiumJourneyTestOutbox,
 } from "@/lib/premiumJourneyLab";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
+import {
+  firstRelation,
+  summarizeDeliveries,
+  type DeliveryMonitorAttempt,
+  type DeliveryMonitorMember,
+  type DeliveryMonitorMessage,
+  type DeliveryMonitorRow,
+  type DeliveryMonitorTarget,
+} from "@/lib/deliveryMonitoring";
+
+type RawDeliveryMonitorMessage = Omit<DeliveryMonitorMessage, "member"> & {
+  member: DeliveryMonitorMember | DeliveryMonitorMember[] | null;
+};
+
+type RawDeliveryMonitorRow = Omit<DeliveryMonitorRow, "message" | "attempts" | "targets"> & {
+  message: RawDeliveryMonitorMessage | RawDeliveryMonitorMessage[] | null;
+  attempts: DeliveryMonitorAttempt[] | null;
+  targets: DeliveryMonitorTarget[] | null;
+};
+
+type RawRecentDelivery = {
+  status: DeliveryStatus;
+  message:
+    | Pick<DeliveryMonitorMessage, "member_id">
+    | Array<Pick<DeliveryMonitorMessage, "member_id">>
+    | null;
+};
 
 const messageEventSchema = z.enum(
   Object.keys(NOTIFICATION_EVENT_CATALOG) as [MessageEventType, ...MessageEventType[]],
@@ -67,15 +98,47 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await requireAdmin(context.userId);
-    const result = await db
-      .from("message_deliveries")
-      .select(
-        "id,message_id,channel,provider,status,provider_status,attempt_count,error_code,error_message,created_at,updated_at,message:messages(event_type,subject),targets:message_delivery_targets(status,failure_class)",
-      )
-      .order("created_at", { ascending: false })
-      .limit(300);
+    const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+    const [result, recentResult] = await Promise.all([
+      db
+        .from("message_deliveries")
+        .select(
+          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,created_at,member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(500),
+      db
+        .from("message_deliveries")
+        .select("status,message:messages(member_id)")
+        .gte("created_at", since)
+        .limit(5_000),
+    ]);
     if (result.error) throw result.error;
-    return result.data ?? [];
+    if (recentResult.error) throw recentResult.error;
+
+    const deliveries = ((result.data ?? []) as RawDeliveryMonitorRow[]).map((row) => {
+      const message = firstRelation(row.message);
+      return {
+        ...row,
+        message: message ? { ...message, member: firstRelation(message.member) } : null,
+        attempts: [...(row.attempts ?? [])].sort(
+          (a: { attempt_number: number }, b: { attempt_number: number }) =>
+            a.attempt_number - b.attempt_number,
+        ),
+        targets: row.targets ?? [],
+      } as DeliveryMonitorRow;
+    });
+    const recent = ((recentResult.data ?? []) as RawRecentDelivery[]).map((row) => {
+      const message = firstRelation(row.message);
+      return { status: row.status, message } as Pick<DeliveryMonitorRow, "status" | "message">;
+    });
+
+    return {
+      deliveries,
+      summary: summarizeDeliveries(recent),
+      generatedAt: new Date().toISOString(),
+      windowHours: 24,
+    };
   });
 
 export const listNotificationEventRollouts = createServerFn({ method: "GET" })

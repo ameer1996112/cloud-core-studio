@@ -136,8 +136,13 @@ events may be enabled.
 The member notification center has All/Unread views, family filters, Today/This Week/Earlier
 grouping, pin-aware ordering, archive and expired-action handling, critical treatment, safe deep
 links, and granular practice/account/communication controls. The admin Messages page exposes Inbox,
-Deliveries (including per-device success counts), Event matrix, Templates, Activity, and a Journey
-Lab. Journey Lab previews all 43 localized journeys and queues exactly one channel for one active,
+Deliveries, Event matrix, Templates, Activity, and a Journey Lab. The Deliveries observatory shows a
+24-hour operational summary, member identity with masked contact hints, member/contact/event search,
+channel and outcome filters, and automatic 30-second refresh. Its investigation drawer contains the
+provider timeline, attempt results, push-device success counts, a plain-language diagnosis, and the
+member profile/history actions. Ambiguous, permanent, expired, cancelled, and policy-suppressed
+outcomes never expose a retry action; raw provider payloads and webhook bodies never reach the
+browser. Journey Lab previews all 43 localized journeys and queues exactly one channel for one active,
 allowlisted staff member. Tests expire after 24 hours, bypass quiet hours and customer promotional
 frequency reservations, and still honor consent, provider gates, APNs staff-device verification,
 contact data, and WhatsApp locale approval. The complete manual procedure is in

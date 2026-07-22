@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPageShell, AdminPageHeader } from "@/components/admin-shared";
 import { AdminPushCampaigns } from "@/components/admin/AdminPushCampaigns";
+import { DeliveryMonitoringConsole } from "@/components/admin/DeliveryMonitoringConsole";
 import {
   listMessageTemplates,
   upsertMessageTemplate,
@@ -23,14 +24,12 @@ import {
   claimCanonicalConversation,
   getCanonicalConversation,
   listCanonicalConversations,
-  listCanonicalDeliveries,
   listNotificationEventRollouts,
   listPremiumJourneyPreviews,
   listWhatsappTemplateDeployments,
   releaseCanonicalConversation,
   replyCanonicalConversation,
   resolveCanonicalConversation,
-  retryCanonicalDeliveryAction,
   enqueuePremiumJourneyTest,
   updateNotificationEventRollout,
 } from "@/lib/unifiedMessages.functions";
@@ -384,7 +383,7 @@ function Page() {
 
       {tab === "composer" && <ComposerTab />}
       {tab === "inbox" && <CanonicalInboxTab />}
-      {tab === "deliveries" && <CanonicalDeliveriesTab />}
+      {tab === "deliveries" && <DeliveryMonitoringConsole />}
       {tab === "events" && <NotificationEventRolloutsTab />}
       {tab === "journeys" && <PremiumJourneyLabTab />}
       {tab === "push" && <AdminPushCampaigns />}
@@ -582,73 +581,6 @@ function CanonicalInboxTab() {
           </>
         )}
       </section>
-    </div>
-  );
-}
-
-function CanonicalDeliveriesTab() {
-  const queryClient = useQueryClient();
-  const listFn = useServerFn(listCanonicalDeliveries);
-  const retryFn = useServerFn(retryCanonicalDeliveryAction);
-  const deliveries = useQuery({ queryKey: ["canonical-deliveries"], queryFn: () => listFn() });
-  const retry = useMutation({
-    mutationFn: (deliveryId: string) => retryFn({ data: { deliveryId } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] }),
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
-  });
-  return (
-    <div className="editorial-panel overflow-x-auto">
-      <table className="w-full min-w-[760px] text-start text-sm">
-        <thead className="border-b border-gold/20 text-xs uppercase text-slate">
-          <tr>
-            <th className="p-4">Message</th>
-            <th className="p-4">Channel</th>
-            <th className="p-4">Status</th>
-            <th className="p-4">Attempts</th>
-            <th className="p-4">Devices</th>
-            <th className="p-4">Error</th>
-            <th className="p-4" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gold/15">
-          {(deliveries.data ?? []).map((delivery: any) => {
-            const message = Array.isArray(delivery.message)
-              ? delivery.message[0]
-              : delivery.message;
-            const retryable = ["failed", "dead_letter", "suppressed"].includes(delivery.status);
-            return (
-              <tr key={delivery.id}>
-                <td className="p-4 text-navy">
-                  {message?.subject ?? message?.event_type ?? delivery.message_id}
-                </td>
-                <td className="p-4 text-slate">{delivery.channel}</td>
-                <td className="p-4">
-                  <span className="rounded-full bg-sand px-2 py-1 text-xs">{delivery.status}</span>
-                </td>
-                <td className="p-4 text-slate">{delivery.attempt_count}</td>
-                <td className="p-4 text-slate">
-                  {delivery.channel === "push"
-                    ? `${(delivery.targets ?? []).filter((target: any) => ["sent", "device_received"].includes(target.status)).length}/${(delivery.targets ?? []).length}`
-                    : "—"}
-                </td>
-                <td className="max-w-xs truncate p-4 text-slate">
-                  {delivery.error_code ?? delivery.error_message ?? "—"}
-                </td>
-                <td className="p-4 text-end">
-                  {retryable && (
-                    <button
-                      className="btn-outline px-3 py-1.5 text-xs"
-                      onClick={() => retry.mutate(delivery.id)}
-                    >
-                      Retry
-                    </button>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </div>
   );
 }
