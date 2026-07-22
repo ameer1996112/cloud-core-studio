@@ -20,7 +20,10 @@ payment events remain explicitly out of scope.
    row and never fans out to another member. Staff tests bypass quiet hours and the customer
    promotional frequency budget, but still respect channel kill switches, contact data, consent,
    APNs installation verification, and WhatsApp template approval.
-3. Open **Deliveries** and find the event. Expected channel results are:
+3. Open **Deliveries**, search by the selected member's name, phone, email, or event, and open
+   **Investigate** for the matching row. Confirm the member identity, channel, provider timeline,
+   attempt count, and plain-language diagnosis. The view refreshes every 30 seconds. Expected channel
+   results are:
    - `in_app`: `delivered`; the item appears once in the member notification center when the event
      is member-visible.
    - `push`: `accepted`/`sent`, then a pop-up on the verified iPhone. Opening or using an action

@@ -2293,7 +2293,7 @@ export async function retryCanonicalDelivery(deliveryId: string, now = new Date(
   const db = supabaseAdmin as any;
   const delivery = await db
     .from("message_deliveries")
-    .select("id,status,expires_at")
+    .select("id,status,failure_class,expires_at")
     .eq("id", deliveryId)
     .single();
   if (delivery.error) throw delivery.error;
@@ -2302,7 +2302,10 @@ export async function retryCanonicalDelivery(deliveryId: string, now = new Date(
   if (delivery.data.expires_at && new Date(delivery.data.expires_at) <= now) {
     throw new Error("delivery_expired");
   }
-  if (!["failed", "dead_letter", "suppressed"].includes(delivery.data.status)) {
+  if (!["failed", "dead_letter"].includes(delivery.data.status)) {
+    throw new Error("delivery_not_retryable");
+  }
+  if (delivery.data.failure_class && delivery.data.failure_class !== "transient") {
     throw new Error("delivery_not_retryable");
   }
   const result = await db
@@ -2317,7 +2320,13 @@ export async function retryCanonicalDelivery(deliveryId: string, now = new Date(
       lease_expires_at: null,
       updated_at: now.toISOString(),
     })
-    .eq("id", deliveryId);
+    .eq("id", deliveryId)
+    .in("status", ["failed", "dead_letter"])
+    .or("failure_class.is.null,failure_class.eq.transient")
+    .or(`expires_at.is.null,expires_at.gt.${now.toISOString()}`)
+    .select("id")
+    .maybeSingle();
   if (result.error) throw result.error;
+  if (!result.data) throw new Error("delivery_not_retryable");
   return { ok: true };
 }
