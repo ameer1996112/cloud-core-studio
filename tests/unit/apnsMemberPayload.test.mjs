@@ -37,6 +37,7 @@ describe("APNs member payload", () => {
     expect(
       buildApnsAlertBody({
         title: "Class time changed",
+        subtitle: "Core Pilates · Today at 19:00",
         body: "Your class now starts at 19:00.",
         url: "/member/schedule?class=11111111-1111-4111-8111-111111111111",
         sound: "cloud_core_important.caf",
@@ -54,6 +55,7 @@ describe("APNs member payload", () => {
       aps: {
         alert: {
           title: "Class time changed",
+          subtitle: "Core Pilates · Today at 19:00",
           body: "Your class now starts at 19:00.",
         },
         sound: "cloud_core_important.caf",

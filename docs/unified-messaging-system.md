@@ -120,8 +120,14 @@ whose target status cannot be persisted becomes `delivery_unknown` and is never 
 retried.
 
 APNs payloads support category actions, thread/collapse IDs, expiry, badge, Time Sensitive
-interruption, relevance, privacy-safe deep links, and optional rich-media metadata. Native action
-categories are registered in `ios/App/App/AppDelegate.swift` with Hebrew/Arabic/English labels.
+interruption, relevance, privacy-safe deep links, and optional rich-media metadata. Push-capable
+canonical events are rendered through `src/lib/premiumPush.ts`, which produces a short localized
+title, contextual subtitle, and one caring lock-screen sentence instead of projecting the longer
+email/WhatsApp body. The renderer covers every push-capable event in Hebrew, Arabic, and English,
+removes line breaks, applies lock-screen length limits, never uses the member name, and never shows
+payment amounts, receipt URLs, or message bodies. Full content remains available in the authenticated
+in-app notification. Native action categories are registered in `ios/App/App/AppDelegate.swift` with
+Hebrew/Arabic/English labels.
 The server uses `cloud_core_important.caf` for brand-important alerts; before the native rollout,
 add the approved licensed sound asset to the app target or iOS will use its normal fallback sound.
 Rich recommendation images require the native Notification Service Extension before those draft

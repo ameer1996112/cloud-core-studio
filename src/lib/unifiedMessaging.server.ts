@@ -41,6 +41,7 @@ import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { renderTransactionalEmail } from "@/lib/transactionalEmail";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
+import { buildPremiumPushPayload } from "@/lib/premiumPush";
 import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
@@ -1051,9 +1052,13 @@ async function sendPush(
   try {
     return await sendApnsDelivery(
       pendingTokens,
-      {
-        title: message.subject ?? "Cloud & Core",
-        body: message.body ?? "",
+      buildPremiumPushPayload({
+        eventType: message.event_type as MessageEventType,
+        language: language(message.language) ?? "he",
+        variables:
+          message.content?.variables && typeof message.content.variables === "object"
+            ? message.content.variables
+            : {},
         notificationId: message.id,
         url: message.deep_link ?? message.content?.action_url,
         ...(badge == null ? {} : { badge }),
@@ -1073,7 +1078,7 @@ async function sendPush(
         ...(typeof message.content?.image_url === "string"
           ? { imageUrl: message.content.image_url, mutableContent: true }
           : {}),
-      },
+      }),
       {
         send: sendApnsAlert,
         deactivate: async (tokenId) => {

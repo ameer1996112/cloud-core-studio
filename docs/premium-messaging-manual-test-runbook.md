@@ -25,7 +25,10 @@ payment events remain explicitly out of scope.
      is member-visible.
    - `push`: `accepted`/`sent`, then a pop-up on the verified iPhone. Opening or using an action
      records `opened`/`actioned`; the app receipt can advance the device target to
-     `device_received`.
+     `device_received`. The lock screen should show a short localized title, contextual subtitle,
+     and one sentence with no member name, multiline template text, payment amount, URL, or private
+     message preview. Class and waitlist pushes should include the real class facts; waitlist offers
+     should include the exact claim deadline.
    - `email`: `sent`, then `delivered` after the signed Resend webhook. The same delivery
      idempotency key is retained on retries. Verify the branded HTML, plain-text alternative, correct
      RTL/LTR direction, event facts, CTA destination, From identity, and Reply-To.
@@ -52,6 +55,24 @@ payment events remain explicitly out of scope.
 - WhatsApp: all needed `he`, `ar`, or `en_US` variants are approved and synchronized in
   `whatsapp_template_deployments`; `MESSAGING_WHATSAPP_ENABLED=true` only while testing WhatsApp.
 - Keep the legacy OpenWA, legacy official WhatsApp, and legacy APNs delivery gates off.
+
+## Premium push visual acceptance
+
+Before promoting any event from allowlist to live, verify these representative pushes on a locked
+iPhone in Hebrew, Arabic, and English:
+
+- booking confirmation: warm but concise, with class/date/time in the subtitle and instructor in the
+  body when available;
+- planning reminder: quiet, helpful, and free of urgency language;
+- class cancellation/time/location change: immediately understandable before opening the app;
+- waitlist offer: Time Sensitive only until the real offer expiry and displays that exact deadline;
+- payment/subscription failure: discreet account wording with no package, amount, or payment detail;
+- growth/retention: silent, pressure-free, and frequency-capped.
+
+Tap every representative push and confirm it opens only an authenticated in-app destination. Confirm
+that an expired waitlist action cannot be completed and that a newer class update collapses the older
+one. iOS owns lock-screen typography and layout; premium acceptance is based on copy, relevance,
+privacy, timing, sound restraint, and correct native behavior.
 
 ## Event-by-event manual tests
 
