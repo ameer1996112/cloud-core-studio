@@ -45,7 +45,7 @@ export type DeliveryMonitorTarget = {
   updated_at: string;
 };
 
-export type DeliveryTrafficKind = "live" | "test" | "system";
+export type DeliveryTrafficKind = "live" | "test" | "system" | "historical";
 
 export type DeliveryMonitorRow = {
   id: string;
@@ -120,8 +120,11 @@ export function classifyDeliveryTraffic(input: {
   audience?: string | null;
   staffTest?: unknown;
   aggregateType?: string | null;
+  templateVersion?: string | null;
+  legacySourceTable?: string | null;
 }): DeliveryTrafficKind {
   if (input.staffTest === true || input.aggregateType === "notification_staff_test") return "test";
+  if (input.templateVersion === "legacy" || input.legacySourceTable) return "historical";
   if (input.audience === "admin" || input.eventType === "delivery_failure") return "system";
   return "live";
 }
@@ -179,6 +182,9 @@ export function summarizeDeliveriesByTraffic(
     test: summarizeDeliveries(deliveries.filter((delivery) => delivery.traffic_kind === "test")),
     system: summarizeDeliveries(
       deliveries.filter((delivery) => delivery.traffic_kind === "system"),
+    ),
+    historical: summarizeDeliveries(
+      deliveries.filter((delivery) => delivery.traffic_kind === "historical"),
     ),
     all: summarizeDeliveries(deliveries),
   };

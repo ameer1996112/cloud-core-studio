@@ -34,6 +34,8 @@ type RawDeliveryTrafficSource = {
   member_id: string | null;
   event_type: string | null;
   audience: string | null;
+  template_version: string | null;
+  legacy_source_table: string | null;
   content: { staff_test?: unknown } | null;
   outbox: { aggregate_type: string | null } | Array<{ aggregate_type: string | null }> | null;
 };
@@ -61,6 +63,8 @@ function deliveryTrafficKind(message: RawDeliveryTrafficSource | null) {
     audience: message?.audience,
     staffTest: message?.content?.staff_test,
     aggregateType: outbox?.aggregate_type,
+    templateVersion: message?.template_version,
+    legacySourceTable: message?.legacy_source_table,
   });
 }
 
@@ -120,14 +124,14 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
       db
         .from("message_deliveries")
         .select(
-          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,created_at,audience,content,outbox:message_outbox(aggregate_type),member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
+          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,legacy_source_table,created_at,audience,content,outbox:message_outbox(aggregate_type),member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
         )
         .order("created_at", { ascending: false })
         .limit(500),
       db
         .from("message_deliveries")
         .select(
-          "status,message:messages(member_id,event_type,audience,content,outbox:message_outbox(aggregate_type))",
+          "status,message:messages(member_id,event_type,audience,template_version,legacy_source_table,content,outbox:message_outbox(aggregate_type))",
         )
         .gte("created_at", since)
         .limit(5_000),
@@ -142,6 +146,7 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
         audience: _audience,
         content: _content,
         outbox: _outbox,
+        legacy_source_table: _legacySourceTable,
         ...safeMessage
       } = message ?? ({} as RawDeliveryMonitorMessage);
       return {

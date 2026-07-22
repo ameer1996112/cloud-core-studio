@@ -114,11 +114,15 @@ describe("delivery monitoring", () => {
     ).toHaveLength(1);
   });
 
-  test("classifies live, staff-test and admin-system traffic without exposing message content", () => {
+  test("classifies live, staff-test, system and historical traffic without exposing message content", () => {
     expect(classifyDeliveryTraffic({ aggregateType: "notification_staff_test" })).toBe("test");
     expect(classifyDeliveryTraffic({ staffTest: true, audience: "admin" })).toBe("test");
     expect(classifyDeliveryTraffic({ audience: "admin" })).toBe("system");
     expect(classifyDeliveryTraffic({ eventType: "delivery_failure" })).toBe("system");
+    expect(classifyDeliveryTraffic({ templateVersion: "legacy" })).toBe("historical");
+    expect(classifyDeliveryTraffic({ legacySourceTable: "member_notifications" })).toBe(
+      "historical",
+    );
     expect(classifyDeliveryTraffic({ eventType: "booking_confirmed" })).toBe("live");
   });
 
@@ -127,13 +131,15 @@ describe("delivery monitoring", () => {
       delivery({ status: "delivered", traffic_kind: "live" }),
       delivery({ status: "dead_letter", traffic_kind: "test" }),
       delivery({ status: "delivered", traffic_kind: "system" }),
+      delivery({ status: "queued", traffic_kind: "historical" }),
     ];
     const summaries = summarizeDeliveriesByTraffic(rows);
     expect(summaries.live.total).toBe(1);
     expect(summaries.live.needsAttention).toBe(0);
     expect(summaries.test.needsAttention).toBe(1);
     expect(summaries.system.total).toBe(1);
-    expect(summaries.all.total).toBe(3);
+    expect(summaries.historical.total).toBe(1);
+    expect(summaries.all.total).toBe(4);
     expect(
       filterDeliveryRows(rows, {
         query: "",
