@@ -21,3 +21,12 @@ export function applyStaffTestVariables(
   }
   return variables;
 }
+
+export function isStaffTestMessageContent(content: unknown): boolean {
+  return (
+    !!content &&
+    typeof content === "object" &&
+    !Array.isArray(content) &&
+    (content as Record<string, unknown>).staff_test === true
+  );
+}

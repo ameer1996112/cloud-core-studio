@@ -3,7 +3,10 @@ import {
   buildPremiumJourneyPreviews,
   buildPremiumJourneyTestOutbox,
 } from "../../src/lib/premiumJourneyLab.ts";
-import { applyStaffTestVariables } from "../../src/lib/messagingStaffTest.ts";
+import {
+  applyStaffTestVariables,
+  isStaffTestMessageContent,
+} from "../../src/lib/messagingStaffTest.ts";
 
 describe("premium notification Journey Lab", () => {
   test("renders every event in every supported language without unresolved variables", () => {
@@ -77,5 +80,12 @@ describe("premium notification Journey Lab", () => {
     expect(variables.member_name).toBe("Real member");
     expect(variables.spots_available).toBe("3");
     expect(variables.unsafe_object).toBeUndefined();
+  });
+
+  test("identifies only materialized Journey Lab messages as safe to bypass domain guards", () => {
+    expect(isStaffTestMessageContent({ staff_test: true })).toBe(true);
+    expect(isStaffTestMessageContent({ staff_test: false })).toBe(false);
+    expect(isStaffTestMessageContent({})).toBe(false);
+    expect(isStaffTestMessageContent(null)).toBe(false);
   });
 });

@@ -20,7 +20,7 @@ import type {
   MessageLanguage,
 } from "@/lib/messaging.types";
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
-import { applyStaffTestVariables } from "@/lib/messagingStaffTest";
+import { applyStaffTestVariables, isStaffTestMessageContent } from "@/lib/messagingStaffTest";
 import {
   computeDeliveryRetry,
   isEssentialMessageEvent,
@@ -568,6 +568,7 @@ async function materializeOutbox(
           content: {
             variables: context.variables,
             action_url: deepLink,
+            staff_test: outbox.payload.staff_test === true,
           },
           notification_family: plan.message.notificationFamily,
           notification_tier: plan.message.notificationTier,
@@ -1269,9 +1270,12 @@ async function processDelivery(
     if (expired.error) throw expired.error;
     return "expired";
   }
-  if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
-  if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt)) return "cancelled";
-  if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
+  if (!isStaffTestMessageContent(message.content)) {
+    if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
+    if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt))
+      return "cancelled";
+    if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
+  }
   if (delivery.channel === "in_app") {
     const delivered = await db
       .from("message_deliveries")
