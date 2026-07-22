@@ -40,6 +40,7 @@ import {
   isDeliveryRetryCandidate,
   type DeliveryMonitorFilters,
   type DeliveryMonitorRow,
+  type DeliveryTrafficKind,
 } from "@/lib/deliveryMonitoring";
 import type { DeliveryStatus, MessageChannel } from "@/lib/messaging.types";
 import { useI18n, type Lang } from "@/lib/i18n";
@@ -49,6 +50,11 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     eyebrow: "Live operations",
     title: "Delivery observatory",
     description: "See exactly what each member was sent, across every channel, in one place.",
+    trafficScope: "Activity source",
+    trafficLive: "Live customers",
+    trafficTest: "Staff tests",
+    trafficSystem: "System alerts",
+    trafficAll: "All activity",
     live: "Live · refreshes every 30 seconds",
     updated: "Updated",
     refresh: "Refresh now",
@@ -136,6 +142,11 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     eyebrow: "תפעול בזמן אמת",
     title: "בקרת מסירות",
     description: "תמונה ברורה של כל הודעה שנשלחה לכל מתאמן או מתאמנת, בכל הערוצים.",
+    trafficScope: "מקור הפעילות",
+    trafficLive: "לקוחות אמיתיים",
+    trafficTest: "בדיקות צוות",
+    trafficSystem: "התראות מערכת",
+    trafficAll: "כל הפעילות",
     live: "חי · מתעדכן כל 30 שניות",
     updated: "עודכן",
     refresh: "רענון עכשיו",
@@ -218,6 +229,11 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     eyebrow: "تشغيل مباشر",
     title: "مراقبة التسليم",
     description: "صورة واضحة لكل رسالة أُرسلت لكل عضو عبر جميع القنوات.",
+    trafficScope: "مصدر النشاط",
+    trafficLive: "عملاء فعليون",
+    trafficTest: "اختبارات الطاقم",
+    trafficSystem: "تنبيهات النظام",
+    trafficAll: "كل النشاط",
     live: "مباشر · يتحدّث كل 30 ثانية",
     updated: "آخر تحديث",
     refresh: "تحديث الآن",
@@ -321,6 +337,8 @@ const CHANNEL_OPTIONS: Array<"all" | MessageChannel> = [
   "whatsapp",
   "email",
 ];
+
+const TRAFFIC_OPTIONS: Array<DeliveryTrafficKind | "all"> = ["live", "test", "system", "all"];
 
 function statusLabel(copy: Record<string, string>, status: DeliveryStatus) {
   return copy[`status_${status}`] ?? status.replaceAll("_", " ");
@@ -529,6 +547,7 @@ export function DeliveryMonitoringConsole() {
   const queryClient = useQueryClient();
   const listFn = useServerFn(listCanonicalDeliveries);
   const retryFn = useServerFn(retryCanonicalDeliveryAction);
+  const [traffic, setTraffic] = useState<DeliveryMonitorFilters["traffic"]>("live");
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState<DeliveryMonitorFilters["channel"]>("all");
   const [status, setStatus] = useState<DeliveryMonitorFilters["status"]>("all");
@@ -557,23 +576,30 @@ export function DeliveryMonitoringConsole() {
     [deliveries.data?.deliveries],
   );
   const filtered = useMemo(() => {
-    const values = filterDeliveryRows(allDeliveries, { query, channel, status, memberId });
+    const values = filterDeliveryRows(allDeliveries, {
+      query,
+      traffic,
+      channel,
+      status,
+      memberId,
+    });
     return [...values].sort((a, b) => {
       const priority =
         Number(isDeliveryAttention(b.status)) - Number(isDeliveryAttention(a.status));
       return priority || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
-  }, [allDeliveries, query, channel, status, memberId]);
+  }, [allDeliveries, query, traffic, channel, status, memberId]);
   const visible = filtered.slice(0, visibleCount);
   const selected = allDeliveries.find((delivery) => delivery.id === selectedId) ?? null;
   const focusedMember = memberId
     ? allDeliveries.find((delivery) => delivery.message?.member?.id === memberId)?.message?.member
     : null;
 
-  useEffect(() => setVisibleCount(50), [query, channel, status, memberId]);
+  useEffect(() => setVisibleCount(50), [query, traffic, channel, status, memberId]);
 
   const clearFilters = () => {
     setQuery("");
+    setTraffic("live");
     setChannel("all");
     setStatus("all");
     setMemberId(null);
@@ -583,7 +609,7 @@ export function DeliveryMonitoringConsole() {
     setMemberId(delivery.message.member.id);
     setSelectedId(null);
   };
-  const summary = deliveries.data?.summary;
+  const summary = deliveries.data?.summaries?.[traffic] ?? deliveries.data?.summary;
 
   return (
     <div className="space-y-5">
@@ -610,6 +636,39 @@ export function DeliveryMonitoringConsole() {
               />
               {copy.refresh}
             </button>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate">
+            {copy.trafficScope}
+          </p>
+          <div
+            className="grid grid-cols-2 gap-1 rounded-2xl border border-gold/20 bg-white/65 p-1 sm:inline-grid sm:grid-cols-4"
+            role="group"
+            aria-label={copy.trafficScope}
+          >
+            {TRAFFIC_OPTIONS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTraffic(value)}
+                aria-pressed={traffic === value}
+                className={`min-h-11 rounded-xl px-4 text-xs font-semibold transition sm:min-w-28 ${
+                  traffic === value
+                    ? "bg-navy text-ivory shadow-sm"
+                    : "text-slate hover:bg-sand/60 hover:text-navy"
+                }`}
+              >
+                {value === "live"
+                  ? copy.trafficLive
+                  : value === "test"
+                    ? copy.trafficTest
+                    : value === "system"
+                      ? copy.trafficSystem
+                      : copy.trafficAll}
+              </button>
+            ))}
           </div>
         </div>
 

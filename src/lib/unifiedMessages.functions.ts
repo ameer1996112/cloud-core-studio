@@ -20,8 +20,9 @@ import {
 } from "@/lib/premiumJourneyLab";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import {
+  classifyDeliveryTraffic,
   firstRelation,
-  summarizeDeliveries,
+  summarizeDeliveriesByTraffic,
   type DeliveryMonitorAttempt,
   type DeliveryMonitorMember,
   type DeliveryMonitorMessage,
@@ -29,9 +30,18 @@ import {
   type DeliveryMonitorTarget,
 } from "@/lib/deliveryMonitoring";
 
-type RawDeliveryMonitorMessage = Omit<DeliveryMonitorMessage, "member"> & {
-  member: DeliveryMonitorMember | DeliveryMonitorMember[] | null;
+type RawDeliveryTrafficSource = {
+  member_id: string | null;
+  event_type: string | null;
+  audience: string | null;
+  content: { staff_test?: unknown } | null;
+  outbox: { aggregate_type: string | null } | Array<{ aggregate_type: string | null }> | null;
 };
+
+type RawDeliveryMonitorMessage = Omit<DeliveryMonitorMessage, "member"> &
+  RawDeliveryTrafficSource & {
+    member: DeliveryMonitorMember | DeliveryMonitorMember[] | null;
+  };
 
 type RawDeliveryMonitorRow = Omit<DeliveryMonitorRow, "message" | "attempts" | "targets"> & {
   message: RawDeliveryMonitorMessage | RawDeliveryMonitorMessage[] | null;
@@ -41,11 +51,18 @@ type RawDeliveryMonitorRow = Omit<DeliveryMonitorRow, "message" | "attempts" | "
 
 type RawRecentDelivery = {
   status: DeliveryStatus;
-  message:
-    | Pick<DeliveryMonitorMessage, "member_id">
-    | Array<Pick<DeliveryMonitorMessage, "member_id">>
-    | null;
+  message: RawDeliveryTrafficSource | RawDeliveryTrafficSource[] | null;
 };
+
+function deliveryTrafficKind(message: RawDeliveryTrafficSource | null) {
+  const outbox = firstRelation(message?.outbox);
+  return classifyDeliveryTraffic({
+    eventType: message?.event_type,
+    audience: message?.audience,
+    staffTest: message?.content?.staff_test,
+    aggregateType: outbox?.aggregate_type,
+  });
+}
 
 const messageEventSchema = z.enum(
   Object.keys(NOTIFICATION_EVENT_CATALOG) as [MessageEventType, ...MessageEventType[]],
@@ -103,13 +120,15 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
       db
         .from("message_deliveries")
         .select(
-          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,created_at,member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
+          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,created_at,audience,content,outbox:message_outbox(aggregate_type),member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
         )
         .order("created_at", { ascending: false })
         .limit(500),
       db
         .from("message_deliveries")
-        .select("status,message:messages(member_id)")
+        .select(
+          "status,message:messages(member_id,event_type,audience,content,outbox:message_outbox(aggregate_type))",
+        )
         .gte("created_at", since)
         .limit(5_000),
     ]);
@@ -118,9 +137,17 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
 
     const deliveries = ((result.data ?? []) as RawDeliveryMonitorRow[]).map((row) => {
       const message = firstRelation(row.message);
+      const trafficKind = deliveryTrafficKind(message);
+      const {
+        audience: _audience,
+        content: _content,
+        outbox: _outbox,
+        ...safeMessage
+      } = message ?? ({} as RawDeliveryMonitorMessage);
       return {
         ...row,
-        message: message ? { ...message, member: firstRelation(message.member) } : null,
+        traffic_kind: trafficKind,
+        message: message ? { ...safeMessage, member: firstRelation(message.member) } : null,
         attempts: [...(row.attempts ?? [])].sort(
           (a: { attempt_number: number }, b: { attempt_number: number }) =>
             a.attempt_number - b.attempt_number,
@@ -130,12 +157,18 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
     });
     const recent = ((recentResult.data ?? []) as RawRecentDelivery[]).map((row) => {
       const message = firstRelation(row.message);
-      return { status: row.status, message } as Pick<DeliveryMonitorRow, "status" | "message">;
+      return {
+        status: row.status,
+        traffic_kind: deliveryTrafficKind(message),
+        message: message ? { member_id: message.member_id } : null,
+      } as Pick<DeliveryMonitorRow, "status" | "message" | "traffic_kind">;
     });
+    const summaries = summarizeDeliveriesByTraffic(recent);
 
     return {
       deliveries,
-      summary: summarizeDeliveries(recent),
+      summary: summaries.live,
+      summaries,
       generatedAt: new Date().toISOString(),
       windowHours: 24,
     };

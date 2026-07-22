@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
+  classifyDeliveryTraffic,
   filterDeliveryRows,
   isDeliveryRetryCandidate,
   summarizeDeliveries,
+  summarizeDeliveriesByTraffic,
 } from "../../src/lib/deliveryMonitoring.ts";
 
 function delivery(overrides = {}) {
@@ -27,6 +29,7 @@ function delivery(overrides = {}) {
     failed_at: null,
     created_at: "2026-07-22T09:00:00.000Z",
     updated_at: "2026-07-22T09:00:01.000Z",
+    traffic_kind: "live",
     attempts: [],
     targets: [],
     message: {
@@ -75,7 +78,13 @@ describe("delivery monitoring", () => {
     const rows = [delivery(), delivery({ id: "other", message: null })];
     for (const query of ["noa", "0001", "example.com", "confirmed", "booking_"]) {
       expect(
-        filterDeliveryRows(rows, { query, channel: "all", status: "all", memberId: null }),
+        filterDeliveryRows(rows, {
+          query,
+          traffic: "all",
+          channel: "all",
+          status: "all",
+          memberId: null,
+        }),
       ).toHaveLength(1);
     }
   });
@@ -97,9 +106,41 @@ describe("delivery monitoring", () => {
     expect(
       filterDeliveryRows(rows, {
         query: "",
+        traffic: "all",
         channel: "email",
         status: "attention",
         memberId: "member-1",
+      }),
+    ).toHaveLength(1);
+  });
+
+  test("classifies live, staff-test and admin-system traffic without exposing message content", () => {
+    expect(classifyDeliveryTraffic({ aggregateType: "notification_staff_test" })).toBe("test");
+    expect(classifyDeliveryTraffic({ staffTest: true, audience: "admin" })).toBe("test");
+    expect(classifyDeliveryTraffic({ audience: "admin" })).toBe("system");
+    expect(classifyDeliveryTraffic({ eventType: "delivery_failure" })).toBe("system");
+    expect(classifyDeliveryTraffic({ eventType: "booking_confirmed" })).toBe("live");
+  });
+
+  test("keeps test and system activity out of live KPIs and live filtering", () => {
+    const rows = [
+      delivery({ status: "delivered", traffic_kind: "live" }),
+      delivery({ status: "dead_letter", traffic_kind: "test" }),
+      delivery({ status: "delivered", traffic_kind: "system" }),
+    ];
+    const summaries = summarizeDeliveriesByTraffic(rows);
+    expect(summaries.live.total).toBe(1);
+    expect(summaries.live.needsAttention).toBe(0);
+    expect(summaries.test.needsAttention).toBe(1);
+    expect(summaries.system.total).toBe(1);
+    expect(summaries.all.total).toBe(3);
+    expect(
+      filterDeliveryRows(rows, {
+        query: "",
+        traffic: "live",
+        channel: "all",
+        status: "all",
+        memberId: null,
       }),
     ).toHaveLength(1);
   });
