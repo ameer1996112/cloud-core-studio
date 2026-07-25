@@ -37,6 +37,14 @@ Implemented shadow dispatch evaluation:
 all eligible actions, resolves approved templates only in the recipient's exact locale, and
 records deterministic evidence atomically. It intentionally creates no delivery side effects.
 
+Implemented guarded test/live materialization:
+`src/lib/conciergeMaterialization.ts`, `20260726190000_concierge_live_intents.sql`,
+`20260726200000_concierge_atomic_delivery.sql`, and
+`20260726210000_concierge_activation_guard.sql`. The transaction reserves capacity before
+creating channel snapshots and canonical deliveries. Live promotion is versioned and audited,
+requires exact typed confirmation plus complete approved locale coverage, and remains subject
+to the deployment-level live gate.
+
 ## Operational journeys
 
 Booking confirmation/cancellation, class change, waitlist, payment outcome, and receipt will
@@ -61,5 +69,5 @@ policy code but never reserve capacity or create deliveries.
 
 Use focused Bun unit tests throughout, then `bun run lint`, `bun test tests/unit
 tests/integration`, and `bun run build`. Run database concurrency/RLS tests against a disposable
-local Supabase database before rollout. No production migration or provider transmission is
-part of repository implementation.
+local Supabase database before rollout. Production activation follows `ROLLOUT.md`; application
+deployment and schema installation do not themselves activate a customer journey.

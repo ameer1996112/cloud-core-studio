@@ -131,7 +131,8 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
 
 const modeSchema = z.object({
   automationId: z.string().uuid(),
-  mode: z.enum(["paused", "shadow", "test_only"]),
+  mode: z.enum(["paused", "shadow", "test_only", "live"]),
+  confirmation: z.string().optional(),
 });
 
 export const setConciergeAutomationMode = createServerFn({ method: "POST" })
@@ -139,22 +140,14 @@ export const setConciergeAutomationMode = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => modeSchema.parse(input))
   .handler(async ({ data, context }) => {
     const db = await adminDb(context.userId);
-    const result = await db
-      .from("automation_config_versions")
-      .update({ mode: data.mode })
-      .eq("id", data.automationId)
-      .select("id,mode")
-      .single();
-    if (result.error) throw result.error;
-    const audit = await db.from("admin_activity_log").insert({
-      actor_id: context.userId,
-      action: "concierge.automation_mode_changed",
-      entity_type: "automation_config_version",
-      entity_id: data.automationId,
-      metadata: { mode: data.mode },
+    const result = await db.rpc("promote_concierge_automation", {
+      p_current_config_id: data.automationId,
+      p_actor_id: context.userId,
+      p_mode: data.mode,
+      p_confirmation: data.confirmation ?? null,
     });
-    if (audit.error) throw audit.error;
-    return result.data;
+    if (result.error) throw result.error;
+    return Array.isArray(result.data) ? result.data[0] : result.data;
   });
 
 const channelSchema = z.object({

@@ -8,19 +8,33 @@ const limit = Math.max(
 if (!baseUrl) throw new Error("missing_env:CLOUD_CORE_BASE_URL");
 if (!token) throw new Error("missing_env:NOTIFICATION_AUTOMATION_TOKEN");
 
-const response = await fetch(`${baseUrl}/api/internal/notifications/lifecycle-sweep`, {
-  method: "POST",
-  headers: {
-    authorization: `Bearer ${token}`,
-    "content-type": "application/json",
-  },
-  body: JSON.stringify({ limitPerEvent: limit }),
-  signal: AbortSignal.timeout(4 * 60_000),
-});
-
-const body = await response.text();
-if (!response.ok) {
-  throw new Error(`notification_sweep_failed:${response.status}:${body.slice(0, 500)}`);
+async function invoke(path, payload) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(4 * 60_000),
+  });
+  const body = await response.text();
+  if (!response.ok) {
+    throw new Error(`notification_sweep_failed:${path}:${response.status}:${body.slice(0, 500)}`);
+  }
+  return JSON.parse(body);
 }
 
-console.log(body);
+const results = {
+  conciergeOrchestration: await invoke("/api/internal/concierge/run", { limit }),
+  conciergeDispatch: await invoke("/api/internal/concierge/dispatch", { limit }),
+  canonicalDelivery: await invoke("/api/internal/messages/sweep", { limit }),
+};
+
+if (process.env.LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED?.trim().toLowerCase() === "true") {
+  results.legacyLifecycle = await invoke("/api/internal/notifications/lifecycle-sweep", {
+    limitPerEvent: limit,
+  });
+}
+
+console.log(JSON.stringify(results));

@@ -33,9 +33,15 @@ curl -X POST \
   "$APP_URL/api/internal/concierge/dispatch"
 ```
 
-The dispatch endpoint is also shadow-only. Confirm its response reports `mode: "shadow"` and
-inspect `concierge_decisions` plus admin attention before changing any automation configuration.
-It does not reserve frequency capacity or create message deliveries.
+The dispatch endpoint follows each journey's current mode. Shadow creates evidence only.
+Test-only creates canonical deliveries only for `CONCIERGE_TEST_RECIPIENT_IDS`. Live requires a
+versioned, approved configuration and `CONCIERGE_LIVE_DELIVERY_ENABLED=true`. Inspect decisions,
+reservations, snapshots, deliveries, and attention items after every mode change.
+
+The scheduled job runs in this order: domain orchestration, recipient dispatch, then canonical
+provider delivery. Keep the Cloud Scheduler job paused until migrations, templates, allowlists,
+and runtime flags have been checked. A deployed application with paused/shadow journeys and the
+live gate disabled cannot generate new external Concierge deliveries.
 
 For ambiguous WhatsApp, disable that delivery, reconcile using the provider ID/conversation,
 and resolve manually. For duplicate concern, pause the journey and external channel before

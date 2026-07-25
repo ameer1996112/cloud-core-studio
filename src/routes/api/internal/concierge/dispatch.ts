@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   normalizeConciergeDispatchLimit,
-  runConciergeShadowDispatch,
+  runConciergeDispatch,
 } from "@/lib/conciergeDispatch.server";
 import {
   jsonResponse,
@@ -31,10 +31,10 @@ export const Route = createFileRoute("/api/internal/concierge/dispatch")({
         if (!parsed.success) {
           return jsonResponse({ ok: false, reason: "invalid_request_body" }, 400);
         }
-        const result = await runConciergeShadowDispatch({
+        const result = await runConciergeDispatch({
           limit: normalizeConciergeDispatchLimit(parsed.data.limit),
         });
-        return jsonResponse({ ok: true, mode: "shadow", ...result });
+        return jsonResponse({ ok: true, ...result });
       },
     },
   },
