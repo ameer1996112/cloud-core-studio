@@ -30,6 +30,13 @@ intentionally gated until state reload, template resolution, and reservation are
 transaction. Live and allowlisted test-only events are postponed rather than consumed until
 that path exists.
 
+Implemented shadow dispatch evaluation:
+`src/lib/conciergeDispatch.ts`, `src/lib/conciergeEngagement.server.ts`,
+`src/lib/conciergeDispatch.server.ts`, `src/routes/api/internal/concierge/dispatch.ts`, and
+`20260726180000_concierge_shadow_dispatch.sql`. It reloads current engagement state, arbitrates
+all eligible actions, resolves approved templates only in the recipient's exact locale, and
+records deterministic evidence atomically. It intentionally creates no delivery side effects.
+
 ## Operational journeys
 
 Booking confirmation/cancellation, class change, waitlist, payment outcome, and receipt will

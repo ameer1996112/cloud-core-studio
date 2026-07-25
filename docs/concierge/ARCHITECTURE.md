@@ -41,3 +41,9 @@ event, resolves the latest automation version, and then:
 Claim ownership, journey/intent/decision writes, and outbox completion are checked and committed
 by PostgreSQL functions. Retryable failures use bounded backoff. Permanent or exhausted failures
 create an admin-attention item.
+
+`POST /api/internal/concierge/dispatch` is the dispatch-time shadow evaluator. It reloads the
+recipient, consent, exact-locale approved templates, channel controls, current intent evidence,
+recent contacts, and push-token coverage before running recipient-level arbitration. The
+database records one immutable, deterministic shadow decision and any missing-locale attention
+item atomically. This path creates no snapshot, reservation, delivery, or provider call.
