@@ -107,6 +107,13 @@ describe("member notification delivery policy", () => {
     });
   });
 
+  test("allows a recurring schedule digest even when its generic copy matches last week", () => {
+    expect(decide({ category: "schedule", duplicateWithin7Days: true })).toMatchObject({
+      sendPush: true,
+      suppressedReason: null,
+    });
+  });
+
   test("only enables sound for approved operational categories", () => {
     expect(decide({ category: "schedule" }).pushSound).toBe(false);
     expect(decide({ category: "lesson_reminder" }).pushSound).toBe(true);

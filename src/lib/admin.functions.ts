@@ -14,6 +14,7 @@ import {
   buildMemberNotificationCopy,
   normalizeMemberNotificationLanguage,
 } from "@/lib/memberNotificationCopy";
+import { getScheduleDigestIdempotencyKey } from "@/lib/notificationDelivery";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -145,18 +146,34 @@ async function enqueueWaitlistMemberPush(entry: any, expiresAt?: Date) {
   });
 }
 
-async function enqueueNewClassSchedulePushes(supabase: any, classId: string) {
+async function listAllActiveMembers(supabase: any) {
+  const pageSize = 500;
+  const members: any[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("members")
+      .select("id,preferred_language")
+      .eq("status", "active")
+      .order("id", { ascending: true })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    members.push(...(data ?? []));
+    if ((data?.length ?? 0) < pageSize) return members;
+  }
+}
+
+async function enqueueDailyScheduleOpenedPushes(supabase: any, classId: string) {
   const { enqueueMemberNotification } = await import("@/lib/memberNotificationDelivery.server");
+  const now = new Date();
   const [classResult, membersResult] = await Promise.all([
     supabase
       .from("classes")
       .select("id,title,starts_at,status,member_visible")
       .eq("id", classId)
       .maybeSingle(),
-    supabase.from("members").select("id,preferred_language").eq("status", "active").limit(500),
+    listAllActiveMembers(supabase),
   ]);
   if (classResult.error) throw classResult.error;
-  if (membersResult.error) throw membersResult.error;
   const cls = classResult.data;
   if (
     !cls ||
@@ -167,7 +184,7 @@ async function enqueueNewClassSchedulePushes(supabase: any, classId: string) {
     return;
 
   const results = await Promise.allSettled(
-    (membersResult.data ?? []).map(async (member: any) => {
+    membersResult.map(async (member: any) => {
       const copy = buildMemberNotificationCopy(
         "schedule_opened",
         normalizeMemberNotificationLanguage(member.preferred_language),
@@ -183,8 +200,8 @@ async function enqueueNewClassSchedulePushes(supabase: any, classId: string) {
         title: copy.title,
         body: copy.body,
         actionUrl: copy.actionUrl,
-        idempotencyKey: `class:${cls.id}:schedule_opened:member:${member.id}:push`,
-        relatedIds: { classId: cls.id },
+        idempotencyKey: getScheduleDigestIdempotencyKey(member.id, now),
+        now,
       });
     }),
   );
@@ -381,7 +398,7 @@ export const upsertClass = createServerFn({ method: "POST" })
       }
       if (becameVisibleSchedule) {
         try {
-          await enqueueNewClassSchedulePushes(context.supabase, data.id);
+          await enqueueDailyScheduleOpenedPushes(context.supabase, data.id);
         } catch (notificationError) {
           console.error("schedule_opened_push_prepare_failed", notificationError);
         }
@@ -397,7 +414,7 @@ export const upsertClass = createServerFn({ method: "POST" })
         .single();
       if (error) throw error;
       try {
-        await enqueueNewClassSchedulePushes(context.supabase, row.id);
+        await enqueueDailyScheduleOpenedPushes(context.supabase, row.id);
       } catch (notificationError) {
         console.error("schedule_opened_push_prepare_failed", notificationError);
       }

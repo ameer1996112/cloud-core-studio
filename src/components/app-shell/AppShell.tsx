@@ -96,10 +96,7 @@ export function AppShell({ role, children }: Props) {
       <StandardMenuIcon />
     </button>
   ) : (
-    <MemberNotificationCenter
-      inviteAfterScheduleView={pathname === "/member/schedule"}
-      viewport="mobile"
-    />
+    <MemberNotificationCenter viewport="mobile" />
   );
   const signOutControl = (
     <button
@@ -246,10 +243,7 @@ export function AppShell({ role, children }: Props) {
             <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
               {useBottomNav ? (
                 <>
-                  <MemberNotificationCenter
-                    inviteAfterScheduleView={pathname === "/member/schedule"}
-                    viewport="desktop"
-                  />
+                  <MemberNotificationCenter viewport="desktop" />
                   <BrandHeaderWordmark className="scale-[0.95]" />
                 </>
               ) : null}

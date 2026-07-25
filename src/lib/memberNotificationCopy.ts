@@ -128,21 +128,21 @@ export function buildMemberNotificationCopy(
     schedule_opened: {
       he: {
         category: "schedule",
-        title: `חדש במערכת: ${className} ✨`,
-        body: `${classTime} · המקומות פתוחים עכשיו. לחצי לשמור את המקום שלך.`,
-        actionUrl: scheduleUrl(variables),
+        title: "לוח השיעורים החדש נפתח ✨",
+        body: "השיעורים החדשים פתוחים להרשמה. לחצי לבחור את השיעור שלך ולשמור מקום.",
+        actionUrl: "/member/schedule",
       },
       ar: {
         category: "schedule",
-        title: `جديد في الجدول: ${className} ✨`,
-        body: `${classTime} · التسجيل مفتوح الآن. اضغطي لحفظ مكانك.`,
-        actionUrl: scheduleUrl(variables),
+        title: "الجدول الجديد متاح الآن ✨",
+        body: "الحصص الجديدة متاحة للحجز. اضغطي لاختيار حصتك وحفظ مكانك.",
+        actionUrl: "/member/schedule",
       },
       en: {
         category: "schedule",
-        title: `New in the schedule: ${className} ✨`,
-        body: `${classTime} · Spots are open now. Tap to save yours.`,
-        actionUrl: scheduleUrl(variables),
+        title: "The new schedule is open ✨",
+        body: "New classes are open for booking. Tap to choose yours and save a spot.",
+        actionUrl: "/member/schedule",
       },
     },
     registered_no_action: {

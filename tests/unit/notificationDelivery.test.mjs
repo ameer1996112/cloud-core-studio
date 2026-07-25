@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   computeRetrySchedule,
   getPreviousIsraelEvening,
+  getScheduleDigestIdempotencyKey,
   shouldAutoQueueOpenwaNotification,
   shouldBypassQuietHoursForOpenwaNotification,
 } from "../../src/lib/notificationDelivery.ts";
@@ -9,6 +10,15 @@ import {
 test("previous-evening reminders use a fixed local studio time", () => {
   expect(getPreviousIsraelEvening(new Date("2026-07-20T07:00:00.000Z")).toISOString()).toBe(
     "2026-07-19T17:00:00.000Z",
+  );
+});
+
+test("groups schedule notifications by the studio calendar day", () => {
+  expect(getScheduleDigestIdempotencyKey("member-1", new Date("2026-07-25T20:30:00.000Z"))).toBe(
+    "schedule:2026-07-25:member:member-1:push",
+  );
+  expect(getScheduleDigestIdempotencyKey("member-1", new Date("2026-07-25T21:30:00.000Z"))).toBe(
+    "schedule:2026-07-26:member:member-1:push",
   );
 });
 
