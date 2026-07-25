@@ -36,7 +36,7 @@ describe("member notification copy", () => {
     });
   });
 
-  test("announces a newly opened lesson with a direct schedule link", () => {
+  test("announces a newly opened schedule with one consolidated message", () => {
     expect(
       buildMemberNotificationCopy("schedule_opened", "en", {
         class_id: "class-1",
@@ -45,9 +45,9 @@ describe("member notification copy", () => {
       }),
     ).toEqual({
       category: "schedule",
-      title: "New in the schedule: Aerial Flow ✨",
-      body: "18:00 · Spots are open now. Tap to save yours.",
-      actionUrl: "/member/schedule?class=class-1",
+      title: "The new schedule is open ✨",
+      body: "New classes are open for booking. Tap to choose yours and save a spot.",
+      actionUrl: "/member/schedule",
     });
   });
 

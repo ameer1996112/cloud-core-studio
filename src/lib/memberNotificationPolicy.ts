@@ -104,7 +104,9 @@ export function decideMemberNotificationDelivery(
     return suppressed("preference_disabled", sendWhatsapp, false);
   }
   if (MARKETING_CATEGORIES.has(input.category)) {
-    if (input.duplicateWithin7Days) return suppressed("duplicate", sendWhatsapp);
+    if (input.category !== "schedule" && input.duplicateWithin7Days) {
+      return suppressed("duplicate", sendWhatsapp);
+    }
     if (input.marketingPushesToday >= 1) {
       return suppressed("daily_frequency_limit", sendWhatsapp);
     }
