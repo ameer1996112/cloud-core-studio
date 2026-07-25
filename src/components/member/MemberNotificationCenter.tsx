@@ -30,6 +30,7 @@ import {
   optimisticallyMarkAllNotificationsRead,
   safeNotificationActionUrl,
 } from "@/lib/memberNotificationsApi";
+import { shouldShowMemberPushInvite } from "@/lib/memberPushInvite";
 
 type MemberNotificationItem = {
   id: string;
@@ -234,6 +235,11 @@ const bootstrapMemberPushRegistration = createClientOnlyFn(async () => {
   return memberPush.bootstrapMemberPushRegistration();
 });
 
+const detectNativeIos = createClientOnlyFn(async () => {
+  const { Capacitor } = await import("@capacitor/core");
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+});
+
 const NOTIFICATION_CENTER_QUERY_KEY = ["member-notification-center"] as const;
 
 function NotificationFamilyIcon({ family }: { family: string | null }) {
@@ -247,11 +253,9 @@ function NotificationFamilyIcon({ family }: { family: string | null }) {
 }
 
 export function MemberNotificationCenter({
-  inviteAfterScheduleView = false,
   className = "",
   viewport,
 }: {
-  inviteAfterScheduleView?: boolean;
   className?: string;
   viewport: "mobile" | "desktop";
 }) {
@@ -271,11 +275,8 @@ export function MemberNotificationCenter({
     "all" | "classes" | "waitlist" | "payments" | "membership" | "studio"
   >("all");
   const [permissionMessage, setPermissionMessage] = useState("");
-  const [inviteDismissed, setInviteDismissed] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.localStorage.getItem("cc-member-push-invite-dismissed") === "1",
-  );
+  const [inviteDismissed, setInviteDismissed] = useState(false);
+  const [isNativePlatform, setIsNativePlatform] = useState(false);
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -283,6 +284,7 @@ export function MemberNotificationCenter({
   });
 
   useEffect(() => {
+    void detectNativeIos().then(setIsNativePlatform);
     void bootstrapMemberPushRegistration().catch((error) =>
       console.warn("member_push_bootstrap_failed", error),
     );
@@ -406,8 +408,12 @@ export function MemberNotificationCenter({
       ] as PreferenceKey[],
     },
   ];
-  const shouldInvite =
-    inviteAfterScheduleView && !query.isLoading && !data?.hasActiveDevice && !inviteDismissed;
+  const shouldInvite = shouldShowMemberPushInvite({
+    isNativePlatform,
+    isLoading: query.isLoading,
+    hasActiveDevice: Boolean(data?.hasActiveDevice),
+    dismissed: inviteDismissed,
+  });
 
   async function enablePush() {
     setPermissionMessage("");
@@ -425,7 +431,6 @@ export function MemberNotificationCenter({
   }
 
   function dismissInvite() {
-    window.localStorage.setItem("cc-member-push-invite-dismissed", "1");
     setInviteDismissed(true);
     setPermissionMessage("");
   }
