@@ -102,7 +102,7 @@ describe("concierge domain-event normalization", () => {
 });
 
 describe("automation execution safety", () => {
-  test("postpones paused and live configuration without consuming its event", () => {
+  test("postpones paused configuration without consuming its event", () => {
     expect(
       resolveAutomationExecution({
         mode: "paused",
@@ -110,13 +110,6 @@ describe("automation execution safety", () => {
         allowlistedRecipientIds: [],
       }),
     ).toEqual({ action: "postpone", reason: "journey_paused" });
-    expect(
-      resolveAutomationExecution({
-        mode: "live",
-        recipientId: "recipient-1",
-        allowlistedRecipientIds: ["recipient-1"],
-      }),
-    ).toEqual({ action: "postpone", reason: "live_delivery_runtime_not_ready" });
   });
 
   test("records shadow decisions without deliveries", () => {
@@ -129,7 +122,7 @@ describe("automation execution safety", () => {
     ).toEqual({ action: "shadow", reason: "shadow_evaluation" });
   });
 
-  test("test-only suppresses non-allowlisted recipients and preserves allowlisted work", () => {
+  test("test-only suppresses non-allowlisted recipients and materializes allowlisted work", () => {
     expect(
       resolveAutomationExecution({
         mode: "test_only",
@@ -143,7 +136,17 @@ describe("automation execution safety", () => {
         recipientId: "recipient-1",
         allowlistedRecipientIds: ["recipient-1"],
       }),
-    ).toEqual({ action: "postpone", reason: "test_delivery_runtime_not_ready" });
+    ).toEqual({ action: "test_only", reason: "recipient_allowlisted" });
+  });
+
+  test("live configuration materializes work for the dispatch-time safety gate", () => {
+    expect(
+      resolveAutomationExecution({
+        mode: "live",
+        recipientId: "recipient-1",
+        allowlistedRecipientIds: [],
+      }),
+    ).toEqual({ action: "live", reason: "live_configuration" });
   });
 });
 

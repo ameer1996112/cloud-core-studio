@@ -16,3 +16,18 @@
 
 At every stage, retain an immediate global push/email/WhatsApp kill switch. In-app remains
 available unless it is explicitly in maintenance.
+
+## Production gates
+
+- Install schema while every seeded journey is `paused` and external Concierge channels are off.
+- Deploy with `CONCIERGE_LIVE_DELIVERY_ENABLED=false` or unset.
+- Reconcile `domain_outbox`; mark any historical promotional rows `historical=true`.
+- Approve copy independently for each required template, enabled channel, and `ar`/`he`/`en`.
+- Configure `CONCIERGE_TEST_RECIPIENT_IDS` and canonical
+  `MESSAGING_RECIPIENT_ALLOWLIST`; run test-only delivery to owner/staff accounts.
+- Move one journey to shadow and inspect at least one complete operating window.
+- Live promotion requires the typed phrase `ENABLE LIVE CONCIERGE`; the database refuses it
+  without complete locale coverage.
+- Enable `CONCIERGE_LIVE_DELIVERY_ENABLED=true` only after the live configuration exists.
+- Resume the scheduler last. Verify queue age, duplicate count, suppressions, provider acceptance,
+  and delivery unknowns immediately.

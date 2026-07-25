@@ -34,8 +34,11 @@ function AutomationsPage() {
   const center = useQuery({ queryKey: ["concierge-center"], queryFn: () => getCenter() });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["concierge-center"] });
   const modeMutation = useMutation({
-    mutationFn: (input: { automationId: string; mode: "paused" | "shadow" | "test_only" }) =>
-      setMode({ data: input }),
+    mutationFn: (input: {
+      automationId: string;
+      mode: "paused" | "shadow" | "test_only" | "live";
+      confirmation?: string;
+    }) => setMode({ data: input }),
     onSuccess: () => void refresh(),
     onError: (error) => toast.error(error.message),
   });
@@ -102,13 +105,25 @@ function AutomationsPage() {
                   <Badge>{automation.mode.replace("_", " ")}</Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(["paused", "shadow", "test_only"] as const).map((mode) => (
+                  {(["paused", "shadow", "test_only", "live"] as const).map((mode) => (
                     <Button
                       key={mode}
                       size="sm"
                       variant={automation.mode === mode ? "default" : "outline"}
                       disabled={modeMutation.isPending}
-                      onClick={() => modeMutation.mutate({ automationId: automation.id, mode })}
+                      onClick={() => {
+                        const confirmation =
+                          mode === "live"
+                            ? (window.prompt('Type "ENABLE LIVE CONCIERGE" to continue') ??
+                              undefined)
+                            : undefined;
+                        if (mode === "live" && confirmation !== "ENABLE LIVE CONCIERGE") return;
+                        modeMutation.mutate({
+                          automationId: automation.id,
+                          mode,
+                          confirmation,
+                        });
+                      }}
                     >
                       {mode.replace("_", " ")}
                     </Button>

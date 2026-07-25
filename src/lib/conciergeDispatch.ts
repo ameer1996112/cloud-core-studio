@@ -40,6 +40,7 @@ type RenderedChannel = {
   templateVersion: number;
   subject: string | null;
   body: string;
+  templateVariables: string[];
 };
 
 export type DispatchEvaluation = {
@@ -209,6 +210,7 @@ export function evaluateConciergeDispatch(input: {
         ? renderValue(approved.subjectTemplate, input.variables)
         : null,
       body: renderValue(approved.bodyTemplate, input.variables),
+      templateVariables: approved.requiredVariables,
     });
   }
 

@@ -39,6 +39,7 @@ type OutboxRow = {
 
 type DeliveryRow = {
   id: string;
+  snapshot_id: string | null;
   message_id: string;
   channel: MessageChannel;
   provider: string | null;
@@ -49,6 +50,37 @@ type DeliveryRow = {
   expires_at: string | null;
   attempt_count: number;
 };
+
+async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
+  if (!delivery.snapshot_id) return false;
+  const db = supabaseAdmin as any;
+  const allowlist = (process.env.CONCIERGE_TEST_RECIPIENT_IDS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const gate = await db.rpc("concierge_delivery_send_allowed", {
+    p_delivery_id: delivery.id,
+    p_live_runtime_enabled: process.env.CONCIERGE_LIVE_DELIVERY_ENABLED === "true",
+    p_test_recipient_ids: allowlist,
+  });
+  if (gate.error) throw gate.error;
+  const result = Array.isArray(gate.data) ? gate.data[0] : gate.data;
+  if (result?.allowed === true) return false;
+  const suppressed = await db
+    .from("message_deliveries")
+    .update({
+      status: "suppressed",
+      failure_class: "configuration",
+      error_code: result?.reason ?? "concierge_send_gate_denied",
+      lease_owner: null,
+      lease_expires_at: null,
+      updated_at: now.toISOString(),
+    })
+    .eq("id", delivery.id)
+    .eq("status", "sending");
+  if (suppressed.error) throw suppressed.error;
+  return true;
+}
 
 function language(value: string | null | undefined): MessageLanguage | null {
   return value === "he" || value === "ar" || value === "en" ? value : null;
@@ -669,6 +701,7 @@ async function processDelivery(
   if (messageResult.error) throw messageResult.error;
   const message = messageResult.data;
   const startedAt = new Date();
+  if (await enforceConciergeSendGate(delivery, startedAt)) return "suppressed";
   if (delivery.expires_at && new Date(delivery.expires_at) <= startedAt) {
     const expired = await db
       .from("message_deliveries")

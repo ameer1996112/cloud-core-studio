@@ -110,6 +110,12 @@ export type MemberEngagementState = {
   channelControls: Record<ConciergeChannel, boolean>;
   approvedTemplates: ApprovedDispatchTemplate[];
   variables: Record<string, unknown>;
+  deliveryTarget: {
+    memberId: string | null;
+    email: string | null;
+    phoneE164: string | null;
+  };
+  correlationByActionId: Record<string, string>;
 };
 
 export async function loadMemberEngagementState(input: {
@@ -121,7 +127,7 @@ export async function loadMemberEngagementState(input: {
   const db = supabaseAdmin as any;
   const recipientResult = await db
     .from("communication_recipients")
-    .select("id,member_id,display_name,preferred_locale,is_adult,status")
+    .select("id,member_id,display_name,email,phone_e164,preferred_locale,is_adult,status")
     .eq("studio_id", input.studioId)
     .eq("id", input.communicationRecipientId)
     .single();
@@ -143,43 +149,60 @@ export async function loadMemberEngagementState(input: {
     intentsQuery = intentsQuery.in("journey_type", input.journeyTypes);
   }
 
-  const [consents, controls, intents, templates, reservations, devices] = await Promise.all([
-    db
-      .from("consent_records")
-      .select("channel,purpose")
-      .eq("studio_id", input.studioId)
-      .eq("communication_recipient_id", input.communicationRecipientId)
-      .eq("locale", recipientResult.data.preferred_locale)
-      .not("granted_at", "is", null)
-      .is("revoked_at", null),
-    db.from("concierge_channel_controls").select("channel,enabled").eq("studio_id", input.studioId),
-    intentsQuery,
-    db
-      .from("concierge_template_versions")
-      .select(
-        "id,template_key,channel,locale,version,required_variables,subject_template,body_template",
-      )
-      .eq("studio_id", input.studioId)
-      .eq("locale", recipientResult.data.preferred_locale)
-      .eq("lifecycle_status", "approved"),
-    db
-      .from("frequency_reservations")
-      .select("reserved_at,purpose")
-      .eq("studio_id", input.studioId)
-      .eq("communication_recipient_id", input.communicationRecipientId)
-      .is("released_at", null)
-      .gte("reserved_at", new Date(input.now.getTime() - 7 * 24 * 3_600_000).toISOString()),
-    recipientResult.data.member_id
-      ? db
-          .from("member_push_tokens")
-          .select("id")
-          .eq("member_id", recipientResult.data.member_id)
-          .eq("active", true)
-          .eq("permission_status", "granted")
-          .limit(1)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
-  for (const result of [consents, controls, intents, templates, reservations, devices]) {
+  const [consents, controls, intents, templates, reservations, devices, whatsappDeployments] =
+    await Promise.all([
+      db
+        .from("consent_records")
+        .select("channel,purpose")
+        .eq("studio_id", input.studioId)
+        .eq("communication_recipient_id", input.communicationRecipientId)
+        .eq("locale", recipientResult.data.preferred_locale)
+        .not("granted_at", "is", null)
+        .is("revoked_at", null),
+      db
+        .from("concierge_channel_controls")
+        .select("channel,enabled")
+        .eq("studio_id", input.studioId),
+      intentsQuery,
+      db
+        .from("concierge_template_versions")
+        .select(
+          "id,template_key,channel,locale,version,required_variables,subject_template,body_template",
+        )
+        .eq("studio_id", input.studioId)
+        .eq("locale", recipientResult.data.preferred_locale)
+        .eq("lifecycle_status", "approved"),
+      db
+        .from("frequency_reservations")
+        .select("reserved_at,purpose")
+        .eq("studio_id", input.studioId)
+        .eq("communication_recipient_id", input.communicationRecipientId)
+        .is("released_at", null)
+        .gte("reserved_at", new Date(input.now.getTime() - 7 * 24 * 3_600_000).toISOString()),
+      recipientResult.data.member_id
+        ? db
+            .from("member_push_tokens")
+            .select("id")
+            .eq("member_id", recipientResult.data.member_id)
+            .eq("active", true)
+            .eq("permission_status", "granted")
+            .limit(1)
+        : Promise.resolve({ data: [], error: null }),
+      db
+        .from("whatsapp_template_deployments")
+        .select("template_name,language")
+        .eq("waba_id", process.env.META_WABA_ID?.trim() ?? "")
+        .eq("approval_status", "APPROVED"),
+    ]);
+  for (const result of [
+    consents,
+    controls,
+    intents,
+    templates,
+    reservations,
+    devices,
+    whatsappDeployments,
+  ]) {
     if (result.error) throw result.error;
   }
 
@@ -202,10 +225,12 @@ export async function loadMemberEngagementState(input: {
     purpose: ConciergePurpose;
   }>;
   const actions: DispatchAction[] = [];
+  const correlationByActionId: Record<string, string> = {};
   for (const intent of intentRows) {
     const correlationId = relation(intent.journey_instance)?.correlation_id;
     const event = evidence.find((row) => row.correlation_id === correlationId);
     if (!event) continue;
+    correlationByActionId[intent.id] = event.correlation_id;
     const obsolete = await markObsolete(event, db);
     const firstBooking = await isFirstBooking(event, db);
     const isPayment = eventKind(event.event_type) === "payment_outcome";
@@ -255,17 +280,33 @@ export async function loadMemberEngagementState(input: {
         row.enabled,
       ]),
     ) as Record<ConciergeChannel, boolean>,
-    approvedTemplates: (templates.data ?? []).map((row: any) => ({
-      id: row.id,
-      templateKey: row.template_key,
-      channel: row.channel,
-      locale: row.locale,
-      version: row.version,
-      requiredVariables: row.required_variables,
-      subjectTemplate: row.subject_template,
-      bodyTemplate: row.body_template,
-    })),
+    approvedTemplates: (templates.data ?? [])
+      .filter((row: any) => {
+        if (row.channel !== "whatsapp") return true;
+        const providerLanguage = row.locale === "en" ? "en_US" : row.locale;
+        return (whatsappDeployments.data ?? []).some(
+          (deployment: { template_name: string; language: string }) =>
+            deployment.template_name === row.template_key &&
+            deployment.language === providerLanguage,
+        );
+      })
+      .map((row: any) => ({
+        id: row.id,
+        templateKey: row.template_key,
+        channel: row.channel,
+        locale: row.locale,
+        version: row.version,
+        requiredVariables: row.required_variables,
+        subjectTemplate: row.subject_template,
+        bodyTemplate: row.body_template,
+      })),
     variables: { member_name: recipientResult.data.display_name },
+    deliveryTarget: {
+      memberId: recipientResult.data.member_id,
+      email: recipientResult.data.email,
+      phoneE164: recipientResult.data.phone_e164,
+    },
+    correlationByActionId,
   };
 }
 

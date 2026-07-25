@@ -192,7 +192,7 @@ export function resolveAutomationExecution(input: {
     return { action: "postpone" as const, reason: "journey_paused" as const };
   }
   if (input.mode === "live") {
-    return { action: "postpone" as const, reason: "live_delivery_runtime_not_ready" as const };
+    return { action: "live" as const, reason: "live_configuration" as const };
   }
   if (input.mode === "shadow") {
     return { action: "shadow" as const, reason: "shadow_evaluation" as const };
@@ -200,7 +200,7 @@ export function resolveAutomationExecution(input: {
   if (!input.recipientId || !input.allowlistedRecipientIds.includes(input.recipientId)) {
     return { action: "suppress" as const, reason: "recipient_not_allowlisted" as const };
   }
-  return { action: "postpone" as const, reason: "test_delivery_runtime_not_ready" as const };
+  return { action: "test_only" as const, reason: "recipient_allowlisted" as const };
 }
 
 export type ConciergeAutomationConfig = {
@@ -214,7 +214,7 @@ type MaterializeInput = {
   normalized: NormalizedJourneyIntent;
   automationConfigVersion: number;
   createCustomerIntent: boolean;
-  executionAction: "shadow" | "suppress" | "test_only";
+  executionAction: "shadow" | "suppress" | "test_only" | "live";
   executionReason: string;
 };
 
