@@ -27,3 +27,17 @@ recipient. In-app evidence is committed independently of external transport succ
 
 The existing cron and canonical messaging worker remain the runtime. PostgreSQL leases,
 `SKIP LOCKED`, and a locked `recipient_contact_state` row provide concurrency control.
+
+The concierge worker is exposed only through authenticated
+`POST /api/internal/concierge/run`. It claims `domain_outbox` rows, normalizes each versioned
+event, resolves the latest automation version, and then:
+
+- postpones paused work without losing it;
+- materializes an immutable shadow decision without a delivery;
+- suppresses non-allowlisted test-only recipients;
+- preserves allowlisted test-only work until test delivery materialization is available;
+- preserves `live` work until the complete delivery runtime is available.
+
+Claim ownership, journey/intent/decision writes, and outbox completion are checked and committed
+by PostgreSQL functions. Retryable failures use bounded backoff. Permanent or exhausted failures
+create an admin-attention item.

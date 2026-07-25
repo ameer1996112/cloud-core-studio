@@ -23,6 +23,13 @@
 - Normalize provider payment/receipt/subscription events to one stable business outcome before
   journey creation.
 
+Implemented runtime: `src/lib/conciergeOrchestration.ts`,
+`src/lib/conciergeOrchestrator.server.ts`, `src/routes/api/internal/concierge/run.ts`, and
+`20260726150000_concierge_orchestration_runtime.sql`. External delivery materialization remains
+intentionally gated until state reload, template resolution, and reservation are joined in one
+transaction. Live and allowlisted test-only events are postponed rather than consumed until
+that path exists.
+
 ## Operational journeys
 
 Booking confirmation/cancellation, class change, waitlist, payment outcome, and receipt will

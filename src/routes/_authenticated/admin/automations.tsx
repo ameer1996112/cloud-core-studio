@@ -119,6 +119,30 @@ function AutomationsPage() {
           </div>
         </AdminSection>
 
+        <AdminSection title="Runtime health" eyebrow="Outbox and shadow evaluation">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard label="Pending events" value={center.data?.queueHealth.pending ?? 0} />
+            <MetricCard label="Dead-lettered" value={center.data?.queueHealth.deadLettered ?? 0} />
+            <MetricCard
+              label="Shadow evaluations"
+              value={center.data?.shadowSummary.evaluated ?? 0}
+            />
+            <MetricCard
+              label="Suppressions"
+              value={Object.values(center.data?.shadowSummary.suppressions ?? {}).reduce(
+                (total, value) => total + Number(value),
+                0,
+              )}
+            />
+          </div>
+          {center.data?.queueHealth.oldestPendingAt && (
+            <p className="text-sm text-slate">
+              Oldest pending event:{" "}
+              {new Date(center.data.queueHealth.oldestPendingAt).toLocaleString()}
+            </p>
+          )}
+        </AdminSection>
+
         <AdminSection title="Decision simulator" eyebrow="No delivery or reservation">
           <div className="editorial-panel grid gap-4 p-5 md:grid-cols-[1fr_auto]">
             <Input
@@ -172,5 +196,14 @@ function AutomationsPage() {
         </AdminSection>
       </AdminPage>
     </AdminPageShell>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="editorial-panel p-4">
+      <p className="text-sm text-slate">{label}</p>
+      <p className="mt-1 font-serif text-3xl text-navy">{value}</p>
+    </div>
   );
 }
