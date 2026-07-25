@@ -5,6 +5,10 @@ resolution, booking lanes, quiet hours, payment-failure timing, urgent arbitrati
 caps, consolidated payment outcomes, weekly keys, recommendation eligibility, and inactivity
 closure.
 
+The orchestration suite is `bun test tests/unit/conciergeOrchestration.test.mjs`. It covers
+event normalization, payment consolidation, unsupported-schema handling, paused/shadow/live
+safety, test allowlisting, batch materialization, postponement, and permanent failure handling.
+
 Before release run:
 
 ```sh

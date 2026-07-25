@@ -26,7 +26,16 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       .eq("slug", "cloud-core")
       .single();
     if (studio.error) throw studio.error;
-    const [automations, channels, attention, deliveries] = await Promise.all([
+    const [
+      automations,
+      channels,
+      attention,
+      deliveries,
+      decisions,
+      pendingOutbox,
+      deadOutbox,
+      oldestPending,
+    ] = await Promise.all([
       db
         .from("automation_config_versions")
         .select("id,journey_type,version,mode,config,created_at")
@@ -46,8 +55,43 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false })
         .limit(25),
       db.from("message_deliveries").select("status").eq("studio_id", studio.data.id).limit(5000),
+      db
+        .from("concierge_decisions")
+        .select("simulated,suppression_reason,decided_at")
+        .eq("studio_id", studio.data.id)
+        .order("decided_at", { ascending: false })
+        .limit(1000),
+      db
+        .from("domain_outbox")
+        .select("id", { count: "exact", head: true })
+        .eq("studio_id", studio.data.id)
+        .is("processed_at", null)
+        .is("dead_lettered_at", null),
+      db
+        .from("domain_outbox")
+        .select("id", { count: "exact", head: true })
+        .eq("studio_id", studio.data.id)
+        .not("dead_lettered_at", "is", null),
+      db
+        .from("domain_outbox")
+        .select("occurred_at")
+        .eq("studio_id", studio.data.id)
+        .is("processed_at", null)
+        .is("dead_lettered_at", null)
+        .order("occurred_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
     ]);
-    for (const result of [automations, channels, attention, deliveries]) {
+    for (const result of [
+      automations,
+      channels,
+      attention,
+      deliveries,
+      decisions,
+      pendingOutbox,
+      deadOutbox,
+      oldestPending,
+    ]) {
       if (result.error) throw result.error;
     }
     const deliveryHealth = (deliveries.data ?? []).reduce(
@@ -57,12 +101,31 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       },
       {},
     );
+    const decisionRows = (decisions.data ?? []) as Array<{
+      simulated: boolean;
+      suppression_reason: string | null;
+    }>;
+    const suppressionSummary = decisionRows.reduce((counts: Record<string, number>, row) => {
+      if (row.suppression_reason) {
+        counts[row.suppression_reason] = (counts[row.suppression_reason] ?? 0) + 1;
+      }
+      return counts;
+    }, {});
     return {
       studio: studio.data,
       automations: automations.data ?? [],
       channels: channels.data ?? [],
       attention: attention.data ?? [],
       deliveryHealth,
+      shadowSummary: {
+        evaluated: decisionRows.filter((row) => row.simulated).length,
+        suppressions: suppressionSummary,
+      },
+      queueHealth: {
+        pending: pendingOutbox.count ?? 0,
+        deadLettered: deadOutbox.count ?? 0,
+        oldestPendingAt: oldestPending.data?.occurred_at ?? null,
+      },
     };
   });
 
