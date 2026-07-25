@@ -23,6 +23,20 @@ The endpoint cannot send live traffic. `CONCIERGE_TEST_RECIPIENT_IDS` is a comma
 of communication-recipient UUIDs allowed through test-only evaluation. Keep it empty outside an
 explicit staff test.
 
+Evaluate up to 25 eligible recipient intents against current state with:
+
+```sh
+curl -X POST \
+  -H "Authorization: Bearer $NOTIFICATION_AUTOMATION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"limit":25}' \
+  "$APP_URL/api/internal/concierge/dispatch"
+```
+
+The dispatch endpoint is also shadow-only. Confirm its response reports `mode: "shadow"` and
+inspect `concierge_decisions` plus admin attention before changing any automation configuration.
+It does not reserve frequency capacity or create message deliveries.
+
 For ambiguous WhatsApp, disable that delivery, reconcile using the provider ID/conversation,
 and resolve manually. For duplicate concern, pause the journey and external channel before
 investigation. Kill switches do not remove durable in-app evidence.

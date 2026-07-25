@@ -9,6 +9,10 @@ The orchestration suite is `bun test tests/unit/conciergeOrchestration.test.mjs`
 event normalization, payment consolidation, unsupported-schema handling, paused/shadow/live
 safety, test allowlisting, batch materialization, postponement, and permanent failure handling.
 
+The dispatch suite is `bun test tests/unit/conciergeDispatch.test.mjs`. It covers cross-journey
+arbitration, first-versus-repeat booking lanes, exact-locale template enforcement, render
+variables, channel controls, and quiet-hours postponement.
+
 Before release run:
 
 ```sh
