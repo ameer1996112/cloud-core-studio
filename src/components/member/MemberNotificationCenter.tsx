@@ -15,6 +15,12 @@ import {
   optimisticallyMarkAllNotificationsRead,
   safeNotificationActionUrl,
 } from "@/lib/memberNotificationsApi";
+import {
+  isMemberPushInviteDismissed,
+  MEMBER_PUSH_INVITE_DISMISSED_AT_KEY,
+  MEMBER_PUSH_REGISTRATION_FAILED_EVENT,
+  shouldShowMemberPushInvite,
+} from "@/lib/memberPushInvite";
 
 type MemberNotificationItem = {
   id: string;
@@ -125,14 +131,17 @@ const bootstrapMemberPushRegistration = createClientOnlyFn(async () => {
   return memberPush.bootstrapMemberPushRegistration();
 });
 
+const detectNativeIos = createClientOnlyFn(async () => {
+  const { Capacitor } = await import("@capacitor/core");
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+});
+
 const NOTIFICATION_CENTER_QUERY_KEY = ["member-notification-center"] as const;
 
 export function MemberNotificationCenter({
-  inviteAfterScheduleView = false,
   className = "",
   viewport,
 }: {
-  inviteAfterScheduleView?: boolean;
   className?: string;
   viewport: "mobile" | "desktop";
 }) {
@@ -150,8 +159,9 @@ export function MemberNotificationCenter({
   const [inviteDismissed, setInviteDismissed] = useState(
     () =>
       typeof window !== "undefined" &&
-      window.localStorage.getItem("cc-member-push-invite-dismissed") === "1",
+      isMemberPushInviteDismissed(window.localStorage.getItem(MEMBER_PUSH_INVITE_DISMISSED_AT_KEY)),
   );
+  const [isNativeIos, setIsNativeIos] = useState(false);
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -159,11 +169,16 @@ export function MemberNotificationCenter({
   });
 
   useEffect(() => {
+    void detectNativeIos().then(setIsNativeIos);
     void bootstrapMemberPushRegistration().catch((error) =>
       console.warn("member_push_bootstrap_failed", error),
     );
     const refresh = () => {
       void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+    };
+    const registrationFailed = () => {
+      setInviteDismissed(false);
+      setPermissionMessage(copy.unavailable);
     };
     const foreground = (event: Event) => {
       const isDesktop = window.matchMedia("(min-width: 768px)").matches;
@@ -174,11 +189,13 @@ export function MemberNotificationCenter({
     };
     window.addEventListener("cc:member-notifications-changed", refresh);
     window.addEventListener("cc:member-push-received", foreground);
+    window.addEventListener(MEMBER_PUSH_REGISTRATION_FAILED_EVENT, registrationFailed);
     return () => {
       window.removeEventListener("cc:member-notifications-changed", refresh);
       window.removeEventListener("cc:member-push-received", foreground);
+      window.removeEventListener(MEMBER_PUSH_REGISTRATION_FAILED_EVENT, registrationFailed);
     };
-  }, [queryClient, viewport]);
+  }, [copy.unavailable, queryClient, viewport]);
 
   const markReadMutation = useMutation({
     mutationFn: (notificationId: string) => markRead({ data: { notificationId } }),
@@ -219,8 +236,12 @@ export function MemberNotificationCenter({
   });
 
   const data = query.data;
-  const shouldInvite =
-    inviteAfterScheduleView && !query.isLoading && !data?.hasActiveDevice && !inviteDismissed;
+  const shouldInvite = shouldShowMemberPushInvite({
+    isNativeIos,
+    isLoading: query.isLoading,
+    hasActiveDevice: Boolean(data?.hasActiveDevice),
+    dismissed: inviteDismissed,
+  });
 
   async function enablePush() {
     setPermissionMessage("");
@@ -238,7 +259,7 @@ export function MemberNotificationCenter({
   }
 
   function dismissInvite() {
-    window.localStorage.setItem("cc-member-push-invite-dismissed", "1");
+    window.localStorage.setItem(MEMBER_PUSH_INVITE_DISMISSED_AT_KEY, String(Date.now()));
     setInviteDismissed(true);
     setPermissionMessage("");
   }

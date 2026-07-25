@@ -6,6 +6,7 @@ import {
   markMemberNotificationRead,
   registerMemberPushToken,
 } from "@/lib/memberNotifications.functions";
+import { MEMBER_PUSH_REGISTRATION_FAILED_EVENT } from "@/lib/memberPushInvite";
 
 export type MemberPushRegistrationResult =
   | { ok: true; status: "registration_started" }
@@ -60,6 +61,7 @@ async function initializeMemberPush(input: {
       await PushNotifications.addListener("registrationError", (error) => {
         registrationStarted = false;
         registeredUserId = null;
+        window.dispatchEvent(new CustomEvent(MEMBER_PUSH_REGISTRATION_FAILED_EVENT));
         console.warn("member_push_registration_error", error);
       });
       await PushNotifications.addListener("pushNotificationReceived", (notification) => {
