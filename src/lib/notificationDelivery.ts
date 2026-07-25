@@ -145,6 +145,10 @@ export function getIsraelNowParts(now: Date): { date: string; hour: number; minu
   };
 }
 
+export function getScheduleDigestIdempotencyKey(memberId: string, now: Date): string {
+  return `schedule:${getIsraelNowParts(now).date}:member:${memberId}:push`;
+}
+
 export function getPreviousIsraelEvening(date: Date) {
   return buildDateInTimezone({
     date: addDays(getIsraelNowParts(date).date, -1),
