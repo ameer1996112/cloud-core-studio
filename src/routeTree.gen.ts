@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminInstructorsRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminCreditsRouteImport } from './routes/_authenticated/admin/credits'
 import { Route as AuthenticatedAdminCalendarRouteImport } from './routes/_authenticated/admin/calendar'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin/bookings'
+import { Route as AuthenticatedAdminAutomationsRouteImport } from './routes/_authenticated/admin/automations'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin/attendance'
 import { Route as AuthenticatedAdminMembersIndexRouteImport } from './routes/_authenticated/admin/members/index'
@@ -64,6 +65,8 @@ import { Route as ApiInternalNotificationsOpenwaClaimRouteImport } from './route
 import { Route as ApiInternalNotificationsOfficialWhatsappRunRouteImport } from './routes/api/internal/notifications/official-whatsapp-run'
 import { Route as ApiInternalNotificationsLifecycleSweepRouteImport } from './routes/api/internal/notifications/lifecycle-sweep'
 import { Route as ApiInternalMessagesSweepRouteImport } from './routes/api/internal/messages/sweep'
+import { Route as ApiInternalConciergeRunRouteImport } from './routes/api/internal/concierge/run'
+import { Route as ApiInternalConciergeDispatchRouteImport } from './routes/api/internal/concierge/dispatch'
 import { Route as AuthenticatedAdminMembersIdRouteImport } from './routes/_authenticated/admin/members/$id'
 import { Route as AuthenticatedAdminClassesNewRouteImport } from './routes/_authenticated/admin/classes/new'
 import { Route as AuthenticatedAdminClassesIdRouteImport } from './routes/_authenticated/admin/classes/$id'
@@ -300,6 +303,12 @@ const AuthenticatedAdminBookingsRoute =
     path: '/bookings',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAutomationsRoute =
+  AuthenticatedAdminAutomationsRouteImport.update({
+    id: '/automations',
+    path: '/automations',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -376,6 +385,17 @@ const ApiInternalMessagesSweepRoute =
     path: '/api/internal/messages/sweep',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalConciergeRunRoute = ApiInternalConciergeRunRouteImport.update({
+  id: '/api/internal/concierge/run',
+  path: '/api/internal/concierge/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInternalConciergeDispatchRoute =
+  ApiInternalConciergeDispatchRouteImport.update({
+    id: '/api/internal/concierge/dispatch',
+    path: '/api/internal/concierge/dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminMembersIdRoute =
   AuthenticatedAdminMembersIdRouteImport.update({
     id: '/members/$id',
@@ -433,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/member/schedule': typeof MemberScheduleRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/calendar': typeof AuthenticatedAdminCalendarRoute
   '/admin/credits': typeof AuthenticatedAdminCreditsRoute
@@ -460,6 +481,8 @@ export interface FileRoutesByFullPath {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/concierge/dispatch': typeof ApiInternalConciergeDispatchRoute
+  '/api/internal/concierge/run': typeof ApiInternalConciergeRunRoute
   '/api/internal/messages/sweep': typeof ApiInternalMessagesSweepRoute
   '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
   '/api/internal/notifications/official-whatsapp-run': typeof ApiInternalNotificationsOfficialWhatsappRunRoute
@@ -492,6 +515,7 @@ export interface FileRoutesByTo {
   '/member/schedule': typeof MemberScheduleRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/calendar': typeof AuthenticatedAdminCalendarRoute
   '/admin/credits': typeof AuthenticatedAdminCreditsRoute
@@ -519,6 +543,8 @@ export interface FileRoutesByTo {
   '/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/concierge/dispatch': typeof ApiInternalConciergeDispatchRoute
+  '/api/internal/concierge/run': typeof ApiInternalConciergeRunRoute
   '/api/internal/messages/sweep': typeof ApiInternalMessagesSweepRoute
   '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
   '/api/internal/notifications/official-whatsapp-run': typeof ApiInternalNotificationsOfficialWhatsappRunRoute
@@ -556,6 +582,7 @@ export interface FileRoutesById {
   '/member/schedule': typeof MemberScheduleRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/automations': typeof AuthenticatedAdminAutomationsRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/_authenticated/admin/calendar': typeof AuthenticatedAdminCalendarRoute
   '/_authenticated/admin/credits': typeof AuthenticatedAdminCreditsRoute
@@ -583,6 +610,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/classes/$id': typeof AuthenticatedAdminClassesIdRoute
   '/_authenticated/admin/classes/new': typeof AuthenticatedAdminClassesNewRoute
   '/_authenticated/admin/members/$id': typeof AuthenticatedAdminMembersIdRoute
+  '/api/internal/concierge/dispatch': typeof ApiInternalConciergeDispatchRoute
+  '/api/internal/concierge/run': typeof ApiInternalConciergeRunRoute
   '/api/internal/messages/sweep': typeof ApiInternalMessagesSweepRoute
   '/api/internal/notifications/lifecycle-sweep': typeof ApiInternalNotificationsLifecycleSweepRoute
   '/api/internal/notifications/official-whatsapp-run': typeof ApiInternalNotificationsOfficialWhatsappRunRoute
@@ -620,6 +649,7 @@ export interface FileRouteTypes {
     | '/member/schedule'
     | '/admin/attendance'
     | '/admin/audit'
+    | '/admin/automations'
     | '/admin/bookings'
     | '/admin/calendar'
     | '/admin/credits'
@@ -647,6 +677,8 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/concierge/dispatch'
+    | '/api/internal/concierge/run'
     | '/api/internal/messages/sweep'
     | '/api/internal/notifications/lifecycle-sweep'
     | '/api/internal/notifications/official-whatsapp-run'
@@ -679,6 +711,7 @@ export interface FileRouteTypes {
     | '/member/schedule'
     | '/admin/attendance'
     | '/admin/audit'
+    | '/admin/automations'
     | '/admin/bookings'
     | '/admin/calendar'
     | '/admin/credits'
@@ -706,6 +739,8 @@ export interface FileRouteTypes {
     | '/admin/classes/$id'
     | '/admin/classes/new'
     | '/admin/members/$id'
+    | '/api/internal/concierge/dispatch'
+    | '/api/internal/concierge/run'
     | '/api/internal/messages/sweep'
     | '/api/internal/notifications/lifecycle-sweep'
     | '/api/internal/notifications/official-whatsapp-run'
@@ -742,6 +777,7 @@ export interface FileRouteTypes {
     | '/member/schedule'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/automations'
     | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/calendar'
     | '/_authenticated/admin/credits'
@@ -769,6 +805,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/classes/$id'
     | '/_authenticated/admin/classes/new'
     | '/_authenticated/admin/members/$id'
+    | '/api/internal/concierge/dispatch'
+    | '/api/internal/concierge/run'
     | '/api/internal/messages/sweep'
     | '/api/internal/notifications/lifecycle-sweep'
     | '/api/internal/notifications/official-whatsapp-run'
@@ -798,6 +836,8 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
+  ApiInternalConciergeDispatchRoute: typeof ApiInternalConciergeDispatchRoute
+  ApiInternalConciergeRunRoute: typeof ApiInternalConciergeRunRoute
   ApiInternalMessagesSweepRoute: typeof ApiInternalMessagesSweepRoute
   ApiInternalNotificationsLifecycleSweepRoute: typeof ApiInternalNotificationsLifecycleSweepRoute
   ApiInternalNotificationsOfficialWhatsappRunRoute: typeof ApiInternalNotificationsOfficialWhatsappRunRoute
@@ -1108,6 +1148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBookingsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/automations': {
+      id: '/_authenticated/admin/automations'
+      path: '/automations'
+      fullPath: '/admin/automations'
+      preLoaderRoute: typeof AuthenticatedAdminAutomationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/audit': {
       id: '/_authenticated/admin/audit'
       path: '/audit'
@@ -1199,6 +1246,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInternalMessagesSweepRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/concierge/run': {
+      id: '/api/internal/concierge/run'
+      path: '/api/internal/concierge/run'
+      fullPath: '/api/internal/concierge/run'
+      preLoaderRoute: typeof ApiInternalConciergeRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/concierge/dispatch': {
+      id: '/api/internal/concierge/dispatch'
+      path: '/api/internal/concierge/dispatch'
+      fullPath: '/api/internal/concierge/dispatch'
+      preLoaderRoute: typeof ApiInternalConciergeDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/members/$id': {
       id: '/_authenticated/admin/members/$id'
       path: '/members/$id'
@@ -1247,6 +1308,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAttendanceRoute: typeof AuthenticatedAdminAttendanceRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminAutomationsRoute: typeof AuthenticatedAdminAutomationsRoute
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRoute
   AuthenticatedAdminCalendarRoute: typeof AuthenticatedAdminCalendarRoute
   AuthenticatedAdminCreditsRoute: typeof AuthenticatedAdminCreditsRoute
@@ -1274,6 +1336,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminAttendanceRoute: AuthenticatedAdminAttendanceRoute,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+    AuthenticatedAdminAutomationsRoute: AuthenticatedAdminAutomationsRoute,
     AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRoute,
     AuthenticatedAdminCalendarRoute: AuthenticatedAdminCalendarRoute,
     AuthenticatedAdminCreditsRoute: AuthenticatedAdminCreditsRoute,
@@ -1377,6 +1440,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
+  ApiInternalConciergeDispatchRoute: ApiInternalConciergeDispatchRoute,
+  ApiInternalConciergeRunRoute: ApiInternalConciergeRunRoute,
   ApiInternalMessagesSweepRoute: ApiInternalMessagesSweepRoute,
   ApiInternalNotificationsLifecycleSweepRoute:
     ApiInternalNotificationsLifecycleSweepRoute,
