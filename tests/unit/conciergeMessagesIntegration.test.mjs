@@ -53,8 +53,11 @@ describe("Concierge Messages integration", () => {
     expect(deliveryServer).toContain("sent_at");
     expect(deliveryServer).toContain("delivered_at");
     expect(deliveryServer).toContain("member:members(name)");
-    expect(messagesRoute).toContain("deliveryTimeline");
     expect(messagesRoute).toContain("deliveryMethod");
     expect(messagesRoute).toContain("deliveryRecipient");
+    expect(messagesRoute).toContain("deliveryLedger");
+    expect(messagesRoute).toContain("deliverySummary");
+    expect(messagesRoute).toContain("deliveryLifecycle");
+    expect(messagesRoute).toContain("attentionOnly");
   });
 });

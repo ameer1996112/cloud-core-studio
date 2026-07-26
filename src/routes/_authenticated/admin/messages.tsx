@@ -596,6 +596,16 @@ function CanonicalDeliveriesTab() {
       retry: "Retry",
       noDeliveries: "No deliveries yet.",
       provider: "Provider",
+      ledger: "Delivery journal",
+      ledgerIntro: "Every message, from creation to arrival.",
+      deliveredToday: "Delivered today",
+      inProgress: "In progress",
+      needsAttention: "Needs attention",
+      all: "All activity",
+      attentionOnly: "Needs attention",
+      search: "Search recipient or message…",
+      journey: "Message journey",
+      technical: "Technical details",
     },
     he: {
       message: "הודעה",
@@ -614,6 +624,16 @@ function CanonicalDeliveriesTab() {
       retry: "ניסיון נוסף",
       noDeliveries: "עדיין אין מסירות.",
       provider: "ספק",
+      ledger: "יומן מסירות",
+      ledgerIntro: "כל הודעה, מרגע היצירה ועד שהגיעה ללקוח.",
+      deliveredToday: "נמסרו היום",
+      inProgress: "בתהליך",
+      needsAttention: "דורשות טיפול",
+      all: "כל הפעילות",
+      attentionOnly: "דורש טיפול",
+      search: "חיפוש לקוח או הודעה…",
+      journey: "מסע ההודעה",
+      technical: "פרטים טכניים",
     },
     ar: {
       message: "الرسالة",
@@ -632,28 +652,29 @@ function CanonicalDeliveriesTab() {
       retry: "إعادة المحاولة",
       noDeliveries: "لا توجد عمليات تسليم بعد.",
       provider: "المزوّد",
+      ledger: "سجل التسليم",
+      ledgerIntro: "كل رسالة، من لحظة إنشائها حتى وصولها للعميل.",
+      deliveredToday: "تم تسليمها اليوم",
+      inProgress: "قيد التنفيذ",
+      needsAttention: "تحتاج متابعة",
+      all: "كل النشاط",
+      attentionOnly: "تحتاج متابعة",
+      search: "ابحثي عن عميل أو رسالة…",
+      journey: "رحلة الرسالة",
+      technical: "تفاصيل تقنية",
     },
   }[lang];
   const queryClient = useQueryClient();
   const listFn = useServerFn(listCanonicalDeliveries);
   const retryFn = useServerFn(retryCanonicalDeliveryAction);
+  const [search, setSearch] = useState("");
+  const [attentionOnly, setAttentionOnly] = useState(false);
   const deliveries = useQuery({ queryKey: ["canonical-deliveries"], queryFn: () => listFn() });
   const retry = useMutation({
     mutationFn: (deliveryId: string) => retryFn({ data: { deliveryId } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] }),
     onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
   });
-  const deliveryTimeline = (delivery: any) => {
-    const events = [
-      [deliveryCopy.read, delivery.read_at],
-      [deliveryCopy.delivered, delivery.delivered_at],
-      [deliveryCopy.sent, delivery.sent_at],
-      [deliveryCopy.failed, delivery.failed_at],
-      [deliveryCopy.scheduled, delivery.scheduled_for],
-      [deliveryCopy.created, delivery.created_at],
-    ].filter((event) => Boolean(event[1])) as [string, string][];
-    return events.slice(0, 2);
-  };
   const deliveryMethod = (delivery: any) =>
     delivery.provider?.replaceAll("_", " ") ?? delivery.channel?.replace("_", " ") ?? "—";
   const deliveryRecipient = (delivery: any, message: any) => {
@@ -663,95 +684,250 @@ function CanonicalDeliveriesTab() {
       address.length > 6 ? `${address.slice(0, 3)}•••${address.slice(-3)}` : address || "—";
     return { name: member?.name ?? "—", address: masked };
   };
+  const deliveryLedger = (deliveries.data ?? []).filter((delivery: any) => {
+    const message = Array.isArray(delivery.message) ? delivery.message[0] : delivery.message;
+    const recipient = deliveryRecipient(delivery, message);
+    const requiresAttention = ["failed", "dead_letter", "suppressed"].includes(delivery.status);
+    const haystack = [
+      recipient.name,
+      recipient.address,
+      message?.subject,
+      message?.event_type,
+      message?.template_key,
+      delivery.channel,
+      delivery.provider,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return (!attentionOnly || requiresAttention) && haystack.includes(search.trim().toLowerCase());
+  });
+  const deliverySummary = {
+    deliveredToday: (deliveries.data ?? []).filter(
+      (delivery: any) =>
+        ["delivered", "read"].includes(delivery.status) &&
+        new Date(
+          delivery.delivered_at ?? delivery.read_at ?? delivery.updated_at,
+        ).toDateString() === new Date().toDateString(),
+    ).length,
+    inProgress: (deliveries.data ?? []).filter((delivery: any) =>
+      ["queued", "sending", "accepted", "sent"].includes(delivery.status),
+    ).length,
+    attention: (deliveries.data ?? []).filter((delivery: any) =>
+      ["failed", "dead_letter", "suppressed"].includes(delivery.status),
+    ).length,
+  };
+  const deliveryLifecycle = (delivery: any) => [
+    { label: deliveryCopy.created, at: delivery.created_at },
+    { label: deliveryCopy.sent, at: delivery.sent_at ?? delivery.accepted_at },
+    { label: deliveryCopy.delivered, at: delivery.delivered_at },
+    { label: deliveryCopy.read, at: delivery.read_at },
+  ];
   return (
-    <div className="editorial-panel overflow-x-auto">
-      <table className="w-full min-w-[1120px] text-start text-sm">
-        <thead className="border-b border-gold/20 text-xs uppercase text-slate">
-          <tr>
-            <th className="p-4">{deliveryCopy.message}</th>
-            <th className="p-4">{deliveryCopy.recipient}</th>
-            <th className="p-4">{deliveryCopy.method}</th>
-            <th className="p-4">{deliveryCopy.status}</th>
-            <th className="p-4">{deliveryCopy.timeline}</th>
-            <th className="p-4">{deliveryCopy.attempts}</th>
-            <th className="p-4">{deliveryCopy.error}</th>
-            <th className="p-4" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gold/15">
-          {(deliveries.data ?? []).map((delivery: any) => {
-            const message = Array.isArray(delivery.message)
-              ? delivery.message[0]
-              : delivery.message;
-            const recipient = deliveryRecipient(delivery, message);
-            const retryable = ["failed", "dead_letter", "suppressed"].includes(delivery.status);
-            return (
-              <tr key={delivery.id}>
-                <td className="max-w-[220px] p-4 text-navy">
-                  <p className="font-medium">
-                    {message?.subject ?? message?.event_type ?? delivery.message_id}
+    <section className="overflow-hidden rounded-[28px] border border-gold/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.82),rgba(247,242,233,0.68))] shadow-[0_24px_70px_rgba(11,29,58,0.08)]">
+      <header className="border-b border-gold/20 px-5 py-7 sm:px-8 sm:py-9">
+        <p className="eyebrow text-gold">{deliveryCopy.journey}</p>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h2 className="font-serif text-3xl text-navy sm:text-4xl">{deliveryCopy.ledger}</h2>
+            <p className="mt-2 text-sm text-slate">{deliveryCopy.ledgerIntro}</p>
+          </div>
+          <div className="flex divide-x divide-gold/25 overflow-hidden rounded-2xl border border-gold/20 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] rtl:divide-x-reverse">
+            {[
+              [deliveryCopy.deliveredToday, deliverySummary.deliveredToday, "text-emerald-800"],
+              [deliveryCopy.inProgress, deliverySummary.inProgress, "text-gold"],
+              [deliveryCopy.needsAttention, deliverySummary.attention, "text-destructive"],
+            ].map(([label, value, tone]) => (
+              <div className="min-w-[105px] px-4 py-3 text-center" key={String(label)}>
+                <p className={`font-serif text-2xl ${tone}`}>{value}</p>
+                <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-slate">
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <label className="relative min-w-[220px] flex-1">
+            <span className="sr-only">{deliveryCopy.search}</span>
+            <input
+              className="w-full rounded-2xl border border-gold/20 bg-white/70 px-4 py-3 text-sm text-navy outline-none transition placeholder:text-slate/65 focus:border-gold/60 focus:ring-4 focus:ring-gold/10"
+              placeholder={deliveryCopy.search}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          <div className="flex rounded-2xl border border-gold/20 bg-white/55 p-1">
+            <button
+              className={`rounded-xl px-4 py-2 text-xs font-medium transition ${
+                !attentionOnly ? "bg-navy text-ivory shadow-sm" : "text-slate hover:text-navy"
+              }`}
+              onClick={() => setAttentionOnly(false)}
+            >
+              {deliveryCopy.all}
+            </button>
+            <button
+              className={`rounded-xl px-4 py-2 text-xs font-medium transition ${
+                attentionOnly ? "bg-navy text-ivory shadow-sm" : "text-slate hover:text-navy"
+              }`}
+              onClick={() => setAttentionOnly(true)}
+            >
+              {deliveryCopy.attentionOnly}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="space-y-4 p-4 sm:p-7">
+        {deliveryLedger.map((delivery: any) => {
+          const message = Array.isArray(delivery.message) ? delivery.message[0] : delivery.message;
+          const recipient = deliveryRecipient(delivery, message);
+          const retryable = ["failed", "dead_letter"].includes(delivery.status);
+          const requiresAttention = ["failed", "dead_letter", "suppressed"].includes(
+            delivery.status,
+          );
+          const lifecycle = deliveryLifecycle(delivery);
+          return (
+            <article
+              className={`group relative overflow-hidden rounded-[22px] border bg-white/72 p-5 transition duration-300 hover:-translate-y-0.5 hover:bg-white/90 hover:shadow-[0_18px_45px_rgba(11,29,58,0.08)] sm:p-6 ${
+                requiresAttention ? "border-destructive/20" : "border-gold/18"
+              }`}
+              key={delivery.id}
+            >
+              <span
+                className={`absolute inset-y-0 start-0 w-1 ${
+                  requiresAttention ? "bg-destructive/65" : "bg-gold/70"
+                }`}
+              />
+              <div className="flex flex-wrap items-start justify-between gap-5">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        requiresAttention
+                          ? "bg-destructive"
+                          : ["delivered", "read"].includes(delivery.status)
+                            ? "bg-emerald-700"
+                            : "bg-gold"
+                      }`}
+                    />
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate">
+                      {delivery.status.replaceAll("_", " ")}
+                    </p>
+                  </div>
+                  <h3 className="mt-3 font-serif text-2xl text-navy">
+                    {message?.subject ??
+                      message?.event_type?.replaceAll("_", " ") ??
+                      delivery.message_id}
+                  </h3>
+                  <p className="mt-2 text-sm text-navy">
+                    <span className="font-medium">{recipient.name}</span>
+                    <span className="mx-2 text-gold">·</span>
+                    <span className="capitalize">{delivery.channel?.replace("_", " ")}</span>
+                    <span className="mx-2 text-gold">·</span>
+                    <span className="text-slate" dir="ltr">
+                      {recipient.address}
+                    </span>
                   </p>
                   <p className="mt-1 text-xs text-slate">
-                    {[message?.template_key, message?.language].filter(Boolean).join(" · ")}
+                    {[message?.template_key, message?.language, deliveryMethod(delivery)]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
-                </td>
-                <td className="p-4">
-                  <p className="font-medium text-navy">{recipient.name}</p>
-                  <p className="mt-1 text-xs text-slate" dir="ltr">
-                    {recipient.address}
+                </div>
+                <div className="text-end">
+                  <time
+                    className="font-serif text-lg text-navy"
+                    dateTime={delivery.updated_at}
+                    dir="ltr"
+                  >
+                    {new Date(delivery.updated_at).toLocaleTimeString(MESSAGE_LOCALES[lang], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </time>
+                  <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-slate">
+                    {new Date(delivery.updated_at).toLocaleDateString(MESSAGE_LOCALES[lang], {
+                      day: "numeric",
+                      month: "long",
+                    })}
                   </p>
-                </td>
-                <td className="p-4 text-slate">
-                  <p className="capitalize text-navy">{delivery.channel?.replace("_", " ")}</p>
-                  <p className="mt-1 text-xs capitalize">
-                    {deliveryCopy.provider}: {deliveryMethod(delivery)}
-                  </p>
-                </td>
-                <td className="p-4">
-                  <span className="rounded-full bg-sand px-2 py-1 text-xs">{delivery.status}</span>
-                  {delivery.provider_status && (
-                    <p className="mt-2 text-xs text-slate">{delivery.provider_status}</p>
-                  )}
-                </td>
-                <td className="p-4">
-                  <div className="space-y-1.5">
-                    {deliveryTimeline(delivery).map(([label, timestamp]) => (
-                      <p className="text-xs" key={`${label}-${timestamp}`}>
-                        <span className="text-slate">{label}: </span>
-                        <time className="font-medium text-navy" dateTime={timestamp} dir="ltr">
-                          {new Date(timestamp).toLocaleString(MESSAGE_LOCALES[lang])}
-                        </time>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-gold/15 pt-5">
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate">
+                  {deliveryCopy.journey}
+                </p>
+                <div className="grid grid-cols-4 gap-1">
+                  {lifecycle.map((stage, index) => (
+                    <div className="relative" key={stage.label}>
+                      <div className="mb-2 flex items-center">
+                        <span
+                          className={`relative z-10 h-2.5 w-2.5 rounded-full border ${
+                            stage.at
+                              ? "border-navy bg-navy shadow-[0_0_0_3px_rgba(201,168,76,0.16)]"
+                              : "border-gold/35 bg-ivory"
+                          }`}
+                        />
+                        {index < lifecycle.length - 1 && (
+                          <span
+                            className={`h-px flex-1 ${
+                              lifecycle[index + 1]?.at ? "bg-navy/55" : "bg-gold/25"
+                            }`}
+                          />
+                        )}
+                      </div>
+                      <p
+                        className={`text-xs ${stage.at ? "font-medium text-navy" : "text-slate/55"}`}
+                      >
+                        {stage.label}
                       </p>
-                    ))}
-                  </div>
-                </td>
-                <td className="p-4 text-slate">{delivery.attempt_count}</td>
-                <td className="max-w-xs truncate p-4 text-slate">
-                  {delivery.error_code ?? delivery.error_message ?? "—"}
-                </td>
-                <td className="p-4 text-end">
+                      {stage.at && (
+                        <time className="mt-1 block text-[10px] text-slate" dir="ltr">
+                          {new Date(stage.at).toLocaleTimeString(MESSAGE_LOCALES[lang], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </time>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {(delivery.error_code || delivery.error_message || delivery.attempt_count > 1) && (
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sand/45 px-4 py-3 text-xs">
+                  <p className="text-slate">
+                    {delivery.error_code ?? delivery.error_message ?? "—"}
+                    {delivery.attempt_count > 1 && (
+                      <span className="ms-2 text-navy">
+                        · {deliveryCopy.attempts}: {delivery.attempt_count}
+                      </span>
+                    )}
+                  </p>
                   {retryable && (
                     <button
-                      className="btn-outline px-3 py-1.5 text-xs"
+                      className="rounded-xl border border-gold/35 bg-white/80 px-4 py-2 font-medium text-navy transition hover:border-gold hover:bg-white"
+                      disabled={retry.isPending}
                       onClick={() => retry.mutate(delivery.id)}
                     >
                       {deliveryCopy.retry}
                     </button>
                   )}
-                </td>
-              </tr>
-            );
-          })}
-          {deliveries.data?.length === 0 && (
-            <tr>
-              <td className="p-8 text-center text-slate" colSpan={8}>
-                {deliveryCopy.noDeliveries}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+        {deliveryLedger.length === 0 && (
+          <div className="py-16 text-center">
+            <div className="mx-auto h-10 w-px bg-gradient-to-b from-gold to-transparent" />
+            <p className="mt-5 font-serif text-2xl text-navy">{deliveryCopy.noDeliveries}</p>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
