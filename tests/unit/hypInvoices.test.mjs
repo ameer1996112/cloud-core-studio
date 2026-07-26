@@ -125,12 +125,14 @@ describe("confirmed HYP payment receipt issuance", () => {
       receiptId: "receipt-1",
       provider: "hyp",
       transactionId: "119284861",
+      terminalKind: "primary",
       amount: 125,
       paidAt: "2026-07-26T09:30:00.000Z",
       customerName: "נועה ישראלי",
       customerEmail: "noa@example.com",
       itemDescription: "חבילת 10 שיעורים",
       externalProvider: null,
+      externalStatus: null,
       externalDocumentId: null,
       externalDocumentNumber: null,
       externalDocumentUrl: null,
@@ -139,21 +141,25 @@ describe("confirmed HYP payment receipt issuance", () => {
     const deps = {
       loadPaymentReceipt: async () => ({ ...record }),
       claimReceipt: async () => {
-        if (record.externalProvider) return false;
-        record.externalProvider = "hyp_pending";
+        if (record.externalStatus === "pending" || record.externalStatus === "issued") return false;
+        record.externalProvider = "hyp";
+        record.externalStatus = "pending";
         return true;
       },
       completeReceipt: async (_receiptId, document) => {
         record.externalProvider = "hyp";
+        record.externalStatus = "issued";
         record.externalDocumentId = document.documentId;
         record.externalDocumentNumber = document.documentNumber;
         record.externalDocumentUrl = document.documentUrl;
       },
       failReceipt: async () => {
-        record.externalProvider = "hyp_failed";
+        record.externalProvider = "hyp";
+        record.externalStatus = "failed";
       },
-      issueReceipt: async (input) => {
+      issueReceipt: async (input, terminalKind) => {
         calls.push(input);
+        expect(terminalKind).toBe("primary");
         return {
           documentId: "119328971",
           documentNumber: "3001",
@@ -194,12 +200,14 @@ describe("confirmed HYP payment receipt issuance", () => {
         receiptId: "receipt-1",
         provider: "hyp",
         transactionId: "119284861",
+        terminalKind: "primary",
         amount: 125,
         paidAt: "2026-07-26T09:30:00.000Z",
         customerName: "נועה ישראלי",
         customerEmail: "noa@example.com",
         itemDescription: "חבילה",
         externalProvider: null,
+        externalStatus: null,
         externalDocumentId: null,
         externalDocumentNumber: null,
         externalDocumentUrl: null,
@@ -208,8 +216,9 @@ describe("confirmed HYP payment receipt issuance", () => {
       completeReceipt: async () => {
         throw new Error("should_not_complete");
       },
-      failReceipt: async (_receiptId, message) => {
+      failReceipt: async (_receiptId, message, ambiguous) => {
         failedMessage = message;
+        expect(ambiguous).toBe(true);
       },
       issueReceipt: async () => {
         throw new Error("hyp_invoice_http_503");

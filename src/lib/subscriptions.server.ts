@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { enqueuePaymentConfirmedNotifications } from "@/lib/paymentNotifications.server";
+import { handleHypConfirmedPayment } from "@/lib/hypPaymentConfirmation.server";
 import {
   chargeHypSavedToken,
   getHypTokenForTransaction,
@@ -472,7 +472,7 @@ export async function processHypPaymentNotification(params: URLSearchParams, sou
 
     const notificationResult =
       "confirmResult" in result ? result.confirmResult : "result" in result ? result.result : null;
-    if (notificationResult) await enqueuePaymentConfirmedNotifications(notificationResult);
+    if (notificationResult) await handleHypConfirmedPayment(notificationResult);
 
     await (supabaseAdmin as any)
       .from("provider_events")
