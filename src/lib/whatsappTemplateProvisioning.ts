@@ -15,6 +15,8 @@ export type TemplatePlanItem = MetaTemplatePayload & {
   remoteCount: number;
 };
 
+export type TemplateProvisioningMode = "plan" | "apply" | "refresh";
+
 function stable(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stable);
   if (value && typeof value === "object") {
@@ -56,18 +58,27 @@ export async function buildTemplateReconciliationPlan(
 }
 
 export function parseTemplateProvisioningArgs(argv: readonly string[]) {
-  let apply = false;
+  let mode: TemplateProvisioningMode = "plan";
   let wabaId: string | undefined;
   let only: string | undefined;
+  let headerHandle: string | undefined;
   let scope: "all" | "concierge" | "unified" = "all";
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
-    if (argument === "--apply") apply = true;
-    else if (argument === "--waba-id") wabaId = argv[(index += 1)];
+    if (argument === "--apply") {
+      if (mode === "refresh") throw new Error("template_mode_conflict");
+      mode = "apply";
+    } else if (argument === "--refresh") {
+      if (mode === "apply") throw new Error("template_mode_conflict");
+      mode = "refresh";
+    } else if (argument === "--waba-id") wabaId = argv[(index += 1)];
     else if (argument?.startsWith("--waba-id=")) wabaId = argument.slice("--waba-id=".length);
     else if (argument === "--only") only = argv[(index += 1)];
     else if (argument?.startsWith("--only=")) only = argument.slice("--only=".length);
-    else if (argument === "--scope") {
+    else if (argument === "--header-handle") headerHandle = argv[(index += 1)];
+    else if (argument?.startsWith("--header-handle=")) {
+      headerHandle = argument.slice("--header-handle=".length);
+    } else if (argument === "--scope") {
       const value = argv[(index += 1)];
       if (value !== "all" && value !== "concierge" && value !== "unified") {
         throw new Error(`invalid_template_scope:${value ?? ""}`);
@@ -79,16 +90,59 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
         throw new Error(`invalid_template_scope:${value}`);
       }
       scope = value;
-    }
-    else if (argument !== "--plan" && argument !== "--check") {
+    } else if (argument !== "--plan" && argument !== "--check") {
       throw new Error(`unknown_template_argument:${argument}`);
     }
   }
-  if (apply && !wabaId) throw new Error("apply_requires_waba_id");
-  if (apply && wabaId !== CONFIRMED_PRODUCTION_WABA_ID) {
+  if (mode === "apply" && !wabaId) throw new Error("apply_requires_waba_id");
+  if (mode === "refresh" && !wabaId) throw new Error("refresh_requires_waba_id");
+  if (mode !== "plan" && wabaId !== CONFIRMED_PRODUCTION_WABA_ID) {
     throw new Error("apply_waba_id_not_confirmed");
   }
-  return { apply, wabaId, only, scope };
+  return {
+    mode,
+    apply: mode === "apply",
+    refresh: mode === "refresh",
+    wabaId,
+    only,
+    scope,
+    headerHandle,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+export function templateRequiresHeaderHandle(template: MetaTemplatePayload) {
+  return template.components.some(
+    (component) =>
+      isRecord(component) && component.type === "HEADER" && component.format === "IMAGE",
+  );
+}
+
+/**
+ * Meta template creation accepts an uploaded media handle for IMAGE header examples. Runtime
+ * delivery continues to use the catalog's public HTTPS URL; this function is only for creation.
+ */
+export function prepareTemplateForProviderCreate(
+  template: MetaTemplatePayload,
+  headerHandle?: string,
+): MetaTemplatePayload {
+  const safeHandle = headerHandle?.trim();
+  if (templateRequiresHeaderHandle(template) && !safeHandle) {
+    throw new Error("apply_requires_header_handle");
+  }
+  return {
+    ...template,
+    components: template.components.map((component) => {
+      if (!isRecord(component) || component.type !== "HEADER" || component.format !== "IMAGE") {
+        return component;
+      }
+      const example = isRecord(component.example) ? component.example : {};
+      return { ...component, example: { ...example, header_handle: [safeHandle] } };
+    }),
+  };
 }
 
 export type TemplateProvisionDependencies = {

@@ -1,5 +1,6 @@
 import type { DeliveryFailureClass } from "@/lib/messaging.types";
 import { classifyProviderFailure } from "@/lib/messagingPolicy";
+import { validateTransactionalEmailSenderConfig } from "@/lib/transactionalEmail";
 
 type FetchLike = typeof fetch;
 
@@ -251,10 +252,13 @@ export async function sendResendEmail(
   fetchImpl: FetchLike = fetch,
 ): Promise<ProviderSendResult> {
   let apiKey: string;
-  let from: string;
+  let sender: { from: string; replyTo: string };
   try {
     apiKey = required(env, "RESEND_API_KEY");
-    from = required(env, "MESSAGING_EMAIL_FROM");
+    sender = validateTransactionalEmailSenderConfig({
+      from: env.MESSAGING_EMAIL_FROM,
+      replyTo: env.MESSAGING_EMAIL_REPLY_TO,
+    });
   } catch (error) {
     return { ok: false, failureClass: "configuration", error: errorMessage(error, "config") };
   }
@@ -267,15 +271,13 @@ export async function sendResendEmail(
         "Idempotency-Key": input.idempotencyKey,
       },
       body: JSON.stringify({
-        from,
+        from: sender.from,
         to: [input.to],
         subject: input.subject,
         html: input.html,
         text: input.text,
         ...(input.headers ? { headers: input.headers } : {}),
-        ...(env.MESSAGING_EMAIL_REPLY_TO?.trim()
-          ? { reply_to: env.MESSAGING_EMAIL_REPLY_TO.trim() }
-          : {}),
+        reply_to: sender.replyTo,
       }),
     });
     const payload = (await response.json().catch(() => ({}))) as {

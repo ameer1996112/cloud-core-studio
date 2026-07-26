@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildTemplateReconciliationPlan,
   parseTemplateProvisioningArgs,
+  prepareTemplateForProviderCreate,
   provisionWhatsappTemplates,
 } from "../../src/lib/whatsappTemplateProvisioning.ts";
 
@@ -12,6 +13,16 @@ describe("WhatsApp v2 template provisioning", () => {
       apply: false,
       scope: "concierge",
     });
+    expect(
+      parseTemplateProvisioningArgs([
+        "--refresh",
+        "--waba-id",
+        "1009561255148806",
+        "--scope",
+        "concierge",
+      ]),
+    ).toMatchObject({ mode: "refresh", scope: "concierge" });
+    expect(() => parseTemplateProvisioningArgs(["--refresh"])).toThrow("refresh_requires_waba_id");
     expect(() => parseTemplateProvisioningArgs(["--scope", "other"])).toThrow(
       "invalid_template_scope",
     );
@@ -24,6 +35,33 @@ describe("WhatsApp v2 template provisioning", () => {
     ).toMatchObject({ apply: true, wabaId: "1009561255148806" });
   });
 
+  test("replaces image header URLs with an operator-provided Meta media handle for creation", () => {
+    const template = {
+      name: "booking_confirmed_first_branded_v2",
+      language: "he",
+      category: "UTILITY",
+      components: [
+        {
+          type: "HEADER",
+          format: "IMAGE",
+          example: { header_handle: ["https://cloudandcorestudio.com/brand/header.webp"] },
+        },
+      ],
+    };
+
+    expect(() => prepareTemplateForProviderCreate(template)).toThrow(
+      "apply_requires_header_handle",
+    );
+    expect(prepareTemplateForProviderCreate(template, "4::meta-uploaded-handle")).toMatchObject({
+      components: [
+        {
+          type: "HEADER",
+          example: { header_handle: ["4::meta-uploaded-handle"] },
+        },
+      ],
+    });
+  });
+
   test("plan mode reports content drift without creating or acquiring a provider lease", async () => {
     let creates = 0;
     let leaseAcquires = 0;
@@ -31,7 +69,12 @@ describe("WhatsApp v2 template provisioning", () => {
       wabaId: "1009561255148806",
       apply: false,
       templates: [
-        { name: "booking_confirmed_first_branded_v2", language: "he", category: "UTILITY", components: [] },
+        {
+          name: "booking_confirmed_first_branded_v2",
+          language: "he",
+          category: "UTILITY",
+          components: [],
+        },
       ],
       lease: {
         acquire: async () => {

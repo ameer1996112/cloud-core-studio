@@ -53,14 +53,31 @@ revert application code if necessary. The additive schema remains for audit and 
 ## Branded WhatsApp approval and rollback
 
 The template provisioner is plan-only by default. Review the reconciliation report before any
-provider write. For Concierge-only provider submission, use the exact confirmed WABA command:
+provider write. Plan mode remains local-only and lists IMAGE-header handle prerequisites; it does
+not fetch Meta or write deployment records. For Concierge-only provider submission, first obtain
+the uploaded Meta media handle, then use the exact confirmed WABA command:
 
 ```sh
-bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806 --scope concierge
+bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806 \
+  --scope concierge --header-handle "$META_TEMPLATE_IMAGE_HEADER_HANDLE"
 ```
 
 Do not use the tool to update drifted approved content in place. The Concierge catalog uses the
 new `_branded_v2` template names; investigate and reconcile provider errors before a retry.
+The public header URL is used at message runtime; the template creation payload uses the uploaded
+Meta media handle. Never log access tokens or media handles in operational evidence.
+
+After provider approval, re-sync the existing scoped deployment rows without recreating a
+template:
+
+```sh
+bun scripts/create-whatsapp-templates.mjs --refresh --waba-id 1009561255148806 \
+  --scope concierge --header-handle "$META_TEMPLATE_IMAGE_HEADER_HANDLE"
+```
+
+Refresh is read-only to Meta and fails closed unless the confirmed WABA and Supabase service
+configuration are present. It records current provider status and the provider-compatible content
+hash; it never creates a template.
 
 Promote branded templates only in this order:
 
@@ -78,3 +95,11 @@ present. Confirm the WhatsApp display name is **Cloud & Core Studio**, and its p
 the logo, description, website, email, and address. Verify the header asset URL returns HTTPS
 200 with the correct content type and a stable cache policy. Gmail avatars are provider-controlled
 and cannot be guaranteed by email HTML.
+
+Before enabling email delivery, set `MESSAGING_EMAIL_FROM` to `Cloud & Core Studio <address>`
+and `MESSAGING_EMAIL_REPLY_TO` to a valid support address. The provider adapter validates both
+locally before attempting a Resend request; domain verification remains an external provider
+requirement.
+
+Task 7 must verify the production public header URL from the deployed edge: HTTPS 200,
+`image/webp`, and the intended stable cache policy. No network verification is performed here.

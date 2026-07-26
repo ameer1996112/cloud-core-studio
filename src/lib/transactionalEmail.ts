@@ -25,6 +25,25 @@ export type RenderedTransactionalEmail = {
   headers: Record<string, string>;
 };
 
+const BRANDED_SENDER_DISPLAY_NAME = "Cloud & Core Studio";
+const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Validates configuration only; provider verification remains an operational prerequisite. */
+export function validateTransactionalEmailSenderConfig(input: {
+  from?: string | null;
+  replyTo?: string | null;
+}) {
+  const from = input.from?.trim() ?? "";
+  const replyTo = input.replyTo?.trim() ?? "";
+  const fromMatch = from.match(/^Cloud & Core Studio <([^<>\s]+)>$/);
+  if (!fromMatch || !EMAIL_ADDRESS.test(fromMatch[1])) {
+    throw new Error("invalid_messaging_email_from");
+  }
+  if (!replyTo) throw new Error("missing_messaging_email_reply_to");
+  if (!EMAIL_ADDRESS.test(replyTo)) throw new Error("invalid_messaging_email_reply_to");
+  return { from: `${BRANDED_SENDER_DISPLAY_NAME} <${fromMatch[1]}>`, replyTo };
+}
+
 type LocalizedCopy = {
   kicker: string;
   cta: string;

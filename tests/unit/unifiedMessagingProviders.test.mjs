@@ -202,7 +202,7 @@ describe("unified messaging provider adapters", () => {
     };
     const env = {
       RESEND_API_KEY: "re_test",
-      MESSAGING_EMAIL_FROM: "Cloud & Core <studio@example.com>",
+      MESSAGING_EMAIL_FROM: "Cloud & Core Studio <studio@example.com>",
       MESSAGING_EMAIL_REPLY_TO: "team@example.com",
     };
     const fetchImpl = async (_url, init) => {
@@ -222,5 +222,34 @@ describe("unified messaging provider adapters", () => {
     expect(JSON.parse(requests[0].body).headers).toEqual({
       "X-Entity-Ref-ID": "cc-booking-delivery-123",
     });
+  });
+
+  test("fails email delivery configuration before making a provider request", async () => {
+    let requests = 0;
+    const result = await sendResendEmail(
+      {
+        to: "staff@example.com",
+        subject: "Booking confirmed",
+        html: "<p>Confirmed</p>",
+        text: "Confirmed",
+        idempotencyKey: "delivery-124",
+      },
+      {
+        RESEND_API_KEY: "re_test",
+        MESSAGING_EMAIL_FROM: "Cloud & Core <studio@example.com>",
+        MESSAGING_EMAIL_REPLY_TO: "team@example.com",
+      },
+      async () => {
+        requests += 1;
+        return Response.json({ id: "unexpected" });
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      failureClass: "configuration",
+      error: "invalid_messaging_email_from",
+    });
+    expect(requests).toBe(0);
   });
 });

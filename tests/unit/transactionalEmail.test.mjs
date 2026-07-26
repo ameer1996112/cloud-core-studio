@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { MESSAGE_CONTENT_CATALOG } from "../../src/lib/messageTemplateCatalog.ts";
 import {
   renderTransactionalEmail,
+  validateTransactionalEmailSenderConfig,
   validateTransactionalEmailPresentationCatalog,
 } from "../../src/lib/transactionalEmail.ts";
 
@@ -21,6 +22,30 @@ const baseInput = {
 };
 
 describe("premium transactional email renderer", () => {
+  test("requires the branded From mailbox and a Reply-To without sending mail", () => {
+    expect(
+      validateTransactionalEmailSenderConfig({
+        from: "Cloud & Core Studio <studio@cloudandcorestudio.com>",
+        replyTo: "support@cloudandcorestudio.com",
+      }),
+    ).toEqual({
+      from: "Cloud & Core Studio <studio@cloudandcorestudio.com>",
+      replyTo: "support@cloudandcorestudio.com",
+    });
+    expect(() =>
+      validateTransactionalEmailSenderConfig({
+        from: "Cloud & Core <studio@cloudandcorestudio.com>",
+        replyTo: "support@cloudandcorestudio.com",
+      }),
+    ).toThrow("invalid_messaging_email_from");
+    expect(() =>
+      validateTransactionalEmailSenderConfig({
+        from: "Cloud & Core Studio <studio@cloudandcorestudio.com>",
+        replyTo: "",
+      }),
+    ).toThrow("missing_messaging_email_reply_to");
+  });
+
   test("renders a branded Outlook-safe Hebrew email with a text alternative", () => {
     const rendered = renderTransactionalEmail(baseInput);
 

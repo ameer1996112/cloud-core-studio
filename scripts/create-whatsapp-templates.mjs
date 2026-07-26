@@ -14,7 +14,9 @@ import {
 import {
   buildTemplateReconciliationPlan,
   parseTemplateProvisioningArgs,
+  prepareTemplateForProviderCreate,
   provisionWhatsappTemplates,
+  templateRequiresHeaderHandle,
   templateContentHash,
 } from "../src/lib/whatsappTemplateProvisioning.ts";
 
@@ -183,24 +185,59 @@ let templates = templatesForScope[args.scope];
 if (args.only) templates = templates.filter((template) => template.name === args.only);
 if (!templates.length) throw new Error(`template_not_found:${args.only ?? args.scope}`);
 
-const lookupConfigured = Boolean(
-  process.env.META_GRAPH_API_VERSION?.trim() &&
-  process.env.META_ACCESS_TOKEN?.trim() &&
-  (args.wabaId || process.env.META_WABA_ID?.trim()),
-);
 const wabaId = args.wabaId || process.env.META_WABA_ID?.trim();
+const imageHeaderTemplates = templates
+  .filter(templateRequiresHeaderHandle)
+  .map((template) => `${template.name}:${template.language}`);
 
-if (!args.apply && !lookupConfigured) {
+if (args.mode === "plan") {
   const plan = await buildTemplateReconciliationPlan(templates, []);
-  console.log(JSON.stringify({ mode: "plan", remoteLookup: false, plan }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        mode: "plan",
+        remoteLookup: false,
+        deploymentSync: { synced: false, reason: "plan_only" },
+        headerHandlePrerequisites: imageHeaderTemplates,
+        headerHandleConfigured: Boolean(args.headerHandle?.trim()),
+        plan,
+      },
+      null,
+      2,
+    ),
+  );
   process.exit(0);
 }
 
 if (!wabaId) throw new Error("missing_environment:META_WABA_ID");
+const providerTemplates = templates.map((template) =>
+  prepareTemplateForProviderCreate(template, args.headerHandle),
+);
+
+if (args.mode === "refresh") {
+  const remoteTemplates = await listAllMetaTemplates(wabaId);
+  const synced = await syncDeploymentRecords(wabaId, providerTemplates, remoteTemplates);
+  if (!synced.synced) throw new Error("refresh_requires_supabase_service_configuration");
+  console.log(
+    JSON.stringify(
+      {
+        mode: "refresh",
+        wabaId,
+        providerReadOnly: true,
+        created: 0,
+        deploymentSync: synced,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
+
 const result = await provisionWhatsappTemplates({
   wabaId,
-  apply: args.apply,
-  templates,
+  apply: true,
+  templates: providerTemplates,
   lease: {
     acquire: async (owner) =>
       Boolean(
@@ -221,15 +258,11 @@ const result = await provisionWhatsappTemplates({
     create: (template) => createMetaTemplate(wabaId, template),
   },
 });
-const synced = args.apply
-  ? await syncDeploymentRecords(wabaId, templates, await listAllMetaTemplates(wabaId))
-  : { synced: false, reason: "plan_only" };
-
-console.log(
-  JSON.stringify(
-    { mode: args.apply ? "apply" : "plan", wabaId, ...result, deploymentSync: synced },
-    null,
-    2,
-  ),
+const synced = await syncDeploymentRecords(
+  wabaId,
+  providerTemplates,
+  await listAllMetaTemplates(wabaId),
 );
+
+console.log(JSON.stringify({ mode: "apply", wabaId, ...result, deploymentSync: synced }, null, 2));
 if (result.errors?.length) process.exitCode = 1;
