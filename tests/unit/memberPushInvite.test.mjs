@@ -9,6 +9,7 @@ function decide(overrides = {}) {
     isNativeIos: true,
     isLoading: false,
     isBootstrapPending: false,
+    isRegistrationPending: false,
     hasActiveDevice: false,
     dismissed: false,
     ...overrides,
@@ -24,6 +25,7 @@ describe("member push invitation policy", () => {
     expect(decide({ hasActiveDevice: true })).toBe(false);
     expect(decide({ isLoading: true })).toBe(false);
     expect(decide({ isBootstrapPending: true })).toBe(false);
+    expect(decide({ isRegistrationPending: true })).toBe(false);
     expect(decide({ dismissed: true })).toBe(false);
   });
 

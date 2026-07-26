@@ -13,6 +13,7 @@ export function shouldShowMemberPushInvite(input: {
   isNativeIos: boolean;
   isLoading: boolean;
   isBootstrapPending: boolean;
+  isRegistrationPending: boolean;
   hasActiveDevice: boolean;
   dismissed: boolean;
 }) {
@@ -20,6 +21,7 @@ export function shouldShowMemberPushInvite(input: {
     input.isNativeIos &&
     !input.isLoading &&
     !input.isBootstrapPending &&
+    !input.isRegistrationPending &&
     !input.hasActiveDevice &&
     !input.dismissed
   );

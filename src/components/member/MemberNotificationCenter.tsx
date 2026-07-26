@@ -163,6 +163,7 @@ export function MemberNotificationCenter({
   );
   const [isNativeIos, setIsNativeIos] = useState(false);
   const [isPushBootstrapPending, setIsPushBootstrapPending] = useState(true);
+  const [isPushRegistrationPending, setIsPushRegistrationPending] = useState(false);
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -176,6 +177,7 @@ export function MemberNotificationCenter({
     };
     const registrationFailed = () => {
       setInviteDismissed(false);
+      setIsPushRegistrationPending(false);
       setPermissionMessage(copy.unavailable);
     };
     const foreground = (event: Event) => {
@@ -194,7 +196,11 @@ export function MemberNotificationCenter({
         if (cancelled) return;
         setIsNativeIos(nativeIos);
         if (nativeIos) {
-          await bootstrapMemberPushRegistration();
+          const result = await bootstrapMemberPushRegistration();
+          if (cancelled) return;
+          if (result.ok || result.skipped === "already_started") {
+            setIsPushRegistrationPending(true);
+          }
           await queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
         }
       } catch (error) {
@@ -254,6 +260,7 @@ export function MemberNotificationCenter({
     isNativeIos,
     isLoading: query.isLoading,
     isBootstrapPending: isPushBootstrapPending,
+    isRegistrationPending: isPushRegistrationPending,
     hasActiveDevice: Boolean(data?.hasActiveDevice),
     dismissed: inviteDismissed,
   });
@@ -263,6 +270,7 @@ export function MemberNotificationCenter({
     try {
       const result = await startMemberPushRegistration();
       if (result.ok || result.skipped === "already_started") {
+        setIsPushRegistrationPending(true);
         setPermissionMessage(copy.enabled);
         return;
       }
