@@ -22,6 +22,10 @@ const rendered = [
     templateVersion: 4,
     subject: null,
     body: "Your class is booked.",
+    presentationVersion: 2,
+    providerTemplateName: "booking_confirmed_first_branded_v2",
+    providerContentHash: "booking-v2-exact-hash",
+    selectionId: "selection-booking-v2",
   },
 ];
 
@@ -67,6 +71,8 @@ describe("concierge delivery materialization plan", () => {
       template_name: "booking_confirmed_first_branded_v2",
       template_language: "ar",
       presentation_key: "booking_confirmed_first:whatsapp:v2",
+      expected_content_hash: "booking-v2-exact-hash",
+      selection_id: "selection-booking-v2",
       components: [
         {
           type: "header",
@@ -92,6 +98,59 @@ describe("concierge delivery materialization plan", () => {
       presentationKey: "booking_confirmed_first:in_app:v2",
       journeyType: "booking",
       actionUrl: "https://cloudandcorestudio.com/member/bookings",
+    });
+  });
+
+  test("materializes an executable rollback selection without a v2 image header", () => {
+    const [delivery] = buildConciergeMaterializationPlan({
+      decisionKey: "decision:booking-rollback",
+      templateKey: "booking_confirmed_first",
+      journeyType: "booking",
+      presentationByChannel: {
+        whatsapp: "booking_confirmed_first:whatsapp:v1",
+      },
+      actionByChannel: { whatsapp: null },
+      locale: "en",
+      rendered: [
+        {
+          channel: "whatsapp",
+          templateId: "template-whatsapp-v1",
+          templateVersion: 1,
+          subject: null,
+          body: "Your class is booked.",
+          templateVariables: ["member_name"],
+          presentationVersion: 1,
+          providerTemplateName: "booking_confirmed_first",
+          providerContentHash: "booking-v1-exact-hash",
+          selectionId: "selection-booking-v1",
+        },
+      ],
+      variables: { member_name: "Noa" },
+      recipient: {
+        memberId: "member-1",
+        email: "member@example.com",
+        phoneE164: "+972500000000",
+      },
+      scheduledFor: "2026-07-26T10:00:00.000Z",
+      expiresAt: null,
+    });
+
+    expect(delivery.snapshot).toMatchObject({
+      presentationKey: "booking_confirmed_first:whatsapp:v1",
+      selectionId: "selection-booking-v1",
+    });
+    expect(delivery.delivery.providerPayload).toEqual({
+      template_name: "booking_confirmed_first",
+      template_language: "en_US",
+      presentation_key: "booking_confirmed_first:whatsapp:v1",
+      expected_content_hash: "booking-v1-exact-hash",
+      selection_id: "selection-booking-v1",
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "Noa" }],
+        },
+      ],
     });
   });
 

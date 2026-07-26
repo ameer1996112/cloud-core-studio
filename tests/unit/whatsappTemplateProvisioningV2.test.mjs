@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  buildReadOnlyTemplateReconciliationPlan,
   buildTemplateReconciliationPlan,
   parseTemplateProvisioningArgs,
   prepareTemplateForProviderCreate,
@@ -15,6 +16,21 @@ describe("WhatsApp v2 template provisioning", () => {
     expect(parseTemplateProvisioningArgs(["--scope", "concierge"])).toMatchObject({
       apply: false,
       scope: "concierge",
+    });
+    expect(parseTemplateProvisioningArgs(["--plan", "--local-only"])).toMatchObject({
+      mode: "plan",
+      localOnly: true,
+    });
+    expect(
+      parseTemplateProvisioningArgs([
+        "--apply",
+        "--waba-id",
+        "1009561255148806",
+        "--header-handle-stdin",
+      ]),
+    ).toMatchObject({
+      mode: "apply",
+      headerHandleStdin: true,
     });
     expect(
       parseTemplateProvisioningArgs([
@@ -36,6 +52,47 @@ describe("WhatsApp v2 template provisioning", () => {
     expect(
       parseTemplateProvisioningArgs(["--apply", "--waba-id", "1009561255148806"]),
     ).toMatchObject({ apply: true, wabaId: "1009561255148806" });
+    expect(() =>
+      parseTemplateProvisioningArgs(["--header-handle", "4::private-provider-handle"]),
+    ).toThrow("private_media_handle_argv_forbidden");
+    expect(() =>
+      parseTemplateProvisioningArgs(["--header-handle=4::private-provider-handle"]),
+    ).toThrow("private_media_handle_argv_forbidden");
+    expect(() => parseTemplateProvisioningArgs(["--header-handle-stdin"])).toThrow(
+      "header_handle_stdin_requires_apply_mode",
+    );
+  });
+
+  test("performs an authenticated read-only provider reconciliation when available", async () => {
+    let providerReads = 0;
+    const template = {
+      name: "booking_confirmed_first_branded_v2",
+      language: "he",
+      category: "UTILITY",
+      components: [],
+    };
+    const remotePlan = await buildReadOnlyTemplateReconciliationPlan({
+      templates: [template],
+      remoteLookup: async () => {
+        providerReads += 1;
+        return [template];
+      },
+    });
+    expect(remotePlan).toMatchObject({
+      remoteLookup: { status: "succeeded", remoteCount: 1 },
+      plan: [{ action: "unchanged" }],
+    });
+    expect(providerReads).toBe(1);
+
+    const localPlan = await buildReadOnlyTemplateReconciliationPlan({
+      templates: [template],
+      localOnlyReason: "credentials_unavailable",
+    });
+    expect(localPlan).toMatchObject({
+      remoteLookup: { status: "local_only", reason: "credentials_unavailable", remoteCount: 0 },
+      plan: [{ action: "create" }],
+    });
+    expect(providerReads).toBe(1);
   });
 
   test("replaces image header URLs with an operator-provided Meta media handle for creation", () => {
@@ -63,6 +120,33 @@ describe("WhatsApp v2 template provisioning", () => {
         },
       ],
     });
+  });
+
+  test("hashes provider-only IMAGE header handles as the catalog header example", () => {
+    const catalog = {
+      name: "booking_confirmed_first_branded_v2",
+      language: "he",
+      category: "UTILITY",
+      components: [
+        {
+          type: "HEADER",
+          format: "IMAGE",
+          example: {
+            header_handle: ["https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp"],
+          },
+        },
+        { type: "BODY", text: "Hi {{1}}" },
+      ],
+    };
+    const provider = prepareTemplateForProviderCreate(catalog, "4::private-provider-handle");
+
+    expect(templateContentHash(provider)).toBe(templateContentHash(catalog));
+    expect(
+      templateContentHash({
+        ...provider,
+        components: [provider.components[0], { type: "BODY", text: "Changed {{1}}" }],
+      }),
+    ).not.toBe(templateContentHash(catalog));
   });
 
   test("plan mode reports content drift without creating or acquiring a provider lease", async () => {

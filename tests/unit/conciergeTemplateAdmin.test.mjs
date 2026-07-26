@@ -84,9 +84,15 @@ describe("Concierge template admin filters", () => {
   test("renders localized fixture values without unresolved tokens", () => {
     const preview = renderConciergeTemplatePreview({
       ...templates[0],
-      body_template: "היי {{member_name}}, ההזמנה אושרה",
+      body_template:
+        "היי {{member_name}}, {{class_name}} ב-{{class_date}} בשעה {{class_time}}. " +
+        "{{amount}} בתאריך {{payment_date}}. {{recommendation_summary}} · {{week_of}} · {{offer_expires_at}}",
     });
-    expect(preview.body).toBe("היי נועה, ההזמנה אושרה");
+    expect(preview.body).toContain("נועה");
+    expect(preview.body).toContain("פילאטיס מזרן");
+    expect(preview.body).toContain("28/07/2026");
+    expect(preview.body).toContain("₪350");
+    expect(preview.body).toContain("27/07/2026");
     expect(preview.body).not.toContain("{{");
   });
 });

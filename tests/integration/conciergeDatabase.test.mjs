@@ -24,13 +24,22 @@ const ids = {
   recipient: "82000000-0000-0000-0000-000000000001",
   journey1: "83000000-0000-0000-0000-000000000001",
   journey2: "83000000-0000-0000-0000-000000000002",
+  journey3: "83000000-0000-0000-0000-000000000003",
   intent1: "84000000-0000-0000-0000-000000000001",
   intent2: "84000000-0000-0000-0000-000000000002",
+  intent3: "84000000-0000-0000-0000-000000000003",
   template: "85000000-0000-0000-0000-000000000001",
   emailTemplate: "85000000-0000-0000-0000-000000000002",
   whatsappTemplate: "85000000-0000-0000-0000-000000000003",
+  pushDeliveryVersion: "87000000-0000-0000-0000-000000000001",
+  emailDeliveryVersion: "87000000-0000-0000-0000-000000000002",
+  whatsappDeliveryVersion: "87000000-0000-0000-0000-000000000003",
+  pushSelection: "88000000-0000-0000-0000-000000000001",
+  emailSelection: "88000000-0000-0000-0000-000000000002",
+  whatsappSelection: "88000000-0000-0000-0000-000000000003",
   correlation1: "86000000-0000-0000-0000-000000000001",
   correlation2: "86000000-0000-0000-0000-000000000002",
+  correlation3: "86000000-0000-0000-0000-000000000003",
 };
 
 function materializeSql(
@@ -54,7 +63,7 @@ function materializeSql(
           "channel":"push","renderedVariables":{"member_name":"Test"},
           "finalSubject":"Booked","finalBody":"Your class is booked",
           "presentationKey":"booking_confirmed_repeat:push:v1","journeyType":"booking",
-          "actionUrl":"${actionUrl}"
+          "actionUrl":null,"selectionId":"${ids.pushSelection}"
         },
         "delivery":{
           "channel":"push","provider":"apns","recipientAddress":"${ids.user}",
@@ -67,7 +76,7 @@ function materializeSql(
           "channel":"whatsapp","renderedVariables":{"member_name":"Test"},
           "finalSubject":null,"finalBody":"Your class is booked",
           "presentationKey":"booking_confirmed_repeat:whatsapp:v2","journeyType":"booking",
-          "actionUrl":"${actionUrl}"
+          "actionUrl":"${actionUrl}","selectionId":"${ids.whatsappSelection}"
         },
         "delivery":{
           "channel":"whatsapp","provider":"official_whatsapp","recipientAddress":"+972500000000",
@@ -76,6 +85,8 @@ function materializeSql(
           "providerPayload":{
             "template_name":"booking_confirmed_repeat_branded_v2","template_language":"en_US",
             "presentation_key":"booking_confirmed_repeat:whatsapp:v2",
+            "expected_content_hash":"integration-v2-hash",
+            "selection_id":"${ids.whatsappSelection}",
             "components":[
               {"type":"header","parameters":[{"type":"image","image":{"link":"https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp"}}]},
               {"type":"body","parameters":[{"type":"text","text":"Test"}]}
@@ -88,7 +99,7 @@ function materializeSql(
           "channel":"email","renderedVariables":{"member_name":"Test"},
           "finalSubject":"Booked","finalBody":"Your class is booked",
           "presentationKey":"booking_confirmed_repeat:email:v2","journeyType":"booking",
-          "actionUrl":"${actionUrl}"
+          "actionUrl":"${actionUrl}","selectionId":"${ids.emailSelection}"
         },
         "delivery":{
           "channel":"email","provider":"resend","recipientAddress":"concierge-test@example.com",
@@ -102,7 +113,57 @@ function materializeSql(
   `;
 }
 
+function invalidMaterializationsSql(materializations, legacy = false) {
+  const common = `
+    '00000000-0000-0000-0000-000000000001'::uuid,
+    '00000000-0000-0000-0000-000000000002'::uuid,
+    '00000000-0000-0000-0000-000000000003'::uuid,
+    'invalid-shape','policy',1,'test_only','booking_confirmed_repeat',
+    '00000000-0000-0000-0000-000000000004'::uuid,
+    '{}'::text[],'{}'::uuid[],'{}'::jsonb,${materializations}`;
+  return legacy
+    ? `SELECT * FROM public.materialize_concierge_delivery(${common},now());`
+    : `SELECT * FROM public.materialize_concierge_delivery(${common},null::text,now());`;
+}
+
+function legacyMaterializeSql() {
+  return `
+    SELECT outcome || ':' || COALESCE(result_suppression_reason,'')
+    FROM public.materialize_concierge_delivery(
+      (SELECT id FROM public.studios WHERE slug='cloud-core'),
+      '${ids.recipient}','${ids.intent3}','test-dispatch:legacy',
+      'concierge-2026-07-v1',2,'test_only','booking_confirmed_repeat',
+      '${ids.correlation3}',ARRAY['legacy_compatibility'],'{}'::uuid[],
+      '{"member_name":"Test"}'::jsonb,
+      '[{
+        "snapshot":{
+          "templateId":"${ids.template}","templateVersion":1,"locale":"en",
+          "channel":"push","renderedVariables":{"member_name":"Test"},
+          "finalSubject":"Booked","finalBody":"Your class is booked"
+        },
+        "delivery":{
+          "channel":"push","provider":"apns","recipientAddress":"${ids.user}",
+          "status":"queued","errorCode":null,"idempotencyKey":"test-dispatch:legacy:push",
+          "scheduledFor":"2026-07-26T10:00:00Z","expiresAt":null,"providerPayload":{}
+        }
+      }]'::jsonb,
+      '2026-07-26T10:00:00Z'
+    );
+  `;
+}
+
 describe("concierge database integration", () => {
+  test.skipIf(!databaseUrl)("rejects SQL null, JSON null, objects, and empty arrays", async () => {
+    for (const materializations of ["NULL::jsonb", "'null'::jsonb", "'{}'::jsonb", "'[]'::jsonb"]) {
+      await expect(psql(invalidMaterializationsSql(materializations))).rejects.toThrow(
+        "materializations_required",
+      );
+      await expect(psql(invalidMaterializationsSql(materializations, true))).rejects.toThrow(
+        "materializations_required",
+      );
+    }
+  });
+
   test.skipIf(!databaseUrl)(
     "materializes once and atomically protects recipient contact capacity",
     async () => {
@@ -110,13 +171,28 @@ describe("concierge database integration", () => {
         DELETE FROM public.automation_config_versions
         WHERE journey_type='booking' AND version=2
           AND studio_id=(SELECT id FROM public.studios WHERE slug='cloud-core');
-        DELETE FROM public.concierge_template_versions WHERE id IN ('${ids.template}','${ids.emailTemplate}','${ids.whatsappTemplate}');
+        DELETE FROM public.concierge_delivery_selections
+        WHERE studio_id=(SELECT id FROM public.studios WHERE slug='cloud-core')
+          AND template_key='booking_confirmed_repeat'
+          AND channel IN ('push','email','whatsapp')
+          AND locale='en';
+        DELETE FROM public.concierge_delivery_versions
+        WHERE studio_id=(SELECT id FROM public.studios WHERE slug='cloud-core')
+          AND template_key='booking_confirmed_repeat'
+          AND channel IN ('push','email','whatsapp')
+          AND locale='en';
+        DELETE FROM public.concierge_template_versions
+        WHERE studio_id=(SELECT id FROM public.studios WHERE slug='cloud-core')
+          AND template_key='booking_confirmed_repeat'
+          AND channel IN ('push','email','whatsapp')
+          AND locale='en';
         DELETE FROM public.whatsapp_template_deployments
         WHERE waba_id IN ('concierge-integration','another-approved-waba')
           AND template_name='booking_confirmed_repeat_branded_v2';
         DELETE FROM auth.users WHERE id='${ids.user}';
         INSERT INTO auth.users(id,aud,role,email,created_at,updated_at)
         VALUES ('${ids.user}','authenticated','authenticated','concierge-test@example.com',now(),now());
+        UPDATE public.profiles SET role='admin' WHERE id='${ids.user}';
         UPDATE public.members
         SET name='Concierge Test',preferred_language='en',
             email='concierge-test@example.com',status='active'
@@ -135,26 +211,56 @@ describe("concierge database integration", () => {
         );
         INSERT INTO public.concierge_template_versions(
           id,studio_id,template_key,channel,locale,version,lifecycle_status,
-          subject_template,body_template,required_variables,content_hash,approved_at
+          subject_template,body_template,required_variables,content_hash,approved_at,approved_by
         ) VALUES (
           '${ids.template}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           'booking_confirmed_repeat','push','en',1,'approved','Booked',
-          'Your class is booked',ARRAY['member_name'],'integration',now()
+          'Your class is booked',ARRAY['member_name'],'integration',now(),'${ids.user}'
         ),(
           '${ids.emailTemplate}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           'booking_confirmed_repeat','email','en',1,'approved','Booked',
-          'Your class is booked',ARRAY['member_name'],'integration-email',now()
+          'Your class is booked',ARRAY['member_name'],'integration-email',now(),'${ids.user}'
         ),(
           '${ids.whatsappTemplate}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           'booking_confirmed_repeat','whatsapp','en',1,'approved',null,
-          'Your class is booked',ARRAY['member_name'],'integration-whatsapp',now()
+          'Your class is booked',ARRAY['member_name'],'integration-whatsapp',now(),'${ids.user}'
         );
         INSERT INTO public.whatsapp_template_deployments(
           waba_id,template_name,language,version,category,content_hash,approval_status
         ) VALUES (
-          'concierge-integration','booking_confirmed_repeat_branded_v2','en_US','v2','UTILITY','integration','APPROVED'
+          'concierge-integration','booking_confirmed_repeat_branded_v2','en_US','v2','UTILITY','integration-v2-hash','APPROVED'
         ),(
-          'another-approved-waba','booking_confirmed_repeat_branded_v2','en_US','v2','UTILITY','integration-other','APPROVED'
+          'another-approved-waba','booking_confirmed_repeat_branded_v2','en_US','v2','UTILITY','integration-v2-hash','APPROVED'
+        );
+        INSERT INTO public.concierge_delivery_versions(
+          id,studio_id,journey_type,template_key,channel,locale,
+          source_template_version,presentation_version,provider_template_name,provider_content_hash
+        ) VALUES (
+          '${ids.pushDeliveryVersion}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','booking_confirmed_repeat','push','en',1,1,null,null
+        ),(
+          '${ids.emailDeliveryVersion}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','booking_confirmed_repeat','email','en',1,2,null,null
+        ),(
+          '${ids.whatsappDeliveryVersion}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','booking_confirmed_repeat','whatsapp','en',1,2,
+          'booking_confirmed_repeat_branded_v2','integration-v2-hash'
+        );
+        INSERT INTO public.concierge_delivery_selections(
+          id,studio_id,journey_type,template_key,channel,locale,delivery_mode,
+          delivery_version_id,selected_by
+        ) VALUES (
+          '${ids.pushSelection}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','booking_confirmed_repeat','push','en','test_only',
+          '${ids.pushDeliveryVersion}','${ids.user}'
+        ),(
+          '${ids.emailSelection}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','booking_confirmed_repeat','email','en','test_only',
+          '${ids.emailDeliveryVersion}','${ids.user}'
+        ),(
+          '${ids.whatsappSelection}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','booking_confirmed_repeat','whatsapp','en','test_only',
+          '${ids.whatsappDeliveryVersion}','${ids.user}'
         );
         INSERT INTO public.journey_instances(
           id,studio_id,journey_type,participant_id,communication_recipient_id,
@@ -167,6 +273,10 @@ describe("concierge database integration", () => {
         (
           '${ids.journey2}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           'booking','${ids.user}','${ids.recipient}','active','test-journey:2','${ids.correlation2}'
+        ),
+        (
+          '${ids.journey3}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking','${ids.user}','${ids.recipient}','active','test-journey:3','${ids.correlation3}'
         );
         INSERT INTO public.journey_intents(
           id,studio_id,journey_instance_id,journey_type,participant_id,
@@ -183,6 +293,12 @@ describe("concierge database integration", () => {
           '${ids.intent2}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           '${ids.journey2}','booking','${ids.user}','${ids.recipient}',
           'transactional',3,'2026-07-26T10:00:00Z','test-intent:2',
+          'concierge-2026-07-v1','pending'
+        ),
+        (
+          '${ids.intent3}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          '${ids.journey3}','booking','${ids.user}','${ids.recipient}',
+          'transactional',1,'2026-07-26T10:00:00Z','test-intent:3',
           'concierge-2026-07-v1','pending'
         );
       `);
@@ -213,11 +329,17 @@ describe("concierge database integration", () => {
       );
       expect(
         await psql(`
-          SELECT provider_payload->>'template_name' || ':' || provider_payload->>'presentation_key'
+          SELECT (provider_payload->>'template_name') || ':' ||
+                 (provider_payload->>'presentation_key') || ':' ||
+                 (provider_payload->>'expected_content_hash') || ':' ||
+                 (provider_payload->>'selection_id')
           FROM public.message_deliveries
           WHERE idempotency_key='test-dispatch:${materialized.suffix}:whatsapp';
         `),
-      ).toBe("booking_confirmed_repeat_branded_v2:booking_confirmed_repeat:whatsapp:v2");
+      ).toBe(
+        `booking_confirmed_repeat_branded_v2:booking_confirmed_repeat:whatsapp:v2:` +
+          `integration-v2-hash:${ids.whatsappSelection}`,
+      );
       expect(
         await psql(
           `SELECT count(*) FROM public.frequency_reservations WHERE communication_recipient_id='${ids.recipient}';`,
@@ -239,18 +361,11 @@ describe("concierge database integration", () => {
         SET materialization_evidence=NULL
         WHERE decision_key='test-dispatch:${materialized.suffix}';
       `);
-      expect(
-        await psql(
+      await expect(
+        psql(
           materializeSql(materialized.intentId, materialized.correlationId, materialized.suffix),
         ),
-      ).toBe("duplicate:");
-      expect(
-        await psql(`
-          SELECT (materialization_evidence IS NULL)::text
-          FROM public.concierge_decisions
-          WHERE decision_key='test-dispatch:${materialized.suffix}';
-        `),
-      ).toBe("true");
+      ).rejects.toThrow("snapshot_replay_mismatch");
       await expect(
         psql(
           materializeSql(
@@ -282,6 +397,16 @@ describe("concierge database integration", () => {
           ),
         ),
       ).rejects.toThrow("invalid_concierge_presentation_evidence");
+
+      expect(await psql(legacyMaterializeSql())).toBe("materialized:");
+      expect(
+        await psql(`
+          SELECT m.content->>'presentation_key' || ':' || m.content->>'selection_id'
+          FROM public.messages m
+          JOIN public.message_deliveries d ON d.message_id=m.id
+          WHERE d.idempotency_key='test-dispatch:legacy:push';
+        `),
+      ).toBe(`booking_confirmed_repeat:push:v1:${ids.pushSelection}`);
     },
   );
 });

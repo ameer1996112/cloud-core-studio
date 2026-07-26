@@ -194,6 +194,137 @@ describe("dispatch-time concierge evaluation", () => {
     expect(result.selectedTemplateKey).toBe("payment_terminally_failed");
   });
 
+  test("makes payment and recommendation WhatsApp variants reachable only in test-only mode", () => {
+    const common = {
+      now: new Date("2026-07-26T10:05:00Z"),
+      recipient,
+      recentContacts: [],
+      channelControls,
+      variables: { member_name: "ليان" },
+    };
+    const payment = action({
+      id: "payment",
+      kind: "payment_outcome",
+      purpose: "transactional",
+      metadata: { paymentOutcome: "payment_requires_action" },
+    });
+    const paymentTemplates = [
+      template("payment_requires_action", "in_app"),
+      template("payment_requires_action", "push"),
+      template("payment_requires_action", "email"),
+      template("payment_requires_action", "whatsapp"),
+    ];
+    expect(
+      evaluateConciergeDispatch({
+        ...common,
+        deliveryMode: "test_only",
+        pendingActions: [payment],
+        approvedTemplates: paymentTemplates,
+      }).channels,
+    ).toEqual(["in_app", "push", "email", "whatsapp"]);
+    expect(
+      evaluateConciergeDispatch({
+        ...common,
+        deliveryMode: "live",
+        pendingActions: [payment],
+        approvedTemplates: paymentTemplates,
+      }).channels,
+    ).toEqual(["in_app", "push", "email"]);
+
+    const recommendation = action({
+      id: "recommendation",
+      kind: "recommendation",
+      purpose: "promotional",
+      metadata: {},
+    });
+    const recommendationTemplates = [
+      template("recommendation", "in_app"),
+      template("recommendation", "push"),
+      template("recommendation", "whatsapp"),
+    ];
+    expect(
+      evaluateConciergeDispatch({
+        ...common,
+        deliveryMode: "test_only",
+        pendingActions: [recommendation],
+        approvedTemplates: recommendationTemplates,
+      }).channels,
+    ).toEqual(["in_app", "push", "whatsapp"]);
+    expect(
+      evaluateConciergeDispatch({
+        ...common,
+        deliveryMode: "live",
+        pendingActions: [recommendation],
+        approvedTemplates: recommendationTemplates,
+      }).channels,
+    ).toEqual(["in_app", "push"]);
+  });
+
+  test("carries the persisted presentation and exact provider deployment selection", () => {
+    const selectedWhatsapp = {
+      ...template("booking_confirmed_first", "whatsapp"),
+      presentationVersion: 2,
+      providerTemplateName: "booking_confirmed_first_branded_v2",
+      providerContentHash: "exact-provider-content-hash",
+      selectionId: "selection-test-v2",
+    };
+    const result = evaluateConciergeDispatch({
+      now: new Date("2026-07-26T10:05:00Z"),
+      recipient,
+      recentContacts: [],
+      deliveryMode: "test_only",
+      pendingActions: [action({ metadata: { firstBooking: true } })],
+      channelControls,
+      approvedTemplates: [
+        {
+          ...template("booking_confirmed_first", "in_app"),
+          presentationVersion: 1,
+          selectionId: "selection-live-v1",
+        },
+        selectedWhatsapp,
+      ],
+      variables: { member_name: "ليان" },
+    });
+
+    expect(result.rendered.find((item) => item.channel === "whatsapp")).toMatchObject({
+      presentationVersion: 2,
+      providerTemplateName: "booking_confirmed_first_branded_v2",
+      providerContentHash: "exact-provider-content-hash",
+      selectionId: "selection-test-v2",
+    });
+    expect(result.rendered.find((item) => item.channel === "in_app")).toMatchObject({
+      presentationVersion: 1,
+      selectionId: "selection-live-v1",
+    });
+  });
+
+  test("renders with facts attached to the selected journey action", () => {
+    const result = evaluateConciergeDispatch({
+      now: new Date("2026-07-26T10:05:00Z"),
+      recipient,
+      recentContacts: [],
+      deliveryMode: "test_only",
+      pendingActions: [
+        action({
+          id: "payment",
+          kind: "payment_outcome",
+          purpose: "transactional",
+          metadata: { paymentOutcome: "payment_requires_action" },
+          deliveryVariables: { amount: "₪350", payment_date: "26/07/2026" },
+        }),
+      ],
+      channelControls: { ...channelControls, push: false, email: false, whatsapp: false },
+      approvedTemplates: [template("payment_requires_action", "in_app")],
+      variables: { member_name: "ليان" },
+    });
+
+    expect(result.variables).toEqual({
+      member_name: "ليان",
+      amount: "₪350",
+      payment_date: "26/07/2026",
+    });
+  });
+
   test("keeps in-app durable but blocks disabled external channels", () => {
     const result = evaluateConciergeDispatch({
       now: new Date("2026-07-26T10:05:00Z"),

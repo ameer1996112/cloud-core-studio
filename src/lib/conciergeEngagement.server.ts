@@ -11,7 +11,7 @@ import type {
   ContactRecord,
   RecipientPolicyState,
 } from "@/lib/conciergePolicy";
-import { conciergeWhatsappTemplateName } from "@/lib/conciergeTemplateCatalog";
+import { selectEligibleConciergeTemplates } from "@/lib/conciergeDeliverySelection";
 
 type IntentRow = {
   id: string;
@@ -35,6 +35,75 @@ type OutboxEvidence = {
 
 function relation<T>(value: T | T[] | null): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+function localizedEventDate(value: string, locale: "ar" | "he" | "en") {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : locale === "ar" ? "ar" : "en-GB", {
+    timeZone: "Asia/Jerusalem",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(parsed);
+}
+
+function localizedEventTime(value: string, locale: "ar" | "he" | "en") {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Intl.DateTimeFormat(locale === "he" ? "he-IL" : locale === "ar" ? "ar" : "en-GB", {
+    timeZone: "Asia/Jerusalem",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(parsed);
+}
+
+export function buildConciergeEventVariables(input: {
+  memberName: string;
+  locale: "ar" | "he" | "en";
+  event: { payload?: Record<string, unknown> };
+  studioClass?: { title?: string | null; starts_at?: string | null } | null;
+  payment?: {
+    amount?: number | string | null;
+    currency?: string | null;
+    paid_at?: string | null;
+    created_at?: string | null;
+  } | null;
+}) {
+  const variables: Record<string, unknown> = { member_name: input.memberName };
+  if (input.studioClass?.title?.trim()) variables.class_name = input.studioClass.title.trim();
+  if (input.studioClass?.starts_at) {
+    const date = localizedEventDate(input.studioClass.starts_at, input.locale);
+    const time = localizedEventTime(input.studioClass.starts_at, input.locale);
+    if (date) variables.class_date = date;
+    if (time) variables.class_time = time;
+  }
+  const amount = Number(input.payment?.amount);
+  if (input.payment?.amount != null && Number.isFinite(amount)) {
+    variables.amount = new Intl.NumberFormat(
+      input.locale === "he" ? "he-IL" : input.locale === "ar" ? "ar" : "en-IL",
+      {
+        style: "currency",
+        currency: input.payment?.currency?.trim() || "ILS",
+      },
+    ).format(amount);
+  }
+  const paymentDateValue = input.payment?.paid_at ?? input.payment?.created_at;
+  if (paymentDateValue) {
+    const paymentDate = localizedEventDate(paymentDateValue, input.locale);
+    if (paymentDate) variables.payment_date = paymentDate;
+  }
+  const payload = input.event.payload ?? {};
+  if (typeof payload.offer_expires_at === "string") {
+    const expiresAt = localizedEventTime(payload.offer_expires_at, input.locale);
+    if (expiresAt) variables.offer_expires_at = expiresAt;
+  }
+  for (const key of ["recommendation_summary", "week_of"] as const) {
+    const value = payload[key];
+    if (typeof value === "string" && value.trim()) variables[key] = value.trim();
+  }
+  return variables;
 }
 
 function activeConsentSet(
@@ -127,6 +196,7 @@ export async function loadMemberEngagementState(input: {
   communicationRecipientId: string;
   now: Date;
   journeyTypes?: string[];
+  deliveryMode: "shadow" | "test_only" | "live";
 }): Promise<MemberEngagementState> {
   const db = supabaseAdmin as any;
   const recipientResult = await db
@@ -153,56 +223,76 @@ export async function loadMemberEngagementState(input: {
     intentsQuery = intentsQuery.in("journey_type", input.journeyTypes);
   }
 
-  const [consents, controls, intents, templates, reservations, devices, whatsappDeployments] =
-    await Promise.all([
-      db
-        .from("consent_records")
-        .select("channel,purpose")
-        .eq("studio_id", input.studioId)
-        .eq("communication_recipient_id", input.communicationRecipientId)
-        .eq("locale", recipientResult.data.preferred_locale)
-        .not("granted_at", "is", null)
-        .is("revoked_at", null),
-      db
-        .from("concierge_channel_controls")
-        .select("channel,enabled")
-        .eq("studio_id", input.studioId),
-      intentsQuery,
-      db
-        .from("concierge_template_versions")
-        .select(
-          "id,template_key,channel,locale,version,required_variables,subject_template,body_template",
-        )
-        .eq("studio_id", input.studioId)
-        .eq("locale", recipientResult.data.preferred_locale)
-        .eq("lifecycle_status", "approved"),
-      db
-        .from("frequency_reservations")
-        .select("reserved_at,purpose")
-        .eq("studio_id", input.studioId)
-        .eq("communication_recipient_id", input.communicationRecipientId)
-        .is("released_at", null)
-        .gte("reserved_at", new Date(input.now.getTime() - 7 * 24 * 3_600_000).toISOString()),
-      recipientResult.data.member_id
-        ? db
-            .from("member_push_tokens")
-            .select("id")
-            .eq("member_id", recipientResult.data.member_id)
-            .eq("active", true)
-            .eq("permission_status", "granted")
-            .limit(1)
-        : Promise.resolve({ data: [], error: null }),
-      db
-        .from("whatsapp_template_deployments")
-        .select("template_name,language")
-        .eq("waba_id", process.env.META_WABA_ID?.trim() ?? "")
-        .eq("approval_status", "APPROVED"),
-    ]);
+  const [
+    consents,
+    controls,
+    intents,
+    templates,
+    deliveryVersions,
+    deliverySelections,
+    reservations,
+    devices,
+    whatsappDeployments,
+  ] = await Promise.all([
+    db
+      .from("consent_records")
+      .select("channel,purpose")
+      .eq("studio_id", input.studioId)
+      .eq("communication_recipient_id", input.communicationRecipientId)
+      .eq("locale", recipientResult.data.preferred_locale)
+      .not("granted_at", "is", null)
+      .is("revoked_at", null),
+    db.from("concierge_channel_controls").select("channel,enabled").eq("studio_id", input.studioId),
+    intentsQuery,
+    db
+      .from("concierge_template_versions")
+      .select(
+        "id,template_key,channel,locale,version,lifecycle_status,approved_by,approved_at,required_variables,subject_template,body_template",
+      )
+      .eq("studio_id", input.studioId)
+      .eq("locale", recipientResult.data.preferred_locale)
+      .is("retired_at", null),
+    db
+      .from("concierge_delivery_versions")
+      .select(
+        "id,template_key,channel,locale,source_template_version,presentation_version,provider_template_name,provider_content_hash",
+      )
+      .eq("studio_id", input.studioId)
+      .eq("locale", recipientResult.data.preferred_locale),
+    db
+      .from("concierge_delivery_selections")
+      .select("id,delivery_mode,delivery_version_id")
+      .eq("studio_id", input.studioId)
+      .is("retired_at", null)
+      .eq("delivery_mode", input.deliveryMode === "test_only" ? "test_only" : "live"),
+    db
+      .from("frequency_reservations")
+      .select("reserved_at,purpose")
+      .eq("studio_id", input.studioId)
+      .eq("communication_recipient_id", input.communicationRecipientId)
+      .is("released_at", null)
+      .gte("reserved_at", new Date(input.now.getTime() - 7 * 24 * 3_600_000).toISOString()),
+    recipientResult.data.member_id
+      ? db
+          .from("member_push_tokens")
+          .select("id")
+          .eq("member_id", recipientResult.data.member_id)
+          .eq("active", true)
+          .eq("permission_status", "granted")
+          .limit(1)
+      : Promise.resolve({ data: [], error: null }),
+    db
+      .from("whatsapp_template_deployments")
+      .select("waba_id,template_name,language,approval_status,content_hash")
+      .eq("waba_id", process.env.META_WABA_ID?.trim() ?? ""),
+  ]);
   for (const result of [
     consents,
     controls,
     intents,
     templates,
+    deliveryVersions,
+    deliverySelections,
     reservations,
     devices,
     whatsappDeployments,
@@ -224,6 +314,38 @@ export async function loadMemberEngagementState(input: {
       : { data: [], error: null };
   if (evidenceResult.error) throw evidenceResult.error;
   const evidence = (evidenceResult.data ?? []) as OutboxEvidence[];
+  const classIds = [
+    ...new Set(
+      evidence
+        .map((event) =>
+          typeof event.payload.class_id === "string" ? event.payload.class_id : null,
+        )
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ];
+  const paymentIds = [
+    ...new Set(
+      evidence
+        .map((event) =>
+          typeof event.payload.payment_id === "string" ? event.payload.payment_id : null,
+        )
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ];
+  const [classesResult, paymentsResult] = await Promise.all([
+    classIds.length
+      ? db.from("classes").select("id,title,starts_at").in("id", classIds)
+      : Promise.resolve({ data: [], error: null }),
+    paymentIds.length
+      ? db.from("payments").select("id,amount,currency,paid_at,created_at").in("id", paymentIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (classesResult.error) throw classesResult.error;
+  if (paymentsResult.error) throw paymentsResult.error;
+  const classById = new Map((classesResult.data ?? []).map((row: { id: string }) => [row.id, row]));
+  const paymentById = new Map(
+    (paymentsResult.data ?? []).map((row: { id: string }) => [row.id, row]),
+  );
   const consentRows = (consents.data ?? []) as Array<{
     channel: string;
     purpose: ConciergePurpose;
@@ -255,6 +377,19 @@ export async function loadMemberEngagementState(input: {
           intent.expires_at !== null &&
           new Date(intent.expires_at).getTime() - input.now.getTime() <= 30 * 60_000,
       },
+      deliveryVariables: buildConciergeEventVariables({
+        memberName: recipientResult.data.display_name,
+        locale: recipientResult.data.preferred_locale,
+        event,
+        studioClass:
+          typeof event.payload.class_id === "string"
+            ? (classById.get(event.payload.class_id) ?? null)
+            : null,
+        payment:
+          typeof event.payload.payment_id === "string"
+            ? (paymentById.get(event.payload.payment_id) ?? null)
+            : null,
+      }),
     });
   }
 
@@ -284,26 +419,14 @@ export async function loadMemberEngagementState(input: {
         row.enabled,
       ]),
     ) as Record<ConciergeChannel, boolean>,
-    approvedTemplates: (templates.data ?? [])
-      .filter((row: any) => {
-        if (row.channel !== "whatsapp") return true;
-        const providerLanguage = row.locale === "en" ? "en_US" : row.locale;
-        return (whatsappDeployments.data ?? []).some(
-          (deployment: { template_name: string; language: string }) =>
-            deployment.template_name === conciergeWhatsappTemplateName(row.template_key) &&
-            deployment.language === providerLanguage,
-        );
-      })
-      .map((row: any) => ({
-        id: row.id,
-        templateKey: row.template_key,
-        channel: row.channel,
-        locale: row.locale,
-        version: row.version,
-        requiredVariables: row.required_variables,
-        subjectTemplate: row.subject_template,
-        bodyTemplate: row.body_template,
-      })),
+    approvedTemplates: selectEligibleConciergeTemplates({
+      templates: templates.data ?? [],
+      versions: deliveryVersions.data ?? [],
+      selections: deliverySelections.data ?? [],
+      deployments: whatsappDeployments.data ?? [],
+      deliveryMode: input.deliveryMode,
+      wabaId: process.env.META_WABA_ID?.trim() ?? "",
+    }),
     variables: { member_name: recipientResult.data.display_name },
     deliveryTarget: {
       memberId: recipientResult.data.member_id,
@@ -319,7 +442,14 @@ export async function evaluateRecipientShadowDispatch(input: {
   communicationRecipientId: string;
   now: Date;
   journeyTypes?: string[];
+  deliveryMode?: "shadow" | "test_only" | "live";
 }): Promise<DispatchEvaluation> {
-  const state = await loadMemberEngagementState(input);
-  return evaluateConciergeDispatch({ ...state, now: input.now });
+  const deliveryMode = input.deliveryMode ?? "shadow";
+  const state = await loadMemberEngagementState({ ...input, deliveryMode });
+  return evaluateConciergeDispatch({
+    ...state,
+    pendingActions: state.actions,
+    now: input.now,
+    deliveryMode,
+  });
 }

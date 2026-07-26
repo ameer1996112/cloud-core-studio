@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import {
   approveConciergeTemplates,
   getConciergeCenter,
+  selectConciergeDeliveryVersion,
   setConciergeAutomationMode,
   setConciergeChannelEnabled,
   simulateConciergeDecision,
@@ -19,6 +20,10 @@ import type {
   ConciergeAdminTemplate,
   ConciergeWhatsappDeployment,
 } from "@/lib/conciergeTemplateAdmin";
+import type {
+  ConciergeDeliverySelectionRow,
+  ConciergeDeliveryVersionRow,
+} from "@/lib/conciergeDeliverySelection";
 import type { Lang } from "@/lib/i18n";
 
 type JourneyMode = "paused" | "shadow" | "test_only" | "live";
@@ -215,6 +220,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const setMode = useServerFn(setConciergeAutomationMode);
   const setChannel = useServerFn(setConciergeChannelEnabled);
   const approveTemplates = useServerFn(approveConciergeTemplates);
+  const selectDeliveryVersion = useServerFn(selectConciergeDeliveryVersion);
   const simulate = useServerFn(simulateConciergeDecision);
   const [recipientId, setRecipientId] = useState("preview-recipient");
   const [simulation, setSimulation] = useState<Record<string, unknown> | null>(null);
@@ -248,6 +254,21 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
     onSuccess: async () => {
       await refresh();
       toast.success(copy.templateSuccess);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+  const deliverySelectionMutation = useMutation({
+    mutationFn: (input: {
+      templateKey: string;
+      channel: "in_app" | "push" | "email" | "whatsapp";
+      locale: "ar" | "he" | "en";
+      deliveryMode: "test_only" | "live";
+      presentationVersion: number;
+      confirmation: string;
+    }) => selectDeliveryVersion({ data: input }),
+    onSuccess: async () => {
+      await refresh();
+      toast.success("Concierge delivery version selected");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -295,6 +316,9 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
     []) as ConciergeWhatsappDeployment[];
   const whatsappExpectedContentHashes = (center.data?.whatsappExpectedContentHashes ??
     {}) as Record<string, string>;
+  const deliveryVersions = (center.data?.deliveryVersions ?? []) as ConciergeDeliveryVersionRow[];
+  const deliverySelections = (center.data?.deliverySelections ??
+    []) as ConciergeDeliverySelectionRow[];
 
   return (
     <div className="space-y-7">
@@ -543,6 +567,24 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
           templates={templates}
           whatsappDeployments={whatsappDeployments}
           whatsappExpectedContentHashes={whatsappExpectedContentHashes}
+          deliveryVersions={deliveryVersions}
+          deliverySelections={deliverySelections}
+          selectionPending={deliverySelectionMutation.isPending}
+          onSelectVersion={(template, deliveryMode, presentationVersion) => {
+            const confirmation =
+              deliveryMode === "live"
+                ? "SELECT LIVE CONCIERGE PRESENTATION"
+                : "SELECT TEST CONCIERGE PRESENTATION";
+            if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
+            deliverySelectionMutation.mutate({
+              templateKey: template.template_key,
+              channel: template.channel,
+              locale: template.locale,
+              deliveryMode,
+              presentationVersion,
+              confirmation,
+            });
+          }}
           copy={copy}
         />
       )}

@@ -56,7 +56,7 @@ const FACTS = {
     { key: "class_time", label: { he: "שעה", ar: "الوقت", en: "Time" }, ltr: true },
   ],
   payment: [
-    { key: "payment_amount", label: { he: "סכום", ar: "المبلغ", en: "Amount" }, ltr: true },
+    { key: "amount", label: { he: "סכום", ar: "المبلغ", en: "Amount" }, ltr: true },
     { key: "payment_date", label: { he: "תאריך", ar: "التاريخ", en: "Date" }, ltr: true },
   ],
   schedule: [{ key: "week_of", label: { he: "שבוע של", ar: "أسبوع", en: "Week of" }, ltr: true }],
@@ -172,6 +172,7 @@ export function buildConciergePresentation(input: {
   body: string;
   variables: Record<string, unknown>;
   publicBaseUrl: string;
+  contentMode?: "template" | "final";
 }): ConciergePresentation {
   const definition = JOURNEYS[input.journeyType] ?? DEFAULT_JOURNEY;
 
@@ -180,8 +181,11 @@ export function buildConciergePresentation(input: {
     version: 2,
     journeyType: input.journeyType,
     categoryLabel: definition.categoryLabel[input.locale],
-    subject: renderCopy(input.subject, input.variables),
-    body: renderCopy(input.body, input.variables),
+    subject:
+      input.contentMode === "final"
+        ? (input.subject ?? "")
+        : renderCopy(input.subject, input.variables),
+    body: input.contentMode === "final" ? input.body : renderCopy(input.body, input.variables),
     facts: definition.facts.flatMap((fact) => {
       const value = factValue(input.variables[fact.key]);
       return value === null

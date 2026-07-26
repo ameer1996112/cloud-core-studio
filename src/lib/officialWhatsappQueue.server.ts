@@ -56,6 +56,11 @@ type OfficialWhatsappQueueDeps = {
     error: string;
     providerMessageId?: string | null;
   }): Promise<void>;
+  markAmbiguous(input: {
+    rowId: string;
+    error: string;
+    providerMessageId?: string | null;
+  }): Promise<void>;
   computeRetryAt(input: {
     attemptCount: number;
     failedAt: Date;
@@ -69,6 +74,7 @@ export type OfficialWhatsappRunResult = {
   sent: number;
   requeued: number;
   failed: number;
+  ambiguous: number;
   invalid: number;
   skipped: number;
 };
@@ -247,6 +253,23 @@ function buildQueueDeps(): OfficialWhatsappQueueDeps {
       if (updateError) throw updateError;
     },
 
+    async markAmbiguous({ rowId, error, providerMessageId }) {
+      const { error: updateError } = await supabaseAdmin
+        .from("notification_logs")
+        .update({
+          status: "delivery_unknown",
+          provider: OFFICIAL_WHATSAPP_PROVIDER,
+          error_message: `reconciliation_required:${error}`,
+          next_attempt_at: null,
+          provider_message_id: providerMessageId ?? null,
+          sent_at: null,
+        })
+        .eq("id", rowId)
+        .eq("status", "sending");
+
+      if (updateError) throw updateError;
+    },
+
     computeRetryAt({ attemptCount, failedAt, triggerType }) {
       return computeRetrySchedule({ attemptCount, failedAt, eventType: triggerType });
     },
@@ -281,6 +304,7 @@ export async function runOfficialWhatsappQueue(
     sent: 0,
     requeued: 0,
     failed: 0,
+    ambiguous: 0,
     invalid: 0,
     skipped: 0,
   };
@@ -318,6 +342,16 @@ export async function runOfficialWhatsappQueue(
         providerMessageId: sendResult.providerMessageId,
       });
       result.sent += 1;
+      continue;
+    }
+
+    if (sendResult.ambiguous === true) {
+      await deps.markAmbiguous({
+        rowId: row.id,
+        error: sendResult.error,
+        providerMessageId: sendResult.providerMessageId,
+      });
+      result.ambiguous += 1;
       continue;
     }
 

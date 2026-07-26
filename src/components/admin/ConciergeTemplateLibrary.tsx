@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AdminSection } from "@/components/admin-shared";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConciergeEmailPreview } from "@/components/admin/ConciergeEmailPreview";
 import { ConciergeWhatsappPreview } from "@/components/admin/ConciergeWhatsappPreview";
@@ -13,16 +14,32 @@ import {
   type ConciergeAdminTemplate,
   type ConciergeWhatsappDeployment,
 } from "@/lib/conciergeTemplateAdmin";
+import type {
+  ConciergeDeliverySelectionRow,
+  ConciergeDeliveryVersionRow,
+} from "@/lib/conciergeDeliverySelection";
 
 export function ConciergeTemplateLibrary({
   templates,
   whatsappDeployments,
   whatsappExpectedContentHashes,
+  deliveryVersions,
+  deliverySelections,
+  onSelectVersion,
+  selectionPending,
   copy,
 }: {
   templates: ConciergeAdminTemplate[];
   whatsappDeployments: ConciergeWhatsappDeployment[];
   whatsappExpectedContentHashes: Record<string, string>;
+  deliveryVersions: ConciergeDeliveryVersionRow[];
+  deliverySelections: ConciergeDeliverySelectionRow[];
+  onSelectVersion: (
+    template: ConciergeAdminTemplate,
+    deliveryMode: "test_only" | "live",
+    presentationVersion: number,
+  ) => void;
+  selectionPending: boolean;
   copy: Record<string, string>;
 }) {
   const [journey, setJourney] = useState("");
@@ -83,6 +100,10 @@ export function ConciergeTemplateLibrary({
             template={template}
             deployments={whatsappDeployments}
             expectedContentHashes={whatsappExpectedContentHashes}
+            deliveryVersions={deliveryVersions}
+            deliverySelections={deliverySelections}
+            onSelectVersion={onSelectVersion}
+            selectionPending={selectionPending}
             copy={copy}
           />
         ))}
@@ -100,18 +121,43 @@ function TemplateCard({
   template,
   deployments,
   expectedContentHashes,
+  deliveryVersions,
+  deliverySelections,
+  onSelectVersion,
+  selectionPending,
   copy,
 }: {
   template: ConciergeAdminTemplate;
   deployments: ConciergeWhatsappDeployment[];
   expectedContentHashes: Record<string, string>;
+  deliveryVersions: ConciergeDeliveryVersionRow[];
+  deliverySelections: ConciergeDeliverySelectionRow[];
+  onSelectVersion: (
+    template: ConciergeAdminTemplate,
+    deliveryMode: "test_only" | "live",
+    presentationVersion: number,
+  ) => void;
+  selectionPending: boolean;
   copy: Record<string, string>;
 }) {
   const [view, setView] = useState<"source" | "branded">("source");
   const source = renderConciergeTemplatePreview(template);
-  const branded = buildConciergeBrandedPreview(template, deployments, expectedContentHashes);
+  const branded = buildConciergeBrandedPreview(
+    template,
+    deployments,
+    expectedContentHashes,
+    deliveryVersions,
+    deliverySelections,
+  );
   const approved = isConciergeTemplateApproved(template);
   const providerStatus = branded?.providerApprovalStatus;
+  const candidates = deliveryVersions.filter(
+    (version) =>
+      version.template_key === template.template_key &&
+      version.channel === template.channel &&
+      version.locale === template.locale &&
+      version.source_template_version === template.version,
+  );
 
   return (
     <article className="editorial-panel space-y-4 p-5">
@@ -190,6 +236,41 @@ function TemplateCard({
           ? template.required_variables.map((variable) => `{{${variable}}}`).join(", ")
           : "—"}
       </div>
+      {branded && (
+        <div className="space-y-3 border-t border-border pt-3 text-xs text-slate">
+          <p>
+            Candidate: branded v{branded.deliveryState.candidatePresentationVersion}{" "}
+            {branded.deliveryState.candidateAvailable ? "available" : "not seeded"} · selected test
+            v{branded.deliveryState.testOnlyPresentationVersion ?? "—"} · selected live v
+            {branded.deliveryState.livePresentationVersion ?? "—"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {candidates.flatMap((candidate) =>
+              (["test_only", "live"] as const).map((deliveryMode) => (
+                <Button
+                  key={`${candidate.id}:${deliveryMode}`}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={
+                    selectionPending ||
+                    (deliveryMode === "test_only"
+                      ? branded.deliveryState.testOnlyPresentationVersion
+                      : branded.deliveryState.livePresentationVersion) ===
+                      candidate.presentation_version
+                  }
+                  onClick={() =>
+                    onSelectVersion(template, deliveryMode, candidate.presentation_version)
+                  }
+                >
+                  Select v{candidate.presentation_version} for{" "}
+                  {deliveryMode === "test_only" ? "test" : "live"}
+                </Button>
+              )),
+            )}
+          </div>
+        </div>
+      )}
     </article>
   );
 }

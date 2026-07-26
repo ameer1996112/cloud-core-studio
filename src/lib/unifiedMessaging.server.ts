@@ -39,7 +39,7 @@ import {
   sendWhatsappTemplate,
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
-import { renderConciergeEmail } from "@/lib/conciergeEmail";
+import { renderSelectedConciergeEmail } from "@/lib/conciergeEmail";
 import { conciergeJourneyForTemplate } from "@/lib/conciergeTemplateAdmin";
 import { renderTransactionalEmail } from "@/lib/transactionalEmail";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
@@ -1373,11 +1373,11 @@ async function processDelivery(
             languageCode: delivery.provider_payload.template_language as "he" | "ar" | "en_US",
             components,
           })
-        : {
+        : ({
             ok: false,
             failureClass: "configuration",
             error: "whatsapp_template_components_missing_or_invalid",
-          };
+          } as const);
     }
   } else if (delivery.channel === "email") {
     const publicBaseUrl =
@@ -1394,7 +1394,7 @@ async function processDelivery(
         ? message.content.variables
         : {};
     const renderedEmail = concierge
-      ? renderConciergeEmail({
+      ? renderSelectedConciergeEmail({
           journeyType,
           templateKey: message.template_key ?? message.event_type,
           locale,
@@ -1404,10 +1404,13 @@ async function processDelivery(
           publicBaseUrl,
           replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
           messageKey: delivery.idempotency_key,
+          contentMode: "final",
           presentationKey:
             typeof message.content?.presentation_key === "string"
               ? message.content.presentation_key
-              : undefined,
+              : (() => {
+                  throw new Error("missing_concierge_presentation_evidence");
+                })(),
           actionUrl:
             typeof message.content?.action_url === "string" || message.content?.action_url === null
               ? message.content.action_url

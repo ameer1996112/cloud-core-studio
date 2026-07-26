@@ -12,8 +12,8 @@ import {
   validateConciergeTemplateCatalog,
 } from "../src/lib/conciergeTemplateCatalog.ts";
 import {
+  buildReadOnlyTemplateReconciliationPlan,
   buildTemplateDeploymentSyncRows,
-  buildTemplateReconciliationPlan,
   parseTemplateProvisioningArgs,
   prepareTemplateForProviderCreate,
   provisionWhatsappTemplates,
@@ -152,7 +152,14 @@ async function syncDeploymentRecords(rows) {
 
 loadLocalEnv();
 const args = parseTemplateProvisioningArgs(process.argv.slice(2));
-valuesToRedact = [args.headerHandle?.trim()].filter(Boolean);
+const environmentHeaderHandle = process.env.META_TEMPLATE_IMAGE_HEADER_HANDLE?.trim();
+if (args.headerHandleStdin && environmentHeaderHandle) {
+  throw new Error("header_handle_source_conflict");
+}
+const headerHandle = args.headerHandleStdin
+  ? (await Bun.stdin.text()).trim()
+  : environmentHeaderHandle;
+valuesToRedact = [headerHandle].filter(Boolean);
 const catalogValidation = validateMetaTemplateCatalog();
 if (!catalogValidation.ok)
   throw new Error(`invalid_template_catalog:${catalogValidation.errors.join(",")}`);
@@ -177,16 +184,26 @@ const imageHeaderTemplates = templates
   .map((template) => `${template.name}:${template.language}`);
 
 if (args.mode === "plan") {
-  const plan = await buildTemplateReconciliationPlan(templates, []);
+  const providerCredentialsAvailable = Boolean(
+    wabaId && process.env.META_GRAPH_API_VERSION?.trim() && process.env.META_ACCESS_TOKEN?.trim(),
+  );
+  const reconciliation = await buildReadOnlyTemplateReconciliationPlan({
+    templates,
+    ...(providerCredentialsAvailable && !args.localOnly
+      ? { remoteLookup: () => listAllMetaTemplates(wabaId) }
+      : {
+          localOnlyReason: args.localOnly ? "explicit_local_only" : "credentials_unavailable",
+        }),
+  });
   console.log(
     safeJson(
       {
         mode: "plan",
-        remoteLookup: false,
+        remoteLookup: reconciliation.remoteLookup,
         deploymentSync: { synced: false, reason: "plan_only" },
         headerHandlePrerequisites: imageHeaderTemplates,
-        headerHandleConfigured: Boolean(args.headerHandle?.trim()),
-        plan,
+        headerHandleConfigured: Boolean(headerHandle),
+        plan: reconciliation.plan,
       },
       null,
       2,
@@ -196,14 +213,11 @@ if (args.mode === "plan") {
 }
 
 if (!wabaId) throw new Error("missing_environment:META_WABA_ID");
-const providerTemplates = templates.map((template) =>
-  prepareTemplateForProviderCreate(template, args.headerHandle),
-);
 
 if (args.mode === "refresh") {
   const refreshed = await refreshWhatsappTemplateDeployments({
     wabaId,
-    templates: providerTemplates,
+    templates,
     redactions: valuesToRedact,
     meta: { listAll: () => listAllMetaTemplates(wabaId) },
     sync: async (rows) => {
@@ -228,6 +242,9 @@ if (args.mode === "refresh") {
   process.exit(0);
 }
 
+const providerTemplates = templates.map((template) =>
+  prepareTemplateForProviderCreate(template, headerHandle),
+);
 const result = await provisionWhatsappTemplates({
   wabaId,
   apply: true,

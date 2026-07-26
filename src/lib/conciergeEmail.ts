@@ -4,7 +4,7 @@ import {
   type RenderedTransactionalEmail,
 } from "@/lib/transactionalEmail";
 
-export function renderConciergeEmail(input: {
+type ConciergeEmailInput = {
   journeyType: string;
   templateKey: string;
   locale: "he" | "ar" | "en";
@@ -14,9 +14,14 @@ export function renderConciergeEmail(input: {
   publicBaseUrl: string;
   replyTo?: string | null;
   messageKey: string;
+  contentMode?: "template" | "final";
   presentationKey?: string;
   actionUrl?: string | null;
-}): RenderedTransactionalEmail & { presentationKey: string } {
+};
+
+export function renderConciergeEmail(
+  input: ConciergeEmailInput,
+): RenderedTransactionalEmail & { presentationKey: string } {
   const presentation = buildConciergePresentation({
     journeyType: input.journeyType,
     templateKey: input.templateKey,
@@ -25,6 +30,7 @@ export function renderConciergeEmail(input: {
     body: input.body,
     variables: input.variables,
     publicBaseUrl: input.publicBaseUrl,
+    contentMode: input.contentMode,
   });
   const expectedActionUrl = presentation.action?.url ?? null;
   if (
@@ -39,9 +45,11 @@ export function renderConciergeEmail(input: {
     action:
       input.actionUrl === undefined
         ? presentation.action
-        : presentation.action
-          ? { ...presentation.action, url: input.actionUrl }
-          : null,
+        : input.actionUrl === null
+          ? null
+          : presentation.action
+            ? { ...presentation.action, url: input.actionUrl }
+            : null,
   };
   const rendered = renderTransactionalEmail({
     eventType: "human_handoff",
@@ -61,4 +69,31 @@ export function renderConciergeEmail(input: {
   });
 
   return { ...rendered, presentationKey: immutablePresentation.key };
+}
+
+export function renderSelectedConciergeEmail(
+  input: ConciergeEmailInput & { presentationKey: string },
+): RenderedTransactionalEmail & { presentationKey: string } {
+  const v1Key = `${input.templateKey}:email:v1`;
+  if (input.presentationKey === v1Key) {
+    if (input.actionUrl !== null) {
+      throw new Error("concierge_presentation_evidence_mismatch");
+    }
+    const rendered = renderTransactionalEmail({
+      eventType: "human_handoff",
+      language: input.locale,
+      subject: input.subject,
+      body: input.body,
+      variables: input.variables,
+      actionUrl: null,
+      publicBaseUrl: input.publicBaseUrl,
+      replyTo: input.replyTo,
+      messageKey: input.messageKey,
+    });
+    return { ...rendered, presentationKey: input.presentationKey };
+  }
+  if (input.presentationKey !== `${input.templateKey}:email:v2`) {
+    throw new Error("concierge_presentation_evidence_mismatch");
+  }
+  return renderConciergeEmail({ ...input, contentMode: "final" });
 }

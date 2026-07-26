@@ -53,31 +53,45 @@ revert application code if necessary. The additive schema remains for audit and 
 ## Branded WhatsApp approval and rollback
 
 The template provisioner is plan-only by default. Review the reconciliation report before any
-provider write. Plan mode remains local-only and lists IMAGE-header handle prerequisites; it does
-not fetch Meta or write deployment records. For Concierge-only provider submission, first obtain
-the uploaded Meta media handle, then use the exact confirmed WABA command:
+provider write. With WABA, Graph version, and access-token configuration present, plan mode reads
+Meta and reports an authenticated reconciliation without creating templates or writing deployment
+records. Without those credentials it reports an explicit `credentials_unavailable` local-only
+fallback; `--local-only` forces that offline behavior.
+
+For Concierge-only provider submission, first store the uploaded Meta media handle in the
+protected `META_TEMPLATE_IMAGE_HEADER_HANDLE` environment variable (or the ignored
+`.env.whatsapp.local`), then use the exact confirmed WABA command:
 
 ```sh
 bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806 \
-  --scope concierge --header-handle "$META_TEMPLATE_IMAGE_HEADER_HANDLE"
+  --scope concierge
+```
+
+For a one-shot secret source, pipe the handle through stdin and opt in explicitly:
+
+```sh
+secret-tool lookup service meta-template-header | \
+  bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806 \
+    --scope concierge --header-handle-stdin
 ```
 
 Do not use the tool to update drifted approved content in place. The Concierge catalog uses the
 new `_branded_v2` template names; investigate and reconcile provider errors before a retry.
 The public header URL is used at message runtime; the template creation payload uses the uploaded
-Meta media handle. Never log access tokens or media handles in operational evidence.
+Meta media handle. The provisioner rejects `--header-handle`; never place access tokens or media
+handles in process arguments, logs, or operational evidence.
 
 After provider approval, re-sync the existing scoped deployment rows without recreating a
 template:
 
 ```sh
 bun scripts/create-whatsapp-templates.mjs --refresh --waba-id 1009561255148806 \
-  --scope concierge --header-handle "$META_TEMPLATE_IMAGE_HEADER_HANDLE"
+  --scope concierge
 ```
 
 Refresh is read-only to Meta and fails closed unless the confirmed WABA and Supabase service
 configuration are present. It records current provider status and the provider-compatible content
-hash; it never creates a template.
+hash; it never creates a template and does not require the private media handle.
 
 Promote branded templates only in this order:
 
@@ -88,6 +102,20 @@ Promote branded templates only in this order:
 5. Review delivery evidence.
 6. Promote one journey at a time.
 7. If rollback is needed, select the prior approved template/presentation version.
+
+The delivery-version selection is independent for test-only and live. The migration initializes
+test-only to v2 when a candidate exists and leaves live on v1. In Admin → Messages → Concierge →
+Templates, each supported email or WhatsApp row shows the candidate plus both selected versions.
+Selecting a version requires typing exactly `SELECT TEST CONCIERGE PRESENTATION` or
+`SELECT LIVE CONCIERGE PRESENTATION`. A WhatsApp selection fails closed unless the confirmed WABA
+has an exact `APPROVED` deployment matching template name, provider locale, and content hash.
+Selections are append-only audit records: changing one retires the old row and creates a new ID, so
+already-materialized evidence never changes underneath a delivery.
+
+The 14-argument materialization RPC remains only as a bounded rolling-deploy adapter. It rebuilds
+legacy evidence from the active selection, and queued legacy WhatsApp `parameters` payloads are
+backfilled once to body components. Remove the adapter only after all pre-deploy workers are
+retired and no queued legacy payloads remain; never extend it for new callers.
 
 Keep sender identity checks current: the email sender is **Cloud & Core Studio** on a verified
 studio domain with the configured support Reply-To; SPF and DKIM must pass and DMARC must be

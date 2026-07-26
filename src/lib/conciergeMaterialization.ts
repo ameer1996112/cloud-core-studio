@@ -1,8 +1,5 @@
 import type { ConciergeChannel } from "@/lib/conciergePolicy";
-import {
-  conciergeWhatsappTemplateName,
-  CONCIERGE_WHATSAPP_HEADER_URL,
-} from "@/lib/conciergeTemplateCatalog";
+import { CONCIERGE_WHATSAPP_HEADER_URL } from "@/lib/conciergeTemplateCatalog";
 import type { WhatsappTemplateComponent } from "@/lib/messagingProviders.server";
 
 type RenderedConciergeChannel = {
@@ -12,6 +9,10 @@ type RenderedConciergeChannel = {
   subject: string | null;
   body: string;
   templateVariables?: string[];
+  presentationVersion?: number;
+  providerTemplateName?: string | null;
+  providerContentHash?: string | null;
+  selectionId?: string | null;
 };
 
 type DeliveryTarget = {
@@ -63,21 +64,33 @@ export function buildConciergeMaterializationPlan(input: {
     const orderedVariables = (rendered.templateVariables ?? Object.keys(input.variables)).map(
       (name) => String(input.variables[name]),
     );
+    const presentationVersion = rendered.presentationVersion ?? 1;
+    const bodyComponent: WhatsappTemplateComponent = {
+      type: "body",
+      parameters: orderedVariables.map((text) => ({ type: "text", text })),
+    };
     const whatsappComponents: WhatsappTemplateComponent[] = [
-      {
-        type: "header",
-        parameters: [
-          {
-            type: "image",
-            image: { link: CONCIERGE_WHATSAPP_HEADER_URL },
-          },
-        ],
-      },
-      {
-        type: "body",
-        parameters: orderedVariables.map((text) => ({ type: "text", text })),
-      },
+      ...(presentationVersion === 2
+        ? [
+            {
+              type: "header" as const,
+              parameters: [
+                {
+                  type: "image" as const,
+                  image: { link: CONCIERGE_WHATSAPP_HEADER_URL },
+                },
+              ] as [{ type: "image"; image: { link: string } }],
+            },
+          ]
+        : []),
+      bodyComponent,
     ];
+    if (
+      rendered.channel === "whatsapp" &&
+      (!rendered.providerTemplateName || !rendered.providerContentHash || !rendered.selectionId)
+    ) {
+      throw new Error("missing_whatsapp_deployment_selection");
+    }
     return {
       snapshot: {
         templateId: rendered.templateId,
@@ -90,6 +103,7 @@ export function buildConciergeMaterializationPlan(input: {
         presentationKey,
         journeyType: input.journeyType,
         actionUrl: input.actionByChannel[rendered.channel] ?? null,
+        selectionId: rendered.selectionId ?? null,
       },
       delivery: {
         channel: rendered.channel,
@@ -103,9 +117,11 @@ export function buildConciergeMaterializationPlan(input: {
         providerPayload:
           rendered.channel === "whatsapp"
             ? {
-                template_name: conciergeWhatsappTemplateName(input.templateKey),
+                template_name: rendered.providerTemplateName,
                 template_language: metaLanguage(input.locale),
-                presentation_key: `${input.templateKey}:whatsapp:v2`,
+                presentation_key: presentationKey,
+                expected_content_hash: rendered.providerContentHash,
+                selection_id: rendered.selectionId,
                 components: whatsappComponents,
               }
             : {},

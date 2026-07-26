@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test";
-import { renderConciergeEmail } from "../../src/lib/conciergeEmail.ts";
+import {
+  renderConciergeEmail,
+  renderSelectedConciergeEmail,
+} from "../../src/lib/conciergeEmail.ts";
 
 test("renders the premium shell with localized action and presentation evidence", () => {
   const rendered = renderConciergeEmail({
@@ -55,4 +58,45 @@ test("accepts persisted null action evidence for a no-action concierge journey",
 
   expect(rendered.presentationKey).toBe("booking_cancelled:email:v2");
   expect(rendered.html).not.toContain("If the button does not work");
+});
+
+test("never mustache-renders an already stored final subject or body", () => {
+  const rendered = renderConciergeEmail({
+    journeyType: "class_change",
+    templateKey: "class_cancelled",
+    locale: "en",
+    subject: "Update for {{nickname}}",
+    body: "Hi {{nickname}}, the class changed.",
+    variables: {
+      member_name: "{{nickname}}",
+      nickname: "this must not replace stored evidence",
+    },
+    publicBaseUrl: "https://cloudandcorestudio.com",
+    messageKey: "delivery-single-render",
+    contentMode: "final",
+  });
+
+  expect(rendered.subject).toBe("Update for {{nickname}}");
+  expect(rendered.text).toContain("Hi {{nickname}}, the class changed.");
+  expect(rendered.text).not.toContain("this must not replace stored evidence");
+});
+
+test("renders an explicitly selected v1 email without introducing v2 presentation or actions", () => {
+  const rendered = renderSelectedConciergeEmail({
+    journeyType: "payment_outcome",
+    templateKey: "payment_requires_action",
+    locale: "en",
+    subject: "Payment action required",
+    body: "Hi {{nickname}}, review the studio message.",
+    variables: { nickname: "must not render" },
+    publicBaseUrl: "https://cloudandcorestudio.com",
+    messageKey: "delivery-v1",
+    presentationKey: "payment_requires_action:email:v1",
+    actionUrl: null,
+  });
+
+  expect(rendered.presentationKey).toBe("payment_requires_action:email:v1");
+  expect(rendered.text).toContain("Hi {{nickname}}, review the studio message.");
+  expect(rendered.text).not.toContain("must not render");
+  expect(rendered.html).not.toContain("Review payment");
 });

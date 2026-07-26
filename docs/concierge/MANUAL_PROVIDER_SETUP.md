@@ -34,24 +34,40 @@ email HTML. Do not represent an avatar as a delivery requirement or rely on HTML
 The public HTTPS header URL remains the runtime delivery image. Meta template creation is
 different: Meta requires an uploaded media handle in an IMAGE header example, not that URL.
 Before an authorized apply, upload the approved WebP through the current Graph API media flow and
-give its returned handle to the provisioner. Treat the handle as operator configuration and do
-not paste access tokens into commands or logs.
+store its returned handle as `META_TEMPLATE_IMAGE_HEADER_HANDLE` in the protected operator
+environment (or the ignored `.env.whatsapp.local`). The provisioner deliberately rejects media
+handles passed in process arguments so they do not appear in shell history or process listings.
+As a one-shot alternative, pipe the handle to an apply command that includes
+`--header-handle-stdin`; the handle itself must never appear in argv.
+
+An authenticated plan performs a read-only Meta reconciliation when `META_WABA_ID`,
+`META_GRAPH_API_VERSION`, and `META_ACCESS_TOKEN` are available:
+
+```sh
+bun scripts/create-whatsapp-templates.mjs --plan --waba-id 1009561255148806 \
+  --scope concierge
+```
+
+Use `--local-only` only when an explicitly offline plan is intended. Neither plan form writes Meta
+or deployment records.
 
 ```sh
 bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806 \
-  --scope concierge --header-handle "$META_TEMPLATE_IMAGE_HEADER_HANDLE"
+  --scope concierge
 ```
 
 After Meta approval, re-sync deployment status without creating templates:
 
 ```sh
 bun scripts/create-whatsapp-templates.mjs --refresh --waba-id 1009561255148806 \
-  --scope concierge --header-handle "$META_TEMPLATE_IMAGE_HEADER_HANDLE"
+  --scope concierge
 ```
 
 `--refresh` reads only from Meta, writes no templates, and updates the scoped deployment records
 only when the Supabase service configuration is present. It fails closed for any WABA other than
-the confirmed production WABA. Do not use it as a substitute for approval review.
+the confirmed production WABA. Refresh does not require the private media handle because provider
+IMAGE-header handles are canonicalized to the public catalog content hash. Do not use it as a
+substitute for approval review.
 
 Task 7 operational check: from the production edge, verify the public header URL returns HTTPS
 200, `image/webp`, and the intended stable cache policy before promotion. This repository does

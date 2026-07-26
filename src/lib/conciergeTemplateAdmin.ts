@@ -1,4 +1,8 @@
 import type { ConciergeChannel } from "@/lib/conciergePolicy";
+import type {
+  ConciergeDeliverySelectionRow,
+  ConciergeDeliveryVersionRow,
+} from "@/lib/conciergeDeliverySelection";
 import { renderConciergeEmail } from "@/lib/conciergeEmail";
 import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import {
@@ -49,6 +53,12 @@ export type ConciergeBrandedPreview = {
   emailHtml: string | null;
   whatsappHeaderUrl: string | null;
   whatsappFooter: string | null;
+  deliveryState: {
+    candidatePresentationVersion: 2;
+    candidateAvailable: boolean;
+    livePresentationVersion: number | null;
+    testOnlyPresentationVersion: number | null;
+  };
 };
 
 const TEMPLATE_JOURNEYS: Record<string, string> = {
@@ -83,12 +93,8 @@ export function isConciergeTemplateApproved(template: ConciergeAdminTemplate) {
   );
 }
 
-const PREVIEW_NAMES = { he: "נועה", ar: "نور", en: "Noa" } as const;
-
 export function renderConciergeTemplatePreview(template: ConciergeAdminTemplate) {
-  const values: Record<string, string> = {
-    member_name: PREVIEW_NAMES[template.locale],
-  };
+  const values: Record<string, string> = previewVariables(template.locale);
   const render = (value: string | null) =>
     value?.replace(
       /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g,
@@ -107,7 +113,15 @@ function previewVariables(locale: ConciergeBrandedPreview["locale"]) {
     class_date: "28/07/2026",
     class_time: "18:00",
     amount: "₪350",
+    payment_date: "27/07/2026",
     offer_expires_at: "18:30",
+    recommendation_summary:
+      locale === "he"
+        ? "שני שיעורי פילאטיס שנבחרו עבורך"
+        : locale === "ar"
+          ? "حصتان بيلاتس اخترناهما لك"
+          : "Two Pilates classes selected for you",
+    week_of: "27/07/2026",
   };
 }
 
@@ -122,6 +136,8 @@ export function buildConciergeBrandedPreview(
   template: ConciergeAdminTemplate,
   deployments: ConciergeWhatsappDeployment[],
   expectedContentHashes: Record<string, string> = {},
+  versions: ConciergeDeliveryVersionRow[] = [],
+  selections: ConciergeDeliverySelectionRow[] = [],
 ): ConciergeBrandedPreview | null {
   if (template.channel !== "email" && template.channel !== "whatsapp") return null;
 
@@ -164,9 +180,26 @@ export function buildConciergeBrandedPreview(
         variables,
         publicBaseUrl: "https://cloudandcorestudio.com",
         messageKey: `admin-preview:${template.id}`,
+        contentMode: "template",
         presentationKey,
         actionUrl: presentation.action?.url ?? null,
       });
+  const matchingVersions = versions.filter(
+    (version) =>
+      version.template_key === template.template_key &&
+      version.channel === template.channel &&
+      version.locale === template.locale &&
+      version.source_template_version === template.version,
+  );
+  const selectedPresentationVersion = (deliveryMode: "test_only" | "live") => {
+    const selectedVersion = matchingVersions.find((version) =>
+      selections.some(
+        (selection) =>
+          selection.delivery_mode === deliveryMode && selection.delivery_version_id === version.id,
+      ),
+    );
+    return selectedVersion?.presentation_version ?? null;
+  };
 
   return {
     channel: template.channel,
@@ -196,6 +229,12 @@ export function buildConciergeBrandedPreview(
       ? (whatsappDefinition.components.find((component) => component.type === "FOOTER")?.text ??
         null)
       : null,
+    deliveryState: {
+      candidatePresentationVersion: 2,
+      candidateAvailable: matchingVersions.some((version) => version.presentation_version === 2),
+      livePresentationVersion: selectedPresentationVersion("live"),
+      testOnlyPresentationVersion: selectedPresentationVersion("test_only"),
+    },
   };
 }
 

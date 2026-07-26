@@ -21,6 +21,7 @@ export type DispatchAction = PendingRecipientAction & {
     retentionStage?: "initial" | "personal_whatsapp" | "admin_attention";
     waitlistExpiresSoon?: boolean;
   };
+  deliveryVariables?: Record<string, unknown>;
 };
 
 export type ApprovedDispatchTemplate = {
@@ -32,6 +33,10 @@ export type ApprovedDispatchTemplate = {
   requiredVariables: string[];
   subjectTemplate: string | null;
   bodyTemplate: string;
+  presentationVersion?: number;
+  providerTemplateName?: string | null;
+  providerContentHash?: string | null;
+  selectionId?: string | null;
 };
 
 type RenderedChannel = {
@@ -41,6 +46,10 @@ type RenderedChannel = {
   subject: string | null;
   body: string;
   templateVariables: string[];
+  presentationVersion: number;
+  providerTemplateName: string | null;
+  providerContentHash: string | null;
+  selectionId: string | null;
 };
 
 export type DispatchEvaluation = {
@@ -63,9 +72,14 @@ export type DispatchEvaluation = {
   postponed: boolean;
   reasonCodes: string[];
   attentionReasons: string[];
+  variables: Record<string, unknown>;
 };
 
-function desiredChannels(action: DispatchAction, recipient: RecipientPolicyState) {
+function desiredChannels(
+  action: DispatchAction,
+  recipient: RecipientPolicyState,
+  deliveryMode: "shadow" | "test_only" | "live",
+): ConciergeChannel[] {
   if (action.kind === "booking_confirmed") {
     return decideBookingChannels({
       firstBooking: action.metadata.firstBooking === true,
@@ -91,9 +105,14 @@ function desiredChannels(action: DispatchAction, recipient: RecipientPolicyState
     return channels;
   }
   if (action.kind === "recommendation") {
-    return recipient.hasPush && recipient.consents.push.has("promotional")
-      ? (["in_app", "push"] as ConciergeChannel[])
-      : (["in_app"] as ConciergeChannel[]);
+    const channels: ConciergeChannel[] =
+      recipient.hasPush && recipient.consents.push.has("promotional")
+        ? ["in_app", "push"]
+        : ["in_app"];
+    if (deliveryMode === "test_only" && recipient.consents.whatsapp.has("promotional")) {
+      channels.push("whatsapp");
+    }
+    return channels;
   }
   if (action.kind === "daily_briefing") {
     return recipient.hasPush && recipient.consents.push.has("operational")
@@ -101,13 +120,28 @@ function desiredChannels(action: DispatchAction, recipient: RecipientPolicyState
       : (["in_app"] as ConciergeChannel[]);
   }
   if (action.kind === "payment_outcome" && action.metadata.paymentOutcome) {
-    return decidePaymentOutcome(action.metadata.paymentOutcome).memberChannels.filter((channel) => {
-      if (channel === "in_app") return true;
-      if (channel === "push") {
-        return recipient.hasPush && recipient.consents.push.has(action.purpose);
-      }
-      return recipient.consents[channel].has(action.purpose);
-    });
+    const channels = decidePaymentOutcome(action.metadata.paymentOutcome).memberChannels.filter(
+      (channel): channel is ConciergeChannel => {
+        if (channel === "in_app") return true;
+        if (channel === "push") {
+          return recipient.hasPush && recipient.consents.push.has(action.purpose);
+        }
+        return recipient.consents[channel].has(action.purpose);
+      },
+    );
+    if (
+      deliveryMode === "test_only" &&
+      recipient.consents.whatsapp.has(action.purpose) &&
+      [
+        "one_time_payment_succeeded",
+        "subscription_renewal_succeeded",
+        "payment_requires_action",
+        "payment_terminally_failed",
+      ].includes(action.metadata.paymentOutcome)
+    ) {
+      channels.push("whatsapp");
+    }
+    return channels;
   }
   if (action.kind === "retention") {
     if (
@@ -170,6 +204,7 @@ export function evaluateConciergeDispatch(input: {
   channelControls: Record<ConciergeChannel, boolean>;
   approvedTemplates: ApprovedDispatchTemplate[];
   variables: Record<string, unknown>;
+  deliveryMode?: "shadow" | "test_only" | "live";
 }): DispatchEvaluation {
   const arbitration = chooseNextRecipientAction({
     recipient: input.recipient,
@@ -188,14 +223,20 @@ export function evaluateConciergeDispatch(input: {
       postponed: arbitration.postponed,
       reasonCodes: arbitration.suppressionReason ? [arbitration.suppressionReason] : [],
       attentionReasons: [],
+      variables: input.variables,
     };
   }
 
   const action = input.pendingActions.find((item) => item.id === arbitration.selected?.id)!;
+  const selectedVariables = { ...input.variables, ...(action.deliveryVariables ?? {}) };
   const selectedTemplateKey = templateKey(action);
   const reasonCodes = [`selected_priority:${action.priority}`];
   const attentionReasons: string[] = [];
-  const enabledChannels = desiredChannels(action, input.recipient).filter((channel) => {
+  const enabledChannels = desiredChannels(
+    action,
+    input.recipient,
+    input.deliveryMode ?? "live",
+  ).filter((channel) => {
     if (input.channelControls[channel]) return true;
     reasonCodes.push(`channel_disabled:${channel}`);
     return false;
@@ -224,7 +265,7 @@ export function evaluateConciergeDispatch(input: {
       ]),
     ];
     const missing = required.filter(
-      (name) => input.variables[name] === undefined || input.variables[name] === null,
+      (name) => selectedVariables[name] === undefined || selectedVariables[name] === null,
     );
     if (missing.length > 0) {
       missingVariables = true;
@@ -236,10 +277,14 @@ export function evaluateConciergeDispatch(input: {
       templateId: approved.id,
       templateVersion: approved.version,
       subject: approved.subjectTemplate
-        ? renderValue(approved.subjectTemplate, input.variables)
+        ? renderValue(approved.subjectTemplate, selectedVariables)
         : null,
-      body: renderValue(approved.bodyTemplate, input.variables),
+      body: renderValue(approved.bodyTemplate, selectedVariables),
       templateVariables: approved.requiredVariables,
+      presentationVersion: approved.presentationVersion ?? 1,
+      providerTemplateName: approved.providerTemplateName ?? null,
+      providerContentHash: approved.providerContentHash ?? null,
+      selectionId: approved.selectionId ?? null,
     });
   }
 
@@ -259,5 +304,6 @@ export function evaluateConciergeDispatch(input: {
     postponed: false,
     reasonCodes,
     attentionReasons,
+    variables: selectedVariables,
   };
 }

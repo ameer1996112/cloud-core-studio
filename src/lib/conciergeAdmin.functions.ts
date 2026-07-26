@@ -39,6 +39,8 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       oldestPending,
       templates,
       whatsappDeployments,
+      deliveryVersions,
+      deliverySelections,
     ] = await Promise.all([
       db
         .from("automation_config_versions")
@@ -99,6 +101,21 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .from("whatsapp_template_deployments")
         .select("template_name,language,approval_status,content_hash")
         .eq("waba_id", process.env.META_WABA_ID?.trim() ?? ""),
+      db
+        .from("concierge_delivery_versions")
+        .select(
+          "id,template_key,channel,locale,source_template_version,presentation_version,provider_template_name,provider_content_hash",
+        )
+        .eq("studio_id", studio.data.id)
+        .order("template_key")
+        .order("channel")
+        .order("locale")
+        .order("presentation_version"),
+      db
+        .from("concierge_delivery_selections")
+        .select("id,delivery_mode,delivery_version_id")
+        .eq("studio_id", studio.data.id)
+        .is("retired_at", null),
     ]);
     for (const result of [
       automations,
@@ -111,6 +128,8 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       oldestPending,
       templates,
       whatsappDeployments,
+      deliveryVersions,
+      deliverySelections,
     ]) {
       if (result.error) throw result.error;
     }
@@ -173,6 +192,8 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       },
       templates: templates.data ?? [],
       whatsappDeployments: whatsappDeployments.data ?? [],
+      deliveryVersions: deliveryVersions.data ?? [],
+      deliverySelections: deliverySelections.data ?? [],
       whatsappExpectedContentHashes: Object.fromEntries(
         CONCIERGE_META_TEMPLATE_CATALOG.map((template) => [
           `${template.name}:${template.language}`,
@@ -180,6 +201,43 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         ]),
       ),
     };
+  });
+
+const deliverySelectionSchema = z.object({
+  templateKey: z.string().min(1),
+  channel: z.enum(["in_app", "push", "email", "whatsapp"]),
+  locale: z.enum(["ar", "he", "en"]),
+  deliveryMode: z.enum(["test_only", "live"]),
+  presentationVersion: z.number().int().min(1).max(2),
+  confirmation: z.string().min(1),
+});
+
+export const selectConciergeDeliveryVersion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => deliverySelectionSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const expectedConfirmation =
+      data.deliveryMode === "live"
+        ? "SELECT LIVE CONCIERGE PRESENTATION"
+        : "SELECT TEST CONCIERGE PRESENTATION";
+    if (data.confirmation !== expectedConfirmation) {
+      throw new Error(`Confirmation must exactly match "${expectedConfirmation}"`);
+    }
+    const db = await adminDb(context.userId);
+    const studio = await db.from("studios").select("id").eq("slug", "cloud-core").single();
+    if (studio.error) throw studio.error;
+    const result = await db.rpc("select_concierge_delivery_version", {
+      p_studio_id: studio.data.id,
+      p_template_key: data.templateKey,
+      p_channel: data.channel,
+      p_locale: data.locale,
+      p_delivery_mode: data.deliveryMode,
+      p_presentation_version: data.presentationVersion,
+      p_actor_id: context.userId,
+      p_confirmation: data.confirmation,
+    });
+    if (result.error) throw result.error;
+    return Array.isArray(result.data) ? result.data[0] : result.data;
   });
 
 export const approveConciergeTemplates = createServerFn({ method: "POST" })

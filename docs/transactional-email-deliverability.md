@@ -54,14 +54,15 @@ reports. Then tighten the policy gradually.
 Use one stable sender on the exact verified Resend domain:
 
 ```dotenv
-MESSAGING_EMAIL_FROM="Cloud & Core <studio@mail.cloudandcorestudio.com>"
+MESSAGING_EMAIL_FROM="Cloud & Core Studio <studio@mail.cloudandcorestudio.com>"
 MESSAGING_EMAIL_REPLY_TO="cloudandcorestudio@gmail.com"
 MESSAGING_PUBLIC_BASE_URL="https://cloudandcorestudio.com"
 ```
 
-The From address does not need an inbox because Resend sends for the verified domain. Reply-To must
-remain a real monitored mailbox. Replace the Gmail Reply-To with a branded mailbox only after that
-mailbox has been created and a reply test succeeds.
+The From address does not need an inbox because Resend sends for the verified domain. Reply-To is
+required and must remain a real monitored mailbox; the adapter fails closed before contacting
+Resend when it is absent or invalid. Replace the Gmail Reply-To with a branded mailbox only after
+that mailbox has been created and a reply test succeeds.
 
 ## Controlled verification
 

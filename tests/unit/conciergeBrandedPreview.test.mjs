@@ -136,4 +136,42 @@ describe("Concierge branded previews", () => {
       expect(preview.body).toContain(locale === "he" ? "נועה" : "نور");
     }
   });
+
+  test("distinguishes the v2 candidate from the versions selected for test and live", () => {
+    const versions = [
+      {
+        id: "v1",
+        template_key: "waitlist_offer",
+        channel: "email",
+        locale: "he",
+        source_template_version: 2,
+        presentation_version: 1,
+        provider_template_name: null,
+        provider_content_hash: null,
+      },
+      {
+        id: "v2",
+        template_key: "waitlist_offer",
+        channel: "email",
+        locale: "he",
+        source_template_version: 2,
+        presentation_version: 2,
+        provider_template_name: null,
+        provider_content_hash: null,
+      },
+    ];
+    const selections = [
+      { id: "selection-live", delivery_mode: "live", delivery_version_id: "v1" },
+      { id: "selection-test", delivery_mode: "test_only", delivery_version_id: "v2" },
+    ];
+
+    const preview = buildConciergeBrandedPreview(template, [], {}, versions, selections);
+
+    expect(preview.deliveryState).toEqual({
+      candidatePresentationVersion: 2,
+      candidateAvailable: true,
+      livePresentationVersion: 1,
+      testOnlyPresentationVersion: 2,
+    });
+  });
 });

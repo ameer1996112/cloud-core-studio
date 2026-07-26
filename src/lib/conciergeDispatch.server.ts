@@ -34,6 +34,20 @@ export function normalizeConciergeDispatchLimit(value: unknown) {
   return Number.isFinite(parsed) ? Math.max(1, Math.min(100, Math.trunc(parsed))) : 25;
 }
 
+type ConciergePostponementReason = Parameters<typeof nextConciergeEligibility>[0];
+
+function isConciergePostponementReason(value: string): value is ConciergePostponementReason {
+  return [
+    "quiet_hours",
+    "no_eligible_action",
+    "six_hour_contact_cap",
+    "daily_total_contact_cap",
+    "daily_promotional_cap",
+    "weekly_promotional_cap",
+    "missing_consent",
+  ].includes(value);
+}
+
 export async function runConciergeDispatch(input?: {
   limit?: number;
   now?: Date;
@@ -93,8 +107,8 @@ export async function runConciergeDispatch(input?: {
       .order("priority", { ascending: true })
       .limit(normalizeConciergeDispatchLimit(input?.limit));
     if (intents.error) throw intents.error;
-    const recipientIds = [
-      ...new Set(
+    const recipientIds: string[] = [
+      ...new Set<string>(
         (intents.data ?? []).map(
           (row: { communication_recipient_id: string }) => row.communication_recipient_id,
         ),
@@ -108,11 +122,13 @@ export async function runConciergeDispatch(input?: {
           communicationRecipientId: recipientId,
           now,
           journeyTypes: studioConfigs.map((configuration) => configuration.journey_type),
+          deliveryMode: studioConfigs[0]?.mode ?? "shadow",
         });
         const evaluation = evaluateConciergeDispatch({
           ...state,
           pendingActions: state.actions,
           now,
+          deliveryMode: studioConfigs[0]?.mode ?? "shadow",
         });
         const evidenceIntentId =
           evaluation.selectedActionId ?? evaluation.evaluatedActionIds[0] ?? null;
@@ -156,7 +172,11 @@ export async function runConciergeDispatch(input?: {
             (selectedConfiguration.mode !== "live" ||
               process.env.CONCIERGE_LIVE_DELIVERY_ENABLED === "true");
 
-          if (evaluation.postponed && evaluation.suppressionReason) {
+          if (
+            evaluation.postponed &&
+            evaluation.suppressionReason &&
+            isConciergePostponementReason(evaluation.suppressionReason)
+          ) {
             const postponed = await db.rpc("postpone_concierge_intent", {
               p_studio_id: studioId,
               p_recipient_id: recipientId,
@@ -206,19 +226,20 @@ export async function runConciergeDispatch(input?: {
               locale: state.recipient.locale,
               subject: evaluation.rendered[0]?.subject ?? null,
               body: evaluation.rendered[0]?.body ?? "",
-              variables: state.variables,
+              variables: evaluation.variables,
               publicBaseUrl: "https://cloudandcorestudio.com",
             });
             const presentationByChannel = Object.fromEntries(
-              evaluation.rendered.map(({ channel }) => [
+              evaluation.rendered.map(({ channel, presentationVersion }) => [
                 channel,
-                channel === "email"
-                  ? presentation.key
-                  : `${evaluation.selectedTemplateKey}:${channel}:${channel === "push" ? "v1" : "v2"}`,
+                `${evaluation.selectedTemplateKey}:${channel}:v${presentationVersion}`,
               ]),
             );
             const actionByChannel = Object.fromEntries(
-              evaluation.rendered.map(({ channel }) => [channel, presentation.action?.url ?? null]),
+              evaluation.rendered.map(({ channel, presentationVersion }) => [
+                channel,
+                presentationVersion === 2 ? (presentation.action?.url ?? null) : null,
+              ]),
             );
             const materializations = buildConciergeMaterializationPlan({
               decisionKey: key,
@@ -228,7 +249,7 @@ export async function runConciergeDispatch(input?: {
               actionByChannel,
               locale: state.recipient.locale,
               rendered: evaluation.rendered,
-              variables: state.variables,
+              variables: evaluation.variables,
               recipient: state.deliveryTarget,
               scheduledFor: now.toISOString(),
               expiresAt: selectedAction.expiresAt?.toISOString() ?? null,
@@ -245,7 +266,7 @@ export async function runConciergeDispatch(input?: {
               p_correlation_id: correlationId,
               p_reason_codes: reasonCodes,
               p_competing_action_ids: competingActionIds,
-              p_rendered_variables: state.variables,
+              p_rendered_variables: evaluation.variables,
               p_materializations: materializations,
               p_whatsapp_waba_id: process.env.META_WABA_ID?.trim() || null,
               p_now: now.toISOString(),

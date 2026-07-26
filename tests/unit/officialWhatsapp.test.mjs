@@ -203,4 +203,35 @@ describe("official WhatsApp template payloads", () => {
     });
     expect(requests).toBe(0);
   });
+
+  test("classifies a post-dispatch network rejection as ambiguous and non-retryable", async () => {
+    const result = await sendOfficialWhatsappTemplateMessage({
+      to: "052-331-8478",
+      template: {
+        name: "payment_failed_he",
+        languageCode: "he",
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: "נורה" }],
+          },
+        ],
+      },
+      env: {
+        META_GRAPH_API_VERSION: "v25.0",
+        META_WHATSAPP_PHONE_NUMBER_ID: "phone-id-1",
+        META_ACCESS_TOKEN: "token-1",
+      },
+      fetchImpl: async () => {
+        throw new Error("connection reset after request transmission");
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      retryable: false,
+      ambiguous: true,
+      error: "connection reset after request transmission",
+    });
+  });
 });

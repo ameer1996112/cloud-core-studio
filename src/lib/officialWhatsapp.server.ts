@@ -34,7 +34,20 @@ export type OfficialWhatsappTemplatePayload = {
 
 export type OfficialWhatsappSendResult =
   | { ok: true; providerMessageId: string | null }
-  | { ok: false; retryable: boolean; error: string; providerMessageId?: string | null };
+  | {
+      ok: false;
+      retryable: boolean;
+      ambiguous?: false;
+      error: string;
+      providerMessageId?: string | null;
+    }
+  | {
+      ok: false;
+      retryable: false;
+      ambiguous: true;
+      error: string;
+      providerMessageId?: string | null;
+    };
 
 type OfficialWhatsappRuntimeConfig = {
   graphApiVersion: string;
@@ -168,7 +181,7 @@ function getOfficialWhatsappRuntimeConfig(
     throw new Error(`missing_official_whatsapp_runtime_config:${missing.join(",")}`);
   }
 
-  return { graphApiVersion, phoneNumberId, accessToken };
+  return { graphApiVersion, phoneNumberId: phoneNumberId!, accessToken: accessToken! };
 }
 
 function formatMetaError(response: Response, json: unknown) {
@@ -255,14 +268,26 @@ export async function sendOfficialWhatsappTemplateMessage(input: {
       isRecord(json) && Array.isArray(json.messages) && isRecord(json.messages[0])
         ? json.messages[0]
         : null;
+    const providerMessageId = textValue(firstMessage?.id, "") || null;
+    if (!providerMessageId) {
+      return {
+        ok: false,
+        retryable: false,
+        ambiguous: true,
+        error: "official_whatsapp_response_missing_message_id",
+      };
+    }
     return {
       ok: true,
-      providerMessageId: textValue(firstMessage?.id, "") || null,
+      providerMessageId,
     };
   } catch (error) {
     return {
       ok: false,
-      retryable: true,
+      // The request may have reached Meta. WhatsApp has no caller idempotency key, so the
+      // legacy queue must park this outcome for reconciliation instead of retrying blindly.
+      retryable: false,
+      ambiguous: true,
       error: error instanceof Error ? error.message : "official_whatsapp_network_error",
     };
   }

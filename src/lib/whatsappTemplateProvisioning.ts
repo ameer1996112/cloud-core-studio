@@ -35,12 +35,42 @@ function stable(value: unknown): unknown {
   return value;
 }
 
+const PROVIDER_IMAGE_HEADER_EXAMPLE = "[PROVIDER_IMAGE_HEADER]";
+
+function canonicalProviderTemplateComponents(components: readonly unknown[]) {
+  return components.map((component) => {
+    if (
+      !component ||
+      typeof component !== "object" ||
+      Array.isArray(component) ||
+      (component as Record<string, unknown>).type !== "HEADER" ||
+      (component as Record<string, unknown>).format !== "IMAGE"
+    ) {
+      return component;
+    }
+    const record = component as Record<string, unknown>;
+    const example =
+      record.example && typeof record.example === "object" && !Array.isArray(record.example)
+        ? (record.example as Record<string, unknown>)
+        : {};
+    return {
+      ...record,
+      example: {
+        ...example,
+        // Meta replaces the catalog URL with a private upload handle. That provider-only value
+        // is not content and must never make an otherwise exact deployment look stale.
+        header_handle: [PROVIDER_IMAGE_HEADER_EXAMPLE],
+      },
+    };
+  });
+}
+
 export function templateContentHash(template: MetaTemplatePayload) {
   const content = stable({
     name: template.name,
     language: template.language,
     category: template.category,
-    components: template.components,
+    components: canonicalProviderTemplateComponents(template.components),
   });
   return createHash("sha256").update(JSON.stringify(content)).digest("hex");
 }
@@ -148,11 +178,38 @@ export async function buildTemplateReconciliationPlan(
   });
 }
 
+export async function buildReadOnlyTemplateReconciliationPlan(input: {
+  templates: readonly MetaTemplatePayload[];
+  remoteLookup?: () => Promise<MetaRemoteTemplate[]>;
+  localOnlyReason?: "credentials_unavailable" | "explicit_local_only";
+}) {
+  if (!input.remoteLookup) {
+    return {
+      remoteLookup: {
+        status: "local_only" as const,
+        reason: input.localOnlyReason ?? ("credentials_unavailable" as const),
+        remoteCount: 0,
+      },
+      plan: await buildTemplateReconciliationPlan(input.templates, []),
+    };
+  }
+  const remote = await input.remoteLookup();
+  return {
+    remoteLookup: {
+      status: "succeeded" as const,
+      reason: null,
+      remoteCount: remote.length,
+    },
+    plan: await buildTemplateReconciliationPlan(input.templates, remote),
+  };
+}
+
 export function parseTemplateProvisioningArgs(argv: readonly string[]) {
   let mode: TemplateProvisioningMode = "plan";
   let wabaId: string | undefined;
   let only: string | undefined;
-  let headerHandle: string | undefined;
+  let localOnly = false;
+  let headerHandleStdin = false;
   let scope: "all" | "concierge" | "unified" = "all";
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
@@ -162,14 +219,17 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
     } else if (argument === "--refresh") {
       if (mode === "apply") throw new Error("template_mode_conflict");
       mode = "refresh";
+    } else if (argument === "--local-only") {
+      localOnly = true;
+    } else if (argument === "--header-handle" || argument?.startsWith("--header-handle=")) {
+      throw new Error("private_media_handle_argv_forbidden");
+    } else if (argument === "--header-handle-stdin") {
+      headerHandleStdin = true;
     } else if (argument === "--waba-id") wabaId = argv[(index += 1)];
     else if (argument?.startsWith("--waba-id=")) wabaId = argument.slice("--waba-id=".length);
     else if (argument === "--only") only = argv[(index += 1)];
     else if (argument?.startsWith("--only=")) only = argument.slice("--only=".length);
-    else if (argument === "--header-handle") headerHandle = argv[(index += 1)];
-    else if (argument?.startsWith("--header-handle=")) {
-      headerHandle = argument.slice("--header-handle=".length);
-    } else if (argument === "--scope") {
+    else if (argument === "--scope") {
       const value = argv[(index += 1)];
       if (value !== "all" && value !== "concierge" && value !== "unified") {
         throw new Error(`invalid_template_scope:${value ?? ""}`);
@@ -187,6 +247,10 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
   }
   if (mode === "apply" && !wabaId) throw new Error("apply_requires_waba_id");
   if (mode === "refresh" && !wabaId) throw new Error("refresh_requires_waba_id");
+  if (localOnly && mode !== "plan") throw new Error("local_only_requires_plan_mode");
+  if (headerHandleStdin && mode !== "apply") {
+    throw new Error("header_handle_stdin_requires_apply_mode");
+  }
   if (mode !== "plan" && wabaId !== CONFIRMED_PRODUCTION_WABA_ID) {
     throw new Error("apply_waba_id_not_confirmed");
   }
@@ -197,7 +261,8 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
     wabaId,
     only,
     scope,
-    headerHandle,
+    localOnly,
+    headerHandleStdin,
   };
 }
 
