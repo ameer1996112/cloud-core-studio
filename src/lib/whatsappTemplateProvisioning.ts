@@ -9,6 +9,12 @@ export type MetaTemplatePayload = {
   components: unknown[];
 };
 
+export type MetaRemoteTemplate = MetaTemplatePayload & {
+  id?: string;
+  status?: string;
+  rejected_reason?: string | null;
+};
+
 export type TemplatePlanItem = MetaTemplatePayload & {
   action: "create" | "unchanged" | "content_drift" | "remote_duplicate";
   contentHash: string;
@@ -37,6 +43,91 @@ export function templateContentHash(template: MetaTemplatePayload) {
     components: template.components,
   });
   return createHash("sha256").update(JSON.stringify(content)).digest("hex");
+}
+
+export type TemplateDeploymentSyncRow = {
+  waba_id: string;
+  template_name: string;
+  language: string;
+  version: "v2";
+  category: string;
+  content_hash: string;
+  provider_template_id: string | null;
+  approval_status: string;
+  provider_payload: { rejected_reason: string | null };
+  last_synced_at: string;
+  updated_at: string;
+};
+
+export function buildTemplateDeploymentSyncRows(input: {
+  wabaId: string;
+  local: readonly MetaTemplatePayload[];
+  remote: readonly MetaRemoteTemplate[];
+  now?: string;
+  redactions?: readonly string[];
+}): TemplateDeploymentSyncRow[] {
+  const now = input.now ?? new Date().toISOString();
+  const redact = (value: string | null | undefined) => {
+    if (value == null) return null;
+    return (
+      input.redactions?.reduce(
+        (result, secret) =>
+          secret ? result.replaceAll(secret, "[REDACTED_MEDIA_HANDLE]") : result,
+        value,
+      ) ?? value
+    );
+  };
+  return input.local.map((template) => {
+    const remote = input.remote.filter(
+      (candidate) => candidate.name === template.name && candidate.language === template.language,
+    );
+    const exact = remote.find(
+      (candidate) => templateContentHash(candidate) === templateContentHash(template),
+    );
+    return {
+      waba_id: input.wabaId,
+      template_name: template.name,
+      language: template.language,
+      version: "v2",
+      category: template.category,
+      content_hash: templateContentHash(template),
+      provider_template_id: exact?.id ?? remote[0]?.id ?? null,
+      approval_status:
+        remote.length > 1
+          ? "REMOTE_DUPLICATE"
+          : exact
+            ? (exact.status ?? "UNKNOWN")
+            : remote.length
+              ? "CONTENT_DRIFT"
+              : "NOT_CREATED",
+      provider_payload: {
+        rejected_reason: redact(exact?.rejected_reason ?? remote[0]?.rejected_reason),
+      },
+      last_synced_at: now,
+      updated_at: now,
+    };
+  });
+}
+
+export async function refreshWhatsappTemplateDeployments(input: {
+  wabaId: string;
+  templates: readonly MetaTemplatePayload[];
+  meta: { listAll(): Promise<MetaRemoteTemplate[]> };
+  sync(rows: TemplateDeploymentSyncRow[]): Promise<unknown>;
+  redactions?: readonly string[];
+}) {
+  if (input.wabaId !== CONFIRMED_PRODUCTION_WABA_ID) {
+    throw new Error("apply_waba_id_not_confirmed");
+  }
+  const remote = await input.meta.listAll();
+  const rows = buildTemplateDeploymentSyncRows({
+    wabaId: input.wabaId,
+    local: input.templates,
+    remote,
+    redactions: input.redactions,
+  });
+  await input.sync(rows);
+  return { refreshed: true, created: 0, count: rows.length };
 }
 
 export async function buildTemplateReconciliationPlan(

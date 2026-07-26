@@ -4,7 +4,10 @@ import {
   parseTemplateProvisioningArgs,
   prepareTemplateForProviderCreate,
   provisionWhatsappTemplates,
+  refreshWhatsappTemplateDeployments,
+  templateContentHash,
 } from "../../src/lib/whatsappTemplateProvisioning.ts";
+import { CONCIERGE_META_TEMPLATE_CATALOG } from "../../src/lib/conciergeTemplateCatalog.ts";
 
 describe("WhatsApp v2 template provisioning", () => {
   test("is plan-only unless apply and the exact WABA are explicit", () => {
@@ -151,5 +154,63 @@ describe("WhatsApp v2 template provisioning", () => {
     });
     expect(result).toMatchObject({ created: 0, reconciledAfterError: 1 });
     expect(calls).toEqual(["created", "released"]);
+  });
+
+  test("refresh reads and upserts only scoped templates without any create capability", async () => {
+    let syncedRows;
+    const sentinelHandle = "4::sentinel-should-not-appear";
+    const remote = CONCIERGE_META_TEMPLATE_CATALOG.map((template, index) => ({
+      ...template,
+      id: `meta-${index}`,
+      status: "APPROVED",
+      rejected_reason: `provider detail ${sentinelHandle}`,
+    }));
+    const result = await refreshWhatsappTemplateDeployments({
+      wabaId: "1009561255148806",
+      templates: CONCIERGE_META_TEMPLATE_CATALOG,
+      redactions: [sentinelHandle],
+      meta: { listAll: async () => remote },
+      sync: async (rows) => {
+        syncedRows = rows;
+      },
+    });
+
+    expect(result).toMatchObject({ refreshed: true, created: 0, count: remote.length });
+    expect(JSON.stringify(result)).not.toContain(sentinelHandle);
+    expect(syncedRows).toHaveLength(CONCIERGE_META_TEMPLATE_CATALOG.length);
+    expect(syncedRows.every((row) => row.waba_id === "1009561255148806")).toBe(true);
+    expect(syncedRows.every((row) => row.template_name.endsWith("_branded_v2"))).toBe(true);
+    expect(syncedRows[0]).toMatchObject({
+      provider_template_id: "meta-0",
+      approval_status: "APPROVED",
+      content_hash: templateContentHash(CONCIERGE_META_TEMPLATE_CATALOG[0]),
+    });
+    expect(JSON.stringify(syncedRows)).not.toContain(sentinelHandle);
+  });
+
+  test("refresh fails closed before listing or upserting for a wrong WABA or provider failure", async () => {
+    let lists = 0;
+    let syncs = 0;
+    const input = {
+      templates: [{ name: "one_branded_v2", language: "he", category: "UTILITY", components: [] }],
+      meta: {
+        listAll: async () => {
+          lists += 1;
+          throw new Error("provider_unavailable");
+        },
+      },
+      sync: async () => {
+        syncs += 1;
+      },
+    };
+
+    await expect(
+      refreshWhatsappTemplateDeployments({ ...input, wabaId: "wrong-waba" }),
+    ).rejects.toThrow("apply_waba_id_not_confirmed");
+    await expect(
+      refreshWhatsappTemplateDeployments({ ...input, wabaId: "1009561255148806" }),
+    ).rejects.toThrow("provider_unavailable");
+    expect(lists).toBe(1);
+    expect(syncs).toBe(0);
   });
 });

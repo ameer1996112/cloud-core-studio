@@ -12,16 +12,29 @@ import {
   validateConciergeTemplateCatalog,
 } from "../src/lib/conciergeTemplateCatalog.ts";
 import {
+  buildTemplateDeploymentSyncRows,
   buildTemplateReconciliationPlan,
   parseTemplateProvisioningArgs,
   prepareTemplateForProviderCreate,
   provisionWhatsappTemplates,
+  refreshWhatsappTemplateDeployments,
   templateRequiresHeaderHandle,
-  templateContentHash,
 } from "../src/lib/whatsappTemplateProvisioning.ts";
 
 const ROOT = process.cwd();
 const ENV_FILE = path.join(ROOT, ".env.whatsapp.local");
+let valuesToRedact = [];
+
+function redact(value) {
+  return valuesToRedact.reduce(
+    (result, secret) => (secret ? result.replaceAll(secret, "[REDACTED_MEDIA_HANDLE]") : result),
+    String(value),
+  );
+}
+
+function safeJson(value) {
+  return redact(JSON.stringify(value, null, 2));
+}
 
 function loadLocalEnv() {
   if (!existsSync(ENV_FILE)) return;
@@ -55,17 +68,19 @@ async function metaRequest(url, init = {}) {
   if (!response.ok) {
     const error = payload?.error;
     throw new Error(
-      [
-        error?.message ?? `Meta API error ${response.status}`,
-        error?.code && `code=${error.code}`,
-        error?.error_subcode && `subcode=${error.error_subcode}`,
-        error?.error_user_title && `title=${error.error_user_title}`,
-        error?.error_user_msg && `user_msg=${error.error_user_msg}`,
-        error?.error_data?.details && `details=${error.error_data.details}`,
-        error?.fbtrace_id && `fbtrace_id=${error.fbtrace_id}`,
-      ]
-        .filter(Boolean)
-        .join(" | "),
+      redact(
+        [
+          error?.message ?? `Meta API error ${response.status}`,
+          error?.code && `code=${error.code}`,
+          error?.error_subcode && `subcode=${error.error_subcode}`,
+          error?.error_user_title && `title=${error.error_user_title}`,
+          error?.error_user_msg && `user_msg=${error.error_user_msg}`,
+          error?.error_data?.details && `details=${error.error_data.details}`,
+          error?.fbtrace_id && `fbtrace_id=${error.fbtrace_id}`,
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      ),
     );
   }
   return payload;
@@ -115,39 +130,9 @@ async function supabaseRequest(resource, body) {
   return payload;
 }
 
-async function syncDeploymentRecords(wabaId, localTemplates, remoteTemplates) {
+async function syncDeploymentRecords(rows) {
   const { url, key } = supabaseConfiguration();
   if (!url || !key) return { synced: false, reason: "missing_supabase_service_configuration" };
-  const rows = localTemplates.map((template) => {
-    const remote = remoteTemplates.filter(
-      (candidate) => candidate.name === template.name && candidate.language === template.language,
-    );
-    const exact = remote.find(
-      (candidate) => templateContentHash(candidate) === templateContentHash(template),
-    );
-    return {
-      waba_id: wabaId,
-      template_name: template.name,
-      language: template.language,
-      version: "v2",
-      category: template.category,
-      content_hash: templateContentHash(template),
-      provider_template_id: exact?.id ?? remote[0]?.id ?? null,
-      approval_status:
-        remote.length > 1
-          ? "REMOTE_DUPLICATE"
-          : exact
-            ? (exact.status ?? "UNKNOWN")
-            : remote.length
-              ? "CONTENT_DRIFT"
-              : "NOT_CREATED",
-      provider_payload: {
-        rejected_reason: exact?.rejected_reason ?? remote[0]?.rejected_reason ?? null,
-      },
-      last_synced_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-  });
   const response = await fetch(
     `${url}/rest/v1/whatsapp_template_deployments?on_conflict=waba_id,template_name,language`,
     {
@@ -167,6 +152,7 @@ async function syncDeploymentRecords(wabaId, localTemplates, remoteTemplates) {
 
 loadLocalEnv();
 const args = parseTemplateProvisioningArgs(process.argv.slice(2));
+valuesToRedact = [args.headerHandle?.trim()].filter(Boolean);
 const catalogValidation = validateMetaTemplateCatalog();
 if (!catalogValidation.ok)
   throw new Error(`invalid_template_catalog:${catalogValidation.errors.join(",")}`);
@@ -193,7 +179,7 @@ const imageHeaderTemplates = templates
 if (args.mode === "plan") {
   const plan = await buildTemplateReconciliationPlan(templates, []);
   console.log(
-    JSON.stringify(
+    safeJson(
       {
         mode: "plan",
         remoteLookup: false,
@@ -215,17 +201,25 @@ const providerTemplates = templates.map((template) =>
 );
 
 if (args.mode === "refresh") {
-  const remoteTemplates = await listAllMetaTemplates(wabaId);
-  const synced = await syncDeploymentRecords(wabaId, providerTemplates, remoteTemplates);
-  if (!synced.synced) throw new Error("refresh_requires_supabase_service_configuration");
+  const refreshed = await refreshWhatsappTemplateDeployments({
+    wabaId,
+    templates: providerTemplates,
+    redactions: valuesToRedact,
+    meta: { listAll: () => listAllMetaTemplates(wabaId) },
+    sync: async (rows) => {
+      const synced = await syncDeploymentRecords(rows);
+      if (!synced.synced) throw new Error("refresh_requires_supabase_service_configuration");
+      return synced;
+    },
+  });
   console.log(
-    JSON.stringify(
+    safeJson(
       {
         mode: "refresh",
         wabaId,
         providerReadOnly: true,
         created: 0,
-        deploymentSync: synced,
+        deploymentSync: { synced: true, count: refreshed.count },
       },
       null,
       2,
@@ -259,10 +253,13 @@ const result = await provisionWhatsappTemplates({
   },
 });
 const synced = await syncDeploymentRecords(
-  wabaId,
-  providerTemplates,
-  await listAllMetaTemplates(wabaId),
+  buildTemplateDeploymentSyncRows({
+    wabaId,
+    local: providerTemplates,
+    remote: await listAllMetaTemplates(wabaId),
+    redactions: valuesToRedact,
+  }),
 );
 
-console.log(JSON.stringify({ mode: "apply", wabaId, ...result, deploymentSync: synced }, null, 2));
+console.log(safeJson({ mode: "apply", wabaId, ...result, deploymentSync: synced }));
 if (result.errors?.length) process.exitCode = 1;
