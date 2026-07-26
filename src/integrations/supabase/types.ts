@@ -8,6 +8,52 @@ export type Database = {
   };
   public: {
     Tables: {
+      concierge_decisions: {
+        Row: {
+          automation_config_version: number;
+          channel: string | null;
+          communication_recipient_id: string;
+          competing_action_ids: string[];
+          decided_at: string;
+          decision_key: string;
+          id: string;
+          intent_id: string | null;
+          journey_instance_id: string | null;
+          locale: string;
+          materialization_evidence: Json | null;
+          policy_version: string;
+          reason_codes: string[];
+          simulated: boolean;
+          studio_id: string;
+          suppression_reason: string | null;
+          template_id: string | null;
+          template_version: number | null;
+        };
+        Insert: {
+          automation_config_version: number;
+          communication_recipient_id: string;
+          decision_key: string;
+          locale: string;
+          policy_version: string;
+          studio_id: string;
+          channel?: string | null;
+          competing_action_ids?: string[];
+          id?: string;
+          intent_id?: string | null;
+          journey_instance_id?: string | null;
+          materialization_evidence?: Json | null;
+          reason_codes?: string[];
+          simulated?: boolean;
+          suppression_reason?: string | null;
+          template_id?: string | null;
+          template_version?: number | null;
+        };
+        Update: {
+          materialization_evidence?: Json | null;
+          suppression_reason?: string | null;
+        };
+        Relationships: [];
+      };
       admin_activity_log: {
         Row: {
           action: string;
@@ -1462,6 +1508,30 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      materialize_concierge_delivery: {
+        Args: {
+          p_automation_config_version: number;
+          p_competing_action_ids: string[];
+          p_correlation_id: string;
+          p_decision_key: string;
+          p_intent_id: string;
+          p_materializations: Json;
+          p_mode: string;
+          p_now: string;
+          p_policy_version: string;
+          p_reason_codes: string[];
+          p_recipient_id: string;
+          p_rendered_variables: Json;
+          p_studio_id: string;
+          p_template_key: string;
+          p_whatsapp_waba_id: string | null;
+        };
+        Returns: {
+          result_decision_id: string;
+          outcome: string;
+          result_suppression_reason: string | null;
+        }[];
+      };
       _log_action_as: {
         Args: {
           _action: string;

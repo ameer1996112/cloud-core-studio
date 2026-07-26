@@ -3,12 +3,16 @@
 ALTER TABLE public.concierge_decisions
   ADD COLUMN IF NOT EXISTS materialization_evidence jsonb;
 
+DROP FUNCTION IF EXISTS public.materialize_concierge_delivery(
+  uuid,uuid,uuid,text,text,integer,text,text,uuid,text[],uuid[],jsonb,jsonb,timestamptz
+);
+
 CREATE OR REPLACE FUNCTION public.materialize_concierge_delivery(
   p_studio_id uuid, p_recipient_id uuid, p_intent_id uuid, p_decision_key text,
   p_policy_version text, p_automation_config_version integer, p_mode text,
   p_template_key text, p_correlation_id uuid, p_reason_codes text[],
   p_competing_action_ids uuid[], p_rendered_variables jsonb, p_materializations jsonb,
-  p_now timestamptz
+  p_whatsapp_waba_id text, p_now timestamptz
 )
 RETURNS TABLE(result_decision_id uuid, outcome text, result_suppression_reason text)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -22,7 +26,7 @@ DECLARE
   v_template public.concierge_template_versions%ROWTYPE;
   v_snapshot public.message_snapshots%ROWTYPE;
   v_expected_provider text; v_expected_address text; v_required_variable text;
-  v_expected_presentation_key text; v_expected_provider_payload jsonb;
+  v_expected_presentation_key text; v_expected_provider_payload jsonb; v_expected_action_url text;
   v_whatsapp_parameters jsonb; v_materialization_evidence jsonb;
   v_existing_evidence jsonb; v_existing_decision boolean := false;
 BEGIN
@@ -102,6 +106,18 @@ BEGIN
     IF v_item->'snapshot'->>'presentationKey' IS DISTINCT FROM v_expected_presentation_key THEN
       RAISE EXCEPTION 'invalid_concierge_presentation_evidence';
     END IF;
+    v_expected_action_url := CASE p_template_key
+      WHEN 'booking_confirmed_first' THEN 'https://cloudandcorestudio.com/member/bookings'
+      WHEN 'booking_confirmed_repeat' THEN 'https://cloudandcorestudio.com/member/bookings'
+      WHEN 'payment_requires_action' THEN 'https://cloudandcorestudio.com/member/packages'
+      WHEN 'payment_terminally_failed' THEN 'https://cloudandcorestudio.com/member/packages'
+      WHEN 'waitlist_offer' THEN 'https://cloudandcorestudio.com/member/schedule'
+      WHEN 'recommendation' THEN 'https://cloudandcorestudio.com/member/schedule'
+      ELSE NULL
+    END;
+    IF v_item->'snapshot'->>'actionUrl' IS DISTINCT FROM v_expected_action_url THEN
+      RAISE EXCEPTION 'invalid_concierge_presentation_evidence';
+    END IF;
 
     SELECT * INTO v_template FROM public.concierge_template_versions
     WHERE id = (v_item->'snapshot'->>'templateId')::uuid AND studio_id = p_studio_id
@@ -149,19 +165,20 @@ BEGIN
       END IF;
     END IF;
     IF v_template.channel = 'whatsapp' AND NOT EXISTS (
-      SELECT 1 FROM public.whatsapp_template_deployments w WHERE w.template_name = p_template_key || '_branded_v2'
+      SELECT 1 FROM public.whatsapp_template_deployments w WHERE w.waba_id = NULLIF(p_whatsapp_waba_id,'')
+        AND w.template_name = p_template_key || '_branded_v2'
         AND w.language = CASE v_recipient.preferred_locale WHEN 'en' THEN 'en_US' ELSE v_recipient.preferred_locale END
         AND upper(w.approval_status) = 'APPROVED'
     ) THEN RAISE EXCEPTION 'whatsapp_template_not_provider_approved'; END IF;
   END LOOP;
 
+  SELECT (item->'snapshot'->>'templateId')::uuid,(item->'snapshot'->>'templateVersion')::integer
+  INTO v_first_template_id,v_first_template_version FROM jsonb_array_elements(p_materializations) item LIMIT 1;
   IF v_intent.status = 'materialized' THEN
     SELECT id,materialization_evidence INTO v_decision_id,v_existing_evidence
     FROM public.concierge_decisions WHERE studio_id = p_studio_id AND decision_key = p_decision_key;
     v_existing_decision := true;
   ELSE
-    SELECT (item->'snapshot'->>'templateId')::uuid,(item->'snapshot'->>'templateVersion')::integer
-    INTO v_first_template_id,v_first_template_version FROM jsonb_array_elements(p_materializations) item LIMIT 1;
     INSERT INTO public.concierge_decisions(studio_id,journey_instance_id,intent_id,communication_recipient_id,decision_key,
       policy_version,automation_config_version,template_id,template_version,locale,reason_codes,competing_action_ids,simulated,materialization_evidence)
     VALUES (p_studio_id,v_intent.journey_instance_id,v_intent.id,p_recipient_id,p_decision_key,p_policy_version,
@@ -175,7 +192,18 @@ BEGIN
     END IF;
   END IF;
   IF v_existing_decision THEN
-    IF v_decision_id IS NULL OR v_existing_evidence IS DISTINCT FROM v_materialization_evidence THEN
+    IF v_decision_id IS NULL THEN
+      RAISE EXCEPTION 'snapshot_replay_mismatch';
+    END IF;
+    IF v_existing_evidence IS NULL THEN
+      IF NOT EXISTS (
+        SELECT 1 FROM public.concierge_decisions d
+        WHERE d.id = v_decision_id AND d.studio_id = p_studio_id AND d.intent_id = p_intent_id
+          AND d.communication_recipient_id = p_recipient_id AND d.policy_version = p_policy_version
+          AND d.automation_config_version = p_automation_config_version AND d.template_id = v_first_template_id
+          AND d.template_version = v_first_template_version AND d.locale = v_recipient.preferred_locale
+      ) THEN RAISE EXCEPTION 'snapshot_replay_mismatch'; END IF;
+    ELSIF v_existing_evidence IS DISTINCT FROM v_materialization_evidence THEN
       RAISE EXCEPTION 'snapshot_replay_mismatch';
     END IF;
     IF v_intent.status = 'materialized' THEN
@@ -199,6 +227,14 @@ BEGIN
             AND m.content->>'action_url' IS NOT DISTINCT FROM v_item->'snapshot'->>'actionUrl'
         ) THEN RAISE EXCEPTION 'snapshot_replay_mismatch'; END IF;
       END LOOP;
+    ELSIF EXISTS (
+      SELECT 1 FROM public.message_snapshots s WHERE s.decision_id = v_decision_id
+    ) THEN RAISE EXCEPTION 'snapshot_replay_mismatch';
+    END IF;
+    IF v_existing_evidence IS NULL THEN
+      UPDATE public.concierge_decisions
+      SET materialization_evidence = v_materialization_evidence
+      WHERE id = v_decision_id AND materialization_evidence IS NULL;
     END IF;
     RETURN QUERY SELECT v_decision_id,'duplicate'::text,NULL::text; RETURN;
   END IF;
@@ -275,5 +311,5 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.materialize_concierge_delivery(uuid,uuid,uuid,text,text,integer,text,text,uuid,text[],uuid[],jsonb,jsonb,timestamptz) FROM PUBLIC,authenticated;
-GRANT EXECUTE ON FUNCTION public.materialize_concierge_delivery(uuid,uuid,uuid,text,text,integer,text,text,uuid,text[],uuid[],jsonb,jsonb,timestamptz) TO service_role;
+REVOKE ALL ON FUNCTION public.materialize_concierge_delivery(uuid,uuid,uuid,text,text,integer,text,text,uuid,text[],uuid[],jsonb,jsonb,text,timestamptz) FROM PUBLIC,authenticated;
+GRANT EXECUTE ON FUNCTION public.materialize_concierge_delivery(uuid,uuid,uuid,text,text,integer,text,text,uuid,text[],uuid[],jsonb,jsonb,text,timestamptz) TO service_role;

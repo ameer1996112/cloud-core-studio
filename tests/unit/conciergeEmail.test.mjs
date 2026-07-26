@@ -38,3 +38,21 @@ test("fails closed when persisted concierge presentation evidence does not match
     }),
   ).toThrow("concierge_presentation_evidence_mismatch");
 });
+
+test("accepts persisted null action evidence for a no-action concierge journey", () => {
+  const rendered = renderConciergeEmail({
+    journeyType: "booking_cancellation",
+    templateKey: "booking_cancelled",
+    locale: "en",
+    subject: "Cancellation confirmed",
+    body: "Your booking was cancelled.",
+    variables: { member_name: "Noa" },
+    publicBaseUrl: "https://cloudandcorestudio.com",
+    messageKey: "delivery-no-action",
+    presentationKey: "booking_cancelled:email:v2",
+    actionUrl: null,
+  });
+
+  expect(rendered.presentationKey).toBe("booking_cancelled:email:v2");
+  expect(rendered.html).not.toContain("If the button does not work");
+});

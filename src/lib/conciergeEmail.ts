@@ -26,9 +26,10 @@ export function renderConciergeEmail(input: {
     variables: input.variables,
     publicBaseUrl: input.publicBaseUrl,
   });
+  const expectedActionUrl = presentation.action?.url ?? null;
   if (
     (input.presentationKey !== undefined && input.presentationKey !== presentation.key) ||
-    (input.actionUrl !== undefined && input.actionUrl !== presentation.action?.url)
+    (input.actionUrl !== undefined && input.actionUrl !== expectedActionUrl)
   ) {
     throw new Error("concierge_presentation_evidence_mismatch");
   }

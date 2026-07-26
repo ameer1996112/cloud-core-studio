@@ -38,6 +38,7 @@ function materializeSql(
   correlationId,
   suffix,
   actionUrl = "https://cloudandcorestudio.com/member/bookings",
+  wabaId = "concierge-integration",
 ) {
   return `
     SELECT outcome || ':' || COALESCE(result_suppression_reason,'')
@@ -95,6 +96,7 @@ function materializeSql(
           "scheduledFor":"2026-07-26T10:00:00Z","expiresAt":null,"providerPayload":{}
         }
       }]'::jsonb,
+      '${wabaId}',
       '2026-07-26T10:00:00Z'
     );
   `;
@@ -186,7 +188,7 @@ describe("concierge database integration", () => {
         psql(materializeSql(ids.intent1, ids.correlation1, "one")),
         psql(materializeSql(ids.intent2, ids.correlation2, "two")),
       ]);
-      expect(outcomes.sort()).toEqual(["materialized:", "postponed:six_hour_contact_cap"]);
+      expect([...outcomes].sort()).toEqual(["materialized:", "postponed:six_hour_contact_cap"]);
       const materialized =
         outcomes[0] === "materialized:"
           ? { intentId: ids.intent1, correlationId: ids.correlation1, suffix: "one" }
@@ -198,9 +200,10 @@ describe("concierge database integration", () => {
       ).toBe("3");
       expect(
         await psql(`
-          SELECT string_agg(content->>'presentation_key', ',' ORDER BY content->>'presentation_key')
-          FROM public.messages
-          WHERE idempotency_key LIKE 'concierge:%';
+          SELECT string_agg(m.content->>'presentation_key', ',' ORDER BY m.content->>'presentation_key')
+          FROM public.messages m
+          JOIN public.message_deliveries d ON d.message_id=m.id
+          WHERE d.idempotency_key LIKE 'test-dispatch:${materialized.suffix}:%';
         `),
       ).toBe(
         "booking_confirmed_repeat:email:v2,booking_confirmed_repeat:push:v1,booking_confirmed_repeat:whatsapp:v2",
@@ -228,6 +231,23 @@ describe("concierge database integration", () => {
           `SELECT count(*) FROM public.message_deliveries WHERE idempotency_key LIKE 'test-dispatch:${materialized.suffix}:%';`,
         ),
       ).toBe("3");
+      await psql(`
+        UPDATE public.concierge_decisions
+        SET materialization_evidence=NULL
+        WHERE decision_key='test-dispatch:${materialized.suffix}';
+      `);
+      expect(
+        await psql(
+          materializeSql(materialized.intentId, materialized.correlationId, materialized.suffix),
+        ),
+      ).toBe("duplicate:");
+      expect(
+        await psql(`
+          SELECT (materialization_evidence IS NOT NULL)::text
+          FROM public.concierge_decisions
+          WHERE decision_key='test-dispatch:${materialized.suffix}';
+        `),
+      ).toBe("true");
       await expect(
         psql(
           materializeSql(
@@ -237,7 +257,18 @@ describe("concierge database integration", () => {
             "https://cloudandcorestudio.com/member/changed",
           ),
         ),
-      ).rejects.toThrow("snapshot_replay_mismatch");
+      ).rejects.toThrow("invalid_concierge_presentation_evidence");
+      await expect(
+        psql(
+          materializeSql(
+            ids.intent2,
+            ids.correlation2,
+            "wrong-waba",
+            "https://cloudandcorestudio.com/member/bookings",
+            "another-approved-waba",
+          ),
+        ),
+      ).rejects.toThrow("whatsapp_template_not_provider_approved");
       await expect(
         psql(
           materializeSql(

@@ -247,6 +247,7 @@ export async function runConciergeDispatch(input?: {
               p_competing_action_ids: competingActionIds,
               p_rendered_variables: state.variables,
               p_materializations: materializations,
+              p_whatsapp_waba_id: process.env.META_WABA_ID?.trim() || null,
               p_now: now.toISOString(),
             });
             if (materialized.error) throw materialized.error;
