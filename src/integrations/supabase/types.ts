@@ -38,6 +38,7 @@ export type Database = {
           studio_id: string;
           channel?: string | null;
           competing_action_ids?: string[];
+          decided_at?: string;
           id?: string;
           intent_id?: string | null;
           journey_instance_id?: string | null;
@@ -88,6 +89,20 @@ export type Database = {
             columns: ["template_id"];
             isOneToOne: false;
             referencedRelation: "concierge_template_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_decisions_studio_id_fkey";
+            columns: ["studio_id"];
+            isOneToOne: false;
+            referencedRelation: "studios";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_decisions_communication_recipient_id_fkey";
+            columns: ["communication_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "communication_recipients";
             referencedColumns: ["id"];
           },
         ];

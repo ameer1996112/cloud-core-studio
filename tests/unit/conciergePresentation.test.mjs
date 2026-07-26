@@ -166,3 +166,16 @@ test("keeps every registry action path represented in the materialization eviden
     expect(migration).toContain(`'${templateKey}' THEN '${presentation.action?.url}'`);
   }
 });
+
+test("keeps non-WhatsApp overload replays WABA-neutral and WhatsApp replays WABA-bound", () => {
+  const migration = readFileSync(
+    new URL(
+      "../../supabase/migrations/20260727120000_concierge_branded_presentation_evidence.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  expect(migration).toContain("THEN NULLIF(p_whatsapp_waba_id,'') ELSE NULL END");
+  expect(migration).toContain("'whatsapp_waba_id', v_canonical_whatsapp_waba_id");
+  expect(migration).toContain("whatsapp_waba_resolution_ambiguous");
+});

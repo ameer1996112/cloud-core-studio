@@ -25,6 +25,7 @@ DECLARE
   v_expected_presentation_key text; v_expected_provider_payload jsonb; v_expected_action_url text;
   v_whatsapp_parameters jsonb; v_materialization_evidence jsonb;
   v_existing_evidence jsonb; v_existing_decision boolean := false;
+  v_canonical_whatsapp_waba_id text;
 BEGIN
   IF p_mode NOT IN ('test_only','live') THEN RAISE EXCEPTION 'invalid_delivery_mode'; END IF;
   IF jsonb_typeof(p_materializations) <> 'array' OR jsonb_array_length(p_materializations) = 0 THEN
@@ -57,11 +58,15 @@ BEGIN
     SELECT 1 FROM jsonb_array_elements(p_materializations) item
     GROUP BY item->'snapshot'->>'channel' HAVING count(*) > 1
   ) THEN RAISE EXCEPTION 'duplicate_materialization_channel'; END IF;
+  v_canonical_whatsapp_waba_id := CASE WHEN EXISTS (
+    SELECT 1 FROM jsonb_array_elements(p_materializations) item
+    WHERE item->'snapshot'->>'channel' = 'whatsapp'
+  ) THEN NULLIF(p_whatsapp_waba_id,'') ELSE NULL END;
   SELECT jsonb_build_object(
     'intent_id', p_intent_id,
     'correlation_id', p_correlation_id,
     'journey_type', v_intent.journey_type,
-    'whatsapp_waba_id', NULLIF(p_whatsapp_waba_id,''),
+    'whatsapp_waba_id', v_canonical_whatsapp_waba_id,
     'deliveries', jsonb_agg(
     jsonb_build_object(
       'channel', item->'snapshot'->>'channel',
@@ -163,7 +168,7 @@ BEGIN
       END IF;
     END IF;
     IF v_template.channel = 'whatsapp' AND NOT EXISTS (
-      SELECT 1 FROM public.whatsapp_template_deployments w WHERE w.waba_id = NULLIF(p_whatsapp_waba_id,'')
+      SELECT 1 FROM public.whatsapp_template_deployments w WHERE w.waba_id = v_canonical_whatsapp_waba_id
         AND w.template_name = p_template_key || '_branded_v2'
         AND w.language = CASE v_recipient.preferred_locale WHEN 'en' THEN 'en_US' ELSE v_recipient.preferred_locale END
         AND upper(w.approval_status) = 'APPROVED'

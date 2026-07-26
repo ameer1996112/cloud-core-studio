@@ -264,9 +264,9 @@ describe("concierge database integration", () => {
       await expect(
         psql(
           materializeSql(
-            ids.intent2,
-            ids.correlation2,
-            "wrong-waba",
+            materialized.intentId,
+            materialized.correlationId,
+            materialized.suffix,
             "https://cloudandcorestudio.com/member/bookings",
             "another-approved-waba",
           ),
