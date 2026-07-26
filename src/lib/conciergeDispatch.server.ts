@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { evaluateConciergeDispatch } from "@/lib/conciergeDispatch";
 import { loadMemberEngagementState } from "@/lib/conciergeEngagement.server";
 import { buildConciergeMaterializationPlan } from "@/lib/conciergeMaterialization";
+import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import { CONCIERGE_POLICY_VERSION, nextConciergeEligibility } from "@/lib/conciergePolicy";
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
 
@@ -199,9 +200,32 @@ export async function runConciergeDispatch(input?: {
             if (!selectedAction || !correlationId || !evaluation.selectedTemplateKey) {
               throw new Error("dispatch_evidence_incomplete");
             }
+            const presentation = buildConciergePresentation({
+              journeyType: selectedIntent.data.journey_type,
+              templateKey: evaluation.selectedTemplateKey,
+              locale: state.recipient.locale,
+              subject: evaluation.rendered[0]?.subject ?? null,
+              body: evaluation.rendered[0]?.body ?? "",
+              variables: state.variables,
+              publicBaseUrl: "https://cloudandcorestudio.com",
+            });
+            const presentationByChannel = Object.fromEntries(
+              evaluation.rendered.map(({ channel }) => [
+                channel,
+                channel === "email"
+                  ? presentation.key
+                  : `${evaluation.selectedTemplateKey}:${channel}:${channel === "push" ? "v1" : "v2"}`,
+              ]),
+            );
+            const actionByChannel = Object.fromEntries(
+              evaluation.rendered.map(({ channel }) => [channel, presentation.action?.url ?? null]),
+            );
             const materializations = buildConciergeMaterializationPlan({
               decisionKey: key,
               templateKey: evaluation.selectedTemplateKey,
+              journeyType: selectedIntent.data.journey_type,
+              presentationByChannel,
+              actionByChannel,
               locale: state.recipient.locale,
               rendered: evaluation.rendered,
               variables: state.variables,

@@ -27,11 +27,17 @@ const ids = {
   intent1: "84000000-0000-0000-0000-000000000001",
   intent2: "84000000-0000-0000-0000-000000000002",
   template: "85000000-0000-0000-0000-000000000001",
+  emailTemplate: "85000000-0000-0000-0000-000000000002",
   correlation1: "86000000-0000-0000-0000-000000000001",
   correlation2: "86000000-0000-0000-0000-000000000002",
 };
 
-function materializeSql(intentId, correlationId, suffix) {
+function materializeSql(
+  intentId,
+  correlationId,
+  suffix,
+  actionUrl = "https://cloudandcorestudio.com/member/bookings",
+) {
   return `
     SELECT outcome || ':' || COALESCE(result_suppression_reason,'')
     FROM public.materialize_concierge_delivery(
@@ -44,11 +50,26 @@ function materializeSql(intentId, correlationId, suffix) {
         "snapshot":{
           "templateId":"${ids.template}","templateVersion":1,"locale":"en",
           "channel":"push","renderedVariables":{"member_name":"Test"},
-          "finalSubject":"Booked","finalBody":"Your class is booked"
+          "finalSubject":"Booked","finalBody":"Your class is booked",
+          "presentationKey":"booking_confirmed_repeat:push:v1","journeyType":"booking",
+          "actionUrl":"${actionUrl}"
         },
         "delivery":{
           "channel":"push","provider":"apns","recipientAddress":"${ids.user}",
           "status":"queued","errorCode":null,"idempotencyKey":"test-dispatch:${suffix}:push",
+          "scheduledFor":"2026-07-26T10:00:00Z","expiresAt":null,"providerPayload":{}
+        }
+      },{
+        "snapshot":{
+          "templateId":"${ids.emailTemplate}","templateVersion":1,"locale":"en",
+          "channel":"email","renderedVariables":{"member_name":"Test"},
+          "finalSubject":"Booked","finalBody":"Your class is booked",
+          "presentationKey":"booking_confirmed_repeat:email:v2","journeyType":"booking",
+          "actionUrl":"${actionUrl}"
+        },
+        "delivery":{
+          "channel":"email","provider":"resend","recipientAddress":"concierge-test@example.com",
+          "status":"queued","errorCode":null,"idempotencyKey":"test-dispatch:${suffix}:email",
           "scheduledFor":"2026-07-26T10:00:00Z","expiresAt":null,"providerPayload":{}
         }
       }]'::jsonb,
@@ -65,7 +86,7 @@ describe("concierge database integration", () => {
         DELETE FROM public.automation_config_versions
         WHERE journey_type='booking' AND version=2
           AND studio_id=(SELECT id FROM public.studios WHERE slug='cloud-core');
-        DELETE FROM public.concierge_template_versions WHERE id='${ids.template}';
+        DELETE FROM public.concierge_template_versions WHERE id IN ('${ids.template}','${ids.emailTemplate}');
         DELETE FROM auth.users WHERE id='${ids.user}';
         INSERT INTO auth.users(id,aud,role,email,created_at,updated_at)
         VALUES ('${ids.user}','authenticated','authenticated','concierge-test@example.com',now(),now());
@@ -92,6 +113,10 @@ describe("concierge database integration", () => {
           '${ids.template}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           'booking_confirmed_repeat','push','en',1,'approved','Booked',
           'Your class is booked',ARRAY['member_name'],'integration',now()
+        ),(
+          '${ids.emailTemplate}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
+          'booking_confirmed_repeat','email','en',1,'approved','Booked',
+          'Your class is booked',ARRAY['member_name'],'integration-email',now()
         );
         INSERT INTO public.journey_instances(
           id,studio_id,journey_type,participant_id,communication_recipient_id,
@@ -131,9 +156,16 @@ describe("concierge database integration", () => {
       expect(outcomes.sort()).toEqual(["materialized:", "postponed:six_hour_contact_cap"]);
       expect(
         await psql(
-          `SELECT count(*) FROM public.message_deliveries WHERE idempotency_key LIKE 'test-dispatch:%:push';`,
+          `SELECT count(*) FROM public.message_deliveries WHERE idempotency_key LIKE 'test-dispatch:%';`,
         ),
-      ).toBe("1");
+      ).toBe("2");
+      expect(
+        await psql(`
+          SELECT string_agg(content->>'presentation_key', ',' ORDER BY content->>'presentation_key')
+          FROM public.messages
+          WHERE idempotency_key LIKE 'concierge:%';
+        `),
+      ).toBe("booking_confirmed_repeat:email:v2,booking_confirmed_repeat:push:v1");
       expect(
         await psql(
           `SELECT count(*) FROM public.frequency_reservations WHERE communication_recipient_id='${ids.recipient}';`,
@@ -143,9 +175,19 @@ describe("concierge database integration", () => {
       expect(await psql(materializeSql(ids.intent1, ids.correlation1, "one"))).toBe("duplicate:");
       expect(
         await psql(
-          `SELECT count(*) FROM public.message_deliveries WHERE idempotency_key='test-dispatch:one:push';`,
+          `SELECT count(*) FROM public.message_deliveries WHERE idempotency_key LIKE 'test-dispatch:one:%';`,
         ),
-      ).toBe("1");
+      ).toBe("2");
+      await expect(
+        psql(
+          materializeSql(
+            ids.intent2,
+            ids.correlation2,
+            "off-origin",
+            "https://evil.example/action",
+          ),
+        ),
+      ).rejects.toThrow("invalid_concierge_presentation_evidence");
     },
   );
 });
