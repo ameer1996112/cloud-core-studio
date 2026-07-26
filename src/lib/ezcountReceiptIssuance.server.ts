@@ -15,6 +15,8 @@ type PaymentReceiptRecord = {
   customerEmail: string | null;
   itemDescription: string | null;
   cardLast4: string | null;
+  paymentMethod: "card" | "bit";
+  providerTransactionId: string | null;
   externalProvider: string | null;
   externalStatus: string | null;
   externalDocumentId: string | null;
@@ -83,6 +85,8 @@ function defaultDeps(): EzcountReceiptIssuanceDeps {
         String(metadata.L4digit ?? metadata.cardMask ?? metadata.token_last4 ?? "")
           .replace(/\D/g, "")
           .slice(-4) || null;
+      const paymentMethod =
+        String(metadata.requested_payment_method ?? "").toLowerCase() === "bit" ? "bit" : "card";
       return {
         paymentId: payment.id,
         receiptId: data.id,
@@ -93,6 +97,8 @@ function defaultDeps(): EzcountReceiptIssuanceDeps {
         customerEmail: payment.member?.email ?? null,
         itemDescription: payment.plan?.name ?? "תשלום ל-Cloud & Core",
         cardLast4,
+        paymentMethod,
+        providerTransactionId: String(metadata.Id ?? metadata.txId ?? "").trim() || null,
         externalProvider: data.external_provider,
         externalStatus: data.external_status,
         externalDocumentId: data.external_doc_id,
@@ -169,7 +175,7 @@ function defaultKidsDeps(): KidsReceiptIssuanceDeps {
       const { data, error } = await (supabaseAdmin as any)
         .from("kid_aerial_payments")
         .select(
-          "id,provider,amount,paid_at,metadata,external_provider,external_status,external_doc_id,external_doc_number,external_doc_url,child:kid_aerial_children(guardian_name,guardian_email),package:kid_aerial_packages(name)",
+          "id,provider,provider_payment_id,amount,paid_at,metadata,external_provider,external_status,external_doc_id,external_doc_number,external_doc_url,child:kid_aerial_children(guardian_name,guardian_email),package:kid_aerial_packages(name)",
         )
         .eq("id", paymentId)
         .maybeSingle();
@@ -197,6 +203,14 @@ function defaultKidsDeps(): KidsReceiptIssuanceDeps {
         customerEmail: data.child?.guardian_email ?? null,
         itemDescription: data.package?.name ?? "יוגה אווירית לילדים",
         cardLast4,
+        paymentMethod:
+          String(metadata.requested_payment_method ?? hypPayload.requested_payment_method ?? "")
+            .toLowerCase()
+            .trim() === "bit"
+            ? "bit"
+            : "card",
+        providerTransactionId:
+          String(hypPayload.Id ?? hypPayload.txId ?? data.provider_payment_id ?? "").trim() || null,
         externalProvider: data.external_provider,
         externalStatus: data.external_status,
         externalDocumentId: data.external_doc_id,
@@ -288,6 +302,8 @@ export async function issueEzcountReceiptForPayment(
       itemDescription: record.itemDescription?.trim() || "תשלום ל-Cloud & Core",
       issuedOn: isoDate(record.paidAt),
       cardLast4: record.cardLast4,
+      paymentMethod: record.paymentMethod,
+      providerTransactionId: record.providerTransactionId,
     });
     await runtimeDeps.completeReceipt(record.receiptId, document);
     return {
@@ -343,6 +359,8 @@ export async function issueEzcountReceiptForKidsPayment(
       itemDescription: record.itemDescription?.trim() || "יוגה אווירית לילדים",
       issuedOn: isoDate(record.paidAt),
       cardLast4: record.cardLast4,
+      paymentMethod: record.paymentMethod,
+      providerTransactionId: record.providerTransactionId,
     });
     await runtimeDeps.completePayment(record.paymentId, document);
     return {
