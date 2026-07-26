@@ -125,7 +125,7 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
     },
   },
   payment_one_time_succeeded: {
-    channels: ["in_app", "push", "email"],
+    channels: ["in_app", "push", "email", "whatsapp"],
     copy: {
       en: {
         subject: "Payment confirmed",
@@ -142,7 +142,7 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
     },
   },
   payment_subscription_renewal_succeeded: {
-    channels: ["in_app", "push", "email"],
+    channels: ["in_app", "push", "email", "whatsapp"],
     copy: {
       en: {
         subject: "Membership renewed",
@@ -159,7 +159,7 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
     },
   },
   payment_requires_action: {
-    channels: ["in_app", "push", "email"],
+    channels: ["in_app", "push", "email", "whatsapp"],
     copy: {
       en: {
         subject: "Payment action required",
@@ -176,7 +176,7 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
     },
   },
   payment_terminally_failed: {
-    channels: ["in_app", "push", "email"],
+    channels: ["in_app", "push", "email", "whatsapp"],
     copy: {
       en: {
         subject: "Payment was not completed",
@@ -262,7 +262,7 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
     },
   },
   recommendation: {
-    channels: ["in_app", "push"],
+    channels: ["in_app", "push", "whatsapp"],
     copy: {
       en: {
         subject: "A class you may enjoy",
@@ -322,20 +322,90 @@ const META_LOCALES: Record<ConciergeTemplateLocale, "en_US" | "he" | "ar"> = {
   ar: "ar",
 };
 
+export const CONCIERGE_WHATSAPP_HEADER_URL =
+  "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp";
+
+export function conciergeWhatsappTemplateName(templateKey: string) {
+  return `${templateKey}_branded_v2`;
+}
+
+const CONCIERGE_PUBLIC_BASE_URL = "https://cloudandcorestudio.com";
+
+const WHATSAPP_ACTIONS: Partial<
+  Record<
+    string,
+    {
+      path: string;
+      labels: Record<ConciergeTemplateLocale, string>;
+    }
+  >
+> = {
+  booking_confirmed_first: {
+    path: "/member/bookings",
+    labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en: "View booking" },
+  },
+  booking_confirmed_repeat: {
+    path: "/member/bookings",
+    labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en: "View booking" },
+  },
+  payment_requires_action: {
+    path: "/member/payments",
+    labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en: "Review payment" },
+  },
+  payment_terminally_failed: {
+    path: "/member/payments",
+    labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en: "Review payment" },
+  },
+  waitlist_offer: {
+    path: "/member/schedule",
+    labels: { he: "מימוש המקום", ar: "حجز المكان", en: "Claim spot" },
+  },
+  recommendation: {
+    path: "/member/schedule",
+    labels: { he: "צפייה בהמלצה", ar: "عرض التوصية", en: "View recommendation" },
+  },
+};
+
 export const CONCIERGE_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALOG.filter(
   (template) => template.channel === "whatsapp",
-).map((template) => ({
-  name: template.templateKey,
-  language: META_LOCALES[template.locale],
-  category: template.templateKey === "retention" ? ("MARKETING" as const) : ("UTILITY" as const),
-  components: [
-    {
-      type: "BODY",
-      text: template.bodyTemplate.replaceAll("{{member_name}}", "{{1}}"),
-      example: { body_text: [["Test"]] },
-    },
-  ],
-}));
+).map((template) => {
+  const action = WHATSAPP_ACTIONS[template.templateKey];
+  return {
+    name: conciergeWhatsappTemplateName(template.templateKey),
+    language: META_LOCALES[template.locale],
+    category:
+      template.templateKey === "retention" || template.templateKey === "recommendation"
+        ? ("MARKETING" as const)
+        : ("UTILITY" as const),
+    components: [
+      {
+        type: "HEADER" as const,
+        format: "IMAGE" as const,
+        example: { header_handle: [CONCIERGE_WHATSAPP_HEADER_URL] },
+      },
+      {
+        type: "BODY" as const,
+        text: template.bodyTemplate.replaceAll("{{member_name}}", "{{1}}"),
+        example: { body_text: [["Noa"]] },
+      },
+      { type: "FOOTER" as const, text: "Cloud & Core Studio" },
+      ...(action
+        ? [
+            {
+              type: "BUTTONS" as const,
+              buttons: [
+                {
+                  type: "URL" as const,
+                  text: action.labels[template.locale],
+                  url: `${CONCIERGE_PUBLIC_BASE_URL}${action.path}`,
+                },
+              ],
+            },
+          ]
+        : []),
+    ],
+  };
+});
 
 function placeholders(value: string | null) {
   if (!value) return [];

@@ -11,6 +11,7 @@ import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTempl
 import { channelsForEvent, deliveryAllowedByConsent, isQuietHours } from "@/lib/messagingPolicy";
 import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import { studioDateTimeInputToIso } from "@/lib/studio-time";
+import type { WhatsappTemplateComponent } from "@/lib/messagingProviders.server";
 
 export type MaterializedDeliveryPlan = {
   channel: MessageChannel;
@@ -24,7 +25,7 @@ export type MaterializedDeliveryPlan = {
   errorCode: string | null;
   templateName: string | null;
   templateLanguage: string | null;
-  templateParameters: string[];
+  templateComponents: WhatsappTemplateComponent[];
 };
 
 export type MaterializedMessagePlan = {
@@ -216,9 +217,17 @@ export function materializeMessagePlan(input: {
       errorCode,
       templateName: channel === "whatsapp" ? (metaVariant?.name ?? null) : null,
       templateLanguage: channel === "whatsapp" ? (metaVariant?.metaLanguage ?? null) : null,
-      templateParameters:
+      templateComponents:
         channel === "whatsapp" && metaVariant
-          ? metaVariant.parameters.map((name) => String(input.variables[name] ?? ""))
+          ? [
+              {
+                type: "body",
+                parameters: metaVariant.parameters.map((name) => ({
+                  type: "text",
+                  text: String(input.variables[name] ?? ""),
+                })),
+              },
+            ]
           : [],
     } satisfies MaterializedDeliveryPlan;
   });

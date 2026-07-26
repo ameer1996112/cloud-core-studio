@@ -9,7 +9,26 @@ describe("unified messaging provider adapters", () => {
         to: "972501234567",
         templateName: "cc_booking_confirmed_v2",
         languageCode: "he",
-        parameters: ["נועה", "פילאטיס", "20/07", "18:00", "ירין"],
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "image",
+                image: {
+                  link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp",
+                },
+              },
+            ],
+          },
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: "נועה" },
+              { type: "text", text: "פילאטיס" },
+            ],
+          },
+        ],
       },
       {
         META_GRAPH_API_VERSION: "v25.0",
@@ -22,7 +41,30 @@ describe("unified messaging provider adapters", () => {
       },
     );
     expect(result).toEqual({ ok: true, providerMessageId: "wamid.123", status: "accepted" });
-    expect(JSON.parse(requests[0].init.body).template.name).toBe("cc_booking_confirmed_v2");
+    expect(JSON.parse(requests[0].init.body).template).toEqual({
+      name: "cc_booking_confirmed_v2",
+      language: { code: "he" },
+      components: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נועה" },
+            { type: "text", text: "פילאטיס" },
+          ],
+        },
+      ],
+    });
   });
 
   test("marks a transmitted WhatsApp timeout ambiguous", async () => {
@@ -31,7 +73,12 @@ describe("unified messaging provider adapters", () => {
         to: "972501234567",
         templateName: "cc_human_handoff_v2",
         languageCode: "ar",
-        parameters: ["ليان"],
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: "ليان" }],
+          },
+        ],
       },
       {
         META_GRAPH_API_VERSION: "v25.0",
@@ -51,7 +98,12 @@ describe("unified messaging provider adapters", () => {
         to: "972501234567",
         templateName: "cc_booking_confirmed_v2",
         languageCode: "en_US",
-        parameters: ["Staff", "Class", "20/07", "18:00", "Yareen"],
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: "Staff" }],
+          },
+        ],
       },
       {
         META_GRAPH_API_VERSION: "v25.0",
@@ -71,7 +123,12 @@ describe("unified messaging provider adapters", () => {
         to: "972501234567",
         templateName: "cc_booking_confirmed_v2",
         languageCode: "en_US",
-        parameters: ["Staff", "Class", "20/07", "18:00", "Yareen"],
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: "Staff" }],
+          },
+        ],
       },
       {
         META_GRAPH_API_VERSION: "v25.0",

@@ -84,6 +84,20 @@ describe("outbox message materialization", () => {
       "email",
     ]);
     expect(new Set(result.deliveries.map((delivery) => delivery.idempotencyKey)).size).toBe(4);
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      templateComponents: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נועה" },
+            { type: "text", text: "פילאטיס" },
+            { type: "text", text: "20/07/2026" },
+            { type: "text", text: "18:00" },
+            { type: "text", text: "ירין" },
+          ],
+        },
+      ],
+    });
   });
 
   test("suppresses only an unavailable WhatsApp locale without substituting", () => {

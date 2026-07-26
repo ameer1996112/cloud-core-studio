@@ -11,6 +11,7 @@ import type {
   ContactRecord,
   RecipientPolicyState,
 } from "@/lib/conciergePolicy";
+import { conciergeWhatsappTemplateName } from "@/lib/conciergeTemplateCatalog";
 
 type IntentRow = {
   id: string;
@@ -289,7 +290,7 @@ export async function loadMemberEngagementState(input: {
         const providerLanguage = row.locale === "en" ? "en_US" : row.locale;
         return (whatsappDeployments.data ?? []).some(
           (deployment: { template_name: string; language: string }) =>
-            deployment.template_name === row.template_key &&
+            deployment.template_name === conciergeWhatsappTemplateName(row.template_key) &&
             deployment.language === providerLanguage,
         );
       })

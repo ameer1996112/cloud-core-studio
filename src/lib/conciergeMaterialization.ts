@@ -1,4 +1,9 @@
 import type { ConciergeChannel } from "@/lib/conciergePolicy";
+import {
+  conciergeWhatsappTemplateName,
+  CONCIERGE_WHATSAPP_HEADER_URL,
+} from "@/lib/conciergeTemplateCatalog";
+import type { WhatsappTemplateComponent } from "@/lib/messagingProviders.server";
 
 type RenderedConciergeChannel = {
   channel: ConciergeChannel;
@@ -45,6 +50,24 @@ export function buildConciergeMaterializationPlan(input: {
   return input.rendered.map((rendered) => {
     const address = recipientAddress(rendered.channel, input.recipient);
     const missingDestination = address === null ? `missing_${rendered.channel}_recipient` : null;
+    const orderedVariables = (rendered.templateVariables ?? Object.keys(input.variables)).map(
+      (name) => String(input.variables[name]),
+    );
+    const whatsappComponents: WhatsappTemplateComponent[] = [
+      {
+        type: "header",
+        parameters: [
+          {
+            type: "image",
+            image: { link: CONCIERGE_WHATSAPP_HEADER_URL },
+          },
+        ],
+      },
+      {
+        type: "body",
+        parameters: orderedVariables.map((text) => ({ type: "text", text })),
+      },
+    ];
     return {
       snapshot: {
         templateId: rendered.templateId,
@@ -67,11 +90,10 @@ export function buildConciergeMaterializationPlan(input: {
         providerPayload:
           rendered.channel === "whatsapp"
             ? {
-                template_name: input.templateKey,
+                template_name: conciergeWhatsappTemplateName(input.templateKey),
                 template_language: metaLanguage(input.locale),
-                parameters: (rendered.templateVariables ?? Object.keys(input.variables)).map(
-                  (name) => String(input.variables[name]),
-                ),
+                presentation_key: `${input.templateKey}:whatsapp:v2`,
+                components: whatsappComponents,
               }
             : {},
       },

@@ -567,7 +567,12 @@ function buildVerifiedWhatsappWebhookDeps(): VerifiedWhatsappWebhookDeps {
           provider_payload: {
             template_name: variant.name,
             template_language: variant.metaLanguage,
-            parameters: [genericName],
+            components: [
+              {
+                type: "body",
+                parameters: [{ type: "text", text: genericName }],
+              },
+            ],
           },
           idempotency_key: `whatsapp:handoff-ack:${input.conversationId}:${input.openGeneration}:delivery`,
         },

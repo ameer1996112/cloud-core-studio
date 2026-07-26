@@ -53,9 +53,29 @@ describe("concierge delivery materialization plan", () => {
       "+972500000000",
     ]);
     expect(plan[2].delivery.providerPayload).toEqual({
-      template_name: "booking_confirmed_first",
+      template_name: "booking_confirmed_first_branded_v2",
       template_language: "ar",
-      parameters: ["Lian", "Pilates"],
+      presentation_key: "booking_confirmed_first:whatsapp:v2",
+      components: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "Lian" },
+            { type: "text", text: "Pilates" },
+          ],
+        },
+      ],
     });
   });
 

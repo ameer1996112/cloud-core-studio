@@ -510,7 +510,12 @@ export const replyCanonicalConversation = createServerFn({ method: "POST" })
         kind: "template",
         template_name: variant.name,
         template_language: variant.metaLanguage,
-        parameters: [memberName],
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: memberName }],
+          },
+        ],
       };
     }
     const message = await db

@@ -3,6 +3,17 @@ import { classifyProviderFailure } from "@/lib/messagingPolicy";
 
 type FetchLike = typeof fetch;
 
+export type WhatsappTemplateComponent =
+  | { type: "header"; parameters: [{ type: "image"; image: { link: string } }] }
+  | { type: "body"; parameters: Array<{ type: "text"; text: string }> };
+
+export type WhatsappTemplateSendInput = {
+  to: string;
+  templateName: string;
+  languageCode: "he" | "ar" | "en_US";
+  components: WhatsappTemplateComponent[];
+};
+
 export type ProviderSendResult =
   | { ok: true; providerMessageId: string | null; status: "accepted" | "sent" }
   | {
@@ -33,12 +44,7 @@ function retryAfter(response: Response) {
 }
 
 export async function sendWhatsappTemplate(
-  input: {
-    to: string;
-    templateName: string;
-    languageCode: "he" | "ar" | "en_US";
-    parameters: string[];
-  },
+  input: WhatsappTemplateSendInput,
   env: Record<string, string | undefined> = process.env,
   fetchImpl: FetchLike = fetch,
 ): Promise<ProviderSendResult> {
@@ -61,14 +67,7 @@ export async function sendWhatsappTemplate(
     template: {
       name: input.templateName,
       language: { code: input.languageCode },
-      components: input.parameters.length
-        ? [
-            {
-              type: "body",
-              parameters: input.parameters.map((text) => ({ type: "text", text })),
-            },
-          ]
-        : [],
+      components: input.components,
     },
   };
 

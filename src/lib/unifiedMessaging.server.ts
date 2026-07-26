@@ -36,6 +36,7 @@ import {
   sendResendEmail,
   sendWhatsappFreeform,
   sendWhatsappTemplate,
+  type WhatsappTemplateComponent,
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { renderConciergeEmail } from "@/lib/conciergeEmail";
@@ -652,7 +653,7 @@ async function materializeOutbox(
       provider_payload: {
         template_name: delivery.templateName,
         template_language: delivery.templateLanguage,
-        parameters: delivery.templateParameters,
+        components: delivery.templateComponents,
       },
     }));
     const deliveries = await db
@@ -1368,8 +1369,8 @@ async function processDelivery(
             to: delivery.recipient_address ?? "",
             templateName: String(delivery.provider_payload.template_name ?? ""),
             languageCode: delivery.provider_payload.template_language as "he" | "ar" | "en_US",
-            parameters: Array.isArray(delivery.provider_payload.parameters)
-              ? delivery.provider_payload.parameters.map(String)
+            components: Array.isArray(delivery.provider_payload.components)
+              ? (delivery.provider_payload.components as WhatsappTemplateComponent[])
               : [],
           });
   } else if (delivery.channel === "email") {
