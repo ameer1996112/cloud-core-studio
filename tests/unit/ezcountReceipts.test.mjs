@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { createEzcountReceiptClient } from "../../src/lib/ezcountReceiptClient.ts";
-import { issueEzcountReceiptForPayment } from "../../src/lib/ezcountReceiptIssuance.server.ts";
+import {
+  issueEzcountReceiptForKidsPayment,
+  issueEzcountReceiptForPayment,
+} from "../../src/lib/ezcountReceiptIssuance.server.ts";
 
 describe("EZcount legal receipt client", () => {
   test("creates and emails one Hebrew receipt for a confirmed HYP payment", async () => {
@@ -41,6 +44,7 @@ describe("EZcount legal receipt client", () => {
     expect(calls[0].init.headers["content-type"]).toBe("application/json");
 
     const body = JSON.parse(calls[0].init.body);
+    expect(body.created_by_api_key).toBeUndefined();
     expect(body).toMatchObject({
       developer_email: "cloudandcorestudio@gmail.com",
       api_key: "ezcount-api-key",
@@ -98,9 +102,29 @@ describe("EZcount legal receipt client", () => {
         customerEmail: "noa@example.com",
         itemDescription: "חבילה",
         issuedOn: "2026-07-26",
-        cardLast4: null,
+        cardLast4: "1234",
       }),
     ).rejects.toThrow("ezcount_receipt_failed:Transaction id already exists");
+  });
+
+  test("treats an unreadable successful HTTP response as ambiguous", async () => {
+    const client = createEzcountReceiptClient({
+      apiKey: "ezcount-api-key",
+      developerEmail: "cloudandcorestudio@gmail.com",
+      fetchImpl: async () => new Response("", { status: 200 }),
+    });
+
+    await expect(
+      client.issueReceipt({
+        paymentId: "payment-1",
+        amountAgorot: 12500,
+        customerName: "נועה ישראלי",
+        customerEmail: "noa@example.com",
+        itemDescription: "חבילה",
+        issuedOn: "2026-07-26",
+        cardLast4: "1234",
+      }),
+    ).rejects.toThrow("ezcount_receipt_ambiguous_response");
   });
 });
 
@@ -208,5 +232,69 @@ describe("confirmed HYP payment EZcount receipt issuance", () => {
       message: "ezcount_receipt_failed:invalid_customer",
       ambiguous: false,
     });
+  });
+});
+
+describe("confirmed kids HYP payment EZcount receipt issuance", () => {
+  test("issues exactly one receipt to the guardian", async () => {
+    const record = {
+      paymentId: "kids-payment-1",
+      receiptId: "kids-payment-1",
+      provider: "hyp",
+      amount: 280,
+      paidAt: "2026-07-26T09:30:00.000Z",
+      customerName: "נועה ישראלי",
+      customerEmail: "noa@example.com",
+      itemDescription: "חודשי לילדים - 4 שיעורים",
+      cardLast4: "4321",
+      externalProvider: null,
+      externalStatus: null,
+      externalDocumentId: null,
+      externalDocumentNumber: null,
+      externalDocumentUrl: null,
+    };
+    const issued = [];
+    const deps = {
+      loadPayment: async () => ({ ...record }),
+      claimPayment: async () => {
+        if (record.externalStatus !== null) return false;
+        record.externalProvider = "ezcount";
+        record.externalStatus = "pending";
+        return true;
+      },
+      completePayment: async (_paymentId, document) => {
+        record.externalStatus = "issued";
+        record.externalDocumentId = document.documentId;
+        record.externalDocumentNumber = document.documentNumber;
+        record.externalDocumentUrl = document.documentUrl;
+      },
+      failPayment: async () => {
+        record.externalStatus = "failed";
+      },
+      issueReceipt: async (input) => {
+        issued.push(input);
+        return {
+          documentId: "kids-doc-1",
+          documentNumber: "3002",
+          documentUrl: "https://ezcount.example/kids-receipt-1",
+        };
+      },
+    };
+
+    expect((await issueEzcountReceiptForKidsPayment(record.paymentId, deps)).status).toBe("issued");
+    expect((await issueEzcountReceiptForKidsPayment(record.paymentId, deps)).status).toBe(
+      "already_issued",
+    );
+    expect(issued).toEqual([
+      {
+        paymentId: "kids-payment-1",
+        amountAgorot: 28000,
+        customerName: "נועה ישראלי",
+        customerEmail: "noa@example.com",
+        itemDescription: "חודשי לילדים - 4 שיעורים",
+        issuedOn: "2026-07-26",
+        cardLast4: "4321",
+      },
+    ]);
   });
 });

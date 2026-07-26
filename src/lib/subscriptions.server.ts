@@ -86,6 +86,7 @@ function paramsFromHypInquiryTransaction(tx: HypInquiryTransaction, reconciliati
 function paramsFromHypTokenChargeResult(input: {
   result: Awaited<ReturnType<typeof chargeHypSavedToken>>;
   reconciliationId: string;
+  cardLast4: string;
 }) {
   const params = new URLSearchParams({
     CCode: "0",
@@ -95,6 +96,7 @@ function paramsFromHypTokenChargeResult(input: {
     Amount: input.result.amount,
     ACode: input.result.acode,
     Hesh: input.result.hesh,
+    token_last4: input.cardLast4,
     _hyp_sync_source: "softToken",
   });
   return params;
@@ -620,7 +622,11 @@ export async function chargeDueHypTokenSubscriptions(options?: { limit?: number;
       });
 
       const processed = await processHypPaymentNotification(
-        paramsFromHypTokenChargeResult({ result, reconciliationId }),
+        paramsFromHypTokenChargeResult({
+          result,
+          reconciliationId,
+          cardLast4: tokenRow.token.slice(-4),
+        }),
         "hyp_token_charge",
       );
       results.push({ subscriptionId: subscription.id, status: "charged", processed });

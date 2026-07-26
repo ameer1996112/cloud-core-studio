@@ -30,6 +30,14 @@ type EzcountReceiptIssuanceDeps = {
   issueReceipt(input: EzcountReceiptRequest): Promise<EzcountReceiptDocument>;
 };
 
+type KidsReceiptIssuanceDeps = {
+  loadPayment(paymentId: string): Promise<PaymentReceiptRecord | null>;
+  claimPayment(paymentId: string): Promise<boolean>;
+  completePayment(paymentId: string, document: EzcountReceiptDocument): Promise<void>;
+  failPayment(paymentId: string, message: string, ambiguous: boolean): Promise<void>;
+  issueReceipt(input: EzcountReceiptRequest): Promise<EzcountReceiptDocument>;
+};
+
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
@@ -102,7 +110,7 @@ function defaultDeps(): EzcountReceiptIssuanceDeps {
           external_attempted_at: new Date().toISOString(),
         } as any)
         .eq("id", receiptId)
-        .or("external_status.is.null,external_status.eq.failed")
+        .is("external_status", null)
         .select("id")
         .maybeSingle();
       if (error) throw error;
@@ -141,6 +149,103 @@ function defaultDeps(): EzcountReceiptIssuanceDeps {
         .eq("id", receiptId)
         .eq("external_status", "pending");
       if (error) console.error("ezcount_receipt_failure_persist_failed", error.message);
+    },
+    issueReceipt: (input) => client.issueReceipt(input),
+  };
+}
+
+function defaultKidsDeps(): KidsReceiptIssuanceDeps {
+  const client = createEzcountReceiptClient({
+    apiKey: process.env.EZCOUNT_API_KEY?.trim() || "",
+    developerEmail:
+      process.env.EZCOUNT_DEVELOPER_EMAIL?.trim() ||
+      process.env.PAYMENT_NOTIFICATION_EMAIL?.trim() ||
+      "",
+    endpoint: process.env.EZCOUNT_API_URL?.trim() || undefined,
+  });
+
+  return {
+    async loadPayment(paymentId) {
+      const { data, error } = await (supabaseAdmin as any)
+        .from("kid_aerial_payments")
+        .select(
+          "id,provider,amount,paid_at,metadata,external_provider,external_status,external_doc_id,external_doc_number,external_doc_url,child:kid_aerial_children(guardian_name,guardian_email),package:kid_aerial_packages(name)",
+        )
+        .eq("id", paymentId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const metadata = (data.metadata ?? {}) as Record<string, unknown>;
+      const hypPayload = (metadata.hyp_payload ?? {}) as Record<string, unknown>;
+      const cardLast4 =
+        String(
+          metadata.token_last4 ??
+            hypPayload.token_last4 ??
+            hypPayload.L4digit ??
+            hypPayload.cardMask ??
+            "",
+        )
+          .replace(/\D/g, "")
+          .slice(-4) || null;
+      return {
+        paymentId: data.id,
+        receiptId: data.id,
+        provider: data.provider,
+        amount: Number(data.amount),
+        paidAt: data.paid_at,
+        customerName: data.child?.guardian_name ?? null,
+        customerEmail: data.child?.guardian_email ?? null,
+        itemDescription: data.package?.name ?? "יוגה אווירית לילדים",
+        cardLast4,
+        externalProvider: data.external_provider,
+        externalStatus: data.external_status,
+        externalDocumentId: data.external_doc_id,
+        externalDocumentNumber: data.external_doc_number,
+        externalDocumentUrl: data.external_doc_url,
+      };
+    },
+    async claimPayment(paymentId) {
+      const { data, error } = await (supabaseAdmin as any)
+        .from("kid_aerial_payments")
+        .update({
+          external_provider: "ezcount",
+          external_status: "pending",
+          external_error: null,
+          external_attempted_at: new Date().toISOString(),
+        })
+        .eq("id", paymentId)
+        .is("external_status", null)
+        .select("id")
+        .maybeSingle();
+      if (error) throw error;
+      return Boolean(data);
+    },
+    async completePayment(paymentId, document) {
+      const { error } = await (supabaseAdmin as any)
+        .from("kid_aerial_payments")
+        .update({
+          external_provider: "ezcount",
+          external_status: "issued",
+          external_doc_id: document.documentId,
+          external_doc_number: document.documentNumber,
+          external_doc_url: document.documentUrl,
+          external_error: null,
+        })
+        .eq("id", paymentId)
+        .eq("external_status", "pending");
+      if (error) throw error;
+    },
+    async failPayment(paymentId, message, ambiguous) {
+      const { error } = await (supabaseAdmin as any)
+        .from("kid_aerial_payments")
+        .update({
+          external_provider: "ezcount",
+          external_status: ambiguous ? "ambiguous" : "failed",
+          external_error: message.slice(0, 500),
+        })
+        .eq("id", paymentId)
+        .eq("external_status", "pending");
+      if (error) console.error("ezcount_kids_receipt_failure_persist_failed", error.message);
     },
     issueReceipt: (input) => client.issueReceipt(input),
   };
@@ -201,7 +306,62 @@ export async function issueEzcountReceiptForPayment(
   }
 }
 
-export async function sweepFailedEzcountReceipts(limit = 10) {
+export async function issueEzcountReceiptForKidsPayment(
+  paymentId: string,
+  deps?: KidsReceiptIssuanceDeps,
+) {
+  if (!deps && process.env.EZCOUNT_RECEIPTS_ENABLED?.trim().toLowerCase() !== "true") {
+    return { status: "disabled" as const };
+  }
+  const runtimeDeps = deps ?? defaultKidsDeps();
+  const record = await runtimeDeps.loadPayment(paymentId);
+  if (!record) return { status: "payment_not_found" as const };
+  if (record.provider !== "hyp") return { status: "not_hyp_payment" as const };
+  if (
+    record.externalProvider === "ezcount" &&
+    record.externalStatus === "issued" &&
+    record.externalDocumentUrl
+  ) {
+    return {
+      status: "already_issued" as const,
+      documentNumber: record.externalDocumentNumber,
+      documentUrl: record.externalDocumentUrl,
+    };
+  }
+  if (!record.customerName?.trim()) throw new Error("ezcount_receipt_missing_customer_name");
+  if (!record.customerEmail?.trim()) throw new Error("ezcount_receipt_missing_customer_email");
+
+  const claimed = await runtimeDeps.claimPayment(record.paymentId);
+  if (!claimed) return { status: "already_claimed" as const };
+
+  try {
+    const document = await runtimeDeps.issueReceipt({
+      paymentId: record.paymentId,
+      amountAgorot: Math.round(Number(record.amount) * 100),
+      customerName: record.customerName,
+      customerEmail: record.customerEmail,
+      itemDescription: record.itemDescription?.trim() || "יוגה אווירית לילדים",
+      issuedOn: isoDate(record.paidAt),
+      cardLast4: record.cardLast4,
+    });
+    await runtimeDeps.completePayment(record.paymentId, document);
+    return {
+      status: "issued" as const,
+      documentNumber: document.documentNumber,
+      documentUrl: document.documentUrl,
+    };
+  } catch (error) {
+    const message = errorMessage(error);
+    await runtimeDeps.failPayment(
+      record.paymentId,
+      message,
+      !message.startsWith("ezcount_receipt_failed:"),
+    );
+    throw error;
+  }
+}
+
+export async function sweepFailedEzcountReceipts(_limit = 10) {
   if (process.env.EZCOUNT_RECEIPTS_ENABLED?.trim().toLowerCase() !== "true") {
     return { status: "disabled" as const, checked: 0, results: [] };
   }
@@ -224,26 +384,10 @@ export async function sweepFailedEzcountReceipts(limit = 10) {
     );
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("receipts")
-    .select("payment_id")
-    .eq("external_provider", "ezcount")
-    .eq("external_status", "failed")
-    .order("external_attempted_at", { ascending: true })
-    .limit(Math.max(1, Math.min(limit, 50)));
-  if (error) throw error;
-  const results = [];
-  for (const receipt of data ?? []) {
-    try {
-      results.push(await issueEzcountReceiptForPayment(receipt.payment_id));
-    } catch (receiptError) {
-      results.push({ status: "failed" as const, error: errorMessage(receiptError) });
-    }
-  }
   return {
     status: "ok" as const,
-    checked: (data ?? []).length,
+    checked: (staleClaims ?? []).length,
     ambiguous: (staleClaims ?? []).length,
-    results,
+    results: [],
   };
 }

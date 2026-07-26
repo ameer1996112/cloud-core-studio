@@ -64,7 +64,7 @@ export function createEzcountReceiptClient(config: EzcountReceiptClientConfig) {
       const customerName = required(input.customerName, "customer_name");
       const customerEmail = required(input.customerEmail, "customer_email");
       const itemDescription = required(input.itemDescription, "item_description");
-      const cardLast4 = input.cardLast4?.replace(/\D/g, "").slice(-4) || "";
+      const cardLast4 = required(input.cardLast4?.replace(/\D/g, "").slice(-4) || "", "card_last4");
 
       const response = await fetchImpl(config.endpoint?.trim() || DEFAULT_ENDPOINT, {
         method: "POST",
@@ -73,7 +73,6 @@ export function createEzcountReceiptClient(config: EzcountReceiptClientConfig) {
           developer_email: required(config.developerEmail, "developer_email"),
           api_key: required(config.apiKey, "api_key"),
           type: 400,
-          created_by_api_key: required(config.apiKey, "api_key"),
           transaction_id: paymentId,
           date: formatDate(input.issuedOn),
           lang: "he",
@@ -112,8 +111,9 @@ export function createEzcountReceiptClient(config: EzcountReceiptClientConfig) {
         }),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+      const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
       if (!response.ok) throw new Error(`ezcount_receipt_http_${response.status}`);
+      if (!payload) throw new Error("ezcount_receipt_ambiguous_response");
       if (payload.success !== true) {
         throw new Error(`ezcount_receipt_failed:${apiError(payload)}`);
       }
