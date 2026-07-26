@@ -15,7 +15,10 @@ import {
   setConciergeChannelEnabled,
   simulateConciergeDecision,
 } from "@/lib/conciergeAdmin.functions";
-import type { ConciergeAdminTemplate } from "@/lib/conciergeTemplateAdmin";
+import type {
+  ConciergeAdminTemplate,
+  ConciergeWhatsappDeployment,
+} from "@/lib/conciergeTemplateAdmin";
 import type { Lang } from "@/lib/i18n";
 
 type JourneyMode = "paused" | "shadow" | "test_only" | "live";
@@ -288,6 +291,8 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   ).length;
   const unhealthy = (center.data?.queueHealth.deadLettered ?? 0) > 0;
   const templates = (center.data?.templates ?? []) as ConciergeAdminTemplate[];
+  const whatsappDeployments = (center.data?.whatsappDeployments ??
+    []) as ConciergeWhatsappDeployment[];
 
   return (
     <div className="space-y-7">
@@ -531,7 +536,13 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
         </>
       )}
 
-      {activeView === "templates" && <ConciergeTemplateLibrary templates={templates} copy={copy} />}
+      {activeView === "templates" && (
+        <ConciergeTemplateLibrary
+          templates={templates}
+          whatsappDeployments={whatsappDeployments}
+          copy={copy}
+        />
+      )}
     </div>
   );
 }

@@ -36,6 +36,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       deadOutbox,
       oldestPending,
       templates,
+      whatsappDeployments,
     ] = await Promise.all([
       db
         .from("automation_config_versions")
@@ -92,6 +93,10 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .order("template_key")
         .order("channel")
         .order("locale"),
+      db
+        .from("whatsapp_template_deployments")
+        .select("template_name,language,approval_status,content_hash")
+        .eq("waba_id", process.env.META_WABA_ID?.trim() ?? ""),
     ]);
     for (const result of [
       automations,
@@ -103,6 +108,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       deadOutbox,
       oldestPending,
       templates,
+      whatsappDeployments,
     ]) {
       if (result.error) throw result.error;
     }
@@ -164,6 +170,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
           ).length ?? 0,
       },
       templates: templates.data ?? [],
+      whatsappDeployments: whatsappDeployments.data ?? [],
     };
   });
 

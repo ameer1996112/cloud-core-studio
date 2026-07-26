@@ -1,4 +1,10 @@
 import type { ConciergeChannel } from "@/lib/conciergePolicy";
+import { renderConciergeEmail } from "@/lib/conciergeEmail";
+import { buildConciergePresentation } from "@/lib/conciergePresentation";
+import {
+  conciergeWhatsappTemplateName,
+  CONCIERGE_WHATSAPP_HEADER_URL,
+} from "@/lib/conciergeTemplateCatalog";
 
 export type ConciergeAdminTemplate = {
   id: string;
@@ -19,6 +25,28 @@ export type ConciergeTemplateFilters = {
   channel: string;
   locale: string;
   query: string;
+};
+
+export type ConciergeWhatsappDeployment = {
+  template_name: string;
+  language: string;
+  approval_status: string;
+  content_hash: string | null;
+};
+
+export type ConciergeBrandedPreview = {
+  channel: "email" | "whatsapp";
+  locale: "he" | "ar" | "en";
+  dir: "ltr" | "rtl";
+  presentationKey: string;
+  lifecycleStatus: "draft" | "approved";
+  providerApprovalStatus: string | null;
+  subject: string | null;
+  body: string;
+  action: { label: string; url: string } | null;
+  emailHtml: string | null;
+  whatsappHeaderUrl: string | null;
+  whatsappFooter: string | null;
 };
 
 const TEMPLATE_JOURNEYS: Record<string, string> = {
@@ -67,6 +95,76 @@ export function renderConciergeTemplatePreview(template: ConciergeAdminTemplate)
   return {
     subject: render(template.subject_template),
     body: render(template.body_template) ?? "",
+  };
+}
+
+function previewVariables(locale: ConciergeBrandedPreview["locale"]) {
+  return {
+    member_name: locale === "he" ? "נועה" : locale === "ar" ? "نور" : "Noa",
+    class_name: locale === "he" ? "פילאטיס מזרן" : locale === "ar" ? "بيلاتس مات" : "Mat Pilates",
+    class_date: "28/07/2026",
+    class_time: "18:00",
+    amount: "₪350",
+    offer_expires_at: "18:30",
+  };
+}
+
+export function buildConciergeBrandedPreview(
+  template: ConciergeAdminTemplate,
+  deployments: ConciergeWhatsappDeployment[],
+): ConciergeBrandedPreview | null {
+  if (template.channel !== "email" && template.channel !== "whatsapp") return null;
+
+  const locale = template.locale;
+  const variables = previewVariables(locale);
+  const journeyType = conciergeJourneyForTemplate(template.template_key);
+  const presentation = buildConciergePresentation({
+    journeyType,
+    templateKey: template.template_key,
+    locale,
+    subject: template.subject_template,
+    body: template.body_template,
+    variables,
+    publicBaseUrl: "https://cloudandcorestudio.com",
+  });
+  const isWhatsapp = template.channel === "whatsapp";
+  const providerLanguage = locale === "en" ? "en_US" : locale;
+  const deployment = isWhatsapp
+    ? deployments.find(
+        (row) =>
+          row.template_name === conciergeWhatsappTemplateName(template.template_key) &&
+          row.language === providerLanguage,
+      )
+    : null;
+  const presentationKey = isWhatsapp ? `${template.template_key}:whatsapp:v2` : presentation.key;
+  const email = isWhatsapp
+    ? null
+    : renderConciergeEmail({
+        journeyType,
+        templateKey: template.template_key,
+        locale,
+        subject: template.subject_template ?? "",
+        body: template.body_template,
+        variables,
+        publicBaseUrl: "https://cloudandcorestudio.com",
+        messageKey: `admin-preview:${template.id}`,
+        presentationKey,
+        actionUrl: presentation.action?.url ?? null,
+      });
+
+  return {
+    channel: template.channel,
+    locale,
+    dir: locale === "en" ? "ltr" : "rtl",
+    presentationKey,
+    lifecycleStatus: template.lifecycle_status === "approved" ? "approved" : "draft",
+    providerApprovalStatus: deployment?.approval_status ?? null,
+    subject: template.subject_template ? presentation.subject : null,
+    body: presentation.body,
+    action: presentation.action,
+    emailHtml: email?.html ?? null,
+    whatsappHeaderUrl: isWhatsapp ? CONCIERGE_WHATSAPP_HEADER_URL : null,
+    whatsappFooter: isWhatsapp ? "Cloud & Core Studio" : null,
   };
 }
 
