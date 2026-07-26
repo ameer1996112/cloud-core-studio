@@ -56,6 +56,9 @@ function eventKind(eventType: string) {
     "waitlist.offer_created": "waitlist_offer",
     "schedule.published": "weekly_schedule",
     "attendance.recorded": "retention",
+    "lead.received": "lead_to_trial",
+    "recommendation.created": "recommendation",
+    "daily_briefing.ready": "daily_briefing",
   };
   return map[eventType] ?? eventType.replaceAll(".", "_");
 }

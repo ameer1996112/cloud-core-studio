@@ -99,6 +99,25 @@ function localDay(now: Date) {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
+export function nextConciergeEligibility(
+  reason: NonNullable<ArbitrationResult["suppressionReason"]>,
+  now: Date,
+) {
+  if (reason === "quiet_hours") {
+    const candidate = new Date(now.getTime() + 60_000);
+    candidate.setUTCSeconds(0, 0);
+    while (isQuietHours(candidate)) candidate.setUTCMinutes(candidate.getUTCMinutes() + 1);
+    return candidate;
+  }
+  if (reason === "daily_total_contact_cap" || reason === "daily_promotional_cap") {
+    return new Date(now.getTime() + 24 * 3_600_000);
+  }
+  if (reason === "weekly_promotional_cap") {
+    return new Date(now.getTime() + 7 * 24 * 3_600_000);
+  }
+  return new Date(now.getTime() + 6 * 3_600_000);
+}
+
 export type PendingRecipientAction = {
   id: string;
   kind: string;
@@ -143,10 +162,10 @@ export function chooseNextRecipientAction(input: {
   const selected = eligible[0];
   if (!selected)
     return { selected: null, suppressionReason: "no_eligible_action", postponed: false };
-  const hasExternalConsent = (["push", "email", "whatsapp"] as const).some((channel) =>
+  const hasPermittedChannel = (["in_app", "push", "email", "whatsapp"] as const).some((channel) =>
     permitted(input.recipient, channel, selected.purpose),
   );
-  if (!hasExternalConsent) {
+  if (!hasPermittedChannel) {
     return { selected: null, suppressionReason: "missing_consent", postponed: false };
   }
   if (selected.urgent) return { selected, suppressionReason: null, postponed: false };

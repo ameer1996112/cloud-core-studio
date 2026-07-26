@@ -14,7 +14,7 @@ if (!validation.ok) {
 
 const migrationPath = path.resolve(
   process.cwd(),
-  "supabase/migrations/20260726223000_concierge_template_library.sql",
+  "supabase/migrations/20260726233500_concierge_template_library_v2.sql",
 );
 const catalog = JSON.stringify(
   CONCIERGE_TEMPLATE_CATALOG.map((entry) => {
@@ -41,8 +41,8 @@ const catalog = JSON.stringify(
   }),
 );
 
-const sql = `-- Complete reusable Concierge template library for every dispatchable locale/channel.
--- These templates are approved as the initial system library by the product owner.
+const sql = `-- Additive Concierge template library v2 with growth journeys and outcome-specific payments.
+-- Existing approved versions remain immutable; conflicts are intentionally preserved.
 
 WITH catalog AS (
   SELECT *
@@ -78,13 +78,13 @@ SELECT
   catalog.channel,
   catalog.locale,
   catalog.version,
-  'approved',
+  'draft',
   catalog.subject_template,
   catalog.body_template,
   catalog.required_variables,
   catalog.content_hash,
   catalog.first_person_voice_approved,
-  now()
+  NULL
 FROM public.studios AS studio
 CROSS JOIN catalog
 ON CONFLICT (studio_id, template_key, channel, locale, version) DO NOTHING;

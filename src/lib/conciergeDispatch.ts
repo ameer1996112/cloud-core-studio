@@ -84,6 +84,22 @@ function desiredChannels(action: DispatchAction, recipient: RecipientPolicyState
       ? (["in_app", "push"] as ConciergeChannel[])
       : (["in_app"] as ConciergeChannel[]);
   }
+  if (action.kind === "lead_to_trial") {
+    const channels: ConciergeChannel[] = ["in_app"];
+    if (recipient.hasPush && recipient.consents.push.has("transactional")) channels.push("push");
+    if (recipient.consents.email.has("transactional")) channels.push("email");
+    return channels;
+  }
+  if (action.kind === "recommendation") {
+    return recipient.hasPush && recipient.consents.push.has("promotional")
+      ? (["in_app", "push"] as ConciergeChannel[])
+      : (["in_app"] as ConciergeChannel[]);
+  }
+  if (action.kind === "daily_briefing") {
+    return recipient.hasPush && recipient.consents.push.has("operational")
+      ? (["in_app", "push"] as ConciergeChannel[])
+      : (["in_app"] as ConciergeChannel[]);
+  }
   if (action.kind === "payment_outcome" && action.metadata.paymentOutcome) {
     return decidePaymentOutcome(action.metadata.paymentOutcome).memberChannels.filter((channel) => {
       if (channel === "in_app") return true;
@@ -118,6 +134,19 @@ function desiredChannels(action: DispatchAction, recipient: RecipientPolicyState
 function templateKey(action: DispatchAction) {
   if (action.kind === "booking_confirmed") {
     return action.metadata.firstBooking ? "booking_confirmed_first" : "booking_confirmed_repeat";
+  }
+  if (action.kind === "payment_outcome" && action.metadata.paymentOutcome) {
+    const paymentTemplates = {
+      one_time_payment_succeeded: "payment_one_time_succeeded",
+      subscription_renewal_succeeded: "payment_subscription_renewal_succeeded",
+      payment_requires_action: "payment_requires_action",
+      payment_terminally_failed: "payment_terminally_failed",
+      payment_recovered: "payment_recovered",
+    } as const;
+    if (action.metadata.paymentOutcome === "payment_retry_scheduled") {
+      return "payment_requires_action";
+    }
+    return paymentTemplates[action.metadata.paymentOutcome];
   }
   return action.kind;
 }

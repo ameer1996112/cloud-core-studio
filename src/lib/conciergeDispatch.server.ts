@@ -3,20 +3,21 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { evaluateConciergeDispatch } from "@/lib/conciergeDispatch";
 import { loadMemberEngagementState } from "@/lib/conciergeEngagement.server";
 import { buildConciergeMaterializationPlan } from "@/lib/conciergeMaterialization";
-import { CONCIERGE_POLICY_VERSION } from "@/lib/conciergePolicy";
+import { CONCIERGE_POLICY_VERSION, nextConciergeEligibility } from "@/lib/conciergePolicy";
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
 
-function evaluationKey(input: {
+export function conciergeEvaluationKey(input: {
   mode: "shadow" | "test_only" | "live";
   intentId: string;
   policyVersion: string;
+  eligibleAt: string;
   evaluation: unknown;
 }) {
   const hash = createHash("sha256")
     .update(JSON.stringify(input.evaluation))
     .digest("hex")
     .slice(0, 24);
-  return `${input.mode}_dispatch:${input.intentId}:${input.policyVersion}:${hash}`;
+  return `${input.mode}_dispatch:${input.intentId}:${input.policyVersion}:${input.eligibleAt}:${hash}`;
 }
 
 export function conciergeTestRecipientAllowed(recipientId: string, env: NodeJS.ProcessEnv) {
@@ -129,10 +130,13 @@ export async function runConciergeDispatch(input?: {
           if (!selectedConfiguration) throw new Error("dispatch_config_not_found");
           evaluationMode = selectedConfiguration.mode;
           const selectedRender = evaluation.rendered[0] ?? null;
-          const key = evaluationKey({
+          const evaluatedAction = state.actions.find((action) => action.id === evidenceIntentId);
+          if (!evaluatedAction) throw new Error("dispatch_action_not_found");
+          const key = conciergeEvaluationKey({
             mode: selectedConfiguration.mode,
             intentId: evidenceIntentId,
             policyVersion: CONCIERGE_POLICY_VERSION,
+            eligibleAt: evaluatedAction.eligibleAt.toISOString(),
             evaluation,
           });
           const competingActionIds = evaluation.evaluatedActionIds.filter(
@@ -150,6 +154,21 @@ export async function runConciergeDispatch(input?: {
               conciergeTestRecipientAllowed(recipientId, process.env)) &&
             (selectedConfiguration.mode !== "live" ||
               process.env.CONCIERGE_LIVE_DELIVERY_ENABLED === "true");
+
+          if (evaluation.postponed && evaluation.suppressionReason) {
+            const postponed = await db.rpc("postpone_concierge_intent", {
+              p_studio_id: studioId,
+              p_recipient_id: recipientId,
+              p_intent_id: evidenceIntentId,
+              p_reason: evaluation.suppressionReason,
+              p_eligible_at: nextConciergeEligibility(
+                evaluation.suppressionReason,
+                now,
+              ).toISOString(),
+              p_now: now.toISOString(),
+            });
+            if (postponed.error) throw postponed.error;
+          }
 
           if (selectedConfiguration.mode === "shadow" || !shouldMaterialize) {
             const recorded = await db.rpc("record_concierge_shadow_evaluation", {

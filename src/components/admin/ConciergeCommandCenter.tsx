@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  approveConciergeTemplates,
   getConciergeCenter,
   setConciergeAutomationMode,
   setConciergeChannelEnabled,
@@ -59,6 +60,10 @@ const COPY = {
     switches: "Kill switches",
     rollout: "Shadow → test → live",
     preview: "Safe preview",
+    templates: "Templates",
+    approveTemplates: "Approve template library",
+    templateApprovalPrompt: 'Type "APPROVE CONCIERGE TEMPLATES" to approve the reviewed copy',
+    templateSuccess: "Concierge templates approved",
   },
   he: {
     title: "מרכז הפיקוד של הקונסיירז׳",
@@ -100,6 +105,10 @@ const COPY = {
     switches: "מתגי חירום",
     rollout: "צל ← ניסוי ← חי",
     preview: "תצוגה בטוחה",
+    templates: "תבניות",
+    approveTemplates: "אישור ספריית התבניות",
+    templateApprovalPrompt: 'יש להקליד "APPROVE CONCIERGE TEMPLATES" כדי לאשר את התוכן שנבדק',
+    templateSuccess: "תבניות הקונסיירז׳ אושרו",
   },
   ar: {
     title: "مركز تحكم الكونسيرج",
@@ -141,6 +150,10 @@ const COPY = {
     switches: "مفاتيح الإيقاف",
     rollout: "ظل ← اختبار ← مباشر",
     preview: "معاينة آمنة",
+    templates: "القوالب",
+    approveTemplates: "اعتماد مكتبة القوالب",
+    templateApprovalPrompt: 'اكتبي "APPROVE CONCIERGE TEMPLATES" لاعتماد النصوص التي تمت مراجعتها',
+    templateSuccess: "تم اعتماد قوالب الكونسيرج",
   },
 } satisfies Record<Lang, Record<string, string>>;
 
@@ -150,6 +163,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const getCenter = useServerFn(getConciergeCenter);
   const setMode = useServerFn(setConciergeAutomationMode);
   const setChannel = useServerFn(setConciergeChannelEnabled);
+  const approveTemplates = useServerFn(approveConciergeTemplates);
   const simulate = useServerFn(simulateConciergeDecision);
   const [recipientId, setRecipientId] = useState("preview-recipient");
   const [simulation, setSimulation] = useState<Record<string, unknown> | null>(null);
@@ -173,6 +187,15 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
     onSuccess: async () => {
       await refresh();
       toast.success(copy.channelSuccess);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+  const templateMutation = useMutation({
+    mutationFn: () =>
+      approveTemplates({ data: { confirmation: "APPROVE CONCIERGE TEMPLATES" as const } }),
+    onSuccess: async () => {
+      await refresh();
+      toast.success(copy.templateSuccess);
     },
     onError: (error) => toast.error(error.message),
   });
@@ -250,6 +273,26 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
           <Badge variant={liveCount > 0 ? "destructive" : "secondary"}>
             {liveCount} {copy.live}
           </Badge>
+          <Badge
+            variant={center.data?.templateHealth.awaitingApproval ? "destructive" : "secondary"}
+          >
+            {center.data?.templateHealth.approved ?? 0}/{center.data?.templateHealth.total ?? 0}{" "}
+            {copy.templates}
+          </Badge>
+          {(center.data?.templateHealth.awaitingApproval ?? 0) > 0 && (
+            <Button
+              variant="outline"
+              disabled={templateMutation.isPending}
+              onClick={() => {
+                const confirmation = window.prompt(copy.templateApprovalPrompt);
+                if (confirmation === "APPROVE CONCIERGE TEMPLATES") {
+                  templateMutation.mutate();
+                }
+              }}
+            >
+              {copy.approveTemplates}
+            </Button>
+          )}
         </div>
       </section>
 

@@ -124,20 +124,88 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
       },
     },
   },
-  payment_outcome: {
+  payment_one_time_succeeded: {
     channels: ["in_app", "push", "email"],
     copy: {
       en: {
-        subject: "Payment update",
-        body: "Hi {{member_name}}, there is an update about a payment on your Cloud & Core account. Open the app to review the current status and any next step.",
+        subject: "Payment confirmed",
+        body: "Hi {{member_name}}, your payment to Cloud & Core was completed successfully. You can review the payment details in the app.",
       },
       he: {
-        subject: "עדכון תשלום",
-        body: "היי {{member_name}}, יש עדכון לגבי תשלום בחשבון Cloud & Core שלך. אפשר לפתוח את האפליקציה כדי לבדוק את הסטטוס והמשך הטיפול.",
+        subject: "התשלום אושר",
+        body: "היי {{member_name}}, התשלום שלך ל-Cloud & Core הושלם בהצלחה. אפשר לצפות בפרטי התשלום באפליקציה.",
       },
       ar: {
-        subject: "تحديث بشأن الدفع",
-        body: "مرحباً {{member_name}}، يوجد تحديث بشأن دفعة في حساب Cloud & Core. افتحي التطبيق لمراجعة الحالة الحالية وأي خطوة مطلوبة.",
+        subject: "تم تأكيد الدفع",
+        body: "مرحباً {{member_name}}، تم إتمام دفعتك إلى Cloud & Core بنجاح. يمكنك مراجعة تفاصيل الدفع في التطبيق.",
+      },
+    },
+  },
+  payment_subscription_renewal_succeeded: {
+    channels: ["in_app", "push", "email"],
+    copy: {
+      en: {
+        subject: "Membership renewed",
+        body: "Hi {{member_name}}, your Cloud & Core membership renewal was completed successfully. Your membership remains active.",
+      },
+      he: {
+        subject: "המינוי חודש",
+        body: "היי {{member_name}}, חידוש המינוי שלך ב-Cloud & Core הושלם בהצלחה. המינוי שלך ממשיך להיות פעיל.",
+      },
+      ar: {
+        subject: "تم تجديد العضوية",
+        body: "مرحباً {{member_name}}، تم تجديد عضويتك في Cloud & Core بنجاح. عضويتك ما زالت فعالة.",
+      },
+    },
+  },
+  payment_requires_action: {
+    channels: ["in_app", "push", "email"],
+    copy: {
+      en: {
+        subject: "Payment action required",
+        body: "Hi {{member_name}}, your Cloud & Core payment needs your attention. Open the app to review the payment and complete the required step.",
+      },
+      he: {
+        subject: "נדרשת פעולה בתשלום",
+        body: "היי {{member_name}}, התשלום שלך ל-Cloud & Core דורש טיפול. אפשר לפתוח את האפליקציה כדי לבדוק את התשלום ולהשלים את הפעולה הנדרשת.",
+      },
+      ar: {
+        subject: "الدفع يحتاج إلى إجراء",
+        body: "مرحباً {{member_name}}، دفعتك إلى Cloud & Core تحتاج إلى انتباهك. افتحي التطبيق لمراجعة الدفع وإكمال الخطوة المطلوبة.",
+      },
+    },
+  },
+  payment_terminally_failed: {
+    channels: ["in_app", "push", "email"],
+    copy: {
+      en: {
+        subject: "Payment was not completed",
+        body: "Hi {{member_name}}, your Cloud & Core payment could not be completed. Open the app to update your payment method or contact the studio for help.",
+      },
+      he: {
+        subject: "התשלום לא הושלם",
+        body: "היי {{member_name}}, לא הצלחנו להשלים את התשלום שלך ל-Cloud & Core. אפשר לעדכן את אמצעי התשלום באפליקציה או לפנות לסטודיו לעזרה.",
+      },
+      ar: {
+        subject: "لم تكتمل عملية الدفع",
+        body: "مرحباً {{member_name}}، تعذر إتمام دفعتك إلى Cloud & Core. افتحي التطبيق لتحديث وسيلة الدفع أو تواصلي مع الاستوديو للمساعدة.",
+      },
+    },
+  },
+  payment_recovered: {
+    channels: ["in_app"],
+    copy: {
+      en: {
+        subject: "Payment issue resolved",
+        body: "Hi {{member_name}}, the payment issue on your Cloud & Core account has been resolved. No further action is needed.",
+      },
+      he: {
+        subject: "בעיית התשלום נפתרה",
+        body: "היי {{member_name}}, בעיית התשלום בחשבון Cloud & Core שלך נפתרה. אין צורך בפעולה נוספת.",
+      },
+      ar: {
+        subject: "تم حل مشكلة الدفع",
+        body: "مرحباً {{member_name}}، تم حل مشكلة الدفع في حساب Cloud & Core. لا يلزم أي إجراء إضافي.",
       },
     },
   },
@@ -173,6 +241,57 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
       ar: {
         subject: "توفر مكان من قائمة الانتظار",
         body: "مرحباً {{member_name}}، قد يتوفر الآن مكان في حصة من قائمة الانتظار. افتحي تطبيق Cloud & Core سريعاً لمراجعة العرض وحجز المكان قبل انتهاء صلاحيته.",
+      },
+    },
+  },
+  lead_to_trial: {
+    channels: ["in_app", "push", "email"],
+    copy: {
+      en: {
+        subject: "Welcome to Cloud & Core",
+        body: "Hi {{member_name}}, thank you for contacting Cloud & Core. Open the app to explore the schedule and choose a first class, or reply if you would like help.",
+      },
+      he: {
+        subject: "ברוכה הבאה ל-Cloud & Core",
+        body: "היי {{member_name}}, תודה שפנית ל-Cloud & Core. אפשר לפתוח את האפליקציה, לעיין במערכת ולבחור שיעור ראשון, או להשיב אם תרצי עזרה.",
+      },
+      ar: {
+        subject: "أهلاً بك في Cloud & Core",
+        body: "مرحباً {{member_name}}، شكراً لتواصلك مع Cloud & Core. افتحي التطبيق لاستعراض الجدول واختيار حصتك الأولى، أو ردي إذا رغبتِ بالمساعدة.",
+      },
+    },
+  },
+  recommendation: {
+    channels: ["in_app", "push"],
+    copy: {
+      en: {
+        subject: "A class you may enjoy",
+        body: "Hi {{member_name}}, we found a Cloud & Core class that may suit you. Open the app to review the recommendation and current availability.",
+      },
+      he: {
+        subject: "שיעור שעשוי להתאים לך",
+        body: "היי {{member_name}}, מצאנו שיעור ב-Cloud & Core שעשוי להתאים לך. אפשר לפתוח את האפליקציה כדי לצפות בהמלצה ובזמינות העדכנית.",
+      },
+      ar: {
+        subject: "حصة قد تناسبك",
+        body: "مرحباً {{member_name}}، وجدنا حصة في Cloud & Core قد تناسبك. افتحي التطبيق لمراجعة التوصية والتوفر الحالي.",
+      },
+    },
+  },
+  daily_briefing: {
+    channels: ["in_app", "push"],
+    copy: {
+      en: {
+        subject: "Your Cloud & Core update",
+        body: "Hi {{member_name}}, your latest Cloud & Core update is ready. Open the app to review what is relevant for you today.",
+      },
+      he: {
+        subject: "העדכון שלך מ-Cloud & Core",
+        body: "היי {{member_name}}, העדכון האחרון שלך מ-Cloud & Core מוכן. אפשר לפתוח את האפליקציה כדי לראות מה רלוונטי עבורך היום.",
+      },
+      ar: {
+        subject: "تحديثك من Cloud & Core",
+        body: "مرحباً {{member_name}}، تحديثك الأخير من Cloud & Core جاهز. افتحي التطبيق لمراجعة ما يهمك اليوم.",
       },
     },
   },

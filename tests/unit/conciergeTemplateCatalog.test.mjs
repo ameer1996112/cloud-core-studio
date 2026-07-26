@@ -12,9 +12,16 @@ const EXPECTED_CHANNELS = {
   class_cancelled: ["in_app", "push", "email", "whatsapp"],
   class_time_changed: ["in_app", "push", "email", "whatsapp"],
   weekly_schedule: ["in_app", "push"],
-  payment_outcome: ["in_app", "push", "email"],
+  payment_one_time_succeeded: ["in_app", "push", "email"],
+  payment_subscription_renewal_succeeded: ["in_app", "push", "email"],
+  payment_requires_action: ["in_app", "push", "email"],
+  payment_terminally_failed: ["in_app", "push", "email"],
+  payment_recovered: ["in_app"],
   retention: ["in_app", "push", "whatsapp"],
   waitlist_offer: ["in_app", "push", "whatsapp"],
+  lead_to_trial: ["in_app", "push", "email"],
+  recommendation: ["in_app", "push"],
+  daily_briefing: ["in_app", "push"],
 };
 
 describe("Concierge template catalog", () => {

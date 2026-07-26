@@ -187,10 +187,11 @@ describe("dispatch-time concierge evaluation", () => {
         }),
       ],
       channelControls,
-      approvedTemplates: [template("payment_outcome", "in_app")],
+      approvedTemplates: [template("payment_terminally_failed", "in_app")],
       variables: { member_name: "ليان" },
     });
     expect(result.channels).toEqual(["in_app"]);
+    expect(result.selectedTemplateKey).toBe("payment_terminally_failed");
   });
 
   test("keeps in-app durable but blocks disabled external channels", () => {
@@ -208,6 +209,42 @@ describe("dispatch-time concierge evaluation", () => {
     });
     expect(result.channels).toEqual(["in_app"]);
     expect(result.reasonCodes).toContain("channel_disabled:push");
+  });
+
+  test("keeps a promotional in-app message eligible without external marketing consent", () => {
+    const inAppOnlyRecipient = {
+      ...recipient,
+      hasPush: false,
+      consents: {
+        in_app: new Set(["promotional"]),
+        push: new Set(),
+        email: new Set(),
+        whatsapp: new Set(),
+      },
+    };
+    const result = evaluateConciergeDispatch({
+      now: new Date("2026-07-26T10:05:00Z"),
+      recipient: inAppOnlyRecipient,
+      recentContacts: [],
+      pendingActions: [
+        action({
+          id: "retention",
+          kind: "retention",
+          purpose: "promotional",
+          priority: 6,
+          metadata: { retentionStage: "initial" },
+        }),
+      ],
+      channelControls,
+      approvedTemplates: [template("retention", "in_app")],
+      variables: { member_name: "ليان" },
+    });
+
+    expect(result).toMatchObject({
+      selectedActionId: "retention",
+      suppressionReason: null,
+      channels: ["in_app"],
+    });
   });
 
   test("does not silently substitute locale or bypass quiet hours", () => {

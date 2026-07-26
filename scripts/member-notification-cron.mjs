@@ -20,7 +20,7 @@ async function invoke(path, payload) {
   });
   const body = await response.text();
   if (!response.ok) {
-    throw new Error(`notification_sweep_failed:${path}:${response.status}:${body.slice(0, 500)}`);
+    throw new Error(`notification_sweep_failed:${path}:${response.status}`);
   }
   return JSON.parse(body);
 }

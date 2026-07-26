@@ -6,9 +6,28 @@ import {
   decidePaymentOutcome,
   filterSuitableClasses,
   isQuietHours,
+  nextConciergeEligibility,
   resolveCommunicationRecipient,
   weeklyScheduleKey,
 } from "../../src/lib/conciergePolicy.ts";
+
+describe("postponement eligibility", () => {
+  test("moves quiet-hour work to 08:00 Jerusalem", () => {
+    expect(
+      nextConciergeEligibility("quiet_hours", new Date("2026-07-26T19:00:00.000Z")).toISOString(),
+    ).toBe("2026-07-27T05:00:00.000Z");
+  });
+
+  test("uses policy windows for contact caps", () => {
+    const now = new Date("2026-07-26T09:00:00.000Z");
+    expect(nextConciergeEligibility("six_hour_contact_cap", now).toISOString()).toBe(
+      "2026-07-26T15:00:00.000Z",
+    );
+    expect(nextConciergeEligibility("daily_total_contact_cap", now).toISOString()).toBe(
+      "2026-07-27T09:00:00.000Z",
+    );
+  });
+});
 
 const recipient = {
   id: "adult-1",

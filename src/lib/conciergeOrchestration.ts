@@ -114,6 +114,16 @@ const EVENT_RULES: Record<string, EventRule> = {
     purpose: "transactional",
     priority: 3,
   },
+  "recommendation.created": {
+    journeyType: "recommendation",
+    purpose: "promotional",
+    priority: 6,
+  },
+  "daily_briefing.ready": {
+    journeyType: "daily_briefing",
+    purpose: "operational",
+    priority: 5,
+  },
   "schedule.published": {
     journeyType: "weekly_schedule",
     purpose: "schedule",

@@ -35,6 +35,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       pendingOutbox,
       deadOutbox,
       oldestPending,
+      templates,
     ] = await Promise.all([
       db
         .from("automation_config_versions")
@@ -81,6 +82,11 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .order("occurred_at", { ascending: true })
         .limit(1)
         .maybeSingle(),
+      db
+        .from("concierge_template_versions")
+        .select("lifecycle_status,approved_by")
+        .eq("studio_id", studio.data.id)
+        .is("retired_at", null),
     ]);
     for (const result of [
       automations,
@@ -91,6 +97,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       pendingOutbox,
       deadOutbox,
       oldestPending,
+      templates,
     ]) {
       if (result.error) throw result.error;
     }
@@ -126,7 +133,38 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         deadLettered: deadOutbox.count ?? 0,
         oldestPendingAt: oldestPending.data?.occurred_at ?? null,
       },
+      templateHealth: {
+        total: templates.data?.length ?? 0,
+        approved:
+          templates.data?.filter(
+            (template: { lifecycle_status: string; approved_by: string | null }) =>
+              template.lifecycle_status === "approved" && template.approved_by,
+          ).length ?? 0,
+        awaitingApproval:
+          templates.data?.filter(
+            (template: { lifecycle_status: string; approved_by: string | null }) =>
+              template.lifecycle_status !== "approved" || !template.approved_by,
+          ).length ?? 0,
+      },
     };
+  });
+
+export const approveConciergeTemplates = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ confirmation: z.literal("APPROVE CONCIERGE TEMPLATES") }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const studio = await db.from("studios").select("id").eq("slug", "cloud-core").single();
+    if (studio.error) throw studio.error;
+    const result = await db.rpc("approve_concierge_template_library", {
+      p_studio_id: studio.data.id,
+      p_actor_id: context.userId,
+      p_confirmation: data.confirmation,
+    });
+    if (result.error) throw result.error;
+    return { approved: result.data };
   });
 
 const modeSchema = z.object({

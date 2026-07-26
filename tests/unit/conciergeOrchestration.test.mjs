@@ -42,6 +42,22 @@ describe("concierge domain-event normalization", () => {
     });
   });
 
+  test("maps every configurable growth journey into a runnable intent", () => {
+    const cases = [
+      ["lead.received", "lead_to_trial", "transactional"],
+      ["recommendation.created", "recommendation", "promotional"],
+      ["daily_briefing.ready", "daily_briefing", "operational"],
+    ];
+
+    for (const [type, journeyType, purpose] of cases) {
+      expect(normalizeDomainEvent({ ...baseEvent, type })).toMatchObject({
+        journeyType,
+        purpose,
+        createCustomerIntent: true,
+      });
+    }
+  });
+
   test("consolidates payment and renewal inputs into one outcome identity", () => {
     expect(
       normalizeDomainEvent({
