@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { buildConciergePresentation } from "../../src/lib/conciergePresentation.ts";
 
 describe("Concierge branded presentation", () => {
@@ -133,4 +134,35 @@ describe("Concierge branded presentation", () => {
       url: "https://cloudandcorestudio.com/member/packages",
     });
   });
+});
+
+test("keeps every registry action path represented in the materialization evidence contract", () => {
+  const migration = readFileSync(
+    new URL(
+      "../../supabase/migrations/20260727120000_concierge_branded_presentation_evidence.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  const actionCases = [
+    ["booking", "booking_confirmed_repeat"],
+    ["payment_outcome", "payment_requires_action"],
+    ["weekly_schedule", "weekly_schedule"],
+    ["waitlist", "waitlist_offer"],
+    ["recommendation", "recommendation"],
+  ];
+
+  for (const [journeyType, templateKey] of actionCases) {
+    const presentation = buildConciergePresentation({
+      journeyType,
+      templateKey,
+      locale: "en",
+      subject: "Subject",
+      body: "Body",
+      variables: {},
+      publicBaseUrl: "https://cloudandcorestudio.com",
+    });
+    expect(presentation.action?.url).toBeTruthy();
+    expect(migration).toContain(`'${templateKey}' THEN '${presentation.action?.url}'`);
+  }
 });

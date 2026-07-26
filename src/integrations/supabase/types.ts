@@ -49,10 +49,48 @@ export type Database = {
           template_version?: number | null;
         };
         Update: {
+          automation_config_version?: number;
+          channel?: string | null;
+          communication_recipient_id?: string;
+          competing_action_ids?: string[];
+          decided_at?: string;
+          decision_key?: string;
+          id?: string;
+          intent_id?: string | null;
+          journey_instance_id?: string | null;
+          locale?: string;
           materialization_evidence?: Json | null;
+          policy_version?: string;
+          reason_codes?: string[];
+          simulated?: boolean;
+          studio_id?: string;
           suppression_reason?: string | null;
+          template_id?: string | null;
+          template_version?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "concierge_decisions_intent_id_fkey";
+            columns: ["intent_id"];
+            isOneToOne: false;
+            referencedRelation: "journey_intents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_decisions_journey_instance_id_fkey";
+            columns: ["journey_instance_id"];
+            isOneToOne: false;
+            referencedRelation: "journey_instances";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_decisions_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "concierge_template_versions";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       admin_activity_log: {
         Row: {
@@ -1509,23 +1547,40 @@ export type Database = {
     };
     Functions: {
       materialize_concierge_delivery: {
-        Args: {
-          p_automation_config_version: number;
-          p_competing_action_ids: string[];
-          p_correlation_id: string;
-          p_decision_key: string;
-          p_intent_id: string;
-          p_materializations: Json;
-          p_mode: string;
-          p_now: string;
-          p_policy_version: string;
-          p_reason_codes: string[];
-          p_recipient_id: string;
-          p_rendered_variables: Json;
-          p_studio_id: string;
-          p_template_key: string;
-          p_whatsapp_waba_id: string | null;
-        };
+        Args:
+          | {
+              p_automation_config_version: number;
+              p_competing_action_ids: string[];
+              p_correlation_id: string;
+              p_decision_key: string;
+              p_intent_id: string;
+              p_materializations: Json;
+              p_mode: string;
+              p_now: string;
+              p_policy_version: string;
+              p_reason_codes: string[];
+              p_recipient_id: string;
+              p_rendered_variables: Json;
+              p_studio_id: string;
+              p_template_key: string;
+              p_whatsapp_waba_id: string | null;
+            }
+          | {
+              p_automation_config_version: number;
+              p_competing_action_ids: string[];
+              p_correlation_id: string;
+              p_decision_key: string;
+              p_intent_id: string;
+              p_materializations: Json;
+              p_mode: string;
+              p_now: string;
+              p_policy_version: string;
+              p_reason_codes: string[];
+              p_recipient_id: string;
+              p_rendered_variables: Json;
+              p_studio_id: string;
+              p_template_key: string;
+            };
         Returns: {
           result_decision_id: string;
           outcome: string;

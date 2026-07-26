@@ -112,7 +112,8 @@ describe("concierge database integration", () => {
           AND studio_id=(SELECT id FROM public.studios WHERE slug='cloud-core');
         DELETE FROM public.concierge_template_versions WHERE id IN ('${ids.template}','${ids.emailTemplate}','${ids.whatsappTemplate}');
         DELETE FROM public.whatsapp_template_deployments
-        WHERE waba_id='concierge-integration' AND template_name='booking_confirmed_repeat_branded_v2';
+        WHERE waba_id IN ('concierge-integration','another-approved-waba')
+          AND template_name='booking_confirmed_repeat_branded_v2';
         DELETE FROM auth.users WHERE id='${ids.user}';
         INSERT INTO auth.users(id,aud,role,email,created_at,updated_at)
         VALUES ('${ids.user}','authenticated','authenticated','concierge-test@example.com',now(),now());
@@ -152,6 +153,8 @@ describe("concierge database integration", () => {
           waba_id,template_name,language,version,category,content_hash,approval_status
         ) VALUES (
           'concierge-integration','booking_confirmed_repeat_branded_v2','en_US','v2','UTILITY','integration','APPROVED'
+        ),(
+          'another-approved-waba','booking_confirmed_repeat_branded_v2','en_US','v2','UTILITY','integration-other','APPROVED'
         );
         INSERT INTO public.journey_instances(
           id,studio_id,journey_type,participant_id,communication_recipient_id,
@@ -243,7 +246,7 @@ describe("concierge database integration", () => {
       ).toBe("duplicate:");
       expect(
         await psql(`
-          SELECT (materialization_evidence IS NOT NULL)::text
+          SELECT (materialization_evidence IS NULL)::text
           FROM public.concierge_decisions
           WHERE decision_key='test-dispatch:${materialized.suffix}';
         `),
@@ -268,7 +271,7 @@ describe("concierge database integration", () => {
             "another-approved-waba",
           ),
         ),
-      ).rejects.toThrow("whatsapp_template_not_provider_approved");
+      ).rejects.toThrow("snapshot_replay_mismatch");
       await expect(
         psql(
           materializeSql(
