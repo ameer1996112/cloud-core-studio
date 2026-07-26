@@ -97,6 +97,24 @@ describe("premium transactional email renderer", () => {
     expect(rendered.html).not.toContain("evil.example");
   });
 
+  test("does not fall back to an action URL when an explicit presentation omits its action", () => {
+    const rendered = renderTransactionalEmail({
+      ...baseInput,
+      language: "en",
+      actionUrl: "/member/packages",
+      presentation: {
+        key: "payment_recovered:email:v2",
+        categoryLabel: "Payment details",
+        action: null,
+        facts: [],
+      },
+    });
+
+    expect(rendered.html).not.toContain("/member/packages");
+    expect(rendered.text).not.toContain("/member/packages");
+    expect(rendered.html).not.toContain("Review payment details");
+  });
+
   test("has localized presentation metadata for every catalog event", () => {
     const result = validateTransactionalEmailPresentationCatalog(
       Object.keys(MESSAGE_CONTENT_CATALOG),

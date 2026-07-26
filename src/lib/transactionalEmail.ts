@@ -273,14 +273,14 @@ export function renderTransactionalEmail(
   const rtl = input.language !== "en";
   const dir = rtl ? "rtl" : "ltr";
   const align = rtl ? "right" : "left";
-  const actionUrl = safeActionUrl(
-    input.presentation?.action?.url ?? input.actionUrl,
-    input.publicBaseUrl,
-  );
+  const actionUrl = input.presentation
+    ? safeActionUrl(input.presentation.action?.url, input.publicBaseUrl)
+    : safeActionUrl(input.actionUrl, input.publicBaseUrl);
   const kicker =
     input.presentation?.categoryLabel ?? KICKERS[eventGroup(input.eventType)][input.language];
-  const cta =
-    input.presentation?.action?.label ?? CTA[ctaGroup(input.eventType, actionUrl)][input.language];
+  const cta = input.presentation
+    ? (input.presentation.action?.label ?? "")
+    : CTA[ctaGroup(input.eventType, actionUrl)][input.language];
   const copy: LocalizedCopy = { ...SUPPORT_COPY[input.language], kicker, cta };
   const escapedUrl = actionUrl ? escapeHtml(actionUrl.toString()) : "";
   const facts = input.presentation
