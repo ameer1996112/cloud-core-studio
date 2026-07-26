@@ -126,6 +126,44 @@ describe("EZcount legal receipt client", () => {
       }),
     ).rejects.toThrow("ezcount_receipt_ambiguous_response");
   });
+
+  test("records Bit as an EZcount web transfer without card fields", async () => {
+    let body;
+    const client = createEzcountReceiptClient({
+      apiKey: "ezcount-api-key",
+      developerEmail: "cloudandcorestudio@gmail.com",
+      fetchImpl: async (_url, init) => {
+        body = JSON.parse(init.body);
+        return Response.json({
+          success: true,
+          doc_uuid: "bit-doc",
+          doc_number: "3002",
+          pdf_link: "https://ezcount.example/bit-doc",
+        });
+      },
+    });
+
+    await client.issueReceipt({
+      paymentId: "payment-bit-1",
+      amountAgorot: 100,
+      customerName: "Test",
+      customerEmail: "test@example.com",
+      itemDescription: "בדיקת מנוי",
+      issuedOn: "2026-07-26",
+      cardLast4: null,
+      paymentMethod: "bit",
+      providerTransactionId: "458759419",
+    });
+
+    expect(body.payment).toEqual([
+      {
+        payment_type: 91,
+        payment_sum: 1,
+        wt_vendor: "Bit",
+        wt_transaction_id: "458759419",
+      },
+    ]);
+  });
 });
 
 describe("confirmed HYP payment EZcount receipt issuance", () => {
@@ -140,6 +178,8 @@ describe("confirmed HYP payment EZcount receipt issuance", () => {
       customerEmail: "noa@example.com",
       itemDescription: "חבילת 10 שיעורים",
       cardLast4: "9876",
+      paymentMethod: "card",
+      providerTransactionId: "hyp-transaction-1",
       externalProvider: null,
       externalStatus: null,
       externalDocumentId: null,
@@ -190,6 +230,8 @@ describe("confirmed HYP payment EZcount receipt issuance", () => {
         itemDescription: "חבילת 10 שיעורים",
         issuedOn: "2026-07-27",
         cardLast4: "9876",
+        paymentMethod: "card",
+        providerTransactionId: "hyp-transaction-1",
       },
     ]);
   });
@@ -207,6 +249,8 @@ describe("confirmed HYP payment EZcount receipt issuance", () => {
         customerEmail: "noa@example.com",
         itemDescription: "חבילה",
         cardLast4: null,
+        paymentMethod: "card",
+        providerTransactionId: null,
         externalProvider: null,
         externalStatus: null,
         externalDocumentId: null,
@@ -247,6 +291,8 @@ describe("confirmed kids HYP payment EZcount receipt issuance", () => {
       customerEmail: "noa@example.com",
       itemDescription: "חודשי לילדים - 4 שיעורים",
       cardLast4: "4321",
+      paymentMethod: "card",
+      providerTransactionId: "kids-hyp-transaction-1",
       externalProvider: null,
       externalStatus: null,
       externalDocumentId: null,
@@ -294,6 +340,8 @@ describe("confirmed kids HYP payment EZcount receipt issuance", () => {
         itemDescription: "חודשי לילדים - 4 שיעורים",
         issuedOn: "2026-07-26",
         cardLast4: "4321",
+        paymentMethod: "card",
+        providerTransactionId: "kids-hyp-transaction-1",
       },
     ]);
   });

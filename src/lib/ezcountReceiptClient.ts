@@ -13,6 +13,8 @@ export type EzcountReceiptRequest = {
   itemDescription: string;
   issuedOn: string;
   cardLast4: string | null;
+  paymentMethod?: "card" | "bit";
+  providerTransactionId?: string | null;
 };
 
 export type EzcountReceiptDocument = {
@@ -64,7 +66,30 @@ export function createEzcountReceiptClient(config: EzcountReceiptClientConfig) {
       const customerName = required(input.customerName, "customer_name");
       const customerEmail = required(input.customerEmail, "customer_email");
       const itemDescription = required(input.itemDescription, "item_description");
-      const cardLast4 = required(input.cardLast4?.replace(/\D/g, "").slice(-4) || "", "card_last4");
+      const payment =
+        input.paymentMethod === "bit"
+          ? {
+              payment_type: 91,
+              payment_sum: amount,
+              wt_vendor: "Bit",
+              wt_transaction_id: required(
+                input.providerTransactionId?.trim() || paymentId,
+                "provider_transaction_id",
+              ),
+            }
+          : {
+              payment_type: 3,
+              payment_sum: amount,
+              cc_type: 0,
+              cc_type_name: "HYP",
+              cc_number: required(
+                input.cardLast4?.replace(/\D/g, "").slice(-4) || "",
+                "card_last4",
+              ),
+              cc_deal_type: 1,
+              cc_num_of_payments: 1,
+              cc_payment_num: 1,
+            };
 
       const response = await fetchImpl(config.endpoint?.trim() || DEFAULT_ENDPOINT, {
         method: "POST",
@@ -88,18 +113,7 @@ export function createEzcountReceiptClient(config: EzcountReceiptClientConfig) {
               amount: 1,
             },
           ],
-          payment: [
-            {
-              payment_type: 3,
-              payment_sum: amount,
-              cc_type: 0,
-              cc_type_name: "HYP",
-              cc_number: cardLast4,
-              cc_deal_type: 1,
-              cc_num_of_payments: 1,
-              cc_payment_num: 1,
-            },
-          ],
+          payment: [payment],
           vat: 0,
           price_total: amount,
           comment: DOCUMENT_COMMENT,
