@@ -338,33 +338,51 @@ export function MemberNotificationCenter({
       </button>
 
       {shouldInvite && (
-        <div className="fixed inset-x-4 bottom-[calc(var(--member-bottom-nav-height)+env(safe-area-inset-bottom)+1rem)] z-40 mx-auto max-w-md rounded-[var(--radius-lg)] border border-gold/30 bg-ivory p-4 shadow-[var(--shadow-elevated)] md:bottom-6">
+        <section
+          aria-label={copy.enableTitle}
+          className="fixed inset-x-3 bottom-[calc(var(--member-bottom-nav-height)+env(safe-area-inset-bottom)+0.75rem)] z-[45] mx-auto max-w-[26rem] overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(145deg,rgba(255,253,248,0.98),rgba(248,244,235,0.97))] shadow-[0_22px_55px_-24px_rgba(11,29,58,0.38),0_6px_18px_-10px_rgba(11,29,58,0.18)] backdrop-blur-xl md:bottom-6"
+        >
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-gold/80 to-transparent"
+          />
           <button
             type="button"
             aria-label="Close"
             onClick={dismissInvite}
-            className="absolute end-3 top-3 rounded-full p-1 text-slate hover:bg-white"
+            className="absolute end-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-navy/5 bg-white/55 text-slate transition-colors hover:bg-white hover:text-navy"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
-          <div className="flex gap-3 pe-7 text-start">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/12 text-navy">
-              <Smartphone className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-semibold text-navy">{copy.enableTitle}</p>
-              <p className="mt-1 text-sm leading-6 text-slate">{copy.enableBody}</p>
-              <button
-                type="button"
-                onClick={enablePush}
-                className="cta-navy mt-3 px-4 py-2 text-xs"
-              >
-                {copy.enable}
-              </button>
-              {permissionMessage && <p className="mt-2 text-xs text-slate">{permissionMessage}</p>}
+
+          <div className="p-4 pb-[1.05rem]">
+            <div className="flex items-start gap-3 pe-9 text-start">
+              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] border border-gold/20 bg-[linear-gradient(145deg,rgba(212,175,55,0.16),rgba(255,255,255,0.72))] text-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                <Smartphone className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.7} />
+                <span className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#fbf8f1] bg-gold" />
+              </span>
+              <div className="min-w-0 pt-0.5">
+                <p className="text-[0.95rem] font-semibold leading-5 tracking-[-0.01em] text-navy">
+                  {copy.enableTitle}
+                </p>
+                <p className="mt-1 text-[0.8rem] leading-[1.35rem] text-slate">{copy.enableBody}</p>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={enablePush}
+              className="mt-3 flex min-h-11 w-full items-center justify-center rounded-[0.9rem] bg-navy px-4 py-2.5 text-[0.82rem] font-semibold tracking-[0.01em] text-white shadow-[0_10px_24px_-14px_rgba(11,29,58,0.8)] transition-[transform,background-color,box-shadow] active:translate-y-px hover:bg-navy/94"
+            >
+              {copy.enable}
+            </button>
+            {permissionMessage && (
+              <p className="mt-2 text-center text-[0.72rem] leading-5 text-slate">
+                {permissionMessage}
+              </p>
+            )}
           </div>
-        </div>
+        </section>
       )}
 
       {open && (
