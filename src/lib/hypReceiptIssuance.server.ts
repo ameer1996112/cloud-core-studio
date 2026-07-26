@@ -116,7 +116,6 @@ function defaultDeps(): HypReceiptIssuanceDeps {
       };
     },
     async claimReceipt(receiptId) {
-      const staleBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
       const { data, error } = await supabaseAdmin
         .from("receipts")
         .update({
@@ -126,9 +125,7 @@ function defaultDeps(): HypReceiptIssuanceDeps {
           external_attempted_at: new Date().toISOString(),
         } as any)
         .eq("id", receiptId)
-        .or(
-          `external_status.is.null,external_status.eq.failed,and(external_status.eq.pending,external_attempted_at.lt.${staleBefore})`,
-        )
+        .or("external_status.is.null,external_status.eq.failed")
         .select("id")
         .maybeSingle();
       if (error) throw error;
@@ -232,6 +229,25 @@ export async function sweepFailedHypReceipts(limit = 10) {
   if (process.env.HYP_INVOICE_API_ENABLED?.trim().toLowerCase() !== "true") {
     return { status: "disabled" as const, checked: 0, results: [] };
   }
+  const staleBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { data: staleClaims, error: staleError } = await supabaseAdmin
+    .from("receipts")
+    .update({
+      external_status: "ambiguous",
+      external_error: "stale_pending_requires_reconciliation",
+    })
+    .eq("external_provider", "hyp")
+    .eq("external_status", "pending")
+    .lt("external_attempted_at", staleBefore)
+    .select("payment_id");
+  if (staleError) throw staleError;
+  if (staleClaims?.length) {
+    console.error(
+      "hyp_invoice_ambiguous_receipts_require_reconciliation",
+      staleClaims.map((receipt) => receipt.payment_id),
+    );
+  }
+
   const { data, error } = await supabaseAdmin
     .from("receipts")
     .select("payment_id")
@@ -248,5 +264,10 @@ export async function sweepFailedHypReceipts(limit = 10) {
       results.push({ status: "failed" as const, error: errorMessage(receiptError) });
     }
   }
-  return { status: "ok" as const, checked: (data ?? []).length, results };
+  return {
+    status: "ok" as const,
+    checked: (data ?? []).length,
+    ambiguous: (staleClaims ?? []).length,
+    results,
+  };
 }
