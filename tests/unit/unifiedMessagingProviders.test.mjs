@@ -144,6 +144,52 @@ describe("unified messaging provider adapters", () => {
     });
   });
 
+  test("rejects missing or malformed typed components before dispatch", async () => {
+    let requests = 0;
+    const invalidComponents = [
+      undefined,
+      [],
+      [{ type: "body", parameters: [{ type: "text", value: "not-text" }] }],
+      [
+        { type: "body", parameters: [{ type: "text", text: "first" }] },
+        { type: "body", parameters: [{ type: "text", text: "duplicate" }] },
+      ],
+      [
+        {
+          type: "header",
+          parameters: [{ type: "image", image: { link: "https://example.com/header.webp" } }],
+        },
+      ],
+    ];
+
+    for (const components of invalidComponents) {
+      const result = await sendWhatsappTemplate(
+        {
+          to: "972501234567",
+          templateName: "cc_booking_confirmed_v2",
+          languageCode: "he",
+          components,
+        },
+        {
+          META_GRAPH_API_VERSION: "v25.0",
+          META_WHATSAPP_PHONE_NUMBER_ID: "phone-1",
+          META_ACCESS_TOKEN: "secret",
+        },
+        async () => {
+          requests += 1;
+          return Response.json({ messages: [{ id: "unexpected" }] });
+        },
+      );
+      expect(result).toEqual({
+        ok: false,
+        failureClass: "configuration",
+        error: "whatsapp_template_components_missing_or_invalid",
+      });
+    }
+
+    expect(requests).toBe(0);
+  });
+
   test("reuses the delivery idempotency key for Resend", async () => {
     const requests = [];
     const input = {

@@ -349,11 +349,11 @@ const WHATSAPP_ACTIONS: Partial<
     labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en: "View booking" },
   },
   payment_requires_action: {
-    path: "/member/payments",
+    path: "/member/packages",
     labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en: "Review payment" },
   },
   payment_terminally_failed: {
-    path: "/member/payments",
+    path: "/member/packages",
     labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en: "Review payment" },
   },
   waitlist_offer: {

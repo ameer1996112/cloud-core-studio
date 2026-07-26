@@ -33,10 +33,10 @@ import {
   shouldCancelReminderForDomainState,
 } from "@/lib/messagingPolicy";
 import {
+  parseWhatsappTemplateComponents,
   sendResendEmail,
   sendWhatsappFreeform,
   sendWhatsappTemplate,
-  type WhatsappTemplateComponent,
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { renderConciergeEmail } from "@/lib/conciergeEmail";
@@ -1359,20 +1359,26 @@ async function processDelivery(
 
   let result;
   if (delivery.channel === "whatsapp") {
-    result =
-      delivery.provider_payload.kind === "freeform"
-        ? await sendWhatsappFreeform({
-            to: delivery.recipient_address ?? "",
-            text: String(delivery.provider_payload.text ?? ""),
-          })
-        : await sendWhatsappTemplate({
+    if (delivery.provider_payload.kind === "freeform") {
+      result = await sendWhatsappFreeform({
+        to: delivery.recipient_address ?? "",
+        text: String(delivery.provider_payload.text ?? ""),
+      });
+    } else {
+      const components = parseWhatsappTemplateComponents(delivery.provider_payload.components);
+      result = components
+        ? await sendWhatsappTemplate({
             to: delivery.recipient_address ?? "",
             templateName: String(delivery.provider_payload.template_name ?? ""),
             languageCode: delivery.provider_payload.template_language as "he" | "ar" | "en_US",
-            components: Array.isArray(delivery.provider_payload.components)
-              ? (delivery.provider_payload.components as WhatsappTemplateComponent[])
-              : [],
-          });
+            components,
+          })
+        : {
+            ok: false,
+            failureClass: "configuration",
+            error: "whatsapp_template_components_missing_or_invalid",
+          };
+    }
   } else if (delivery.channel === "email") {
     const publicBaseUrl =
       process.env.MESSAGING_PUBLIC_BASE_URL?.trim() || process.env.HYP_PUBLIC_BASE_URL?.trim();

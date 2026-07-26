@@ -1,4 +1,8 @@
 import type { Database } from "@/integrations/supabase/types";
+import {
+  parseWhatsappTemplateComponents,
+  type WhatsappTemplateComponent,
+} from "@/lib/messagingProviders.server";
 
 type NotificationLogRow = Database["public"]["Tables"]["notification_logs"]["Row"];
 type NotificationPayload = {
@@ -25,7 +29,7 @@ export type OfficialWhatsappTemplateEventType =
 export type OfficialWhatsappTemplatePayload = {
   name: string;
   languageCode: "he" | "ar" | "en_US";
-  bodyParameters: string[];
+  components: WhatsappTemplateComponent[];
 };
 
 export type OfficialWhatsappSendResult =
@@ -97,54 +101,45 @@ export function buildOfficialWhatsappTemplatePayload(
   );
   const language = templateLanguage(row.language);
   const name = configuredTemplateName(row.trigger_type, language.suffix);
+  let bodyTexts: string[];
 
   switch (row.trigger_type) {
     case "booking_confirmed":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [memberName, className, classDate, classTime, instructorName],
-      };
+      bodyTexts = [memberName, className, classDate, classTime, instructorName];
+      break;
     case "class_cancelled_by_admin":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [memberName, className, classDate, classTime],
-      };
+      bodyTexts = [memberName, className, classDate, classTime];
+      break;
     case "class_reminder_24h":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [className, classTime],
-      };
+      bodyTexts = [className, classTime];
+      break;
     case "class_time_changed":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [memberName, className, classDate, classTime],
-      };
+      bodyTexts = [memberName, className, classDate, classTime];
+      break;
     case "payment_confirmed":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [memberName, packageName, creditsAvailable],
-      };
+      bodyTexts = [memberName, packageName, creditsAvailable];
+      break;
     case "payment_pending_reminder":
     case "payment_failed":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [memberName],
-      };
+      bodyTexts = [memberName];
+      break;
     case "waitlist_spot_available":
-      return {
-        name,
-        languageCode: language.code,
-        bodyParameters: [memberName, className, classDate, classTime],
-      };
+      bodyTexts = [memberName, className, classDate, classTime];
+      break;
     default:
       return null;
   }
+
+  return {
+    name,
+    languageCode: language.code,
+    components: [
+      {
+        type: "body",
+        parameters: bodyTexts.map((text) => ({ type: "text", text })),
+      },
+    ],
+  };
 }
 
 export function normalizeOfficialWhatsappRecipient(value: string | null | undefined) {
@@ -203,6 +198,14 @@ export async function sendOfficialWhatsappTemplateMessage(input: {
 }): Promise<OfficialWhatsappSendResult> {
   const to = normalizeOfficialWhatsappRecipient(input.to);
   if (!to) return { ok: false, retryable: false, error: "invalid_whatsapp_phone" };
+  const components = parseWhatsappTemplateComponents(input.template.components);
+  if (!components) {
+    return {
+      ok: false,
+      retryable: false,
+      error: "invalid_official_whatsapp_template_components",
+    };
+  }
 
   let config: OfficialWhatsappRuntimeConfig;
   try {
@@ -225,15 +228,7 @@ export async function sendOfficialWhatsappTemplateMessage(input: {
     template: {
       name: input.template.name,
       language: { code: input.template.languageCode },
-      components: [
-        {
-          type: "body",
-          parameters: input.template.bodyParameters.map((text) => ({
-            type: "text",
-            text,
-          })),
-        },
-      ],
+      components,
     },
   };
 

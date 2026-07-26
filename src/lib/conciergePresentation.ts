@@ -26,7 +26,7 @@ export type ConciergePresentation = {
 
 const ACTION_PATHS = {
   booking: "/member/bookings",
-  payment_outcome: "/member/payments",
+  payment_outcome: "/member/packages",
   weekly_schedule: "/member/schedule",
   waitlist: "/member/schedule",
   recommendation: "/member/schedule",

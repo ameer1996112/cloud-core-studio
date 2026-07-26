@@ -28,7 +28,18 @@ describe("official WhatsApp template payloads", () => {
     expect(buildOfficialWhatsappTemplatePayload(row("booking_confirmed"))).toEqual({
       name: "booking_confirmed_he",
       languageCode: "he",
-      bodyParameters: ["נורה", "פילאטיס מזרן", "10/07/2026", "18:00", "יארין"],
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נורה" },
+            { type: "text", text: "פילאטיס מזרן" },
+            { type: "text", text: "10/07/2026" },
+            { type: "text", text: "18:00" },
+            { type: "text", text: "יארין" },
+          ],
+        },
+      ],
     });
   });
 
@@ -36,7 +47,15 @@ describe("official WhatsApp template payloads", () => {
     expect(buildOfficialWhatsappTemplatePayload(row("class_reminder_24h"))).toEqual({
       name: "class_reminder_24h_he",
       languageCode: "he",
-      bodyParameters: ["פילאטיס מזרן", "18:00"],
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "פילאטיס מזרן" },
+            { type: "text", text: "18:00" },
+          ],
+        },
+      ],
     });
   });
 
@@ -46,7 +65,16 @@ describe("official WhatsApp template payloads", () => {
     ).toEqual({
       name: "payment_confirmed_he",
       languageCode: "he",
-      bodyParameters: ["נורה", "מינוי חודשי", "עודכן"],
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נורה" },
+            { type: "text", text: "מינוי חודשי" },
+            { type: "text", text: "עודכן" },
+          ],
+        },
+      ],
     });
   });
 
@@ -54,12 +82,22 @@ describe("official WhatsApp template payloads", () => {
     expect(buildOfficialWhatsappTemplatePayload(row("payment_pending_reminder"))).toEqual({
       name: "payment_pending_reminder_he",
       languageCode: "he",
-      bodyParameters: ["נורה"],
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "נורה" }],
+        },
+      ],
     });
     expect(buildOfficialWhatsappTemplatePayload(row("payment_failed"))).toEqual({
       name: "payment_failed_he",
       languageCode: "he",
-      bodyParameters: ["נורה"],
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "נורה" }],
+        },
+      ],
     });
   });
 
@@ -85,7 +123,18 @@ describe("official WhatsApp template payloads", () => {
       template: {
         name: "booking_confirmed_he",
         languageCode: "he",
-        bodyParameters: ["נורה", "פילאטיס מזרן", "10/07/2026", "18:00", "יארין"],
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: "נורה" },
+              { type: "text", text: "פילאטיס מזרן" },
+              { type: "text", text: "10/07/2026" },
+              { type: "text", text: "18:00" },
+              { type: "text", text: "יארין" },
+            ],
+          },
+        ],
       },
       env: {
         META_GRAPH_API_VERSION: "v25.0",
@@ -111,7 +160,47 @@ describe("official WhatsApp template payloads", () => {
       template: {
         name: "booking_confirmed_he",
         language: { code: "he" },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: "נורה" },
+              { type: "text", text: "פילאטיס מזרן" },
+              { type: "text", text: "10/07/2026" },
+              { type: "text", text: "18:00" },
+              { type: "text", text: "יארין" },
+            ],
+          },
+        ],
       },
     });
+  });
+
+  test("rejects the retired positional template shape before dispatch", async () => {
+    let requests = 0;
+    const result = await sendOfficialWhatsappTemplateMessage({
+      to: "052-331-8478",
+      template: {
+        name: "booking_confirmed_he",
+        languageCode: "he",
+        bodyParameters: ["נורה"],
+      },
+      env: {
+        META_GRAPH_API_VERSION: "v25.0",
+        META_WHATSAPP_PHONE_NUMBER_ID: "phone-id-1",
+        META_ACCESS_TOKEN: "token-1",
+      },
+      fetchImpl: async () => {
+        requests += 1;
+        return Response.json({ messages: [{ id: "unexpected" }] });
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      retryable: false,
+      error: "invalid_official_whatsapp_template_components",
+    });
+    expect(requests).toBe(0);
   });
 });

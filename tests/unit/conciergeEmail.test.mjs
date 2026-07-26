@@ -17,7 +17,7 @@ test("renders the premium shell with localized action and presentation evidence"
   expect(rendered.html).toContain("#F4EFE7");
   expect(rendered.html).toContain("#D4AF6A");
   expect(rendered.html).toContain("Review payment");
-  expect(rendered.html).toContain("/member/payments");
+  expect(rendered.html).toContain("https://cloudandcorestudio.com/member/packages");
   expect(rendered.text).toContain("Review payment:");
   expect(rendered.presentationKey).toBe("payment_requires_action:email:v2");
 });

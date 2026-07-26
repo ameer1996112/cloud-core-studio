@@ -24,6 +24,33 @@ const EXPECTED_CHANNELS = {
   daily_briefing: ["in_app", "push"],
 };
 
+const EXPECTED_ACTIONS = {
+  booking_confirmed_first: {
+    url: "https://cloudandcorestudio.com/member/bookings",
+    labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en_US: "View booking" },
+  },
+  booking_confirmed_repeat: {
+    url: "https://cloudandcorestudio.com/member/bookings",
+    labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en_US: "View booking" },
+  },
+  payment_requires_action: {
+    url: "https://cloudandcorestudio.com/member/packages",
+    labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en_US: "Review payment" },
+  },
+  payment_terminally_failed: {
+    url: "https://cloudandcorestudio.com/member/packages",
+    labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en_US: "Review payment" },
+  },
+  waitlist_offer: {
+    url: "https://cloudandcorestudio.com/member/schedule",
+    labels: { he: "מימוש המקום", ar: "حجز المكان", en_US: "Claim spot" },
+  },
+  recommendation: {
+    url: "https://cloudandcorestudio.com/member/schedule",
+    labels: { he: "צפייה בהמלצה", ar: "عرض التوصية", en_US: "View recommendation" },
+  },
+};
+
 describe("Concierge template catalog", () => {
   test("covers every dispatchable journey, channel, and locale", () => {
     expect(validateConciergeTemplateCatalog()).toEqual({ ok: true, errors: [] });
@@ -62,33 +89,48 @@ describe("Concierge template catalog", () => {
     expect(CONCIERGE_META_TEMPLATE_CATALOG).toHaveLength(33);
     for (const template of CONCIERGE_META_TEMPLATE_CATALOG) {
       expect(template.name).toEndWith("_branded_v2");
-      expect(template.components[0]).toMatchObject({
+      const templateKey = template.name.replace(/_branded_v2$/, "");
+      const action = EXPECTED_ACTIONS[templateKey];
+      expect(template.components.map((component) => component.type)).toEqual(
+        action ? ["HEADER", "BODY", "FOOTER", "BUTTONS"] : ["HEADER", "BODY", "FOOTER"],
+      );
+      expect(template.components[0]).toEqual({
         type: "HEADER",
         format: "IMAGE",
+        example: {
+          header_handle: ["https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp"],
+        },
       });
-      expect(template.components.some((component) => component.type === "FOOTER")).toBe(true);
+      expect(template.components[2]).toEqual({
+        type: "FOOTER",
+        text: "Cloud & Core Studio",
+      });
       const body = template.components.find((component) => component.type === "BODY");
       expect(body.text).toContain("{{1}}");
       expect(body.text).not.toContain("{{member_name}}");
+      if (action) {
+        expect(template.components[3]).toEqual({
+          type: "BUTTONS",
+          buttons: [
+            {
+              type: "URL",
+              text: action.labels[template.language],
+              url: action.url,
+            },
+          ],
+        });
+      }
     }
   });
 
   test("adds only the approved contextual URL buttons", () => {
-    const actionableKeys = [
-      "booking_confirmed_first",
-      "booking_confirmed_repeat",
-      "payment_requires_action",
-      "payment_terminally_failed",
-      "waitlist_offer",
-      "recommendation",
-    ];
     const informationalKeys = [
       "payment_one_time_succeeded",
       "payment_subscription_renewal_succeeded",
       "class_cancelled",
     ];
 
-    for (const templateKey of actionableKeys) {
+    for (const templateKey of Object.keys(EXPECTED_ACTIONS)) {
       const variants = CONCIERGE_META_TEMPLATE_CATALOG.filter((template) =>
         template.name.startsWith(`${templateKey}_branded_v2`),
       );

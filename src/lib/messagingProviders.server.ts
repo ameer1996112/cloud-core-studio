@@ -14,6 +14,59 @@ export type WhatsappTemplateSendInput = {
   components: WhatsappTemplateComponent[];
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+export function parseWhatsappTemplateComponents(
+  value: unknown,
+): WhatsappTemplateComponent[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+
+  const components: WhatsappTemplateComponent[] = [];
+  for (const component of value) {
+    if (!isRecord(component) || !Array.isArray(component.parameters)) return null;
+
+    if (component.type === "header") {
+      if (component.parameters.length !== 1) return null;
+      const parameter = component.parameters[0];
+      if (!isRecord(parameter) || parameter.type !== "image" || !isRecord(parameter.image)) {
+        return null;
+      }
+      const link = parameter.image.link;
+      if (typeof link !== "string" || !link.trim()) return null;
+      components.push({
+        type: "header",
+        parameters: [{ type: "image", image: { link } }],
+      });
+      continue;
+    }
+
+    if (component.type === "body") {
+      const parameters: Array<{ type: "text"; text: string }> = [];
+      for (const parameter of component.parameters) {
+        if (
+          !isRecord(parameter) ||
+          parameter.type !== "text" ||
+          typeof parameter.text !== "string"
+        ) {
+          return null;
+        }
+        parameters.push({ type: "text", text: parameter.text });
+      }
+      components.push({ type: "body", parameters });
+      continue;
+    }
+
+    return null;
+  }
+
+  const sequence = components.map((component) => component.type).join(",");
+  if (sequence !== "body" && sequence !== "header,body") return null;
+
+  return components;
+}
+
 export type ProviderSendResult =
   | { ok: true; providerMessageId: string | null; status: "accepted" | "sent" }
   | {
@@ -48,6 +101,15 @@ export async function sendWhatsappTemplate(
   env: Record<string, string | undefined> = process.env,
   fetchImpl: FetchLike = fetch,
 ): Promise<ProviderSendResult> {
+  const components = parseWhatsappTemplateComponents(input.components);
+  if (!components) {
+    return {
+      ok: false,
+      failureClass: "configuration",
+      error: "whatsapp_template_components_missing_or_invalid",
+    };
+  }
+
   let graphVersion: string;
   let phoneNumberId: string;
   let token: string;
@@ -67,7 +129,7 @@ export async function sendWhatsappTemplate(
     template: {
       name: input.templateName,
       language: { code: input.languageCode },
-      components: input.components,
+      components,
     },
   };
 

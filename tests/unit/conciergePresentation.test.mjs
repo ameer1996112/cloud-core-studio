@@ -114,8 +114,23 @@ describe("Concierge branded presentation", () => {
       body: "Please review  .",
       action: {
         label: "Review payment",
-        url: "https://cloudandcorestudio.com/member/payments",
+        url: "https://cloudandcorestudio.com/member/packages",
       },
+    });
+
+    expect(
+      buildConciergePresentation({
+        journeyType: "payment_outcome",
+        templateKey: "payment_requires_action",
+        locale: "he",
+        subject: "Payment action required",
+        body: "Review payment.",
+        variables: {},
+        publicBaseUrl: "https://cloudandcorestudio.com/app/",
+      }).action,
+    ).toEqual({
+      label: "בדיקת התשלום",
+      url: "https://cloudandcorestudio.com/member/packages",
     });
   });
 });

@@ -84,7 +84,7 @@ describe("premium transactional email renderer", () => {
         categoryLabel: "Payment details",
         action: {
           label: "Review payment",
-          url: "https://cloudandcorestudio.com/member/payments",
+          url: "https://cloudandcorestudio.com/member/packages",
         },
         facts: [{ key: "payment_amount", label: "Amount due", value: "₪120", ltr: true }],
       },
@@ -93,7 +93,7 @@ describe("premium transactional email renderer", () => {
     expect(rendered.html).toContain("Payment details");
     expect(rendered.html).toContain("Review payment");
     expect(rendered.html).toContain("Amount due");
-    expect(rendered.html).toContain("https://cloudandcorestudio.com/member/payments");
+    expect(rendered.html).toContain("https://cloudandcorestudio.com/member/packages");
     expect(rendered.html).not.toContain("evil.example");
   });
 

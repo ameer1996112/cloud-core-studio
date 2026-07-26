@@ -42,7 +42,7 @@ export function premiumJourneyTestVariables(language: MessageLanguage) {
     package_name: TEST_PACKAGE_NAMES[language],
     amount: "₪350",
     receipt_number: "CC-1001",
-    receipt_url: "https://cloudandcorestudio.com/member/payments",
+    receipt_url: "https://cloudandcorestudio.com/member/packages",
     credits_remaining: "2",
     expiry_date: "31/07/2026",
     renewal_date: "31/07/2026",
