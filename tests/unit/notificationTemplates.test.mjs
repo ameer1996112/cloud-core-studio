@@ -162,7 +162,7 @@ assert.equal(
 );
 assert.equal(
   renderNotificationCopy(premiumPaymentTemplate, premiumHebrewVariables).body,
-  "Hi נועה, you're all set ✨\n\nPayment is complete and מינוי חודשי is now active.\nChoose your next class whenever you're ready.\n\nYour official receipt will be sent separately.",
+  "Hi נועה, you're all set ✨\n\nPayment is complete and מינוי חודשי is now active.\nChoose your next class whenever you're ready.\n\nSee you at the studio.",
 );
 
 const premiumReminderTemplate = findNotificationTemplate({

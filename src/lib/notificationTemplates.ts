@@ -144,9 +144,9 @@ const FALLBACK_BODIES: Record<NotificationEventKey, Record<NotificationLanguage,
     en: "Your payment request was received\n\n{{package_name}}\nThe studio team will confirm it soon.",
   },
   payment_confirmed: {
-    he: "{{member_name}}, הכול מוכן ✨\n\nהתשלום הושלם ו-{{package_name}} פעילה עכשיו.\nאפשר לבחור את השיעור הבא כשנוח לך.\n\nהקבלה הרשמית תישלח בנפרד.\nירין",
-    ar: "{{member_name}}، كل شيء جاهز ✨\n\nاكتملت الدفعة وأصبحت {{package_name}} فعّالة الآن.\nيمكنك اختيار حصتك القادمة عندما يناسبك.\n\nسيتم إرسال الإيصال الرسمي بشكل منفصل.",
-    en: "Hi {{member_name}}, you're all set ✨\n\nPayment is complete and {{package_name}} is now active.\nChoose your next class whenever you're ready.\n\nYour official receipt will be sent separately.",
+    he: "{{member_name}}, הכול מוכן ✨\n\nהתשלום הושלם ו-{{package_name}} פעילה עכשיו.\nאפשר לבחור את השיעור הבא כשנוח לך.\n\nנתראה בסטודיו,\nירין",
+    ar: "{{member_name}}، كل شيء جاهز ✨\n\nاكتملت الدفعة وأصبحت {{package_name}} فعّالة الآن.\nيمكنك اختيار حصتك القادمة عندما يناسبك.\n\nنراك في الاستوديو.",
+    en: "Hi {{member_name}}, you're all set ✨\n\nPayment is complete and {{package_name}} is now active.\nChoose your next class whenever you're ready.\n\nSee you at the studio.",
   },
   receipt_issued: {
     he: "{{member_name}}, הקבלה הונפקה\n\n{{receipt_number}}\nאפשר לצפות בה באזור האישי.\nירין",
