@@ -99,5 +99,23 @@ describe("Concierge branded presentation", () => {
         }).action,
       ).toBeNull();
     }
+
+    expect(
+      buildConciergePresentation({
+        journeyType: "payment_outcome",
+        templateKey: "payment_terminally_failed",
+        locale: "en",
+        subject: "Payment failed",
+        body: "Please review {{member.name}} {{missing-value}}.",
+        variables: {},
+        publicBaseUrl: "https://cloudandcorestudio.com",
+      }),
+    ).toMatchObject({
+      body: "Please review  .",
+      action: {
+        label: "Review payment",
+        url: "https://cloudandcorestudio.com/member/payments",
+      },
+    });
   });
 });

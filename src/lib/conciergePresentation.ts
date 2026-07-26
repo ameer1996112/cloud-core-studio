@@ -129,7 +129,7 @@ const DEFAULT_JOURNEY: JourneyDefinition = {
 };
 
 function renderCopy(copy: string | null, variables: Record<string, unknown>) {
-  return (copy ?? "").replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_match, key: string) => {
+  return (copy ?? "").replace(/\{\{\s*([^{}]*?)\s*\}\}/g, (_match, key: string) => {
     const value = variables[key];
     return value === null || value === undefined ? "" : String(value);
   });
