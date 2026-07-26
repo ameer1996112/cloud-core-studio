@@ -5,6 +5,7 @@
 !.env.staging.example
 .git
 .github
+.worktrees
 .openwa
 .supabase
 .tanstack
@@ -14,6 +15,7 @@ dist
 ios
 node_modules
 supabase/.temp
+supabase/.branches
 supabase/backups
 supabase/migrations_archive
 tmp

@@ -4,6 +4,11 @@ import {
   chargeDueHypTokenSubscriptions,
   syncDueHypSubscriptions,
 } from "@/lib/subscriptions.server";
+import {
+  chargeDueKidsHypTokenSubscriptions,
+  syncDueKidsHypSubscriptions,
+  unlockDueKidsYearlyPeriods,
+} from "@/lib/kids.server";
 
 function requireSubscriptionAutomationAuth(request: Request): Response | null {
   const configuredToken =
@@ -33,9 +38,21 @@ async function handle(request: Request) {
   const limit = Number(url.searchParams.get("limit") ?? 25);
   try {
     const tokenCharges = await chargeDueHypTokenSubscriptions({ limit });
+    const kidsTokenCharges = await chargeDueKidsHypTokenSubscriptions({ limit });
+    const kidsYearlyUnlocks = await unlockDueKidsYearlyPeriods({ limit });
     const includeInquirySync = url.searchParams.get("include_inquiry_sync") === "true";
     const inquirySync = includeInquirySync ? await syncDueHypSubscriptions({ limit }) : null;
-    return jsonResponse({ ok: true, tokenCharges, inquirySync });
+    const kidsInquirySync = includeInquirySync
+      ? await syncDueKidsHypSubscriptions({ limit })
+      : null;
+    return jsonResponse({
+      ok: true,
+      tokenCharges,
+      inquirySync,
+      kidsTokenCharges,
+      kidsInquirySync,
+      kidsYearlyUnlocks,
+    });
   } catch (error) {
     return jsonResponse(
       {
