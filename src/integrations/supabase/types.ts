@@ -1104,7 +1104,10 @@ export type Database = {
           created_at: string;
           currency: string;
           external_doc_id: string | null;
+          external_doc_number: string | null;
           external_doc_url: string | null;
+          external_error: string | null;
+          external_attempted_at: string | null;
           external_provider: string | null;
           footer_note: string | null;
           id: string;
@@ -1124,7 +1127,10 @@ export type Database = {
           created_at?: string;
           currency?: string;
           external_doc_id?: string | null;
+          external_doc_number?: string | null;
           external_doc_url?: string | null;
+          external_error?: string | null;
+          external_attempted_at?: string | null;
           external_provider?: string | null;
           footer_note?: string | null;
           id?: string;
@@ -1144,7 +1150,10 @@ export type Database = {
           created_at?: string;
           currency?: string;
           external_doc_id?: string | null;
+          external_doc_number?: string | null;
           external_doc_url?: string | null;
+          external_error?: string | null;
+          external_attempted_at?: string | null;
           external_provider?: string | null;
           footer_note?: string | null;
           id?: string;
