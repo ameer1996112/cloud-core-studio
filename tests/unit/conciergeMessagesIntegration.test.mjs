@@ -41,4 +41,20 @@ describe("Concierge Messages integration", () => {
     expect(automationsRoute).toContain("<ConciergeCommandCenter lang={lang} />");
     expect(automationsRoute).not.toContain("setConciergeAutomationMode");
   });
+
+  test("shows operators who received a delivery, how it was sent, and when", () => {
+    const deliveryServer = readFileSync(
+      resolve(root, "src/lib/unifiedMessages.functions.ts"),
+      "utf8",
+    );
+
+    expect(deliveryServer).toContain("recipient_address");
+    expect(deliveryServer).toContain("scheduled_for");
+    expect(deliveryServer).toContain("sent_at");
+    expect(deliveryServer).toContain("delivered_at");
+    expect(deliveryServer).toContain("member:members(name)");
+    expect(messagesRoute).toContain("deliveryTimeline");
+    expect(messagesRoute).toContain("deliveryMethod");
+    expect(messagesRoute).toContain("deliveryRecipient");
+  });
 });

@@ -55,7 +55,7 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
     const result = await db
       .from("message_deliveries")
       .select(
-        "id,message_id,channel,provider,status,provider_status,attempt_count,error_code,error_message,created_at,updated_at,message:messages(event_type,subject)",
+        "id,message_id,channel,provider,recipient_address,status,provider_status,attempt_count,error_code,error_message,scheduled_for,last_attempt_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(event_type,subject,language,template_key,created_at,member:members(name))",
       )
       .order("created_at", { ascending: false })
       .limit(300);

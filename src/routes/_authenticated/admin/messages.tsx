@@ -577,6 +577,63 @@ function CanonicalInboxTab() {
 }
 
 function CanonicalDeliveriesTab() {
+  const { lang } = useI18n();
+  const deliveryCopy = {
+    en: {
+      message: "Message",
+      recipient: "Recipient",
+      method: "How",
+      status: "Status",
+      timeline: "When",
+      attempts: "Attempts",
+      error: "Error",
+      created: "Created",
+      scheduled: "Scheduled",
+      sent: "Sent",
+      delivered: "Delivered",
+      read: "Read",
+      failed: "Failed",
+      retry: "Retry",
+      noDeliveries: "No deliveries yet.",
+      provider: "Provider",
+    },
+    he: {
+      message: "הודעה",
+      recipient: "נמען/ת",
+      method: "איך",
+      status: "סטטוס",
+      timeline: "מתי",
+      attempts: "ניסיונות",
+      error: "שגיאה",
+      created: "נוצר",
+      scheduled: "מתוזמן",
+      sent: "נשלח",
+      delivered: "נמסר",
+      read: "נקרא",
+      failed: "נכשל",
+      retry: "ניסיון נוסף",
+      noDeliveries: "עדיין אין מסירות.",
+      provider: "ספק",
+    },
+    ar: {
+      message: "الرسالة",
+      recipient: "المستلم",
+      method: "كيف",
+      status: "الحالة",
+      timeline: "متى",
+      attempts: "المحاولات",
+      error: "الخطأ",
+      created: "أُنشئت",
+      scheduled: "مجدولة",
+      sent: "أُرسلت",
+      delivered: "تم التسليم",
+      read: "قُرئت",
+      failed: "فشلت",
+      retry: "إعادة المحاولة",
+      noDeliveries: "لا توجد عمليات تسليم بعد.",
+      provider: "المزوّد",
+    },
+  }[lang];
   const queryClient = useQueryClient();
   const listFn = useServerFn(listCanonicalDeliveries);
   const retryFn = useServerFn(retryCanonicalDeliveryAction);
@@ -586,16 +643,38 @@ function CanonicalDeliveriesTab() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] }),
     onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
   });
+  const deliveryTimeline = (delivery: any) => {
+    const events = [
+      [deliveryCopy.read, delivery.read_at],
+      [deliveryCopy.delivered, delivery.delivered_at],
+      [deliveryCopy.sent, delivery.sent_at],
+      [deliveryCopy.failed, delivery.failed_at],
+      [deliveryCopy.scheduled, delivery.scheduled_for],
+      [deliveryCopy.created, delivery.created_at],
+    ].filter((event) => Boolean(event[1])) as [string, string][];
+    return events.slice(0, 2);
+  };
+  const deliveryMethod = (delivery: any) =>
+    delivery.provider?.replaceAll("_", " ") ?? delivery.channel?.replace("_", " ") ?? "—";
+  const deliveryRecipient = (delivery: any, message: any) => {
+    const member = Array.isArray(message?.member) ? message.member[0] : message?.member;
+    const address = String(delivery.recipient_address ?? "");
+    const masked =
+      address.length > 6 ? `${address.slice(0, 3)}•••${address.slice(-3)}` : address || "—";
+    return { name: member?.name ?? "—", address: masked };
+  };
   return (
     <div className="editorial-panel overflow-x-auto">
-      <table className="w-full min-w-[760px] text-start text-sm">
+      <table className="w-full min-w-[1120px] text-start text-sm">
         <thead className="border-b border-gold/20 text-xs uppercase text-slate">
           <tr>
-            <th className="p-4">Message</th>
-            <th className="p-4">Channel</th>
-            <th className="p-4">Status</th>
-            <th className="p-4">Attempts</th>
-            <th className="p-4">Error</th>
+            <th className="p-4">{deliveryCopy.message}</th>
+            <th className="p-4">{deliveryCopy.recipient}</th>
+            <th className="p-4">{deliveryCopy.method}</th>
+            <th className="p-4">{deliveryCopy.status}</th>
+            <th className="p-4">{deliveryCopy.timeline}</th>
+            <th className="p-4">{deliveryCopy.attempts}</th>
+            <th className="p-4">{deliveryCopy.error}</th>
             <th className="p-4" />
           </tr>
         </thead>
@@ -604,15 +683,47 @@ function CanonicalDeliveriesTab() {
             const message = Array.isArray(delivery.message)
               ? delivery.message[0]
               : delivery.message;
+            const recipient = deliveryRecipient(delivery, message);
             const retryable = ["failed", "dead_letter", "suppressed"].includes(delivery.status);
             return (
               <tr key={delivery.id}>
-                <td className="p-4 text-navy">
-                  {message?.subject ?? message?.event_type ?? delivery.message_id}
+                <td className="max-w-[220px] p-4 text-navy">
+                  <p className="font-medium">
+                    {message?.subject ?? message?.event_type ?? delivery.message_id}
+                  </p>
+                  <p className="mt-1 text-xs text-slate">
+                    {[message?.template_key, message?.language].filter(Boolean).join(" · ")}
+                  </p>
                 </td>
-                <td className="p-4 text-slate">{delivery.channel}</td>
+                <td className="p-4">
+                  <p className="font-medium text-navy">{recipient.name}</p>
+                  <p className="mt-1 text-xs text-slate" dir="ltr">
+                    {recipient.address}
+                  </p>
+                </td>
+                <td className="p-4 text-slate">
+                  <p className="capitalize text-navy">{delivery.channel?.replace("_", " ")}</p>
+                  <p className="mt-1 text-xs capitalize">
+                    {deliveryCopy.provider}: {deliveryMethod(delivery)}
+                  </p>
+                </td>
                 <td className="p-4">
                   <span className="rounded-full bg-sand px-2 py-1 text-xs">{delivery.status}</span>
+                  {delivery.provider_status && (
+                    <p className="mt-2 text-xs text-slate">{delivery.provider_status}</p>
+                  )}
+                </td>
+                <td className="p-4">
+                  <div className="space-y-1.5">
+                    {deliveryTimeline(delivery).map(([label, timestamp]) => (
+                      <p className="text-xs" key={`${label}-${timestamp}`}>
+                        <span className="text-slate">{label}: </span>
+                        <time className="font-medium text-navy" dateTime={timestamp} dir="ltr">
+                          {new Date(timestamp).toLocaleString(MESSAGE_LOCALES[lang])}
+                        </time>
+                      </p>
+                    ))}
+                  </div>
                 </td>
                 <td className="p-4 text-slate">{delivery.attempt_count}</td>
                 <td className="max-w-xs truncate p-4 text-slate">
@@ -624,13 +735,20 @@ function CanonicalDeliveriesTab() {
                       className="btn-outline px-3 py-1.5 text-xs"
                       onClick={() => retry.mutate(delivery.id)}
                     >
-                      Retry
+                      {deliveryCopy.retry}
                     </button>
                   )}
                 </td>
               </tr>
             );
           })}
+          {deliveries.data?.length === 0 && (
+            <tr>
+              <td className="p-8 text-center text-slate" colSpan={8}>
+                {deliveryCopy.noDeliveries}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
