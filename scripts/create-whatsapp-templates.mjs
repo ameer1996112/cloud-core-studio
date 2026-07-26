@@ -8,6 +8,10 @@ import {
   validateMetaTemplateCatalog,
 } from "../src/lib/messageTemplateCatalog.ts";
 import {
+  CONCIERGE_META_TEMPLATE_CATALOG,
+  validateConciergeTemplateCatalog,
+} from "../src/lib/conciergeTemplateCatalog.ts";
+import {
   buildTemplateReconciliationPlan,
   parseTemplateProvisioningArgs,
   provisionWhatsappTemplates,
@@ -164,8 +168,15 @@ const args = parseTemplateProvisioningArgs(process.argv.slice(2));
 const catalogValidation = validateMetaTemplateCatalog();
 if (!catalogValidation.ok)
   throw new Error(`invalid_template_catalog:${catalogValidation.errors.join(",")}`);
+const conciergeValidation = validateConciergeTemplateCatalog();
+if (!conciergeValidation.ok) {
+  throw new Error(`invalid_concierge_template_catalog:${conciergeValidation.errors.join(",")}`);
+}
 
-let templates = META_TEMPLATE_CATALOG.map(toMetaTemplateJson);
+let templates = [
+  ...META_TEMPLATE_CATALOG.map(toMetaTemplateJson),
+  ...CONCIERGE_META_TEMPLATE_CATALOG,
+];
 if (args.only) templates = templates.filter((template) => template.name === args.only);
 if (!templates.length) throw new Error(`template_not_found:${args.only}`);
 
