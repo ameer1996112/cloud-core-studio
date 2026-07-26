@@ -15,3 +15,16 @@ No credentials are created by this implementation.
 
 Keep all external channel controls disabled until provider contract tests and allowlisted
 end-to-end tests pass.
+
+## Production sender identity checklist
+
+- Email sender: Cloud & Core Studio
+- Sender domain: verified studio domain
+- Reply-To: configured support inbox
+- DNS: SPF pass, DKIM pass, DMARC present
+- WhatsApp display name: Cloud & Core Studio
+- WhatsApp profile: logo, description, website, email, address complete
+- Header asset URL: HTTPS 200, correct content type, stable cache policy
+
+Gmail avatars are controlled by Gmail and related identity providers; they are not guaranteed by
+email HTML. Do not represent an avatar as a delivery requirement or rely on HTML to set one.

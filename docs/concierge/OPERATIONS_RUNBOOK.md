@@ -49,3 +49,32 @@ investigation. Kill switches do not remove durable in-app evidence.
 
 Rollback is operational first: pause journey, disable affected channel, drain no new work, then
 revert application code if necessary. The additive schema remains for audit and compatibility.
+
+## Branded WhatsApp approval and rollback
+
+The template provisioner is plan-only by default. Review the reconciliation report before any
+provider write. For Concierge-only provider submission, use the exact confirmed WABA command:
+
+```sh
+bun scripts/create-whatsapp-templates.mjs --apply --waba-id 1009561255148806 --scope concierge
+```
+
+Do not use the tool to update drifted approved content in place. The Concierge catalog uses the
+new `_branded_v2` template names; investigate and reconcile provider errors before a retry.
+
+Promote branded templates only in this order:
+
+1. Review plan output.
+2. Submit to Meta.
+3. Confirm the deployment row shows `APPROVED`.
+4. Send to an allowlisted test-only recipient.
+5. Review delivery evidence.
+6. Promote one journey at a time.
+7. If rollback is needed, select the prior approved template/presentation version.
+
+Keep sender identity checks current: the email sender is **Cloud & Core Studio** on a verified
+studio domain with the configured support Reply-To; SPF and DKIM must pass and DMARC must be
+present. Confirm the WhatsApp display name is **Cloud & Core Studio**, and its profile includes
+the logo, description, website, email, and address. Verify the header asset URL returns HTTPS
+200 with the correct content type and a stable cache policy. Gmail avatars are provider-controlled
+and cannot be guaranteed by email HTML.

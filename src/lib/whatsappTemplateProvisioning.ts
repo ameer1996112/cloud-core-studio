@@ -59,6 +59,7 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
   let apply = false;
   let wabaId: string | undefined;
   let only: string | undefined;
+  let scope: "all" | "concierge" | "unified" = "all";
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === "--apply") apply = true;
@@ -66,6 +67,19 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
     else if (argument?.startsWith("--waba-id=")) wabaId = argument.slice("--waba-id=".length);
     else if (argument === "--only") only = argv[(index += 1)];
     else if (argument?.startsWith("--only=")) only = argument.slice("--only=".length);
+    else if (argument === "--scope") {
+      const value = argv[(index += 1)];
+      if (value !== "all" && value !== "concierge" && value !== "unified") {
+        throw new Error(`invalid_template_scope:${value ?? ""}`);
+      }
+      scope = value;
+    } else if (argument?.startsWith("--scope=")) {
+      const value = argument.slice("--scope=".length);
+      if (value !== "all" && value !== "concierge" && value !== "unified") {
+        throw new Error(`invalid_template_scope:${value}`);
+      }
+      scope = value;
+    }
     else if (argument !== "--plan" && argument !== "--check") {
       throw new Error(`unknown_template_argument:${argument}`);
     }
@@ -74,7 +88,7 @@ export function parseTemplateProvisioningArgs(argv: readonly string[]) {
   if (apply && wabaId !== CONFIRMED_PRODUCTION_WABA_ID) {
     throw new Error("apply_waba_id_not_confirmed");
   }
-  return { apply, wabaId, only };
+  return { apply, wabaId, only, scope };
 }
 
 export type TemplateProvisionDependencies = {

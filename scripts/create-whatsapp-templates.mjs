@@ -173,12 +173,15 @@ if (!conciergeValidation.ok) {
   throw new Error(`invalid_concierge_template_catalog:${conciergeValidation.errors.join(",")}`);
 }
 
-let templates = [
-  ...META_TEMPLATE_CATALOG.map(toMetaTemplateJson),
-  ...CONCIERGE_META_TEMPLATE_CATALOG,
-];
+const unifiedTemplates = META_TEMPLATE_CATALOG.map(toMetaTemplateJson);
+const templatesForScope = {
+  all: [...unifiedTemplates, ...CONCIERGE_META_TEMPLATE_CATALOG],
+  concierge: CONCIERGE_META_TEMPLATE_CATALOG,
+  unified: unifiedTemplates,
+};
+let templates = templatesForScope[args.scope];
 if (args.only) templates = templates.filter((template) => template.name === args.only);
-if (!templates.length) throw new Error(`template_not_found:${args.only}`);
+if (!templates.length) throw new Error(`template_not_found:${args.only ?? args.scope}`);
 
 const lookupConfigured = Boolean(
   process.env.META_GRAPH_API_VERSION?.trim() &&
@@ -218,7 +221,9 @@ const result = await provisionWhatsappTemplates({
     create: (template) => createMetaTemplate(wabaId, template),
   },
 });
-const synced = await syncDeploymentRecords(wabaId, templates, await listAllMetaTemplates(wabaId));
+const synced = args.apply
+  ? await syncDeploymentRecords(wabaId, templates, await listAllMetaTemplates(wabaId))
+  : { synced: false, reason: "plan_only" };
 
 console.log(
   JSON.stringify(
