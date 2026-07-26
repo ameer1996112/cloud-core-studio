@@ -467,6 +467,8 @@ export function hypRedirectMetadata(params: URLSearchParams) {
     "cgUid",
     "authNumber",
     "cardMask",
+    "L4digit",
+    "token_last4",
     "cardExp",
     "keepCCDetails",
     "HKId",

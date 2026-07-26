@@ -9,6 +9,7 @@ import {
   inquireHypTransactionsByUser,
   type HypInquiryTransaction,
 } from "@/lib/hyp.server";
+import { issueEzcountReceiptForKidsPayment } from "@/lib/ezcountReceiptIssuance.server";
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -75,6 +76,7 @@ function paramsFromHypInquiryTransaction(tx: HypInquiryTransaction, reconciliati
 function paramsFromHypTokenChargeResult(input: {
   result: Awaited<ReturnType<typeof chargeHypSavedToken>>;
   reconciliationId: string;
+  cardLast4: string;
 }) {
   return new URLSearchParams({
     CCode: "0",
@@ -84,6 +86,7 @@ function paramsFromHypTokenChargeResult(input: {
     Amount: input.result.amount,
     ACode: input.result.acode,
     Hesh: input.result.hesh,
+    token_last4: input.cardLast4,
     _hyp_sync_source: "kids_softToken",
   });
 }
@@ -474,6 +477,12 @@ export async function processKidsHypReturn(params: URLSearchParams) {
     console.error("kids_hyp_subscription_setup_failed", error);
   }
 
+  try {
+    await issueEzcountReceiptForKidsPayment(paymentId);
+  } catch (error) {
+    console.error("ezcount_kids_receipt_issue_failed", error);
+  }
+
   return { status: "success" as const, paymentId, enrollmentId: result.enrollmentId };
 }
 
@@ -568,7 +577,11 @@ export async function chargeDueKidsHypTokenSubscriptions(options?: { limit?: num
         clientName: subscription.child?.child_name ?? "Cloud Core kids",
         info: `יוגה אווירית לילדים - חידוש חודשי`,
       });
-      const params = paramsFromHypTokenChargeResult({ result: charge, reconciliationId });
+      const params = paramsFromHypTokenChargeResult({
+        result: charge,
+        reconciliationId,
+        cardLast4: tokenRow.token.slice(-4),
+      });
       const payment = await createKidsRenewalPayment(subscription, params);
       await activateKidsPaymentPeriod({
         paymentId: payment.id,
@@ -577,6 +590,11 @@ export async function chargeDueKidsHypTokenSubscriptions(options?: { limit?: num
         providerSessionId: charge.id,
       });
       await advanceKidsSubscription(subscription, payment.id, params);
+      try {
+        await issueEzcountReceiptForKidsPayment(payment.id);
+      } catch (receiptError) {
+        console.error("ezcount_kids_receipt_issue_failed", receiptError);
+      }
       results.push({ subscriptionId: subscription.id, status: "charged", paymentId: payment.id });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
