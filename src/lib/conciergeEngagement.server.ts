@@ -33,6 +33,15 @@ type OutboxEvidence = {
   payload: Record<string, unknown>;
 };
 
+type PaymentEvidence = {
+  id: string;
+  member_id: string;
+  amount?: number | string | null;
+  currency?: string | null;
+  paid_at?: string | null;
+  created_at?: string | null;
+};
+
 function relation<T>(value: T | T[] | null): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : value;
 }
@@ -106,6 +115,31 @@ export function buildConciergeEventVariables(input: {
   return variables;
 }
 
+export function paymentEvidenceForRecipient(input: {
+  event: Pick<OutboxEvidence, "participant_id" | "payload">;
+  recipientMemberId: string | null;
+  payments: readonly PaymentEvidence[];
+}) {
+  const paymentId =
+    typeof input.event.payload.payment_id === "string" ? input.event.payload.payment_id : null;
+  if (
+    !paymentId ||
+    !input.recipientMemberId ||
+    !input.event.participant_id ||
+    input.event.participant_id !== input.recipientMemberId
+  ) {
+    return null;
+  }
+  return (
+    input.payments.find(
+      (payment) =>
+        payment.id === paymentId &&
+        payment.member_id === input.event.participant_id &&
+        payment.member_id === input.recipientMemberId,
+    ) ?? null
+  );
+}
+
 function activeConsentSet(
   rows: Array<{ channel: string; purpose: ConciergePurpose }>,
   channel: ConciergeChannel,
@@ -145,7 +179,11 @@ function paymentOutcome(event: OutboxEvidence) {
   return "payment_terminally_failed" as const;
 }
 
-async function markObsolete(event: OutboxEvidence, db: any): Promise<boolean> {
+async function markObsolete(
+  event: OutboxEvidence,
+  db: any,
+  recipientMemberId: string | null,
+): Promise<boolean> {
   const bookingId = typeof event.payload.booking_id === "string" ? event.payload.booking_id : null;
   if (bookingId && event.event_type === "booking.confirmed") {
     const booking = await db
@@ -159,7 +197,13 @@ async function markObsolete(event: OutboxEvidence, db: any): Promise<boolean> {
   }
   const paymentId = typeof event.payload.payment_id === "string" ? event.payload.payment_id : null;
   if (paymentId && ["payment.failed", "payment.requires_action"].includes(event.event_type)) {
-    const payment = await db.from("payments").select("status").eq("id", paymentId).maybeSingle();
+    if (!recipientMemberId || event.participant_id !== recipientMemberId) return true;
+    const payment = await db
+      .from("payments")
+      .select("status")
+      .eq("id", paymentId)
+      .eq("member_id", event.participant_id)
+      .maybeSingle();
     if (payment.error) throw payment.error;
     return payment.data?.status === "paid";
   }
@@ -207,6 +251,13 @@ export async function loadMemberEngagementState(input: {
     .single();
   if (recipientResult.error) throw recipientResult.error;
   if (recipientResult.data.status !== "active") throw new Error("recipient_inactive");
+  const trustedProvider = await db
+    .from("concierge_trusted_provider_settings")
+    .select("whatsapp_waba_id")
+    .eq("studio_id", input.studioId)
+    .maybeSingle();
+  if (trustedProvider.error) throw trustedProvider.error;
+  const trustedWhatsappWabaId = trustedProvider.data?.whatsapp_waba_id ?? "";
 
   let intentsQuery = db
     .from("journey_intents")
@@ -247,7 +298,7 @@ export async function loadMemberEngagementState(input: {
     db
       .from("concierge_template_versions")
       .select(
-        "id,template_key,channel,locale,version,lifecycle_status,approved_by,approved_at,required_variables,subject_template,body_template",
+        "id,template_key,channel,locale,version,lifecycle_status,approved_by,approved_at,content_hash,required_variables,subject_template,body_template",
       )
       .eq("studio_id", input.studioId)
       .eq("locale", recipientResult.data.preferred_locale)
@@ -255,7 +306,7 @@ export async function loadMemberEngagementState(input: {
     db
       .from("concierge_delivery_versions")
       .select(
-        "id,template_key,channel,locale,source_template_version,presentation_version,provider_template_name,provider_content_hash",
+        "id,template_key,channel,locale,source_template_id,source_template_version,source_content_hash,source_approved_by,source_approved_at,presentation_version,presentation_key,presentation_hash,presentation_contract,email_shell_version,email_shell_hash,presentation_approved_by,presentation_approved_at,provider_template_name,provider_content_hash",
       )
       .eq("studio_id", input.studioId)
       .eq("locale", recipientResult.data.preferred_locale),
@@ -284,7 +335,7 @@ export async function loadMemberEngagementState(input: {
     db
       .from("whatsapp_template_deployments")
       .select("waba_id,template_name,language,approval_status,content_hash")
-      .eq("waba_id", process.env.META_WABA_ID?.trim() ?? ""),
+      .eq("waba_id", trustedWhatsappWabaId),
   ]);
   for (const result of [
     consents,
@@ -337,15 +388,16 @@ export async function loadMemberEngagementState(input: {
       ? db.from("classes").select("id,title,starts_at").in("id", classIds)
       : Promise.resolve({ data: [], error: null }),
     paymentIds.length
-      ? db.from("payments").select("id,amount,currency,paid_at,created_at").in("id", paymentIds)
+      ? db
+          .from("payments")
+          .select("id,member_id,amount,currency,paid_at,created_at")
+          .in("id", paymentIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
   if (classesResult.error) throw classesResult.error;
   if (paymentsResult.error) throw paymentsResult.error;
   const classById = new Map((classesResult.data ?? []).map((row: { id: string }) => [row.id, row]));
-  const paymentById = new Map(
-    (paymentsResult.data ?? []).map((row: { id: string }) => [row.id, row]),
-  );
+  const paymentRows = (paymentsResult.data ?? []) as PaymentEvidence[];
   const consentRows = (consents.data ?? []) as Array<{
     channel: string;
     purpose: ConciergePurpose;
@@ -357,9 +409,17 @@ export async function loadMemberEngagementState(input: {
     const event = evidence.find((row) => row.correlation_id === correlationId);
     if (!event) continue;
     correlationByActionId[intent.id] = event.correlation_id;
-    const obsolete = await markObsolete(event, db);
-    const firstBooking = await isFirstBooking(event, db);
     const isPayment = eventKind(event.event_type) === "payment_outcome";
+    const payment = isPayment
+      ? paymentEvidenceForRecipient({
+          event,
+          recipientMemberId: recipientResult.data.member_id,
+          payments: paymentRows,
+        })
+      : null;
+    if (isPayment && !payment) continue;
+    const obsolete = await markObsolete(event, db, recipientResult.data.member_id);
+    const firstBooking = await isFirstBooking(event, db);
     actions.push({
       id: intent.id,
       kind: eventKind(event.event_type),
@@ -385,10 +445,7 @@ export async function loadMemberEngagementState(input: {
           typeof event.payload.class_id === "string"
             ? (classById.get(event.payload.class_id) ?? null)
             : null,
-        payment:
-          typeof event.payload.payment_id === "string"
-            ? (paymentById.get(event.payload.payment_id) ?? null)
-            : null,
+        payment,
       }),
     });
   }
@@ -425,7 +482,7 @@ export async function loadMemberEngagementState(input: {
       selections: deliverySelections.data ?? [],
       deployments: whatsappDeployments.data ?? [],
       deliveryMode: input.deliveryMode,
-      wabaId: process.env.META_WABA_ID?.trim() ?? "",
+      wabaId: trustedWhatsappWabaId,
     }),
     variables: { member_name: recipientResult.data.display_name },
     deliveryTarget: {
@@ -433,6 +490,7 @@ export async function loadMemberEngagementState(input: {
       email: recipientResult.data.email,
       phoneE164: recipientResult.data.phone_e164,
     },
+    trustedWhatsappWabaId,
     correlationByActionId,
   };
 }

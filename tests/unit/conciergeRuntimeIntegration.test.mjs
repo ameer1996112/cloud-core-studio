@@ -13,6 +13,14 @@ describe("Concierge production runtime", () => {
     expect(routeTree).toContain("/api/internal/concierge/dispatch");
   });
 
+  test("binds every Concierge WhatsApp send gate to the trusted runtime WABA", async () => {
+    const runtime = await readFile(resolve(root, "src/lib/unifiedMessaging.server.ts"), "utf8");
+
+    expect(runtime).toContain(
+      "p_runtime_whatsapp_waba_id: process.env.META_WABA_ID?.trim() || null",
+    );
+  });
+
   test("creates a new delivery attempt key after a postponed intent becomes eligible", () => {
     const common = {
       mode: "test_only",

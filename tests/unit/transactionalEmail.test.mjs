@@ -120,6 +120,28 @@ describe("premium transactional email renderer", () => {
     expect(rendered.html).toContain("Amount due");
     expect(rendered.html).toContain("https://cloudandcorestudio.com/member/packages");
     expect(rendered.html).not.toContain("evil.example");
+    expect(rendered.text).toContain("Amount due: \u2066₪120\u2069");
+  });
+
+  test("includes localized structured facts in RTL plain text with isolated LTR values", () => {
+    const rendered = renderTransactionalEmail({
+      ...baseInput,
+      language: "ar",
+      subject: "تفاصيل الدفع",
+      body: "تم تحديث الدفع.",
+      presentation: {
+        key: "payment_requires_action:email:v2",
+        categoryLabel: "تفاصيل الدفع",
+        action: null,
+        facts: [
+          { key: "amount", label: "المبلغ", value: "₪350.00", ltr: true },
+          { key: "class_name", label: "الحصة", value: "بيلاتس", ltr: false },
+        ],
+      },
+    });
+
+    expect(rendered.text).toContain("المبلغ: \u2066₪350.00\u2069");
+    expect(rendered.text).toContain("الحصة: بيلاتس");
   });
 
   test("does not fall back to an action URL when an explicit presentation omits its action", () => {

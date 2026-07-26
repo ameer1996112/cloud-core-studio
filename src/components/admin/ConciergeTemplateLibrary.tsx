@@ -26,6 +26,8 @@ export function ConciergeTemplateLibrary({
   deliveryVersions,
   deliverySelections,
   onSelectVersion,
+  onApproveSource,
+  onApprovePreview,
   selectionPending,
   copy,
 }: {
@@ -37,7 +39,12 @@ export function ConciergeTemplateLibrary({
   onSelectVersion: (
     template: ConciergeAdminTemplate,
     deliveryMode: "test_only" | "live",
-    presentationVersion: number,
+    candidate: ConciergeDeliveryVersionRow,
+  ) => void;
+  onApproveSource: (template: ConciergeAdminTemplate) => void;
+  onApprovePreview: (
+    template: ConciergeAdminTemplate,
+    candidate: ConciergeDeliveryVersionRow,
   ) => void;
   selectionPending: boolean;
   copy: Record<string, string>;
@@ -103,6 +110,8 @@ export function ConciergeTemplateLibrary({
             deliveryVersions={deliveryVersions}
             deliverySelections={deliverySelections}
             onSelectVersion={onSelectVersion}
+            onApproveSource={onApproveSource}
+            onApprovePreview={onApprovePreview}
             selectionPending={selectionPending}
             copy={copy}
           />
@@ -124,6 +133,8 @@ function TemplateCard({
   deliveryVersions,
   deliverySelections,
   onSelectVersion,
+  onApproveSource,
+  onApprovePreview,
   selectionPending,
   copy,
 }: {
@@ -135,7 +146,12 @@ function TemplateCard({
   onSelectVersion: (
     template: ConciergeAdminTemplate,
     deliveryMode: "test_only" | "live",
-    presentationVersion: number,
+    candidate: ConciergeDeliveryVersionRow,
+  ) => void;
+  onApproveSource: (template: ConciergeAdminTemplate) => void;
+  onApprovePreview: (
+    template: ConciergeAdminTemplate,
+    candidate: ConciergeDeliveryVersionRow,
   ) => void;
   selectionPending: boolean;
   copy: Record<string, string>;
@@ -236,6 +252,17 @@ function TemplateCard({
           ? template.required_variables.map((variable) => `{{${variable}}}`).join(", ")
           : "—"}
       </div>
+      {!approved && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={selectionPending}
+          onClick={() => onApproveSource(template)}
+        >
+          Approve exact source hash
+        </Button>
+      )}
       {branded && (
         <div className="space-y-3 border-t border-border pt-3 text-xs text-slate">
           <p>
@@ -245,6 +272,26 @@ function TemplateCard({
             {branded.deliveryState.livePresentationVersion ?? "—"}
           </p>
           <div className="flex flex-wrap gap-2">
+            {candidates
+              .filter(
+                (candidate) =>
+                  candidate.presentation_version === 2 &&
+                  (!candidate.presentation_approved_by || !candidate.presentation_approved_at),
+              )
+              .map((candidate) => (
+                <Button
+                  key={`preview:${candidate.id}`}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={
+                    selectionPending || view !== "branded" || !branded.candidatePreviewExact
+                  }
+                  onClick={() => onApprovePreview(template, candidate)}
+                >
+                  Approve viewed v2 preview
+                </Button>
+              ))}
             {candidates.flatMap((candidate) =>
               (["test_only", "live"] as const).map((deliveryMode) => (
                 <Button
@@ -254,14 +301,16 @@ function TemplateCard({
                   variant="outline"
                   disabled={
                     selectionPending ||
-                    (deliveryMode === "test_only"
-                      ? branded.deliveryState.testOnlyPresentationVersion
-                      : branded.deliveryState.livePresentationVersion) ===
-                      candidate.presentation_version
+                    (candidate.presentation_version === 2 &&
+                      (!candidate.presentation_approved_by ||
+                        !candidate.presentation_approved_at)) ||
+                    deliverySelections.some(
+                      (selection) =>
+                        selection.delivery_mode === deliveryMode &&
+                        selection.delivery_version_id === candidate.id,
+                    )
                   }
-                  onClick={() =>
-                    onSelectVersion(template, deliveryMode, candidate.presentation_version)
-                  }
+                  onClick={() => onSelectVersion(template, deliveryMode, candidate)}
                 >
                   Select v{candidate.presentation_version} for{" "}
                   {deliveryMode === "test_only" ? "test" : "live"}

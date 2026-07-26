@@ -37,7 +37,7 @@
 - Modify `src/components/admin/ConciergeTemplateLibrary.tsx`: render branded email and WhatsApp previews.
 - Create `src/components/admin/ConciergeEmailPreview.tsx`: sandboxed email preview.
 - Create `src/components/admin/ConciergeWhatsappPreview.tsx`: provider-shaped WhatsApp preview.
-- Create `public/brand/concierge-whatsapp-header.webp`: one production-safe branded header derived from existing approved Cloud & Core brand assets.
+- Create `public/brand/concierge-whatsapp-header.png`: one production-safe branded header derived from existing approved Cloud & Core brand assets.
 - Modify `docs/concierge/MANUAL_PROVIDER_SETUP.md`: sender identity, Meta profile, stable asset URL, and approval procedure.
 - Modify `docs/concierge/OPERATIONS_RUNBOOK.md`: test-only rollout and rollback procedure.
 - Add or modify focused unit/integration tests named in each task.
@@ -363,7 +363,7 @@ Use one shared header handle/example URL:
 
 ```ts
 const CONCIERGE_WHATSAPP_HEADER_URL =
-  "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp";
+  "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png";
 ```
 
 Generate Meta components in this order:
@@ -677,7 +677,7 @@ git commit -m "feat: preview branded concierge messages"
 ### Task 6: Brand Asset, Provider Approval, and Sender Identity
 
 **Files:**
-- Create: `public/brand/concierge-whatsapp-header.webp`
+- Create: `public/brand/concierge-whatsapp-header.png`
 - Modify: `scripts/create-whatsapp-templates.mjs`
 - Modify: `src/lib/whatsappTemplateProvisioning.ts`
 - Modify: `docs/concierge/MANUAL_PROVIDER_SETUP.md`
@@ -695,7 +695,7 @@ Build a 1200×628 WebP from the existing Cloud & Core full logo and navy/ivory/g
 Keep important content centered so Meta cropping remains safe. Verify:
 
 ```bash
-file public/brand/concierge-whatsapp-header.webp
+file public/brand/concierge-whatsapp-header.png
 ```
 
 Expected: WebP image, 1200×628.
@@ -757,7 +757,7 @@ bun test tests/unit/whatsappTemplateProvisioningV2.test.mjs tests/unit/transacti
 Then:
 
 ```bash
-git add public/brand/concierge-whatsapp-header.webp scripts/create-whatsapp-templates.mjs src/lib/whatsappTemplateProvisioning.ts docs/concierge/MANUAL_PROVIDER_SETUP.md docs/concierge/OPERATIONS_RUNBOOK.md tests/unit/whatsappTemplateProvisioningV2.test.mjs tests/unit/transactionalEmail.test.mjs
+git add public/brand/concierge-whatsapp-header.png scripts/create-whatsapp-templates.mjs src/lib/whatsappTemplateProvisioning.ts docs/concierge/MANUAL_PROVIDER_SETUP.md docs/concierge/OPERATIONS_RUNBOOK.md tests/unit/whatsappTemplateProvisioningV2.test.mjs tests/unit/transactionalEmail.test.mjs
 git commit -m "docs: prepare branded concierge provider rollout"
 ```
 

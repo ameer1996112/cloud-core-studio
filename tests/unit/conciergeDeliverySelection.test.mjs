@@ -10,6 +10,7 @@ const source = {
   lifecycle_status: "approved",
   approved_by: "admin-1",
   approved_at: "2026-07-26T00:00:00Z",
+  content_hash: "source-hash",
   required_variables: ["member_name"],
   subject_template: null,
   body_template: "Hi {{member_name}}",
@@ -19,8 +20,19 @@ const v1 = {
   template_key: "payment_requires_action",
   channel: "whatsapp",
   locale: "en",
+  source_template_id: "source-whatsapp",
   source_template_version: 1,
+  source_content_hash: "source-hash",
+  source_approved_by: "admin-1",
+  source_approved_at: "2026-07-26T00:00:00Z",
   presentation_version: 1,
+  presentation_key: "payment_requires_action:whatsapp:v1",
+  presentation_hash: "presentation-v1-hash",
+  presentation_contract: { schema: "concierge_presentation_v1" },
+  email_shell_version: null,
+  email_shell_hash: null,
+  presentation_approved_by: null,
+  presentation_approved_at: null,
   provider_template_name: "payment_requires_action",
   provider_content_hash: "v1-hash",
 };
@@ -28,6 +40,11 @@ const v2 = {
   ...v1,
   id: "candidate-v2",
   presentation_version: 2,
+  presentation_key: "payment_requires_action:whatsapp:v2",
+  presentation_hash: "presentation-v2-hash",
+  presentation_contract: { schema: "concierge_presentation_v2" },
+  presentation_approved_by: "admin-2",
+  presentation_approved_at: "2026-07-26T01:00:00Z",
   provider_template_name: "payment_requires_action_branded_v2",
   provider_content_hash: "v2-hash",
 };
@@ -107,6 +124,26 @@ describe("Concierge delivery version selection", () => {
         selectEligibleConciergeTemplates({
           templates: [template],
           versions: [v2],
+          selections: [selections[1]],
+          deployments: [deployment()],
+          deliveryMode: "test_only",
+          wabaId: "waba-1",
+        }),
+      ).toEqual([]);
+    }
+
+    for (const candidate of [
+      { ...v2, source_template_id: "other-source" },
+      { ...v2, source_content_hash: "stale-source-hash" },
+      { ...v2, source_approved_by: "other-admin" },
+      { ...v2, source_approved_at: "2026-07-25T00:00:00Z" },
+      { ...v2, presentation_approved_by: null },
+      { ...v2, presentation_approved_at: null },
+    ]) {
+      expect(
+        selectEligibleConciergeTemplates({
+          templates: [source],
+          versions: [candidate],
           selections: [selections[1]],
           deployments: [deployment()],
           deliveryMode: "test_only",

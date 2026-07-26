@@ -31,11 +31,16 @@ describe("Concierge branded messaging final-fix migration", () => {
           .sort(),
       ).toEqual(["ar", "en", "he"]);
     }
-    expect(sql).toContain("approved_by IS NOT NULL");
+    expect(sql).toContain("'draft',");
+    expect(sql).toContain("catalog.first_person_voice_approved, NULL, NULL");
+    expect(sql).not.toContain(
+      "CASE WHEN provenance.approved_by IS NULL THEN 'draft' ELSE 'approved'",
+    );
+    expect(sql).not.toContain("LEFT JOIN provenance");
     expect(sql).toContain("concierge_approved_requires_provenance");
   });
 
-  test("adds explicit version selection and exact provider deployment evidence", () => {
+  test("binds candidates to one exact approved source and selects v1 for both modes", () => {
     const providerCatalog = JSON.parse(
       sql.match(/\$provider_catalog\$(.*?)\$provider_catalog\$/s)[1],
     );
@@ -48,11 +53,67 @@ describe("Concierge branded messaging final-fix migration", () => {
     );
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.concierge_delivery_versions");
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.concierge_delivery_selections");
+    expect(sql).toContain("source_template_id uuid NOT NULL");
+    expect(sql).toContain("source_content_hash text NOT NULL");
+    expect(sql).toContain("source_approved_by uuid NOT NULL");
+    expect(sql).toContain("source_approved_at timestamptz NOT NULL");
+    expect(sql).toContain("SELECT DISTINCT ON (");
+    expect(sql).toContain("source.lifecycle_status = 'approved'");
+    expect(sql).toContain("v1.id, NULL");
+    expect(sql).not.toContain(
+      "CASE WHEN mode.delivery_mode = 'test_only' THEN COALESCE(v2.id, v1.id)",
+    );
+  });
+
+  test("selects the exact candidate id with trusted source and provider evidence", () => {
     expect(sql).toContain("select_concierge_delivery_version");
+    expect(sql).toContain("p_delivery_version_id uuid");
+    expect(sql).toContain("v.id = p_delivery_version_id");
+    expect(sql).toContain("source.id = v_version.source_template_id");
+    expect(sql).toContain("source.content_hash = v_version.source_content_hash");
     expect(sql).toContain("provider_content_hash");
     expect(sql).toContain("w.content_hash = v_delivery_version.provider_content_hash");
     expect(sql).toContain("w.waba_id = v_canonical_whatsapp_waba_id");
     expect(sql).toContain("upper(w.approval_status) = 'APPROVED'");
+    expect(sql).toContain("concierge_trusted_provider_settings");
+    expect(sql).toContain("p_runtime_whatsapp_waba_id text");
+    expect(sql).toContain("trusted_whatsapp_runtime_mismatch");
+    expect(sql).not.toContain("count(DISTINCT deployment.waba_id)");
+  });
+
+  test("freezes exact email presentation and approval evidence", () => {
+    for (const column of [
+      "presentation_key text NOT NULL",
+      "presentation_hash text NOT NULL",
+      "presentation_contract jsonb NOT NULL",
+      "email_shell_version integer",
+      "email_shell_hash text",
+      "presentation_approved_by uuid",
+      "presentation_approved_at timestamptz",
+    ]) {
+      expect(sql).toContain(column);
+    }
+    expect(sql).toContain("source_content_hash");
+    expect(sql).toContain("rendered_facts");
+    expect(sql).toContain("rendered_fact_evidence_mismatch");
+    expect(sql).toContain("v_expected_rendered_facts");
+    expect(sql).toContain("public.concierge_presentation_contract(");
+    expect(sql).toContain("public.concierge_presentation_hash(");
+    expect(sql).toContain("prevent_concierge_delivery_identity_mutation");
+    expect(sql).toContain("concierge_presentation_approval_is_immutable");
+    expect(sql).toContain("concierge_presentation_preview_audit_idx");
+    expect(sql).toContain("presentation_approved_by IS NULL");
+    expect(sql).not.toContain("ON CONFLICT (delivery_version_id,presentation_hash) DO UPDATE");
+  });
+
+  test("uses one asset-complete WhatsApp v2 contract for seeds and later exact approvals", () => {
+    expect(sql).toContain("'mimeType','image/png'");
+    expect(sql).toContain("'width',1200");
+    expect(sql).toContain("'height',628");
+    expect(sql).toContain(
+      "'sha256','b29c3947567fd874164ce7a7e24d1f230b6987183ea905fc13fbc7aebe830fb6'",
+    );
+    expect(sql.match(/public\.concierge_presentation_contract\(/g)?.length ?? 0).toBeGreaterThan(6);
   });
 
   test("rejects every non-array or empty materialization shape, including SQL and JSON null", () => {
@@ -72,5 +133,31 @@ describe("Concierge branded messaging final-fix migration", () => {
     expect(sql).toContain("WITH ORDINALITY");
     expect(sql).toContain("'selection_id'");
     expect(sql).toContain("'expected_content_hash'");
+    expect(sql).toContain("historical_materialization_replay");
+    expect(sql).toContain("stored_materialization_evidence_reconstruction");
+    expect(sql).toContain("v_existing_decision_id");
+  });
+
+  test("returns exact stored replays before mutable eligibility checks", () => {
+    const replay = sql.indexOf("exact_stored_materialization_replay");
+    const recipient = sql.indexOf("active_recipient_not_found");
+    const configuration = sql.indexOf("automation_configuration_changed");
+    const selection = sql.indexOf("delivery_selection_mismatch");
+    expect(replay).toBeGreaterThan(0);
+    expect(replay).toBeLessThan(recipient);
+    expect(replay).toBeLessThan(configuration);
+    expect(replay).toBeLessThan(selection);
+  });
+
+  test("emits reachable payment subtypes and recommendation domain events", () => {
+    expect(sql).toContain("emit_concierge_payment_outcome_event");
+    expect(sql).toContain("'payment_subtype',v_payment_subtype");
+    expect(sql).toContain("'subscription_id',NEW.subscription_id");
+    expect(sql).toContain("THEN 'payment.requires_action'");
+    expect(sql).toContain("'requires_action',v_event_type = 'payment.requires_action'");
+    expect(sql).toContain("emit_concierge_recommendation_event");
+    expect(sql).toContain("'recommendation.created'");
+    expect(sql).toContain("'recommendation_summary',p_recommendation_summary");
+    expect(sql).toContain("recommendation_summary_required");
   });
 });

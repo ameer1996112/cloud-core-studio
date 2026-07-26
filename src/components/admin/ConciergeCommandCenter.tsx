@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  approveConciergeDeliveryPreview,
   approveConciergeTemplates,
   getConciergeCenter,
   selectConciergeDeliveryVersion,
@@ -220,6 +221,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const setMode = useServerFn(setConciergeAutomationMode);
   const setChannel = useServerFn(setConciergeChannelEnabled);
   const approveTemplates = useServerFn(approveConciergeTemplates);
+  const approveDeliveryPreview = useServerFn(approveConciergeDeliveryPreview);
   const selectDeliveryVersion = useServerFn(selectConciergeDeliveryVersion);
   const simulate = useServerFn(simulateConciergeDecision);
   const [recipientId, setRecipientId] = useState("preview-recipient");
@@ -249,11 +251,37 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
     onError: (error) => toast.error(error.message),
   });
   const templateMutation = useMutation({
-    mutationFn: () =>
-      approveTemplates({ data: { confirmation: "APPROVE CONCIERGE TEMPLATES" as const } }),
+    mutationFn: (template: ConciergeAdminTemplate) => {
+      const confirmation = `APPROVE SOURCE ${template.id} ${template.content_hash}`;
+      return approveTemplates({
+        data: {
+          templateId: template.id,
+          contentHash: template.content_hash,
+          confirmation,
+        },
+      });
+    },
     onSuccess: async () => {
       await refresh();
       toast.success(copy.templateSuccess);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+  const previewApprovalMutation = useMutation({
+    mutationFn: (candidate: ConciergeDeliveryVersionRow) => {
+      const confirmation = `APPROVE PREVIEW ${candidate.id} ${candidate.presentation_hash}`;
+      return approveDeliveryPreview({
+        data: {
+          deliveryVersionId: candidate.id,
+          sourceContentHash: candidate.source_content_hash,
+          presentationHash: candidate.presentation_hash,
+          confirmation,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await refresh();
+      toast.success("Exact Concierge preview approved");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -263,7 +291,8 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
       channel: "in_app" | "push" | "email" | "whatsapp";
       locale: "ar" | "he" | "en";
       deliveryMode: "test_only" | "live";
-      presentationVersion: number;
+      deliveryVersionId: string;
+      presentationHash: string;
       confirmation: string;
     }) => selectDeliveryVersion({ data: input }),
     onSuccess: async () => {
@@ -360,20 +389,6 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
             {center.data?.templateHealth.approved ?? 0}/{center.data?.templateHealth.total ?? 0}{" "}
             {copy.templates}
           </Badge>
-          {(center.data?.templateHealth.awaitingApproval ?? 0) > 0 && (
-            <Button
-              variant="outline"
-              disabled={templateMutation.isPending}
-              onClick={() => {
-                const confirmation = window.prompt(copy.templateApprovalPrompt);
-                if (confirmation === "APPROVE CONCIERGE TEMPLATES") {
-                  templateMutation.mutate();
-                }
-              }}
-            >
-              {copy.approveTemplates}
-            </Button>
-          )}
         </div>
       </section>
 
@@ -569,19 +584,31 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
           whatsappExpectedContentHashes={whatsappExpectedContentHashes}
           deliveryVersions={deliveryVersions}
           deliverySelections={deliverySelections}
-          selectionPending={deliverySelectionMutation.isPending}
-          onSelectVersion={(template, deliveryMode, presentationVersion) => {
-            const confirmation =
-              deliveryMode === "live"
-                ? "SELECT LIVE CONCIERGE PRESENTATION"
-                : "SELECT TEST CONCIERGE PRESENTATION";
+          selectionPending={
+            deliverySelectionMutation.isPending ||
+            templateMutation.isPending ||
+            previewApprovalMutation.isPending
+          }
+          onApproveSource={(template) => {
+            const confirmation = `APPROVE SOURCE ${template.id} ${template.content_hash}`;
+            if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
+            templateMutation.mutate(template);
+          }}
+          onApprovePreview={(_template, candidate) => {
+            const confirmation = `APPROVE PREVIEW ${candidate.id} ${candidate.presentation_hash}`;
+            if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
+            previewApprovalMutation.mutate(candidate);
+          }}
+          onSelectVersion={(template, deliveryMode, candidate) => {
+            const confirmation = `${deliveryMode === "live" ? "SELECT LIVE" : "SELECT TEST"} ${candidate.id} ${candidate.presentation_hash}`;
             if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
             deliverySelectionMutation.mutate({
               templateKey: template.template_key,
               channel: template.channel,
               locale: template.locale,
               deliveryMode,
-              presentationVersion,
+              deliveryVersionId: candidate.id,
+              presentationHash: candidate.presentation_hash,
               confirmation,
             });
           }}

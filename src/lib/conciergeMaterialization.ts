@@ -10,6 +10,12 @@ type RenderedConciergeChannel = {
   body: string;
   templateVariables?: string[];
   presentationVersion?: number;
+  presentationKey?: string | null;
+  presentationHash?: string | null;
+  presentationContract?: Record<string, unknown> | null;
+  emailShellVersion?: number | null;
+  emailShellHash?: string | null;
+  sourceContentHash?: string | null;
   providerTemplateName?: string | null;
   providerContentHash?: string | null;
   selectionId?: string | null;
@@ -41,6 +47,31 @@ function metaLanguage(locale: "ar" | "he" | "en") {
   return locale === "en" ? "en_US" : locale;
 }
 
+export function renderConciergePresentationFacts(
+  contract: Record<string, unknown>,
+  variables: Record<string, unknown>,
+) {
+  if (!Array.isArray(contract.facts)) {
+    throw new Error("invalid_selected_presentation_fact_contract");
+  }
+  return contract.facts.flatMap((candidate) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+      throw new Error("invalid_selected_presentation_fact_contract");
+    }
+    const fact = candidate as Record<string, unknown>;
+    if (
+      typeof fact.key !== "string" ||
+      typeof fact.label !== "string" ||
+      typeof fact.ltr !== "boolean"
+    ) {
+      throw new Error("invalid_selected_presentation_fact_contract");
+    }
+    const value = variables[fact.key];
+    if (value === null || value === undefined || String(value).trim() === "") return [];
+    return [{ key: fact.key, label: fact.label, value: String(value), ltr: fact.ltr }];
+  });
+}
+
 export function buildConciergeMaterializationPlan(input: {
   decisionKey: string;
   templateKey: string;
@@ -65,6 +96,16 @@ export function buildConciergeMaterializationPlan(input: {
       (name) => String(input.variables[name]),
     );
     const presentationVersion = rendered.presentationVersion ?? 1;
+    if (
+      rendered.presentationKey !== presentationKey ||
+      !rendered.presentationHash ||
+      !rendered.presentationContract ||
+      !rendered.sourceContentHash ||
+      (rendered.channel === "email" && (!rendered.emailShellVersion || !rendered.emailShellHash))
+    ) {
+      throw new Error(`missing_selected_presentation_evidence:${rendered.channel}`);
+    }
+    const facts = renderConciergePresentationFacts(rendered.presentationContract, input.variables);
     const bodyComponent: WhatsappTemplateComponent = {
       type: "body",
       parameters: orderedVariables.map((text) => ({ type: "text", text })),
@@ -101,6 +142,12 @@ export function buildConciergeMaterializationPlan(input: {
         finalSubject: rendered.subject,
         finalBody: rendered.body,
         presentationKey,
+        presentationHash: rendered.presentationHash,
+        presentationContract: rendered.presentationContract,
+        renderedFacts: facts,
+        emailShellVersion: rendered.emailShellVersion ?? null,
+        emailShellHash: rendered.emailShellHash ?? null,
+        sourceContentHash: rendered.sourceContentHash,
         journeyType: input.journeyType,
         actionUrl: input.actionByChannel[rendered.channel] ?? null,
         selectionId: rendered.selectionId ?? null,

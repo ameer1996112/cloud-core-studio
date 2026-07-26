@@ -26,6 +26,9 @@ export type RenderedTransactionalEmail = {
 };
 
 const BRANDED_SENDER_DISPLAY_NAME = "Cloud & Core Studio";
+export const TRANSACTIONAL_EMAIL_SHELL_VERSION = 1;
+export const TRANSACTIONAL_EMAIL_SHELL_HASH =
+  "f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558";
 const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Validates configuration only; provider verification remains an operational prerequisite. */
@@ -211,6 +214,28 @@ function ctaGroup(eventType: MessageEventType, actionUrl: URL | null): keyof typ
   return "app";
 }
 
+export function buildLegacyTransactionalPresentation(input: {
+  key: string;
+  eventType: MessageEventType;
+  language: MessageLanguage;
+  actionUrl: string | null;
+  publicBaseUrl: string;
+  facts: Array<{ key: string; label: string; value: string; ltr: boolean }>;
+}) {
+  const actionUrl = safeActionUrl(input.actionUrl, input.publicBaseUrl);
+  return {
+    key: input.key,
+    categoryLabel: KICKERS[eventGroup(input.eventType)][input.language],
+    action: actionUrl
+      ? {
+          label: CTA[ctaGroup(input.eventType, actionUrl)][input.language],
+          url: actionUrl.toString(),
+        }
+      : null,
+    facts: input.facts,
+  };
+}
+
 function safeActionUrl(actionUrl: string | null | undefined, publicBaseUrl: string) {
   let base: URL;
   try {
@@ -276,6 +301,26 @@ function presentationFactRows(
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="Margin:8px 0 28px;background:#FAF7F2;border:1px solid #E8DFD1;border-radius:12px;">
     <tr><td style="padding:20px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>
   </table>`;
+}
+
+function plainTextFactLines(input: TransactionalEmailInput) {
+  const facts = input.presentation
+    ? input.presentation.facts
+    : FACTS.flatMap((definition) => {
+        const value = input.variables[definition.key];
+        if (value == null || String(value).trim() === "") return [];
+        return [
+          {
+            label: definition.labels[input.language],
+            value: String(value),
+            ltr: definition.ltr === true,
+          },
+        ];
+      });
+  if (!facts.length) return null;
+  return facts
+    .map((fact) => `${fact.label}: ${fact.ltr ? `\u2066${fact.value}\u2069` : fact.value}`)
+    .join("\n");
 }
 
 function messageRef(messageKey: string) {
@@ -361,6 +406,7 @@ export function renderTransactionalEmail(
     copy.kicker,
     input.subject,
     input.body.trim(),
+    plainTextFactLines(input),
     actionUrl ? `${copy.cta}: ${actionUrl.toString()}` : null,
     copy.support,
     copy.closing,

@@ -16,7 +16,7 @@ describe("unified messaging provider adapters", () => {
               {
                 type: "image",
                 image: {
-                  link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp",
+                  link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
                 },
               },
             ],
@@ -51,7 +51,7 @@ describe("unified messaging provider adapters", () => {
             {
               type: "image",
               image: {
-                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp",
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
               },
             },
           ],

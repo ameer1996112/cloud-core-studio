@@ -70,5 +70,5 @@ IMAGE-header handles are canonicalized to the public catalog content hash. Do no
 substitute for approval review.
 
 Task 7 operational check: from the production edge, verify the public header URL returns HTTPS
-200, `image/webp`, and the intended stable cache policy before promotion. This repository does
+200, `image/png`, and the intended stable cache policy before promotion. This repository does
 not perform that network check.

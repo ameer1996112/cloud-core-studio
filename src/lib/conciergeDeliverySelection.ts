@@ -10,6 +10,7 @@ export type ConciergeSourceTemplateRow = {
   lifecycle_status: string;
   approved_by: string | null;
   approved_at: string | null;
+  content_hash: string;
   required_variables: string[];
   subject_template: string | null;
   body_template: string;
@@ -20,8 +21,19 @@ export type ConciergeDeliveryVersionRow = {
   template_key: string;
   channel: ConciergeChannel;
   locale: "ar" | "he" | "en";
+  source_template_id: string;
   source_template_version: number;
+  source_content_hash: string;
+  source_approved_by: string;
+  source_approved_at: string;
   presentation_version: number;
+  presentation_key: string;
+  presentation_hash: string;
+  presentation_contract: Record<string, unknown>;
+  email_shell_version: number | null;
+  email_shell_hash: string | null;
+  presentation_approved_by: string | null;
+  presentation_approved_at: string | null;
   provider_template_name: string | null;
   provider_content_hash: string | null;
 };
@@ -75,7 +87,14 @@ export function selectEligibleConciergeTemplates(input: {
         candidate.template_key === template.template_key &&
         candidate.channel === template.channel &&
         candidate.locale === template.locale &&
-        candidate.source_template_version === template.version,
+        candidate.source_template_id === template.id &&
+        candidate.source_template_version === template.version &&
+        candidate.source_content_hash === template.content_hash &&
+        candidate.source_approved_by === template.approved_by &&
+        candidate.source_approved_at === template.approved_at &&
+        (candidate.presentation_version === 1 ||
+          (Boolean(candidate.presentation_approved_by) &&
+            Boolean(candidate.presentation_approved_at))),
     );
     if (!version) return [];
     const selection = input.selections.find(
@@ -108,6 +127,12 @@ export function selectEligibleConciergeTemplates(input: {
         subjectTemplate: template.subject_template,
         bodyTemplate: template.body_template,
         presentationVersion: version.presentation_version,
+        presentationKey: version.presentation_key,
+        presentationHash: version.presentation_hash,
+        presentationContract: version.presentation_contract,
+        emailShellVersion: version.email_shell_version,
+        emailShellHash: version.email_shell_hash,
+        sourceContentHash: version.source_content_hash,
         providerTemplateName: version.provider_template_name,
         providerContentHash: version.provider_content_hash,
         selectionId: selection.id,

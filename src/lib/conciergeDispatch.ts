@@ -34,6 +34,12 @@ export type ApprovedDispatchTemplate = {
   subjectTemplate: string | null;
   bodyTemplate: string;
   presentationVersion?: number;
+  presentationKey?: string;
+  presentationHash?: string;
+  presentationContract?: Record<string, unknown>;
+  emailShellVersion?: number | null;
+  emailShellHash?: string | null;
+  sourceContentHash?: string;
   providerTemplateName?: string | null;
   providerContentHash?: string | null;
   selectionId?: string | null;
@@ -47,6 +53,12 @@ type RenderedChannel = {
   body: string;
   templateVariables: string[];
   presentationVersion: number;
+  presentationKey: string | null;
+  presentationHash: string | null;
+  presentationContract: Record<string, unknown> | null;
+  emailShellVersion: number | null;
+  emailShellHash: string | null;
+  sourceContentHash: string | null;
   providerTemplateName: string | null;
   providerContentHash: string | null;
   selectionId: string | null;
@@ -282,6 +294,12 @@ export function evaluateConciergeDispatch(input: {
       body: renderValue(approved.bodyTemplate, selectedVariables),
       templateVariables: approved.requiredVariables,
       presentationVersion: approved.presentationVersion ?? 1,
+      presentationKey: approved.presentationKey ?? null,
+      presentationHash: approved.presentationHash ?? null,
+      presentationContract: approved.presentationContract ?? null,
+      emailShellVersion: approved.emailShellVersion ?? null,
+      emailShellHash: approved.emailShellHash ?? null,
+      sourceContentHash: approved.sourceContentHash ?? null,
       providerTemplateName: approved.providerTemplateName ?? null,
       providerContentHash: approved.providerContentHash ?? null,
       selectionId: approved.selectionId ?? null,

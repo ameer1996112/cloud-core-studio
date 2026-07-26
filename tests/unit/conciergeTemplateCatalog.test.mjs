@@ -98,7 +98,7 @@ describe("Concierge template catalog", () => {
         type: "HEADER",
         format: "IMAGE",
         example: {
-          header_handle: ["https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp"],
+          header_handle: ["https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png"],
         },
       });
       expect(template.components[2]).toEqual({

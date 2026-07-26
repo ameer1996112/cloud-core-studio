@@ -40,6 +40,7 @@ import {
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
 import { renderSelectedConciergeEmail } from "@/lib/conciergeEmail";
+import { buildConciergeRecommendationSummary } from "@/lib/conciergeRecommendation";
 import { conciergeJourneyForTemplate } from "@/lib/conciergeTemplateAdmin";
 import { renderTransactionalEmail } from "@/lib/transactionalEmail";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
@@ -87,6 +88,7 @@ async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
     p_delivery_id: delivery.id,
     p_live_runtime_enabled: process.env.CONCIERGE_LIVE_DELIVERY_ENABLED === "true",
     p_test_recipient_ids: allowlist,
+    p_runtime_whatsapp_waba_id: process.env.META_WABA_ID?.trim() || null,
   });
   if (gate.error) throw gate.error;
   const result = Array.isArray(gate.data) ? gate.data[0] : gate.data;
@@ -1411,6 +1413,48 @@ async function processDelivery(
               : (() => {
                   throw new Error("missing_concierge_presentation_evidence");
                 })(),
+          presentationHash:
+            typeof message.content?.presentation_hash === "string"
+              ? message.content.presentation_hash
+              : (() => {
+                  throw new Error("missing_concierge_presentation_hash");
+                })(),
+          presentationContract:
+            message.content?.presentation_contract &&
+            typeof message.content.presentation_contract === "object" &&
+            !Array.isArray(message.content.presentation_contract)
+              ? (message.content.presentation_contract as Record<string, unknown>)
+              : (() => {
+                  throw new Error("missing_concierge_presentation_contract");
+                })(),
+          renderedFacts: Array.isArray(message.content?.rendered_facts)
+            ? (message.content.rendered_facts as Array<{
+                key: string;
+                label: string;
+                value: string;
+                ltr: boolean;
+              }>)
+            : (() => {
+                throw new Error("missing_concierge_rendered_facts");
+              })(),
+          emailShellVersion:
+            typeof message.content?.email_shell_version === "number"
+              ? message.content.email_shell_version
+              : (() => {
+                  throw new Error("missing_concierge_email_shell_version");
+                })(),
+          emailShellHash:
+            typeof message.content?.email_shell_hash === "string"
+              ? message.content.email_shell_hash
+              : (() => {
+                  throw new Error("missing_concierge_email_shell_hash");
+                })(),
+          sourceContentHash:
+            typeof message.content?.source_content_hash === "string"
+              ? message.content.source_content_hash
+              : (() => {
+                  throw new Error("missing_concierge_source_content_hash");
+                })(),
           actionUrl:
             typeof message.content?.action_url === "string" || message.content?.action_url === null
               ? message.content.action_url
@@ -1735,7 +1779,7 @@ async function enqueueClassRecommendations(
   const db = supabaseAdmin as any;
   const classes = await db
     .from("classes")
-    .select("id,starts_at,instructor_id")
+    .select("id,title,starts_at,instructor_id")
     .eq("status", "scheduled")
     .eq("member_visible", true)
     .gte("starts_at", now.toISOString())
@@ -1917,6 +1961,14 @@ async function enqueueClassRecommendations(
       { onConflict: "deduplication_key", ignoreDuplicates: true },
     );
     if (result.error) throw result.error;
+    const conciergeEvent = await db.rpc("emit_concierge_recommendation_event", {
+      p_member_id: member.id,
+      p_class_id: studioClass.id,
+      p_secondary_class_id: recommendations[1]?.id ?? null,
+      p_recommendation_summary: buildConciergeRecommendationSummary(recommendations),
+      p_now: now.toISOString(),
+    });
+    if (conciergeEvent.error) throw conciergeEvent.error;
     prepared += 1;
     if (prepared >= limit) break;
   }

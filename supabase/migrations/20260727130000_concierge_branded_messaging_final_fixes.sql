@@ -21,8 +21,8 @@ ALTER TABLE public.concierge_template_versions
 ALTER TABLE public.concierge_template_versions
   VALIDATE CONSTRAINT concierge_approved_requires_provenance;
 
--- The v2 source migration omitted these 15 WhatsApp variants. Reuse real approval
--- provenance only when one already exists for the studio; never invent an actor.
+-- The v2 source migration omitted these 15 WhatsApp variants. They are intentionally
+-- draft with null provenance until an administrator approves this exact content hash.
 WITH missing_catalog AS (
   SELECT *
   FROM jsonb_to_recordset($missing_catalog$[{"template_key":"payment_one_time_succeeded","locale":"en","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"Hi {{member_name}}, your payment to Cloud & Core was completed successfully. You can review the payment details in the app.","content_hash":"f4050711b0648736b3edbb2ae13a60f28b0fa3423b17b82572b5fc5abb17c915","first_person_voice_approved":false},{"template_key":"payment_one_time_succeeded","locale":"he","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"היי {{member_name}}, התשלום שלך ל-Cloud & Core הושלם בהצלחה. אפשר לצפות בפרטי התשלום באפליקציה.","content_hash":"0064d08b8ad9a253a9899f187dbea25abdee935e2bc6154832f06a50cd3bcf9e","first_person_voice_approved":false},{"template_key":"payment_one_time_succeeded","locale":"ar","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"مرحباً {{member_name}}، تم إتمام دفعتك إلى Cloud & Core بنجاح. يمكنك مراجعة تفاصيل الدفع في التطبيق.","content_hash":"890bacc517c51f42edbf6dda8d08cb30aa8566a361269afcd3cd888f08953036","first_person_voice_approved":false},{"template_key":"payment_subscription_renewal_succeeded","locale":"en","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"Hi {{member_name}}, your Cloud & Core membership renewal was completed successfully. Your membership remains active.","content_hash":"b16bd4deb3a23779ad471fe356945ee6bfb54702f10160af4e82c5410f2c17e0","first_person_voice_approved":false},{"template_key":"payment_subscription_renewal_succeeded","locale":"he","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"היי {{member_name}}, חידוש המינוי שלך ב-Cloud & Core הושלם בהצלחה. המינוי שלך ממשיך להיות פעיל.","content_hash":"0fb211ab7c8e7395cd8fe81046024402d1947e8506e7f28d0ab3a3a753b968b6","first_person_voice_approved":false},{"template_key":"payment_subscription_renewal_succeeded","locale":"ar","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"مرحباً {{member_name}}، تم تجديد عضويتك في Cloud & Core بنجاح. عضويتك ما زالت فعالة.","content_hash":"cc833f96912215a8b8a35e2b088df6212fd00ef8add3bce08d9aa5584012cea9","first_person_voice_approved":false},{"template_key":"payment_requires_action","locale":"en","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"Hi {{member_name}}, your Cloud & Core payment needs your attention. Open the app to review the payment and complete the required step.","content_hash":"5be8993736bd297068abed38e7e31d3764c674aa1f44adb5006b2fcae1929774","first_person_voice_approved":false},{"template_key":"payment_requires_action","locale":"he","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"היי {{member_name}}, התשלום שלך ל-Cloud & Core דורש טיפול. אפשר לפתוח את האפליקציה כדי לבדוק את התשלום ולהשלים את הפעולה הנדרשת.","content_hash":"9d1c2fffaef4fbd8f0fb00fc7643c2a3c5bcd56e0dfdb298b9a9b1b6a66a4e31","first_person_voice_approved":false},{"template_key":"payment_requires_action","locale":"ar","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"مرحباً {{member_name}}، دفعتك إلى Cloud & Core تحتاج إلى انتباهك. افتحي التطبيق لمراجعة الدفع وإكمال الخطوة المطلوبة.","content_hash":"b84e578b8951f858a6ee2d0eb3f41651d8744ef782b4ec619c9b988c75a00e7a","first_person_voice_approved":false},{"template_key":"payment_terminally_failed","locale":"en","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"Hi {{member_name}}, your Cloud & Core payment could not be completed. Open the app to update your payment method or contact the studio for help.","content_hash":"78ea0e429f845c1fec94bca23cc119f75f68c4c856da97f3ef398ce795ea9f57","first_person_voice_approved":false},{"template_key":"payment_terminally_failed","locale":"he","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"היי {{member_name}}, לא הצלחנו להשלים את התשלום שלך ל-Cloud & Core. אפשר לעדכן את אמצעי התשלום באפליקציה או לפנות לסטודיו לעזרה.","content_hash":"2b35da99c2dd6ca90dcb6f7ef20bfe2f5b631869db64520c2ed0040a610eb041","first_person_voice_approved":false},{"template_key":"payment_terminally_failed","locale":"ar","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"مرحباً {{member_name}}، تعذر إتمام دفعتك إلى Cloud & Core. افتحي التطبيق لتحديث وسيلة الدفع أو تواصلي مع الاستوديو للمساعدة.","content_hash":"a531b4891b2ecd8738c87c536e81abb0b980b18a4e2fd24ad04543d59eb37789","first_person_voice_approved":false},{"template_key":"recommendation","locale":"en","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"Hi {{member_name}}, we found a Cloud & Core class that may suit you. Open the app to review the recommendation and current availability.","content_hash":"81bdc5f709b3af591991a69bcead1e6702b0ff9b0a610cd5145ee3880e48ac9e","first_person_voice_approved":false},{"template_key":"recommendation","locale":"he","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"היי {{member_name}}, מצאנו שיעור ב-Cloud & Core שעשוי להתאים לך. אפשר לפתוח את האפליקציה כדי לצפות בהמלצה ובזמינות העדכנית.","content_hash":"74e4682885df59f780fb7ab82a82f4065248a1514412a4dcc7a5faf9ac2a2301","first_person_voice_approved":false},{"template_key":"recommendation","locale":"ar","version":1,"required_variables":["member_name"],"subject_template":null,"body_template":"مرحباً {{member_name}}، وجدنا حصة في Cloud & Core قد تناسبك. افتحي التطبيق لمراجعة التوصية والتوفر الحالي.","content_hash":"f73046fdb4fe3aa12702c9f4e972b5d7177efd79d46855edd699be0a85ff5f25","first_person_voice_approved":false}]$missing_catalog$::jsonb) AS row(
@@ -35,15 +35,6 @@ WITH missing_catalog AS (
     content_hash text,
     first_person_voice_approved boolean
   )
-),
-provenance AS (
-  SELECT DISTINCT ON (studio_id)
-    studio_id, approved_by, approved_at
-  FROM public.concierge_template_versions
-  WHERE lifecycle_status = 'approved'
-    AND approved_by IS NOT NULL
-    AND approved_at IS NOT NULL
-  ORDER BY studio_id, approved_at DESC
 )
 INSERT INTO public.concierge_template_versions(
   studio_id, template_key, channel, locale, version, lifecycle_status,
@@ -52,13 +43,12 @@ INSERT INTO public.concierge_template_versions(
 )
 SELECT
   studio.id, catalog.template_key, 'whatsapp', catalog.locale, catalog.version,
-  CASE WHEN provenance.approved_by IS NULL THEN 'draft' ELSE 'approved' END,
+  'draft',
   catalog.subject_template, catalog.body_template, catalog.required_variables,
-  catalog.content_hash, catalog.first_person_voice_approved,
-  provenance.approved_by, provenance.approved_at
+  catalog.content_hash,
+  catalog.first_person_voice_approved, NULL, NULL
 FROM public.studios studio
 CROSS JOIN missing_catalog catalog
-LEFT JOIN provenance ON provenance.studio_id = studio.id
 ON CONFLICT (studio_id, template_key, channel, locale, version) DO NOTHING;
 
 CREATE OR REPLACE FUNCTION public.concierge_journey_for_template(p_template_key text)
@@ -88,6 +78,230 @@ AS $$
   END
 $$;
 
+CREATE OR REPLACE FUNCTION public.concierge_legacy_email_event(p_template_key text)
+RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT CASE p_template_key
+    WHEN 'booking_confirmed_first' THEN 'booking_confirmed'
+    WHEN 'booking_confirmed_repeat' THEN 'booking_confirmed'
+    WHEN 'booking_cancelled' THEN 'booking_cancelled'
+    WHEN 'class_cancelled' THEN 'class_cancelled_by_admin'
+    WHEN 'class_time_changed' THEN 'class_time_changed'
+    WHEN 'payment_one_time_succeeded' THEN 'payment_confirmed'
+    WHEN 'payment_subscription_renewal_succeeded' THEN 'subscription_renewal_succeeded'
+    WHEN 'payment_requires_action' THEN 'payment_failed'
+    WHEN 'payment_terminally_failed' THEN 'payment_failed'
+    WHEN 'payment_recovered' THEN 'payment_confirmed'
+    WHEN 'waitlist_offer' THEN 'waitlist_spot_available'
+    WHEN 'lead_to_trial' THEN 'trial_followup'
+    WHEN 'recommendation' THEN 'class_recommendation'
+    WHEN 'retention' THEN 'retention_reminder'
+    ELSE 'human_handoff'
+  END
+$$;
+
+CREATE OR REPLACE FUNCTION public.concierge_action_url(
+  p_template_key text,
+  p_presentation_version integer
+)
+RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT CASE
+    WHEN p_presentation_version = 2 AND p_template_key IN (
+      'booking_confirmed_first','booking_confirmed_repeat'
+    ) THEN 'https://cloudandcorestudio.com/member/bookings'
+    WHEN p_presentation_version = 2 AND p_template_key IN (
+      'payment_requires_action','payment_terminally_failed'
+    ) THEN 'https://cloudandcorestudio.com/member/packages'
+    WHEN p_presentation_version = 2 AND p_template_key IN (
+      'waitlist_offer','recommendation','weekly_schedule'
+    ) THEN 'https://cloudandcorestudio.com/member/schedule'
+    WHEN p_presentation_version = 1 AND p_template_key IN (
+      'booking_confirmed_first','booking_confirmed_repeat','booking_cancelled'
+    ) THEN 'https://cloudandcorestudio.com/member/bookings'
+    WHEN p_presentation_version = 1 AND p_template_key IN (
+      'payment_one_time_succeeded','payment_subscription_renewal_succeeded',
+      'payment_requires_action','payment_terminally_failed','payment_recovered'
+    ) THEN 'https://cloudandcorestudio.com/member/packages'
+    WHEN p_presentation_version = 1 AND p_template_key IN (
+      'class_cancelled','class_time_changed','waitlist_offer','recommendation',
+      'weekly_schedule','retention','lead_to_trial'
+    ) THEN 'https://cloudandcorestudio.com/member/schedule'
+    ELSE NULL
+  END
+$$;
+
+CREATE OR REPLACE FUNCTION public.concierge_category_label(
+  p_journey_type text,
+  p_locale text
+)
+RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT CASE p_journey_type
+    WHEN 'booking' THEN CASE p_locale WHEN 'he' THEN 'פרטי ההזמנה' WHEN 'ar' THEN 'تفاصيل الحجز' ELSE 'Booking details' END
+    WHEN 'booking_cancellation' THEN CASE p_locale WHEN 'he' THEN 'פרטי הביטול' WHEN 'ar' THEN 'تفاصيل الإلغاء' ELSE 'Cancellation details' END
+    WHEN 'class_change' THEN CASE p_locale WHEN 'he' THEN 'עדכון שיעור' WHEN 'ar' THEN 'تحديث الحصة' ELSE 'Class update' END
+    WHEN 'payment_outcome' THEN CASE p_locale WHEN 'he' THEN 'פרטי התשלום' WHEN 'ar' THEN 'تفاصيل الدفع' ELSE 'Payment details' END
+    WHEN 'weekly_schedule' THEN CASE p_locale WHEN 'he' THEN 'המערכת שלך' WHEN 'ar' THEN 'جدولك' ELSE 'Your schedule' END
+    WHEN 'waitlist' THEN CASE p_locale WHEN 'he' THEN 'רשימת המתנה' WHEN 'ar' THEN 'قائمة الانتظار' ELSE 'Waitlist' END
+    WHEN 'recommendation' THEN CASE p_locale WHEN 'he' THEN 'המלצה עבורך' WHEN 'ar' THEN 'توصية لك' ELSE 'A recommendation for you' END
+    WHEN 'lead_to_trial' THEN CASE p_locale WHEN 'he' THEN 'ברוכה הבאה' WHEN 'ar' THEN 'مرحباً بك' ELSE 'Welcome' END
+    WHEN 'daily_briefing' THEN CASE p_locale WHEN 'he' THEN 'העדכון שלך' WHEN 'ar' THEN 'تحديثك' ELSE 'Your update' END
+    ELSE 'Cloud & Core'
+  END
+$$;
+
+CREATE OR REPLACE FUNCTION public.concierge_action_label(
+  p_template_key text,
+  p_locale text
+)
+RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT CASE
+    WHEN p_template_key IN ('booking_confirmed_first','booking_confirmed_repeat')
+      THEN CASE p_locale WHEN 'he' THEN 'צפייה בהזמנה' WHEN 'ar' THEN 'عرض الحجز' ELSE 'View booking' END
+    WHEN p_template_key IN ('payment_requires_action','payment_terminally_failed')
+      THEN CASE p_locale WHEN 'he' THEN 'בדיקת התשלום' WHEN 'ar' THEN 'مراجعة الدفع' ELSE 'Review payment' END
+    WHEN p_template_key = 'waitlist_offer'
+      THEN CASE p_locale WHEN 'he' THEN 'מימוש המקום' WHEN 'ar' THEN 'حجز المكان' ELSE 'Claim spot' END
+    WHEN p_template_key = 'recommendation'
+      THEN CASE p_locale WHEN 'he' THEN 'צפייה בהמלצה' WHEN 'ar' THEN 'عرض التوصية' ELSE 'View recommendation' END
+    ELSE CASE p_locale WHEN 'he' THEN 'למערכת השעות' WHEN 'ar' THEN 'استكشاف الجدول' ELSE 'Explore schedule' END
+  END
+$$;
+
+CREATE OR REPLACE FUNCTION public.concierge_fact_definitions(
+  p_journey_type text,
+  p_locale text
+)
+RETURNS jsonb
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT CASE
+    WHEN p_journey_type IN ('booking','booking_cancellation','class_change') THEN
+      jsonb_build_array(
+        jsonb_build_object('key','class_name','label',CASE p_locale WHEN 'he' THEN 'שיעור' WHEN 'ar' THEN 'الحصة' ELSE 'Class' END,'ltr',false),
+        jsonb_build_object('key','class_date','label',CASE p_locale WHEN 'he' THEN 'תאריך' WHEN 'ar' THEN 'التاريخ' ELSE 'Date' END,'ltr',true),
+        jsonb_build_object('key','class_time','label',CASE p_locale WHEN 'he' THEN 'שעה' WHEN 'ar' THEN 'الوقت' ELSE 'Time' END,'ltr',true)
+      )
+    WHEN p_journey_type = 'payment_outcome' THEN
+      jsonb_build_array(
+        jsonb_build_object('key','amount','label',CASE p_locale WHEN 'he' THEN 'סכום' WHEN 'ar' THEN 'المبلغ' ELSE 'Amount' END,'ltr',true),
+        jsonb_build_object('key','payment_date','label',CASE p_locale WHEN 'he' THEN 'תאריך' WHEN 'ar' THEN 'التاريخ' ELSE 'Date' END,'ltr',true)
+      )
+    WHEN p_journey_type = 'weekly_schedule' THEN
+      jsonb_build_array(jsonb_build_object('key','week_of','label',CASE p_locale WHEN 'he' THEN 'שבוע של' WHEN 'ar' THEN 'أسبوع' ELSE 'Week of' END,'ltr',true))
+    WHEN p_journey_type = 'waitlist' THEN
+      jsonb_build_array(
+        jsonb_build_object('key','class_name','label',CASE p_locale WHEN 'he' THEN 'שיעור' WHEN 'ar' THEN 'الحصة' ELSE 'Class' END,'ltr',false),
+        jsonb_build_object('key','class_date','label',CASE p_locale WHEN 'he' THEN 'תאריך' WHEN 'ar' THEN 'التاريخ' ELSE 'Date' END,'ltr',true),
+        jsonb_build_object('key','class_time','label',CASE p_locale WHEN 'he' THEN 'שעה' WHEN 'ar' THEN 'الوقت' ELSE 'Time' END,'ltr',true),
+        jsonb_build_object('key','offer_expires_at','label',CASE p_locale WHEN 'he' THEN 'בתוקף עד' WHEN 'ar' THEN 'صالح حتى' ELSE 'Valid until' END,'ltr',true)
+      )
+    WHEN p_journey_type = 'recommendation' THEN
+      jsonb_build_array(
+        jsonb_build_object('key','recommendation_summary','label',CASE p_locale WHEN 'he' THEN 'המלצה' WHEN 'ar' THEN 'التوصية' ELSE 'Recommendation' END,'ltr',false),
+        jsonb_build_object('key','class_name','label',CASE p_locale WHEN 'he' THEN 'שיעור' WHEN 'ar' THEN 'الحصة' ELSE 'Class' END,'ltr',false)
+      )
+    ELSE '[]'::jsonb
+  END
+$$;
+
+-- Every candidate path, including a source approved after this migration runs, uses the
+-- same complete presentation contract. The hash covers the canonical jsonb contract and
+-- the email shell identity, while provider content remains separate exact evidence.
+CREATE OR REPLACE FUNCTION public.concierge_presentation_contract(
+  p_template_key text,
+  p_channel text,
+  p_locale text,
+  p_source_content_hash text,
+  p_presentation_version integer,
+  p_provider_template_name text,
+  p_provider_content_hash text
+)
+RETURNS jsonb
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT jsonb_strip_nulls(jsonb_build_object(
+    'schema','concierge_presentation_v' || p_presentation_version,
+    'presentationKey',
+      p_template_key || ':' || p_channel || ':v' || p_presentation_version,
+    'eventType',CASE
+      WHEN p_presentation_version = 1 OR p_channel = 'email'
+      THEN public.concierge_legacy_email_event(p_template_key)
+      ELSE NULL
+    END,
+    'actionUrl',public.concierge_action_url(p_template_key,p_presentation_version),
+    'sourceContentHash',p_source_content_hash,
+    'categoryLabel',CASE
+      WHEN p_presentation_version = 2 AND p_channel = 'email'
+      THEN public.concierge_category_label(
+        public.concierge_journey_for_template(p_template_key),p_locale
+      )
+      ELSE NULL
+    END,
+    'actionLabel',CASE
+      WHEN p_presentation_version = 2
+       AND p_channel = 'email'
+       AND public.concierge_action_url(p_template_key,2) IS NOT NULL
+      THEN public.concierge_action_label(p_template_key,p_locale)
+      ELSE NULL
+    END,
+    'facts',public.concierge_fact_definitions(
+      public.concierge_journey_for_template(p_template_key),p_locale
+    ),
+    'providerTemplateName',CASE
+      WHEN p_presentation_version = 2 AND p_channel = 'whatsapp'
+      THEN p_provider_template_name
+      ELSE NULL
+    END,
+    'providerContentHash',CASE
+      WHEN p_presentation_version = 2 AND p_channel = 'whatsapp'
+      THEN p_provider_content_hash
+      ELSE NULL
+    END,
+    'header',CASE
+      WHEN p_presentation_version = 2 AND p_channel = 'whatsapp'
+      THEN jsonb_build_object(
+        'url','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png',
+        'mimeType','image/png',
+        'width',1200,
+        'height',628,
+        'sha256','b29c3947567fd874164ce7a7e24d1f230b6987183ea905fc13fbc7aebe830fb6'
+      )
+      ELSE NULL
+    END
+  ))
+$$;
+
+CREATE OR REPLACE FUNCTION public.concierge_presentation_hash(
+  p_presentation_contract jsonb,
+  p_email_shell_version integer,
+  p_email_shell_hash text
+)
+RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT encode(digest(concat_ws(
+    chr(31),
+    'concierge-presentation-hash-v1',
+    p_presentation_contract::text,
+    COALESCE(p_email_shell_version::text,''),
+    COALESCE(p_email_shell_hash,'')
+  ),'sha256'),'hex')
+$$;
+
 CREATE TABLE IF NOT EXISTS public.concierge_delivery_versions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   studio_id uuid NOT NULL REFERENCES public.studios(id) ON DELETE RESTRICT,
@@ -95,8 +309,20 @@ CREATE TABLE IF NOT EXISTS public.concierge_delivery_versions (
   template_key text NOT NULL,
   channel text NOT NULL CHECK (channel IN ('in_app','push','email','whatsapp')),
   locale text NOT NULL CHECK (locale IN ('ar','he','en')),
+  source_template_id uuid NOT NULL
+    REFERENCES public.concierge_template_versions(id) ON DELETE RESTRICT,
   source_template_version integer NOT NULL CHECK (source_template_version > 0),
+  source_content_hash text NOT NULL,
+  source_approved_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  source_approved_at timestamptz NOT NULL,
   presentation_version integer NOT NULL CHECK (presentation_version IN (1,2)),
+  presentation_key text NOT NULL,
+  presentation_hash text NOT NULL,
+  presentation_contract jsonb NOT NULL,
+  email_shell_version integer,
+  email_shell_hash text,
+  presentation_approved_by uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
+  presentation_approved_at timestamptz,
   provider_template_name text,
   provider_content_hash text,
   created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -105,9 +331,82 @@ CREATE TABLE IF NOT EXISTS public.concierge_delivery_versions (
     channel = 'whatsapp'
     OR (provider_template_name IS NULL AND provider_content_hash IS NULL)
   ),
-  UNIQUE (
-    studio_id, template_key, channel, locale, source_template_version, presentation_version
-  )
+  CHECK (
+    (channel = 'email' AND email_shell_version IS NOT NULL AND email_shell_hash IS NOT NULL)
+    OR (channel <> 'email' AND email_shell_version IS NULL AND email_shell_hash IS NULL)
+  ),
+  CHECK (
+    presentation_version = 1
+    OR (presentation_approved_by IS NULL) = (presentation_approved_at IS NULL)
+  ),
+  UNIQUE (studio_id, source_template_id, presentation_version)
+);
+
+CREATE OR REPLACE FUNCTION public.prevent_concierge_delivery_identity_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF (
+    to_jsonb(NEW) - 'presentation_approved_by' - 'presentation_approved_at'
+  ) IS DISTINCT FROM (
+    to_jsonb(OLD) - 'presentation_approved_by' - 'presentation_approved_at'
+  ) THEN
+    RAISE EXCEPTION 'concierge_delivery_version_identity_is_immutable';
+  END IF;
+  IF (NEW.presentation_approved_by IS NULL) <>
+     (NEW.presentation_approved_at IS NULL) THEN
+    RAISE EXCEPTION 'concierge_presentation_approval_is_incomplete';
+  END IF;
+  IF OLD.presentation_approved_by IS NOT NULL
+     AND (
+       NEW.presentation_approved_by IS DISTINCT FROM OLD.presentation_approved_by
+       OR NEW.presentation_approved_at IS DISTINCT FROM OLD.presentation_approved_at
+     ) THEN
+    RAISE EXCEPTION 'concierge_presentation_approval_is_immutable';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS prevent_concierge_delivery_identity_mutation
+ON public.concierge_delivery_versions;
+CREATE TRIGGER prevent_concierge_delivery_identity_mutation
+BEFORE UPDATE ON public.concierge_delivery_versions
+FOR EACH ROW EXECUTE FUNCTION public.prevent_concierge_delivery_identity_mutation();
+
+CREATE TABLE IF NOT EXISTS public.concierge_trusted_provider_settings (
+  studio_id uuid PRIMARY KEY REFERENCES public.studios(id) ON DELETE RESTRICT,
+  whatsapp_waba_id text NOT NULL,
+  configured_by uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
+  configured_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- This is the confirmed production Cloud & Core account, not a deployment discovered by
+-- scanning arbitrary WABAs. Provider evidence is always resolved through this setting.
+INSERT INTO public.concierge_trusted_provider_settings(studio_id, whatsapp_waba_id)
+SELECT studio.id, '1009561255148806'
+FROM public.studios studio
+WHERE studio.slug = 'cloud-core'
+ON CONFLICT (studio_id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS public.concierge_presentation_previews (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  studio_id uuid NOT NULL REFERENCES public.studios(id) ON DELETE RESTRICT,
+  delivery_version_id uuid NOT NULL
+    REFERENCES public.concierge_delivery_versions(id) ON DELETE RESTRICT,
+  source_content_hash text NOT NULL,
+  presentation_hash text NOT NULL,
+  previewed_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  previewed_at timestamptz NOT NULL DEFAULT now(),
+  approved_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  approved_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS concierge_presentation_preview_audit_idx
+ON public.concierge_presentation_previews(
+  delivery_version_id, presentation_hash, approved_at DESC
 );
 
 CREATE TABLE IF NOT EXISTS public.concierge_delivery_selections (
@@ -138,16 +437,39 @@ WHERE retired_at IS NULL;
 
 ALTER TABLE public.concierge_delivery_versions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.concierge_delivery_selections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.concierge_trusted_provider_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.concierge_presentation_previews ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.concierge_delivery_versions FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON public.concierge_delivery_selections FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.concierge_trusted_provider_settings FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.concierge_presentation_previews FROM PUBLIC, anon, authenticated;
 GRANT ALL ON public.concierge_delivery_versions TO service_role;
 GRANT ALL ON public.concierge_delivery_selections TO service_role;
+GRANT ALL ON public.concierge_trusted_provider_settings TO service_role;
+GRANT ALL ON public.concierge_presentation_previews TO service_role;
 
 -- v1 is the rollback-safe current presentation. A WhatsApp v1 candidate is eligible only
 -- when an exact confirmed-production deployment is already known.
+WITH approved_source AS (
+  SELECT DISTINCT ON (
+    source.studio_id, source.template_key, source.channel, source.locale
+  )
+    source.*
+  FROM public.concierge_template_versions source
+  WHERE source.lifecycle_status = 'approved'
+    AND source.approved_by IS NOT NULL
+    AND source.approved_at IS NOT NULL
+    AND source.retired_at IS NULL
+  ORDER BY
+    source.studio_id, source.template_key, source.channel, source.locale,
+    source.version DESC, source.approved_at DESC, source.id DESC
+)
 INSERT INTO public.concierge_delivery_versions(
   studio_id, journey_type, template_key, channel, locale,
-  source_template_version, presentation_version,
+  source_template_id, source_template_version, source_content_hash,
+  source_approved_by, source_approved_at,
+  presentation_version, presentation_key, presentation_hash, presentation_contract,
+  email_shell_version, email_shell_hash,
   provider_template_name, provider_content_hash
 )
 SELECT
@@ -156,31 +478,70 @@ SELECT
   source.template_key,
   source.channel,
   source.locale,
+  source.id,
   source.version,
+  source.content_hash,
+  source.approved_by,
+  source.approved_at,
   1,
+  source.template_key || ':' || source.channel || ':v1',
+  public.concierge_presentation_hash(
+    public.concierge_presentation_contract(
+      source.template_key,source.channel,source.locale,source.content_hash,1,NULL,NULL
+    ),
+    CASE WHEN source.channel = 'email' THEN 1 ELSE NULL END,
+    CASE WHEN source.channel = 'email'
+      THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+      ELSE NULL END
+  ),
+  public.concierge_presentation_contract(
+    source.template_key,source.channel,source.locale,source.content_hash,1,NULL,NULL
+  ),
+  CASE WHEN source.channel = 'email' THEN 1 ELSE NULL END,
+  CASE WHEN source.channel = 'email'
+    THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+    ELSE NULL
+  END,
   CASE WHEN source.channel = 'whatsapp' THEN source.template_key ELSE NULL END,
   CASE WHEN source.channel = 'whatsapp' THEN deployment.content_hash ELSE NULL END
-FROM public.concierge_template_versions source
+FROM approved_source source
+JOIN public.concierge_trusted_provider_settings trusted
+  ON trusted.studio_id = source.studio_id
 LEFT JOIN LATERAL (
   SELECT w.content_hash
   FROM public.whatsapp_template_deployments w
-  WHERE w.waba_id = '1009561255148806'
+  WHERE w.waba_id = trusted.whatsapp_waba_id
     AND w.template_name = source.template_key
     AND w.language = CASE source.locale WHEN 'en' THEN 'en_US' ELSE source.locale END
     AND upper(w.approval_status) = 'APPROVED'
   ORDER BY w.updated_at DESC
   LIMIT 1
 ) deployment ON source.channel = 'whatsapp'
-WHERE source.retired_at IS NULL
-ON CONFLICT (
-  studio_id, template_key, channel, locale, source_template_version, presentation_version
-) DO NOTHING;
+WHERE source.channel <> 'whatsapp' OR deployment.content_hash IS NOT NULL
+ON CONFLICT (studio_id, source_template_id, presentation_version) DO NOTHING;
 
 -- Email v2 is local presentation. WhatsApp v2 candidates carry the canonical catalog hash;
 -- a provider deployment still has to match it exactly before selection is eligible.
+WITH approved_source AS (
+  SELECT DISTINCT ON (
+    source.studio_id, source.template_key, source.channel, source.locale
+  )
+    source.*
+  FROM public.concierge_template_versions source
+  WHERE source.lifecycle_status = 'approved'
+    AND source.approved_by IS NOT NULL
+    AND source.approved_at IS NOT NULL
+    AND source.retired_at IS NULL
+  ORDER BY
+    source.studio_id, source.template_key, source.channel, source.locale,
+    source.version DESC, source.approved_at DESC, source.id DESC
+)
 INSERT INTO public.concierge_delivery_versions(
   studio_id, journey_type, template_key, channel, locale,
-  source_template_version, presentation_version,
+  source_template_id, source_template_version, source_content_hash,
+  source_approved_by, source_approved_at,
+  presentation_version, presentation_key, presentation_hash, presentation_contract,
+  email_shell_version, email_shell_hash,
   provider_template_name, provider_content_hash
 )
 SELECT
@@ -189,16 +550,42 @@ SELECT
   source.template_key,
   source.channel,
   source.locale,
+  source.id,
   source.version,
+  source.content_hash,
+  source.approved_by,
+  source.approved_at,
   2,
+  source.template_key || ':' || source.channel || ':v2',
+  public.concierge_presentation_hash(
+    public.concierge_presentation_contract(
+      source.template_key,source.channel,source.locale,source.content_hash,2,NULL,NULL
+    ),
+    1,
+    'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+  ),
+  public.concierge_presentation_contract(
+    source.template_key,source.channel,source.locale,source.content_hash,2,NULL,NULL
+  ),
+  1,
+  'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558',
   NULL,
   NULL
-FROM public.concierge_template_versions source
-WHERE source.retired_at IS NULL
-  AND source.channel = 'email'
-ON CONFLICT (
-  studio_id, template_key, channel, locale, source_template_version, presentation_version
-) DO NOTHING;
+FROM approved_source source
+WHERE source.channel = 'email'
+ON CONFLICT (studio_id, source_template_id, presentation_version) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS public.concierge_provider_template_catalog (
+  template_name text NOT NULL,
+  language text NOT NULL,
+  content_hash text NOT NULL,
+  header_asset_url text NOT NULL,
+  header_asset_sha256 text NOT NULL,
+  PRIMARY KEY (template_name, language)
+);
+ALTER TABLE public.concierge_provider_template_catalog ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.concierge_provider_template_catalog FROM PUBLIC, anon, authenticated;
+GRANT ALL ON public.concierge_provider_template_catalog TO service_role;
 
 WITH provider_catalog AS (
   SELECT *
@@ -208,9 +595,42 @@ WITH provider_catalog AS (
     content_hash text
   )
 )
+INSERT INTO public.concierge_provider_template_catalog(
+  template_name, language, content_hash, header_asset_url, header_asset_sha256
+)
+SELECT
+  provider.template_name,
+  provider.language,
+  provider.content_hash,
+  'https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png',
+  'b29c3947567fd874164ce7a7e24d1f230b6987183ea905fc13fbc7aebe830fb6'
+FROM provider_catalog provider
+ON CONFLICT (template_name, language) DO UPDATE
+SET content_hash = EXCLUDED.content_hash,
+    header_asset_url = EXCLUDED.header_asset_url,
+    header_asset_sha256 = EXCLUDED.header_asset_sha256;
+
+WITH approved_source AS (
+  SELECT DISTINCT ON (
+    source.studio_id, source.template_key, source.channel, source.locale
+  )
+    source.*
+  FROM public.concierge_template_versions source
+  WHERE source.lifecycle_status = 'approved'
+    AND source.approved_by IS NOT NULL
+    AND source.approved_at IS NOT NULL
+    AND source.retired_at IS NULL
+    AND source.channel = 'whatsapp'
+  ORDER BY
+    source.studio_id, source.template_key, source.channel, source.locale,
+    source.version DESC, source.approved_at DESC, source.id DESC
+)
 INSERT INTO public.concierge_delivery_versions(
   studio_id, journey_type, template_key, channel, locale,
-  source_template_version, presentation_version,
+  source_template_id, source_template_version, source_content_hash,
+  source_approved_by, source_approved_at,
+  presentation_version, presentation_key, presentation_hash, presentation_contract,
+  email_shell_version, email_shell_hash,
   provider_template_name, provider_content_hash
 )
 SELECT
@@ -219,21 +639,37 @@ SELECT
   source.template_key,
   source.channel,
   source.locale,
+  source.id,
   source.version,
+  source.content_hash,
+  source.approved_by,
+  source.approved_at,
   2,
+  source.template_key || ':' || source.channel || ':v2',
+  public.concierge_presentation_hash(
+    public.concierge_presentation_contract(
+      source.template_key,source.channel,source.locale,source.content_hash,2,
+      provider.template_name,provider.content_hash
+    ),
+    NULL,
+    NULL
+  ),
+  public.concierge_presentation_contract(
+    source.template_key,source.channel,source.locale,source.content_hash,2,
+    provider.template_name,provider.content_hash
+  ),
+  NULL,
+  NULL,
   provider.template_name,
   provider.content_hash
-FROM public.concierge_template_versions source
-JOIN provider_catalog provider
+FROM approved_source source
+JOIN public.concierge_provider_template_catalog provider
   ON regexp_replace(provider.template_name, '_branded_v2$', '') = source.template_key
  AND provider.language = CASE source.locale WHEN 'en' THEN 'en_US' ELSE source.locale END
-WHERE source.retired_at IS NULL
-  AND source.channel = 'whatsapp'
-ON CONFLICT (
-  studio_id, template_key, channel, locale, source_template_version, presentation_version
-) DO NOTHING;
+ON CONFLICT (studio_id, source_template_id, presentation_version) DO NOTHING;
 
--- Roll out safely: live remains v1; test-only gets v2 wherever a candidate exists.
+-- Preview first: both modes remain on rollback-safe v1. An authenticated preview approval
+-- plus an explicit exact-candidate selection is required before either mode can use v2.
 INSERT INTO public.concierge_delivery_selections(
   studio_id, journey_type, template_key, channel, locale,
   delivery_mode, delivery_version_id, selected_by
@@ -241,17 +677,9 @@ INSERT INTO public.concierge_delivery_selections(
 SELECT
   v1.studio_id, v1.journey_type, v1.template_key, v1.channel, v1.locale,
   mode.delivery_mode,
-  CASE WHEN mode.delivery_mode = 'test_only' THEN COALESCE(v2.id, v1.id) ELSE v1.id END,
-  NULL
+  v1.id, NULL
 FROM public.concierge_delivery_versions v1
 CROSS JOIN (VALUES ('test_only'::text), ('live'::text)) mode(delivery_mode)
-LEFT JOIN public.concierge_delivery_versions v2
-  ON v2.studio_id = v1.studio_id
- AND v2.template_key = v1.template_key
- AND v2.channel = v1.channel
- AND v2.locale = v1.locale
- AND v2.source_template_version = v1.source_template_version
- AND v2.presentation_version = 2
 WHERE v1.presentation_version = 1
   AND NOT EXISTS (
     SELECT 1
@@ -264,13 +692,266 @@ WHERE v1.presentation_version = 1
       AND selected.retired_at IS NULL
   );
 
+CREATE OR REPLACE FUNCTION public.approve_concierge_template_version(
+  p_studio_id uuid,
+  p_template_id uuid,
+  p_expected_content_hash text,
+  p_actor_id uuid,
+  p_confirmation text
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_source public.concierge_template_versions%ROWTYPE;
+  v_trusted_waba_id text;
+BEGIN
+  IF p_actor_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.profiles profile
+    WHERE profile.id = p_actor_id AND profile.role = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'admin_access_required';
+  END IF;
+  IF p_confirmation IS DISTINCT FROM
+     'APPROVE SOURCE ' || p_template_id::text || ' ' || p_expected_content_hash THEN
+    RAISE EXCEPTION 'exact_source_approval_confirmation_required';
+  END IF;
+
+  UPDATE public.concierge_template_versions source
+  SET lifecycle_status = 'approved',
+      approved_by = p_actor_id,
+      approved_at = now()
+  WHERE source.id = p_template_id
+    AND source.studio_id = p_studio_id
+    AND source.lifecycle_status = 'draft'
+    AND source.retired_at IS NULL
+    AND source.content_hash = p_expected_content_hash
+  RETURNING * INTO v_source;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'draft_source_hash_mismatch';
+  END IF;
+
+  SELECT trusted.whatsapp_waba_id
+  INTO v_trusted_waba_id
+  FROM public.concierge_trusted_provider_settings trusted
+  WHERE trusted.studio_id = p_studio_id;
+
+  INSERT INTO public.concierge_delivery_versions(
+    studio_id, journey_type, template_key, channel, locale,
+    source_template_id, source_template_version, source_content_hash,
+    source_approved_by, source_approved_at,
+    presentation_version, presentation_key, presentation_hash, presentation_contract,
+    email_shell_version, email_shell_hash, provider_template_name, provider_content_hash,
+    created_by
+  )
+  SELECT
+    v_source.studio_id, public.concierge_journey_for_template(v_source.template_key),
+    v_source.template_key, v_source.channel, v_source.locale,
+    v_source.id, v_source.version, v_source.content_hash,
+    v_source.approved_by, v_source.approved_at,
+    presentation.version,
+    v_source.template_key || ':' || v_source.channel || ':v' || presentation.version,
+    public.concierge_presentation_hash(
+      public.concierge_presentation_contract(
+        v_source.template_key,v_source.channel,v_source.locale,v_source.content_hash,
+        presentation.version,
+        CASE WHEN presentation.version = 2 AND v_source.channel = 'whatsapp'
+          THEN provider.template_name ELSE NULL END,
+        CASE WHEN presentation.version = 2 AND v_source.channel = 'whatsapp'
+          THEN provider.content_hash ELSE NULL END
+      ),
+      CASE WHEN v_source.channel = 'email' THEN 1 ELSE NULL END,
+      CASE WHEN v_source.channel = 'email'
+        THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+        ELSE NULL END
+    ),
+    public.concierge_presentation_contract(
+      v_source.template_key,v_source.channel,v_source.locale,v_source.content_hash,
+      presentation.version,
+      CASE WHEN presentation.version = 2 AND v_source.channel = 'whatsapp'
+        THEN provider.template_name ELSE NULL END,
+      CASE WHEN presentation.version = 2 AND v_source.channel = 'whatsapp'
+        THEN provider.content_hash ELSE NULL END
+    ),
+    CASE WHEN v_source.channel = 'email' THEN 1 ELSE NULL END,
+    CASE WHEN v_source.channel = 'email'
+      THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+      ELSE NULL END,
+    CASE
+      WHEN v_source.channel = 'whatsapp' AND presentation.version = 1
+        THEN v_source.template_key
+      WHEN v_source.channel = 'whatsapp' THEN provider.template_name
+      ELSE NULL
+    END,
+    CASE
+      WHEN v_source.channel = 'whatsapp' AND presentation.version = 1
+        THEN legacy.content_hash
+      WHEN v_source.channel = 'whatsapp' THEN provider.content_hash
+      ELSE NULL
+    END,
+    p_actor_id
+  FROM (VALUES (1),(2)) AS presentation(version)
+  LEFT JOIN public.concierge_provider_template_catalog provider
+    ON presentation.version = 2
+   AND v_source.channel = 'whatsapp'
+   AND regexp_replace(provider.template_name,'_branded_v2$','') = v_source.template_key
+   AND provider.language = CASE v_source.locale WHEN 'en' THEN 'en_US' ELSE v_source.locale END
+  LEFT JOIN LATERAL (
+    SELECT deployment.content_hash
+    FROM public.whatsapp_template_deployments deployment
+    WHERE deployment.waba_id = v_trusted_waba_id
+      AND deployment.template_name = v_source.template_key
+      AND deployment.language = CASE v_source.locale WHEN 'en' THEN 'en_US' ELSE v_source.locale END
+      AND upper(deployment.approval_status) = 'APPROVED'
+    ORDER BY deployment.updated_at DESC
+    LIMIT 1
+  ) legacy ON presentation.version = 1 AND v_source.channel = 'whatsapp'
+  WHERE (presentation.version = 1 OR v_source.channel IN ('email','whatsapp'))
+    AND (v_source.channel <> 'whatsapp' OR presentation.version <> 1
+      OR legacy.content_hash IS NOT NULL)
+    AND (v_source.channel <> 'whatsapp' OR presentation.version <> 2
+      OR provider.content_hash IS NOT NULL)
+  ON CONFLICT (studio_id, source_template_id, presentation_version) DO NOTHING;
+
+  INSERT INTO public.concierge_delivery_selections(
+    studio_id,journey_type,template_key,channel,locale,delivery_mode,
+    delivery_version_id,selected_by
+  )
+  SELECT
+    candidate.studio_id,candidate.journey_type,candidate.template_key,
+    candidate.channel,candidate.locale,mode.delivery_mode,candidate.id,p_actor_id
+  FROM public.concierge_delivery_versions candidate
+  CROSS JOIN (VALUES ('test_only'::text),('live'::text)) mode(delivery_mode)
+  WHERE candidate.source_template_id = v_source.id
+    AND candidate.presentation_version = 1
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.concierge_delivery_selections selected
+      WHERE selected.studio_id = candidate.studio_id
+        AND selected.template_key = candidate.template_key
+        AND selected.channel = candidate.channel
+        AND selected.locale = candidate.locale
+        AND selected.delivery_mode = mode.delivery_mode
+        AND selected.retired_at IS NULL
+    );
+
+  INSERT INTO public.admin_activity_log(actor_id,action,entity_type,entity_id,metadata)
+  VALUES (
+    p_actor_id,'concierge.template_exact_hash_approved',
+    'concierge_template_version',p_template_id,
+    jsonb_build_object('studio_id',p_studio_id,'content_hash',p_expected_content_hash)
+  );
+  RETURN p_template_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.approve_concierge_template_version(
+  uuid,uuid,text,uuid,text
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.approve_concierge_template_version(
+  uuid,uuid,text,uuid,text
+) TO service_role;
+REVOKE EXECUTE ON FUNCTION public.approve_concierge_template_library(
+  uuid,uuid,text
+) FROM service_role;
+
+CREATE OR REPLACE FUNCTION public.approve_concierge_delivery_preview(
+  p_studio_id uuid,
+  p_delivery_version_id uuid,
+  p_expected_source_hash text,
+  p_expected_presentation_hash text,
+  p_actor_id uuid,
+  p_confirmation text
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_version public.concierge_delivery_versions%ROWTYPE;
+  v_preview_id uuid;
+BEGIN
+  IF p_actor_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.profiles profile
+    WHERE profile.id = p_actor_id AND profile.role = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'admin_access_required';
+  END IF;
+  IF p_confirmation IS DISTINCT FROM
+     'APPROVE PREVIEW ' || p_delivery_version_id::text || ' ' ||
+     p_expected_presentation_hash THEN
+    RAISE EXCEPTION 'exact_preview_approval_confirmation_required';
+  END IF;
+  SELECT *
+  INTO v_version
+  FROM public.concierge_delivery_versions version
+  WHERE version.id = p_delivery_version_id
+    AND version.studio_id = p_studio_id
+    AND version.presentation_version = 2
+    AND version.source_content_hash = p_expected_source_hash
+    AND version.presentation_hash = p_expected_presentation_hash
+  FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'preview_candidate_hash_mismatch'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.concierge_template_versions source
+    WHERE source.id = v_version.source_template_id
+      AND source.lifecycle_status = 'approved'
+      AND source.retired_at IS NULL
+      AND source.content_hash = v_version.source_content_hash
+      AND source.approved_by = v_version.source_approved_by
+      AND source.approved_at = v_version.source_approved_at
+  ) THEN
+    RAISE EXCEPTION 'preview_source_evidence_changed';
+  END IF;
+
+  INSERT INTO public.concierge_presentation_previews(
+    studio_id,delivery_version_id,source_content_hash,presentation_hash,
+    previewed_by,approved_by
+  ) VALUES (
+    p_studio_id,v_version.id,v_version.source_content_hash,v_version.presentation_hash,
+    p_actor_id,p_actor_id
+  )
+  RETURNING id INTO v_preview_id;
+
+  UPDATE public.concierge_delivery_versions
+  SET presentation_approved_by = p_actor_id,
+      presentation_approved_at = now()
+  WHERE id = v_version.id
+    AND presentation_hash = p_expected_presentation_hash
+    AND presentation_approved_by IS NULL
+    AND presentation_approved_at IS NULL;
+  INSERT INTO public.admin_activity_log(actor_id,action,entity_type,entity_id,metadata)
+  VALUES (
+    p_actor_id,'concierge.presentation_preview_approved',
+    'concierge_delivery_version',v_version.id,
+    jsonb_build_object(
+      'source_content_hash',v_version.source_content_hash,
+      'presentation_hash',v_version.presentation_hash,
+      'preview_id',v_preview_id
+    )
+  );
+  RETURN v_preview_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.approve_concierge_delivery_preview(
+  uuid,uuid,text,text,uuid,text
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.approve_concierge_delivery_preview(
+  uuid,uuid,text,text,uuid,text
+) TO service_role;
+
 CREATE OR REPLACE FUNCTION public.select_concierge_delivery_version(
   p_studio_id uuid,
   p_template_key text,
   p_channel text,
   p_locale text,
   p_delivery_mode text,
-  p_presentation_version integer,
+  p_delivery_version_id uuid,
+  p_expected_presentation_hash text,
   p_actor_id uuid,
   p_confirmation text
 )
@@ -281,6 +962,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_version public.concierge_delivery_versions%ROWTYPE;
+  v_canonical_whatsapp_waba_id text;
   v_selection_id uuid;
   v_expected_confirmation text;
 BEGIN
@@ -292,10 +974,9 @@ BEGIN
   IF p_delivery_mode NOT IN ('test_only','live') THEN
     RAISE EXCEPTION 'invalid_delivery_mode';
   END IF;
-  v_expected_confirmation := CASE p_delivery_mode
-    WHEN 'live' THEN 'SELECT LIVE CONCIERGE PRESENTATION'
-    ELSE 'SELECT TEST CONCIERGE PRESENTATION'
-  END;
+  v_expected_confirmation :=
+    CASE p_delivery_mode WHEN 'live' THEN 'SELECT LIVE ' ELSE 'SELECT TEST ' END
+    || p_delivery_version_id::text || ' ' || COALESCE(p_expected_presentation_hash, '');
   IF p_confirmation IS DISTINCT FROM v_expected_confirmation THEN
     RAISE EXCEPTION 'delivery_selection_confirmation_required';
   END IF;
@@ -307,21 +988,55 @@ BEGIN
   SELECT *
   INTO v_version
   FROM public.concierge_delivery_versions v
-  WHERE v.studio_id = p_studio_id
+  WHERE v.id = p_delivery_version_id
+    AND v.studio_id = p_studio_id
     AND v.template_key = p_template_key
     AND v.channel = p_channel
     AND v.locale = p_locale
-    AND v.presentation_version = p_presentation_version
-  ORDER BY v.source_template_version DESC
-  LIMIT 1;
+    AND v.presentation_hash = p_expected_presentation_hash;
   IF NOT FOUND THEN RAISE EXCEPTION 'delivery_version_not_found'; END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.concierge_template_versions source
+    WHERE source.id = v_version.source_template_id
+      AND source.studio_id = p_studio_id
+      AND source.template_key = v_version.template_key
+      AND source.channel = v_version.channel
+      AND source.locale = v_version.locale
+      AND source.version = v_version.source_template_version
+      AND source.content_hash = v_version.source_content_hash
+      AND source.lifecycle_status = 'approved'
+      AND source.approved_by = v_version.source_approved_by
+      AND source.approved_at = v_version.source_approved_at
+      AND source.retired_at IS NULL
+  ) THEN
+    RAISE EXCEPTION 'delivery_version_source_evidence_changed';
+  END IF;
+  IF v_version.presentation_version = 2 AND NOT EXISTS (
+    SELECT 1
+    FROM public.concierge_presentation_previews preview
+    WHERE preview.delivery_version_id = v_version.id
+      AND preview.studio_id = p_studio_id
+      AND preview.source_content_hash = v_version.source_content_hash
+      AND preview.presentation_hash = v_version.presentation_hash
+      AND preview.approved_by IS NOT NULL
+      AND preview.approved_at IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'authenticated_presentation_preview_required';
+  END IF;
+  SELECT trusted.whatsapp_waba_id
+  INTO v_canonical_whatsapp_waba_id
+  FROM public.concierge_trusted_provider_settings trusted
+  WHERE trusted.studio_id = p_studio_id;
   IF v_version.channel = 'whatsapp' AND (
+    v_canonical_whatsapp_waba_id IS NULL
+    OR
     v_version.provider_template_name IS NULL
     OR v_version.provider_content_hash IS NULL
     OR NOT EXISTS (
       SELECT 1
       FROM public.whatsapp_template_deployments w
-      WHERE w.waba_id = '1009561255148806'
+      WHERE w.waba_id = v_canonical_whatsapp_waba_id
         AND w.template_name = v_version.provider_template_name
         AND w.language = CASE v_version.locale WHEN 'en' THEN 'en_US' ELSE v_version.locale END
         AND upper(w.approval_status) = 'APPROVED'
@@ -361,7 +1076,8 @@ BEGIN
       'channel',p_channel,
       'locale',p_locale,
       'delivery_mode',p_delivery_mode,
-      'presentation_version',p_presentation_version,
+      'presentation_version',v_version.presentation_version,
+      'presentation_hash',v_version.presentation_hash,
       'delivery_version_id',v_version.id
     )
   );
@@ -371,16 +1087,22 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.select_concierge_delivery_version(
-  uuid,text,text,text,text,integer,uuid,text
+  uuid,text,text,text,text,uuid,text,uuid,text
 ) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.select_concierge_delivery_version(
-  uuid,text,text,text,text,integer,uuid,text
+  uuid,text,text,text,text,uuid,text,uuid,text
 ) TO service_role;
 
 ALTER TABLE public.message_snapshots
   ADD COLUMN IF NOT EXISTS delivery_selection_id uuid
     REFERENCES public.concierge_delivery_selections(id) ON DELETE RESTRICT,
   ADD COLUMN IF NOT EXISTS presentation_key text,
+  ADD COLUMN IF NOT EXISTS presentation_hash text,
+  ADD COLUMN IF NOT EXISTS presentation_contract jsonb,
+  ADD COLUMN IF NOT EXISTS rendered_facts jsonb,
+  ADD COLUMN IF NOT EXISTS email_shell_version integer,
+  ADD COLUMN IF NOT EXISTS email_shell_hash text,
+  ADD COLUMN IF NOT EXISTS source_content_hash text,
   ADD COLUMN IF NOT EXISTS action_url text;
 
 -- Convert queued pre-deploy WhatsApp payloads from the positional "parameters" shape to
@@ -459,6 +1181,7 @@ DECLARE
   v_snapshot public.message_snapshots%ROWTYPE;
   v_item jsonb;
   v_rendered_variables jsonb;
+  v_expected_rendered_facts jsonb;
   v_expected_provider text;
   v_expected_address text;
   v_expected_presentation_key text;
@@ -467,7 +1190,9 @@ DECLARE
   v_whatsapp_parameters jsonb;
   v_canonical_whatsapp_waba_id text;
   v_materialization_evidence jsonb;
+  v_replay_evidence jsonb;
   v_existing_evidence jsonb;
+  v_existing_decision_id uuid;
   v_decision_id uuid;
   v_snapshot_id uuid;
   v_message_id uuid;
@@ -491,6 +1216,142 @@ BEGIN
   IF p_rendered_variables IS NULL
      OR jsonb_typeof(p_rendered_variables) IS DISTINCT FROM 'object' THEN
     RAISE EXCEPTION 'rendered_variables_required';
+  END IF;
+
+  -- exact_stored_materialization_replay: a completed request is authenticated by the
+  -- immutable decision/snapshot/delivery evidence before recipient, config, source,
+  -- selection, retirement, rollback, or provider state is consulted.
+  SELECT jsonb_build_object(
+    'intent_id',p_intent_id,
+    'correlation_id',p_correlation_id,
+    'journey_type',item->'snapshot'->>'journeyType',
+    'whatsapp_waba_id',CASE WHEN EXISTS (
+      SELECT 1 FROM jsonb_array_elements(p_materializations) candidate
+      WHERE candidate->'snapshot'->>'channel' = 'whatsapp'
+    ) THEN NULLIF(btrim(p_whatsapp_waba_id),'') ELSE NULL END,
+    'deliveries',jsonb_agg(
+      jsonb_build_object(
+        'channel',item->'snapshot'->>'channel',
+        'template_id',item->'snapshot'->>'templateId',
+        'template_version',item->'snapshot'->>'templateVersion',
+        'locale',item->'snapshot'->>'locale',
+        'rendered_variables',COALESCE(
+          item->'snapshot'->'renderedVariables',p_rendered_variables
+        ),
+        'final_subject',item->'snapshot'->>'finalSubject',
+        'final_body',item->'snapshot'->>'finalBody',
+        'presentation_key',item->'snapshot'->>'presentationKey',
+        'presentation_hash',item->'snapshot'->>'presentationHash',
+        'presentation_contract',item->'snapshot'->'presentationContract',
+        'rendered_facts',item->'snapshot'->'renderedFacts',
+        'email_shell_version',item->'snapshot'->'emailShellVersion',
+        'email_shell_hash',item->'snapshot'->>'emailShellHash',
+        'source_content_hash',item->'snapshot'->>'sourceContentHash',
+        'journey_type',item->'snapshot'->>'journeyType',
+        'action_url',item->'snapshot'->>'actionUrl',
+        'selection_id',item->'snapshot'->>'selectionId',
+        'provider_content_hash',
+          item->'delivery'->'providerPayload'->>'expected_content_hash',
+        'provider',item->'delivery'->>'provider',
+        'recipient_address',item->'delivery'->>'recipientAddress',
+        'provider_payload',COALESCE(item->'delivery'->'providerPayload','{}'::jsonb)
+      )
+      ORDER BY item->'snapshot'->>'channel'
+    )
+  )
+  INTO v_replay_evidence
+  FROM jsonb_array_elements(p_materializations) item
+  GROUP BY item->'snapshot'->>'journeyType';
+
+  SELECT decision.id, decision.materialization_evidence
+  INTO v_existing_decision_id, v_existing_evidence
+  FROM public.concierge_decisions decision
+  WHERE decision.studio_id = p_studio_id
+    AND decision.decision_key = p_decision_key
+    AND decision.intent_id = p_intent_id
+    AND decision.communication_recipient_id = p_recipient_id;
+  IF v_existing_decision_id IS NOT NULL THEN
+    -- stored_materialization_evidence_reconstruction: decisions written before the
+    -- evidence column was populated are authenticated from their immutable stored
+    -- snapshots/messages/deliveries. No current source, selection, or provider row is used.
+    IF v_existing_evidence IS NULL THEN
+      SELECT jsonb_build_object(
+        'intent_id',p_intent_id,
+        'correlation_id',
+          (array_agg(snapshot.correlation_id ORDER BY snapshot.channel))[1],
+        'journey_type',
+          (array_agg(message.content->>'journey_type' ORDER BY snapshot.channel))[1],
+        'whatsapp_waba_id',NULL,
+        'deliveries',jsonb_agg(
+          jsonb_build_object(
+            'channel',snapshot.channel,
+            'template_id',snapshot.template_id::text,
+            'template_version',message.template_version::text,
+            'locale',snapshot.locale,
+            'rendered_variables',snapshot.rendered_variables,
+            'final_subject',snapshot.final_subject,
+            'final_body',snapshot.final_body,
+            'presentation_key',snapshot.presentation_key,
+            'presentation_hash',snapshot.presentation_hash,
+            'presentation_contract',snapshot.presentation_contract,
+            'rendered_facts',snapshot.rendered_facts,
+            'email_shell_version',snapshot.email_shell_version,
+            'email_shell_hash',snapshot.email_shell_hash,
+            'source_content_hash',snapshot.source_content_hash,
+            'journey_type',message.content->>'journey_type',
+            'action_url',snapshot.action_url,
+            'selection_id',snapshot.delivery_selection_id::text,
+            'provider_content_hash',
+              delivery.provider_payload->>'expected_content_hash',
+            'provider',delivery.provider,
+            'recipient_address',delivery.recipient_address,
+            'provider_payload',COALESCE(delivery.provider_payload,'{}'::jsonb)
+          )
+          ORDER BY snapshot.channel
+        )
+      )
+      INTO v_existing_evidence
+      FROM public.message_snapshots snapshot
+      JOIN public.message_deliveries delivery ON delivery.snapshot_id = snapshot.id
+      JOIN public.messages message ON message.id = delivery.message_id
+      WHERE snapshot.decision_id = v_existing_decision_id
+      HAVING count(*) > 0;
+    END IF;
+    IF v_existing_evidence IS DISTINCT FROM v_replay_evidence THEN
+      RAISE EXCEPTION 'snapshot_replay_mismatch';
+    END IF;
+    IF (
+      SELECT count(*) FROM public.message_snapshots snapshot
+      WHERE snapshot.decision_id = v_existing_decision_id
+    ) = jsonb_array_length(p_materializations) THEN
+      FOR v_item IN SELECT value FROM jsonb_array_elements(p_materializations) LOOP
+        IF NOT EXISTS (
+          SELECT 1
+          FROM public.message_snapshots snapshot
+          JOIN public.message_deliveries delivery ON delivery.snapshot_id = snapshot.id
+          WHERE snapshot.decision_id = v_existing_decision_id
+            AND snapshot.channel = v_item->'snapshot'->>'channel'
+            AND snapshot.template_id =
+              (v_item->'snapshot'->>'templateId')::uuid
+            AND snapshot.rendered_variables = COALESCE(
+              v_item->'snapshot'->'renderedVariables',p_rendered_variables
+            )
+            AND snapshot.final_subject IS NOT DISTINCT FROM
+              v_item->'snapshot'->>'finalSubject'
+            AND snapshot.final_body = v_item->'snapshot'->>'finalBody'
+            AND delivery.provider = v_item->'delivery'->>'provider'
+            AND delivery.recipient_address IS NOT DISTINCT FROM
+              v_item->'delivery'->>'recipientAddress'
+            AND delivery.provider_payload = COALESCE(
+              v_item->'delivery'->'providerPayload','{}'::jsonb
+            )
+        ) THEN
+          RAISE EXCEPTION 'snapshot_replay_mismatch';
+        END IF;
+      END LOOP;
+      RETURN QUERY SELECT v_existing_decision_id, 'duplicate'::text, NULL::text;
+      RETURN;
+    END IF;
   END IF;
 
   SELECT *
@@ -544,20 +1405,27 @@ BEGIN
     RAISE EXCEPTION 'duplicate_materialization_channel';
   END IF;
 
-  v_canonical_whatsapp_waba_id := CASE
-    WHEN EXISTS (
-      SELECT 1
-      FROM jsonb_array_elements(p_materializations) item
-      WHERE item->'snapshot'->>'channel' = 'whatsapp'
-    ) THEN NULLIF(btrim(p_whatsapp_waba_id),'')
-    ELSE NULL
-  END;
+  SELECT trusted.whatsapp_waba_id
+  INTO v_canonical_whatsapp_waba_id
+  FROM public.concierge_trusted_provider_settings trusted
+  WHERE trusted.studio_id = p_studio_id;
   IF EXISTS (
     SELECT 1
     FROM jsonb_array_elements(p_materializations) item
     WHERE item->'snapshot'->>'channel' = 'whatsapp'
-  ) AND v_canonical_whatsapp_waba_id IS NULL THEN
-    RAISE EXCEPTION 'whatsapp_waba_required';
+  ) AND (
+    v_canonical_whatsapp_waba_id IS NULL
+    OR NULLIF(btrim(p_whatsapp_waba_id),'') IS DISTINCT FROM
+      v_canonical_whatsapp_waba_id
+  ) THEN
+    RAISE EXCEPTION 'trusted_whatsapp_waba_mismatch';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(p_materializations) item
+    WHERE item->'snapshot'->>'channel' = 'whatsapp'
+  ) THEN
+    v_canonical_whatsapp_waba_id := NULL;
   END IF;
 
   FOR v_item IN SELECT value FROM jsonb_array_elements(p_materializations) LOOP
@@ -579,6 +1447,10 @@ BEGIN
       RAISE EXCEPTION 'invalid_delivery_idempotency_key';
     END IF;
     IF NOT (v_item->'snapshot' ? 'presentationKey')
+       OR NOT (v_item->'snapshot' ? 'presentationHash')
+       OR NOT (v_item->'snapshot' ? 'presentationContract')
+       OR NOT (v_item->'snapshot' ? 'renderedFacts')
+       OR NOT (v_item->'snapshot' ? 'sourceContentHash')
        OR NOT (v_item->'snapshot' ? 'journeyType')
        OR NOT (v_item->'snapshot' ? 'actionUrl')
        OR NOT (v_item->'snapshot' ? 'selectionId')
@@ -623,27 +1495,30 @@ BEGIN
       AND version.template_key = p_template_key
       AND version.channel = v_template.channel
       AND version.locale = v_recipient.preferred_locale
-      AND version.source_template_version = v_template.version;
+      AND version.source_template_id = v_template.id
+      AND version.source_template_version = v_template.version
+      AND version.source_content_hash = v_template.content_hash
+      AND version.source_approved_by = v_template.approved_by
+      AND version.source_approved_at = v_template.approved_at;
     IF NOT FOUND THEN RAISE EXCEPTION 'delivery_version_mismatch'; END IF;
 
-    v_expected_presentation_key :=
-      p_template_key || ':' || v_template.channel || ':v' ||
-      v_delivery_version.presentation_version::text;
+    v_expected_presentation_key := v_delivery_version.presentation_key;
     IF v_item->'snapshot'->>'presentationKey'
-       IS DISTINCT FROM v_expected_presentation_key THEN
+       IS DISTINCT FROM v_expected_presentation_key
+       OR v_item->'snapshot'->>'presentationHash'
+         IS DISTINCT FROM v_delivery_version.presentation_hash
+       OR v_item->'snapshot'->'presentationContract'
+         IS DISTINCT FROM v_delivery_version.presentation_contract
+       OR v_item->'snapshot'->>'sourceContentHash'
+         IS DISTINCT FROM v_delivery_version.source_content_hash
+       OR (v_item->'snapshot'->>'emailShellVersion')::integer
+         IS DISTINCT FROM v_delivery_version.email_shell_version
+       OR v_item->'snapshot'->>'emailShellHash'
+         IS DISTINCT FROM v_delivery_version.email_shell_hash THEN
       RAISE EXCEPTION 'invalid_concierge_presentation_evidence';
     END IF;
 
-    v_expected_action_url := CASE
-      WHEN v_delivery_version.presentation_version <> 2 THEN NULL
-      WHEN p_template_key IN ('booking_confirmed_first','booking_confirmed_repeat')
-        THEN 'https://cloudandcorestudio.com/member/bookings'
-      WHEN p_template_key IN ('payment_requires_action','payment_terminally_failed')
-        THEN 'https://cloudandcorestudio.com/member/packages'
-      WHEN p_template_key IN ('waitlist_offer','recommendation','weekly_schedule')
-        THEN 'https://cloudandcorestudio.com/member/schedule'
-      ELSE NULL
-    END;
+    v_expected_action_url := v_delivery_version.presentation_contract->>'actionUrl';
     IF v_item->'snapshot'->>'actionUrl' IS DISTINCT FROM v_expected_action_url THEN
       RAISE EXCEPTION 'invalid_concierge_presentation_evidence';
     END IF;
@@ -653,6 +1528,40 @@ BEGIN
     IF jsonb_typeof(v_rendered_variables) IS DISTINCT FROM 'object' THEN
       RAISE EXCEPTION 'rendered_variables_required';
     END IF;
+    IF jsonb_typeof(v_delivery_version.presentation_contract->'facts')
+       IS DISTINCT FROM 'array'
+       OR EXISTS (
+         SELECT 1
+         FROM jsonb_array_elements(
+           v_delivery_version.presentation_contract->'facts'
+         ) fact
+         WHERE jsonb_typeof(fact) IS DISTINCT FROM 'object'
+            OR jsonb_typeof(fact->'key') IS DISTINCT FROM 'string'
+            OR jsonb_typeof(fact->'label') IS DISTINCT FROM 'string'
+            OR jsonb_typeof(fact->'ltr') IS DISTINCT FROM 'boolean'
+       ) THEN
+      RAISE EXCEPTION 'invalid_presentation_fact_contract';
+    END IF;
+    SELECT COALESCE(
+      jsonb_agg(
+        jsonb_build_object(
+          'key',fact.value->>'key',
+          'label',fact.value->>'label',
+          'value',v_rendered_variables->>(fact.value->>'key'),
+          'ltr',(fact.value->>'ltr')::boolean
+        )
+        ORDER BY fact.ordinality
+      ),
+      '[]'::jsonb
+    )
+    INTO v_expected_rendered_facts
+    FROM jsonb_array_elements(v_delivery_version.presentation_contract->'facts')
+      WITH ORDINALITY AS fact(value, ordinality)
+    WHERE NULLIF(btrim(v_rendered_variables->>(fact.value->>'key')),'') IS NOT NULL;
+    IF v_item->'snapshot'->'renderedFacts'
+       IS DISTINCT FROM v_expected_rendered_facts THEN
+      RAISE EXCEPTION 'rendered_fact_evidence_mismatch';
+    END IF;
     IF EXISTS (
       SELECT 1
       FROM unnest(v_template.required_variables) required(name)
@@ -660,7 +1569,17 @@ BEGIN
     ) THEN
       RAISE EXCEPTION 'required_template_variable_missing';
     END IF;
-
+    IF v_template.channel = 'email'
+       AND p_template_key IN (
+         'payment_one_time_succeeded','payment_subscription_renewal_succeeded',
+         'payment_recovered'
+       )
+       AND (
+         NULLIF(v_rendered_variables->>'amount','') IS NULL
+         OR NULLIF(v_rendered_variables->>'payment_date','') IS NULL
+       ) THEN
+      RAISE EXCEPTION 'payment_presentation_proof_required';
+    END IF;
     v_expected_provider := CASE v_template.channel
       WHEN 'in_app' THEN 'internal'
       WHEN 'push' THEN 'apns'
@@ -718,7 +1637,7 @@ BEGIN
                   jsonb_build_object(
                     'type','image',
                     'image',jsonb_build_object(
-                      'link','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp'
+                      'link','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png'
                     )
                   )
                 )
@@ -766,6 +1685,12 @@ BEGIN
         'final_subject',item->'snapshot'->>'finalSubject',
         'final_body',item->'snapshot'->>'finalBody',
         'presentation_key',item->'snapshot'->>'presentationKey',
+        'presentation_hash',item->'snapshot'->>'presentationHash',
+        'presentation_contract',item->'snapshot'->'presentationContract',
+        'rendered_facts',item->'snapshot'->'renderedFacts',
+        'email_shell_version',item->'snapshot'->'emailShellVersion',
+        'email_shell_hash',item->'snapshot'->>'emailShellHash',
+        'source_content_hash',item->'snapshot'->>'sourceContentHash',
         'journey_type',item->'snapshot'->>'journeyType',
         'action_url',item->'snapshot'->>'actionUrl',
         'selection_id',item->'snapshot'->>'selectionId',
@@ -868,6 +1793,16 @@ BEGIN
               v_item->'snapshot'->>'journeyType'
             AND message.content->>'presentation_key' IS NOT DISTINCT FROM
               v_item->'snapshot'->>'presentationKey'
+            AND message.content->>'presentation_hash' IS NOT DISTINCT FROM
+              v_item->'snapshot'->>'presentationHash'
+            AND message.content->'presentation_contract' IS NOT DISTINCT FROM
+              v_item->'snapshot'->'presentationContract'
+            AND message.content->'rendered_facts' IS NOT DISTINCT FROM
+              v_item->'snapshot'->'renderedFacts'
+            AND message.content->>'email_shell_hash' IS NOT DISTINCT FROM
+              v_item->'snapshot'->>'emailShellHash'
+            AND message.content->>'source_content_hash' IS NOT DISTINCT FROM
+              v_item->'snapshot'->>'sourceContentHash'
             AND message.content->>'action_url' IS NOT DISTINCT FROM
               v_item->'snapshot'->>'actionUrl'
             AND message.content->>'selection_id' IS NOT DISTINCT FROM
@@ -938,7 +1873,9 @@ BEGIN
     INSERT INTO public.message_snapshots(
       studio_id, decision_id, template_id, locale, channel, rendered_variables,
       final_subject, final_body, content_hash, correlation_id, journey_instance_id,
-      delivery_selection_id, presentation_key, action_url
+      delivery_selection_id, presentation_key, presentation_hash,
+      presentation_contract, rendered_facts, email_shell_version, email_shell_hash,
+      source_content_hash, action_url
     ) VALUES (
       p_studio_id, v_decision_id, (v_item->'snapshot'->>'templateId')::uuid,
       v_item->'snapshot'->>'locale', v_item->'snapshot'->>'channel',
@@ -951,6 +1888,12 @@ BEGIN
       p_correlation_id, v_intent.journey_instance_id,
       (v_item->'snapshot'->>'selectionId')::uuid,
       v_item->'snapshot'->>'presentationKey',
+      v_item->'snapshot'->>'presentationHash',
+      v_item->'snapshot'->'presentationContract',
+      v_item->'snapshot'->'renderedFacts',
+      (v_item->'snapshot'->>'emailShellVersion')::integer,
+      v_item->'snapshot'->>'emailShellHash',
+      v_item->'snapshot'->>'sourceContentHash',
       v_item->'snapshot'->>'actionUrl'
     )
     ON CONFLICT (decision_id,channel) DO NOTHING
@@ -972,6 +1915,18 @@ BEGIN
          OR v_snapshot.correlation_id IS DISTINCT FROM p_correlation_id
          OR v_snapshot.presentation_key IS DISTINCT FROM
            v_item->'snapshot'->>'presentationKey'
+         OR v_snapshot.presentation_hash IS DISTINCT FROM
+           v_item->'snapshot'->>'presentationHash'
+         OR v_snapshot.presentation_contract IS DISTINCT FROM
+           v_item->'snapshot'->'presentationContract'
+         OR v_snapshot.rendered_facts IS DISTINCT FROM
+           v_item->'snapshot'->'renderedFacts'
+         OR v_snapshot.email_shell_version IS DISTINCT FROM
+           (v_item->'snapshot'->>'emailShellVersion')::integer
+         OR v_snapshot.email_shell_hash IS DISTINCT FROM
+           v_item->'snapshot'->>'emailShellHash'
+         OR v_snapshot.source_content_hash IS DISTINCT FROM
+           v_item->'snapshot'->>'sourceContentHash'
          OR v_snapshot.action_url IS DISTINCT FROM v_item->'snapshot'->>'actionUrl'
          OR v_snapshot.delivery_selection_id IS DISTINCT FROM
            (v_item->'snapshot'->>'selectionId')::uuid THEN
@@ -997,6 +1952,12 @@ BEGIN
         'correlation_id',p_correlation_id,
         'journey_type',v_intent.journey_type,
         'presentation_key',v_item->'snapshot'->>'presentationKey',
+        'presentation_hash',v_item->'snapshot'->>'presentationHash',
+        'presentation_contract',v_item->'snapshot'->'presentationContract',
+        'rendered_facts',v_item->'snapshot'->'renderedFacts',
+        'email_shell_version',v_item->'snapshot'->'emailShellVersion',
+        'email_shell_hash',v_item->'snapshot'->>'emailShellHash',
+        'source_content_hash',v_item->'snapshot'->>'sourceContentHash',
         'action_url',v_item->'snapshot'->>'actionUrl',
         'selection_id',v_item->'snapshot'->>'selectionId',
         'provider_content_hash',
@@ -1021,6 +1982,16 @@ BEGIN
             v_item->'snapshot'->>'journeyType'
           AND message.content->>'presentation_key' IS NOT DISTINCT FROM
             v_item->'snapshot'->>'presentationKey'
+          AND message.content->>'presentation_hash' IS NOT DISTINCT FROM
+            v_item->'snapshot'->>'presentationHash'
+          AND message.content->'presentation_contract' IS NOT DISTINCT FROM
+            v_item->'snapshot'->'presentationContract'
+          AND message.content->'rendered_facts' IS NOT DISTINCT FROM
+            v_item->'snapshot'->'renderedFacts'
+          AND message.content->>'email_shell_hash' IS NOT DISTINCT FROM
+            v_item->'snapshot'->>'emailShellHash'
+          AND message.content->>'source_content_hash' IS NOT DISTINCT FROM
+            v_item->'snapshot'->>'sourceContentHash'
           AND message.content->>'action_url' IS NOT DISTINCT FROM
             v_item->'snapshot'->>'actionUrl'
           AND message.content->>'selection_id' IS NOT DISTINCT FROM
@@ -1115,12 +2086,13 @@ DECLARE
   v_translated_item jsonb;
   v_translated_materializations jsonb := '[]'::jsonb;
   v_rendered_variables jsonb;
+  v_expected_rendered_facts jsonb;
   v_expected_action_url text;
   v_expected_presentation_key text;
   v_expected_provider_payload jsonb;
   v_whatsapp_parameters jsonb;
   v_waba_id text;
-  v_waba_count integer;
+  v_existing_decision_id uuid;
 BEGIN
   IF p_materializations IS NULL
      OR jsonb_typeof(p_materializations) IS DISTINCT FROM 'array' THEN
@@ -1131,6 +2103,93 @@ BEGIN
   END IF;
   IF p_mode NOT IN ('test_only','live') THEN
     RAISE EXCEPTION 'invalid_delivery_mode';
+  END IF;
+
+  -- historical_materialization_replay: reconstruct the exact stored v2 evidence for an
+  -- already completed legacy request. This deliberately does not resolve the current
+  -- source, selection, recipient status, config, provider deployment, or WABA.
+  SELECT decision.id,
+         decision.materialization_evidence->>'whatsapp_waba_id'
+  INTO v_existing_decision_id, v_waba_id
+  FROM public.concierge_decisions decision
+  WHERE decision.studio_id = p_studio_id
+    AND decision.decision_key = p_decision_key
+    AND decision.intent_id = p_intent_id
+    AND decision.communication_recipient_id = p_recipient_id;
+  IF v_existing_decision_id IS NOT NULL
+     AND (
+       SELECT count(*) FROM public.message_snapshots snapshot
+       WHERE snapshot.decision_id = v_existing_decision_id
+     ) = jsonb_array_length(p_materializations) THEN
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'snapshot',jsonb_build_object(
+          'templateId',snapshot.template_id,
+          'templateVersion',message.template_version,
+          'locale',snapshot.locale,
+          'channel',snapshot.channel,
+          'renderedVariables',snapshot.rendered_variables,
+          'finalSubject',snapshot.final_subject,
+          'finalBody',snapshot.final_body,
+          'presentationKey',snapshot.presentation_key,
+          'presentationHash',snapshot.presentation_hash,
+          'presentationContract',snapshot.presentation_contract,
+          'renderedFacts',snapshot.rendered_facts,
+          'emailShellVersion',snapshot.email_shell_version,
+          'emailShellHash',snapshot.email_shell_hash,
+          'sourceContentHash',snapshot.source_content_hash,
+          'journeyType',message.content->>'journey_type',
+          'actionUrl',snapshot.action_url,
+          'selectionId',snapshot.delivery_selection_id
+        ),
+        'delivery',jsonb_build_object(
+          'channel',delivery.channel,
+          'provider',delivery.provider,
+          'recipientAddress',delivery.recipient_address,
+          'status',CASE WHEN delivery.status = 'suppressed'
+            THEN 'suppressed' ELSE 'queued' END,
+          'errorCode',delivery.error_code,
+          'idempotencyKey',delivery.idempotency_key,
+          'scheduledFor',delivery.scheduled_for,
+          'expiresAt',delivery.expires_at,
+          'providerPayload',delivery.provider_payload
+        )
+      )
+      ORDER BY snapshot.channel
+    )
+    INTO v_translated_materializations
+    FROM public.message_snapshots snapshot
+    JOIN public.message_deliveries delivery ON delivery.snapshot_id = snapshot.id
+    JOIN public.messages message ON message.id = delivery.message_id
+    WHERE snapshot.decision_id = v_existing_decision_id;
+
+    FOR v_item IN SELECT value FROM jsonb_array_elements(p_materializations) LOOP
+      IF NOT EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(v_translated_materializations) stored
+        WHERE stored->'snapshot'->>'channel' =
+              v_item->'snapshot'->>'channel'
+          AND stored->'snapshot'->>'templateId' =
+              v_item->'snapshot'->>'templateId'
+          AND stored->'snapshot'->>'finalBody' =
+              v_item->'snapshot'->>'finalBody'
+          AND stored->'delivery'->>'provider' =
+              v_item->'delivery'->>'provider'
+          AND stored->'delivery'->>'recipientAddress' IS NOT DISTINCT FROM
+              v_item->'delivery'->>'recipientAddress'
+      ) THEN
+        RAISE EXCEPTION 'snapshot_replay_mismatch';
+      END IF;
+    END LOOP;
+    RETURN QUERY
+    SELECT *
+    FROM public.materialize_concierge_delivery(
+      p_studio_id,p_recipient_id,p_intent_id,p_decision_key,p_policy_version,
+      p_automation_config_version,p_mode,p_template_key,p_correlation_id,
+      p_reason_codes,p_competing_action_ids,p_rendered_variables,
+      v_translated_materializations,v_waba_id,p_now
+    );
+    RETURN;
   END IF;
 
   SELECT *
@@ -1189,7 +2248,11 @@ BEGIN
       AND version.template_key = p_template_key
       AND version.channel = v_template.channel
       AND version.locale = v_recipient.preferred_locale
-      AND version.source_template_version = v_template.version;
+      AND version.source_template_id = v_template.id
+      AND version.source_template_version = v_template.version
+      AND version.source_content_hash = v_template.content_hash
+      AND version.source_approved_by = v_template.approved_by
+      AND version.source_approved_at = v_template.approved_at;
     IF NOT FOUND THEN RAISE EXCEPTION 'delivery_version_mismatch'; END IF;
 
     v_rendered_variables :=
@@ -1197,19 +2260,28 @@ BEGIN
     IF jsonb_typeof(v_rendered_variables) IS DISTINCT FROM 'object' THEN
       RAISE EXCEPTION 'rendered_variables_required';
     END IF;
-    v_expected_presentation_key :=
-      p_template_key || ':' || v_template.channel || ':v' ||
-      v_delivery_version.presentation_version::text;
-    v_expected_action_url := CASE
-      WHEN v_delivery_version.presentation_version <> 2 THEN NULL
-      WHEN p_template_key IN ('booking_confirmed_first','booking_confirmed_repeat')
-        THEN 'https://cloudandcorestudio.com/member/bookings'
-      WHEN p_template_key IN ('payment_requires_action','payment_terminally_failed')
-        THEN 'https://cloudandcorestudio.com/member/packages'
-      WHEN p_template_key IN ('waitlist_offer','recommendation','weekly_schedule')
-        THEN 'https://cloudandcorestudio.com/member/schedule'
-      ELSE NULL
-    END;
+    IF jsonb_typeof(v_delivery_version.presentation_contract->'facts')
+       IS DISTINCT FROM 'array' THEN
+      RAISE EXCEPTION 'invalid_presentation_fact_contract';
+    END IF;
+    SELECT COALESCE(
+      jsonb_agg(
+        jsonb_build_object(
+          'key',fact.value->>'key',
+          'label',fact.value->>'label',
+          'value',v_rendered_variables->>(fact.value->>'key'),
+          'ltr',(fact.value->>'ltr')::boolean
+        )
+        ORDER BY fact.ordinality
+      ),
+      '[]'::jsonb
+    )
+    INTO v_expected_rendered_facts
+    FROM jsonb_array_elements(v_delivery_version.presentation_contract->'facts')
+      WITH ORDINALITY AS fact(value, ordinality)
+    WHERE NULLIF(btrim(v_rendered_variables->>(fact.value->>'key')),'') IS NOT NULL;
+    v_expected_presentation_key := v_delivery_version.presentation_key;
+    v_expected_action_url := v_delivery_version.presentation_contract->>'actionUrl';
 
     IF v_template.channel = 'whatsapp' THEN
       IF v_delivery_version.provider_template_name IS NULL
@@ -1245,7 +2317,7 @@ BEGIN
                   jsonb_build_object(
                     'type','image',
                     'image',jsonb_build_object(
-                      'link','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp'
+                      'link','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png'
                     )
                   )
                 )
@@ -1267,6 +2339,12 @@ BEGIN
           'renderedVariables',v_rendered_variables,
           'locale',v_recipient.preferred_locale,
           'presentationKey',v_expected_presentation_key,
+          'presentationHash',v_delivery_version.presentation_hash,
+          'presentationContract',v_delivery_version.presentation_contract,
+          'renderedFacts',v_expected_rendered_facts,
+          'emailShellVersion',v_delivery_version.email_shell_version,
+          'emailShellHash',v_delivery_version.email_shell_hash,
+          'sourceContentHash',v_delivery_version.source_content_hash,
           'journeyType',v_intent.journey_type,
           'actionUrl',v_expected_action_url,
           'selectionId',v_selection.id
@@ -1280,27 +2358,35 @@ BEGIN
       v_translated_materializations || jsonb_build_array(v_translated_item);
   END LOOP;
 
-  SELECT min(deployment.waba_id), count(DISTINCT deployment.waba_id)
-  INTO v_waba_id, v_waba_count
-  FROM public.whatsapp_template_deployments deployment
-  WHERE upper(deployment.approval_status) = 'APPROVED'
-    AND EXISTS (
-      SELECT 1
-      FROM jsonb_array_elements(v_translated_materializations) item
-      WHERE item->'snapshot'->>'channel' = 'whatsapp'
-        AND deployment.template_name =
-          item->'delivery'->'providerPayload'->>'template_name'
-        AND deployment.language =
-          item->'delivery'->'providerPayload'->>'template_language'
-        AND deployment.content_hash =
-          item->'delivery'->'providerPayload'->>'expected_content_hash'
-    );
+  SELECT trusted.whatsapp_waba_id
+  INTO v_waba_id
+  FROM public.concierge_trusted_provider_settings trusted
+  WHERE trusted.studio_id = p_studio_id;
   IF EXISTS (
     SELECT 1
     FROM jsonb_array_elements(v_translated_materializations) item
     WHERE item->'snapshot'->>'channel' = 'whatsapp'
-  ) AND v_waba_count <> 1 THEN
-    RAISE EXCEPTION 'whatsapp_waba_resolution_ambiguous';
+  ) AND (
+    v_waba_id IS NULL
+    OR EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(v_translated_materializations) item
+      WHERE item->'snapshot'->>'channel' = 'whatsapp'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM public.whatsapp_template_deployments deployment
+          WHERE deployment.waba_id = v_waba_id
+            AND upper(deployment.approval_status) = 'APPROVED'
+            AND deployment.template_name =
+              item->'delivery'->'providerPayload'->>'template_name'
+            AND deployment.language =
+              item->'delivery'->'providerPayload'->>'template_language'
+            AND deployment.content_hash =
+              item->'delivery'->'providerPayload'->>'expected_content_hash'
+        )
+    )
+  ) THEN
+    RAISE EXCEPTION 'trusted_whatsapp_deployment_missing';
   END IF;
 
   RETURN QUERY
@@ -1310,7 +2396,7 @@ BEGIN
     p_automation_config_version,p_mode,p_template_key,p_correlation_id,
     p_reason_codes,p_competing_action_ids,p_rendered_variables,
     v_translated_materializations,
-    CASE WHEN v_waba_count = 1 THEN v_waba_id ELSE NULL END,
+    v_waba_id,
     p_now
   );
 END;
@@ -1321,4 +2407,221 @@ REVOKE ALL ON FUNCTION public.materialize_concierge_delivery(
 ) FROM PUBLIC, authenticated;
 GRANT EXECUTE ON FUNCTION public.materialize_concierge_delivery(
   uuid,uuid,uuid,text,text,integer,text,text,uuid,text[],uuid[],jsonb,jsonb,timestamptz
+) TO service_role;
+
+-- Bind the final send authorization to the same trusted WABA that was verified
+-- while materializing the immutable WhatsApp evidence. This check happens after
+-- the original mode/channel/recipient gate so every Concierge send path must
+-- present the runtime WABA identity immediately before the provider call.
+CREATE OR REPLACE FUNCTION public.concierge_delivery_send_allowed(
+  p_delivery_id uuid,
+  p_live_runtime_enabled boolean,
+  p_test_recipient_ids text[],
+  p_runtime_whatsapp_waba_id text
+)
+RETURNS TABLE(allowed boolean, reason text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_gate_allowed boolean;
+  v_gate_reason text;
+  v_channel text;
+  v_studio_id uuid;
+  v_trusted_whatsapp_waba_id text;
+BEGIN
+  SELECT gate.allowed, gate.reason
+  INTO v_gate_allowed, v_gate_reason
+  FROM public.concierge_delivery_send_allowed(
+    p_delivery_id,
+    p_live_runtime_enabled,
+    p_test_recipient_ids
+  ) gate;
+
+  IF NOT COALESCE(v_gate_allowed,false) THEN
+    RETURN QUERY SELECT v_gate_allowed,v_gate_reason;
+    RETURN;
+  END IF;
+
+  SELECT delivery.channel::text, decision.studio_id
+  INTO v_channel, v_studio_id
+  FROM public.message_deliveries delivery
+  JOIN public.message_snapshots snapshot
+    ON snapshot.id = delivery.snapshot_id
+  JOIN public.concierge_decisions decision
+    ON decision.id = snapshot.decision_id
+  WHERE delivery.id = p_delivery_id;
+
+  IF v_channel = 'whatsapp' AND v_studio_id IS NOT NULL THEN
+    SELECT trusted.whatsapp_waba_id
+    INTO v_trusted_whatsapp_waba_id
+    FROM public.concierge_trusted_provider_settings trusted
+    WHERE trusted.studio_id = v_studio_id;
+
+    IF v_trusted_whatsapp_waba_id IS NULL
+       OR NULLIF(btrim(p_runtime_whatsapp_waba_id),'') IS DISTINCT FROM
+         v_trusted_whatsapp_waba_id THEN
+      RETURN QUERY
+      SELECT false,'trusted_whatsapp_runtime_mismatch'::text;
+      RETURN;
+    END IF;
+  END IF;
+
+  RETURN QUERY SELECT true,NULL::text;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.concierge_delivery_send_allowed(
+  uuid,boolean,text[]
+) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.concierge_delivery_send_allowed(
+  uuid,boolean,text[],text
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.concierge_delivery_send_allowed(
+  uuid,boolean,text[],text
+) TO service_role;
+
+-- Reachable payment events preserve the business subtype and evidence required by the
+-- Concierge payment journey. Provider "requires action" states are not collapsed into
+-- a generic pending event, and subscription renewals retain their subscription identity.
+DROP TRIGGER IF EXISTS concierge_payment_domain_event ON public.payments;
+CREATE OR REPLACE FUNCTION public.emit_concierge_payment_outcome_event()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_studio_id uuid;
+  v_recipient_id uuid;
+  v_event_type text;
+  v_payment_subtype text;
+  v_business_version text;
+BEGIN
+  IF TG_OP = 'UPDATE'
+     AND OLD.status IS NOT DISTINCT FROM NEW.status
+     AND OLD.provider_status IS NOT DISTINCT FROM NEW.provider_status
+     AND OLD.metadata IS NOT DISTINCT FROM NEW.metadata THEN
+    RETURN NEW;
+  END IF;
+  SELECT studio.id INTO v_studio_id
+  FROM public.studios studio
+  WHERE studio.slug = 'cloud-core';
+  SELECT relationship.communication_recipient_id
+  INTO v_recipient_id
+  FROM public.participant_relationships relationship
+  WHERE relationship.studio_id = v_studio_id
+    AND relationship.participant_member_id = NEW.member_id
+    AND relationship.authorized
+  ORDER BY (relationship.relationship_type = 'self') DESC, relationship.id
+  LIMIT 1;
+  v_payment_subtype := CASE WHEN NEW.subscription_id IS NULL
+    THEN 'one_time' ELSE 'subscription_renewal' END;
+  v_event_type := CASE
+    WHEN NEW.status = 'paid' THEN 'payment.succeeded'
+    WHEN lower(COALESCE(NEW.provider_status,'')) IN (
+      'requires_action','requires_payment_method','authentication_required'
+    ) OR lower(COALESCE(NEW.metadata->>'requires_action','')) IN ('true','1','yes')
+      THEN 'payment.requires_action'
+    WHEN NEW.status = 'failed' THEN 'payment.failed'
+    ELSE NULL
+  END;
+  IF v_event_type IS NULL OR v_recipient_id IS NULL THEN RETURN NEW; END IF;
+  v_business_version := concat_ws(
+    ':',NEW.status,NEW.provider_status,NEW.subscription_id,NEW.updated_at
+  );
+  INSERT INTO public.domain_outbox(
+    studio_id,event_type,schema_version,aggregate_type,aggregate_id,participant_id,
+    communication_recipient_id,correlation_id,deduplication_key,payload
+  ) VALUES (
+    v_studio_id,v_event_type,1,'payments',NEW.id,NEW.member_id,
+    v_recipient_id,gen_random_uuid(),
+    concat(v_event_type,':',NEW.id,':',md5(v_business_version)),
+    jsonb_build_object(
+      'payment_id',NEW.id,
+      'member_id',NEW.member_id,
+      'status',NEW.status,
+      'payment_subtype',v_payment_subtype,
+      'subscription_id',NEW.subscription_id,
+      'requires_action',v_event_type = 'payment.requires_action',
+      'amount',NEW.amount,
+      'currency',NEW.currency,
+      'paid_at',NEW.paid_at,
+      'provider',NEW.provider,
+      'provider_status',NEW.provider_status,
+      'provider_payment_id',NEW.provider_payment_id,
+      'retryable',lower(COALESCE(NEW.metadata->>'retryable','')) IN ('true','1','yes')
+    )
+  )
+  ON CONFLICT (studio_id,deduplication_key) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER concierge_payment_domain_event
+AFTER INSERT OR UPDATE OF status, provider_status, metadata ON public.payments
+FOR EACH ROW EXECUTE FUNCTION public.emit_concierge_payment_outcome_event();
+
+CREATE OR REPLACE FUNCTION public.emit_concierge_recommendation_event(
+  p_member_id uuid,
+  p_class_id uuid,
+  p_secondary_class_id uuid,
+  p_recommendation_summary text,
+  p_now timestamptz
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_studio_id uuid;
+  v_recipient_id uuid;
+  v_outbox_id uuid;
+BEGIN
+  SELECT studio.id INTO v_studio_id
+  FROM public.studios studio
+  WHERE studio.slug = 'cloud-core';
+  IF p_class_id IS NULL
+     OR NULLIF(btrim(p_recommendation_summary),'') IS NULL THEN
+    RAISE EXCEPTION 'recommendation_summary_required';
+  END IF;
+  SELECT relationship.communication_recipient_id
+  INTO v_recipient_id
+  FROM public.participant_relationships relationship
+  WHERE relationship.studio_id = v_studio_id
+    AND relationship.participant_member_id = p_member_id
+    AND relationship.authorized
+  ORDER BY (relationship.relationship_type = 'self') DESC, relationship.id
+  LIMIT 1;
+  IF v_recipient_id IS NULL THEN
+    RAISE EXCEPTION 'recommendation_recipient_not_found';
+  END IF;
+  INSERT INTO public.domain_outbox(
+    studio_id,event_type,schema_version,aggregate_type,aggregate_id,participant_id,
+    communication_recipient_id,correlation_id,deduplication_key,payload,occurred_at
+  ) VALUES (
+    v_studio_id,'recommendation.created',1,'classes',p_class_id,p_member_id,
+    v_recipient_id,gen_random_uuid(),
+    concat('recommendation.created:',p_class_id,':',p_member_id),
+    jsonb_build_object(
+      'class_id',p_class_id,
+      'secondary_class_id',p_secondary_class_id,
+      'recommendation_summary',p_recommendation_summary
+    ),
+    p_now
+  )
+  ON CONFLICT (studio_id,deduplication_key) DO UPDATE
+  SET id = public.domain_outbox.id
+  RETURNING id INTO v_outbox_id;
+  RETURN v_outbox_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.emit_concierge_recommendation_event(
+  uuid,uuid,uuid,text,timestamptz
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.emit_concierge_recommendation_event(
+  uuid,uuid,uuid,text,timestamptz
 ) TO service_role;

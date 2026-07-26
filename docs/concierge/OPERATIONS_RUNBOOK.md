@@ -130,4 +130,4 @@ locally before attempting a Resend request; domain verification remains an exter
 requirement.
 
 Task 7 must verify the production public header URL from the deployed edge: HTTPS 200,
-`image/webp`, and the intended stable cache policy. No network verification is performed here.
+`image/png`, and the intended stable cache policy. No network verification is performed here.

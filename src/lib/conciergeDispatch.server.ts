@@ -3,7 +3,6 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { evaluateConciergeDispatch } from "@/lib/conciergeDispatch";
 import { loadMemberEngagementState } from "@/lib/conciergeEngagement.server";
 import { buildConciergeMaterializationPlan } from "@/lib/conciergeMaterialization";
-import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import { CONCIERGE_POLICY_VERSION, nextConciergeEligibility } from "@/lib/conciergePolicy";
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
 
@@ -220,26 +219,27 @@ export async function runConciergeDispatch(input?: {
             if (!selectedAction || !correlationId || !evaluation.selectedTemplateKey) {
               throw new Error("dispatch_evidence_incomplete");
             }
-            const presentation = buildConciergePresentation({
-              journeyType: selectedIntent.data.journey_type,
-              templateKey: evaluation.selectedTemplateKey,
-              locale: state.recipient.locale,
-              subject: evaluation.rendered[0]?.subject ?? null,
-              body: evaluation.rendered[0]?.body ?? "",
-              variables: evaluation.variables,
-              publicBaseUrl: "https://cloudandcorestudio.com",
-            });
             const presentationByChannel = Object.fromEntries(
-              evaluation.rendered.map(({ channel, presentationVersion }) => [
-                channel,
-                `${evaluation.selectedTemplateKey}:${channel}:v${presentationVersion}`,
-              ]),
+              evaluation.rendered.map(({ channel, presentationKey }) => {
+                if (!presentationKey) throw new Error("selected_presentation_key_missing");
+                return [channel, presentationKey];
+              }),
             );
             const actionByChannel = Object.fromEntries(
-              evaluation.rendered.map(({ channel, presentationVersion }) => [
-                channel,
-                presentationVersion === 2 ? (presentation.action?.url ?? null) : null,
-              ]),
+              evaluation.rendered.map(({ channel, presentationContract }) => {
+                if (!presentationContract) {
+                  throw new Error("selected_presentation_contract_missing");
+                }
+                const actionUrl = presentationContract.actionUrl;
+                if (
+                  actionUrl !== null &&
+                  actionUrl !== undefined &&
+                  typeof actionUrl !== "string"
+                ) {
+                  throw new Error("selected_presentation_action_invalid");
+                }
+                return [channel, actionUrl ?? null];
+              }),
             );
             const materializations = buildConciergeMaterializationPlan({
               decisionKey: key,
@@ -268,7 +268,7 @@ export async function runConciergeDispatch(input?: {
               p_competing_action_ids: competingActionIds,
               p_rendered_variables: evaluation.variables,
               p_materializations: materializations,
-              p_whatsapp_waba_id: process.env.META_WABA_ID?.trim() || null,
+              p_whatsapp_waba_id: state.trustedWhatsappWabaId || null,
               p_now: now.toISOString(),
             });
             if (materialized.error) throw materialized.error;

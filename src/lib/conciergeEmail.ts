@@ -1,8 +1,30 @@
 import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import {
+  buildLegacyTransactionalPresentation,
   renderTransactionalEmail,
+  TRANSACTIONAL_EMAIL_SHELL_HASH,
+  TRANSACTIONAL_EMAIL_SHELL_VERSION,
   type RenderedTransactionalEmail,
 } from "@/lib/transactionalEmail";
+import type { MessageEventType } from "@/lib/messaging.types";
+import { renderConciergePresentationFacts } from "@/lib/conciergeMaterialization";
+
+const LEGACY_EVENT_BY_TEMPLATE_KEY: Record<string, MessageEventType> = {
+  booking_confirmed_first: "booking_confirmed",
+  booking_confirmed_repeat: "booking_confirmed",
+  booking_cancelled: "booking_cancelled",
+  class_cancelled: "class_cancelled_by_admin",
+  class_time_changed: "class_time_changed",
+  payment_one_time_succeeded: "payment_confirmed",
+  payment_subscription_renewal_succeeded: "subscription_renewal_succeeded",
+  payment_requires_action: "payment_failed",
+  payment_terminally_failed: "payment_failed",
+  payment_recovered: "payment_confirmed",
+  waitlist_offer: "waitlist_spot_available",
+  lead_to_trial: "trial_followup",
+  recommendation: "class_recommendation",
+  retention: "retention_reminder",
+};
 
 type ConciergeEmailInput = {
   journeyType: string;
@@ -72,28 +94,100 @@ export function renderConciergeEmail(
 }
 
 export function renderSelectedConciergeEmail(
-  input: ConciergeEmailInput & { presentationKey: string },
+  input: ConciergeEmailInput & {
+    presentationKey: string;
+    presentationHash: string;
+    presentationContract: Record<string, unknown>;
+    renderedFacts: Array<{ key: string; label: string; value: string; ltr: boolean }>;
+    emailShellVersion: number;
+    emailShellHash: string;
+    sourceContentHash: string;
+  },
 ): RenderedTransactionalEmail & { presentationKey: string } {
+  if (
+    input.emailShellVersion !== TRANSACTIONAL_EMAIL_SHELL_VERSION ||
+    input.emailShellHash !== TRANSACTIONAL_EMAIL_SHELL_HASH ||
+    !/^[a-f0-9]{64}$/.test(input.presentationHash) ||
+    !/^[a-f0-9]{64}$/.test(input.sourceContentHash) ||
+    input.presentationContract.presentationKey !== input.presentationKey ||
+    input.presentationContract.sourceContentHash !== input.sourceContentHash ||
+    (input.presentationContract.actionUrl ?? null) !== (input.actionUrl ?? null)
+  ) {
+    throw new Error("concierge_presentation_evidence_mismatch");
+  }
+  let expectedFacts;
+  try {
+    expectedFacts = renderConciergePresentationFacts(input.presentationContract, input.variables);
+  } catch {
+    throw new Error("concierge_presentation_evidence_mismatch");
+  }
+  if (JSON.stringify(expectedFacts) !== JSON.stringify(input.renderedFacts)) {
+    throw new Error("concierge_presentation_evidence_mismatch");
+  }
   const v1Key = `${input.templateKey}:email:v1`;
   if (input.presentationKey === v1Key) {
-    if (input.actionUrl !== null) {
+    const eventType = input.presentationContract.eventType;
+    if (
+      input.presentationContract.schema !== "concierge_presentation_v1" ||
+      typeof eventType !== "string" ||
+      eventType !== (LEGACY_EVENT_BY_TEMPLATE_KEY[input.templateKey] ?? "human_handoff")
+    ) {
       throw new Error("concierge_presentation_evidence_mismatch");
     }
+    const presentation = buildLegacyTransactionalPresentation({
+      key: input.presentationKey,
+      eventType: eventType as MessageEventType,
+      language: input.locale,
+      actionUrl: input.actionUrl ?? null,
+      publicBaseUrl: input.publicBaseUrl,
+      facts: input.renderedFacts,
+    });
     const rendered = renderTransactionalEmail({
-      eventType: "human_handoff",
+      eventType: eventType as MessageEventType,
       language: input.locale,
       subject: input.subject,
       body: input.body,
       variables: input.variables,
-      actionUrl: null,
       publicBaseUrl: input.publicBaseUrl,
       replyTo: input.replyTo,
       messageKey: input.messageKey,
+      presentation,
     });
     return { ...rendered, presentationKey: input.presentationKey };
   }
   if (input.presentationKey !== `${input.templateKey}:email:v2`) {
     throw new Error("concierge_presentation_evidence_mismatch");
   }
-  return renderConciergeEmail({ ...input, contentMode: "final" });
+  const categoryLabel = input.presentationContract.categoryLabel;
+  const actionLabel = input.presentationContract.actionLabel;
+  if (
+    input.presentationContract.schema !== "concierge_presentation_v2" ||
+    input.presentationContract.eventType !==
+      (LEGACY_EVENT_BY_TEMPLATE_KEY[input.templateKey] ?? "human_handoff") ||
+    typeof categoryLabel !== "string" ||
+    !categoryLabel.trim() ||
+    (input.actionUrl == null
+      ? actionLabel !== null && actionLabel !== undefined
+      : typeof actionLabel !== "string" || !actionLabel.trim())
+  ) {
+    throw new Error("concierge_presentation_evidence_mismatch");
+  }
+  const rendered = renderTransactionalEmail({
+    eventType: "human_handoff",
+    language: input.locale,
+    subject: input.subject,
+    body: input.body,
+    variables: input.variables,
+    publicBaseUrl: input.publicBaseUrl,
+    replyTo: input.replyTo,
+    messageKey: input.messageKey,
+    presentation: {
+      key: input.presentationKey,
+      categoryLabel,
+      action:
+        input.actionUrl == null ? null : { label: actionLabel as string, url: input.actionUrl },
+      facts: input.renderedFacts,
+    },
+  });
+  return { ...rendered, presentationKey: input.presentationKey };
 }

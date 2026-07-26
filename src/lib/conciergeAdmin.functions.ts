@@ -28,6 +28,13 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       .eq("slug", "cloud-core")
       .single();
     if (studio.error) throw studio.error;
+    const trustedProvider = await db
+      .from("concierge_trusted_provider_settings")
+      .select("whatsapp_waba_id")
+      .eq("studio_id", studio.data.id)
+      .maybeSingle();
+    if (trustedProvider.error) throw trustedProvider.error;
+    const trustedWhatsappWabaId = trustedProvider.data?.whatsapp_waba_id ?? "";
     const [
       automations,
       channels,
@@ -90,7 +97,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       db
         .from("concierge_template_versions")
         .select(
-          "id,template_key,channel,locale,version,lifecycle_status,subject_template,body_template,required_variables,approved_at,approved_by",
+          "id,template_key,channel,locale,version,lifecycle_status,subject_template,body_template,required_variables,content_hash,approved_at,approved_by",
         )
         .eq("studio_id", studio.data.id)
         .is("retired_at", null)
@@ -100,11 +107,11 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       db
         .from("whatsapp_template_deployments")
         .select("template_name,language,approval_status,content_hash")
-        .eq("waba_id", process.env.META_WABA_ID?.trim() ?? ""),
+        .eq("waba_id", trustedWhatsappWabaId),
       db
         .from("concierge_delivery_versions")
         .select(
-          "id,template_key,channel,locale,source_template_version,presentation_version,provider_template_name,provider_content_hash",
+          "id,template_key,channel,locale,source_template_id,source_template_version,source_content_hash,source_approved_by,source_approved_at,presentation_version,presentation_key,presentation_hash,presentation_contract,email_shell_version,email_shell_hash,presentation_approved_by,presentation_approved_at,provider_template_name,provider_content_hash",
         )
         .eq("studio_id", studio.data.id)
         .order("template_key")
@@ -192,6 +199,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       },
       templates: templates.data ?? [],
       whatsappDeployments: whatsappDeployments.data ?? [],
+      trustedWhatsappWabaId,
       deliveryVersions: deliveryVersions.data ?? [],
       deliverySelections: deliverySelections.data ?? [],
       whatsappExpectedContentHashes: Object.fromEntries(
@@ -208,7 +216,8 @@ const deliverySelectionSchema = z.object({
   channel: z.enum(["in_app", "push", "email", "whatsapp"]),
   locale: z.enum(["ar", "he", "en"]),
   deliveryMode: z.enum(["test_only", "live"]),
-  presentationVersion: z.number().int().min(1).max(2),
+  deliveryVersionId: z.string().uuid(),
+  presentationHash: z.string().regex(/^[a-f0-9]{64}$/),
   confirmation: z.string().min(1),
 });
 
@@ -216,10 +225,7 @@ export const selectConciergeDeliveryVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => deliverySelectionSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const expectedConfirmation =
-      data.deliveryMode === "live"
-        ? "SELECT LIVE CONCIERGE PRESENTATION"
-        : "SELECT TEST CONCIERGE PRESENTATION";
+    const expectedConfirmation = `${data.deliveryMode === "live" ? "SELECT LIVE" : "SELECT TEST"} ${data.deliveryVersionId} ${data.presentationHash}`;
     if (data.confirmation !== expectedConfirmation) {
       throw new Error(`Confirmation must exactly match "${expectedConfirmation}"`);
     }
@@ -232,7 +238,8 @@ export const selectConciergeDeliveryVersion = createServerFn({ method: "POST" })
       p_channel: data.channel,
       p_locale: data.locale,
       p_delivery_mode: data.deliveryMode,
-      p_presentation_version: data.presentationVersion,
+      p_delivery_version_id: data.deliveryVersionId,
+      p_expected_presentation_hash: data.presentationHash,
       p_actor_id: context.userId,
       p_confirmation: data.confirmation,
     });
@@ -243,19 +250,61 @@ export const selectConciergeDeliveryVersion = createServerFn({ method: "POST" })
 export const approveConciergeTemplates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ confirmation: z.literal("APPROVE CONCIERGE TEMPLATES") }).parse(input),
+    z
+      .object({
+        templateId: z.string().uuid(),
+        contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+        confirmation: z.string().min(1),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const expectedConfirmation = `APPROVE SOURCE ${data.templateId} ${data.contentHash}`;
+    if (data.confirmation !== expectedConfirmation) {
+      throw new Error(`Confirmation must exactly match "${expectedConfirmation}"`);
+    }
     const db = await adminDb(context.userId);
     const studio = await db.from("studios").select("id").eq("slug", "cloud-core").single();
     if (studio.error) throw studio.error;
-    const result = await db.rpc("approve_concierge_template_library", {
+    const result = await db.rpc("approve_concierge_template_version", {
       p_studio_id: studio.data.id,
+      p_template_id: data.templateId,
+      p_expected_content_hash: data.contentHash,
       p_actor_id: context.userId,
       p_confirmation: data.confirmation,
     });
     if (result.error) throw result.error;
-    return { approved: result.data };
+    return { approvedTemplateId: result.data };
+  });
+
+const previewApprovalSchema = z.object({
+  deliveryVersionId: z.string().uuid(),
+  sourceContentHash: z.string().regex(/^[a-f0-9]{64}$/),
+  presentationHash: z.string().regex(/^[a-f0-9]{64}$/),
+  confirmation: z.string().min(1),
+});
+
+export const approveConciergeDeliveryPreview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => previewApprovalSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const expectedConfirmation = `APPROVE PREVIEW ${data.deliveryVersionId} ${data.presentationHash}`;
+    if (data.confirmation !== expectedConfirmation) {
+      throw new Error(`Confirmation must exactly match "${expectedConfirmation}"`);
+    }
+    const db = await adminDb(context.userId);
+    const studio = await db.from("studios").select("id").eq("slug", "cloud-core").single();
+    if (studio.error) throw studio.error;
+    const result = await db.rpc("approve_concierge_delivery_preview", {
+      p_studio_id: studio.data.id,
+      p_delivery_version_id: data.deliveryVersionId,
+      p_expected_source_hash: data.sourceContentHash,
+      p_expected_presentation_hash: data.presentationHash,
+      p_actor_id: context.userId,
+      p_confirmation: data.confirmation,
+    });
+    if (result.error) throw result.error;
+    return { previewApprovalId: result.data };
   });
 
 const modeSchema = z.object({

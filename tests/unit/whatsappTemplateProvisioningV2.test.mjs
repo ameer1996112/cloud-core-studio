@@ -132,7 +132,7 @@ describe("WhatsApp v2 template provisioning", () => {
           type: "HEADER",
           format: "IMAGE",
           example: {
-            header_handle: ["https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp"],
+            header_handle: ["https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png"],
           },
         },
         { type: "BODY", text: "Hi {{1}}" },

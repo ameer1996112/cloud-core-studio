@@ -158,7 +158,7 @@ BEGIN
         'presentation_key', v_expected_presentation_key,
         'components', jsonb_build_array(
           jsonb_build_object('type','header','parameters',jsonb_build_array(
-            jsonb_build_object('type','image','image',jsonb_build_object('link','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp'))
+            jsonb_build_object('type','image','image',jsonb_build_object('link','https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png'))
           )),
           jsonb_build_object('type','body','parameters',v_whatsapp_parameters)
         )

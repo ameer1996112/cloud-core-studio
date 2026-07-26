@@ -329,8 +329,11 @@ export async function runOfficialWhatsappQueue(
     result.processed += 1;
 
     if (isStaleSendingRowEligible(row, now)) {
-      await deps.markFailed({ rowId: row.id, error: "official_whatsapp_stale_sending_recovery" });
-      result.invalid += 1;
+      await deps.markAmbiguous({
+        rowId: row.id,
+        error: "official_whatsapp_stale_sending_recovery",
+      });
+      result.ambiguous += 1;
       continue;
     }
 

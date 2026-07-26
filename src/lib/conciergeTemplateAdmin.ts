@@ -3,7 +3,8 @@ import type {
   ConciergeDeliverySelectionRow,
   ConciergeDeliveryVersionRow,
 } from "@/lib/conciergeDeliverySelection";
-import { renderConciergeEmail } from "@/lib/conciergeEmail";
+import { renderConciergeEmail, renderSelectedConciergeEmail } from "@/lib/conciergeEmail";
+import { renderConciergePresentationFacts } from "@/lib/conciergeMaterialization";
 import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import {
   conciergeWhatsappTemplateName,
@@ -21,6 +22,7 @@ export type ConciergeAdminTemplate = {
   subject_template: string | null;
   body_template: string;
   required_variables: string[];
+  content_hash: string;
   approved_at: string | null;
   approved_by: string | null;
 };
@@ -47,6 +49,7 @@ export type ConciergeBrandedPreview = {
   lifecycleStatus: "draft" | "approved";
   providerApprovalStatus: string | null;
   providerSyncStatus: "approved" | "stale" | "not_synced";
+  candidatePreviewExact: boolean;
   subject: string | null;
   body: string;
   action: { label: string; url: string } | null;
@@ -153,6 +156,16 @@ export function buildConciergeBrandedPreview(
     variables,
     publicBaseUrl: "https://cloudandcorestudio.com",
   });
+  const matchingVersions = versions.filter(
+    (version) =>
+      version.template_key === template.template_key &&
+      version.channel === template.channel &&
+      version.locale === template.locale &&
+      version.source_template_id === template.id &&
+      version.source_template_version === template.version &&
+      version.source_content_hash === template.content_hash,
+  );
+  const v2Candidate = matchingVersions.find((version) => version.presentation_version === 2);
   const isWhatsapp = template.channel === "whatsapp";
   const providerLanguage = locale === "en" ? "en_US" : locale;
   const whatsappDefinition = isWhatsapp
@@ -168,29 +181,69 @@ export function buildConciergeBrandedPreview(
   const expectedContentHash = whatsappDefinition
     ? (expectedContentHashes[`${whatsappDefinition.name}:${whatsappDefinition.language}`] ?? null)
     : null;
-  const presentationKey = isWhatsapp ? `${template.template_key}:whatsapp:v2` : presentation.key;
+  const candidateProviderContentHash =
+    isWhatsapp && v2Candidate ? v2Candidate.provider_content_hash : null;
+  const localCatalogMatchesCandidate =
+    !isWhatsapp ||
+    !v2Candidate ||
+    (candidateProviderContentHash !== null && candidateProviderContentHash === expectedContentHash);
+  const exactProviderContentHash = v2Candidate ? candidateProviderContentHash : expectedContentHash;
+  const presentationKey =
+    v2Candidate?.presentation_key ??
+    (isWhatsapp ? `${template.template_key}:whatsapp:v2` : presentation.key);
+  const candidateActionUrl = v2Candidate?.presentation_contract.actionUrl;
+  if (
+    candidateActionUrl !== undefined &&
+    candidateActionUrl !== null &&
+    typeof candidateActionUrl !== "string"
+  ) {
+    throw new Error("invalid_concierge_preview_action");
+  }
+  const candidateActionLabel = v2Candidate?.presentation_contract.actionLabel;
+  const emailAction = v2Candidate
+    ? candidateActionUrl == null
+      ? null
+      : typeof candidateActionLabel === "string"
+        ? { label: candidateActionLabel, url: candidateActionUrl }
+        : null
+    : presentation.action;
   const email = isWhatsapp
     ? null
-    : renderConciergeEmail({
-        journeyType,
-        templateKey: template.template_key,
-        locale,
-        subject: template.subject_template ?? "",
-        body: template.body_template,
-        variables,
-        publicBaseUrl: "https://cloudandcorestudio.com",
-        messageKey: `admin-preview:${template.id}`,
-        contentMode: "template",
-        presentationKey,
-        actionUrl: presentation.action?.url ?? null,
-      });
-  const matchingVersions = versions.filter(
-    (version) =>
-      version.template_key === template.template_key &&
-      version.channel === template.channel &&
-      version.locale === template.locale &&
-      version.source_template_version === template.version,
-  );
+    : v2Candidate
+      ? renderSelectedConciergeEmail({
+          journeyType,
+          templateKey: template.template_key,
+          locale,
+          subject: presentation.subject,
+          body: presentation.body,
+          variables,
+          publicBaseUrl: "https://cloudandcorestudio.com",
+          messageKey: `admin-preview:${v2Candidate.id}`,
+          presentationKey: v2Candidate.presentation_key,
+          presentationHash: v2Candidate.presentation_hash,
+          presentationContract: v2Candidate.presentation_contract,
+          renderedFacts: renderConciergePresentationFacts(
+            v2Candidate.presentation_contract,
+            variables,
+          ),
+          emailShellVersion: v2Candidate.email_shell_version ?? 0,
+          emailShellHash: v2Candidate.email_shell_hash ?? "",
+          sourceContentHash: v2Candidate.source_content_hash,
+          actionUrl: candidateActionUrl ?? null,
+        })
+      : renderConciergeEmail({
+          journeyType,
+          templateKey: template.template_key,
+          locale,
+          subject: template.subject_template ?? "",
+          body: template.body_template,
+          variables,
+          publicBaseUrl: "https://cloudandcorestudio.com",
+          messageKey: `admin-preview:${template.id}`,
+          contentMode: "template",
+          presentationKey,
+          actionUrl: presentation.action?.url ?? null,
+        });
   const selectedPresentationVersion = (deliveryMode: "test_only" | "live") => {
     const selectedVersion = matchingVersions.find((version) =>
       selections.some(
@@ -209,20 +262,22 @@ export function buildConciergeBrandedPreview(
     lifecycleStatus: template.lifecycle_status === "approved" ? "approved" : "draft",
     providerApprovalStatus: deployment?.approval_status ?? null,
     providerSyncStatus:
+      localCatalogMatchesCandidate &&
       deployment?.approval_status?.toUpperCase() === "APPROVED" &&
       deployment.content_hash !== null &&
-      deployment.content_hash === expectedContentHash
+      deployment.content_hash === exactProviderContentHash
         ? "approved"
         : deployment?.approval_status?.toUpperCase() === "APPROVED"
           ? "stale"
           : "not_synced",
+    candidatePreviewExact: localCatalogMatchesCandidate,
     subject: template.subject_template ? presentation.subject : null,
     body: whatsappDefinition
       ? (whatsappDefinition.components
           .find((component) => component.type === "BODY")
           ?.text.replaceAll("{{1}}", variables.member_name) ?? presentation.body)
       : presentation.body,
-    action: whatsappDefinition ? whatsappCatalogAction(whatsappDefinition) : presentation.action,
+    action: whatsappDefinition ? whatsappCatalogAction(whatsappDefinition) : emailAction,
     emailHtml: email?.html ?? null,
     whatsappHeaderUrl: isWhatsapp ? CONCIERGE_WHATSAPP_HEADER_URL : null,
     whatsappFooter: whatsappDefinition

@@ -322,8 +322,16 @@ const META_LOCALES: Record<ConciergeTemplateLocale, "en_US" | "he" | "ar"> = {
   ar: "ar",
 };
 
-export const CONCIERGE_WHATSAPP_HEADER_URL =
-  "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.webp";
+export const CONCIERGE_WHATSAPP_HEADER_ASSET = {
+  path: "brand/concierge-whatsapp-header.png",
+  url: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
+  mimeType: "image/png",
+  width: 1200,
+  height: 628,
+  maxBytes: 5_000_000,
+} as const;
+
+export const CONCIERGE_WHATSAPP_HEADER_URL = CONCIERGE_WHATSAPP_HEADER_ASSET.url;
 
 export function conciergeWhatsappTemplateName(templateKey: string) {
   return `${templateKey}_branded_v2`;
