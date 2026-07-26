@@ -6,6 +6,8 @@ import {
   type PendingRecipientAction,
   type RecipientPolicyState,
 } from "@/lib/conciergePolicy";
+import { CONCIERGE_META_TEMPLATE_CATALOG } from "@/lib/conciergeTemplateCatalog";
+import { templateContentHash } from "@/lib/whatsappTemplateProvisioning";
 
 async function adminDb(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -171,6 +173,12 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       },
       templates: templates.data ?? [],
       whatsappDeployments: whatsappDeployments.data ?? [],
+      whatsappExpectedContentHashes: Object.fromEntries(
+        CONCIERGE_META_TEMPLATE_CATALOG.map((template) => [
+          `${template.name}:${template.language}`,
+          templateContentHash(template),
+        ]),
+      ),
     };
   });
 

@@ -293,6 +293,8 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const templates = (center.data?.templates ?? []) as ConciergeAdminTemplate[];
   const whatsappDeployments = (center.data?.whatsappDeployments ??
     []) as ConciergeWhatsappDeployment[];
+  const whatsappExpectedContentHashes = (center.data?.whatsappExpectedContentHashes ??
+    {}) as Record<string, string>;
 
   return (
     <div className="space-y-7">
@@ -540,6 +542,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
         <ConciergeTemplateLibrary
           templates={templates}
           whatsappDeployments={whatsappDeployments}
+          whatsappExpectedContentHashes={whatsappExpectedContentHashes}
           copy={copy}
         />
       )}

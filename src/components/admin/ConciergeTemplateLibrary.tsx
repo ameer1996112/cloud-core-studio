@@ -17,10 +17,12 @@ import {
 export function ConciergeTemplateLibrary({
   templates,
   whatsappDeployments,
+  whatsappExpectedContentHashes,
   copy,
 }: {
   templates: ConciergeAdminTemplate[];
   whatsappDeployments: ConciergeWhatsappDeployment[];
+  whatsappExpectedContentHashes: Record<string, string>;
   copy: Record<string, string>;
 }) {
   const [journey, setJourney] = useState("");
@@ -80,6 +82,7 @@ export function ConciergeTemplateLibrary({
             key={template.id}
             template={template}
             deployments={whatsappDeployments}
+            expectedContentHashes={whatsappExpectedContentHashes}
             copy={copy}
           />
         ))}
@@ -96,15 +99,17 @@ export function ConciergeTemplateLibrary({
 function TemplateCard({
   template,
   deployments,
+  expectedContentHashes,
   copy,
 }: {
   template: ConciergeAdminTemplate;
   deployments: ConciergeWhatsappDeployment[];
+  expectedContentHashes: Record<string, string>;
   copy: Record<string, string>;
 }) {
   const [view, setView] = useState<"source" | "branded">("source");
   const source = renderConciergeTemplatePreview(template);
-  const branded = buildConciergeBrandedPreview(template, deployments);
+  const branded = buildConciergeBrandedPreview(template, deployments, expectedContentHashes);
   const approved = isConciergeTemplateApproved(template);
   const providerStatus = branded?.providerApprovalStatus;
 
@@ -124,8 +129,14 @@ function TemplateCard({
             {approved ? copy.approved : copy.draft}
           </Badge>
           {template.channel === "whatsapp" && (
-            <Badge variant={providerStatus?.toUpperCase() === "APPROVED" ? "secondary" : "outline"}>
-              {providerStatus ?? "not synced"}
+            <Badge
+              variant={branded?.providerSyncStatus === "approved" ? "secondary" : "destructive"}
+            >
+              {branded?.providerSyncStatus === "approved"
+                ? providerStatus
+                : branded?.providerSyncStatus === "stale"
+                  ? "STALE"
+                  : "NOT SYNCED"}
             </Badge>
           )}
         </div>

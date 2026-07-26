@@ -407,6 +407,20 @@ export const CONCIERGE_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALOG.filter
   };
 });
 
+export function conciergeWhatsappTemplateDefinition(
+  templateKey: string,
+  locale: ConciergeTemplateLocale,
+) {
+  const language = META_LOCALES[locale];
+  return (
+    CONCIERGE_META_TEMPLATE_CATALOG.find(
+      (template) =>
+        template.name === conciergeWhatsappTemplateName(templateKey) &&
+        template.language === language,
+    ) ?? null
+  );
+}
+
 function placeholders(value: string | null) {
   if (!value) return [];
   return [...value.matchAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g)].map((match) => match[1]);

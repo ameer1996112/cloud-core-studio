@@ -3,6 +3,7 @@ import { renderConciergeEmail } from "@/lib/conciergeEmail";
 import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import {
   conciergeWhatsappTemplateName,
+  conciergeWhatsappTemplateDefinition,
   CONCIERGE_WHATSAPP_HEADER_URL,
 } from "@/lib/conciergeTemplateCatalog";
 
@@ -41,6 +42,7 @@ export type ConciergeBrandedPreview = {
   presentationKey: string;
   lifecycleStatus: "draft" | "approved";
   providerApprovalStatus: string | null;
+  providerSyncStatus: "approved" | "stale" | "not_synced";
   subject: string | null;
   body: string;
   action: { label: string; url: string } | null;
@@ -109,9 +111,17 @@ function previewVariables(locale: ConciergeBrandedPreview["locale"]) {
   };
 }
 
+function whatsappCatalogAction(definition: ReturnType<typeof conciergeWhatsappTemplateDefinition>) {
+  const buttons = definition?.components.find((component) => component.type === "BUTTONS");
+  const button =
+    buttons && "buttons" in buttons ? buttons.buttons.find((item) => item.type === "URL") : null;
+  return button ? { label: button.text, url: button.url } : null;
+}
+
 export function buildConciergeBrandedPreview(
   template: ConciergeAdminTemplate,
   deployments: ConciergeWhatsappDeployment[],
+  expectedContentHashes: Record<string, string> = {},
 ): ConciergeBrandedPreview | null {
   if (template.channel !== "email" && template.channel !== "whatsapp") return null;
 
@@ -129,12 +139,18 @@ export function buildConciergeBrandedPreview(
   });
   const isWhatsapp = template.channel === "whatsapp";
   const providerLanguage = locale === "en" ? "en_US" : locale;
+  const whatsappDefinition = isWhatsapp
+    ? conciergeWhatsappTemplateDefinition(template.template_key, locale)
+    : null;
   const deployment = isWhatsapp
     ? deployments.find(
         (row) =>
           row.template_name === conciergeWhatsappTemplateName(template.template_key) &&
           row.language === providerLanguage,
       )
+    : null;
+  const expectedContentHash = whatsappDefinition
+    ? (expectedContentHashes[`${whatsappDefinition.name}:${whatsappDefinition.language}`] ?? null)
     : null;
   const presentationKey = isWhatsapp ? `${template.template_key}:whatsapp:v2` : presentation.key;
   const email = isWhatsapp
@@ -159,12 +175,27 @@ export function buildConciergeBrandedPreview(
     presentationKey,
     lifecycleStatus: template.lifecycle_status === "approved" ? "approved" : "draft",
     providerApprovalStatus: deployment?.approval_status ?? null,
+    providerSyncStatus:
+      deployment?.approval_status?.toUpperCase() === "APPROVED" &&
+      deployment.content_hash !== null &&
+      deployment.content_hash === expectedContentHash
+        ? "approved"
+        : deployment?.approval_status?.toUpperCase() === "APPROVED"
+          ? "stale"
+          : "not_synced",
     subject: template.subject_template ? presentation.subject : null,
-    body: presentation.body,
-    action: presentation.action,
+    body: whatsappDefinition
+      ? (whatsappDefinition.components
+          .find((component) => component.type === "BODY")
+          ?.text.replaceAll("{{1}}", variables.member_name) ?? presentation.body)
+      : presentation.body,
+    action: whatsappDefinition ? whatsappCatalogAction(whatsappDefinition) : presentation.action,
     emailHtml: email?.html ?? null,
     whatsappHeaderUrl: isWhatsapp ? CONCIERGE_WHATSAPP_HEADER_URL : null,
-    whatsappFooter: isWhatsapp ? "Cloud & Core Studio" : null,
+    whatsappFooter: whatsappDefinition
+      ? (whatsappDefinition.components.find((component) => component.type === "FOOTER")?.text ??
+        null)
+      : null,
   };
 }
 
