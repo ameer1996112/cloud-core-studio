@@ -4,6 +4,7 @@ import { AlertTriangle, Bot, CheckCircle2, RefreshCw, ShieldCheck } from "lucide
 import { useState } from "react";
 import { toast } from "sonner";
 import { AdminSection } from "@/components/admin-shared";
+import { ConciergeTemplateLibrary } from "@/components/admin/ConciergeTemplateLibrary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
   setConciergeChannelEnabled,
   simulateConciergeDecision,
 } from "@/lib/conciergeAdmin.functions";
+import type { ConciergeAdminTemplate } from "@/lib/conciergeTemplateAdmin";
 import type { Lang } from "@/lib/i18n";
 
 type JourneyMode = "paused" | "shadow" | "test_only" | "live";
@@ -64,6 +66,22 @@ const COPY = {
     approveTemplates: "Approve template library",
     templateApprovalPrompt: 'Type "APPROVE CONCIERGE TEMPLATES" to approve the reviewed copy',
     templateSuccess: "Concierge templates approved",
+    templateLibrary: "Template library",
+    templateLibraryHint:
+      "Preview approved or draft copy with safe sample values, then inspect its source variables.",
+    allJourneys: "All journeys",
+    allChannels: "All channels",
+    allLanguages: "All languages",
+    searchTemplates: "Search template copy",
+    noTemplates: "No templates match these filters.",
+    subject: "Subject",
+    body: "Message",
+    variables: "Variables",
+    approved: "Approved",
+    draft: "Draft",
+    results: "templates",
+    overview: "Overview",
+    source: "Template source",
   },
   he: {
     title: "מרכז הפיקוד של הקונסיירז׳",
@@ -109,6 +127,21 @@ const COPY = {
     approveTemplates: "אישור ספריית התבניות",
     templateApprovalPrompt: 'יש להקליד "APPROVE CONCIERGE TEMPLATES" כדי לאשר את התוכן שנבדק',
     templateSuccess: "תבניות הקונסיירז׳ אושרו",
+    templateLibrary: "ספריית התבניות",
+    templateLibraryHint: "תצוגה של תוכן מאושר או טיוטה עם ערכי דוגמה בטוחים ומקור המשתנים.",
+    allJourneys: "כל המסעות",
+    allChannels: "כל הערוצים",
+    allLanguages: "כל השפות",
+    searchTemplates: "חיפוש בתוכן התבניות",
+    noTemplates: "אין תבניות שמתאימות למסננים.",
+    subject: "נושא",
+    body: "הודעה",
+    variables: "משתנים",
+    approved: "מאושר",
+    draft: "טיוטה",
+    results: "תבניות",
+    overview: "סקירה",
+    source: "מקור התבנית",
   },
   ar: {
     title: "مركز تحكم الكونسيرج",
@@ -154,6 +187,21 @@ const COPY = {
     approveTemplates: "اعتماد مكتبة القوالب",
     templateApprovalPrompt: 'اكتبي "APPROVE CONCIERGE TEMPLATES" لاعتماد النصوص التي تمت مراجعتها',
     templateSuccess: "تم اعتماد قوالب الكونسيرج",
+    templateLibrary: "مكتبة القوالب",
+    templateLibraryHint: "عايني النص المعتمد أو المسودة بقيم تجريبية آمنة ثم راجعي متغيرات المصدر.",
+    allJourneys: "كل الرحلات",
+    allChannels: "كل القنوات",
+    allLanguages: "كل اللغات",
+    searchTemplates: "البحث في نص القالب",
+    noTemplates: "لا توجد قوالب مطابقة لهذه المرشحات.",
+    subject: "العنوان",
+    body: "الرسالة",
+    variables: "المتغيرات",
+    approved: "معتمد",
+    draft: "مسودة",
+    results: "قوالب",
+    overview: "نظرة عامة",
+    source: "مصدر القالب",
   },
 } satisfies Record<Lang, Record<string, string>>;
 
@@ -167,6 +215,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const simulate = useServerFn(simulateConciergeDecision);
   const [recipientId, setRecipientId] = useState("preview-recipient");
   const [simulation, setSimulation] = useState<Record<string, unknown> | null>(null);
+  const [activeView, setActiveView] = useState<"overview" | "templates">("overview");
   const center = useQuery({
     queryKey: ["concierge-center"],
     queryFn: () => getCenter(),
@@ -238,6 +287,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
     (automation: { mode: string }) => automation.mode === "live",
   ).length;
   const unhealthy = (center.data?.queueHealth.deadLettered ?? 0) > 0;
+  const templates = (center.data?.templates ?? []) as ConciergeAdminTemplate[];
 
   return (
     <div className="space-y-7">
@@ -296,164 +346,192 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
         </div>
       </section>
 
-      <AdminSection title={copy.attention} eyebrow="Concierge">
-        <div className="space-y-2">
-          {(center.data?.attention ?? []).map(
-            (item: { id: string; title: string; item_type: string; severity: string }) => (
-              <div
-                className="editorial-panel flex items-center justify-between gap-4 p-4"
-                key={item.id}
-              >
-                <div>
-                  <p className="font-medium text-navy">{item.title}</p>
-                  <p className="mt-1 text-xs text-slate">{item.item_type.replaceAll("_", " ")}</p>
+      <div className="flex gap-2" role="tablist" aria-label={copy.title}>
+        {(["overview", "templates"] as const).map((view) => (
+          <Button
+            key={view}
+            role="tab"
+            aria-selected={activeView === view}
+            variant={activeView === view ? "default" : "outline"}
+            onClick={() => setActiveView(view)}
+          >
+            {view === "overview" ? copy.overview : copy.templates}
+          </Button>
+        ))}
+      </div>
+
+      {activeView === "overview" && (
+        <>
+          <AdminSection title={copy.attention} eyebrow="Concierge">
+            <div className="space-y-2">
+              {(center.data?.attention ?? []).map(
+                (item: { id: string; title: string; item_type: string; severity: string }) => (
+                  <div
+                    className="editorial-panel flex items-center justify-between gap-4 p-4"
+                    key={item.id}
+                  >
+                    <div>
+                      <p className="font-medium text-navy">{item.title}</p>
+                      <p className="mt-1 text-xs text-slate">
+                        {item.item_type.replaceAll("_", " ")}
+                      </p>
+                    </div>
+                    <Badge variant={item.severity === "urgent" ? "destructive" : "secondary"}>
+                      {item.severity}
+                    </Badge>
+                  </div>
+                ),
+              )}
+              {center.data?.attention.length === 0 && (
+                <div className="editorial-panel flex items-center gap-3 p-5 text-slate">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+                  {copy.noAttention}
                 </div>
-                <Badge variant={item.severity === "urgent" ? "destructive" : "secondary"}>
-                  {item.severity}
-                </Badge>
-              </div>
-            ),
-          )}
-          {center.data?.attention.length === 0 && (
-            <div className="editorial-panel flex items-center gap-3 p-5 text-slate">
-              <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-              {copy.noAttention}
-            </div>
-          )}
-        </div>
-      </AdminSection>
-
-      <AdminSection title={copy.health} eyebrow={copy.outbox}>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric label={copy.pending} value={center.data?.queueHealth.pending ?? 0} />
-          <Metric label={copy.dead} value={center.data?.queueHealth.deadLettered ?? 0} alert />
-          <Metric label={copy.shadow} value={center.data?.shadowSummary.evaluated ?? 0} />
-          <Metric label={copy.suppressed} value={suppressionCount} />
-        </div>
-        {center.data?.queueHealth.oldestPendingAt && (
-          <p className="text-xs text-slate">
-            {copy.oldest}:{" "}
-            <span dir="ltr">
-              {new Date(center.data.queueHealth.oldestPendingAt).toLocaleString()}
-            </span>
-          </p>
-        )}
-      </AdminSection>
-
-      <AdminSection title={copy.channels} eyebrow={copy.switches}>
-        <p className="mb-4 text-sm text-slate">{copy.channelsHint}</p>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {(center.data?.channels ?? []).map((channel: { channel: string; enabled: boolean }) => (
-            <div
-              className="editorial-panel flex items-center justify-between gap-3 p-4"
-              key={channel.channel}
-            >
-              <div>
-                <p className="font-medium capitalize text-navy">
-                  {channel.channel.replace("_", " ")}
-                </p>
-                <p className="mt-1 text-xs text-slate">
-                  {channel.channel === "in_app"
-                    ? copy.durable
-                    : channel.enabled
-                      ? copy.enabled
-                      : copy.disabled}
-                </p>
-              </div>
-              {channel.channel === "in_app" ? (
-                <Badge>{copy.durable}</Badge>
-              ) : (
-                <Button
-                  size="sm"
-                  variant={channel.enabled ? "destructive" : "outline"}
-                  disabled={channelMutation.isPending}
-                  onClick={() =>
-                    channelMutation.mutate({
-                      channel: channel.channel as MutableChannel,
-                      enabled: !channel.enabled,
-                    })
-                  }
-                >
-                  {channel.enabled ? copy.disable : copy.enable}
-                </Button>
               )}
             </div>
-          ))}
-        </div>
-      </AdminSection>
+          </AdminSection>
 
-      <AdminSection title={copy.journeys} eyebrow={copy.rollout}>
-        <p className="mb-4 text-sm text-slate">{copy.journeyHint}</p>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {(center.data?.automations ?? []).map(
-            (automation: {
-              id: string;
-              journey_type: string;
-              version: number;
-              mode: JourneyMode;
-            }) => (
-              <article className="editorial-panel space-y-4 p-5" key={automation.id}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-serif text-xl capitalize text-navy">
-                      {automation.journey_type.replaceAll("_", " ")}
-                    </h3>
-                    <p className="text-xs text-slate">
-                      {copy.policy} v{automation.version}
-                    </p>
+          <AdminSection title={copy.health} eyebrow={copy.outbox}>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <Metric label={copy.pending} value={center.data?.queueHealth.pending ?? 0} />
+              <Metric label={copy.dead} value={center.data?.queueHealth.deadLettered ?? 0} alert />
+              <Metric label={copy.shadow} value={center.data?.shadowSummary.evaluated ?? 0} />
+              <Metric label={copy.suppressed} value={suppressionCount} />
+            </div>
+            {center.data?.queueHealth.oldestPendingAt && (
+              <p className="text-xs text-slate">
+                {copy.oldest}:{" "}
+                <span dir="ltr">
+                  {new Date(center.data.queueHealth.oldestPendingAt).toLocaleString()}
+                </span>
+              </p>
+            )}
+          </AdminSection>
+
+          <AdminSection title={copy.channels} eyebrow={copy.switches}>
+            <p className="mb-4 text-sm text-slate">{copy.channelsHint}</p>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {(center.data?.channels ?? []).map(
+                (channel: { channel: string; enabled: boolean }) => (
+                  <div
+                    className="editorial-panel flex items-center justify-between gap-3 p-4"
+                    key={channel.channel}
+                  >
+                    <div>
+                      <p className="font-medium capitalize text-navy">
+                        {channel.channel.replace("_", " ")}
+                      </p>
+                      <p className="mt-1 text-xs text-slate">
+                        {channel.channel === "in_app"
+                          ? copy.durable
+                          : channel.enabled
+                            ? copy.enabled
+                            : copy.disabled}
+                      </p>
+                    </div>
+                    {channel.channel === "in_app" ? (
+                      <Badge>{copy.durable}</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant={channel.enabled ? "destructive" : "outline"}
+                        disabled={channelMutation.isPending}
+                        onClick={() =>
+                          channelMutation.mutate({
+                            channel: channel.channel as MutableChannel,
+                            enabled: !channel.enabled,
+                          })
+                        }
+                      >
+                        {channel.enabled ? copy.disable : copy.enable}
+                      </Button>
+                    )}
                   </div>
-                  <Badge>{automation.mode.replace("_", " ")}</Badge>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {(["paused", "shadow", "test_only", "live"] as const).map((mode) => (
-                    <Button
-                      key={mode}
-                      size="sm"
-                      variant={automation.mode === mode ? "default" : "outline"}
-                      disabled={modeMutation.isPending}
-                      onClick={() => {
-                        const confirmation =
-                          mode === "live"
-                            ? (window.prompt(copy.livePrompt) ?? undefined)
-                            : undefined;
-                        if (mode === "live" && confirmation !== "ENABLE LIVE CONCIERGE") return;
-                        modeMutation.mutate({ automationId: automation.id, mode, confirmation });
-                      }}
-                    >
-                      {mode.replace("_", " ")}
-                    </Button>
-                  ))}
-                </div>
-              </article>
-            ),
-          )}
-        </div>
-      </AdminSection>
+                ),
+              )}
+            </div>
+          </AdminSection>
 
-      <AdminSection title={copy.simulator} eyebrow={copy.preview}>
-        <p className="mb-4 text-sm text-slate">{copy.simulatorHint}</p>
-        <div className="editorial-panel grid gap-4 p-5 md:grid-cols-[1fr_auto]">
-          <Input
-            aria-label={copy.recipient}
-            value={recipientId}
-            onChange={(event) => setRecipientId(event.target.value)}
-          />
-          <Button
-            disabled={simulationMutation.isPending || recipientId.trim().length === 0}
-            onClick={() => simulationMutation.mutate()}
-          >
-            {copy.simulate}
-          </Button>
-          {simulation && (
-            <pre
-              dir="ltr"
-              className="overflow-auto rounded-lg bg-navy p-4 text-left text-xs text-ivory md:col-span-2"
-            >
-              {JSON.stringify(simulation, null, 2)}
-            </pre>
-          )}
-        </div>
-      </AdminSection>
+          <AdminSection title={copy.journeys} eyebrow={copy.rollout}>
+            <p className="mb-4 text-sm text-slate">{copy.journeyHint}</p>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {(center.data?.automations ?? []).map(
+                (automation: {
+                  id: string;
+                  journey_type: string;
+                  version: number;
+                  mode: JourneyMode;
+                }) => (
+                  <article className="editorial-panel space-y-4 p-5" key={automation.id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-serif text-xl capitalize text-navy">
+                          {automation.journey_type.replaceAll("_", " ")}
+                        </h3>
+                        <p className="text-xs text-slate">
+                          {copy.policy} v{automation.version}
+                        </p>
+                      </div>
+                      <Badge>{automation.mode.replace("_", " ")}</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(["paused", "shadow", "test_only", "live"] as const).map((mode) => (
+                        <Button
+                          key={mode}
+                          size="sm"
+                          variant={automation.mode === mode ? "default" : "outline"}
+                          disabled={modeMutation.isPending}
+                          onClick={() => {
+                            const confirmation =
+                              mode === "live"
+                                ? (window.prompt(copy.livePrompt) ?? undefined)
+                                : undefined;
+                            if (mode === "live" && confirmation !== "ENABLE LIVE CONCIERGE") return;
+                            modeMutation.mutate({
+                              automationId: automation.id,
+                              mode,
+                              confirmation,
+                            });
+                          }}
+                        >
+                          {mode.replace("_", " ")}
+                        </Button>
+                      ))}
+                    </div>
+                  </article>
+                ),
+              )}
+            </div>
+          </AdminSection>
+
+          <AdminSection title={copy.simulator} eyebrow={copy.preview}>
+            <p className="mb-4 text-sm text-slate">{copy.simulatorHint}</p>
+            <div className="editorial-panel grid gap-4 p-5 md:grid-cols-[1fr_auto]">
+              <Input
+                aria-label={copy.recipient}
+                value={recipientId}
+                onChange={(event) => setRecipientId(event.target.value)}
+              />
+              <Button
+                disabled={simulationMutation.isPending || recipientId.trim().length === 0}
+                onClick={() => simulationMutation.mutate()}
+              >
+                {copy.simulate}
+              </Button>
+              {simulation && (
+                <pre
+                  dir="ltr"
+                  className="overflow-auto rounded-lg bg-navy p-4 text-left text-xs text-ivory md:col-span-2"
+                >
+                  {JSON.stringify(simulation, null, 2)}
+                </pre>
+              )}
+            </div>
+          </AdminSection>
+        </>
+      )}
+
+      {activeView === "templates" && <ConciergeTemplateLibrary templates={templates} copy={copy} />}
     </div>
   );
 }

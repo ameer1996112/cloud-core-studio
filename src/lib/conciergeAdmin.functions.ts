@@ -84,9 +84,14 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .maybeSingle(),
       db
         .from("concierge_template_versions")
-        .select("lifecycle_status,approved_by")
+        .select(
+          "id,template_key,channel,locale,version,lifecycle_status,subject_template,body_template,required_variables,approved_at,approved_by",
+        )
         .eq("studio_id", studio.data.id)
-        .is("retired_at", null),
+        .is("retired_at", null)
+        .order("template_key")
+        .order("channel")
+        .order("locale"),
     ]);
     for (const result of [
       automations,
@@ -137,15 +142,28 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         total: templates.data?.length ?? 0,
         approved:
           templates.data?.filter(
-            (template: { lifecycle_status: string; approved_by: string | null }) =>
-              template.lifecycle_status === "approved" && template.approved_by,
+            (template: {
+              lifecycle_status: string;
+              approved_by: string | null;
+              approved_at: string | null;
+            }) =>
+              template.lifecycle_status === "approved" &&
+              template.approved_by &&
+              template.approved_at,
           ).length ?? 0,
         awaitingApproval:
           templates.data?.filter(
-            (template: { lifecycle_status: string; approved_by: string | null }) =>
-              template.lifecycle_status !== "approved" || !template.approved_by,
+            (template: {
+              lifecycle_status: string;
+              approved_by: string | null;
+              approved_at: string | null;
+            }) =>
+              template.lifecycle_status !== "approved" ||
+              !template.approved_by ||
+              !template.approved_at,
           ).length ?? 0,
       },
+      templates: templates.data ?? [],
     };
   });
 
