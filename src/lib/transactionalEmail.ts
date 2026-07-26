@@ -1,6 +1,6 @@
 import type { MessageEventType, MessageLanguage } from "@/lib/messaging.types";
 
-type TransactionalEmailInput = {
+export type TransactionalEmailInput = {
   eventType: MessageEventType;
   language: MessageLanguage;
   subject: string;
@@ -10,6 +10,12 @@ type TransactionalEmailInput = {
   publicBaseUrl: string;
   replyTo?: string | null;
   messageKey: string;
+  presentation?: {
+    key: string;
+    categoryLabel: string;
+    action: { label: string; url: string } | null;
+    facts: Array<{ key: string; label: string; value: string; ltr: boolean }>;
+  };
 };
 
 export type RenderedTransactionalEmail = {
@@ -235,6 +241,24 @@ function factRows(variables: Record<string, unknown>, language: MessageLanguage,
   </table>`;
 }
 
+function presentationFactRows(
+  facts: NonNullable<TransactionalEmailInput["presentation"]>["facts"],
+  align: string,
+) {
+  if (!facts.length) return "";
+  const rows = facts
+    .map(
+      (fact, index) => `<tr>
+        <td style="padding:${index === 0 ? "0" : "13px"} 0 0;color:#6F7A8C;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:13px;line-height:20px;vertical-align:top;text-align:${align};">${escapeHtml(fact.label)}</td>
+        <td style="padding:${index === 0 ? "0" : "13px"} 18px 0 0;color:#0B1D3A;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:22px;vertical-align:top;text-align:${align};"${fact.ltr ? ' dir="ltr"' : ""}>${escapeHtml(fact.value)}</td>
+      </tr>`,
+    )
+    .join("");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="Margin:8px 0 28px;background:#FAF7F2;border:1px solid #E8DFD1;border-radius:12px;">
+    <tr><td style="padding:20px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>
+  </table>`;
+}
+
 function messageRef(messageKey: string) {
   const safe = messageKey
     .toLowerCase()
@@ -249,12 +273,19 @@ export function renderTransactionalEmail(
   const rtl = input.language !== "en";
   const dir = rtl ? "rtl" : "ltr";
   const align = rtl ? "right" : "left";
-  const actionUrl = safeActionUrl(input.actionUrl, input.publicBaseUrl);
-  const kicker = KICKERS[eventGroup(input.eventType)][input.language];
-  const cta = CTA[ctaGroup(input.eventType, actionUrl)][input.language];
+  const actionUrl = safeActionUrl(
+    input.presentation?.action?.url ?? input.actionUrl,
+    input.publicBaseUrl,
+  );
+  const kicker =
+    input.presentation?.categoryLabel ?? KICKERS[eventGroup(input.eventType)][input.language];
+  const cta =
+    input.presentation?.action?.label ?? CTA[ctaGroup(input.eventType, actionUrl)][input.language];
   const copy: LocalizedCopy = { ...SUPPORT_COPY[input.language], kicker, cta };
   const escapedUrl = actionUrl ? escapeHtml(actionUrl.toString()) : "";
-  const facts = factRows(input.variables, input.language, align);
+  const facts = input.presentation
+    ? presentationFactRows(input.presentation.facts, align)
+    : factRows(input.variables, input.language, align);
   const preheader = `${input.subject} — ${input.body.replace(/\s+/g, " ").trim()}`.slice(0, 150);
   const supportEmail = input.replyTo?.trim() || null;
   const support = supportEmail

@@ -74,6 +74,29 @@ describe("premium transactional email renderer", () => {
     expect(injected.text).not.toContain("evil.example");
   });
 
+  test("uses an explicit presentation instead of event-derived email metadata", () => {
+    const rendered = renderTransactionalEmail({
+      ...baseInput,
+      language: "en",
+      actionUrl: "https://evil.example/steal",
+      presentation: {
+        key: "payment_requires_action:email:v2",
+        categoryLabel: "Payment details",
+        action: {
+          label: "Review payment",
+          url: "https://cloudandcorestudio.com/member/payments",
+        },
+        facts: [{ key: "payment_amount", label: "Amount due", value: "₪120", ltr: true }],
+      },
+    });
+
+    expect(rendered.html).toContain("Payment details");
+    expect(rendered.html).toContain("Review payment");
+    expect(rendered.html).toContain("Amount due");
+    expect(rendered.html).toContain("https://cloudandcorestudio.com/member/payments");
+    expect(rendered.html).not.toContain("evil.example");
+  });
+
   test("has localized presentation metadata for every catalog event", () => {
     const result = validateTransactionalEmailPresentationCatalog(
       Object.keys(MESSAGE_CONTENT_CATALOG),

@@ -38,6 +38,8 @@ import {
   sendWhatsappTemplate,
 } from "@/lib/messagingProviders.server";
 import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
+import { renderConciergeEmail } from "@/lib/conciergeEmail";
+import { conciergeJourneyForTemplate } from "@/lib/conciergeTemplateAdmin";
 import { renderTransactionalEmail } from "@/lib/transactionalEmail";
 import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationDelivery";
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
@@ -1374,20 +1376,39 @@ async function processDelivery(
     const publicBaseUrl =
       process.env.MESSAGING_PUBLIC_BASE_URL?.trim() || process.env.HYP_PUBLIC_BASE_URL?.trim();
     if (!publicBaseUrl) throw new Error("missing_messaging_public_base_url");
-    const renderedEmail = renderTransactionalEmail({
-      eventType: message.event_type as MessageEventType,
-      language: language(message.language) ?? "he",
-      subject: message.subject ?? "Cloud & Core",
-      body: message.body ?? "",
-      variables:
-        message.content?.variables && typeof message.content.variables === "object"
-          ? message.content.variables
-          : {},
-      actionUrl: message.deep_link ?? message.content?.action_url ?? null,
-      publicBaseUrl,
-      replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
-      messageKey: delivery.idempotency_key,
-    });
+    const concierge = typeof message.content?.concierge_decision_id === "string";
+    const journeyType =
+      typeof message.content?.journey_type === "string"
+        ? message.content.journey_type
+        : conciergeJourneyForTemplate(message.template_key ?? message.event_type);
+    const locale = language(message.language) ?? "he";
+    const variables =
+      message.content?.variables && typeof message.content.variables === "object"
+        ? message.content.variables
+        : {};
+    const renderedEmail = concierge
+      ? renderConciergeEmail({
+          journeyType,
+          templateKey: message.template_key ?? message.event_type,
+          locale,
+          subject: message.subject ?? "Cloud & Core",
+          body: message.body ?? "",
+          variables,
+          publicBaseUrl,
+          replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
+          messageKey: delivery.idempotency_key,
+        })
+      : renderTransactionalEmail({
+          eventType: message.event_type as MessageEventType,
+          language: locale,
+          subject: message.subject ?? "Cloud & Core",
+          body: message.body ?? "",
+          variables,
+          actionUrl: message.deep_link ?? message.content?.action_url ?? null,
+          publicBaseUrl,
+          replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
+          messageKey: delivery.idempotency_key,
+        });
     result = await sendResendEmail({
       to: delivery.recipient_address ?? "",
       subject: renderedEmail.subject,
