@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPageShell, AdminPageHeader } from "@/components/admin-shared";
 import { AdminPushCampaigns } from "@/components/admin/AdminPushCampaigns";
+import { ConciergeCommandCenter } from "@/components/admin/ConciergeCommandCenter";
 import {
   listMessageTemplates,
   upsertMessageTemplate,
@@ -65,7 +66,15 @@ export const Route = createFileRoute("/_authenticated/admin/messages")({
   component: Page,
 });
 
-type Tab = "inbox" | "deliveries" | "push" | "templates" | "composer" | "logs" | "requests";
+type Tab =
+  | "concierge"
+  | "inbox"
+  | "deliveries"
+  | "push"
+  | "templates"
+  | "composer"
+  | "logs"
+  | "requests";
 
 type LogStatusSummary = {
   status?: string | null;
@@ -100,9 +109,9 @@ function getLogStatusClass(log: LogStatusSummary) {
 
 const PAGE_COPY: Record<Lang, Record<string, string>> = {
   en: {
-    title: "Messages center",
+    title: "Concierge & messages",
     intro:
-      "Prepare WhatsApp- and email-ready messages from real studio data. Every message you generate is logged for the studio record.",
+      "Run the Concierge safely, handle conversations and deliveries, and prepare manual messages from one workspace.",
     composer: "Compose",
     templates: "Templates",
     requests: "Package requests",
@@ -110,6 +119,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "iPhone campaigns",
     inbox: "Inbox",
     deliveries: "Deliveries",
+    concierge: "Concierge",
     audience: "Audience",
     specificMembers: "Specific member(s)",
     searchMember: "Search member by name...",
@@ -150,8 +160,8 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     audienceNoBooking: "No upcoming booking",
   },
   he: {
-    title: "מרכז הודעות",
-    intro: "הכינו הודעות WhatsApp ואימייל מנתוני הסטודיו. כל הודעה שנוצרת נשמרת ביומן הסטודיו.",
+    title: "קונסיירז׳ והודעות",
+    intro: "נהלו את הקונסיירז׳ בבטחה, טפלו בשיחות ובמסירות והכינו הודעות ידניות במקום אחד.",
     composer: "כתיבה",
     templates: "תבניות",
     requests: "בקשות חבילה",
@@ -159,6 +169,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "קמפיינים ל-iPhone",
     inbox: "תיבת שיחות",
     deliveries: "מסירות",
+    concierge: "קונסיירז׳",
     audience: "קהל יעד",
     specificMembers: "חבר/ה מסוימים",
     searchMember: "חיפוש חבר/ה לפי שם...",
@@ -199,9 +210,9 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     audienceNoBooking: "ללא הזמנה קרובה",
   },
   ar: {
-    title: "مركز الرسائل",
+    title: "الكونسيرج والرسائل",
     intro:
-      "حضّر رسائل واتساب وبريد إلكتروني من بيانات الاستوديو الحقيقية. كل رسالة يتم إنشاؤها تُسجّل في سجل الاستوديو.",
+      "أديري الكونسيرج بأمان، تابعي المحادثات وعمليات التسليم، وحضّري الرسائل اليدوية من مكان واحد.",
     composer: "إنشاء",
     templates: "القوالب",
     requests: "طلبات الباقات",
@@ -209,6 +220,7 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     push: "حملات iPhone",
     inbox: "صندوق المحادثات",
     deliveries: "عمليات التسليم",
+    concierge: "الكونسيرج",
     audience: "الجمهور",
     specificMembers: "أعضاء محددون",
     searchMember: "ابحثي عن عضو بالاسم...",
@@ -326,17 +338,18 @@ function audienceLabel(kind: AudienceKind, copy: Record<string, string>) {
 }
 
 function Page() {
-  const { lang, t } = useI18n();
+  const { lang } = useI18n();
   useDocumentTitle("page.messages.title");
   const copy = pageCopy(lang);
-  const [tab, setTab] = useState<Tab>("composer");
+  const [tab, setTab] = useState<Tab>("concierge");
   return (
     <AdminPageShell>
-      <AdminPageHeader title={t("messages.center")} description={copy.intro} />
+      <AdminPageHeader title={copy.title} description={copy.intro} />
 
       <div className="flex gap-2 border-b border-gold/30 overflow-x-auto">
         {(
           [
+            { k: "concierge", l: "Concierge" },
             { k: "inbox", l: "Inbox" },
             { k: "deliveries", l: "Deliveries" },
             { k: "composer", l: "Compose" },
@@ -360,6 +373,7 @@ function Page() {
         ))}
       </div>
 
+      {tab === "concierge" && <ConciergeCommandCenter lang={lang} />}
       {tab === "composer" && <ComposerTab />}
       {tab === "inbox" && <CanonicalInboxTab />}
       {tab === "deliveries" && <CanonicalDeliveriesTab />}
