@@ -1,26 +1,20 @@
 import {
-  createHypInvoiceClient,
-  type HypReceiptDocument,
-  type HypReceiptRequest,
-} from "@/lib/hypInvoiceClient";
-import {
-  buildHypReconciliationId,
-  getHypConfig,
-  inquireHypTransactionsByUser,
-} from "@/lib/hyp.server";
+  createEzcountReceiptClient,
+  type EzcountReceiptDocument,
+  type EzcountReceiptRequest,
+} from "@/lib/ezcountReceiptClient";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 type PaymentReceiptRecord = {
   paymentId: string;
   receiptId: string;
   provider: string;
-  transactionId: string | null;
-  terminalKind: "primary" | "recurring";
   amount: number;
   paidAt: string | null;
   customerName: string | null;
   customerEmail: string | null;
   itemDescription: string | null;
+  cardLast4: string | null;
   externalProvider: string | null;
   externalStatus: string | null;
   externalDocumentId: string | null;
@@ -28,15 +22,12 @@ type PaymentReceiptRecord = {
   externalDocumentUrl: string | null;
 };
 
-type HypReceiptIssuanceDeps = {
+type EzcountReceiptIssuanceDeps = {
   loadPaymentReceipt(paymentId: string): Promise<PaymentReceiptRecord | null>;
   claimReceipt(receiptId: string): Promise<boolean>;
-  completeReceipt(receiptId: string, document: HypReceiptDocument): Promise<void>;
+  completeReceipt(receiptId: string, document: EzcountReceiptDocument): Promise<void>;
   failReceipt(receiptId: string, message: string, ambiguous: boolean): Promise<void>;
-  issueReceipt(
-    input: HypReceiptRequest,
-    terminalKind: "primary" | "recurring",
-  ): Promise<HypReceiptDocument>;
+  issueReceipt(input: EzcountReceiptRequest): Promise<EzcountReceiptDocument>;
 };
 
 function errorMessage(error: unknown) {
@@ -46,28 +37,25 @@ function errorMessage(error: unknown) {
 function isoDate(value: string | null) {
   const date = value ? new Date(value) : new Date();
   if (!Number.isFinite(date.getTime())) throw new Error("hyp_invoice_invalid_payment_date");
-  return date.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jerusalem",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((candidate) => candidate.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-function defaultDeps(): HypReceiptIssuanceDeps {
-  const config = getHypConfig();
-  const relayUrl =
-    process.env.HYP_RELAY_URL?.trim() ||
-    process.env.HYP_RELAY_URI?.trim() ||
-    process.env.HYP_RELAY_BASE_URL?.trim();
-  const primaryClient = createHypInvoiceClient({
-    relayUrl: relayUrl || "",
-    user: config.user,
-    password: config.password,
-    terminalNumber: config.terminalNumber,
-    layoutId: process.env.HYP_INVOICE_LAYOUT_ID?.trim() || undefined,
-  });
-  const recurringClient = createHypInvoiceClient({
-    relayUrl: relayUrl || "",
-    user: config.user,
-    password: config.recurringPassword || config.password,
-    terminalNumber: config.recurringTerminalNumber || config.terminalNumber,
-    layoutId: process.env.HYP_INVOICE_LAYOUT_ID?.trim() || undefined,
+function defaultDeps(): EzcountReceiptIssuanceDeps {
+  const client = createEzcountReceiptClient({
+    apiKey: process.env.EZCOUNT_API_KEY?.trim() || "",
+    developerEmail:
+      process.env.EZCOUNT_DEVELOPER_EMAIL?.trim() ||
+      process.env.PAYMENT_NOTIFICATION_EMAIL?.trim() ||
+      "",
+    endpoint: process.env.EZCOUNT_API_URL?.trim() || undefined,
   });
 
   return {
@@ -83,31 +71,20 @@ function defaultDeps(): HypReceiptIssuanceDeps {
       if (!data) return null;
       const payment = data.payment as any;
       const metadata = (payment.metadata ?? {}) as Record<string, unknown>;
-      let transactionId = String(metadata.Id ?? "").trim() || null;
-      if (!transactionId) {
-        const transactions = await inquireHypTransactionsByUser(
-          buildHypReconciliationId(payment.id),
-        );
-        const debit = transactions.find(
-          (transaction) =>
-            (transaction.status === "000" || transaction.status === "0") &&
-            transaction.validation.toLowerCase() !== "txnsetup" &&
-            Boolean(transaction.tranId),
-        );
-        transactionId = debit?.tranId || null;
-      }
+      const cardLast4 =
+        String(metadata.L4digit ?? metadata.cardMask ?? metadata.token_last4 ?? "")
+          .replace(/\D/g, "")
+          .slice(-4) || null;
       return {
         paymentId: payment.id,
         receiptId: data.id,
         provider: payment.provider,
-        transactionId,
-        terminalKind:
-          metadata.subscription_management === "hyp_merchant_token" ? "recurring" : "primary",
         amount: Number(payment.amount),
         paidAt: payment.paid_at,
         customerName: payment.member?.name ?? null,
         customerEmail: payment.member?.email ?? null,
         itemDescription: payment.plan?.name ?? "תשלום ל-Cloud & Core",
+        cardLast4,
         externalProvider: data.external_provider,
         externalStatus: data.external_status,
         externalDocumentId: data.external_doc_id,
@@ -119,7 +96,7 @@ function defaultDeps(): HypReceiptIssuanceDeps {
       const { data, error } = await supabaseAdmin
         .from("receipts")
         .update({
-          external_provider: "hyp",
+          external_provider: "ezcount",
           external_status: "pending",
           external_error: null,
           external_attempted_at: new Date().toISOString(),
@@ -135,7 +112,7 @@ function defaultDeps(): HypReceiptIssuanceDeps {
       const { data: receipt, error: receiptError } = await supabaseAdmin
         .from("receipts")
         .update({
-          external_provider: "hyp",
+          external_provider: "ezcount",
           external_status: "issued",
           external_doc_id: document.documentId,
           external_doc_number: document.documentNumber,
@@ -157,21 +134,23 @@ function defaultDeps(): HypReceiptIssuanceDeps {
       const { error } = await supabaseAdmin
         .from("receipts")
         .update({
-          external_provider: "hyp",
+          external_provider: "ezcount",
           external_status: ambiguous ? "ambiguous" : "failed",
           external_error: message.slice(0, 500),
         } as any)
         .eq("id", receiptId)
         .eq("external_status", "pending");
-      if (error) console.error("hyp_invoice_failure_persist_failed", error.message);
+      if (error) console.error("ezcount_receipt_failure_persist_failed", error.message);
     },
-    issueReceipt: (input, terminalKind) =>
-      (terminalKind === "recurring" ? recurringClient : primaryClient).issueReceipt(input),
+    issueReceipt: (input) => client.issueReceipt(input),
   };
 }
 
-export async function issueHypReceiptForPayment(paymentId: string, deps?: HypReceiptIssuanceDeps) {
-  if (!deps && process.env.HYP_INVOICE_API_ENABLED?.trim().toLowerCase() !== "true") {
+export async function issueEzcountReceiptForPayment(
+  paymentId: string,
+  deps?: EzcountReceiptIssuanceDeps,
+) {
+  if (!deps && process.env.EZCOUNT_RECEIPTS_ENABLED?.trim().toLowerCase() !== "true") {
     return { status: "disabled" as const };
   }
   const runtimeDeps = deps ?? defaultDeps();
@@ -179,7 +158,7 @@ export async function issueHypReceiptForPayment(paymentId: string, deps?: HypRec
   if (!record) return { status: "receipt_not_found" as const };
   if (record.provider !== "hyp") return { status: "not_hyp_payment" as const };
   if (
-    record.externalProvider === "hyp" &&
+    record.externalProvider === "ezcount" &&
     record.externalStatus === "issued" &&
     record.externalDocumentUrl
   ) {
@@ -189,25 +168,22 @@ export async function issueHypReceiptForPayment(paymentId: string, deps?: HypRec
       documentUrl: record.externalDocumentUrl,
     };
   }
-  if (!record.transactionId) throw new Error("hyp_invoice_missing_transaction_id");
-  if (!record.customerName?.trim()) throw new Error("hyp_invoice_missing_customer_name");
-  if (!record.customerEmail?.trim()) throw new Error("hyp_invoice_missing_customer_email");
+  if (!record.customerName?.trim()) throw new Error("ezcount_receipt_missing_customer_name");
+  if (!record.customerEmail?.trim()) throw new Error("ezcount_receipt_missing_customer_email");
 
   const claimed = await runtimeDeps.claimReceipt(record.receiptId);
   if (!claimed) return { status: "already_claimed" as const };
 
   try {
-    const document = await runtimeDeps.issueReceipt(
-      {
-        transactionId: record.transactionId,
-        amountAgorot: Math.round(Number(record.amount) * 100),
-        customerName: record.customerName,
-        customerEmail: record.customerEmail,
-        itemDescription: record.itemDescription?.trim() || "תשלום ל-Cloud & Core",
-        issuedOn: isoDate(record.paidAt),
-      },
-      record.terminalKind,
-    );
+    const document = await runtimeDeps.issueReceipt({
+      paymentId: record.paymentId,
+      amountAgorot: Math.round(Number(record.amount) * 100),
+      customerName: record.customerName,
+      customerEmail: record.customerEmail,
+      itemDescription: record.itemDescription?.trim() || "תשלום ל-Cloud & Core",
+      issuedOn: isoDate(record.paidAt),
+      cardLast4: record.cardLast4,
+    });
     await runtimeDeps.completeReceipt(record.receiptId, document);
     return {
       status: "issued" as const,
@@ -219,14 +195,14 @@ export async function issueHypReceiptForPayment(paymentId: string, deps?: HypRec
     await runtimeDeps.failReceipt(
       record.receiptId,
       message,
-      !message.startsWith("hyp_invoice_failed:"),
+      !message.startsWith("ezcount_receipt_failed:"),
     );
     throw error;
   }
 }
 
-export async function sweepFailedHypReceipts(limit = 10) {
-  if (process.env.HYP_INVOICE_API_ENABLED?.trim().toLowerCase() !== "true") {
+export async function sweepFailedEzcountReceipts(limit = 10) {
+  if (process.env.EZCOUNT_RECEIPTS_ENABLED?.trim().toLowerCase() !== "true") {
     return { status: "disabled" as const, checked: 0, results: [] };
   }
   const staleBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -236,14 +212,14 @@ export async function sweepFailedHypReceipts(limit = 10) {
       external_status: "ambiguous",
       external_error: "stale_pending_requires_reconciliation",
     })
-    .eq("external_provider", "hyp")
+    .eq("external_provider", "ezcount")
     .eq("external_status", "pending")
     .lt("external_attempted_at", staleBefore)
     .select("payment_id");
   if (staleError) throw staleError;
   if (staleClaims?.length) {
     console.error(
-      "hyp_invoice_ambiguous_receipts_require_reconciliation",
+      "ezcount_ambiguous_receipts_require_reconciliation",
       staleClaims.map((receipt) => receipt.payment_id),
     );
   }
@@ -251,7 +227,7 @@ export async function sweepFailedHypReceipts(limit = 10) {
   const { data, error } = await supabaseAdmin
     .from("receipts")
     .select("payment_id")
-    .eq("external_provider", "hyp")
+    .eq("external_provider", "ezcount")
     .eq("external_status", "failed")
     .order("external_attempted_at", { ascending: true })
     .limit(Math.max(1, Math.min(limit, 50)));
@@ -259,7 +235,7 @@ export async function sweepFailedHypReceipts(limit = 10) {
   const results = [];
   for (const receipt of data ?? []) {
     try {
-      results.push(await issueHypReceiptForPayment(receipt.payment_id));
+      results.push(await issueEzcountReceiptForPayment(receipt.payment_id));
     } catch (receiptError) {
       results.push({ status: "failed" as const, error: errorMessage(receiptError) });
     }
