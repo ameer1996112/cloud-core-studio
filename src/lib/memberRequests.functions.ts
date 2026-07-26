@@ -75,28 +75,16 @@ export const createMyPackageRequest = createServerFn({ method: "POST" })
       if (planRes.error) throw planRes.error;
       if (settingsRes.error) throw settingsRes.error;
       if (memberRes.data && planRes.data) {
-        const rows = [
-          ...buildNotificationDraftRows({
-            eventKey: "payment_request_received",
-            channels: ["whatsapp", "email"],
-            audience: "member",
-            member: memberRes.data,
-            appLanguage: null,
-            studioSettings: settingsRes.data ?? null,
-            relatedIds: { packageRequestId: row.id },
-            variables: { package_name: planRes.data.name ?? "" },
-          }),
-          ...buildNotificationDraftRows({
-            eventKey: "payment_request_received",
-            channels: ["whatsapp", "email"],
-            audience: "admin",
-            member: memberRes.data,
-            appLanguage: null,
-            studioSettings: settingsRes.data ?? null,
-            relatedIds: { packageRequestId: row.id },
-            variables: { package_name: planRes.data.name ?? "" },
-          }),
-        ];
+        const rows = buildNotificationDraftRows({
+          eventKey: "payment_request_received",
+          channels: ["whatsapp", "email"],
+          audience: "admin",
+          member: memberRes.data,
+          appLanguage: null,
+          studioSettings: settingsRes.data ?? null,
+          relatedIds: { packageRequestId: row.id },
+          variables: { package_name: planRes.data.name ?? "" },
+        });
         await insertNotificationDraftRows(context.supabase, rows);
       }
     } catch (draftError) {

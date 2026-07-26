@@ -144,7 +144,7 @@ export const confirmPaymentAndIssueReceipt = createServerFn({ method: "POST" })
           const packageName = payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
           const paymentRows = buildNotificationDraftRows({
             eventKey: "payment_confirmed",
-            channels: ["whatsapp", "email"],
+            channels: ["email"],
             audience: "member",
             member: payment.member,
             appLanguage: null,
@@ -160,26 +160,7 @@ export const confirmPaymentAndIssueReceipt = createServerFn({ method: "POST" })
               currency: payment.currency,
             },
           });
-          const receiptRows = receipt
-            ? buildNotificationDraftRows({
-                eventKey: "receipt_issued",
-                channels: ["whatsapp", "email"],
-                audience: "member",
-                member: payment.member,
-                appLanguage: null,
-                studioSettings: settingsRes.data ?? null,
-                relatedIds: {
-                  paymentId: typedResult.payment_id,
-                  receiptId: typedResult.receipt_id,
-                  memberPlanId: typedResult.member_plan_id ?? null,
-                },
-                variables: {
-                  package_name: packageName,
-                  receipt_number: receipt.receipt_number ?? typedResult.receipt_number,
-                },
-              })
-            : [];
-          await insertNotificationDraftRows(context.supabase, [...paymentRows, ...receiptRows]);
+          await insertNotificationDraftRows(context.supabase, paymentRows);
         }
       } catch (draftError) {
         console.error("payment_receipt_draft_prepare_failed", draftError);

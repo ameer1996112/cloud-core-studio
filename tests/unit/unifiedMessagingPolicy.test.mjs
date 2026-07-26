@@ -22,7 +22,9 @@ describe("unified messaging delivery policy", () => {
     expect(channelsForEvent("booking_confirmed")).toEqual(["in_app", "push", "whatsapp", "email"]);
     expect(channelsForEvent("waitlist_joined")).toEqual(["in_app", "push"]);
     expect(channelsForEvent("class_open_spots")).toEqual(["in_app", "push"]);
-    expect(channelsForEvent("receipt_issued")).toEqual(["in_app", "email"]);
+    expect(channelsForEvent("payment_request_received")).toEqual(["in_app"]);
+    expect(channelsForEvent("receipt_issued")).toEqual(["in_app"]);
+    expect(channelsForEvent("membership_activated")).toEqual(["in_app"]);
   });
 
   test("keeps the durable inbox record while schedule-opening consent governs push", () => {

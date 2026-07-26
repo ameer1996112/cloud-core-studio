@@ -146,9 +146,9 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     parameters: ["member_name", "package_name", "amount"],
     examples: ["נועה", "מינוי חודשי", "₪350"],
     bodies: {
-      he: "היי {{1}}, התשלום אושר ✨\n\n{{2}} · {{3}}\n\nהחבילה עודכנה בחשבון שלך. תודה שבחרת ב-Cloud & Core.\nירין",
-      ar: "مرحباً {{1}}، تم تأكيد الدفع ✨\n\n{{2}} · {{3}}\n\nتم تحديث الباقة في حسابك. شكراً لاختيارك Cloud & Core.",
-      en: "Hi {{1}}, payment confirmed ✨\n\n{{2}} · {{3}}\n\nYour package has been updated. Thank you for choosing Cloud & Core.",
+      he: "היי {{1}}, הכול מוכן ✨\n\nהתשלום הושלם ו-{{2}} פעילה עכשיו.\n{{3}}\n\nאפשר לבחור את השיעור הבא כשנוח לך.\n\nנתראה בסטודיו,\nירין",
+      ar: "مرحباً {{1}}، كل شيء جاهز ✨\n\nاكتملت الدفعة وأصبحت {{2}} فعّالة الآن.\n{{3}}\n\nيمكنك اختيار حصتك القادمة عندما يناسبك.\n\nنراك في الاستوديو.",
+      en: "Hi {{1}}, you're all set ✨\n\nPayment is complete and {{2}} is now active.\n{{3}}\n\nChoose your next class whenever you're ready.\n\nSee you at the studio.",
     },
   },
   payment_failed: {
