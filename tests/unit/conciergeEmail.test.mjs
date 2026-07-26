@@ -21,3 +21,20 @@ test("renders the premium shell with localized action and presentation evidence"
   expect(rendered.text).toContain("Review payment:");
   expect(rendered.presentationKey).toBe("payment_requires_action:email:v2");
 });
+
+test("fails closed when persisted concierge presentation evidence does not match", () => {
+  expect(() =>
+    renderConciergeEmail({
+      journeyType: "payment_outcome",
+      templateKey: "payment_requires_action",
+      locale: "en",
+      subject: "Payment action required",
+      body: "Hi Noa, your payment needs attention.",
+      variables: { member_name: "Noa" },
+      publicBaseUrl: "https://cloudandcorestudio.com",
+      messageKey: "delivery-immutable",
+      presentationKey: "payment_requires_action:email:v1",
+      actionUrl: "https://cloudandcorestudio.com/member/payments",
+    }),
+  ).toThrow("concierge_presentation_evidence_mismatch");
+});

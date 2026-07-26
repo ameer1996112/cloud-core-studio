@@ -14,6 +14,8 @@ export function renderConciergeEmail(input: {
   publicBaseUrl: string;
   replyTo?: string | null;
   messageKey: string;
+  presentationKey?: string;
+  actionUrl?: string | null;
 }): RenderedTransactionalEmail & { presentationKey: string } {
   const presentation = buildConciergePresentation({
     journeyType: input.journeyType,
@@ -24,22 +26,38 @@ export function renderConciergeEmail(input: {
     variables: input.variables,
     publicBaseUrl: input.publicBaseUrl,
   });
+  if (
+    (input.presentationKey !== undefined && input.presentationKey !== presentation.key) ||
+    (input.actionUrl !== undefined && input.actionUrl !== presentation.action?.url)
+  ) {
+    throw new Error("concierge_presentation_evidence_mismatch");
+  }
+  const immutablePresentation = {
+    ...presentation,
+    key: input.presentationKey ?? presentation.key,
+    action:
+      input.actionUrl === undefined
+        ? presentation.action
+        : presentation.action
+          ? { ...presentation.action, url: input.actionUrl }
+          : null,
+  };
   const rendered = renderTransactionalEmail({
     eventType: "human_handoff",
     language: input.locale,
-    subject: presentation.subject,
-    body: presentation.body,
+    subject: immutablePresentation.subject,
+    body: immutablePresentation.body,
     variables: input.variables,
     publicBaseUrl: input.publicBaseUrl,
     replyTo: input.replyTo,
     messageKey: input.messageKey,
     presentation: {
-      key: presentation.key,
-      categoryLabel: presentation.categoryLabel,
-      action: presentation.action,
-      facts: presentation.facts,
+      key: immutablePresentation.key,
+      categoryLabel: immutablePresentation.categoryLabel,
+      action: immutablePresentation.action,
+      facts: immutablePresentation.facts,
     },
   });
 
-  return { ...rendered, presentationKey: presentation.key };
+  return { ...rendered, presentationKey: immutablePresentation.key };
 }

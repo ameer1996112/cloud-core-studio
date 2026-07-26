@@ -1404,6 +1404,14 @@ async function processDelivery(
           publicBaseUrl,
           replyTo: process.env.MESSAGING_EMAIL_REPLY_TO,
           messageKey: delivery.idempotency_key,
+          presentationKey:
+            typeof message.content?.presentation_key === "string"
+              ? message.content.presentation_key
+              : undefined,
+          actionUrl:
+            typeof message.content?.action_url === "string" || message.content?.action_url === null
+              ? message.content.action_url
+              : undefined,
         })
       : renderTransactionalEmail({
           eventType: message.event_type as MessageEventType,
