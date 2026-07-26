@@ -68,7 +68,7 @@ describe("premium notification event catalog", () => {
     });
     expect(notificationDefinition("receipt_issued")).toMatchObject({
       tier: "inbox_only",
-      channels: ["in_app", "email"],
+      channels: ["in_app"],
       interruptionLevel: "passive",
     });
   });
@@ -84,16 +84,13 @@ describe("premium notification event catalog", () => {
       fallbackChannels: ["whatsapp"],
     });
     expect(notificationDefinition("class_reminder_final").channels).toEqual(["in_app", "whatsapp"]);
-    expect(notificationDefinition("payment_request_received").channels).toEqual([
-      "in_app",
-      "email",
-    ]);
+    expect(notificationDefinition("payment_request_received").channels).toEqual(["in_app"]);
     expect(notificationDefinition("payment_confirmed").channels).toEqual([
       "in_app",
       "push",
-      "whatsapp",
       "email",
     ]);
+    expect(notificationDefinition("membership_activated").channels).toEqual(["in_app"]);
     expect(notificationDefinition("payment_confirmed")).toMatchObject({
       interruptionLevel: "passive",
       sound: "none",

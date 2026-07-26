@@ -280,7 +280,7 @@ export async function enqueuePaymentConfirmedNotifications(result: ConfirmPaymen
     const packageName = payment.plan?.name ?? receipt?.plan_name_snapshot ?? "Studio payment";
     const paymentRows = buildNotificationDraftRows({
       eventKey: "payment_confirmed",
-      channels: ["whatsapp", "email"],
+      channels: ["email"],
       audience: "member",
       member: payment.member,
       appLanguage: null,
@@ -296,27 +296,7 @@ export async function enqueuePaymentConfirmedNotifications(result: ConfirmPaymen
         currency: payment.currency,
       },
     });
-    const receiptRows = receipt
-      ? buildNotificationDraftRows({
-          eventKey: "receipt_issued",
-          channels: ["whatsapp", "email"],
-          audience: "member",
-          member: payment.member,
-          appLanguage: null,
-          studioSettings: settings,
-          relatedIds: {
-            paymentId: result.payment_id,
-            receiptId: result.receipt_id,
-            memberPlanId: result.member_plan_id ?? null,
-          },
-          variables: {
-            package_name: packageName,
-            receipt_number: receipt.receipt_number ?? result.receipt_number,
-          },
-        })
-      : [];
-
-    await insertNotificationDraftRows([...paymentRows, ...receiptRows]);
+    await insertNotificationDraftRows(paymentRows);
     await sendBusinessPaymentEmail({ payment, receipt, settings, result });
   } catch (error) {
     console.error("hyp_return_notification_prepare_failed", error);
