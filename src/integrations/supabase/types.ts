@@ -1109,6 +1109,7 @@ export type Database = {
           external_error: string | null;
           external_attempted_at: string | null;
           external_provider: string | null;
+          external_status: string | null;
           footer_note: string | null;
           id: string;
           issued_at: string;
@@ -1132,6 +1133,7 @@ export type Database = {
           external_error?: string | null;
           external_attempted_at?: string | null;
           external_provider?: string | null;
+          external_status?: string | null;
           footer_note?: string | null;
           id?: string;
           issued_at?: string;
@@ -1155,6 +1157,7 @@ export type Database = {
           external_error?: string | null;
           external_attempted_at?: string | null;
           external_provider?: string | null;
+          external_status?: string | null;
           footer_note?: string | null;
           id?: string;
           issued_at?: string;

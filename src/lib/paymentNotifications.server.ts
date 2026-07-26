@@ -1,6 +1,5 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
-import { issueHypReceiptForPayment } from "@/lib/hypReceiptIssuance.server";
 
 export type ConfirmPaymentResult = {
   status: string;
@@ -253,15 +252,6 @@ export async function enqueuePaymentConfirmedNotifications(result: ConfirmPaymen
   if (!result.payment_id || !result.receipt_id) return;
 
   try {
-    try {
-      await issueHypReceiptForPayment(result.payment_id);
-    } catch (invoiceError) {
-      console.error(
-        "hyp_legal_receipt_issue_failed",
-        invoiceError instanceof Error ? invoiceError.message : String(invoiceError),
-      );
-    }
-
     const [paymentRes, receiptRes, settingsRes] = await Promise.all([
       supabaseAdmin
         .from("payments")
