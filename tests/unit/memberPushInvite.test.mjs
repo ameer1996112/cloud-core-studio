@@ -10,6 +10,7 @@ function decide(overrides = {}) {
     isLoading: false,
     isBootstrapPending: false,
     isRegistrationPending: false,
+    needsLocalPermission: false,
     hasActiveDevice: false,
     dismissed: false,
     ...overrides,
@@ -19,6 +20,10 @@ function decide(overrides = {}) {
 describe("member push invitation policy", () => {
   test("invites every loaded member without an active push device", () => {
     expect(decide()).toBe(true);
+  });
+
+  test("invites a reinstalled app when local permission is missing despite a stale server device", () => {
+    expect(decide({ hasActiveDevice: true, needsLocalPermission: true })).toBe(true);
   });
 
   test("stays hidden after registration, while loading, or after dismissal", () => {

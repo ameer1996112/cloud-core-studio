@@ -14,6 +14,7 @@ export function shouldShowMemberPushInvite(input: {
   isLoading: boolean;
   isBootstrapPending: boolean;
   isRegistrationPending: boolean;
+  needsLocalPermission: boolean;
   hasActiveDevice: boolean;
   dismissed: boolean;
 }) {
@@ -22,7 +23,7 @@ export function shouldShowMemberPushInvite(input: {
     !input.isLoading &&
     !input.isBootstrapPending &&
     !input.isRegistrationPending &&
-    !input.hasActiveDevice &&
+    (input.needsLocalPermission || !input.hasActiveDevice) &&
     !input.dismissed
   );
 }

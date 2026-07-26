@@ -164,6 +164,7 @@ export function MemberNotificationCenter({
   const [isNativeIos, setIsNativeIos] = useState(false);
   const [isPushBootstrapPending, setIsPushBootstrapPending] = useState(true);
   const [isPushRegistrationPending, setIsPushRegistrationPending] = useState(false);
+  const [needsLocalPushPermission, setNeedsLocalPushPermission] = useState(false);
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -200,6 +201,11 @@ export function MemberNotificationCenter({
           if (cancelled) return;
           if (result.ok || result.skipped === "already_started") {
             setIsPushRegistrationPending(true);
+          } else if (
+            result.skipped === "permission_denied" ||
+            result.skipped === "permission_not_granted"
+          ) {
+            setNeedsLocalPushPermission(true);
           }
           await queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
         }
@@ -261,6 +267,7 @@ export function MemberNotificationCenter({
     isLoading: query.isLoading,
     isBootstrapPending: isPushBootstrapPending,
     isRegistrationPending: isPushRegistrationPending,
+    needsLocalPermission: needsLocalPushPermission,
     hasActiveDevice: Boolean(data?.hasActiveDevice),
     dismissed: inviteDismissed,
   });
@@ -271,8 +278,12 @@ export function MemberNotificationCenter({
       const result = await startMemberPushRegistration();
       if (result.ok || result.skipped === "already_started") {
         setIsPushRegistrationPending(true);
+        setNeedsLocalPushPermission(false);
         setPermissionMessage(copy.enabled);
         return;
+      }
+      if (result.skipped === "permission_denied" || result.skipped === "permission_not_granted") {
+        setNeedsLocalPushPermission(true);
       }
       setPermissionMessage(result.skipped === "permission_denied" ? copy.denied : copy.unavailable);
     } catch (error) {
