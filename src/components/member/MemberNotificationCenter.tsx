@@ -162,6 +162,7 @@ export function MemberNotificationCenter({
       isMemberPushInviteDismissed(window.localStorage.getItem(MEMBER_PUSH_INVITE_DISMISSED_AT_KEY)),
   );
   const [isNativeIos, setIsNativeIos] = useState(false);
+  const [isPushBootstrapPending, setIsPushBootstrapPending] = useState(true);
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -169,10 +170,7 @@ export function MemberNotificationCenter({
   });
 
   useEffect(() => {
-    void detectNativeIos().then(setIsNativeIos);
-    void bootstrapMemberPushRegistration().catch((error) =>
-      console.warn("member_push_bootstrap_failed", error),
-    );
+    let cancelled = false;
     const refresh = () => {
       void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
     };
@@ -190,7 +188,23 @@ export function MemberNotificationCenter({
     window.addEventListener("cc:member-notifications-changed", refresh);
     window.addEventListener("cc:member-push-received", foreground);
     window.addEventListener(MEMBER_PUSH_REGISTRATION_FAILED_EVENT, registrationFailed);
+    void (async () => {
+      try {
+        const nativeIos = await detectNativeIos();
+        if (cancelled) return;
+        setIsNativeIos(nativeIos);
+        if (nativeIos) {
+          await bootstrapMemberPushRegistration();
+          await queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+        }
+      } catch (error) {
+        console.warn("member_push_bootstrap_failed", error);
+      } finally {
+        if (!cancelled) setIsPushBootstrapPending(false);
+      }
+    })();
     return () => {
+      cancelled = true;
       window.removeEventListener("cc:member-notifications-changed", refresh);
       window.removeEventListener("cc:member-push-received", foreground);
       window.removeEventListener(MEMBER_PUSH_REGISTRATION_FAILED_EVENT, registrationFailed);
@@ -239,6 +253,7 @@ export function MemberNotificationCenter({
   const shouldInvite = shouldShowMemberPushInvite({
     isNativeIos,
     isLoading: query.isLoading,
+    isBootstrapPending: isPushBootstrapPending,
     hasActiveDevice: Boolean(data?.hasActiveDevice),
     dismissed: inviteDismissed,
   });

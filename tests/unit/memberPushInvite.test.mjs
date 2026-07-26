@@ -8,6 +8,7 @@ function decide(overrides = {}) {
   return shouldShowMemberPushInvite({
     isNativeIos: true,
     isLoading: false,
+    isBootstrapPending: false,
     hasActiveDevice: false,
     dismissed: false,
     ...overrides,
@@ -22,6 +23,7 @@ describe("member push invitation policy", () => {
   test("stays hidden after registration, while loading, or after dismissal", () => {
     expect(decide({ hasActiveDevice: true })).toBe(false);
     expect(decide({ isLoading: true })).toBe(false);
+    expect(decide({ isBootstrapPending: true })).toBe(false);
     expect(decide({ dismissed: true })).toBe(false);
   });
 

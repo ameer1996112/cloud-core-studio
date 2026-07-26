@@ -12,8 +12,15 @@ export function isMemberPushInviteDismissed(rawDismissedAt: string | null, now =
 export function shouldShowMemberPushInvite(input: {
   isNativeIos: boolean;
   isLoading: boolean;
+  isBootstrapPending: boolean;
   hasActiveDevice: boolean;
   dismissed: boolean;
 }) {
-  return input.isNativeIos && !input.isLoading && !input.hasActiveDevice && !input.dismissed;
+  return (
+    input.isNativeIos &&
+    !input.isLoading &&
+    !input.isBootstrapPending &&
+    !input.hasActiveDevice &&
+    !input.dismissed
+  );
 }
