@@ -9,7 +9,7 @@ import {
   syncDueKidsHypSubscriptions,
   unlockDueKidsYearlyPeriods,
 } from "@/lib/kids.server";
-import { sweepFailedHypReceipts } from "@/lib/hypReceiptIssuance.server";
+import { sweepFailedEzcountReceipts } from "@/lib/ezcountReceiptIssuance.server";
 
 function requireSubscriptionAutomationAuth(request: Request): Response | null {
   const configuredToken =
@@ -46,7 +46,7 @@ async function handle(request: Request) {
     const kidsInquirySync = includeInquirySync
       ? await syncDueKidsHypSubscriptions({ limit })
       : null;
-    const receiptSweep = await sweepFailedHypReceipts(limit);
+    const receiptSweep = await sweepFailedEzcountReceipts(limit);
     return jsonResponse({
       ok: true,
       tokenCharges,

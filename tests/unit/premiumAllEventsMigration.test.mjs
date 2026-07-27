@@ -10,6 +10,10 @@ const tuningMigrationPath = new URL(
   "../../supabase/migrations/20260722120000_premium_messaging_journey_tuning.sql",
   import.meta.url,
 );
+const paymentLifecycleMigrationPath = new URL(
+  "../../supabase/migrations/20260727110000_premium_payment_lifecycle.sql",
+  import.meta.url,
+);
 
 describe("premium notification all-events migration", () => {
   test("keeps the complete rollout private while enabling reviewed event behavior", () => {
@@ -60,6 +64,13 @@ describe("premium notification all-events migration", () => {
         [...match[2].matchAll(/'([^']+)'/g)].map((channel) => channel[1]),
       ]),
     );
+    const lifecycleSql = readFileSync(paymentLifecycleMigrationPath, "utf8");
+    for (const match of lifecycleSql.matchAll(/WHEN '([^']+)' THEN ARRAY\[([^\]]*)\]::text\[\]/g)) {
+      rolloutRows.set(
+        match[1],
+        [...match[2].matchAll(/'([^']+)'/g)].map((channel) => channel[1]),
+      );
+    }
     expect(Object.fromEntries(rolloutRows)).toEqual(
       Object.fromEntries(
         Object.entries(NOTIFICATION_EVENT_CATALOG).map(([eventType, definition]) => [

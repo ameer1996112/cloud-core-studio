@@ -368,7 +368,7 @@ describe("outbox message materialization", () => {
     );
   });
 
-  test("keeps final reminders focused and sends payment-success WhatsApp only after recovery", () => {
+  test("keeps final reminders focused and never duplicates payment success on WhatsApp", () => {
     const finalReminder = materializeMessagePlan({
       ...base,
       eventType: "class_reminder_final",
@@ -401,7 +401,7 @@ describe("outbox message materialization", () => {
     });
     expect(
       ordinarySuccess.deliveries.find((delivery) => delivery.channel === "whatsapp"),
-    ).toMatchObject({ status: "suppressed", errorCode: "payment_success_whatsapp_not_needed" });
+    ).toBeUndefined();
 
     const recovered = materializeMessagePlan({
       ...base,
@@ -415,9 +415,9 @@ describe("outbox message materialization", () => {
       preferences: { ...base.preferences, payments: true },
       approvedWhatsappVariants: new Set(["cc_payment_confirmed_v2:he"]),
     });
-    expect(recovered.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
-      "queued",
-    );
+    expect(
+      recovered.deliveries.find((delivery) => delivery.channel === "whatsapp"),
+    ).toBeUndefined();
   });
 
   test("keeps growth messaging push-first and unlocks WhatsApp only for qualified escalation", () => {

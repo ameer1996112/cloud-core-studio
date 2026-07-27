@@ -151,14 +151,18 @@ assert.equal(
 
 const premiumPaymentTemplate = findNotificationTemplate({
   eventKey: "payment_confirmed",
-  channel: "whatsapp",
-  language: "he",
+  channel: "email",
+  language: "en",
   audience: "member",
 });
 
 assert.equal(
+  renderNotificationCopy(premiumPaymentTemplate, premiumHebrewVariables).subject,
+  "You're all set · מינוי חודשי",
+);
+assert.equal(
   renderNotificationCopy(premiumPaymentTemplate, premiumHebrewVariables).body,
-  "נועה, התשלום אושר והחבילה שלך פעילה ✨\n\nמינוי חודשי\n\nתוכלי לבחור שיעור ולהמשיך בקצב שמתאים לך.\nירין",
+  "Hi נועה, you're all set ✨\n\nPayment is complete and מינוי חודשי is now active.\nChoose your next class whenever you're ready.\n\nSee you at the studio.",
 );
 
 const premiumReminderTemplate = findNotificationTemplate({

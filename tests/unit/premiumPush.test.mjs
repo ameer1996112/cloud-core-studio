@@ -34,7 +34,7 @@ describe("premium push presentation", () => {
       .filter(([, definition]) => definition.channels.includes("push"))
       .map(([eventType]) => eventType);
 
-    expect(pushEvents).toHaveLength(35);
+    expect(pushEvents).toHaveLength(34);
     expect(validatePremiumPushCatalog()).toEqual({ ok: true, errors: [] });
 
     for (const eventType of pushEvents) {
