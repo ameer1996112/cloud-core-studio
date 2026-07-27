@@ -15,9 +15,8 @@ export function applyStaffTestVariables(
   for (const [key, value] of Object.entries(payload.test_variables)) {
     // A Journey Lab payload can supply safe scenario facts, never a replacement identity.
     if (key === "member_name") continue;
-    if (["string", "number", "boolean"].includes(typeof value)) {
-      variables[key] = String(value).slice(0, 500);
-    }
+    if (typeof value === "string") variables[key] = value.slice(0, 500);
+    else if (typeof value === "number" || typeof value === "boolean") variables[key] = value;
   }
   return variables;
 }

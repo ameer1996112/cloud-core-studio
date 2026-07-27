@@ -72,6 +72,7 @@ describe("premium notification Journey Lab", () => {
         test_variables: {
           member_name: "Preview name",
           spots_available: "3",
+          first_booking: true,
           unsafe_object: { nested: true },
         },
       },
@@ -79,6 +80,7 @@ describe("premium notification Journey Lab", () => {
 
     expect(variables.member_name).toBe("Real member");
     expect(variables.spots_available).toBe("3");
+    expect(variables.first_booking).toBe(true);
     expect(variables.unsafe_object).toBeUndefined();
   });
 
