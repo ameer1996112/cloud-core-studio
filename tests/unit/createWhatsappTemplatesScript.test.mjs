@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 const root = new URL("../..", import.meta.url).pathname;
 
 async function runScript(args, env = {}, stdinText) {
-  const process = Bun.spawn(["bun", "scripts/create-whatsapp-templates.mjs", ...args], {
+  const child = Bun.spawn(["bun", "scripts/create-whatsapp-templates.mjs", ...args], {
     cwd: root,
     env: { PATH: Bun.env.PATH ?? "", ...env },
     stdin: stdinText === undefined ? "ignore" : "pipe",
@@ -11,13 +11,13 @@ async function runScript(args, env = {}, stdinText) {
     stderr: "pipe",
   });
   if (stdinText !== undefined) {
-    process.stdin.write(stdinText);
-    process.stdin.end();
+    child.stdin.write(stdinText);
+    child.stdin.end();
   }
   const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-    process.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
   ]);
   return { stdout, stderr, exitCode };
 }
@@ -41,7 +41,13 @@ describe("WhatsApp template provisioner script", () => {
       headerHandleConfigured: true,
     });
     expect(report.headerHandlePrerequisites).toHaveLength(report.plan.length);
-    expect(report.plan.every((template) => template.name.endsWith("_branded_v2"))).toBe(true);
+    expect(
+      report.plan.every(
+        (template) =>
+          template.name.endsWith("_branded_v2") || template.name.endsWith("_premium_v3"),
+      ),
+    ).toBe(true);
+    expect(report.plan.some((template) => template.name.endsWith("_premium_v3"))).toBe(true);
     expect(`${result.stdout}${result.stderr}`).not.toContain("4::sentinel-should-not-appear");
   });
 

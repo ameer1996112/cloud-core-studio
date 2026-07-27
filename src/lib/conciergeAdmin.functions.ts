@@ -6,7 +6,10 @@ import {
   type PendingRecipientAction,
   type RecipientPolicyState,
 } from "@/lib/conciergePolicy";
-import { CONCIERGE_META_TEMPLATE_CATALOG } from "@/lib/conciergeTemplateCatalog";
+import {
+  CONCIERGE_META_TEMPLATE_CATALOG,
+  CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
+} from "@/lib/conciergeTemplateCatalog";
 import { templateContentHash } from "@/lib/whatsappTemplateProvisioning";
 
 async function adminDb(userId: string) {
@@ -216,10 +219,9 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         ),
       ],
       whatsappExpectedContentHashes: Object.fromEntries(
-        CONCIERGE_META_TEMPLATE_CATALOG.map((template) => [
-          `${template.name}:${template.language}`,
-          templateContentHash(template),
-        ]),
+        [...CONCIERGE_META_TEMPLATE_CATALOG, ...CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG].map(
+          (template) => [`${template.name}:${template.language}`, templateContentHash(template)],
+        ),
       ),
     };
   });

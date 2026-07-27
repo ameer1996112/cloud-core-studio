@@ -68,9 +68,7 @@ export function resolveConsolidatedWhatsappTemplate(input: {
 
   const premiumProviderName = `${templateKey}_premium_v3`;
   if (
-    input.approvedWhatsappVariants?.has(
-      `${premiumProviderName}:${META_LANGUAGE[input.language]}`,
-    )
+    input.approvedWhatsappVariants?.has(`${premiumProviderName}:${META_LANGUAGE[input.language]}`)
   ) {
     const premium = buildConciergeWhatsappPresentation({
       templateKey,

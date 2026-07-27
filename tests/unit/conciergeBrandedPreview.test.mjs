@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { buildConciergeBrandedPreview } from "../../src/lib/conciergeTemplateAdmin.ts";
-import { CONCIERGE_META_TEMPLATE_CATALOG } from "../../src/lib/conciergeTemplateCatalog.ts";
+import { CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG } from "../../src/lib/conciergeTemplateCatalog.ts";
 import { templateContentHash } from "../../src/lib/whatsappTemplateProvisioning.ts";
 import { TRANSACTIONAL_EMAIL_SHELL_HASH } from "../../src/lib/transactionalEmail.ts";
 
@@ -20,8 +20,8 @@ const template = {
 };
 
 function expectedHash(locale) {
-  const providerTemplate = CONCIERGE_META_TEMPLATE_CATALOG.find(
-    (candidate) => candidate.name === "waitlist_offer_branded_v2" && candidate.language === locale,
+  const providerTemplate = CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG.find(
+    (candidate) => candidate.name === "waitlist_offer_premium_v3" && candidate.language === locale,
   );
   return templateContentHash(providerTemplate);
 }
@@ -29,7 +29,7 @@ function expectedHash(locale) {
 function brandedPreview(templateInput, deployments) {
   const language = templateInput.locale === "en" ? "en_US" : templateInput.locale;
   return buildConciergeBrandedPreview(templateInput, deployments, {
-    [`${templateInput.template_key}_branded_v2:${language}`]: expectedHash(language),
+    [`${templateInput.template_key}_premium_v3:${language}`]: expectedHash(language),
   });
 }
 
@@ -97,7 +97,7 @@ describe("Concierge branded previews", () => {
       { ...template, channel: "whatsapp", locale: "ar", subject_template: null },
       [
         {
-          template_name: "waitlist_offer_branded_v2",
+          template_name: "waitlist_offer_premium_v3",
           language: "ar",
           approval_status: "APPROVED",
           content_hash: expectedHash("ar"),
@@ -108,7 +108,7 @@ describe("Concierge branded previews", () => {
     expect(preview).toMatchObject({
       channel: "whatsapp",
       locale: "ar",
-      presentationKey: "waitlist_offer:whatsapp:v2",
+      presentationKey: "waitlist_offer:whatsapp:v3",
       providerApprovalStatus: "APPROVED",
       providerSyncStatus: "approved",
       whatsappHeaderUrl: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
@@ -128,7 +128,7 @@ describe("Concierge branded previews", () => {
       { ...template, channel: "whatsapp", locale: "he", subject_template: null },
       [
         {
-          template_name: "waitlist_offer_branded_v2",
+          template_name: "waitlist_offer_premium_v3",
           language: "he",
           approval_status: "APPROVED",
           content_hash: "stale-content-hash",
@@ -151,13 +151,13 @@ describe("Concierge branded previews", () => {
       whatsappTemplate,
       [
         {
-          template_name: "waitlist_offer_branded_v2",
+          template_name: "waitlist_offer_premium_v3",
           language: "he",
           approval_status: "APPROVED",
           content_hash: expectedHash("he"),
         },
       ],
-      { "waitlist_offer_branded_v2:he": expectedHash("he") },
+      { "waitlist_offer_premium_v3:he": expectedHash("he") },
       [
         {
           id: "older-whatsapp-v2",
@@ -203,7 +203,7 @@ describe("Concierge branded previews", () => {
       { ...template, channel: "whatsapp", locale: "he", subject_template: null },
       [
         {
-          template_name: "waitlist_offer_branded_v2",
+          template_name: "waitlist_offer_premium_v3",
           language: "he",
           approval_status: "PENDING",
           content_hash: expectedHash("he"),
@@ -221,7 +221,7 @@ describe("Concierge branded previews", () => {
         { ...template, channel: "whatsapp", locale, subject_template: null },
         [
           {
-            template_name: "waitlist_offer_branded_v2",
+            template_name: "waitlist_offer_premium_v3",
             language: locale,
             approval_status: "APPROVED",
             content_hash: expectedHash(locale),

@@ -26,20 +26,12 @@ describe("Concierge branded presentation", () => {
       templateKey: "booking_confirmed_repeat",
       locale: "he",
       providerTemplateName: "booking_confirmed_repeat_premium_v3",
-      requiredVariables: [
-        "member_name",
-        "class_name",
-        "class_date",
-        "class_time",
-      ],
+      requiredVariables: ["member_name", "class_name", "class_date", "class_time"],
       optionalVariables: ["instructor_name", "location_name"],
       bodyTemplate:
         "היי {{1}}, המקום שלך נשמר 🤍\n\n{{2}}\n\nהכול מוכן לקראת השיעור.\nירין | Cloud & Core",
       orderedParameters: ["member_name", "details_block"],
-      parameters: [
-        "נועה",
-        "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי",
-      ],
+      parameters: ["נועה", "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי"],
       action: {
         label: "צפייה בהזמנה",
         url: "https://cloudandcorestudio.com/member/bookings",
@@ -83,9 +75,7 @@ describe("Concierge branded presentation", () => {
     expect(result.bodyTemplate).toBe(
       "היי {{1}}, עדכון חשוב לגבי השיעור שלך:\n\n{{2}}\n\nהשיעור לא יתקיים הפעם. אשמח לעזור לך למצוא חלופה.\nירין | Cloud & Core",
     );
-    expect(result.parameters[1]).toBe(
-      "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nהסטודיו הראשי",
-    );
+    expect(result.parameters[1]).toBe("פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nהסטודיו הראשי");
     expect(result.action?.url).toBe("https://cloudandcorestudio.com/member/schedule");
   });
 
@@ -101,9 +91,7 @@ describe("Concierge branded presentation", () => {
       },
     });
 
-    expect(result.parameters[1]).toBe(
-      "Monthly membership\n₪350 · Renewal 31.07.2026",
-    );
+    expect(result.parameters[1]).toBe("Monthly membership\n₪350 · Renewal 31.07.2026");
     expect(result.bodyTemplate).toContain("I’m here if you need help.");
     expect(result.action?.label).toBe("Review payment");
   });
@@ -121,9 +109,7 @@ describe("Concierge branded presentation", () => {
       },
     });
 
-    expect(result.parameters[1]).toBe(
-      "بيلاتس مات\n24.07.2026 · 18:00\nمحفوظ حتى 18:30",
-    );
+    expect(result.parameters[1]).toBe("بيلاتس مات\n24.07.2026 · 18:00\nمحفوظ حتى 18:30");
     expect(result.bodyTemplate).toContain("يارين | Cloud & Core");
     expect(result.action?.label).toBe("حجز المكان");
   });

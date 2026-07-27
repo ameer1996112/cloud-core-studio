@@ -9,6 +9,7 @@ import {
 } from "../src/lib/messageTemplateCatalog.ts";
 import {
   CONCIERGE_META_TEMPLATE_CATALOG,
+  CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
   validateConciergeTemplateCatalog,
 } from "../src/lib/conciergeTemplateCatalog.ts";
 import {
@@ -170,8 +171,12 @@ if (!conciergeValidation.ok) {
 
 const unifiedTemplates = META_TEMPLATE_CATALOG.map(toMetaTemplateJson);
 const templatesForScope = {
-  all: [...unifiedTemplates, ...CONCIERGE_META_TEMPLATE_CATALOG],
-  concierge: CONCIERGE_META_TEMPLATE_CATALOG,
+  all: [
+    ...unifiedTemplates,
+    ...CONCIERGE_META_TEMPLATE_CATALOG,
+    ...CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
+  ],
+  concierge: [...CONCIERGE_META_TEMPLATE_CATALOG, ...CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG],
   unified: unifiedTemplates,
 };
 let templates = templatesForScope[args.scope];

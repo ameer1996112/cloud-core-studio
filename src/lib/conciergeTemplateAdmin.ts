@@ -5,8 +5,12 @@ import type {
 } from "@/lib/conciergeDeliverySelection";
 import { renderConciergeEmail, renderSelectedConciergeEmail } from "@/lib/conciergeEmail";
 import { renderConciergePresentationFacts } from "@/lib/conciergeMaterialization";
-import { buildConciergePresentation } from "@/lib/conciergePresentation";
 import {
+  buildConciergePresentation,
+  buildConciergeWhatsappPresentation,
+} from "@/lib/conciergePresentation";
+import {
+  CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
   conciergeWhatsappTemplateName,
   conciergeWhatsappTemplateDefinition,
   CONCIERGE_WHATSAPP_HEADER_URL,
@@ -118,6 +122,19 @@ function previewVariables(locale: ConciergeBrandedPreview["locale"]) {
     amount: "₪350",
     payment_date: "27/07/2026",
     offer_expires_at: "18:30",
+    instructor_name: locale === "ar" ? "يارين" : locale === "he" ? "ירין" : "Yareen",
+    location_name:
+      locale === "ar" ? "الاستوديو الرئيسي" : locale === "he" ? "הסטודיו הראשי" : "Main studio",
+    package_name:
+      locale === "ar" ? "اشتراك شهري" : locale === "he" ? "מינוי חודשי" : "Monthly membership",
+    renewal_date: "31/07/2026",
+    credits_remaining: "2",
+    recommendation_summary:
+      locale === "ar"
+        ? "بيلاتس مات · 28/07/2026 · 18:00"
+        : locale === "he"
+          ? "פילאטיס מזרן · 28/07/2026 · 18:00"
+          : "Mat Pilates · 28/07/2026 · 18:00",
     recommendation_summary:
       locale === "he"
         ? "שני שיעורי פילאטיס שנבחרו עבורך"
@@ -171,15 +188,33 @@ export function buildConciergeBrandedPreview(
   const whatsappDefinition = isWhatsapp
     ? conciergeWhatsappTemplateDefinition(template.template_key, locale)
     : null;
+  const premiumWhatsappDefinition = isWhatsapp
+    ? CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG.find(
+        (candidate) =>
+          candidate.name === `${template.template_key}_premium_v3` &&
+          candidate.language === providerLanguage,
+      )
+    : null;
+  const premiumWhatsappPresentation =
+    isWhatsapp && premiumWhatsappDefinition
+      ? buildConciergeWhatsappPresentation({
+          templateKey: template.template_key,
+          locale,
+          variables,
+        })
+      : null;
   const deployment = isWhatsapp
     ? deployments.find(
         (row) =>
-          row.template_name === conciergeWhatsappTemplateName(template.template_key) &&
+          row.template_name ===
+            (premiumWhatsappDefinition?.name ??
+              conciergeWhatsappTemplateName(template.template_key)) &&
           row.language === providerLanguage,
       )
     : null;
-  const expectedContentHash = whatsappDefinition
-    ? (expectedContentHashes[`${whatsappDefinition.name}:${whatsappDefinition.language}`] ?? null)
+  const providerDefinition = premiumWhatsappDefinition ?? whatsappDefinition;
+  const expectedContentHash = providerDefinition
+    ? (expectedContentHashes[`${providerDefinition.name}:${providerDefinition.language}`] ?? null)
     : null;
   const candidateProviderContentHash =
     isWhatsapp && v2Candidate ? v2Candidate.provider_content_hash : null;
@@ -190,7 +225,9 @@ export function buildConciergeBrandedPreview(
   const exactProviderContentHash = v2Candidate ? candidateProviderContentHash : expectedContentHash;
   const presentationKey =
     v2Candidate?.presentation_key ??
-    (isWhatsapp ? `${template.template_key}:whatsapp:v2` : presentation.key);
+    (isWhatsapp
+      ? `${template.template_key}:whatsapp:${premiumWhatsappDefinition ? "v3" : "v2"}`
+      : presentation.key);
   const candidateActionUrl = v2Candidate?.presentation_contract.actionUrl;
   if (
     candidateActionUrl !== undefined &&
@@ -272,16 +309,24 @@ export function buildConciergeBrandedPreview(
           : "not_synced",
     candidatePreviewExact: localCatalogMatchesCandidate,
     subject: template.subject_template ? presentation.subject : null,
-    body: whatsappDefinition
-      ? (whatsappDefinition.components
-          .find((component) => component.type === "BODY")
-          ?.text.replaceAll("{{1}}", variables.member_name) ?? presentation.body)
-      : presentation.body,
-    action: whatsappDefinition ? whatsappCatalogAction(whatsappDefinition) : emailAction,
+    body: premiumWhatsappPresentation
+      ? premiumWhatsappPresentation.bodyTemplate
+          .replaceAll("{{1}}", premiumWhatsappPresentation.parameters[0])
+          .replaceAll("{{2}}", premiumWhatsappPresentation.parameters[1])
+      : whatsappDefinition
+        ? (whatsappDefinition.components
+            .find((component) => component.type === "BODY")
+            ?.text.replaceAll("{{1}}", variables.member_name) ?? presentation.body)
+        : presentation.body,
+    action: premiumWhatsappPresentation
+      ? premiumWhatsappPresentation.action
+      : whatsappDefinition
+        ? whatsappCatalogAction(whatsappDefinition)
+        : emailAction,
     emailHtml: email?.html ?? null,
     whatsappHeaderUrl: isWhatsapp ? CONCIERGE_WHATSAPP_HEADER_URL : null,
-    whatsappFooter: whatsappDefinition
-      ? (whatsappDefinition.components.find((component) => component.type === "FOOTER")?.text ??
+    whatsappFooter: providerDefinition
+      ? (providerDefinition.components.find((component) => component.type === "FOOTER")?.text ??
         null)
       : null,
     deliveryState: {

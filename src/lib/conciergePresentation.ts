@@ -279,10 +279,7 @@ function requireWhatsappValue(variables: Record<string, unknown>, key: string) {
   return value;
 }
 
-function bookingDetails(
-  locale: ConciergePresentationLocale,
-  variables: Record<string, unknown>,
-) {
+function bookingDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
   const className = requireWhatsappValue(variables, "class_name");
   const classDate = requireWhatsappValue(variables, "class_date");
   const classTime = requireWhatsappValue(variables, "class_time");
@@ -311,10 +308,7 @@ function cancelledClassDetails(
   return [className, `${classDate} · ${classTime}`, location].filter(Boolean).join("\n");
 }
 
-function paymentDetails(
-  locale: ConciergePresentationLocale,
-  variables: Record<string, unknown>,
-) {
+function paymentDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
   const packageName = requireWhatsappValue(variables, "package_name");
   const amount = factValue(variables.amount);
   const renewalDate = factValue(variables.renewal_date);
@@ -330,10 +324,7 @@ function paymentDetails(
   return [packageName, context].filter(Boolean).join("\n");
 }
 
-function waitlistDetails(
-  locale: ConciergePresentationLocale,
-  variables: Record<string, unknown>,
-) {
+function waitlistDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
   const className = requireWhatsappValue(variables, "class_name");
   const classDate = requireWhatsappValue(variables, "class_date");
   const classTime = requireWhatsappValue(variables, "class_time");
@@ -354,10 +345,7 @@ function recommendationDetails(
   return requireWhatsappValue(variables, "recommendation_summary");
 }
 
-function retentionDetails(
-  locale: ConciergePresentationLocale,
-  variables: Record<string, unknown>,
-) {
+function retentionDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
   const packageName = factValue(variables.package_name);
   const credits = factValue(variables.credits_remaining);
   if (packageName && credits) {
@@ -388,10 +376,7 @@ type WhatsappPresentationDefinition = {
   body: Record<ConciergePresentationLocale, string>;
   requiredVariables: readonly string[];
   optionalVariables: readonly string[];
-  details: (
-    locale: ConciergePresentationLocale,
-    variables: Record<string, unknown>,
-  ) => string;
+  details: (locale: ConciergePresentationLocale, variables: Record<string, unknown>) => string;
   actionKind?: keyof typeof ACTION_PATHS;
 };
 

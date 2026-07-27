@@ -476,10 +476,7 @@ export const CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALO
           text: definition.bodyTemplate,
           example: {
             body_text: [
-              [
-                PREMIUM_MEMBER_EXAMPLES[template.locale],
-                PREMIUM_DETAILS_EXAMPLES[template.locale],
-              ],
+              [PREMIUM_MEMBER_EXAMPLES[template.locale], PREMIUM_DETAILS_EXAMPLES[template.locale]],
             ],
           },
         },
