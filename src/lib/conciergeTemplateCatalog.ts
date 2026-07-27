@@ -1,4 +1,5 @@
 import type { ConciergeChannel } from "@/lib/conciergePolicy";
+import { conciergePremiumWhatsappTemplateDefinition } from "@/lib/conciergePresentation";
 
 export type ConciergeTemplateLocale = "en" | "he" | "ar";
 
@@ -413,6 +414,93 @@ export const CONCIERGE_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALOG.filter
         : []),
     ],
   };
+});
+
+const PREMIUM_DETAILS_EXAMPLES: Record<ConciergeTemplateLocale, string> = {
+  he: "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי",
+  ar: "بيلاتس مات\nالجمعة، 24.07 · 18:00\nمع يارين · الاستوديو الرئيسي",
+  en: "Mat Pilates\nFriday, 24.07 · 18:00\nWith Yareen · Main studio",
+};
+
+const PREMIUM_MEMBER_EXAMPLES: Record<ConciergeTemplateLocale, string> = {
+  he: "נועה",
+  ar: "نور",
+  en: "Noa",
+};
+
+const PREMIUM_WHATSAPP_ACTIONS: Partial<
+  Record<
+    string,
+    {
+      path: string;
+      labels: Record<ConciergeTemplateLocale, string>;
+    }
+  >
+> = {
+  ...WHATSAPP_ACTIONS,
+  class_cancelled: {
+    path: "/member/schedule",
+    labels: { he: "צפייה בלוח השיעורים", ar: "عرض جدول الحصص", en: "View schedule" },
+  },
+  class_time_changed: {
+    path: "/member/schedule",
+    labels: { he: "צפייה בלוח השיעורים", ar: "عرض جدول الحصص", en: "View schedule" },
+  },
+};
+
+export const CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALOG.filter(
+  (template) => template.channel === "whatsapp",
+).flatMap((template) => {
+  const definition = conciergePremiumWhatsappTemplateDefinition(
+    template.templateKey,
+    template.locale,
+  );
+  if (!definition) return [];
+  const action = PREMIUM_WHATSAPP_ACTIONS[template.templateKey];
+  return [
+    {
+      name: definition.providerTemplateName,
+      language: META_LOCALES[template.locale],
+      category:
+        template.templateKey === "retention" || template.templateKey === "recommendation"
+          ? ("MARKETING" as const)
+          : ("UTILITY" as const),
+      components: [
+        {
+          type: "HEADER" as const,
+          format: "IMAGE" as const,
+          example: { header_handle: [CONCIERGE_WHATSAPP_HEADER_URL] },
+        },
+        {
+          type: "BODY" as const,
+          text: definition.bodyTemplate,
+          example: {
+            body_text: [
+              [
+                PREMIUM_MEMBER_EXAMPLES[template.locale],
+                PREMIUM_DETAILS_EXAMPLES[template.locale],
+              ],
+            ],
+          },
+        },
+        { type: "FOOTER" as const, text: "Cloud & Core Studio" },
+        ...(action
+          ? [
+              {
+                type: "BUTTONS" as const,
+                buttons: [
+                  {
+                    type: "URL" as const,
+                    text: action.labels[template.locale],
+                    url: `${CONCIERGE_PUBLIC_BASE_URL}${action.path}`,
+                  },
+                ],
+              },
+            ]
+          : []),
+      ],
+    },
+  ];
 });
 
 export function conciergeWhatsappTemplateDefinition(

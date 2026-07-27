@@ -1,8 +1,133 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { buildConciergePresentation } from "../../src/lib/conciergePresentation.ts";
+import {
+  buildConciergePresentation,
+  buildConciergeWhatsappPresentation,
+} from "../../src/lib/conciergePresentation.ts";
 
 describe("Concierge branded presentation", () => {
+  test("builds a premium Hebrew booking card from essential event details", () => {
+    const result = buildConciergeWhatsappPresentation({
+      templateKey: "booking_confirmed_repeat",
+      locale: "he",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס מזרן",
+        class_date: "יום שישי, 24.07",
+        class_time: "18:00",
+        instructor_name: "ירין",
+        location_name: "הסטודיו הראשי",
+      },
+    });
+
+    expect(result).toEqual({
+      key: "booking_confirmed_repeat:whatsapp:v3",
+      version: 3,
+      templateKey: "booking_confirmed_repeat",
+      locale: "he",
+      providerTemplateName: "booking_confirmed_repeat_premium_v3",
+      requiredVariables: [
+        "member_name",
+        "class_name",
+        "class_date",
+        "class_time",
+      ],
+      optionalVariables: ["instructor_name", "location_name"],
+      bodyTemplate:
+        "היי {{1}}, המקום שלך נשמר 🤍\n\n{{2}}\n\nהכול מוכן לקראת השיעור.\nירין | Cloud & Core",
+      orderedParameters: ["member_name", "details_block"],
+      parameters: [
+        "נועה",
+        "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי",
+      ],
+      action: {
+        label: "צפייה בהזמנה",
+        url: "https://cloudandcorestudio.com/member/bookings",
+      },
+    });
+  });
+
+  test.each([
+    ["he", "ירין | Cloud & Core"],
+    ["ar", "يارين | Cloud & Core"],
+    ["en", "Yareen | Cloud & Core"],
+  ])("uses a native boutique-concierge signature in %s", (locale, signature) => {
+    const result = buildConciergeWhatsappPresentation({
+      templateKey: "booking_confirmed_repeat",
+      locale,
+      variables: {
+        member_name: "Noa",
+        class_name: "Mat Pilates",
+        class_date: "24.07",
+        class_time: "18:00",
+      },
+    });
+
+    expect(result.bodyTemplate).toContain(signature);
+    expect(result.bodyTemplate.match(/\p{Extended_Pictographic}/gu) ?? []).toHaveLength(1);
+  });
+
+  test("uses calm, relevant details for a cancelled class", () => {
+    const result = buildConciergeWhatsappPresentation({
+      templateKey: "class_cancelled",
+      locale: "he",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס מזרן",
+        class_date: "יום שישי, 24.07",
+        class_time: "18:00",
+        location_name: "הסטודיו הראשי",
+      },
+    });
+
+    expect(result.bodyTemplate).toBe(
+      "היי {{1}}, עדכון חשוב לגבי השיעור שלך:\n\n{{2}}\n\nהשיעור לא יתקיים הפעם. אשמח לעזור לך למצוא חלופה.\nירין | Cloud & Core",
+    );
+    expect(result.parameters[1]).toBe(
+      "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nהסטודיו הראשי",
+    );
+    expect(result.action?.url).toBe("https://cloudandcorestudio.com/member/schedule");
+  });
+
+  test("shows only the useful payment next step", () => {
+    const result = buildConciergeWhatsappPresentation({
+      templateKey: "payment_requires_action",
+      locale: "en",
+      variables: {
+        member_name: "Noa",
+        package_name: "Monthly membership",
+        amount: "₪350",
+        renewal_date: "31.07.2026",
+      },
+    });
+
+    expect(result.parameters[1]).toBe(
+      "Monthly membership\n₪350 · Renewal 31.07.2026",
+    );
+    expect(result.bodyTemplate).toContain("I’m here if you need help.");
+    expect(result.action?.label).toBe("Review payment");
+  });
+
+  test("keeps a waitlist offer concise and deadline-led", () => {
+    const result = buildConciergeWhatsappPresentation({
+      templateKey: "waitlist_offer",
+      locale: "ar",
+      variables: {
+        member_name: "نور",
+        class_name: "بيلاتس مات",
+        class_date: "24.07.2026",
+        class_time: "18:00",
+        offer_expires_at: "18:30",
+      },
+    });
+
+    expect(result.parameters[1]).toBe(
+      "بيلاتس مات\n24.07.2026 · 18:00\nمحفوظ حتى 18:30",
+    );
+    expect(result.bodyTemplate).toContain("يارين | Cloud & Core");
+    expect(result.action?.label).toBe("حجز المكان");
+  });
+
   test("creates a localized booking action and facts", () => {
     const result = buildConciergePresentation({
       journeyType: "booking",

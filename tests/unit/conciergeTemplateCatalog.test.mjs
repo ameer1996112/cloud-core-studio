@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   CONCIERGE_META_TEMPLATE_CATALOG,
+  CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
   CONCIERGE_TEMPLATE_CATALOG,
   validateConciergeTemplateCatalog,
 } from "../../src/lib/conciergeTemplateCatalog.ts";
@@ -120,6 +121,20 @@ describe("Concierge template catalog", () => {
           ],
         });
       }
+    }
+  });
+
+  test("provides a premium v3 candidate with a two-parameter boutique card contract", () => {
+    expect(CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG).toHaveLength(33);
+    for (const template of CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG) {
+      expect(template.name).toEndWith("_premium_v3");
+      expect(template.components[0].type).toBe("HEADER");
+      const body = template.components.find((component) => component.type === "BODY");
+      expect(body.text).toContain("{{1}}");
+      expect(body.text).toContain("{{2}}");
+      expect(body.text).toMatch(/Yareen|ירין|يارين/);
+      expect((body.text.match(/\p{Extended_Pictographic}/gu) ?? []).length).toBeLessThanOrEqual(1);
+      expect(body.example.body_text[0]).toHaveLength(2);
     }
   });
 
