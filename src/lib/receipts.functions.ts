@@ -178,6 +178,19 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         plan_id: z.string().uuid(),
         payment_method: z.enum(["card", "bit"]).default("card"),
         recurring: z.boolean().default(false),
+        checkout: z.object({
+          firstName: z.string().trim().min(1).max(80),
+          lastName: z.string().trim().min(1).max(80),
+          phone: z
+            .string()
+            .trim()
+            .transform((value) => value.replace(/[-\s]/g, ""))
+            .pipe(z.string().regex(/^0\d{8,9}$/)),
+          email: z.string().trim().email().max(254),
+          country: z.string().trim().min(2).max(80),
+          address: z.string().trim().min(3).max(250),
+          termsAccepted: z.literal(true),
+        }),
       })
       .parse(d),
   )
@@ -241,6 +254,24 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       if (subscriptionError) throw subscriptionError;
       if (existingSubscription) throw new Error("active_subscription_exists");
     }
+    const termsAcceptedAt = new Date().toISOString();
+    const checkoutMetadata = {
+      checkout_provider: "hyp",
+      requested_payment_method: paymentMethod,
+      payments_mode: (s as any)?.payments_mode ?? "test",
+      subscription_setup: recurring,
+      subscription_management: subscriptionManagement,
+      checkout_details: {
+        first_name: data.checkout.firstName,
+        last_name: data.checkout.lastName,
+        phone: data.checkout.phone,
+        email: data.checkout.email,
+        country: data.checkout.country,
+        address: data.checkout.address,
+        terms_accepted_at: termsAcceptedAt,
+        terms_version: "2026-07-27",
+      },
+    };
 
     const { data: payment, error: insertError } = await supabaseAdmin
       .from("payments")
@@ -254,13 +285,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         provider_status: "created",
         status: "pending",
         notes: `HYP ${paymentMethod} checkout for ${planRes.data.name}`,
-        metadata: {
-          checkout_provider: "hyp",
-          requested_payment_method: paymentMethod,
-          payments_mode: (s as any)?.payments_mode ?? "test",
-          subscription_setup: recurring,
-          subscription_management: subscriptionManagement,
-        },
+        metadata: checkoutMetadata,
       })
       .select("id")
       .single();
@@ -292,11 +317,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           provider_payment_id: page.cgUid || null,
           provider_customer_id: recurring ? hypReconciliationId : null,
           metadata: {
-            checkout_provider: "hyp",
-            requested_payment_method: paymentMethod,
-            payments_mode: (s as any)?.payments_mode ?? "test",
-            subscription_setup: recurring,
-            subscription_management: subscriptionManagement,
+            ...checkoutMetadata,
             hyp_reconciliation_id: recurring ? hypReconciliationId : null,
             hyp_result: page.result,
             hyp_message: page.message,
@@ -317,11 +338,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           status: "failed",
           provider_status: "payment_page_failed",
           metadata: {
-            checkout_provider: "hyp",
-            requested_payment_method: paymentMethod,
-            payments_mode: (s as any)?.payments_mode ?? "test",
-            subscription_setup: recurring,
-            subscription_management: subscriptionManagement,
+            ...checkoutMetadata,
             hyp_reconciliation_id: recurring ? hypReconciliationId : null,
             error: error instanceof Error ? error.message : String(error),
           },

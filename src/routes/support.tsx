@@ -31,13 +31,13 @@ const copy: Record<
     kicker: "Cloud & Core Studio",
     title: "Support",
     intro:
-      "Need help with bookings, packages, payments, or your account? Contact the studio team directly.",
+      "Need help with bookings, packages, payments, or your account? Cloud & Core Studio is at Main Road 89, Hurfeish, Israel. Contact us at 055-939-8438.",
     channelsTitle: "Direct support",
     navigationTitle: "Public navigation",
     emailTitle: "Email Support",
     emailBody: "cloudandcorestudio@gmail.com",
     whatsappTitle: "WhatsApp Support",
-    whatsappBody: "Direct chat with our team",
+    whatsappBody: "055-939-8438 · Direct chat",
     quickLinks: [
       {
         title: "Browse schedule",
@@ -72,13 +72,14 @@ const copy: Record<
   he: {
     kicker: "Cloud & Core Studio",
     title: "תמיכה",
-    intro: "צריכים עזרה בהזמנות, חבילות, תשלומים או בחשבון? צרו קשר ישיר עם צוות הסטודיו.",
+    intro:
+      "צריכים עזרה בהזמנות, חבילות, תשלומים או בחשבון? Cloud & Core Studio נמצא בחורפיש, כביש ראשי 89. טלפון: 055-939-8438.",
     channelsTitle: "יצירת קשר ישירה",
     navigationTitle: "ניווט ציבורי",
     emailTitle: "אימייל תמיכה",
     emailBody: "cloudandcorestudio@gmail.com",
     whatsappTitle: "תמיכה בוואטסאפ",
-    whatsappBody: "צ'אט ישיר עם הצוות",
+    whatsappBody: "055-939-8438 · צ'אט ישיר",
     quickLinks: [
       {
         title: "עיון בלוח השיעורים",
@@ -108,13 +109,13 @@ const copy: Record<
     kicker: "Cloud & Core Studio",
     title: "الدعم",
     intro:
-      "هل تحتاجون مساعدة في الحجوزات أو الباقات أو الدفعات أو الحساب؟ تواصلوا مباشرة مع فريق الاستوديو.",
+      "هل تحتاجون مساعدة في الحجوزات أو الباقات أو الدفعات أو الحساب؟ Cloud & Core Studio في حرفيش، الشارع الرئيسي 89. هاتف: 055-939-8438.",
     channelsTitle: "دعم مباشر",
     navigationTitle: "تنقل عام",
     emailTitle: "البريد الإلكتروني للدعم",
     emailBody: "cloudandcorestudio@gmail.com",
     whatsappTitle: "الدعم عبر الواتساب",
-    whatsappBody: "دردشة مباشرة مع الفريق",
+    whatsappBody: "055-939-8438 · دردشة مباشرة",
     quickLinks: [
       {
         title: "تصفحوا الجدول",

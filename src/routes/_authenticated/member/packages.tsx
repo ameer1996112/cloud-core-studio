@@ -30,6 +30,15 @@ import { LtrInline } from "@/components/ui/bidi";
 
 const BIT_PAYMENT_PHONE = "0523318478";
 type OnlinePaymentMethod = "bit" | "card";
+type CheckoutDetails = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  country: string;
+  address: string;
+  termsAccepted: boolean;
+};
 
 function isOnlineCheckoutAttempt(payment: any) {
   return payment?.provider === "hyp";
@@ -87,9 +96,19 @@ function MemberPackages() {
   });
 
   const checkoutPayment = useMutation({
-    mutationFn: (v: { planId: string; method: OnlinePaymentMethod; recurring?: boolean }) =>
+    mutationFn: (v: {
+      planId: string;
+      method: OnlinePaymentMethod;
+      recurring?: boolean;
+      checkout: CheckoutDetails;
+    }) =>
       createCheckout({
-        data: { plan_id: v.planId, payment_method: v.method, recurring: v.recurring === true },
+        data: {
+          plan_id: v.planId,
+          payment_method: v.method,
+          recurring: v.recurring === true,
+          checkout: v.checkout,
+        },
       }),
     onSuccess: (res: any) => {
       if (res?.status === "ready" && res.checkout_url) {
@@ -123,13 +142,19 @@ function MemberPackages() {
     .filter((p: any) => !hasTestPlanRecord(p))
     .sort(comparePricingPlans);
 
-  function submitPayment(plan: any, method: "cash" | "bit" | "card", recurring = false) {
+  function submitPayment(
+    plan: any,
+    method: "cash" | "bit" | "card",
+    recurring = false,
+    checkout?: CheckoutDetails,
+  ) {
     if (hasUsableActivePackage || hasRunningSubscription) {
       toast.error(t("packages.activePackageExists"));
       return;
     }
     if (method === "card" || method === "bit") {
-      checkoutPayment.mutate({ planId: plan.id, method, recurring });
+      if (!checkout) return;
+      checkoutPayment.mutate({ planId: plan.id, method, recurring, checkout });
       return;
     }
     const planDisplay = getPlanDisplay(plan, lang);
@@ -321,9 +346,12 @@ function MemberPackages() {
           plan={selectedPlan}
           lang={lang}
           settings={settings}
+          member={data?.member}
           pending={manualPayment.isPending || checkoutPayment.isPending}
           onClose={() => setSelectedPlan(null)}
-          onSubmit={(method, recurring) => submitPayment(selectedPlan, method, recurring)}
+          onSubmit={(method, recurring, checkout) =>
+            submitPayment(selectedPlan, method, recurring, checkout)
+          }
         />
       )}
 
@@ -788,6 +816,7 @@ function PaymentMethodSheet({
   plan,
   lang,
   settings,
+  member,
   pending,
   onClose,
   onSubmit,
@@ -795,12 +824,29 @@ function PaymentMethodSheet({
   plan: any;
   lang: Lang;
   settings: any;
+  member: any;
   pending: boolean;
   onClose: () => void;
-  onSubmit: (method: "cash" | "bit" | "card", recurring?: boolean) => void;
+  onSubmit: (
+    method: "cash" | "bit" | "card",
+    recurring?: boolean,
+    checkout?: CheckoutDetails,
+  ) => void;
 }) {
   const [method, setMethod] = useState<"cash" | "bit" | "card" | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const nameParts = String(member?.name ?? "")
+    .trim()
+    .split(/\s+/);
+  const [checkout, setCheckout] = useState<CheckoutDetails>({
+    firstName: nameParts[0] ?? "",
+    lastName: nameParts.slice(1).join(" "),
+    phone: member?.phone ?? "",
+    email: member?.email ?? "",
+    country: lang === "ar" ? "إسرائيل" : lang === "he" ? "ישראל" : "Israel",
+    address: "",
+    termsAccepted: false,
+  });
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
@@ -814,6 +860,51 @@ function PaymentMethodSheet({
     plan: display.name,
     amount: price,
   });
+  const isOnline = method === "card" || method === "bit";
+  const checkoutComplete =
+    checkout.firstName.trim() &&
+    checkout.lastName.trim() &&
+    /^0\d{8,9}$/.test(checkout.phone.replace(/[-\s]/g, "")) &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(checkout.email.trim()) &&
+    checkout.country.trim() &&
+    checkout.address.trim() &&
+    checkout.termsAccepted;
+  const checkoutCopy =
+    lang === "he"
+      ? {
+          title: "פרטים לפני מעבר לתשלום",
+          firstName: "שם פרטי",
+          lastName: "שם משפחה",
+          phone: "טלפון ללא קידומת בינלאומית",
+          email: "כתובת אימייל",
+          country: "מדינה",
+          address: "כתובת מלאה",
+          consent: "קראתי ואני מאשר/ת את",
+          terms: "התקנון ותנאי הרכישה",
+        }
+      : lang === "ar"
+        ? {
+            title: "التفاصيل قبل الانتقال للدفع",
+            firstName: "الاسم الأول",
+            lastName: "اسم العائلة",
+            phone: "الهاتف بدون المقدمة الدولية",
+            email: "البريد الإلكتروني",
+            country: "الدولة",
+            address: "العنوان الكامل",
+            consent: "قرأت وأوافق على",
+            terms: "الشروط وأحكام الشراء",
+          }
+        : {
+            title: "Details before payment",
+            firstName: "First name",
+            lastName: "Last name",
+            phone: "Phone without international prefix",
+            email: "Email address",
+            country: "Country",
+            address: "Full address",
+            consent: "I have read and agree to the",
+            terms: "terms and purchase conditions",
+          };
 
   async function copyBitPhone() {
     try {
@@ -928,7 +1019,65 @@ function PaymentMethodSheet({
                     : t("packages.cashDescription")}
               </p>
             </div>
-            {method === "bit" && (
+            {isOnline && (
+              <fieldset className="grid gap-3 rounded-xl border border-gold/25 bg-ivory/70 p-4">
+                <legend className="px-2 font-display text-xl text-navy">
+                  {checkoutCopy.title}
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(
+                    [
+                      ["firstName", checkoutCopy.firstName, "given-name", "text"],
+                      ["lastName", checkoutCopy.lastName, "family-name", "text"],
+                      ["phone", checkoutCopy.phone, "tel", "tel"],
+                      ["email", checkoutCopy.email, "email", "email"],
+                      ["country", checkoutCopy.country, "country-name", "text"],
+                      ["address", checkoutCopy.address, "street-address", "text"],
+                    ] as const
+                  ).map(([key, label, autoComplete, type]) => (
+                    <label key={key} className="grid gap-1.5 text-sm text-slate">
+                      <span>{label}</span>
+                      <input
+                        required
+                        type={type}
+                        inputMode={key === "phone" ? "tel" : undefined}
+                        autoComplete={autoComplete}
+                        value={checkout[key]}
+                        onChange={(event) =>
+                          setCheckout((current) => ({ ...current, [key]: event.target.value }))
+                        }
+                        className="editorial-input"
+                      />
+                    </label>
+                  ))}
+                </div>
+                <label className="mt-1 flex items-start gap-2 text-sm leading-6 text-slate">
+                  <input
+                    required
+                    type="checkbox"
+                    checked={checkout.termsAccepted}
+                    onChange={(event) =>
+                      setCheckout((current) => ({
+                        ...current,
+                        termsAccepted: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4 accent-navy"
+                  />
+                  <span>
+                    {checkoutCopy.consent}{" "}
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      className="font-semibold text-navy underline underline-offset-2"
+                    >
+                      {checkoutCopy.terms}
+                    </Link>
+                  </span>
+                </label>
+              </fieldset>
+            )}
+            {method === "bit" && !hypEnabled && (
               <div className="overflow-hidden rounded-xl border border-gold/35 bg-ivory shadow-[0_18px_44px_-34px_rgba(11,29,58,0.45)]">
                 <div className="flex items-start gap-3 border-b border-gold/20 bg-white/55 p-4">
                   <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-navy">
@@ -979,7 +1128,7 @@ function PaymentMethodSheet({
               onClick={() => {
                 if (!method) return;
                 if (method === "card" || method === "bit") {
-                  onSubmit(method, method === "card" && recurringCard);
+                  setConfirming(true);
                   return;
                 }
                 setConfirming(true);
@@ -995,8 +1144,15 @@ function PaymentMethodSheet({
           ) : (
             <button
               type="button"
-              disabled={!method || pending}
-              onClick={() => method && onSubmit(method)}
+              disabled={!method || pending || (isOnline && !checkoutComplete)}
+              onClick={() =>
+                method &&
+                onSubmit(
+                  method,
+                  method === "card" && recurringCard,
+                  isOnline ? checkout : undefined,
+                )
+              }
               className="btn-navy flex-1 disabled:opacity-50"
             >
               {pending ? t("common.saving") : t("packages.submitForConfirmation")}
