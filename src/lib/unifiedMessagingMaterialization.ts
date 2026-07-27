@@ -124,6 +124,7 @@ export function materializeMessagePlan(input: {
     eventType: input.eventType,
     language: input.language,
     variables: input.variables,
+    approvedWhatsappVariants: input.approvedWhatsappVariants,
   });
   const metaVariant = conciergeMetaVariant ?? legacyMetaVariant;
   const routineScheduledFor = definition.immediate ? input.now : nextRoutineWindow(input.now);

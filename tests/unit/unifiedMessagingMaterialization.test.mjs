@@ -52,6 +52,68 @@ describe("outbox message materialization", () => {
     });
   });
 
+  test("materializes an approved premium card with its exact details block", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      variables: {
+        ...base.variables,
+        class_name: "פילאטיס מזרן",
+        class_date: "יום שישי, 24.07",
+        location_name: "הסטודיו הראשי",
+      },
+      approvedWhatsappVariants: new Set(["booking_confirmed_repeat_premium_v3:he"]),
+    });
+
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "queued",
+      templateName: "booking_confirmed_repeat_premium_v3",
+      templateLanguage: "he",
+      templateComponents: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נועה" },
+            {
+              type: "text",
+              text: "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי",
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  test("omits a missing optional booking detail without leaving a blank line", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס מזרן",
+        class_date: "יום שישי, 24.07",
+        class_time: "18:00",
+        instructor_name: "ירין",
+      },
+      approvedWhatsappVariants: new Set(["booking_confirmed_repeat_premium_v3:he"]),
+    });
+
+    const whatsapp = result.deliveries.find((delivery) => delivery.channel === "whatsapp");
+    expect(whatsapp?.status).toBe("queued");
+    expect(whatsapp?.templateComponents[1].parameters[1].text).toBe(
+      "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין",
+    );
+  });
+
   test("keeps unsupported reminder flows on their legacy WhatsApp template", () => {
     const result = materializeMessagePlan({
       ...base,

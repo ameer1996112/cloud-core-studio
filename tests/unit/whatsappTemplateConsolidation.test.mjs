@@ -40,6 +40,66 @@ describe("WhatsApp template consolidation", () => {
     ).toBe("payment_terminally_failed_branded_v2");
   });
 
+  test("selects an approved premium booking card with deterministic event details", () => {
+    const result = resolveConsolidatedWhatsappTemplate({
+      eventType: "booking_confirmed",
+      language: "he",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס מזרן",
+        class_date: "יום שישי, 24.07",
+        class_time: "18:00",
+        instructor_name: "ירין",
+        location_name: "הסטודיו הראשי",
+      },
+      approvedWhatsappVariants: new Set(["booking_confirmed_repeat_premium_v3:he"]),
+    });
+
+    expect(result).toEqual({
+      name: "booking_confirmed_repeat_premium_v3",
+      metaLanguage: "he",
+      components: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נועה" },
+            {
+              type: "text",
+              text: "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי",
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  test("keeps the approved v2 template active while premium v3 is pending", () => {
+    const result = resolveConsolidatedWhatsappTemplate({
+      eventType: "booking_confirmed",
+      language: "he",
+      variables: {
+        member_name: "נועה",
+        class_name: "פילאטיס מזרן",
+        class_date: "יום שישי, 24.07",
+        class_time: "18:00",
+      },
+      approvedWhatsappVariants: new Set(["booking_confirmed_repeat_branded_v2:he"]),
+    });
+
+    expect(result?.name).toBe("booking_confirmed_repeat_branded_v2");
+  });
+
   test.each([
     ["booking_confirmed", {}, "booking_confirmed_repeat_branded_v2"],
     ["booking_confirmed", { first_booking: true }, "booking_confirmed_first_branded_v2"],

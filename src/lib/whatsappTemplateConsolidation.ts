@@ -5,6 +5,7 @@ import {
 } from "@/lib/conciergeTemplateCatalog";
 import type { MessageEventType, MessageLanguage } from "@/lib/messaging.types";
 import type { WhatsappTemplateComponent } from "@/lib/messagingProviders.server";
+import { buildConciergeWhatsappPresentation } from "@/lib/conciergePresentation";
 
 const META_LANGUAGE = { he: "he", ar: "ar", en: "en_US" } as const;
 
@@ -59,10 +60,43 @@ export function resolveConsolidatedWhatsappTemplate(input: {
   eventType: MessageEventType;
   language: MessageLanguage;
   variables: Record<string, unknown>;
+  approvedWhatsappVariants?: ReadonlySet<string>;
 }): ConsolidatedWhatsappTemplate | null {
   const templateKey = conciergeTemplateKey(input.eventType, input.variables);
   if (!templateKey) return null;
   if (!conciergeWhatsappTemplateDefinition(templateKey, input.language)) return null;
+
+  const premiumProviderName = `${templateKey}_premium_v3`;
+  if (
+    input.approvedWhatsappVariants?.has(
+      `${premiumProviderName}:${META_LANGUAGE[input.language]}`,
+    )
+  ) {
+    const premium = buildConciergeWhatsappPresentation({
+      templateKey,
+      locale: input.language,
+      variables: input.variables,
+    });
+    return {
+      name: premium.providerTemplateName,
+      metaLanguage: META_LANGUAGE[input.language],
+      components: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: { link: CONCIERGE_WHATSAPP_HEADER_URL },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: premium.parameters.map((text) => ({ type: "text" as const, text })),
+        },
+      ],
+    };
+  }
 
   return {
     name: conciergeWhatsappTemplateName(templateKey),
