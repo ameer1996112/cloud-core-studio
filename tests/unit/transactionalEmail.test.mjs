@@ -1,13 +1,19 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { MESSAGE_CONTENT_CATALOG } from "../../src/lib/messageTemplateCatalog.ts";
 import {
-  hashTransactionalEmailShellArtifact,
   renderTransactionalEmail,
   TRANSACTIONAL_EMAIL_SHELL_ARTIFACT,
   TRANSACTIONAL_EMAIL_SHELL_HASH,
   validateTransactionalEmailSenderConfig,
   validateTransactionalEmailPresentationCatalog,
 } from "../../src/lib/transactionalEmail.ts";
+import { hashTransactionalEmailShellArtifact } from "../../src/lib/transactionalEmailHash.server.ts";
+
+const transactionalEmailSource = readFileSync(
+  new URL("../../src/lib/transactionalEmail.ts", import.meta.url),
+  "utf8",
+);
 
 const baseInput = {
   eventType: "subscription_renewal_failed",
@@ -25,6 +31,10 @@ const baseInput = {
 };
 
 describe("premium transactional email renderer", () => {
+  test("keeps the shared renderer browser-safe", () => {
+    expect(transactionalEmailSource).not.toContain('from "node:crypto"');
+  });
+
   test("derives shell evidence from the canonical rendered artifact", () => {
     expect(hashTransactionalEmailShellArtifact(TRANSACTIONAL_EMAIL_SHELL_ARTIFACT)).toBe(
       TRANSACTIONAL_EMAIL_SHELL_HASH,

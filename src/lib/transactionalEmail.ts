@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import type { MessageEventType, MessageLanguage } from "@/lib/messaging.types";
 
 export type TransactionalEmailInput = {
@@ -420,13 +419,6 @@ export function renderTransactionalEmail(
   };
 }
 
-export function hashTransactionalEmailShellArtifact(artifact: string) {
-  return createHash("sha256")
-    .update(`cloud-core-transactional-email-shell-v${TRANSACTIONAL_EMAIL_SHELL_VERSION}\u001f`)
-    .update(artifact)
-    .digest("hex");
-}
-
 const canonicalShellRender = renderTransactionalEmail({
   eventType: "human_handoff",
   language: "en",
@@ -458,9 +450,8 @@ export const TRANSACTIONAL_EMAIL_SHELL_ARTIFACT = JSON.stringify({
   html: canonicalShellRender.html,
   text: canonicalShellRender.text,
 });
-export const TRANSACTIONAL_EMAIL_SHELL_HASH = hashTransactionalEmailShellArtifact(
-  TRANSACTIONAL_EMAIL_SHELL_ARTIFACT,
-);
+export const TRANSACTIONAL_EMAIL_SHELL_HASH =
+  "04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a";
 
 export function validateTransactionalEmailPresentationCatalog(eventTypes: readonly string[]) {
   const errors: string[] = [];
