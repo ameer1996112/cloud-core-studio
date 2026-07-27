@@ -13,6 +13,18 @@ describe("member-controlled Concierge memory", () => {
       }),
     ).toEqual({ key: "communication_pace", value: "quiet" });
     expect(() =>
+      parsePersonalConciergePreference({
+        key: "communication_pace",
+        value: "marketing",
+      }),
+    ).toThrow();
+    expect(
+      parsePersonalConciergePreference({
+        key: "onboarding_status",
+        value: "deferred",
+      }),
+    ).toEqual({ key: "onboarding_status", value: "deferred" });
+    expect(() =>
       parsePersonalConciergePreference({ key: "health_condition", value: "injury" }),
     ).toThrow();
   });

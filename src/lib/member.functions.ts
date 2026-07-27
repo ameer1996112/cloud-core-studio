@@ -11,6 +11,7 @@ import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
 import {
   resolvePersonalConciergeExperience,
   resolvePersonalConciergeVisibility,
+  type PersonalConciergeCommunicationPace,
 } from "@/lib/personalConciergeExperience";
 
 export const optionalSupabaseAuth = createMiddleware({ type: "function" }).server(
@@ -120,6 +121,7 @@ export const getMemberHome = createServerFn({ method: "GET" })
       activePlanRes,
       relationshipRes,
       attendanceRes,
+      communicationPaceRes,
     ] = await Promise.all([
       supabase
         .from("members")
@@ -168,6 +170,16 @@ export const getMemberHome = createServerFn({ method: "GET" })
         .order("marked_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      (supabase as any)
+        .from("personal_concierge_preference_evidence")
+        .select("preference_value")
+        .eq("member_id", userId)
+        .eq("preference_key", "communication_pace")
+        .eq("member_visible", true)
+        .is("removed_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     const upcoming = (nextBookingRes.data ?? []).filter(
@@ -185,7 +197,8 @@ export const getMemberHome = createServerFn({ method: "GET" })
       resolvePersonalConciergeVisibility(process.env, userId) &&
       !relationshipRes.error &&
       relationshipRes.data &&
-      !attendanceRes.error
+      !attendanceRes.error &&
+      !communicationPaceRes.error
         ? resolvePersonalConciergeExperience({
             member: {
               firstName:
@@ -193,6 +206,12 @@ export const getMemberHome = createServerFn({ method: "GET" })
               locale,
               attendanceCount: member.attendance_count ?? 0,
               personalizationPaused: relationshipRes.data.personalization_paused === true,
+              communicationPace: ["quiet", "balanced", "attentive"].includes(
+                communicationPaceRes.data?.preference_value,
+              )
+                ? (communicationPaceRes.data
+                    ?.preference_value as PersonalConciergeCommunicationPace)
+                : undefined,
             },
             nextBooking: nextClass
               ? {

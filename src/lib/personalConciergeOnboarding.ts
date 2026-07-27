@@ -20,6 +20,17 @@ export function parsePersonalConciergeOnboardingChoice(input: unknown) {
   return onboardingChoiceSchema.parse(input);
 }
 
+export function personalConciergeOnboardingPreference(
+  resolution: { kind: "choice"; choice: PersonalConciergeOnboardingChoice } | { kind: "deferred" },
+) {
+  return resolution.kind === "choice"
+    ? {
+        key: "communication_pace" as const,
+        value: parsePersonalConciergeOnboardingChoice(resolution.choice),
+      }
+    : { key: "onboarding_status" as const, value: "deferred" as const };
+}
+
 export function resolvePersonalConciergeOnboarding(input: OnboardingInput) {
   const defaultChoice: PersonalConciergeOnboardingChoice = "balanced";
 
@@ -31,6 +42,9 @@ export function resolvePersonalConciergeOnboarding(input: OnboardingInput) {
   }
   if (input.hasAttended) {
     return { visible: false, defaultChoice, reason: "member_already_attended" as const };
+  }
+  if (input.preferences.some((preference) => preference.preference_key === "onboarding_status")) {
+    return { visible: false, defaultChoice, reason: "onboarding_deferred" as const };
   }
   if (input.preferences.some((preference) => preference.preference_key === "communication_pace")) {
     return {

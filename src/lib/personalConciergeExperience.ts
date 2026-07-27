@@ -1,4 +1,5 @@
 export type PersonalConciergeLocale = "he" | "ar" | "en";
+export type PersonalConciergeCommunicationPace = "quiet" | "balanced" | "attentive";
 
 export type PersonalConciergeBooking = {
   id: string;
@@ -14,6 +15,7 @@ type PersonalConciergeInput = {
     locale: PersonalConciergeLocale;
     attendanceCount: number;
     personalizationPaused: boolean;
+    communicationPace?: PersonalConciergeCommunicationPace;
   };
   nextBooking: PersonalConciergeBooking | null;
   latestAttendance: {
@@ -103,6 +105,73 @@ const COPY = {
   },
 } satisfies Record<PersonalConciergeLocale, Record<string, unknown>>;
 
+const PACED_NOTES = {
+  he: {
+    quiet: {
+      preparation: (name: string) => `${name}, הפרטים החשובים לקראת השיעור הראשון מחכים לך כאן.`,
+      reflection: (name: string) => `${name}, כשתרצי, אפשר לספר לי בקצרה מה התאים לך.`,
+      missed: (name: string) => `${name}, אפשר לחזור כשתרצי. בלי לחץ.`,
+    },
+    attentive: {
+      preparation: (name: string) =>
+        `${name}, איזה כיף שאת בדרך אלינו. הכנו לך ליווי אישי לקראת השיעור הראשון.`,
+      reflection: (name: string) =>
+        `${name}, שמחתי שהגעת. כשתרצי, אשמח ללמוד מה יעזור לך להרגיש כאן הכי טוב.`,
+      missed: (name: string) =>
+        `${name}, אנחנו כאן בשבילך. כשתרגישי מוכנה, נעזור לך לבחור התחלה חדשה ונעימה.`,
+    },
+  },
+  ar: {
+    quiet: {
+      preparation: (name: string) => `${name}، التفاصيل المهمة قبل حصتك الأولى جاهزة هنا.`,
+      reflection: (name: string) => `${name}، عندما ترغبين، أخبريني باختصار ما الذي ناسبك.`,
+      missed: (name: string) => `${name}، يمكنك العودة عندما ترغبين. من دون ضغط.`,
+    },
+    attentive: {
+      preparation: (name: string) =>
+        `${name}، يسعدنا أنك في طريقك إلينا. أعددنا لك مرافقة شخصية قبل حصتك الأولى.`,
+      reflection: (name: string) =>
+        `${name}، سعدت بحضورك. عندما ترغبين، يسعدني أن أعرف ما يساعدك على الشعور بأفضل حال هنا.`,
+      missed: (name: string) =>
+        `${name}، نحن هنا من أجلك. عندما تكونين مستعدة، سنساعدك على اختيار بداية جديدة ومريحة.`,
+    },
+  },
+  en: {
+    quiet: {
+      preparation: (name: string) =>
+        `${name}, the essential details for your first class are ready here.`,
+      reflection: (name: string) =>
+        `${name}, when you are ready, you can briefly tell me what suited you.`,
+      missed: (name: string) => `${name}, return whenever you are ready. No pressure.`,
+    },
+    attentive: {
+      preparation: (name: string) =>
+        `${name}, we are so glad you are on your way. Your personal first-class guidance is ready.`,
+      reflection: (name: string) =>
+        `${name}, it was lovely having you. When you are ready, I would love to learn what helps you feel your best here.`,
+      missed: (name: string) =>
+        `${name}, we are here for you. When you feel ready, we will help you choose a fresh, comfortable start.`,
+    },
+  },
+} satisfies Record<
+  PersonalConciergeLocale,
+  Record<
+    Exclude<PersonalConciergeCommunicationPace, "balanced">,
+    Record<"preparation" | "reflection" | "missed", (name: string) => string>
+  >
+>;
+
+function pacedNote(
+  locale: PersonalConciergeLocale,
+  pace: PersonalConciergeCommunicationPace | undefined,
+  moment: "preparation" | "reflection" | "missed",
+  balanced: (name: string) => string,
+  name: string,
+) {
+  if (!pace || pace === "balanced") return balanced(name);
+  return PACED_NOTES[locale][pace][moment](name);
+}
+
 export function resolvePersonalConciergeVisibility(
   env: Record<string, string | undefined>,
   memberId: string,
@@ -162,7 +231,13 @@ export function resolvePersonalConciergeExperience(
       priority: 5,
       eyebrow: copy.betweenUs,
       title: copy.missedTitle,
-      note: copy.missed(input.member.firstName),
+      note: pacedNote(
+        input.member.locale,
+        input.member.communicationPace,
+        "missed",
+        copy.missed,
+        input.member.firstName,
+      ),
       primaryAction: { label: copy.schedule, to: "/member/schedule" },
       reason: "verified_first_no_show",
     };
@@ -179,7 +254,13 @@ export function resolvePersonalConciergeExperience(
       priority: 5,
       eyebrow: copy.betweenUs,
       title: copy.reflectionTitle,
-      note: copy.reflection(input.member.firstName),
+      note: pacedNote(
+        input.member.locale,
+        input.member.communicationPace,
+        "reflection",
+        copy.reflection,
+        input.member.firstName,
+      ),
       primaryAction: {
         label: copy.preferences,
         to: "/member/account#between-us",
@@ -198,7 +279,13 @@ export function resolvePersonalConciergeExperience(
       priority: 4,
       eyebrow: copy.betweenUs,
       title: copy.expecting,
-      note: copy.preparation(input.member.firstName),
+      note: pacedNote(
+        input.member.locale,
+        input.member.communicationPace,
+        "preparation",
+        copy.preparation,
+        input.member.firstName,
+      ),
       primaryAction: {
         label: copy.prepare,
         to: "/member/bookings?concierge=first-visit",

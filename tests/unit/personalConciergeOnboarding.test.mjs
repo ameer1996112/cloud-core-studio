@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   resolvePersonalConciergeOnboarding,
   parsePersonalConciergeOnboardingChoice,
+  personalConciergeOnboardingPreference,
 } from "../../src/lib/personalConciergeOnboarding.ts";
 
 describe("personal Concierge onboarding", () => {
@@ -33,6 +34,19 @@ describe("personal Concierge onboarding", () => {
       defaultChoice: "balanced",
       reason: "communication_preference_already_resolved",
     });
+
+    expect(
+      resolvePersonalConciergeOnboarding({
+        conciergeAvailable: true,
+        hasUpcomingBooking: true,
+        hasAttended: false,
+        preferences: [{ preference_key: "onboarding_status", preference_value: "deferred" }],
+      }),
+    ).toEqual({
+      visible: false,
+      defaultChoice: "balanced",
+      reason: "onboarding_deferred",
+    });
   });
 
   test("does not show before a booking, after attendance, or outside the rollout", () => {
@@ -57,5 +71,16 @@ describe("personal Concierge onboarding", () => {
     expect(parsePersonalConciergeOnboardingChoice("balanced")).toBe("balanced");
     expect(parsePersonalConciergeOnboardingChoice("attentive")).toBe("attentive");
     expect(() => parsePersonalConciergeOnboardingChoice("marketing")).toThrow();
+  });
+
+  test("persists a choice separately from a deferred onboarding", () => {
+    expect(personalConciergeOnboardingPreference({ kind: "choice", choice: "attentive" })).toEqual({
+      key: "communication_pace",
+      value: "attentive",
+    });
+    expect(personalConciergeOnboardingPreference({ kind: "deferred" })).toEqual({
+      key: "onboarding_status",
+      value: "deferred",
+    });
   });
 });

@@ -66,6 +66,40 @@ describe("personal Concierge experience resolver", () => {
     });
   });
 
+  test("uses the member's selected communication style in the Concierge experience", () => {
+    const quiet = resolvePersonalConciergeExperience({
+      member: {
+        firstName: "נועה",
+        locale: "he",
+        attendanceCount: 0,
+        personalizationPaused: false,
+        communicationPace: "quiet",
+      },
+      nextBooking: firstBooking,
+      latestAttendance: null,
+      now: "2026-07-27T12:00:00.000Z",
+    });
+    const attentive = resolvePersonalConciergeExperience({
+      member: {
+        firstName: "נועה",
+        locale: "he",
+        attendanceCount: 0,
+        personalizationPaused: false,
+        communicationPace: "attentive",
+      },
+      nextBooking: firstBooking,
+      latestAttendance: null,
+      now: "2026-07-27T12:00:00.000Z",
+    });
+
+    expect(quiet).toMatchObject({
+      note: "נועה, הפרטים החשובים לקראת השיעור הראשון מחכים לך כאן.",
+    });
+    expect(attentive).toMatchObject({
+      note: "נועה, איזה כיף שאת בדרך אלינו. הכנו לך ליווי אישי לקראת השיעור הראשון.",
+    });
+  });
+
   test("acknowledges verified first attendance without pretending before check-in", () => {
     expect(
       resolvePersonalConciergeExperience({

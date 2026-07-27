@@ -25,6 +25,7 @@ import {
   saveMyPersonalConciergePreference,
 } from "@/lib/personalConcierge.functions";
 import {
+  personalConciergeOnboardingPreference,
   resolvePersonalConciergeOnboarding,
   type PersonalConciergeOnboardingChoice,
 } from "@/lib/personalConciergeOnboarding";
@@ -101,10 +102,14 @@ function MyBookings() {
     },
   });
 
-  const saveOnboardingChoice = useMutation({
-    mutationFn: (choice: PersonalConciergeOnboardingChoice) =>
+  const resolveOnboarding = useMutation({
+    mutationFn: (
+      resolution:
+        | { kind: "choice"; choice: PersonalConciergeOnboardingChoice }
+        | { kind: "deferred" },
+    ) =>
       saveConciergePreference({
-        data: { key: "communication_pace", value: choice },
+        data: personalConciergeOnboardingPreference(resolution),
       }),
     onSuccess: () => {
       setOnboardingResolvedLocally(true);
@@ -272,8 +277,8 @@ function MyBookings() {
               <button
                 key={choice}
                 type="button"
-                disabled={saveOnboardingChoice.isPending}
-                onClick={() => saveOnboardingChoice.mutate(choice)}
+                disabled={resolveOnboarding.isPending}
+                onClick={() => resolveOnboarding.mutate({ kind: "choice", choice })}
                 className="rounded-2xl border border-gold/25 bg-white p-4 text-start transition hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-sm disabled:opacity-50"
               >
                 <span className="block font-semibold text-navy">{label}</span>
@@ -282,8 +287,8 @@ function MyBookings() {
             ))}
             <button
               type="button"
-              disabled={saveOnboardingChoice.isPending}
-              onClick={() => saveOnboardingChoice.mutate(conciergeOnboarding.defaultChoice)}
+              disabled={resolveOnboarding.isPending}
+              onClick={() => resolveOnboarding.mutate({ kind: "deferred" })}
               className="text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
             >
               {onboardingCopy.later}
