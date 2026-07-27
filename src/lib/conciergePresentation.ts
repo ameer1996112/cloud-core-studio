@@ -276,7 +276,11 @@ const RETENTION_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
 function requireWhatsappValue(variables: Record<string, unknown>, key: string) {
   const value = factValue(variables[key]);
   if (value === null) throw new Error(`missing_whatsapp_presentation_variable:${key}`);
-  return value;
+  return sanitizeWhatsappParameter(value);
+}
+
+function sanitizeWhatsappParameter(value: string) {
+  return value.replace(/\s+/gu, " ").trim();
 }
 
 function bookingDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
@@ -294,7 +298,7 @@ function bookingDetails(locale: ConciergePresentationLocale, variables: Record<s
           ? `مع ${instructor}`
           : `With ${instructor}`;
   const context = [withInstructor, location].filter(Boolean).join(" · ");
-  return [className, `${classDate} · ${classTime}`, context].filter(Boolean).join("\n");
+  return [className, classDate, classTime, context].filter(Boolean).join(" · ");
 }
 
 function cancelledClassDetails(
@@ -305,7 +309,7 @@ function cancelledClassDetails(
   const classDate = requireWhatsappValue(variables, "class_date");
   const classTime = requireWhatsappValue(variables, "class_time");
   const location = factValue(variables.location_name);
-  return [className, `${classDate} · ${classTime}`, location].filter(Boolean).join("\n");
+  return [className, classDate, classTime, location].filter(Boolean).join(" · ");
 }
 
 function paymentDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
@@ -321,7 +325,7 @@ function paymentDetails(locale: ConciergePresentationLocale, variables: Record<s
           ? `التجديد ${renewalDate}`
           : `Renewal ${renewalDate}`;
   const context = [amount, renewalLabel].filter(Boolean).join(" · ");
-  return [packageName, context].filter(Boolean).join("\n");
+  return [packageName, context].filter(Boolean).join(" · ");
 }
 
 function waitlistDetails(locale: ConciergePresentationLocale, variables: Record<string, unknown>) {
@@ -335,7 +339,7 @@ function waitlistDetails(locale: ConciergePresentationLocale, variables: Record<
       : locale === "ar"
         ? `محفوظ حتى ${expiresAt}`
         : `Held until ${expiresAt}`;
-  return [className, `${classDate} · ${classTime}`, expiryLabel].join("\n");
+  return [className, classDate, classTime, expiryLabel].join(" · ");
 }
 
 function recommendationDetails(
@@ -355,7 +359,7 @@ function retentionDetails(locale: ConciergePresentationLocale, variables: Record
         : locale === "ar"
           ? `${credits} أرصدة متاحة`
           : `${credits} credits available`;
-    return `${packageName}\n${creditsLabel}`;
+    return `${packageName} · ${creditsLabel}`;
   }
   if (packageName) return packageName;
   if (credits) {
@@ -499,7 +503,10 @@ export function buildConciergeWhatsappPresentation(input: {
     optionalVariables: definition.optionalVariables,
     bodyTemplate: definition.body[input.locale],
     orderedParameters: ["member_name", "details_block"],
-    parameters: [memberName, definition.details(input.locale, input.variables)],
+    parameters: [
+      sanitizeWhatsappParameter(memberName),
+      sanitizeWhatsappParameter(definition.details(input.locale, input.variables)),
+    ],
     action: definition.actionKind
       ? {
           label: ACTION_LABELS[definition.actionKind][input.locale],
