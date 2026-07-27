@@ -112,6 +112,8 @@ describe("Concierge branded messaging final-fix migration", () => {
     expect(sql).toContain("v_expected_rendered_facts");
     expect(sql).toContain("public.concierge_presentation_contract(");
     expect(sql).toContain("public.concierge_presentation_hash(");
+    expect(sql).toContain("sha256(convert_to(concat_ws(");
+    expect(sql).not.toContain("digest(concat_ws(");
     expect(sql).toContain("prevent_concierge_delivery_identity_mutation");
     expect(sql).toContain("concierge_presentation_approval_is_immutable");
     expect(sql).toContain("concierge_presentation_preview_audit_idx");

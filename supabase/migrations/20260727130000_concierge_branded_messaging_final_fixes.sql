@@ -293,13 +293,13 @@ RETURNS text
 LANGUAGE sql IMMUTABLE PARALLEL SAFE
 SET search_path = public
 AS $$
-  SELECT encode(digest(concat_ws(
+  SELECT encode(sha256(convert_to(concat_ws(
     chr(31),
     'concierge-presentation-hash-v1',
     p_presentation_contract::text,
     COALESCE(p_email_shell_version::text,''),
     COALESCE(p_email_shell_hash,'')
-  ),'sha256'),'hex')
+  ), 'UTF8')), 'hex')
 $$;
 
 CREATE TABLE IF NOT EXISTS public.concierge_delivery_versions (
