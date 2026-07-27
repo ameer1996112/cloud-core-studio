@@ -266,6 +266,28 @@ function RootComponent() {
     window.addEventListener("focus", syncCurrentSession);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
+    let nativeAppStateListener: { remove: () => Promise<void> } | undefined;
+    let effectActive = true;
+    void Promise.all([import("@capacitor/core"), import("@capacitor/app")])
+      .then(async ([{ Capacitor }, { App }]) => {
+        if (!effectActive || !Capacitor.isNativePlatform()) return;
+        nativeAppStateListener = await App.addListener("appStateChange", ({ isActive }) => {
+          if (isActive) {
+            supabase.auth.startAutoRefresh();
+            syncCurrentSession();
+          } else {
+            supabase.auth.stopAutoRefresh();
+          }
+        });
+        if (!effectActive) {
+          await nativeAppStateListener.remove();
+          nativeAppStateListener = undefined;
+          return;
+        }
+        supabase.auth.startAutoRefresh();
+      })
+      .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (
         event !== "SIGNED_IN" &&
@@ -288,8 +310,10 @@ function RootComponent() {
       void queryClient.invalidateQueries();
     });
     return () => {
+      effectActive = false;
       window.removeEventListener("focus", syncCurrentSession);
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (nativeAppStateListener) void nativeAppStateListener.remove();
       sub.subscription.unsubscribe();
     };
   }, [router, queryClient]);
