@@ -4,10 +4,18 @@ import {
   parsePersonalConciergePause,
   parsePersonalConciergePreference,
 } from "@/lib/personalConciergePreferences";
+import { resolvePersonalConciergeVisibility } from "@/lib/personalConciergeExperience";
+
+function conciergeAvailable(memberId: string) {
+  return resolvePersonalConciergeVisibility(process.env, memberId);
+}
 
 export const getMyPersonalConcierge = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    if (!conciergeAvailable(context.userId)) {
+      return { available: false, relationship: null, preferences: [] };
+    }
     const db = context.supabase as any;
     const [relationship, preferences] = await Promise.all([
       db
@@ -27,6 +35,7 @@ export const getMyPersonalConcierge = createServerFn({ method: "GET" })
     if (relationship.error) throw relationship.error;
     if (preferences.error) throw preferences.error;
     return {
+      available: true,
       relationship: relationship.data,
       preferences: preferences.data ?? [],
     };
@@ -36,6 +45,7 @@ export const setMyPersonalConciergePause = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(parsePersonalConciergePause)
   .handler(async ({ data, context }) => {
+    if (!conciergeAvailable(context.userId)) throw new Error("personal_concierge_unavailable");
     const db = context.supabase as any;
     const result = await db.rpc("set_my_personal_concierge_pause", {
       p_paused: data.paused,
@@ -48,6 +58,7 @@ export const saveMyPersonalConciergePreference = createServerFn({ method: "POST"
   .middleware([requireSupabaseAuth])
   .inputValidator(parsePersonalConciergePreference)
   .handler(async ({ data, context }) => {
+    if (!conciergeAvailable(context.userId)) throw new Error("personal_concierge_unavailable");
     const db = context.supabase as any;
     const relationship = await db
       .from("personal_concierge_relationships")

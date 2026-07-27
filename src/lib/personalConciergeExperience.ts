@@ -154,20 +154,17 @@ export function resolvePersonalConciergeExperience(
   if (
     !input.member.personalizationPaused &&
     input.member.attendanceCount === 0 &&
-    input.nextBooking
+    input.latestAttendance?.status === "no_show" &&
+    isRecent(input.latestAttendance.markedAt, input.now)
   ) {
     return {
-      state: "first_visit_preparation",
-      priority: 4,
+      state: "first_visit_missed",
+      priority: 5,
       eyebrow: copy.betweenUs,
-      title: copy.expecting,
-      note: copy.preparation(input.member.firstName),
-      primaryAction: {
-        label: copy.prepare,
-        to: "/member/bookings?concierge=first-visit",
-      },
-      booking: input.nextBooking,
-      reason: "first_booking_before_first_attendance",
+      title: copy.missedTitle,
+      note: copy.missed(input.member.firstName),
+      primaryAction: { label: copy.schedule, to: "/member/schedule" },
+      reason: "verified_first_no_show",
     };
   }
 
@@ -194,17 +191,20 @@ export function resolvePersonalConciergeExperience(
   if (
     !input.member.personalizationPaused &&
     input.member.attendanceCount === 0 &&
-    input.latestAttendance?.status === "no_show" &&
-    isRecent(input.latestAttendance.markedAt, input.now)
+    input.nextBooking
   ) {
     return {
-      state: "first_visit_missed",
-      priority: 5,
+      state: "first_visit_preparation",
+      priority: 4,
       eyebrow: copy.betweenUs,
-      title: copy.missedTitle,
-      note: copy.missed(input.member.firstName),
-      primaryAction: { label: copy.schedule, to: "/member/schedule" },
-      reason: "verified_first_no_show",
+      title: copy.expecting,
+      note: copy.preparation(input.member.firstName),
+      primaryAction: {
+        label: copy.prepare,
+        to: "/member/bookings?concierge=first-visit",
+      },
+      booking: input.nextBooking,
+      reason: "first_booking_before_first_attendance",
     };
   }
 

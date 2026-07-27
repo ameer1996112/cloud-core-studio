@@ -181,14 +181,18 @@ export const getMemberHome = createServerFn({ method: "GET" })
         ? member.preferred_language
         : "he";
     const concierge =
-      member && resolvePersonalConciergeVisibility(process.env, userId)
+      member &&
+      resolvePersonalConciergeVisibility(process.env, userId) &&
+      !relationshipRes.error &&
+      relationshipRes.data &&
+      !attendanceRes.error
         ? resolvePersonalConciergeExperience({
             member: {
               firstName:
                 member.name?.trim().split(/\s+/)[0] || (locale === "he" ? "יקרה" : "friend"),
               locale,
               attendanceCount: member.attendance_count ?? 0,
-              personalizationPaused: relationshipRes.data?.personalization_paused === true,
+              personalizationPaused: relationshipRes.data.personalization_paused === true,
             },
             nextBooking: nextClass
               ? {
@@ -481,6 +485,9 @@ export const getMyBookingsAll = createServerFn({ method: "GET" })
       bookings: (bookingsRes.data ?? []).filter((b: any) => !hasTestClassRecord(b)),
       waitlist: (waitlistRes.data ?? []).filter((w: any) => !hasTestClassRecord(w)),
       attendanceByBooking: attMap,
+      hasAttended: (bookingsRes.data ?? []).some(
+        (booking: any) => attMap[booking.id]?.status === "attended",
+      ),
     };
   });
 

@@ -119,7 +119,8 @@ function MyBookings() {
         : tab === "cancelled"
           ? cancelled
           : waitlist;
-  const firstVisitBooking = concierge === "first-visit" ? upcoming[0] : null;
+  const firstVisitBooking =
+    concierge === "first-visit" || data?.hasAttended === false ? upcoming[0] : null;
   const firstVisitCopy =
     lang === "he"
       ? {
