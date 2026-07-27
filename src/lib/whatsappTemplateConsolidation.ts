@@ -5,15 +5,23 @@ import {
 } from "@/lib/conciergeTemplateCatalog";
 import type { MessageEventType, MessageLanguage } from "@/lib/messaging.types";
 import type { WhatsappTemplateComponent } from "@/lib/messagingProviders.server";
-import { buildConciergeWhatsappPresentation } from "@/lib/conciergePresentation";
+import {
+  buildConciergeWhatsappPresentation,
+  conciergePremiumWhatsappTemplateDefinition,
+} from "@/lib/conciergePresentation";
 
 const META_LANGUAGE = { he: "he", ar: "ar", en: "en_US" } as const;
 
 const CONCIERGE_TEMPLATE_BY_EVENT: Partial<Record<MessageEventType, string>> = {
+  booking_cancelled: "booking_cancelled",
   class_cancelled_by_admin: "class_cancelled",
   class_time_changed: "class_time_changed",
+  class_reminder_planning: "class_reminder_planning",
+  class_reminder_final: "class_reminder_final",
   class_recommendation: "recommendation",
   waitlist_spot_available: "waitlist_offer",
+  payment_pending_reminder: "payment_pending",
+  human_handoff: "human_handoff",
   retention_reminder: "retention",
 };
 
@@ -64,10 +72,13 @@ export function resolveConsolidatedWhatsappTemplate(input: {
 }): ConsolidatedWhatsappTemplate | null {
   const templateKey = conciergeTemplateKey(input.eventType, input.variables);
   if (!templateKey) return null;
-  if (!conciergeWhatsappTemplateDefinition(templateKey, input.language)) return null;
+  const brandedDefinition = conciergeWhatsappTemplateDefinition(templateKey, input.language);
+  const premiumDefinition = conciergePremiumWhatsappTemplateDefinition(templateKey, input.language);
+  if (!brandedDefinition && !premiumDefinition) return null;
 
-  const premiumProviderName = `${templateKey}_premium_v3`;
+  const premiumProviderName = premiumDefinition?.providerTemplateName;
   if (
+    premiumProviderName &&
     input.approvedWhatsappVariants?.has(`${premiumProviderName}:${META_LANGUAGE[input.language]}`)
   ) {
     const premium = buildConciergeWhatsappPresentation({
@@ -96,8 +107,17 @@ export function resolveConsolidatedWhatsappTemplate(input: {
     };
   }
 
+  if (!brandedDefinition) return null;
+  const brandedProviderName = conciergeWhatsappTemplateName(templateKey);
+  if (
+    input.approvedWhatsappVariants &&
+    !input.approvedWhatsappVariants.has(`${brandedProviderName}:${META_LANGUAGE[input.language]}`)
+  ) {
+    return null;
+  }
+
   return {
-    name: conciergeWhatsappTemplateName(templateKey),
+    name: brandedProviderName,
     metaLanguage: META_LANGUAGE[input.language],
     components: [
       {

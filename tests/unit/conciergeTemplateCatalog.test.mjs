@@ -4,6 +4,7 @@ import {
   PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP,
   CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
   CONCIERGE_TEMPLATE_CATALOG,
+  isPremiumWhatsappOnlyTemplateKey,
   validateConciergeTemplateCatalog,
 } from "../../src/lib/conciergeTemplateCatalog.ts";
 
@@ -96,12 +97,12 @@ describe("Concierge template catalog", () => {
     }
   });
 
-  test("provides one Meta WhatsApp template for every localized WhatsApp variant", () => {
-    const whatsapp = CONCIERGE_TEMPLATE_CATALOG.filter(
-      (template) => template.channel === "whatsapp",
+  test("keeps branded v2 only for families that are not premium-only", () => {
+    const v2CapableVariants = CONCIERGE_TEMPLATE_CATALOG.filter(
+      (template) =>
+        template.channel === "whatsapp" && !isPremiumWhatsappOnlyTemplateKey(template.templateKey),
     );
-    expect(CONCIERGE_META_TEMPLATE_CATALOG).toHaveLength(whatsapp.length);
-    expect(CONCIERGE_META_TEMPLATE_CATALOG).toHaveLength(33);
+    expect(CONCIERGE_META_TEMPLATE_CATALOG).toHaveLength(v2CapableVariants.length);
     for (const template of CONCIERGE_META_TEMPLATE_CATALOG) {
       expect(template.name).toEndWith("_branded_v2");
       const templateKey = template.name.replace(/_branded_v2$/, "");
@@ -139,7 +140,10 @@ describe("Concierge template catalog", () => {
   });
 
   test("provides a premium v3 candidate with a two-parameter boutique card contract", () => {
-    expect(CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG).toHaveLength(33);
+    const whatsappVariants = CONCIERGE_TEMPLATE_CATALOG.filter(
+      (template) => template.channel === "whatsapp",
+    );
+    expect(CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG).toHaveLength(whatsappVariants.length);
     for (const template of CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG) {
       expect(template.name).toEndWith("_premium_v3");
       expect(template.components[0].type).toBe("HEADER");

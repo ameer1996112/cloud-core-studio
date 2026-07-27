@@ -273,6 +273,36 @@ const RETENTION_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
   en: "Hi {{1}}, I just wanted to check in 🤍\n\n{{2}}\n\nI’m here if you’d like help choosing your next class.\nYareen | Cloud & Core",
 };
 
+const BOOKING_CANCELLED_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
+  he: "היי {{1}}, הביטול שלך נקלט והכול מעודכן.\n\n{{2}}\n\nאם תרצי לבחור שיעור אחר, המערכת מחכה לך באפליקציה.\nירין | Cloud & Core",
+  ar: "مرحباً {{1}}، تم تأكيد الإلغاء وتحديث حسابك.\n\n{{2}}\n\nيمكنك اختيار حصة أخرى من التطبيق عندما يناسبك.\nيارين | Cloud & Core",
+  en: "Hi {{1}}, your cancellation is confirmed and your account is updated.\n\n{{2}}\n\nYou can choose another class in the app whenever you are ready.\nYareen | Cloud & Core",
+};
+
+const CLASS_REMINDER_PLANNING_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
+  he: "היי {{1}}, תזכורת קטנה לקראת השיעור 🤍\n\n{{2}}\n\nאם משהו השתנה, עדיין אפשר לעדכן את ההזמנה באפליקציה.\nירין | Cloud & Core",
+  ar: "مرحباً {{1}}، تذكير لطيف قبل الحصة 🤍\n\n{{2}}\n\nإذا تغير شيء، ما زال بإمكانك تحديث الحجز من التطبيق.\nيارين | Cloud & Core",
+  en: "Hi {{1}}, a gentle reminder before class 🤍\n\n{{2}}\n\nIf plans changed, you can still update your booking in the app.\nYareen | Cloud & Core",
+};
+
+const CLASS_REMINDER_FINAL_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
+  he: "היי {{1}}, נתראה ממש בקרוב 🤍\n\n{{2}}\n\nהכול מוכן לקראת השיעור.\nירין | Cloud & Core",
+  ar: "مرحباً {{1}}، نراك قريباً جداً 🤍\n\n{{2}}\n\nكل شيء جاهز للحصة.\nيارين | Cloud & Core",
+  en: "Hi {{1}}, see you very soon 🤍\n\n{{2}}\n\nEverything is ready for class.\nYareen | Cloud & Core",
+};
+
+const PAYMENT_PENDING_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
+  he: "היי {{1}}, התשלום עדיין ממתין להשלמה:\n\n{{2}}\n\nאפשר להמשיך באפליקציה כשנוח לך. אני כאן אם תצטרכי עזרה.\nירין | Cloud & Core",
+  ar: "مرحباً {{1}}، ما زال الدفع بانتظار الإكمال:\n\n{{2}}\n\nيمكنك المتابعة من التطبيق عندما يناسبك. أنا هنا للمساعدة.\nيارين | Cloud & Core",
+  en: "Hi {{1}}, your payment is still awaiting completion:\n\n{{2}}\n\nContinue in the app when convenient. I’m here if you need help.\nYareen | Cloud & Core",
+};
+
+const HUMAN_HANDOFF_WHATSAPP_BODY: Record<ConciergePresentationLocale, string> = {
+  he: "היי {{1}}, קיבלתי את ההודעה שלך 🤍\n\n{{2}}\n\nאפשר להשיב לי ישירות כאן.\nירין | Cloud & Core",
+  ar: "مرحباً {{1}}، وصلتني رسالتك 🤍\n\n{{2}}\n\nيمكنك الرد عليّ مباشرة هنا.\nيارين | Cloud & Core",
+  en: "Hi {{1}}, I received your message 🤍\n\n{{2}}\n\nYou can reply to me directly here.\nYareen | Cloud & Core",
+};
+
 function requireWhatsappValue(variables: Record<string, unknown>, key: string) {
   const value = factValue(variables[key]);
   if (value === null) throw new Error(`missing_whatsapp_presentation_variable:${key}`);
@@ -376,6 +406,17 @@ function retentionDetails(locale: ConciergePresentationLocale, variables: Record
       : "The latest class schedule is waiting in the app";
 }
 
+function humanHandoffDetails(
+  locale: ConciergePresentationLocale,
+  _variables: Record<string, unknown>,
+) {
+  return locale === "he"
+    ? "אני כאן כדי להמשיך לעזור באופן אישי"
+    : locale === "ar"
+      ? "أنا هنا لمواصلة مساعدتك بشكل شخصي"
+      : "I’m here to continue helping personally";
+}
+
 type WhatsappPresentationDefinition = {
   body: Record<ConciergePresentationLocale, string>;
   requiredVariables: readonly string[];
@@ -385,6 +426,13 @@ type WhatsappPresentationDefinition = {
 };
 
 const WHATSAPP_PRESENTATIONS: Record<string, WhatsappPresentationDefinition> = {
+  booking_cancelled: {
+    body: BOOKING_CANCELLED_WHATSAPP_BODY,
+    requiredVariables: ["member_name", "class_name", "class_date", "class_time"],
+    optionalVariables: ["location_name"],
+    details: cancelledClassDetails,
+    actionKind: "class_change",
+  },
   booking_confirmed_first: {
     body: BOOKING_WHATSAPP_BODY,
     requiredVariables: ["member_name", "class_name", "class_date", "class_time"],
@@ -413,6 +461,20 @@ const WHATSAPP_PRESENTATIONS: Record<string, WhatsappPresentationDefinition> = {
     details: bookingDetails,
     actionKind: "class_change",
   },
+  class_reminder_planning: {
+    body: CLASS_REMINDER_PLANNING_WHATSAPP_BODY,
+    requiredVariables: ["member_name", "class_name", "class_date", "class_time"],
+    optionalVariables: ["instructor_name", "location_name"],
+    details: bookingDetails,
+    actionKind: "booking",
+  },
+  class_reminder_final: {
+    body: CLASS_REMINDER_FINAL_WHATSAPP_BODY,
+    requiredVariables: ["member_name", "class_name", "class_date", "class_time"],
+    optionalVariables: ["instructor_name", "location_name"],
+    details: bookingDetails,
+    actionKind: "booking",
+  },
   payment_one_time_succeeded: {
     body: PAYMENT_CONFIRMED_WHATSAPP_BODY,
     requiredVariables: ["member_name", "package_name"],
@@ -429,6 +491,13 @@ const WHATSAPP_PRESENTATIONS: Record<string, WhatsappPresentationDefinition> = {
     body: PAYMENT_ACTION_WHATSAPP_BODY,
     requiredVariables: ["member_name", "package_name"],
     optionalVariables: ["amount", "renewal_date"],
+    details: paymentDetails,
+    actionKind: "payment_outcome",
+  },
+  payment_pending: {
+    body: PAYMENT_PENDING_WHATSAPP_BODY,
+    requiredVariables: ["member_name", "package_name"],
+    optionalVariables: ["amount"],
     details: paymentDetails,
     actionKind: "payment_outcome",
   },
@@ -464,6 +533,12 @@ const WHATSAPP_PRESENTATIONS: Record<string, WhatsappPresentationDefinition> = {
     requiredVariables: ["member_name"],
     optionalVariables: ["package_name", "credits_remaining"],
     details: retentionDetails,
+  },
+  human_handoff: {
+    body: HUMAN_HANDOFF_WHATSAPP_BODY,
+    requiredVariables: ["member_name"],
+    optionalVariables: [],
+    details: humanHandoffDetails,
   },
 };
 

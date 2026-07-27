@@ -20,6 +20,7 @@ type TemplateDefinition = {
   channels: ConciergeChannel[];
   copy: LocalizedCopy;
   firstPersonVoiceApproved?: boolean;
+  premiumWhatsappOnly?: boolean;
 };
 
 const DEFINITIONS: Record<string, TemplateDefinition> = {
@@ -58,7 +59,8 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
     },
   },
   booking_cancelled: {
-    channels: ["in_app"],
+    channels: ["in_app", "whatsapp"],
+    premiumWhatsappOnly: true,
     copy: {
       en: {
         subject: "Your cancellation is confirmed",
@@ -105,6 +107,42 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
       ar: {
         subject: "تحديث من الاستوديو: تغيّر موعد الحصة",
         body: "مرحباً {{member_name}}، تغيّر موعد حصة في جدولك. افتحي تطبيق Cloud & Core لمراجعة الموعد المحدث.",
+      },
+    },
+  },
+  class_reminder_planning: {
+    channels: ["whatsapp"],
+    premiumWhatsappOnly: true,
+    copy: {
+      en: {
+        subject: "A gentle class reminder",
+        body: "Hi {{member_name}}, your class is coming up. Your latest booking details are available in the Cloud & Core app.",
+      },
+      he: {
+        subject: "תזכורת קטנה לקראת השיעור",
+        body: "היי {{member_name}}, השיעור שלך מתקרב. פרטי ההזמנה העדכניים זמינים באפליקציית Cloud & Core.",
+      },
+      ar: {
+        subject: "تذكير لطيف قبل الحصة",
+        body: "مرحباً {{member_name}}، حصتك تقترب. تفاصيل الحجز المحدثة متاحة في تطبيق Cloud & Core.",
+      },
+    },
+  },
+  class_reminder_final: {
+    channels: ["whatsapp"],
+    premiumWhatsappOnly: true,
+    copy: {
+      en: {
+        subject: "Your class starts soon",
+        body: "Hi {{member_name}}, your class starts soon. We look forward to seeing you at Cloud & Core.",
+      },
+      he: {
+        subject: "השיעור שלך מתחיל בקרוב",
+        body: "היי {{member_name}}, השיעור שלך מתחיל בקרוב. מחכות לראותך ב-Cloud & Core.",
+      },
+      ar: {
+        subject: "حصتك ستبدأ قريباً",
+        body: "مرحباً {{member_name}}، حصتك ستبدأ قريباً. نتطلع لرؤيتك في Cloud & Core.",
       },
     },
   },
@@ -176,6 +214,24 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
       },
     },
   },
+  payment_pending: {
+    channels: ["whatsapp"],
+    premiumWhatsappOnly: true,
+    copy: {
+      en: {
+        subject: "Payment awaiting completion",
+        body: "Hi {{member_name}}, your payment is still awaiting completion. Open the Cloud & Core app when convenient to continue.",
+      },
+      he: {
+        subject: "התשלום ממתין להשלמה",
+        body: "היי {{member_name}}, התשלום שלך עדיין ממתין להשלמה. אפשר להמשיך באפליקציית Cloud & Core כשנוח לך.",
+      },
+      ar: {
+        subject: "الدفع بانتظار الإكمال",
+        body: "مرحباً {{member_name}}، ما زال الدفع بانتظار الإكمال. يمكنك المتابعة في تطبيق Cloud & Core عندما يناسبك.",
+      },
+    },
+  },
   payment_terminally_failed: {
     channels: ["in_app", "push", "email", "whatsapp"],
     copy: {
@@ -207,6 +263,25 @@ const DEFINITIONS: Record<string, TemplateDefinition> = {
       ar: {
         subject: "تم حل مشكلة الدفع",
         body: "مرحباً {{member_name}}، تم حل مشكلة الدفع في حساب Cloud & Core. لا يلزم أي إجراء إضافي.",
+      },
+    },
+  },
+  human_handoff: {
+    channels: ["whatsapp"],
+    firstPersonVoiceApproved: true,
+    premiumWhatsappOnly: true,
+    copy: {
+      en: {
+        subject: "A personal reply from the studio",
+        body: "Hi {{member_name}}, I received your message and I am here to continue helping you. You can reply directly in WhatsApp.",
+      },
+      he: {
+        subject: "מענה אישי מהסטודיו",
+        body: "היי {{member_name}}, קיבלתי את ההודעה שלך ואני כאן כדי להמשיך לעזור. אפשר להשיב ישירות ב-WhatsApp.",
+      },
+      ar: {
+        subject: "رد شخصي من الاستوديو",
+        body: "مرحباً {{member_name}}، وصلتني رسالتك وأنا هنا لمواصلة مساعدتك. يمكنك الرد مباشرة عبر WhatsApp.",
       },
     },
   },
@@ -338,6 +413,10 @@ export function conciergeWhatsappTemplateName(templateKey: string) {
   return `${templateKey}_branded_v2`;
 }
 
+export function isPremiumWhatsappOnlyTemplateKey(templateKey: string) {
+  return DEFINITIONS[templateKey]?.premiumWhatsappOnly === true;
+}
+
 const CONCIERGE_PUBLIC_BASE_URL = "https://cloudandcorestudio.com";
 
 const WHATSAPP_ACTIONS: Partial<
@@ -376,7 +455,8 @@ const WHATSAPP_ACTIONS: Partial<
 };
 
 export const CONCIERGE_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALOG.filter(
-  (template) => template.channel === "whatsapp",
+  (template) =>
+    template.channel === "whatsapp" && !isPremiumWhatsappOnlyTemplateKey(template.templateKey),
 ).map((template) => {
   const action = WHATSAPP_ACTIONS[template.templateKey];
   return {
@@ -445,6 +525,22 @@ const PREMIUM_WHATSAPP_ACTIONS: Partial<
   class_time_changed: {
     path: "/member/schedule",
     labels: { he: "צפייה בלוח השיעורים", ar: "عرض جدول الحصص", en: "View schedule" },
+  },
+  booking_cancelled: {
+    path: "/member/schedule",
+    labels: { he: "צפייה בלוח השיעורים", ar: "عرض جدول الحصص", en: "View schedule" },
+  },
+  class_reminder_planning: {
+    path: "/member/bookings",
+    labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en: "View booking" },
+  },
+  class_reminder_final: {
+    path: "/member/bookings",
+    labels: { he: "צפייה בהזמנה", ar: "عرض الحجز", en: "View booking" },
+  },
+  payment_pending: {
+    path: "/member/packages",
+    labels: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en: "Review payment" },
   },
 };
 

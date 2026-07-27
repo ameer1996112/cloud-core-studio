@@ -6,7 +6,7 @@ import {
 } from "../../src/lib/whatsappTemplateConsolidation.ts";
 
 describe("WhatsApp template consolidation", () => {
-  test("preserves legacy-only reminders and human handoff", () => {
+  test("keeps legacy v2 active for new premium families until v3 is approved", () => {
     expect(
       resolveConsolidatedWhatsappTemplate({
         eventType: "class_reminder_final",
@@ -19,6 +19,62 @@ describe("WhatsApp template consolidation", () => {
         eventType: "human_handoff",
         language: "he",
         variables: { member_name: "נועה" },
+      }),
+    ).toBeNull();
+  });
+
+  const premiumFamilies = [
+    ["booking_cancelled", "booking_cancelled"],
+    ["class_reminder_planning", "class_reminder_planning"],
+    ["class_reminder_final", "class_reminder_final"],
+    ["payment_pending_reminder", "payment_pending"],
+    ["human_handoff", "human_handoff"],
+  ];
+  const locales = [
+    ["he", "he"],
+    ["ar", "ar"],
+    ["en", "en_US"],
+  ];
+
+  test.each(
+    premiumFamilies.flatMap(([eventType, templateKey]) =>
+      locales.map(([language, metaLanguage]) => [eventType, templateKey, language, metaLanguage]),
+    ),
+  )(
+    "selects approved premium v3 for %s in %s",
+    (eventType, templateKey, language, metaLanguage) => {
+      const result = resolveConsolidatedWhatsappTemplate({
+        eventType,
+        language,
+        variables: {
+          member_name: "נועה",
+          class_name: "פילאטיס מזרן",
+          class_date: "24/07/2026",
+          class_time: "18:00",
+          instructor_name: "ירין",
+          package_name: "מינוי חודשי",
+        },
+        approvedWhatsappVariants: new Set([`${templateKey}_premium_v3:${metaLanguage}`]),
+      });
+
+      expect(result?.name).toBe(`${templateKey}_premium_v3`);
+      expect(result?.metaLanguage).toBe(metaLanguage);
+      expect(result?.components[0].type).toBe("header");
+    },
+  );
+
+  test("does not activate a premium template from a sibling locale approval", () => {
+    expect(
+      resolveConsolidatedWhatsappTemplate({
+        eventType: "class_reminder_final",
+        language: "he",
+        variables: {
+          member_name: "נועה",
+          class_name: "פילאטיס מזרן",
+          class_date: "24/07/2026",
+          class_time: "18:00",
+        },
+        approvedWhatsappVariants: new Set(["class_reminder_final_premium_v3:ar"]),
       }),
     ).toBeNull();
   });
