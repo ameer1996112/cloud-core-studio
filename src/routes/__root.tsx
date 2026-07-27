@@ -32,7 +32,7 @@ import {
 } from "@/lib/i18n";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
-import { startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
+import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
 
 function NotFoundComponent() {
   return (
@@ -192,7 +192,15 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
-  useEffect(() => startNativeAppLinkHandling(), []);
+  useEffect(
+    () =>
+      startNativeAppLinkHandling(() =>
+        installNativeAppLinkHandling((route) => {
+          void router.navigate({ to: route as never });
+        }),
+      ),
+    [router],
+  );
   useEffect(() => {
     let active = true;
     let checkInFlight = false;
