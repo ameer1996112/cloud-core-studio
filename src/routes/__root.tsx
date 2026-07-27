@@ -192,15 +192,23 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
-  useEffect(
-    () =>
-      startNativeAppLinkHandling(() =>
-        installNativeAppLinkHandling((route) => {
-          void router.navigate({ to: route as never });
-        }),
-      ),
-    [router],
-  );
+  useEffect(() => {
+    let active = true;
+    const stop = startNativeAppLinkHandling(() =>
+      installNativeAppLinkHandling((route) => {
+        void getFreshSupabaseSession().then(async () => {
+          if (!active) return;
+          await router.invalidate();
+          if (!active) return;
+          await router.navigate({ to: route as never, replace: true });
+        });
+      }),
+    );
+    return () => {
+      active = false;
+      stop();
+    };
+  }, [router]);
   useEffect(() => {
     let active = true;
     let checkInFlight = false;
