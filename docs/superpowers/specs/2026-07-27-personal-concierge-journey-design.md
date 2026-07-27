@@ -262,6 +262,86 @@ The orchestrator chooses one primary external channel. Secondary surfaces may up
 Every external action deep-links to the exact app state with authenticated web fallback. Generic
 homepage links are not permitted.
 
+## Minimal template architecture
+
+Premium does not mean maintaining a large template library. The application may have many
+experience states, but provider templates are created only when an external provider requires a
+pre-approved message contract.
+
+### Template budget
+
+Phase 1 uses exactly **one logical WhatsApp template family**: the existing first-booking
+confirmation, with one approved locale variant for Hebrew, Arabic, and English. The first-visit
+preparation experience lives in the application. Follow-up uses in-app state or an eligible push
+doorway and does not require another WhatsApp template.
+
+No additional provider template is permitted in Phase 1 unless an end-to-end requirement cannot be
+met through:
+
+1. the existing approved template;
+2. a dynamic in-app experience;
+3. an existing transactional push or email contract.
+
+Later phases add a provider template only for a materially different external communication
+contract, such as an urgent class disruption or an expiring waitlist offer. Copy variation,
+personalization, visual experiments, journey stage, and minor wording changes are not sufficient
+reasons to create another logical template.
+
+### Canonical contract
+
+Each logical template family owns:
+
+- one stable internal key;
+- one provider category and purpose;
+- one parameter schema;
+- one action/button contract;
+- native Hebrew, Arabic, and English variants;
+- one active provider version;
+- at most one approved rollback version during migration.
+
+Locale variants count as one logical family in the application catalog, even though Meta approves
+them separately. The catalog, presentation builder, Journey Lab, provisioning, and delivery runtime
+must all read the same canonical definition.
+
+### Creation gate
+
+A new provider template requires a short decision record proving all of the following:
+
+- a real customer-visible event requires external delivery;
+- no existing active family can represent it truthfully and safely;
+- app, push, or email cannot satisfy the timing and reliability requirement;
+- its provider category, variables, locale coverage, and action are defined;
+- it has an owner and a planned retirement condition;
+- adding it stays within the reviewed template budget.
+
+Without this evidence, the experience must reuse an existing contract or remain in-app.
+
+### Version and retirement policy
+
+- Edit internal app presentation without creating provider versions.
+- Create a new provider version only when Meta requires resubmission for a material body, category,
+  parameter, or button change.
+- Keep the current approved version live while its replacement is reviewed.
+- After rollout, retain only the active version and one rollback version in the runtime registry.
+- Remove superseded versions from code, fixtures, admin selectors, and provisioning manifests after
+  the rollback window.
+- Provider-side historical records may remain for audit, but they are not exposed as selectable
+  application templates.
+- Never create parallel `basic`, `branded`, `premium`, or journey-specific variants of the same
+  semantic contract.
+
+### Repository cleanliness
+
+- One typed registry is the source of truth for template identity and parameters.
+- Localized copy is colocated by logical family rather than duplicated across delivery paths.
+- Test fixtures are generated from the canonical registry.
+- Preview tools use production definitions and cannot introduce preview-only templates.
+- Obsolete template code is deleted after migration rather than left behind as inactive branches.
+- Secrets, provider exports, generated previews, and local environment files are never committed.
+
+The implementation plan must include a template inventory and consolidation step before adding any
+new template.
+
 ## Experience states
 
 The member concierge home resolves one of these top-level states:
@@ -462,6 +542,7 @@ Open rate alone is not a success metric.
 
 - Member concierge home.
 - First-visit preparation.
+- Reuse only the existing first-booking WhatsApp template family across the three locales.
 - Exact deep links.
 - Attendance-aware follow-up or deliberate silence.
 - Allowlisted end-to-end pilot in Hebrew, then Arabic and English.
@@ -545,6 +626,9 @@ Realistic member scenarios are reviewed for:
 - A member can see and control what is remembered.
 - No action with financial, capacity, or booking consequences occurs without authorization.
 - One event does not create duplicate cross-channel contact.
+- Phase 1 introduces no new logical provider template family.
+- Every active provider template has a documented purpose, owner, and retirement condition.
+- The runtime registry exposes only active and temporary rollback versions.
 - Negative moments suppress inappropriate promotion.
 - Operational delivery remains reliable if personalization is unavailable.
 - Every automated recommendation is explainable and auditable.
