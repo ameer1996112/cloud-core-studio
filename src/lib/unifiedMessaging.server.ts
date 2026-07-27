@@ -168,6 +168,7 @@ function notificationDeepLink(
   if (typeof payload.receipt_id === "string") return `/receipts/${payload.receipt_id}`;
   if (typeof payload.class_id === "string") return `/member/schedule?class=${payload.class_id}`;
   if (outbox.event_type.startsWith("booking_")) return "/member/bookings";
+  if (outbox.event_type.startsWith("class_")) return "/member/schedule";
   if (
     outbox.event_type.startsWith("payment_") ||
     outbox.event_type.startsWith("membership_") ||

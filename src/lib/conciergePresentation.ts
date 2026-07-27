@@ -27,6 +27,7 @@ export type ConciergePresentation = {
 const ACTION_PATHS = {
   booking: "/member/bookings",
   payment_outcome: "/member/packages",
+  class_change: "/member/schedule",
   weekly_schedule: "/member/schedule",
   waitlist: "/member/schedule",
   recommendation: "/member/schedule",
@@ -35,6 +36,11 @@ const ACTION_PATHS = {
 const ACTION_LABELS = {
   booking: { he: "צפייה בהזמנה", ar: "عرض الحجز", en: "View booking" },
   payment_outcome: { he: "בדיקת התשלום", ar: "مراجعة الدفع", en: "Review payment" },
+  class_change: {
+    he: "צפייה בלוח השיעורים",
+    ar: "عرض جدول الحصص",
+    en: "View schedule",
+  },
   weekly_schedule: { he: "למערכת השעות", ar: "استكشاف الجدول", en: "Explore schedule" },
   waitlist: { he: "מימוש המקום", ar: "حجز المكان", en: "Claim spot" },
   recommendation: { he: "צפייה בהמלצה", ar: "عرض التوصية", en: "View recommendation" },
@@ -54,6 +60,8 @@ const FACTS = {
     { key: "class_name", label: { he: "שיעור", ar: "الحصة", en: "Class" } },
     { key: "class_date", label: { he: "תאריך", ar: "التاريخ", en: "Date" }, ltr: true },
     { key: "class_time", label: { he: "שעה", ar: "الوقت", en: "Time" }, ltr: true },
+    { key: "instructor_name", label: { he: "מדריכה", ar: "المدربة", en: "Instructor" } },
+    { key: "location_name", label: { he: "מיקום", ar: "المكان", en: "Location" } },
   ],
   payment: [
     { key: "amount", label: { he: "סכום", ar: "المبلغ", en: "Amount" }, ltr: true },
@@ -89,6 +97,7 @@ const JOURNEYS: Record<string, JourneyDefinition> = {
   class_change: {
     categoryLabel: { he: "עדכון שיעור", ar: "تحديث الحصة", en: "Class update" },
     facts: FACTS.class,
+    actionKind: "class_change",
   },
   payment_outcome: {
     categoryLabel: { he: "פרטי התשלום", ar: "تفاصيل الدفع", en: "Payment details" },

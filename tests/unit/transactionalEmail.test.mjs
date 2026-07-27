@@ -169,6 +169,74 @@ describe("premium transactional email renderer", () => {
     expect(rendered.text).toContain("الحصة: بيلاتس");
   });
 
+  test("shows only class facts for a class cancellation even when test data contains unrelated fields", () => {
+    const rendered = renderTransactionalEmail({
+      ...baseInput,
+      eventType: "class_cancelled_by_admin",
+      subject: "השיעור בוטל",
+      body: "השיעור לא יתקיים הפעם.",
+      variables: {
+        class_name: "פילאטיס מזרן",
+        class_date: "24/07/2026",
+        class_time: "18:00",
+        instructor_name: "ירין",
+        location_name: "הסטודיו הראשי",
+        offer_expires_at: "18:30",
+        package_name: "מינוי חודשי",
+        amount: "₪350",
+        receipt_number: "CC-1001",
+        renewal_date: "31/07/2026",
+        expiry_date: "31/07/2026",
+        credits_remaining: "2",
+        waitlist_position: "2",
+        spots_available: "3",
+      },
+      actionUrl: "/member/schedule",
+    });
+
+    expect(rendered.html).toContain("פילאטיס מזרן");
+    expect(rendered.html).toContain("הסטודיו הראשי");
+    expect(rendered.html).toContain("צפייה בלוח השיעורים");
+    for (const unrelated of [
+      "שמירת המקום עד",
+      "חבילה",
+      "סכום",
+      "מספר קבלה",
+      "מועד חידוש",
+      "בתוקף עד",
+      "קרדיטים שנותרו",
+      "מיקום ברשימה",
+      "מקומות פנויים",
+    ]) {
+      expect(rendered.html).not.toContain(unrelated);
+      expect(rendered.text).not.toContain(unrelated);
+    }
+  });
+
+  test("treats a failed subscription renewal as a payment event", () => {
+    const rendered = renderTransactionalEmail({
+      ...baseInput,
+      eventType: "subscription_renewal_failed",
+      language: "en",
+      subject: "Renewal failed",
+      body: "Please update your payment.",
+      actionUrl: "https://cloudandcorestudio.com/member/packages",
+      variables: {
+        package_name: "Monthly membership",
+        amount: "₪350",
+        receipt_number: "CC-1001",
+        renewal_date: "31/07/2026",
+        credits_remaining: "2",
+      },
+      publicBaseUrl: "https://cloudandcorestudio.com",
+    });
+
+    expect(rendered.html).toContain("Amount");
+    expect(rendered.html).toContain("Receipt");
+    expect(rendered.html).not.toContain("Renewal date");
+    expect(rendered.html).not.toContain("Credits left");
+  });
+
   test("does not fall back to an action URL when an explicit presentation omits its action", () => {
     const rendered = renderTransactionalEmail({
       ...baseInput,

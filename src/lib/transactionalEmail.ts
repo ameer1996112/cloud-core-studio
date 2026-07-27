@@ -105,6 +105,37 @@ const FACTS: readonly FactDefinition[] = [
   },
 ];
 
+const FACT_KEYS = {
+  class: new Set(["class_name", "class_date", "class_time", "instructor_name", "location_name"]),
+  waitlist: new Set([
+    "class_name",
+    "class_date",
+    "class_time",
+    "instructor_name",
+    "location_name",
+    "offer_expires_at",
+    "waitlist_position",
+    "spots_available",
+  ]),
+  payment: new Set(["package_name", "amount", "receipt_number"]),
+  membership: new Set(["package_name", "renewal_date", "expiry_date", "credits_remaining"]),
+} as const;
+
+function factDefinitionsForEvent(eventType: MessageEventType) {
+  const group = eventGroup(eventType);
+  const keys =
+    group === "booking" || group === "class"
+      ? FACT_KEYS.class
+      : group === "waitlist"
+        ? FACT_KEYS.waitlist
+        : group === "payment"
+          ? FACT_KEYS.payment
+          : group === "membership"
+            ? FACT_KEYS.membership
+            : null;
+  return keys ? FACTS.filter((definition) => keys.has(definition.key)) : [];
+}
+
 const SUPPORT_COPY: Record<MessageLanguage, Omit<LocalizedCopy, "kicker" | "cta">> = {
   he: {
     support: "יש שאלה? אפשר פשוט להשיב למייל הזה ואנחנו כאן לעזור.",
@@ -263,8 +294,13 @@ function bodyHtml(body: string) {
     .join("");
 }
 
-function factRows(variables: Record<string, unknown>, language: MessageLanguage, align: string) {
-  const present = FACTS.flatMap((definition) => {
+function factRows(
+  eventType: MessageEventType,
+  variables: Record<string, unknown>,
+  language: MessageLanguage,
+  align: string,
+) {
+  const present = factDefinitionsForEvent(eventType).flatMap((definition) => {
     const value = variables[definition.key];
     if (value == null || String(value).trim() === "") return [];
     return [{ definition, value: String(value) }];
@@ -304,7 +340,7 @@ function presentationFactRows(
 function plainTextFactLines(input: TransactionalEmailInput) {
   const facts = input.presentation
     ? input.presentation.facts
-    : FACTS.flatMap((definition) => {
+    : factDefinitionsForEvent(input.eventType).flatMap((definition) => {
         const value = input.variables[definition.key];
         if (value == null || String(value).trim() === "") return [];
         return [
@@ -347,7 +383,7 @@ export function renderTransactionalEmail(
   const escapedUrl = actionUrl ? escapeHtml(actionUrl.toString()) : "";
   const facts = input.presentation
     ? presentationFactRows(input.presentation.facts, align)
-    : factRows(input.variables, input.language, align);
+    : factRows(input.eventType, input.variables, input.language, align);
   const preheader = `${input.subject} — ${input.body.replace(/\s+/g, " ").trim()}`.slice(0, 150);
   const supportEmail = input.replyTo?.trim() || null;
   const support = supportEmail

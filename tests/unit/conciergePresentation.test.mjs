@@ -46,6 +46,41 @@ describe("Concierge branded presentation", () => {
     expect(result.action).toBeNull();
   });
 
+  test("keeps class changes relevant and links to the schedule", () => {
+    const result = buildConciergePresentation({
+      journeyType: "class_change",
+      templateKey: "class_cancelled",
+      locale: "he",
+      subject: "השיעור בוטל",
+      body: "לצערנו השיעור בוטל.",
+      variables: {
+        class_name: "פילאטיס מזרן",
+        class_date: "28/07/2026",
+        class_time: "18:00",
+        instructor_name: "ירין",
+        location_name: "הסטודיו הראשי",
+        package_name: "מנוי חודשי",
+        amount: "₪350",
+        receipt_number: "CC-1001",
+        credits_remaining: "2",
+        waitlist_position: "3",
+      },
+      publicBaseUrl: "https://cloudandcorestudio.com",
+    });
+
+    expect(result.facts.map((fact) => fact.key)).toEqual([
+      "class_name",
+      "class_date",
+      "class_time",
+      "instructor_name",
+      "location_name",
+    ]);
+    expect(result.action).toEqual({
+      label: "צפייה בלוח השיעורים",
+      url: "https://cloudandcorestudio.com/member/schedule",
+    });
+  });
+
   test("keeps all supported journeys localized and free of unresolved variables", () => {
     const journeyTypes = [
       "booking",
