@@ -76,8 +76,11 @@ describe("premium transactional email renderer", () => {
 
     expect(rendered.html).toContain('<html lang="he" dir="rtl">');
     expect(rendered.html).toContain('role="presentation"');
-    expect(rendered.html).toContain("Cloud &amp; Core");
-    expect(rendered.html).toContain("AERIAL · STRENGTH · BALANCE");
+    expect(rendered.html).toContain(
+      'src="https://cloudandcorestudio.com/brand/cloud-core-logo-full.png"',
+    );
+    expect(rendered.html).toContain('alt="Cloud &amp; Core — Aerial · Strength · Balance"');
+    expect(rendered.html).toContain('width="190"');
     expect(rendered.html).toContain("עדכון תשלום");
     expect(rendered.html).toContain("בדיקת פרטי התשלום");
     expect(rendered.html).toContain("https://cloudandcorestudio.com/member/packages");

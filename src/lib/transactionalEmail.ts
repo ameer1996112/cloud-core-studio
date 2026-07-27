@@ -10,6 +10,7 @@ export type TransactionalEmailInput = {
   publicBaseUrl: string;
   replyTo?: string | null;
   messageKey: string;
+  headerVariant?: "logo" | "wordmark";
   presentation?: {
     key: string;
     categoryLabel: string;
@@ -385,6 +386,12 @@ export function renderTransactionalEmail(
     ? presentationFactRows(input.presentation.facts, align)
     : factRows(input.eventType, input.variables, input.language, align);
   const preheader = `${input.subject} — ${input.body.replace(/\s+/g, " ").trim()}`.slice(0, 150);
+  const logoUrl = new URL("/brand/cloud-core-logo-full.png", input.publicBaseUrl).toString();
+  const brandedHeader =
+    input.headerVariant === "wordmark"
+      ? `<div dir="ltr" style="color:#0B1D3A;font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:600;line-height:34px;">Cloud &amp; Core</div>
+              <div dir="ltr" style="padding-top:7px;color:#7D6841;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;line-height:15px;">AERIAL · STRENGTH · BALANCE</div>`
+      : `<img src="${escapeHtml(logoUrl)}" width="190" alt="Cloud &amp; Core — Aerial · Strength · Balance" style="display:block;width:190px;max-width:100%;height:auto;Margin:0 auto;border:0;outline:none;text-decoration:none;color:#0B1D3A;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:24px;">`;
   const supportEmail = input.replyTo?.trim() || null;
   const support = supportEmail
     ? `<a href="mailto:${escapeHtml(supportEmail)}" style="color:#0B1D3A;text-decoration:underline;">${escapeHtml(copy.support)}</a>`
@@ -412,8 +419,7 @@ export function renderTransactionalEmail(
         <tr><td class="cc-pad" style="padding:34px 42px 40px;text-align:${align};">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
             <tr><td style="padding:0 0 22px;text-align:center;">
-              <div dir="ltr" style="color:#0B1D3A;font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:600;line-height:34px;">Cloud &amp; Core</div>
-              <div dir="ltr" style="padding-top:7px;color:#7D6841;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;line-height:15px;">AERIAL · STRENGTH · BALANCE</div>
+              ${brandedHeader}
             </td></tr>
             <tr><td height="1" bgcolor="#E8DFD1" style="height:1px;background:#E8DFD1;font-size:0;line-height:0;">&nbsp;</td></tr>
           </table>
@@ -464,6 +470,7 @@ const canonicalShellRender = renderTransactionalEmail({
   publicBaseUrl: "https://cloudandcorestudio.com",
   replyTo: "__SHELL_REPLY_TO__@cloudandcorestudio.com",
   messageKey: "__SHELL_MESSAGE_KEY__",
+  headerVariant: "wordmark",
   presentation: {
     key: "__SHELL_PRESENTATION_KEY__",
     categoryLabel: "__SHELL_CATEGORY__",

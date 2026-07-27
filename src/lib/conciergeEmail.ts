@@ -151,6 +151,7 @@ export function renderSelectedConciergeEmail(
       publicBaseUrl: input.publicBaseUrl,
       replyTo: input.replyTo,
       messageKey: input.messageKey,
+      headerVariant: "wordmark",
       presentation,
     });
     return { ...rendered, presentationKey: input.presentationKey };
@@ -181,6 +182,7 @@ export function renderSelectedConciergeEmail(
     publicBaseUrl: input.publicBaseUrl,
     replyTo: input.replyTo,
     messageKey: input.messageKey,
+    headerVariant: "wordmark",
     presentation: {
       key: input.presentationKey,
       categoryLabel,
