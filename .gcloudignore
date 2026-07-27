@@ -11,6 +11,7 @@
 .vinxi
 android
 dist
+exports
 ios
 node_modules
 supabase/.temp
