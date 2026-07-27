@@ -8,7 +8,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { hasTestClassRecord, hasTestPlanRecord, isTestRecord } from "@/lib/test-records";
 import { formatClassDate, formatClassTime } from "@/lib/messageTemplate";
-import { resolvePersonalConciergeExperience } from "@/lib/personalConciergeExperience";
+import {
+  resolvePersonalConciergeExperience,
+  resolvePersonalConciergeVisibility,
+} from "@/lib/personalConciergeExperience";
 
 export const optionalSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
@@ -110,48 +113,62 @@ export const getMemberHome = createServerFn({ method: "GET" })
     await supabase.rpc("sweep_member_credits", { p_member_id: userId });
     const now = new Date().toISOString();
 
-    const [memberRes, nextBookingRes, recentClassesRes, activePlanRes, relationshipRes] =
-      await Promise.all([
-        supabase
-          .from("members")
-          .select(
-            "id,name,remaining_credits,attendance_count,last_visit_at,preferred_language,energy_preference,phone,email,status,emergency_contact",
-          )
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase
-          .from("bookings")
-          .select(`id,status,credit_cost,class:classes(${classSelect})`)
-          .eq("member_id", userId)
-          .eq("status", "booked")
-          .gte("class.starts_at", now)
-          .order("created_at", { ascending: true })
-          .limit(5),
-        supabase
-          .from("classes")
-          .select(classSelect)
-          .eq("status", "scheduled")
-          .eq("member_visible", true)
-          .gte("starts_at", now)
-          .order("starts_at", { ascending: true })
-          .limit(6),
-        supabase
-          .from("member_plans")
-          .select(
-            "id,credits_granted,expires_at,starts_at,status,created_at,plan:plans(id,name,description,credits,duration_days)",
-          )
-          .eq("member_id", userId)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        (supabase as any)
-          .from("personal_concierge_relationships")
-          .select("personalization_paused")
-          .eq("member_id", userId)
-          .limit(1)
-          .maybeSingle(),
-      ]);
+    const [
+      memberRes,
+      nextBookingRes,
+      recentClassesRes,
+      activePlanRes,
+      relationshipRes,
+      attendanceRes,
+    ] = await Promise.all([
+      supabase
+        .from("members")
+        .select(
+          "id,name,remaining_credits,attendance_count,last_visit_at,preferred_language,energy_preference,phone,email,status,emergency_contact",
+        )
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("bookings")
+        .select(`id,status,credit_cost,class:classes(${classSelect})`)
+        .eq("member_id", userId)
+        .eq("status", "booked")
+        .gte("class.starts_at", now)
+        .order("created_at", { ascending: true })
+        .limit(5),
+      supabase
+        .from("classes")
+        .select(classSelect)
+        .eq("status", "scheduled")
+        .eq("member_visible", true)
+        .gte("starts_at", now)
+        .order("starts_at", { ascending: true })
+        .limit(6),
+      supabase
+        .from("member_plans")
+        .select(
+          "id,credits_granted,expires_at,starts_at,status,created_at,plan:plans(id,name,description,credits,duration_days)",
+        )
+        .eq("member_id", userId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      (supabase as any)
+        .from("personal_concierge_relationships")
+        .select("personalization_paused")
+        .eq("member_id", userId)
+        .limit(1)
+        .maybeSingle(),
+      (supabase as any)
+        .from("attendance_records")
+        .select("status,marked_at,booking:bookings!inner(member_id)")
+        .eq("booking.member_id", userId)
+        .in("status", ["attended", "no_show"])
+        .order("marked_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
     const upcoming = (nextBookingRes.data ?? []).filter(
       (b: any) => b.class && !hasTestClassRecord(b),
@@ -163,30 +180,34 @@ export const getMemberHome = createServerFn({ method: "GET" })
       member?.preferred_language === "ar" || member?.preferred_language === "en"
         ? member.preferred_language
         : "he";
-    const concierge = member
-      ? resolvePersonalConciergeExperience({
-          member: {
-            firstName: member.name?.trim().split(/\s+/)[0] || (locale === "he" ? "יקרה" : "friend"),
-            locale,
-            attendanceCount: member.attendance_count ?? 0,
-            personalizationPaused: relationshipRes.data?.personalization_paused === true,
-          },
-          nextBooking: nextClass
-            ? {
-                id: nextBooking.id,
-                className: nextClass.title,
-                startsAt: nextClass.starts_at,
-                instructorName: nextClass.instructor?.name ?? null,
-                locationName: nextClass.room_ref?.name ?? nextClass.room ?? null,
-              }
-            : null,
-          latestAttendance:
-            (member.attendance_count ?? 0) === 1 && member.last_visit_at
-              ? { status: "attended", markedAt: member.last_visit_at }
+    const concierge =
+      member && resolvePersonalConciergeVisibility(process.env, userId)
+        ? resolvePersonalConciergeExperience({
+            member: {
+              firstName:
+                member.name?.trim().split(/\s+/)[0] || (locale === "he" ? "יקרה" : "friend"),
+              locale,
+              attendanceCount: member.attendance_count ?? 0,
+              personalizationPaused: relationshipRes.data?.personalization_paused === true,
+            },
+            nextBooking: nextClass
+              ? {
+                  id: nextBooking.id,
+                  className: nextClass.title,
+                  startsAt: nextClass.starts_at,
+                  instructorName: nextClass.instructor?.name ?? null,
+                  locationName: nextClass.room_ref?.name ?? nextClass.room ?? null,
+                }
               : null,
-          now,
-        })
-      : null;
+            latestAttendance: attendanceRes.data
+              ? {
+                  status: attendanceRes.data.status,
+                  markedAt: attendanceRes.data.marked_at,
+                }
+              : null,
+            now,
+          })
+        : null;
     return {
       member,
       upcoming,

@@ -10,9 +10,7 @@ CREATE TABLE IF NOT EXISTS public.personal_concierge_relationships (
   personalization_paused boolean NOT NULL DEFAULT false,
   current_experience_state text NOT NULL DEFAULT 'quiet' CHECK (
     current_experience_state IN (
-      'first_visit_preparation','first_visit_reflection','next_class','attention_required',
-      'recovery_options','personal_recommendation','return_gently','weekly_rhythm',
-      'human_care_active','quiet'
+      'first_visit_preparation','first_visit_reflection','first_visit_missed','next_class','quiet'
     )
   ),
   last_meaningful_contact_at timestamptz,

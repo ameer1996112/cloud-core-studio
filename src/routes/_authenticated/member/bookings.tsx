@@ -22,13 +22,17 @@ import {
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    concierge: search.concierge === "first-visit" ? ("first-visit" as const) : undefined,
+  }),
   component: MyBookings,
 });
 
 type Tab = "upcoming" | "past" | "waitlist" | "cancelled";
 
 function MyBookings() {
-  const { dir } = useI18n();
+  const { dir, lang } = useI18n();
+  const { concierge } = Route.useSearch();
   useDocumentTitle("page.bookings.title");
   const fetchAll = useServerFn(getMyBookingsAll);
   const fetchSettings = useServerFn(getPublicStudioSettings);
@@ -115,6 +119,35 @@ function MyBookings() {
         : tab === "cancelled"
           ? cancelled
           : waitlist;
+  const firstVisitBooking = concierge === "first-visit" ? upcoming[0] : null;
+  const firstVisitCopy =
+    lang === "he"
+      ? {
+          eyebrow: "לקראת הפעם הראשונה",
+          title: "הכול מוכן לקראתך",
+          arrival: "מומלץ להגיע 10 דקות לפני תחילת השיעור.",
+          clothing: "כדאי להגיע בבגדים נוחים שמאפשרים תנועה חופשית.",
+          expectation: "הצוות יקבל אותך, יציג את הסטודיו וילווה אותך בתחילת השיעור.",
+          location: "מיקום",
+        }
+      : lang === "ar"
+        ? {
+            eyebrow: "استعداداً للمرة الأولى",
+            title: "كل شيء جاهز لاستقبالك",
+            arrival: "نوصي بالوصول قبل بداية الحصة بعشر دقائق.",
+            clothing: "ارتدي ملابس مريحة تسمح لك بالحركة بحرية.",
+            expectation: "سيستقبلك الفريق ويعرّفك على الاستوديو ويرافقك في بداية الحصة.",
+            location: "المكان",
+          }
+        : {
+            eyebrow: "Before your first visit",
+            title: "Everything is ready for you",
+            arrival: "Please arrive 10 minutes before class begins.",
+            clothing: "Wear comfortable clothing that lets you move freely.",
+            expectation:
+              "The team will welcome you, show you the studio, and guide you into the class.",
+            location: "Location",
+          };
 
   return (
     <section dir={dir} className="member-page w-full space-y-6 pb-10">
@@ -138,6 +171,44 @@ function MyBookings() {
           />
         </div>
       </div>
+
+      {firstVisitBooking?.class && (
+        <section className="member-card member-panel-sand p-5 sm:p-7">
+          <p className="member-eyebrow">{firstVisitCopy.eyebrow}</p>
+          <h2 className="member-section-title mt-2">{firstVisitCopy.title}</h2>
+          <p className="mt-3 font-medium text-navy">{firstVisitBooking.class.title}</p>
+          <p className="mt-1 text-sm text-slate">
+            {formatDate(firstVisitBooking.class.starts_at)} ·{" "}
+            {formatTime(firstVisitBooking.class.starts_at)}
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[firstVisitCopy.arrival, firstVisitCopy.clothing, firstVisitCopy.expectation].map(
+              (item) => (
+                <div key={item} className="rounded-xl border border-gold/20 bg-white/70 p-4">
+                  <p className="text-sm leading-6 text-slate">{item}</p>
+                </div>
+              ),
+            )}
+          </div>
+          {(firstVisitBooking.class.room_ref?.name ||
+            firstVisitBooking.class.room ||
+            settings?.address) && (
+            <p className="mt-4 text-sm text-slate">
+              <span className="font-semibold text-navy">{firstVisitCopy.location}: </span>
+              {firstVisitBooking.class.room_ref?.name ||
+                firstVisitBooking.class.room ||
+                settings?.address}
+            </p>
+          )}
+          <p className="mt-5 text-xs text-slate">
+            {lang === "he"
+              ? "Cloud & Core Concierge"
+              : lang === "ar"
+                ? "كونسيرج Cloud & Core"
+                : "Cloud & Core Concierge"}
+          </p>
+        </section>
+      )}
 
       <div className="member-control-panel member-tab-bar no-scrollbar">
         {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (

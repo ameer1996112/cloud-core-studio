@@ -152,10 +152,10 @@ function MemberHome() {
             </a>
             <p className="mt-4 text-xs text-slate">
               {lang === "he"
-                ? "ירין | Cloud & Core"
+                ? "Cloud & Core Concierge"
                 : lang === "ar"
-                  ? "يارين | Cloud & Core"
-                  : "Yareen | Cloud & Core"}
+                  ? "كونسيرج Cloud & Core"
+                  : "Cloud & Core Concierge"}
             </p>
           </div>
         </section>

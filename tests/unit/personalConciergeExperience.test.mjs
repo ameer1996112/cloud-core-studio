@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { resolvePersonalConciergeExperience } from "../../src/lib/personalConciergeExperience.ts";
+import {
+  resolvePersonalConciergeExperience,
+  resolvePersonalConciergeVisibility,
+} from "../../src/lib/personalConciergeExperience.ts";
 
 const firstBooking = {
   id: "booking-1",
@@ -10,6 +13,31 @@ const firstBooking = {
 };
 
 describe("personal Concierge experience resolver", () => {
+  test("defaults off and requires an allowlisted member until explicitly live", () => {
+    expect(resolvePersonalConciergeVisibility({}, "member-1")).toBe(false);
+    expect(
+      resolvePersonalConciergeVisibility(
+        {
+          PERSONAL_CONCIERGE_MODE: "test_only",
+          PERSONAL_CONCIERGE_TEST_MEMBER_IDS: "member-1,member-2",
+        },
+        "member-1",
+      ),
+    ).toBe(true);
+    expect(
+      resolvePersonalConciergeVisibility(
+        {
+          PERSONAL_CONCIERGE_MODE: "test_only",
+          PERSONAL_CONCIERGE_TEST_MEMBER_IDS: "member-2",
+        },
+        "member-1",
+      ),
+    ).toBe(false);
+    expect(
+      resolvePersonalConciergeVisibility({ PERSONAL_CONCIERGE_MODE: "live" }, "member-1"),
+    ).toBe(true);
+  });
+
   test("welcomes a first-time member with one preparation moment", () => {
     expect(
       resolvePersonalConciergeExperience({
@@ -28,7 +56,7 @@ describe("personal Concierge experience resolver", () => {
       priority: 4,
       eyebrow: "בינינו",
       title: "מחכה לך בסטודיו",
-      note: "נועה, הכנתי לך את כל מה שכדאי לדעת לפני השיעור הראשון.",
+      note: "נועה, כל מה שכדאי לדעת לפני השיעור הראשון כבר מחכה לך.",
       primaryAction: {
         label: "להכנה לשיעור",
         to: "/member/bookings?concierge=first-visit",
@@ -62,6 +90,53 @@ describe("personal Concierge experience resolver", () => {
         label: "Tell me what suits you",
         to: "/member/account#between-us",
       },
+    });
+  });
+
+  test("does not repeat the first-visit reflection after its care window", () => {
+    expect(
+      resolvePersonalConciergeExperience({
+        member: {
+          firstName: "Noa",
+          locale: "en",
+          attendanceCount: 1,
+          personalizationPaused: false,
+        },
+        nextBooking: null,
+        latestAttendance: {
+          status: "attended",
+          markedAt: "2026-07-20T10:00:00.000Z",
+        },
+        now: "2026-07-27T12:00:00.000Z",
+      }),
+    ).toEqual({
+      state: "quiet",
+      priority: 9,
+      reason: "no_meaningful_moment",
+    });
+  });
+
+  test("offers a gentle path after a verified first no-show", () => {
+    expect(
+      resolvePersonalConciergeExperience({
+        member: {
+          firstName: "Noa",
+          locale: "en",
+          attendanceCount: 0,
+          personalizationPaused: false,
+        },
+        nextBooking: null,
+        latestAttendance: {
+          status: "no_show",
+          markedAt: "2026-07-27T10:00:00.000Z",
+        },
+        now: "2026-07-27T12:00:00.000Z",
+      }),
+    ).toMatchObject({
+      state: "first_visit_missed",
+      title: "Return at your own pace",
+      reason: "verified_first_no_show",
+      primaryAction: { to: "/member/schedule" },
     });
   });
 
