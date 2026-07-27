@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import {
   resolvePersonalConciergeOnboarding,
   parsePersonalConciergeOnboardingChoice,
@@ -6,6 +7,19 @@ import {
 } from "../../src/lib/personalConciergeOnboarding.ts";
 
 describe("personal Concierge onboarding", () => {
+  test("keeps deferred onboarding within the existing preference evidence table", () => {
+    const migration = readFileSync(
+      new URL(
+        "../../supabase/migrations/20260727190000_personal_concierge_onboarding_status.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    expect(migration).toContain("'onboarding_status'");
+    expect(migration).not.toContain("CREATE TABLE");
+  });
+
   test("offers optional personalization after a member's first booking", () => {
     expect(
       resolvePersonalConciergeOnboarding({

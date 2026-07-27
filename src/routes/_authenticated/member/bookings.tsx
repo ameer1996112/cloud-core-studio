@@ -111,16 +111,22 @@ function MyBookings() {
       saveConciergePreference({
         data: personalConciergeOnboardingPreference(resolution),
       }),
-    onSuccess: () => {
+    onSuccess: (_savedPreference, resolution) => {
       setOnboardingResolvedLocally(true);
       qc.invalidateQueries({ queryKey: ["personal-concierge"] });
       qc.invalidateQueries({ queryKey: ["member-home"] });
       toast.success(
-        lang === "he"
-          ? "ה־Concierge הותאם אלייך"
-          : lang === "ar"
-            ? "تم تخصيص خدمة الكونسيرج لك"
-            : "Your Concierge is now tailored to you",
+        resolution.kind === "deferred"
+          ? lang === "he"
+            ? "אפשר לבחור בכל זמן דרך החשבון"
+            : lang === "ar"
+              ? "يمكنك الاختيار في أي وقت من حسابك"
+              : "You can choose anytime from your account"
+          : lang === "he"
+            ? "ה־Concierge הותאם אלייך"
+            : lang === "ar"
+              ? "تم تخصيص خدمة الكونسيرج لك"
+              : "Your Concierge is now tailored to you",
       );
     },
     onError: () => toast.error(t("profile.saveError")),
