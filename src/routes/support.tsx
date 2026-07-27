@@ -231,6 +231,9 @@ function SupportPage() {
             <Link to="/terms" className="text-slate hover:text-gold transition-colors">
               {t("legal.terms")}
             </Link>
+            <Link to="/checkout" className="text-slate hover:text-gold transition-colors">
+              Checkout
+            </Link>
           </div>
         </article>
       </div>

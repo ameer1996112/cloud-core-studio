@@ -497,6 +497,9 @@ function AuthPage() {
               <Link to="/support" className="auth-legal-link text-slate hover:text-navy">
                 {t("legal.support")}
               </Link>
+              <Link to="/checkout" className="auth-legal-link text-slate hover:text-navy">
+                Checkout
+              </Link>
             </div>
             <p className="pb-6 text-center text-xs font-medium text-slate/80">
               Cloud and Core Studio · Hurfeish, North District, Israel
