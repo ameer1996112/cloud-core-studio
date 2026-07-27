@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { MessageCircle, CalendarPlus } from "lucide-react";
+import { MessageCircle, CalendarPlus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyBookingsAll, memberCancelBooking, leaveWaitlist } from "@/lib/member.functions";
@@ -20,11 +20,16 @@ import {
   isAuthenticatedMemberScheduleQueryKey,
 } from "@/lib/memberQueryKeys";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
+import {
+  getMyPersonalConcierge,
+  saveMyPersonalConciergePreference,
+} from "@/lib/personalConcierge.functions";
+import {
+  resolvePersonalConciergeOnboarding,
+  type PersonalConciergeOnboardingChoice,
+} from "@/lib/personalConciergeOnboarding";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    concierge: search.concierge === "first-visit" ? ("first-visit" as const) : undefined,
-  }),
   component: MyBookings,
 });
 
@@ -32,10 +37,11 @@ type Tab = "upcoming" | "past" | "waitlist" | "cancelled";
 
 function MyBookings() {
   const { dir, lang } = useI18n();
-  const { concierge } = Route.useSearch();
   useDocumentTitle("page.bookings.title");
   const fetchAll = useServerFn(getMyBookingsAll);
   const fetchSettings = useServerFn(getPublicStudioSettings);
+  const fetchConcierge = useServerFn(getMyPersonalConcierge);
+  const saveConciergePreference = useServerFn(saveMyPersonalConciergePreference);
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["my-bookings-all"],
@@ -45,10 +51,15 @@ function MyBookings() {
     queryKey: ["public-studio-settings"],
     queryFn: () => fetchSettings(),
   });
+  const { data: conciergeProfile } = useQuery({
+    queryKey: ["personal-concierge"],
+    queryFn: () => fetchConcierge(),
+  });
   const [tab, setTab] = useState<Tab>("upcoming");
   const [confirmCancel, setConfirmCancel] = useState<any | null>(null);
   const [openClass, setOpenClass] = useState<string | null>(null);
   const [detailViewerCacheKey, setDetailViewerCacheKey] = useState<string | undefined>(undefined);
+  const [onboardingResolvedLocally, setOnboardingResolvedLocally] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: sessionData }) => {
@@ -90,6 +101,26 @@ function MyBookings() {
     },
   });
 
+  const saveOnboardingChoice = useMutation({
+    mutationFn: (choice: PersonalConciergeOnboardingChoice) =>
+      saveConciergePreference({
+        data: { key: "communication_pace", value: choice },
+      }),
+    onSuccess: () => {
+      setOnboardingResolvedLocally(true);
+      qc.invalidateQueries({ queryKey: ["personal-concierge"] });
+      qc.invalidateQueries({ queryKey: ["member-home"] });
+      toast.success(
+        lang === "he"
+          ? "ה־Concierge הותאם אלייך"
+          : lang === "ar"
+            ? "تم تخصيص خدمة الكونسيرج لك"
+            : "Your Concierge is now tailored to you",
+      );
+    },
+    onError: () => toast.error(t("profile.saveError")),
+  });
+
   const now = Date.now();
   const bookings = data?.bookings ?? [];
   const attMap = data?.attendanceByBooking ?? {};
@@ -119,8 +150,53 @@ function MyBookings() {
         : tab === "cancelled"
           ? cancelled
           : waitlist;
-  const firstVisitBooking =
-    concierge === "first-visit" || data?.hasAttended === false ? upcoming[0] : null;
+  const firstVisitBooking = data?.hasAttended === false ? upcoming[0] : null;
+  const conciergeOnboarding = resolvePersonalConciergeOnboarding({
+    conciergeAvailable: conciergeProfile?.available === true,
+    hasUpcomingBooking: upcoming.length > 0,
+    hasAttended: data?.hasAttended === true,
+    preferences: conciergeProfile?.preferences ?? [],
+  });
+  const showConciergeOnboarding = conciergeOnboarding.visible && !onboardingResolvedLocally;
+  const onboardingCopy =
+    lang === "he"
+      ? {
+          eyebrow: "נעים להכיר",
+          title: "איך תרצי שנלווה אותך?",
+          body: "הכול כבר פועל אוטומטית. בחירה אחת תעזור לנו להתאים את הטון אלייך.",
+          quiet: "רגוע ועדין",
+          quietNote: "רק מה שחשוב, בזמן הנכון",
+          balanced: "קצר וממוקד",
+          balancedNote: "הכוונה ברורה בלי עומס",
+          attentive: "מעודד ומלא אנרגיה",
+          attentiveNote: "יותר חיזוקים והצעות אישיות",
+          later: "אולי אחר כך",
+        }
+      : lang === "ar"
+        ? {
+            eyebrow: "سعداء بلقائك",
+            title: "كيف تفضلين أن نرافقك؟",
+            body: "كل شيء يعمل تلقائياً. اختيار واحد يساعدنا على ملاءمة أسلوب التواصل لك.",
+            quiet: "هادئ ولطيف",
+            quietNote: "المهم فقط، في الوقت المناسب",
+            balanced: "قصير ومباشر",
+            balancedNote: "توجيه واضح من دون إزعاج",
+            attentive: "مشجع ومفعم بالطاقة",
+            attentiveNote: "دعم واقتراحات شخصية أكثر",
+            later: "ربما لاحقاً",
+          }
+        : {
+            eyebrow: "Lovely to meet you",
+            title: "How would you like us to support you?",
+            body: "Everything already works automatically. One choice helps us match your tone.",
+            quiet: "Calm and gentle",
+            quietNote: "Only what matters, at the right time",
+            balanced: "Short and focused",
+            balancedNote: "Clear guidance without noise",
+            attentive: "Encouraging and energetic",
+            attentiveNote: "More encouragement and personal suggestions",
+            later: "Maybe later",
+          };
   const firstVisitCopy =
     lang === "he"
       ? {
@@ -172,6 +248,49 @@ function MyBookings() {
           />
         </div>
       </div>
+
+      {showConciergeOnboarding && (
+        <section className="member-card overflow-hidden border-gold/30">
+          <div className="bg-navy px-5 py-5 text-cream sm:px-7">
+            <div className="flex items-center gap-2 text-gold">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <p className="text-xs font-semibold uppercase tracking-[0.18em]">
+                {onboardingCopy.eyebrow}
+              </p>
+            </div>
+            <h2 className="mt-3 text-2xl font-semibold">{onboardingCopy.title}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-cream/75">{onboardingCopy.body}</p>
+          </div>
+          <div className="grid gap-3 bg-cream/70 p-5 sm:grid-cols-3 sm:p-7">
+            {(
+              [
+                ["quiet", onboardingCopy.quiet, onboardingCopy.quietNote],
+                ["balanced", onboardingCopy.balanced, onboardingCopy.balancedNote],
+                ["attentive", onboardingCopy.attentive, onboardingCopy.attentiveNote],
+              ] as const
+            ).map(([choice, label, note]) => (
+              <button
+                key={choice}
+                type="button"
+                disabled={saveOnboardingChoice.isPending}
+                onClick={() => saveOnboardingChoice.mutate(choice)}
+                className="rounded-2xl border border-gold/25 bg-white p-4 text-start transition hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-sm disabled:opacity-50"
+              >
+                <span className="block font-semibold text-navy">{label}</span>
+                <span className="mt-1 block text-xs leading-5 text-slate">{note}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={saveOnboardingChoice.isPending}
+              onClick={() => saveOnboardingChoice.mutate(conciergeOnboarding.defaultChoice)}
+              className="text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
+            >
+              {onboardingCopy.later}
+            </button>
+          </div>
+        </section>
+      )}
 
       {firstVisitBooking?.class && (
         <section className="member-card member-panel-sand p-5 sm:p-7">
