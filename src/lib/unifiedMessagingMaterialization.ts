@@ -12,6 +12,7 @@ import { channelsForEvent, deliveryAllowedByConsent, isQuietHours } from "@/lib/
 import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import { studioDateTimeInputToIso } from "@/lib/studio-time";
 import type { WhatsappTemplateComponent } from "@/lib/messagingProviders.server";
+import { resolveConsolidatedWhatsappTemplate } from "@/lib/whatsappTemplateConsolidation";
 
 export type MaterializedDeliveryPlan = {
   channel: MessageChannel;
@@ -118,7 +119,13 @@ export function materializeMessagePlan(input: {
     return definition.actions;
   })();
   const messageIdempotencyKey = `message:${input.deduplicationKey}`;
-  const metaVariant = getMetaTemplateVariant(input.eventType, input.language);
+  const legacyMetaVariant = getMetaTemplateVariant(input.eventType, input.language);
+  const conciergeMetaVariant = resolveConsolidatedWhatsappTemplate({
+    eventType: input.eventType,
+    language: input.language,
+    variables: input.variables,
+  });
+  const metaVariant = conciergeMetaVariant ?? legacyMetaVariant;
   const routineScheduledFor = definition.immediate ? input.now : nextRoutineWindow(input.now);
 
   const deliveries = channelsForEvent(input.eventType).map((channel) => {
@@ -218,17 +225,19 @@ export function materializeMessagePlan(input: {
       templateName: channel === "whatsapp" ? (metaVariant?.name ?? null) : null,
       templateLanguage: channel === "whatsapp" ? (metaVariant?.metaLanguage ?? null) : null,
       templateComponents:
-        channel === "whatsapp" && metaVariant
-          ? [
-              {
-                type: "body",
-                parameters: metaVariant.parameters.map((name) => ({
-                  type: "text",
-                  text: String(input.variables[name] ?? ""),
-                })),
-              },
-            ]
-          : [],
+        channel === "whatsapp" && conciergeMetaVariant
+          ? conciergeMetaVariant.components
+          : channel === "whatsapp" && legacyMetaVariant
+            ? [
+                {
+                  type: "body",
+                  parameters: legacyMetaVariant.parameters.map((name) => ({
+                    type: "text",
+                    text: String(input.variables[name] ?? ""),
+                  })),
+                },
+              ]
+            : [],
     } satisfies MaterializedDeliveryPlan;
   });
 

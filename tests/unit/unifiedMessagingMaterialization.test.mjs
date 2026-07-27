@@ -17,11 +17,65 @@ const base = {
   recipients: { whatsapp: "972501234567", email: "noa@example.com" },
   preferences: { whatsappEnabled: true, emailEnabled: true },
   externalChannels: { whatsapp: true, email: true, push: true },
-  approvedWhatsappVariants: new Set(["cc_booking_confirmed_v2:he"]),
+  approvedWhatsappVariants: new Set(["booking_confirmed_repeat_branded_v2:he"]),
   now: new Date("2026-07-20T09:00:00.000Z"),
 };
 
 describe("outbox message materialization", () => {
+  test("routes Concierge-covered events to the branded WhatsApp catalog", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      approvedWhatsappVariants: new Set(["booking_confirmed_repeat_branded_v2:he"]),
+    });
+
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "queued",
+      templateName: "booking_confirmed_repeat_branded_v2",
+      templateLanguage: "he",
+      templateComponents: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "נועה" }],
+        },
+      ],
+    });
+  });
+
+  test("keeps unsupported reminder flows on their legacy WhatsApp template", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "class_reminder_final",
+      approvedWhatsappVariants: new Set(["cc_class_reminder_final_v2:he"]),
+    });
+
+    expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      templateName: "cc_class_reminder_final_v2",
+      templateComponents: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "נועה" },
+            { type: "text", text: "פילאטיס" },
+            { type: "text", text: "20/07/2026" },
+            { type: "text", text: "18:00" },
+            { type: "text", text: "ירין" },
+          ],
+        },
+      ],
+    });
+  });
+
   test("welcomes through durable inbox, WhatsApp and email with a context-aware primary action", () => {
     const firstLesson = materializeMessagePlan({
       ...base,
@@ -87,14 +141,19 @@ describe("outbox message materialization", () => {
     expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
       templateComponents: [
         {
-          type: "body",
+          type: "header",
           parameters: [
-            { type: "text", text: "נועה" },
-            { type: "text", text: "פילאטיס" },
-            { type: "text", text: "20/07/2026" },
-            { type: "text", text: "18:00" },
-            { type: "text", text: "ירין" },
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/concierge-whatsapp-header.png",
+              },
+            },
           ],
+        },
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "נועה" }],
         },
       ],
     });
@@ -232,7 +291,7 @@ describe("outbox message materialization", () => {
         class_time: "18:00",
         offer_expires_at: "13:15",
       },
-      approvedWhatsappVariants: new Set(["cc_waitlist_spot_available_v2:he"]),
+      approvedWhatsappVariants: new Set(["waitlist_offer_branded_v2:he"]),
     });
     expect(
       result.deliveries.every((delivery) => delivery.expiresAt === expiresAt.toISOString()),
@@ -254,7 +313,7 @@ describe("outbox message materialization", () => {
         class_time: "22:00",
         offer_expires_at: "21:30",
       },
-      approvedWhatsappVariants: new Set(["cc_waitlist_spot_available_v2:he"]),
+      approvedWhatsappVariants: new Set(["waitlist_offer_branded_v2:he"]),
     });
     expect(result.deliveries.find((delivery) => delivery.channel === "in_app")?.scheduledFor).toBe(
       now.toISOString(),
@@ -431,7 +490,7 @@ describe("outbox message materialization", () => {
       eventType: "class_recommendation",
       variables: recommendationVariables,
       preferences: { ...base.preferences, recommendations: true, marketing: true },
-      approvedWhatsappVariants: new Set(["cc_class_recommendation_v2:he"]),
+      approvedWhatsappVariants: new Set(["recommendation_branded_v2:he"]),
     });
     expect(pushFirst.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
       status: "suppressed",
@@ -443,7 +502,7 @@ describe("outbox message materialization", () => {
       eventType: "class_recommendation",
       variables: { ...recommendationVariables, whatsapp_growth_escalation: true },
       preferences: { ...base.preferences, recommendations: true, marketing: true },
-      approvedWhatsappVariants: new Set(["cc_class_recommendation_v2:he"]),
+      approvedWhatsappVariants: new Set(["recommendation_branded_v2:he"]),
     });
     expect(escalation.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
       "queued",
@@ -456,7 +515,7 @@ describe("outbox message materialization", () => {
       eventType: "retention_reminder",
       variables: { member_name: "נועה", retention_stage: "caring_push" },
       preferences: { ...base.preferences, marketing: true },
-      approvedWhatsappVariants: new Set(["cc_retention_reminder_v2:he"]),
+      approvedWhatsappVariants: new Set(["retention_branded_v2:he"]),
     });
     expect(caring.deliveries.find((delivery) => delivery.channel === "push")?.status).toBe(
       "queued",
@@ -471,7 +530,7 @@ describe("outbox message materialization", () => {
       eventType: "retention_reminder",
       variables: { member_name: "נועה", retention_stage: "personal_whatsapp" },
       preferences: { ...base.preferences, marketing: true },
-      approvedWhatsappVariants: new Set(["cc_retention_reminder_v2:he"]),
+      approvedWhatsappVariants: new Set(["retention_branded_v2:he"]),
     });
     expect(personal.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
       status: "suppressed",
