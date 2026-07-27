@@ -48,6 +48,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       whatsappDeployments,
       deliveryVersions,
       deliverySelections,
+      promotionEvidence,
     ] = await Promise.all([
       db
         .from("automation_config_versions")
@@ -123,6 +124,10 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .select("id,delivery_mode,delivery_version_id")
         .eq("studio_id", studio.data.id)
         .is("retired_at", null),
+      db
+        .from("concierge_delivery_promotion_evidence")
+        .select("delivery_version_id")
+        .eq("studio_id", studio.data.id),
     ]);
     for (const result of [
       automations,
@@ -137,6 +142,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       whatsappDeployments,
       deliveryVersions,
       deliverySelections,
+      promotionEvidence,
     ]) {
       if (result.error) throw result.error;
     }
@@ -202,6 +208,13 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       trustedWhatsappWabaId,
       deliveryVersions: deliveryVersions.data ?? [],
       deliverySelections: deliverySelections.data ?? [],
+      promotionEligibleVersionIds: [
+        ...new Set(
+          (promotionEvidence.data ?? []).map(
+            (evidence: { delivery_version_id: string }) => evidence.delivery_version_id,
+          ),
+        ),
+      ],
       whatsappExpectedContentHashes: Object.fromEntries(
         CONCIERGE_META_TEMPLATE_CATALOG.map((template) => [
           `${template.name}:${template.language}`,

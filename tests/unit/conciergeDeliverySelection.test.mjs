@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { selectEligibleConciergeTemplates } from "../../src/lib/conciergeDeliverySelection.ts";
+import {
+  canOfferConciergeDeliverySelection,
+  selectEligibleConciergeTemplates,
+} from "../../src/lib/conciergeDeliverySelection.ts";
 
 const source = {
   id: "source-whatsapp",
@@ -73,6 +76,37 @@ function deployment(overrides = {}) {
 }
 
 describe("Concierge delivery version selection", () => {
+  test("does not offer v2 live before reviewed test-delivery evidence exists", () => {
+    expect(
+      canOfferConciergeDeliverySelection({
+        candidate: v2,
+        deliveryMode: "live",
+        promotionEligibleVersionIds: [],
+      }),
+    ).toBe(false);
+    expect(
+      canOfferConciergeDeliverySelection({
+        candidate: v2,
+        deliveryMode: "live",
+        promotionEligibleVersionIds: [v2.id],
+      }),
+    ).toBe(true);
+    expect(
+      canOfferConciergeDeliverySelection({
+        candidate: v2,
+        deliveryMode: "test_only",
+        promotionEligibleVersionIds: [],
+      }),
+    ).toBe(true);
+    expect(
+      canOfferConciergeDeliverySelection({
+        candidate: v1,
+        deliveryMode: "live",
+        promotionEligibleVersionIds: [],
+      }),
+    ).toBe(true);
+  });
+
   test("defaults live to v1 while selecting v2 for test-only", () => {
     const live = selectEligibleConciergeTemplates({
       templates: [source],

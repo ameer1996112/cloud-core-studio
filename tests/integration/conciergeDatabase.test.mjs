@@ -37,6 +37,7 @@ const ids = {
   pushSelection: "88000000-0000-0000-0000-000000000001",
   emailSelection: "88000000-0000-0000-0000-000000000002",
   whatsappSelection: "88000000-0000-0000-0000-000000000003",
+  payment: "89000000-0000-0000-0000-000000000001",
   correlation1: "86000000-0000-0000-0000-000000000001",
   correlation2: "86000000-0000-0000-0000-000000000002",
   correlation3: "86000000-0000-0000-0000-000000000003",
@@ -52,7 +53,7 @@ const presentationHashes = {
   email: "integration-email-presentation",
   whatsapp: "integration-v2-hash",
 };
-const emailShellHash = "f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558";
+const emailShellHash = "04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a";
 const bookingActionUrl = "https://cloudandcorestudio.com/member/bookings";
 const bookingFacts = [
   { key: "class_name", label: "Class", ltr: false },
@@ -279,6 +280,16 @@ describe("concierge database integration", () => {
           '${ids.recipient}',(SELECT id FROM public.studios WHERE slug='cloud-core'),
           '${ids.user}','Concierge Test','concierge-test@example.com','+972500000000','en',true,'active'
         );
+        INSERT INTO public.participant_relationships(
+          studio_id,account_holder_id,participant_member_id,communication_recipient_id,
+          relationship_type,authorized
+        ) VALUES (
+          (SELECT id FROM public.studios WHERE slug='cloud-core'),
+          '${ids.user}','${ids.user}','${ids.recipient}','self',true
+        )
+        ON CONFLICT (
+          studio_id,participant_member_id,participant_child_id,communication_recipient_id
+        ) DO UPDATE SET authorized=true;
         INSERT INTO public.automation_config_versions(
           studio_id,journey_type,version,mode,config
         ) VALUES (
@@ -417,6 +428,41 @@ describe("concierge database integration", () => {
           'concierge-2026-07-v1','pending'
         );
       `);
+
+      await psql(`
+        DELETE FROM public.domain_outbox
+        WHERE aggregate_type='payments' AND aggregate_id='${ids.payment}';
+        DELETE FROM public.payments WHERE id='${ids.payment}';
+        INSERT INTO public.payments(
+          id,member_id,amount,currency,method,status,provider,provider_status,
+          provider_payment_id,metadata
+        ) VALUES (
+          '${ids.payment}','${ids.user}',350,'ILS','card','pending',
+          'integration','pending','integration-payment','{}'::jsonb
+        );
+        UPDATE public.payments
+        SET provider_status='requires_action'
+        WHERE id='${ids.payment}';
+        UPDATE public.payments
+        SET metadata='{"note":"metadata-only"}'::jsonb
+        WHERE id='${ids.payment}';
+        UPDATE public.payments
+        SET status='failed',provider_status='declined'
+        WHERE id='${ids.payment}';
+        UPDATE public.payments
+        SET status='paid',provider_status='succeeded',paid_at=now()
+        WHERE id='${ids.payment}';
+        UPDATE public.payments
+        SET provider_status='captured'
+        WHERE id='${ids.payment}';
+      `);
+      expect(
+        await psql(`
+          SELECT string_agg(event_type,',' ORDER BY event_type)
+          FROM public.domain_outbox
+          WHERE aggregate_type='payments' AND aggregate_id='${ids.payment}';
+        `),
+      ).toBe("payment.failed,payment.recovered,payment.requires_action");
 
       const outcomes = await Promise.all([
         psql(materializeSql(ids.intent1, ids.correlation1, "one")),

@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { MESSAGE_CONTENT_CATALOG } from "../../src/lib/messageTemplateCatalog.ts";
 import {
+  hashTransactionalEmailShellArtifact,
   renderTransactionalEmail,
+  TRANSACTIONAL_EMAIL_SHELL_ARTIFACT,
+  TRANSACTIONAL_EMAIL_SHELL_HASH,
   validateTransactionalEmailSenderConfig,
   validateTransactionalEmailPresentationCatalog,
 } from "../../src/lib/transactionalEmail.ts";
@@ -22,6 +25,18 @@ const baseInput = {
 };
 
 describe("premium transactional email renderer", () => {
+  test("derives shell evidence from the canonical rendered artifact", () => {
+    expect(hashTransactionalEmailShellArtifact(TRANSACTIONAL_EMAIL_SHELL_ARTIFACT)).toBe(
+      TRANSACTIONAL_EMAIL_SHELL_HASH,
+    );
+    expect(
+      hashTransactionalEmailShellArtifact(
+        TRANSACTIONAL_EMAIL_SHELL_ARTIFACT.replace("#D4AF6A", "#000000"),
+      ),
+    ).not.toBe(TRANSACTIONAL_EMAIL_SHELL_HASH);
+    expect(TRANSACTIONAL_EMAIL_SHELL_HASH).toMatch(/^[a-f0-9]{64}$/);
+  });
+
   test("requires the branded From mailbox and a Reply-To without sending mail", () => {
     expect(
       validateTransactionalEmailSenderConfig({

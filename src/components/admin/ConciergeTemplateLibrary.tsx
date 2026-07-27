@@ -18,6 +18,7 @@ import type {
   ConciergeDeliverySelectionRow,
   ConciergeDeliveryVersionRow,
 } from "@/lib/conciergeDeliverySelection";
+import { canOfferConciergeDeliverySelection } from "@/lib/conciergeDeliverySelection";
 
 export function ConciergeTemplateLibrary({
   templates,
@@ -25,6 +26,7 @@ export function ConciergeTemplateLibrary({
   whatsappExpectedContentHashes,
   deliveryVersions,
   deliverySelections,
+  promotionEligibleVersionIds,
   onSelectVersion,
   onApproveSource,
   onApprovePreview,
@@ -36,6 +38,7 @@ export function ConciergeTemplateLibrary({
   whatsappExpectedContentHashes: Record<string, string>;
   deliveryVersions: ConciergeDeliveryVersionRow[];
   deliverySelections: ConciergeDeliverySelectionRow[];
+  promotionEligibleVersionIds: string[];
   onSelectVersion: (
     template: ConciergeAdminTemplate,
     deliveryMode: "test_only" | "live",
@@ -109,6 +112,7 @@ export function ConciergeTemplateLibrary({
             expectedContentHashes={whatsappExpectedContentHashes}
             deliveryVersions={deliveryVersions}
             deliverySelections={deliverySelections}
+            promotionEligibleVersionIds={promotionEligibleVersionIds}
             onSelectVersion={onSelectVersion}
             onApproveSource={onApproveSource}
             onApprovePreview={onApprovePreview}
@@ -132,6 +136,7 @@ function TemplateCard({
   expectedContentHashes,
   deliveryVersions,
   deliverySelections,
+  promotionEligibleVersionIds,
   onSelectVersion,
   onApproveSource,
   onApprovePreview,
@@ -143,6 +148,7 @@ function TemplateCard({
   expectedContentHashes: Record<string, string>;
   deliveryVersions: ConciergeDeliveryVersionRow[];
   deliverySelections: ConciergeDeliverySelectionRow[];
+  promotionEligibleVersionIds: string[];
   onSelectVersion: (
     template: ConciergeAdminTemplate,
     deliveryMode: "test_only" | "live",
@@ -293,29 +299,37 @@ function TemplateCard({
                 </Button>
               ))}
             {candidates.flatMap((candidate) =>
-              (["test_only", "live"] as const).map((deliveryMode) => (
-                <Button
-                  key={`${candidate.id}:${deliveryMode}`}
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={
-                    selectionPending ||
-                    (candidate.presentation_version === 2 &&
-                      (!candidate.presentation_approved_by ||
-                        !candidate.presentation_approved_at)) ||
-                    deliverySelections.some(
-                      (selection) =>
-                        selection.delivery_mode === deliveryMode &&
-                        selection.delivery_version_id === candidate.id,
-                    )
-                  }
-                  onClick={() => onSelectVersion(template, deliveryMode, candidate)}
-                >
-                  Select v{candidate.presentation_version} for{" "}
-                  {deliveryMode === "test_only" ? "test" : "live"}
-                </Button>
-              )),
+              (["test_only", "live"] as const)
+                .filter((deliveryMode) =>
+                  canOfferConciergeDeliverySelection({
+                    candidate,
+                    deliveryMode,
+                    promotionEligibleVersionIds,
+                  }),
+                )
+                .map((deliveryMode) => (
+                  <Button
+                    key={`${candidate.id}:${deliveryMode}`}
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={
+                      selectionPending ||
+                      (candidate.presentation_version === 2 &&
+                        (!candidate.presentation_approved_by ||
+                          !candidate.presentation_approved_at)) ||
+                      deliverySelections.some(
+                        (selection) =>
+                          selection.delivery_mode === deliveryMode &&
+                          selection.delivery_version_id === candidate.id,
+                      )
+                    }
+                    onClick={() => onSelectVersion(template, deliveryMode, candidate)}
+                  >
+                    Select v{candidate.presentation_version} for{" "}
+                    {deliveryMode === "test_only" ? "test" : "live"}
+                  </Button>
+                )),
             )}
           </div>
         </div>

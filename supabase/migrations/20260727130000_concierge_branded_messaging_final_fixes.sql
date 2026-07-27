@@ -435,18 +435,93 @@ CREATE INDEX IF NOT EXISTS concierge_delivery_selection_version_idx
 ON public.concierge_delivery_selections(delivery_version_id)
 WHERE retired_at IS NULL;
 
+CREATE TABLE IF NOT EXISTS public.concierge_delivery_selection_history (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  selection_id uuid NOT NULL
+    REFERENCES public.concierge_delivery_selections(id) ON DELETE RESTRICT,
+  studio_id uuid NOT NULL REFERENCES public.studios(id) ON DELETE RESTRICT,
+  delivery_version_id uuid NOT NULL
+    REFERENCES public.concierge_delivery_versions(id) ON DELETE RESTRICT,
+  delivery_mode text NOT NULL CHECK (delivery_mode IN ('test_only','live')),
+  event_type text NOT NULL CHECK (event_type IN ('selected','retired')),
+  replacement_selection_id uuid,
+  actor_id uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
+  occurred_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION public.prevent_concierge_selection_history_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  RAISE EXCEPTION 'concierge_selection_history_is_append_only';
+END;
+$$;
+
+CREATE TRIGGER concierge_selection_history_is_append_only
+BEFORE UPDATE OR DELETE ON public.concierge_delivery_selection_history
+FOR EACH ROW EXECUTE FUNCTION public.prevent_concierge_selection_history_mutation();
+
+CREATE OR REPLACE FUNCTION public.prevent_direct_concierge_selection_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+DECLARE
+  v_table_owner text;
+BEGIN
+  SELECT pg_get_userbyid(relation.relowner)
+  INTO v_table_owner
+  FROM pg_class relation
+  WHERE relation.oid = TG_RELID;
+  IF current_user IS DISTINCT FROM v_table_owner THEN
+    RAISE EXCEPTION 'direct_concierge_selection_mutation_forbidden';
+  END IF;
+  RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+END;
+$$;
+
+CREATE TRIGGER prevent_direct_concierge_selection_mutation
+BEFORE UPDATE OR DELETE ON public.concierge_delivery_selections
+FOR EACH ROW EXECUTE FUNCTION public.prevent_direct_concierge_selection_mutation();
+
+CREATE TABLE IF NOT EXISTS public.concierge_delivery_promotion_evidence (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  studio_id uuid NOT NULL REFERENCES public.studios(id) ON DELETE RESTRICT,
+  delivery_version_id uuid NOT NULL
+    REFERENCES public.concierge_delivery_versions(id) ON DELETE RESTRICT,
+  test_selection_id uuid NOT NULL
+    REFERENCES public.concierge_delivery_selections(id) ON DELETE RESTRICT,
+  test_delivery_id uuid NOT NULL
+    REFERENCES public.message_deliveries(id) ON DELETE RESTRICT,
+  provider_message_id text NOT NULL,
+  receipt_evidence_hash text NOT NULL CHECK (receipt_evidence_hash ~ '^[a-f0-9]{64}$'),
+  receipt_evidence jsonb NOT NULL,
+  reviewed_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  reviewed_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (delivery_version_id, test_delivery_id, receipt_evidence_hash)
+);
+
 ALTER TABLE public.concierge_delivery_versions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.concierge_delivery_selections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.concierge_trusted_provider_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.concierge_presentation_previews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.concierge_delivery_promotion_evidence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.concierge_delivery_selection_history ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.concierge_delivery_versions FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON public.concierge_delivery_selections FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON public.concierge_trusted_provider_settings FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON public.concierge_presentation_previews FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.concierge_delivery_promotion_evidence FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.concierge_delivery_selection_history FROM PUBLIC, anon, authenticated;
 GRANT ALL ON public.concierge_delivery_versions TO service_role;
 GRANT ALL ON public.concierge_delivery_selections TO service_role;
 GRANT ALL ON public.concierge_trusted_provider_settings TO service_role;
 GRANT ALL ON public.concierge_presentation_previews TO service_role;
+GRANT SELECT ON public.concierge_delivery_promotion_evidence TO service_role;
+GRANT SELECT ON public.concierge_delivery_selection_history TO service_role;
+REVOKE UPDATE, DELETE ON public.concierge_delivery_selections FROM service_role;
 
 -- v1 is the rollback-safe current presentation. A WhatsApp v1 candidate is eligible only
 -- when an exact confirmed-production deployment is already known.
@@ -491,7 +566,7 @@ SELECT
     ),
     CASE WHEN source.channel = 'email' THEN 1 ELSE NULL END,
     CASE WHEN source.channel = 'email'
-      THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+      THEN '04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a'
       ELSE NULL END
   ),
   public.concierge_presentation_contract(
@@ -499,7 +574,7 @@ SELECT
   ),
   CASE WHEN source.channel = 'email' THEN 1 ELSE NULL END,
   CASE WHEN source.channel = 'email'
-    THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+    THEN '04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a'
     ELSE NULL
   END,
   CASE WHEN source.channel = 'whatsapp' THEN source.template_key ELSE NULL END,
@@ -562,13 +637,13 @@ SELECT
       source.template_key,source.channel,source.locale,source.content_hash,2,NULL,NULL
     ),
     1,
-    'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+    '04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a'
   ),
   public.concierge_presentation_contract(
     source.template_key,source.channel,source.locale,source.content_hash,2,NULL,NULL
   ),
   1,
-  'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558',
+  '04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a',
   NULL,
   NULL
 FROM approved_source source
@@ -692,6 +767,20 @@ WHERE v1.presentation_version = 1
       AND selected.retired_at IS NULL
   );
 
+INSERT INTO public.concierge_delivery_selection_history(
+  selection_id,studio_id,delivery_version_id,delivery_mode,event_type,actor_id,occurred_at
+)
+SELECT
+  selected.id,selected.studio_id,selected.delivery_version_id,selected.delivery_mode,
+  'selected'::text,selected.selected_by,selected.selected_at
+FROM public.concierge_delivery_selections selected
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM public.concierge_delivery_selection_history history
+  WHERE history.selection_id = selected.id
+    AND history.event_type = 'selected'
+);
+
 CREATE OR REPLACE FUNCTION public.approve_concierge_template_version(
   p_studio_id uuid,
   p_template_id uuid,
@@ -707,6 +796,7 @@ AS $$
 DECLARE
   v_source public.concierge_template_versions%ROWTYPE;
   v_trusted_waba_id text;
+  v_replaced_source_ids uuid[] := '{}'::uuid[];
 BEGIN
   IF p_actor_id IS NULL OR NOT EXISTS (
     SELECT 1 FROM public.profiles profile
@@ -719,15 +809,47 @@ BEGIN
     RAISE EXCEPTION 'exact_source_approval_confirmation_required';
   END IF;
 
-  UPDATE public.concierge_template_versions source
-  SET lifecycle_status = 'approved',
-      approved_by = p_actor_id,
-      approved_at = now()
+  SELECT source.*
+  INTO v_source
+  FROM public.concierge_template_versions source
   WHERE source.id = p_template_id
     AND source.studio_id = p_studio_id
     AND source.lifecycle_status = 'draft'
     AND source.retired_at IS NULL
     AND source.content_hash = p_expected_content_hash
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'draft_source_hash_mismatch';
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtextextended(concat_ws(
+    ':',v_source.studio_id,v_source.template_key,v_source.channel,v_source.locale
+  ),0));
+
+  WITH retired AS (
+    UPDATE public.concierge_template_versions source
+    SET lifecycle_status = 'retired',
+        retired_at = now()
+    WHERE source.studio_id = v_source.studio_id
+      AND source.template_key = v_source.template_key
+      AND source.channel = v_source.channel
+      AND source.locale = v_source.locale
+      AND source.id <> v_source.id
+      AND source.lifecycle_status = 'approved'
+      AND source.retired_at IS NULL
+    RETURNING source.id
+  )
+  SELECT COALESCE(array_agg(retired.id ORDER BY retired.id),'{}'::uuid[])
+  INTO v_replaced_source_ids
+  FROM retired;
+
+  UPDATE public.concierge_template_versions source
+  SET lifecycle_status = 'approved',
+      approved_by = p_actor_id,
+      approved_at = now()
+  WHERE source.id = v_source.id
+    AND source.lifecycle_status = 'draft'
+    AND source.retired_at IS NULL
   RETURNING * INTO v_source;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'draft_source_hash_mismatch';
@@ -764,7 +886,7 @@ BEGIN
       ),
       CASE WHEN v_source.channel = 'email' THEN 1 ELSE NULL END,
       CASE WHEN v_source.channel = 'email'
-        THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+        THEN '04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a'
         ELSE NULL END
     ),
     public.concierge_presentation_contract(
@@ -777,7 +899,7 @@ BEGIN
     ),
     CASE WHEN v_source.channel = 'email' THEN 1 ELSE NULL END,
     CASE WHEN v_source.channel = 'email'
-      THEN 'f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558'
+      THEN '04d94d0696900fac5e98c6a2cc8f92faab2a748626f891542aaf1ea96fe7e36a'
       ELSE NULL END,
     CASE
       WHEN v_source.channel = 'whatsapp' AND presentation.version = 1
@@ -837,11 +959,32 @@ BEGIN
         AND selected.retired_at IS NULL
     );
 
+  INSERT INTO public.concierge_delivery_selection_history(
+    selection_id,studio_id,delivery_version_id,delivery_mode,event_type,actor_id,occurred_at
+  )
+  SELECT
+    selected.id,selected.studio_id,selected.delivery_version_id,selected.delivery_mode,
+    'selected'::text,p_actor_id,selected.selected_at
+  FROM public.concierge_delivery_selections selected
+  JOIN public.concierge_delivery_versions candidate
+    ON candidate.id = selected.delivery_version_id
+  WHERE candidate.source_template_id = v_source.id
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.concierge_delivery_selection_history history
+      WHERE history.selection_id = selected.id
+        AND history.event_type = 'selected'
+    );
+
   INSERT INTO public.admin_activity_log(actor_id,action,entity_type,entity_id,metadata)
   VALUES (
     p_actor_id,'concierge.template_exact_hash_approved',
     'concierge_template_version',p_template_id,
-    jsonb_build_object('studio_id',p_studio_id,'content_hash',p_expected_content_hash)
+    jsonb_build_object(
+      'studio_id',p_studio_id,
+      'content_hash',p_expected_content_hash,
+      'replaced_source_ids',v_replaced_source_ids
+    )
   );
   RETURN p_template_id;
 END;
@@ -944,6 +1087,94 @@ GRANT EXECUTE ON FUNCTION public.approve_concierge_delivery_preview(
   uuid,uuid,text,text,uuid,text
 ) TO service_role;
 
+CREATE OR REPLACE FUNCTION public.review_concierge_test_delivery_evidence(
+  p_studio_id uuid,
+  p_delivery_version_id uuid,
+  p_test_delivery_id uuid,
+  p_expected_provider_message_id text,
+  p_receipt_evidence_hash text,
+  p_receipt_evidence jsonb,
+  p_actor_id uuid,
+  p_confirmation text
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_evidence_id uuid;
+  v_test_selection_id uuid;
+BEGIN
+  IF p_actor_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.profiles profile
+    WHERE profile.id = p_actor_id AND profile.role = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'admin_access_required';
+  END IF;
+  IF p_confirmation IS DISTINCT FROM
+     'REVIEW TEST DELIVERY ' || p_test_delivery_id::text || ' ' ||
+     COALESCE(p_receipt_evidence_hash,'') THEN
+    RAISE EXCEPTION 'test_delivery_review_confirmation_required';
+  END IF;
+  IF p_receipt_evidence_hash !~ '^[a-f0-9]{64}$'
+     OR jsonb_typeof(p_receipt_evidence) IS DISTINCT FROM 'object'
+     OR p_receipt_evidence = '{}'::jsonb THEN
+    RAISE EXCEPTION 'receipt_evidence_required';
+  END IF;
+
+  SELECT test_selection.id
+  INTO v_test_selection_id
+  FROM public.message_deliveries test_delivery
+  JOIN public.message_snapshots test_snapshot
+    ON test_snapshot.id = test_delivery.snapshot_id
+  JOIN public.concierge_delivery_selections test_selection
+    ON test_selection.id = test_snapshot.delivery_selection_id
+  JOIN public.concierge_delivery_versions version
+    ON version.id = test_selection.delivery_version_id
+  WHERE test_delivery.id = p_test_delivery_id
+    AND version.id = p_delivery_version_id
+    AND version.studio_id = p_studio_id
+    AND version.presentation_version = 2
+    AND test_selection.studio_id = p_studio_id
+    AND test_selection.delivery_mode = 'test_only'
+    AND test_delivery.status IN ('delivered','read')
+    AND test_delivery.provider_message_id = p_expected_provider_message_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'successful_test_delivery_evidence_required';
+  END IF;
+
+  INSERT INTO public.concierge_delivery_promotion_evidence(
+    studio_id,delivery_version_id,test_selection_id,test_delivery_id,
+    provider_message_id,receipt_evidence_hash,receipt_evidence,reviewed_by
+  ) VALUES (
+    p_studio_id,p_delivery_version_id,v_test_selection_id,p_test_delivery_id,
+    p_expected_provider_message_id,p_receipt_evidence_hash,p_receipt_evidence,p_actor_id
+  )
+  RETURNING id INTO v_evidence_id;
+
+  INSERT INTO public.admin_activity_log(actor_id,action,entity_type,entity_id,metadata)
+  VALUES (
+    p_actor_id,'concierge.test_delivery_evidence_reviewed',
+    'concierge_delivery_promotion_evidence',v_evidence_id,
+    jsonb_build_object(
+      'studio_id',p_studio_id,
+      'delivery_version_id',p_delivery_version_id,
+      'test_delivery_id',p_test_delivery_id,
+      'receipt_evidence_hash',p_receipt_evidence_hash
+    )
+  );
+  RETURN v_evidence_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.review_concierge_test_delivery_evidence(
+  uuid,uuid,uuid,text,text,jsonb,uuid,text
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.review_concierge_test_delivery_evidence(
+  uuid,uuid,uuid,text,text,jsonb,uuid,text
+) TO service_role;
+
 CREATE OR REPLACE FUNCTION public.select_concierge_delivery_version(
   p_studio_id uuid,
   p_template_key text,
@@ -1024,6 +1255,30 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'authenticated_presentation_preview_required';
   END IF;
+  IF p_delivery_mode = 'live'
+     AND v_version.presentation_version = 2
+     AND NOT EXISTS (
+       SELECT 1
+       FROM public.concierge_delivery_promotion_evidence promotion
+       JOIN public.concierge_delivery_selections test_selection
+         ON test_selection.id = promotion.test_selection_id
+       JOIN public.message_deliveries test_delivery
+         ON test_delivery.id = promotion.test_delivery_id
+       JOIN public.message_snapshots test_snapshot
+         ON test_snapshot.id = test_delivery.snapshot_id
+       WHERE promotion.studio_id = p_studio_id
+         AND promotion.delivery_version_id = v_version.id
+         AND promotion.reviewed_by IS NOT NULL
+         AND promotion.reviewed_at IS NOT NULL
+         AND test_selection.studio_id = p_studio_id
+         AND test_selection.delivery_mode = 'test_only'
+         AND test_selection.delivery_version_id = v_version.id
+         AND test_snapshot.delivery_selection_id = test_selection.id
+         AND test_delivery.status IN ('delivered','read')
+         AND test_delivery.provider_message_id = promotion.provider_message_id
+     ) THEN
+    RAISE EXCEPTION 'successful_test_delivery_evidence_required';
+  END IF;
   SELECT trusted.whatsapp_waba_id
   INTO v_canonical_whatsapp_waba_id
   FROM public.concierge_trusted_provider_settings trusted
@@ -1046,6 +1301,23 @@ BEGIN
     RAISE EXCEPTION 'whatsapp_delivery_version_not_deployed';
   END IF;
 
+  v_selection_id := gen_random_uuid();
+
+  INSERT INTO public.concierge_delivery_selection_history(
+    selection_id,studio_id,delivery_version_id,delivery_mode,event_type,
+    replacement_selection_id,actor_id
+  )
+  SELECT
+    selected.id,selected.studio_id,selected.delivery_version_id,selected.delivery_mode,
+    'retired'::text,v_selection_id,p_actor_id
+  FROM public.concierge_delivery_selections selected
+  WHERE selected.studio_id = p_studio_id
+    AND selected.template_key = p_template_key
+    AND selected.channel = p_channel
+    AND selected.locale = p_locale
+    AND selected.delivery_mode = p_delivery_mode
+    AND selected.retired_at IS NULL;
+
   UPDATE public.concierge_delivery_selections
   SET retired_at = now(), retired_by = p_actor_id
   WHERE studio_id = p_studio_id
@@ -1056,13 +1328,18 @@ BEGIN
     AND retired_at IS NULL;
 
   INSERT INTO public.concierge_delivery_selections(
-    studio_id, journey_type, template_key, channel, locale,
+    id, studio_id, journey_type, template_key, channel, locale,
     delivery_mode, delivery_version_id, selected_by
   ) VALUES (
-    p_studio_id, v_version.journey_type, p_template_key, p_channel, p_locale,
+    v_selection_id, p_studio_id, v_version.journey_type, p_template_key, p_channel, p_locale,
     p_delivery_mode, v_version.id, p_actor_id
-  )
-  RETURNING id INTO v_selection_id;
+  );
+
+  INSERT INTO public.concierge_delivery_selection_history(
+    selection_id,studio_id,delivery_version_id,delivery_mode,event_type,actor_id
+  ) VALUES (
+    v_selection_id,p_studio_id,v_version.id,p_delivery_mode,'selected'::text,p_actor_id
+  );
 
   INSERT INTO public.admin_activity_log(actor_id, action, entity_type, entity_id, metadata)
   VALUES (
@@ -2497,12 +2774,34 @@ DECLARE
   v_recipient_id uuid;
   v_event_type text;
   v_payment_subtype text;
-  v_business_version text;
+  v_previous_outcome text;
+  v_current_outcome text;
 BEGIN
   IF TG_OP = 'UPDATE'
      AND OLD.status IS NOT DISTINCT FROM NEW.status
-     AND OLD.provider_status IS NOT DISTINCT FROM NEW.provider_status
-     AND OLD.metadata IS NOT DISTINCT FROM NEW.metadata THEN
+     AND OLD.provider_status IS NOT DISTINCT FROM NEW.provider_status THEN
+    RETURN NEW;
+  END IF;
+  IF TG_OP = 'UPDATE' THEN
+    v_previous_outcome := CASE
+      WHEN OLD.status = 'paid' THEN 'paid'
+      WHEN lower(COALESCE(OLD.provider_status,'')) IN (
+        'requires_action','requires_payment_method','authentication_required'
+      ) THEN 'requires_action'
+      WHEN OLD.status = 'failed' THEN 'failed'
+      ELSE NULL
+    END;
+  END IF;
+  v_current_outcome := CASE
+    WHEN NEW.status = 'paid' THEN 'paid'
+    WHEN lower(COALESCE(NEW.provider_status,'')) IN (
+      'requires_action','requires_payment_method','authentication_required'
+    ) THEN 'requires_action'
+    WHEN NEW.status = 'failed' THEN 'failed'
+    ELSE NULL
+  END;
+  IF TG_OP = 'UPDATE'
+     AND v_previous_outcome IS NOT DISTINCT FROM v_current_outcome THEN
     RETURN NEW;
   END IF;
   SELECT studio.id INTO v_studio_id
@@ -2519,25 +2818,22 @@ BEGIN
   v_payment_subtype := CASE WHEN NEW.subscription_id IS NULL
     THEN 'one_time' ELSE 'subscription_renewal' END;
   v_event_type := CASE
-    WHEN NEW.status = 'paid' THEN 'payment.succeeded'
-    WHEN lower(COALESCE(NEW.provider_status,'')) IN (
-      'requires_action','requires_payment_method','authentication_required'
-    ) OR lower(COALESCE(NEW.metadata->>'requires_action','')) IN ('true','1','yes')
-      THEN 'payment.requires_action'
-    WHEN NEW.status = 'failed' THEN 'payment.failed'
+    WHEN v_current_outcome = 'paid'
+      AND v_previous_outcome IN ('failed','requires_action')
+      THEN 'payment.recovered'
+    WHEN v_current_outcome = 'paid' THEN 'payment.succeeded'
+    WHEN v_current_outcome = 'requires_action' THEN 'payment.requires_action'
+    WHEN v_current_outcome = 'failed' THEN 'payment.failed'
     ELSE NULL
   END;
   IF v_event_type IS NULL OR v_recipient_id IS NULL THEN RETURN NEW; END IF;
-  v_business_version := concat_ws(
-    ':',NEW.status,NEW.provider_status,NEW.subscription_id,NEW.updated_at
-  );
   INSERT INTO public.domain_outbox(
     studio_id,event_type,schema_version,aggregate_type,aggregate_id,participant_id,
     communication_recipient_id,correlation_id,deduplication_key,payload
   ) VALUES (
     v_studio_id,v_event_type,1,'payments',NEW.id,NEW.member_id,
     v_recipient_id,gen_random_uuid(),
-    concat(v_event_type,':',NEW.id,':',md5(v_business_version)),
+    concat('payment.outcome:',NEW.id,':',COALESCE(v_previous_outcome,'initial'),':',v_event_type),
     jsonb_build_object(
       'payment_id',NEW.id,
       'member_id',NEW.member_id,
@@ -2560,7 +2856,7 @@ END;
 $$;
 
 CREATE TRIGGER concierge_payment_domain_event
-AFTER INSERT OR UPDATE OF status, provider_status, metadata ON public.payments
+AFTER INSERT OR UPDATE OF status, provider_status ON public.payments
 FOR EACH ROW EXECUTE FUNCTION public.emit_concierge_payment_outcome_event();
 
 CREATE OR REPLACE FUNCTION public.emit_concierge_recommendation_event(

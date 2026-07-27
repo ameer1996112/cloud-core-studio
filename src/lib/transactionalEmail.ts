@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { MessageEventType, MessageLanguage } from "@/lib/messaging.types";
 
 export type TransactionalEmailInput = {
@@ -27,8 +28,6 @@ export type RenderedTransactionalEmail = {
 
 const BRANDED_SENDER_DISPLAY_NAME = "Cloud & Core Studio";
 export const TRANSACTIONAL_EMAIL_SHELL_VERSION = 1;
-export const TRANSACTIONAL_EMAIL_SHELL_HASH =
-  "f462431bba9050c19e0b912c5ff743a2581410ffcb61a090e31d36dbccb8a558";
 const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Validates configuration only; provider verification remains an operational prerequisite. */
@@ -420,6 +419,48 @@ export function renderTransactionalEmail(
     headers: { "X-Entity-Ref-ID": messageRef(input.messageKey) },
   };
 }
+
+export function hashTransactionalEmailShellArtifact(artifact: string) {
+  return createHash("sha256")
+    .update(`cloud-core-transactional-email-shell-v${TRANSACTIONAL_EMAIL_SHELL_VERSION}\u001f`)
+    .update(artifact)
+    .digest("hex");
+}
+
+const canonicalShellRender = renderTransactionalEmail({
+  eventType: "human_handoff",
+  language: "en",
+  subject: "__SHELL_SUBJECT__",
+  body: "__SHELL_BODY__",
+  variables: {},
+  publicBaseUrl: "https://cloudandcorestudio.com",
+  replyTo: "__SHELL_REPLY_TO__@cloudandcorestudio.com",
+  messageKey: "__SHELL_MESSAGE_KEY__",
+  presentation: {
+    key: "__SHELL_PRESENTATION_KEY__",
+    categoryLabel: "__SHELL_CATEGORY__",
+    action: {
+      label: "__SHELL_ACTION__",
+      url: "https://cloudandcorestudio.com/__SHELL_ACTION_URL__",
+    },
+    facts: [
+      {
+        key: "__SHELL_FACT_KEY__",
+        label: "__SHELL_FACT_LABEL__",
+        value: "__SHELL_FACT_VALUE__",
+        ltr: true,
+      },
+    ],
+  },
+});
+
+export const TRANSACTIONAL_EMAIL_SHELL_ARTIFACT = JSON.stringify({
+  html: canonicalShellRender.html,
+  text: canonicalShellRender.text,
+});
+export const TRANSACTIONAL_EMAIL_SHELL_HASH = hashTransactionalEmailShellArtifact(
+  TRANSACTIONAL_EMAIL_SHELL_ARTIFACT,
+);
 
 export function validateTransactionalEmailPresentationCatalog(eventTypes: readonly string[]) {
   const errors: string[] = [];

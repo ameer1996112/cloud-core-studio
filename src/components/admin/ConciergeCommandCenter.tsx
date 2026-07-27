@@ -348,6 +348,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const deliveryVersions = (center.data?.deliveryVersions ?? []) as ConciergeDeliveryVersionRow[];
   const deliverySelections = (center.data?.deliverySelections ??
     []) as ConciergeDeliverySelectionRow[];
+  const promotionEligibleVersionIds = (center.data?.promotionEligibleVersionIds ?? []) as string[];
 
   return (
     <div className="space-y-7">
@@ -584,6 +585,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
           whatsappExpectedContentHashes={whatsappExpectedContentHashes}
           deliveryVersions={deliveryVersions}
           deliverySelections={deliverySelections}
+          promotionEligibleVersionIds={promotionEligibleVersionIds}
           selectionPending={
             deliverySelectionMutation.isPending ||
             templateMutation.isPending ||

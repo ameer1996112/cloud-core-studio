@@ -81,6 +81,19 @@ describe("Concierge branded messaging final-fix migration", () => {
     expect(sql).not.toContain("count(DISTINCT deployment.waba_id)");
   });
 
+  test("requires reviewed successful test delivery evidence before selecting v2 live", () => {
+    expect(sql).toContain(
+      "CREATE TABLE IF NOT EXISTS public.concierge_delivery_promotion_evidence",
+    );
+    expect(sql).toContain("review_concierge_test_delivery_evidence");
+    expect(sql).toContain("successful_test_delivery_evidence_required");
+    expect(sql).toContain("p_delivery_mode = 'live'");
+    expect(sql).toContain("test_selection.delivery_mode = 'test_only'");
+    expect(sql).toContain("test_delivery.status IN ('delivered','read')");
+    expect(sql).toContain("promotion.reviewed_by IS NOT NULL");
+    expect(sql).toContain("promotion.reviewed_at IS NOT NULL");
+  });
+
   test("freezes exact email presentation and approval evidence", () => {
     for (const column of [
       "presentation_key text NOT NULL",
@@ -114,6 +127,34 @@ describe("Concierge branded messaging final-fix migration", () => {
       "'sha256','b29c3947567fd874164ce7a7e24d1f230b6987183ea905fc13fbc7aebe830fb6'",
     );
     expect(sql.match(/public\.concierge_presentation_contract\(/g)?.length ?? 0).toBeGreaterThan(6);
+  });
+
+  test("atomically retires an approved source before approving its exact replacement", () => {
+    const approval = sql.slice(
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.approve_concierge_template_version"),
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.approve_concierge_delivery_preview"),
+    );
+    expect(approval).toContain("FOR UPDATE");
+    expect(approval).toContain("pg_advisory_xact_lock");
+    expect(approval).toContain("source.id <> v_source.id");
+    expect(approval).toContain("SET lifecycle_status = 'retired'");
+    expect(approval).toContain("'replaced_source_ids'");
+    expect(approval.indexOf("SET lifecycle_status = 'retired'")).toBeLessThan(
+      approval.indexOf("SET lifecycle_status = 'approved'"),
+    );
+  });
+
+  test("makes selection history append-only and blocks direct service-role mutation", () => {
+    expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.concierge_delivery_selection_history");
+    expect(sql).toContain("concierge_selection_history_is_append_only");
+    expect(sql).toContain("BEFORE UPDATE OR DELETE ON public.concierge_delivery_selection_history");
+    expect(sql).toContain("direct_concierge_selection_mutation_forbidden");
+    expect(sql).toContain(
+      "REVOKE UPDATE, DELETE ON public.concierge_delivery_selections FROM service_role",
+    );
+    expect(sql).toContain("'retired'::text");
+    expect(sql).toContain("'selected'::text");
+    expect(sql).toContain("replacement_selection_id");
   });
 
   test("rejects every non-array or empty materialization shape, including SQL and JSON null", () => {
@@ -159,5 +200,24 @@ describe("Concierge branded messaging final-fix migration", () => {
     expect(sql).toContain("'recommendation.created'");
     expect(sql).toContain("'recommendation_summary',p_recommendation_summary");
     expect(sql).toContain("recommendation_summary_required");
+  });
+
+  test("emits payment outcomes only for meaningful transitions with stable dedupe", () => {
+    const paymentEmitter = sql.slice(
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.emit_concierge_payment_outcome_event"),
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.emit_concierge_recommendation_event"),
+    );
+    expect(paymentEmitter).toContain("v_previous_outcome");
+    expect(paymentEmitter).toContain("v_current_outcome");
+    expect(paymentEmitter).toContain("THEN 'payment.recovered'");
+    expect(paymentEmitter).toContain("OLD.status IS NOT DISTINCT FROM NEW.status");
+    expect(paymentEmitter).toContain(
+      "OLD.provider_status IS NOT DISTINCT FROM NEW.provider_status",
+    );
+    expect(paymentEmitter).not.toContain("NEW.updated_at");
+    expect(paymentEmitter).not.toContain("UPDATE OF status, provider_status, metadata");
+    expect(paymentEmitter).toContain(
+      "concat('payment.outcome:',NEW.id,':',COALESCE(v_previous_outcome,'initial'),':',v_event_type)",
+    );
   });
 });

@@ -52,6 +52,18 @@ export type WhatsappDeploymentRow = {
   content_hash: string;
 };
 
+export function canOfferConciergeDeliverySelection(input: {
+  candidate: Pick<ConciergeDeliveryVersionRow, "id" | "presentation_version">;
+  deliveryMode: "test_only" | "live";
+  promotionEligibleVersionIds: readonly string[];
+}) {
+  return (
+    input.deliveryMode !== "live" ||
+    input.candidate.presentation_version !== 2 ||
+    input.promotionEligibleVersionIds.includes(input.candidate.id)
+  );
+}
+
 function providerLanguage(locale: ConciergeSourceTemplateRow["locale"]) {
   return locale === "en" ? "en_US" : locale;
 }
