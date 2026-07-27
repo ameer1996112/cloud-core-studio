@@ -86,7 +86,7 @@ describe("outbox message materialization", () => {
             { type: "text", text: "נועה" },
             {
               type: "text",
-              text: "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין · הסטודיו הראשי",
+              text: "פילאטיס מזרן · יום שישי, 24.07 · 18:00 · עם ירין · הסטודיו הראשי",
             },
           ],
         },
@@ -110,7 +110,7 @@ describe("outbox message materialization", () => {
     const whatsapp = result.deliveries.find((delivery) => delivery.channel === "whatsapp");
     expect(whatsapp?.status).toBe("queued");
     expect(whatsapp?.templateComponents[1].parameters[1].text).toBe(
-      "פילאטיס מזרן\nיום שישי, 24.07 · 18:00\nעם ירין",
+      "פילאטיס מזרן · יום שישי, 24.07 · 18:00 · עם ירין",
     );
   });
 
