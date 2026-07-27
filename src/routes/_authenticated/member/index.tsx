@@ -72,6 +72,7 @@ function MemberHome() {
   const featuredClass = !nextBooking ? recommended[0] : null;
   const recommendedList = featuredClass ? recommended.slice(1) : recommended;
   const announcement = localizeAnnouncement(settings?.announcement_text);
+  const concierge = data?.concierge;
 
   return (
     <section
@@ -128,6 +129,37 @@ function MemberHome() {
           />
         </div>
       </div>
+
+      {concierge && concierge.state !== "quiet" && (
+        <section className="member-card member-panel-sand relative overflow-hidden p-5 sm:p-7">
+          <div
+            className="pointer-events-none absolute -top-16 end-0 h-40 w-40 rounded-full bg-gold/10 blur-3xl"
+            aria-hidden
+          />
+          <div className="relative max-w-2xl">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-gold" aria-hidden />
+              <p className="member-eyebrow">{concierge.eyebrow}</p>
+            </div>
+            <h2 className="member-section-title mt-3">{concierge.title}</h2>
+            <p className="member-page-body mt-2 max-w-xl">{concierge.note}</p>
+            <a
+              href={concierge.primaryAction.to}
+              className="btn-navy hover:btn-navy-hover mt-5 inline-flex"
+            >
+              {concierge.primaryAction.label}
+              <ArrowRight className={`h-3.5 w-3.5 ${isRtl ? "rotate-180" : ""}`} aria-hidden />
+            </a>
+            <p className="mt-4 text-xs text-slate">
+              {lang === "he"
+                ? "ירין | Cloud & Core"
+                : lang === "ar"
+                  ? "يارين | Cloud & Core"
+                  : "Yareen | Cloud & Core"}
+            </p>
+          </div>
+        </section>
+      )}
 
       {announcement && (
         <div className="member-card member-panel-powder member-announcement-card p-4 sm:p-5 flex gap-3 items-start">

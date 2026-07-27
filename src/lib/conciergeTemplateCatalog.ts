@@ -500,6 +500,17 @@ export const CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG = CONCIERGE_TEMPLATE_CATALO
   ];
 });
 
+const PERSONAL_CONCIERGE_PHASE_ONE_FAMILIES = ["booking_confirmed_first"] as const;
+
+export const PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP = {
+  logicalFamilies: PERSONAL_CONCIERGE_PHASE_ONE_FAMILIES,
+  variants: CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG.filter((template) =>
+    PERSONAL_CONCIERGE_PHASE_ONE_FAMILIES.some((family) =>
+      template.name.startsWith(`${family}_premium_v3`),
+    ),
+  ),
+} as const;
+
 export function conciergeWhatsappTemplateDefinition(
   templateKey: string,
   locale: ConciergeTemplateLocale,

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   CONCIERGE_META_TEMPLATE_CATALOG,
+  PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP,
   CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
   CONCIERGE_TEMPLATE_CATALOG,
   validateConciergeTemplateCatalog,
@@ -53,6 +54,19 @@ const EXPECTED_ACTIONS = {
 };
 
 describe("Concierge template catalog", () => {
+  test("keeps the Personal Concierge first release to one logical WhatsApp family", () => {
+    expect(PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP.logicalFamilies).toEqual([
+      "booking_confirmed_first",
+    ]);
+    expect(PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP.variants).toHaveLength(3);
+    expect(
+      PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP.variants.map((template) => template.language).sort(),
+    ).toEqual(["ar", "en_US", "he"]);
+    expect(
+      new Set(PERSONAL_CONCIERGE_PHASE_ONE_WHATSAPP.variants.map((template) => template.name)),
+    ).toEqual(new Set(["booking_confirmed_first_premium_v3"]));
+  });
+
   test("covers every dispatchable journey, channel, and locale", () => {
     expect(validateConciergeTemplateCatalog()).toEqual({ ok: true, errors: [] });
 

@@ -12,6 +12,11 @@ import { applyLang, labelForStatus, t, useI18n, getLocale, type Lang } from "@/l
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
+import {
+  getMyPersonalConcierge,
+  saveMyPersonalConciergePreference,
+  setMyPersonalConciergePause,
+} from "@/lib/personalConcierge.functions";
 
 type ProfileForm = {
   name?: string;
@@ -46,15 +51,24 @@ function MemberAccount() {
   const fetchPkg = useServerFn(getMyPackages);
   const updateFn = useServerFn(updateMyProfile);
   const deleteFn = useServerFn(requestMyAccountDeletion);
+  const fetchConcierge = useServerFn(getMyPersonalConcierge);
+  const saveConciergePreference = useServerFn(saveMyPersonalConciergePreference);
+  const setConciergePause = useServerFn(setMyPersonalConciergePause);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
   const { data } = useQuery({ queryKey: ["member-packages"], queryFn: () => fetchPkg() });
+  const { data: concierge } = useQuery({
+    queryKey: ["personal-concierge"],
+    queryFn: () => fetchConcierge(),
+  });
   const me = data?.member as MemberProfile | undefined;
 
   const [form, setForm] = useState<ProfileForm>({});
   const [deletionReason, setDeletionReason] = useState("");
   const [signingOut, setSigningOut] = useState(false);
+  const [conciergePace, setConciergePace] = useState("");
+  const [conciergeIntention, setConciergeIntention] = useState("");
 
   const update = useMutation({
     mutationFn: () => updateFn({ data: form }),
@@ -77,6 +91,81 @@ function MemberAccount() {
     },
     onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.deleteRequestError"))),
   });
+
+  const saveBetweenUs = useMutation({
+    mutationFn: async () => {
+      if (conciergePace) {
+        await saveConciergePreference({
+          data: { key: "communication_pace", value: conciergePace },
+        });
+      }
+      if (conciergeIntention.trim()) {
+        await saveConciergePreference({
+          data: { key: "member_intention", value: conciergeIntention.trim() },
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success(
+        lang === "he" ? "ההעדפות נשמרו" : lang === "ar" ? "تم حفظ تفضيلاتك" : "Preferences saved",
+      );
+      qc.invalidateQueries({ queryKey: ["personal-concierge"] });
+      qc.invalidateQueries({ queryKey: ["member-home"] });
+    },
+    onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.saveError"))),
+  });
+
+  const pauseBetweenUs = useMutation({
+    mutationFn: (paused: boolean) => setConciergePause({ data: { paused } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["personal-concierge"] });
+      qc.invalidateQueries({ queryKey: ["member-home"] });
+    },
+    onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.saveError"))),
+  });
+
+  const conciergeCopy =
+    lang === "he"
+      ? {
+          eyebrow: "בינינו",
+          title: "הקשר האישי שלך עם ירין",
+          body: "כאן אפשר לבחור מה נכון לך, לראות מה נשמר ולהחליט כמה שקט תרצי.",
+          pace: "כמה תשומת לב מתאימה לך?",
+          quiet: "שקט — רק כשבאמת חשוב",
+          balanced: "מאוזן — הכוונה עדינה",
+          attentive: "קשוב — יותר הצעות אישיות",
+          intention: "מה היית רוצה להרגיש או להשיג?",
+          intentionPlaceholder: "למשל: להתחזק בקצב נעים",
+          pause: "השהיית התאמה אישית",
+          save: "שמירת ההעדפות",
+        }
+      : lang === "ar"
+        ? {
+            eyebrow: "بيننا",
+            title: "علاقتك الشخصية مع يارين",
+            body: "اختاري ما يناسبك، راجعي ما نتذكره، وحددي مقدار الهدوء الذي تفضلينه.",
+            pace: "ما مقدار الاهتمام المناسب لك؟",
+            quiet: "هادئ — فقط عندما يكون الأمر مهماً",
+            balanced: "متوازن — توجيه لطيف",
+            attentive: "متابع — اقتراحات شخصية أكثر",
+            intention: "بماذا ترغبين أن تشعري أو ماذا تريدين تحقيقه؟",
+            intentionPlaceholder: "مثلاً: أن أصبح أقوى بوتيرة مريحة",
+            pause: "إيقاف التخصيص مؤقتاً",
+            save: "حفظ التفضيلات",
+          }
+        : {
+            eyebrow: "Between us",
+            title: "Your personal relationship with Yareen",
+            body: "Choose what feels right, review what is remembered, and decide how quiet you want the Concierge to be.",
+            pace: "How much attention suits you?",
+            quiet: "Quiet — only when it truly matters",
+            balanced: "Balanced — gentle guidance",
+            attentive: "Attentive — more personal suggestions",
+            intention: "What would you like to feel or achieve?",
+            intentionPlaceholder: "For example: become stronger at a comfortable pace",
+            pause: "Pause personalization",
+            save: "Save preferences",
+          };
 
   const val = <K extends keyof ProfileForm>(k: K) =>
     form[k] !== undefined ? form[k] : (me?.[k] ?? "");
@@ -204,6 +293,55 @@ function MemberAccount() {
           </button>
         </div>
       </div>
+
+      <section id="between-us" className="member-card member-panel-sand p-5 sm:p-7 space-y-5">
+        <div>
+          <p className="member-eyebrow">{conciergeCopy.eyebrow}</p>
+          <h2 className="member-section-title mt-2">{conciergeCopy.title}</h2>
+          <p className="member-page-body mt-2 max-w-2xl">{conciergeCopy.body}</p>
+        </div>
+        <Field label={conciergeCopy.pace}>
+          <select
+            className="editorial-input"
+            value={conciergePace}
+            onChange={(event) => setConciergePace(event.target.value)}
+          >
+            <option value="">{conciergeCopy.balanced}</option>
+            <option value="quiet">{conciergeCopy.quiet}</option>
+            <option value="balanced">{conciergeCopy.balanced}</option>
+            <option value="attentive">{conciergeCopy.attentive}</option>
+          </select>
+        </Field>
+        <Field label={conciergeCopy.intention}>
+          <input
+            className="editorial-input"
+            dir="auto"
+            value={conciergeIntention}
+            onChange={(event) => setConciergeIntention(event.target.value)}
+            placeholder={conciergeCopy.intentionPlaceholder}
+            maxLength={120}
+          />
+        </Field>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline pt-4">
+          <label className="flex items-center gap-2 text-sm text-slate">
+            <input
+              type="checkbox"
+              checked={concierge?.relationship?.personalization_paused === true}
+              onChange={(event) => pauseBetweenUs.mutate(event.target.checked)}
+              disabled={pauseBetweenUs.isPending}
+            />
+            {conciergeCopy.pause}
+          </label>
+          <button
+            className="btn-navy hover:btn-navy-hover disabled:opacity-50"
+            disabled={saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())}
+            onClick={() => saveBetweenUs.mutate()}
+          >
+            <Save className="h-3 w-3" />
+            {conciergeCopy.save}
+          </button>
+        </div>
+      </section>
 
       <div className="member-card p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
