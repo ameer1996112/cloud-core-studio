@@ -66,6 +66,9 @@ import {
   Phone,
   Settings2,
   ChevronDown,
+  Activity,
+  Workflow,
+  BellRing,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/messages")({
@@ -121,7 +124,19 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     intro: "See whether customer messaging is healthy, handle replies, and act only when needed.",
     health: "Health",
     send: "Send message",
-    tools: "Tools & settings",
+    tools: "Controls",
+    toolsTitle: "Concierge controls",
+    toolsIntro: "Everything behind the experience, kept out of your daily workspace.",
+    toolsOperations: "Monitor",
+    toolsContent: "Create",
+    toolsAdvanced: "Advanced",
+    deliveriesHelp: "Investigate messages that need attention.",
+    logsHelp: "Review the history of manual activity.",
+    templatesHelp: "Manage reusable manual message content.",
+    pushHelp: "Create an exceptional iPhone announcement.",
+    requestsHelp: "Review customer package requests.",
+    eventsHelp: "Control individual automation triggers.",
+    journeysHelp: "Preview journeys without contacting customers.",
     composer: "Compose",
     templates: "Templates",
     requests: "Package requests",
@@ -176,7 +191,19 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     intro: "ראו אם התקשורת עם הלקוחות תקינה, טפלו בתשובות ופעלו רק כשצריך.",
     health: "בריאות",
     send: "שליחת הודעה",
-    tools: "כלים והגדרות",
+    tools: "בקרה",
+    toolsTitle: "בקרת הקונסיירז׳",
+    toolsIntro: "כל מה שמפעיל את החוויה, מסודר מחוץ לעבודה היומיומית.",
+    toolsOperations: "מעקב",
+    toolsContent: "יצירה",
+    toolsAdvanced: "מתקדם",
+    deliveriesHelp: "בדיקת הודעות שדורשות תשומת לב.",
+    logsHelp: "צפייה בהיסטוריית הפעילות הידנית.",
+    templatesHelp: "ניהול תוכן קבוע להודעות ידניות.",
+    pushHelp: "יצירת הודעת iPhone מיוחדת.",
+    requestsHelp: "טיפול בבקשות חבילה של לקוחות.",
+    eventsHelp: "שליטה בטריגרים אוטומטיים בודדים.",
+    journeysHelp: "תצוגה מקדימה בלי לפנות ללקוחות.",
     composer: "כתיבה",
     templates: "תבניות",
     requests: "בקשות חבילה",
@@ -231,7 +258,19 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     intro: "تحققي من صحة رسائل العملاء، تابعي الردود، وتدخلي فقط عند الحاجة.",
     health: "الصحة",
     send: "إرسال رسالة",
-    tools: "الأدوات والإعدادات",
+    tools: "التحكم",
+    toolsTitle: "عناصر تحكم الكونسيرج",
+    toolsIntro: "كل ما يدير التجربة، بعيداً عن مساحة العمل اليومية.",
+    toolsOperations: "المراقبة",
+    toolsContent: "الإنشاء",
+    toolsAdvanced: "متقدم",
+    deliveriesHelp: "راجعي الرسائل التي تحتاج إلى اهتمام.",
+    logsHelp: "راجعي سجل النشاط اليدوي.",
+    templatesHelp: "أديري محتوى الرسائل اليدوية المتكرر.",
+    pushHelp: "أنشئي إعلان iPhone مميزاً.",
+    requestsHelp: "راجعي طلبات باقات العملاء.",
+    eventsHelp: "تحكمي في محفزات الأتمتة الفردية.",
+    journeysHelp: "عايني الرحلات دون التواصل مع العملاء.",
     composer: "إنشاء",
     templates: "القوالب",
     requests: "طلبات الباقات",
@@ -369,15 +408,36 @@ function Page() {
     { k: "inbox" as const, l: copy.inbox },
     { k: "composer" as const, l: copy.send },
   ];
-  const toolTabs = [
-    { k: "deliveries" as const, l: copy.deliveries },
-    { k: "events" as const, l: copy.events },
-    { k: "journeys" as const, l: copy.journeys },
-    { k: "templates" as const, l: copy.templates },
-    { k: "push" as const, l: copy.push },
-    { k: "logs" as const, l: copy.logs },
-    { k: "requests" as const, l: copy.requests },
+  const toolGroups = [
+    {
+      label: copy.toolsOperations,
+      items: [
+        {
+          k: "deliveries" as const,
+          l: copy.deliveries,
+          help: copy.deliveriesHelp,
+          icon: Activity,
+        },
+        { k: "logs" as const, l: copy.logs, help: copy.logsHelp, icon: ListChecks },
+      ],
+    },
+    {
+      label: copy.toolsContent,
+      items: [
+        { k: "templates" as const, l: copy.templates, help: copy.templatesHelp, icon: Pencil },
+        { k: "push" as const, l: copy.push, help: copy.pushHelp, icon: BellRing },
+        { k: "requests" as const, l: copy.requests, help: copy.requestsHelp, icon: Users },
+      ],
+    },
+    {
+      label: copy.toolsAdvanced,
+      items: [
+        { k: "events" as const, l: copy.events, help: copy.eventsHelp, icon: Power },
+        { k: "journeys" as const, l: copy.journeys, help: copy.journeysHelp, icon: Workflow },
+      ],
+    },
   ];
+  const toolTabs = toolGroups.flatMap((group) => group.items);
   const activeTool = toolTabs.find((item) => item.k === tab);
 
   return (
@@ -410,8 +470,10 @@ function Page() {
             type="button"
             aria-expanded={toolsOpen}
             onClick={() => setToolsOpen((open) => !open)}
-            className={`btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs ${
-              activeTool ? "border-gold bg-sand/60" : ""
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition ${
+              activeTool
+                ? "border-gold bg-navy text-ivory shadow-sm"
+                : "border-gold/35 bg-ivory text-navy hover:border-gold hover:bg-sand/40"
             }`}
           >
             <Settings2 className="h-4 w-4" />
@@ -419,22 +481,71 @@ function Page() {
             <ChevronDown className={`h-3.5 w-3.5 transition ${toolsOpen ? "rotate-180" : ""}`} />
           </button>
           {toolsOpen && (
-            <div className="absolute end-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-xl border border-gold/30 bg-ivory p-2 shadow-xl">
-              {toolTabs.map((item) => (
-                <button
-                  key={item.k}
-                  type="button"
-                  onClick={() => {
-                    setTab(item.k);
-                    setToolsOpen(false);
-                  }}
-                  className={`block w-full rounded-lg px-3 py-2 text-start text-sm transition ${
-                    tab === item.k ? "bg-navy text-ivory" : "text-navy hover:bg-sand/70"
-                  }`}
-                >
-                  {item.l}
-                </button>
-              ))}
+            <div className="absolute end-0 top-full z-30 mt-2 w-[min(92vw,420px)] overflow-hidden rounded-2xl border border-gold/25 bg-ivory shadow-[0_24px_70px_rgba(8,31,61,0.18)]">
+              <div className="border-b border-gold/20 bg-navy px-5 py-5 text-ivory">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-serif text-xl">{copy.toolsTitle}</p>
+                    <p className="mt-1 max-w-sm text-xs leading-relaxed text-ivory/65">
+                      {copy.toolsIntro}
+                    </p>
+                  </div>
+                  <Settings2 className="mt-1 h-5 w-5 shrink-0 text-gold" />
+                </div>
+              </div>
+              <div className="max-h-[68vh] space-y-5 overflow-y-auto p-3">
+                {toolGroups.map((group) => (
+                  <section key={group.label}>
+                    <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate">
+                      {group.label}
+                    </p>
+                    <div className="space-y-1">
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const selected = tab === item.k;
+                        return (
+                          <button
+                            key={item.k}
+                            type="button"
+                            onClick={() => {
+                              setTab(item.k);
+                              setToolsOpen(false);
+                            }}
+                            className={`group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-start transition ${
+                              selected ? "bg-navy text-ivory" : "text-navy hover:bg-sand/65"
+                            }`}
+                          >
+                            <span
+                              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border ${
+                                selected
+                                  ? "border-gold/50 bg-ivory/10 text-gold"
+                                  : "border-gold/30 bg-ivory text-navy"
+                              }`}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-semibold">{item.l}</span>
+                              <span
+                                className={`mt-0.5 block text-xs leading-relaxed ${
+                                  selected ? "text-ivory/65" : "text-slate"
+                                }`}
+                              >
+                                {item.help}
+                              </span>
+                            </span>
+                            <ChevronRight
+                              className={`h-4 w-4 shrink-0 ${
+                                selected ? "text-gold" : "text-gold/60"
+                              }`}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
             </div>
           )}
         </div>
