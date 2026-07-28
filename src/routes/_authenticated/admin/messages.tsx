@@ -64,6 +64,8 @@ import {
   ListChecks,
   Users,
   Phone,
+  Settings2,
+  ChevronDown,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/messages")({
@@ -115,9 +117,11 @@ function getLogStatusClass(log: LogStatusSummary) {
 
 const PAGE_COPY: Record<Lang, Record<string, string>> = {
   en: {
-    title: "Concierge & messages",
-    intro:
-      "Run the Concierge safely, handle conversations and deliveries, and prepare manual messages from one workspace.",
+    title: "Concierge health",
+    intro: "See whether customer messaging is healthy, handle replies, and act only when needed.",
+    health: "Health",
+    send: "Send message",
+    tools: "Tools & settings",
     composer: "Compose",
     templates: "Templates",
     requests: "Package requests",
@@ -168,8 +172,11 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     audienceNoBooking: "No upcoming booking",
   },
   he: {
-    title: "קונסיירז׳ והודעות",
-    intro: "נהלו את הקונסיירז׳ בבטחה, טפלו בשיחות ובמסירות והכינו הודעות ידניות במקום אחד.",
+    title: "בריאות הקונסיירז׳",
+    intro: "ראו אם התקשורת עם הלקוחות תקינה, טפלו בתשובות ופעלו רק כשצריך.",
+    health: "בריאות",
+    send: "שליחת הודעה",
+    tools: "כלים והגדרות",
     composer: "כתיבה",
     templates: "תבניות",
     requests: "בקשות חבילה",
@@ -220,9 +227,11 @@ const PAGE_COPY: Record<Lang, Record<string, string>> = {
     audienceNoBooking: "ללא הזמנה קרובה",
   },
   ar: {
-    title: "الكونسيرج والرسائل",
-    intro:
-      "أديري الكونسيرج بأمان، تابعي المحادثات وعمليات التسليم، وحضّري الرسائل اليدوية من مكان واحد.",
+    title: "صحة الكونسيرج",
+    intro: "تحققي من صحة رسائل العملاء، تابعي الردود، وتدخلي فقط عند الحاجة.",
+    health: "الصحة",
+    send: "إرسال رسالة",
+    tools: "الأدوات والإعدادات",
     composer: "إنشاء",
     templates: "القوالب",
     requests: "طلبات الباقات",
@@ -354,37 +363,81 @@ function Page() {
   useDocumentTitle("page.messages.title");
   const copy = pageCopy(lang);
   const [tab, setTab] = useState<Tab>("concierge");
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const primaryTabs = [
+    { k: "concierge" as const, l: copy.health },
+    { k: "inbox" as const, l: copy.inbox },
+    { k: "composer" as const, l: copy.send },
+  ];
+  const toolTabs = [
+    { k: "deliveries" as const, l: copy.deliveries },
+    { k: "events" as const, l: copy.events },
+    { k: "journeys" as const, l: copy.journeys },
+    { k: "templates" as const, l: copy.templates },
+    { k: "push" as const, l: copy.push },
+    { k: "logs" as const, l: copy.logs },
+    { k: "requests" as const, l: copy.requests },
+  ];
+  const activeTool = toolTabs.find((item) => item.k === tab);
+
   return (
     <AdminPageShell>
       <AdminPageHeader title={copy.title} description={copy.intro} />
 
-      <div className="flex gap-2 border-b border-gold/30 overflow-x-auto">
-        {(
-          [
-            { k: "concierge", l: "Concierge" },
-            { k: "inbox", l: "Inbox" },
-            { k: "deliveries", l: "Deliveries" },
-            { k: "events", l: "Event matrix" },
-            { k: "journeys", l: "Journey Lab" },
-            { k: "composer", l: "Compose" },
-            { k: "push", l: "iPhone campaigns" },
-            { k: "templates", l: "Templates" },
-            { k: "requests", l: "Package requests" },
-            { k: "logs", l: "Activity log" },
-          ] as { k: Tab; l: string }[]
-        ).map((t) => (
+      <div className="relative flex flex-wrap items-end justify-between gap-3 border-b border-gold/30">
+        <div className="flex gap-2 overflow-x-auto">
+          {primaryTabs.map((t) => (
+            <button
+              key={t.k}
+              type="button"
+              onClick={() => {
+                setTab(t.k);
+                setToolsOpen(false);
+              }}
+              className={`-mb-px border-b-2 px-4 py-3 text-sm font-medium transition ${
+                tab === t.k
+                  ? "border-gold text-navy"
+                  : "border-transparent text-slate hover:text-navy/85"
+              }`}
+            >
+              {t.l}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative pb-2">
           <button
-            key={t.k}
-            onClick={() => setTab(t.k)}
-            className={`-mb-px border-b-2 px-4 py-2 text-xs font-medium transition ${
-              tab === t.k
-                ? "border-gold text-navy"
-                : "border-transparent text-slate hover:text-navy/85"
+            type="button"
+            aria-expanded={toolsOpen}
+            onClick={() => setToolsOpen((open) => !open)}
+            className={`btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs ${
+              activeTool ? "border-gold bg-sand/60" : ""
             }`}
           >
-            {copy[t.k] ?? t.l}
+            <Settings2 className="h-4 w-4" />
+            {activeTool?.l ?? copy.tools}
+            <ChevronDown className={`h-3.5 w-3.5 transition ${toolsOpen ? "rotate-180" : ""}`} />
           </button>
-        ))}
+          {toolsOpen && (
+            <div className="absolute end-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-xl border border-gold/30 bg-ivory p-2 shadow-xl">
+              {toolTabs.map((item) => (
+                <button
+                  key={item.k}
+                  type="button"
+                  onClick={() => {
+                    setTab(item.k);
+                    setToolsOpen(false);
+                  }}
+                  className={`block w-full rounded-lg px-3 py-2 text-start text-sm transition ${
+                    tab === item.k ? "bg-navy text-ivory" : "text-navy hover:bg-sand/70"
+                  }`}
+                >
+                  {item.l}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {tab === "concierge" && <ConciergeCommandCenter lang={lang} />}
