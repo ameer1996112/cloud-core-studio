@@ -6,7 +6,9 @@ import { getClassRoster, searchMembersForClass } from "@/lib/members.functions";
 import {
   adminCreateBooking,
   adminCancelBooking,
+  adminCancelClass,
   markAttendance,
+  rescheduleClass,
   waitlistPromote,
   waitlistRemove,
 } from "@/lib/admin.functions";
@@ -31,6 +33,7 @@ import {
   MessageCircle,
   Bell,
   Eye,
+  CalendarClock,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { getLocale, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
@@ -41,6 +44,7 @@ import {
   localizedInstructorName,
   localizedRoomName,
 } from "@/lib/localized-content";
+import { formatStudioDateTimeInput, studioDateTimeInputToIso } from "@/lib/studio-time";
 
 type Props = { classId: string | null; onClose: () => void };
 
@@ -67,6 +71,8 @@ function RosterBody({ classId }: { classId: string }) {
   const searchFn = useServerFn(searchMembersForClass);
   const createFn = useServerFn(adminCreateBooking);
   const cancelFn = useServerFn(adminCancelBooking);
+  const cancelClassFn = useServerFn(adminCancelClass);
+  const rescheduleFn = useServerFn(rescheduleClass);
   const markFn = useServerFn(markAttendance);
   const promoteFn = useServerFn(waitlistPromote);
   const removeWaitFn = useServerFn(waitlistRemove);
@@ -106,6 +112,8 @@ function RosterBody({ classId }: { classId: string }) {
 
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState("");
+  const [editingTime, setEditingTime] = useState(false);
+  const [nextStartsAt, setNextStartsAt] = useState("");
   const { data: candidates } = useQuery({
     queryKey: ["roster-search", classId, search],
     queryFn: () => searchFn({ data: { classId, query: search } }),
@@ -169,6 +177,36 @@ function RosterBody({ classId }: { classId: string }) {
         invalidate();
       } else toast.error(friendlyErrorMessage(r, t("roster.couldntOffer")));
     },
+  });
+
+  const reschedule = useMutation({
+    mutationFn: () =>
+      rescheduleFn({
+        data: { id: classId, startsAt: studioDateTimeInputToIso(nextStartsAt) },
+      }),
+    onSuccess: () => {
+      toast.success(t("roster.timeChanged"));
+      setEditingTime(false);
+      invalidate();
+    },
+    onError: (error) => toast.error(friendlyErrorMessage(error, t("admin.classes.failed"))),
+  });
+
+  const cancelClass = useMutation({
+    mutationFn: () =>
+      cancelClassFn({
+        data: {
+          classId,
+          reason: null,
+          notifyMembers: true,
+          refundCredits: true,
+        },
+      }),
+    onSuccess: () => {
+      toast.success(t("admin.classDetail.cancelSuccess"));
+      invalidate();
+    },
+    onError: (error) => toast.error(friendlyErrorMessage(error, t("admin.classes.failed"))),
   });
 
   function prepareReminderFor(memberId: string, memberName: string, phone: string | null) {
@@ -390,6 +428,32 @@ function RosterBody({ classId }: { classId: string }) {
               >
                 {t("roster.editor")}
               </Link>
+              {c.status === "scheduled" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNextStartsAt(formatStudioDateTimeInput(c.starts_at));
+                      setEditingTime((current) => !current);
+                    }}
+                    className="btn-outline inline-flex h-9 items-center gap-1.5 px-3 text-xs hover:btn-outline-hover"
+                  >
+                    <CalendarClock className="h-3.5 w-3.5 text-gold" />
+                    {t("roster.changeTime")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(t("roster.cancelClassConfirm"))) cancelClass.mutate();
+                    }}
+                    disabled={cancelClass.isPending}
+                    className="btn-outline inline-flex h-9 items-center gap-1.5 border-red-300 px-3 text-xs text-red-700 hover:bg-red-50"
+                  >
+                    <XCircle className="h-3.5 w-3.5" />
+                    {t("admin.classDetail.cancelClass")}
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => {
                   const booked = data.bookings.filter((b: any) => b.status === "booked");
@@ -409,6 +473,29 @@ function RosterBody({ classId }: { classId: string }) {
             </>
           )}
         </div>
+        {isAdmin && editingTime && c.status === "scheduled" && (
+          <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-gold/20 bg-white/80 p-3">
+            <label className="min-w-56 flex-1 text-start">
+              <span className="mb-1 block text-xs font-medium text-slate">
+                {t("roster.newTime")}
+              </span>
+              <input
+                type="datetime-local"
+                value={nextStartsAt}
+                onChange={(event) => setNextStartsAt(event.target.value)}
+                className="editorial-input"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => reschedule.mutate()}
+              disabled={!nextStartsAt || reschedule.isPending}
+              className="btn-navy h-10 px-4 text-xs hover:btn-navy-hover"
+            >
+              {reschedule.isPending ? t("common.saving") : t("roster.saveTime")}
+            </button>
+          </div>
+        )}
       </SheetHeader>
 
       {/* Add member — admin only */}

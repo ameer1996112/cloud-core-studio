@@ -423,6 +423,61 @@ export const upsertClass = createServerFn({ method: "POST" })
     }
   });
 
+export const rescheduleClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), startsAt: z.string().datetime() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await ensureStaff(context.supabase, context.userId, "admin");
+    const { data: previous, error: previousError } = await context.supabase
+      .from("classes")
+      .select("id,starts_at,status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (previousError) throw previousError;
+    if (!previous) throw new Error("class_not_found");
+    if (previous.status !== "scheduled") throw new Error("class_not_scheduled");
+
+    const timeChanged =
+      new Date(previous.starts_at).getTime() !== new Date(data.startsAt).getTime();
+    if (!timeChanged) return { id: data.id, changed: false };
+
+    const { data: updated, error } = await context.supabase
+      .from("classes")
+      .update({ starts_at: data.startsAt })
+      .eq("id", data.id)
+      .eq("status", "scheduled")
+      .eq("starts_at", previous.starts_at)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!updated) throw new Error("class_changed_concurrently");
+
+    try {
+      await insertNotificationDraftRows(
+        context.supabase,
+        await buildClassMemberDraftRows(context.supabase, {
+          classId: data.id,
+          eventKey: "class_time_changed",
+        }),
+      );
+      await enqueueClassMemberPushNotifications(context.supabase, {
+        classId: data.id,
+        eventKey: "class_time_changed",
+      });
+    } catch (notificationError) {
+      console.error("class_time_changed_draft_prepare_failed", notificationError);
+    }
+
+    try {
+      await kickUnifiedMessagingAfterCommit();
+    } catch (kickError) {
+      console.error("class_time_changed_messaging_kick_failed", kickError);
+    }
+    return { id: data.id, changed: true };
+  });
+
 export const setClassStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
