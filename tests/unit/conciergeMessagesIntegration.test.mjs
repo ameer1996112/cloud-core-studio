@@ -18,17 +18,18 @@ describe("Concierge Messages integration", () => {
     expect(messagesRoute).toContain('title: "الكونسيرج والرسائل"');
   });
 
-  test("keeps the Concierge command center connected to the safe server controls", () => {
+  test("keeps the Concierge command center read-only over the unified production engine", () => {
     const component = readFileSync(
       resolve(root, "src/components/admin/ConciergeCommandCenter.tsx"),
       "utf8",
     );
 
     expect(component).toContain("getConciergeCenter");
-    expect(component).toContain("setConciergeAutomationMode");
-    expect(component).toContain("setConciergeChannelEnabled");
     expect(component).toContain("simulateConciergeDecision");
-    expect(component).toContain("ENABLE LIVE CONCIERGE");
+    expect(component).toContain("productionJourneys");
+    expect(component).not.toContain("setConciergeAutomationMode");
+    expect(component).not.toContain("setConciergeChannelEnabled");
+    expect(component).not.toContain("ENABLE LIVE CONCIERGE");
     expect(component).toContain("simulationMutation.isPending");
   });
 

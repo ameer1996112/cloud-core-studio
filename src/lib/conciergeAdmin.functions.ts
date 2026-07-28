@@ -10,6 +10,11 @@ import {
   CONCIERGE_META_TEMPLATE_CATALOG,
   CONCIERGE_PREMIUM_META_TEMPLATE_CATALOG,
 } from "@/lib/conciergeTemplateCatalog";
+import {
+  deriveProductionChannelStatus,
+  deriveProductionJourneyStatus,
+  type NotificationRolloutRow,
+} from "@/lib/productionJourneyStatus";
 import { templateContentHash } from "@/lib/whatsappTemplateProvisioning";
 
 async function adminDb(userId: string) {
@@ -52,6 +57,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       deliveryVersions,
       deliverySelections,
       promotionEvidence,
+      notificationRollouts,
     ] = await Promise.all([
       db
         .from("automation_config_versions")
@@ -131,6 +137,10 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         .from("concierge_delivery_promotion_evidence")
         .select("delivery_version_id")
         .eq("studio_id", studio.data.id),
+      db
+        .from("notification_event_rollouts")
+        .select("event_type,enabled,allowlist_only,copy_reviewed,enabled_channels")
+        .order("event_type"),
     ]);
     for (const result of [
       automations,
@@ -146,6 +156,7 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       deliveryVersions,
       deliverySelections,
       promotionEvidence,
+      notificationRollouts,
     ]) {
       if (result.error) throw result.error;
     }
@@ -166,10 +177,12 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
       }
       return counts;
     }, {});
+    const rolloutRows = (notificationRollouts.data ?? []) as NotificationRolloutRow[];
     return {
       studio: studio.data,
       automations: automations.data ?? [],
-      channels: channels.data ?? [],
+      productionJourneys: deriveProductionJourneyStatus(rolloutRows),
+      channels: deriveProductionChannelStatus(rolloutRows),
       attention: attention.data ?? [],
       deliveryHealth,
       shadowSummary: {
@@ -224,42 +237,6 @@ export const getConciergeCenter = createServerFn({ method: "GET" })
         ),
       ),
     };
-  });
-
-const deliverySelectionSchema = z.object({
-  templateKey: z.string().min(1),
-  channel: z.enum(["in_app", "push", "email", "whatsapp"]),
-  locale: z.enum(["ar", "he", "en"]),
-  deliveryMode: z.enum(["test_only", "live"]),
-  deliveryVersionId: z.string().uuid(),
-  presentationHash: z.string().regex(/^[a-f0-9]{64}$/),
-  confirmation: z.string().min(1),
-});
-
-export const selectConciergeDeliveryVersion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => deliverySelectionSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const expectedConfirmation = `${data.deliveryMode === "live" ? "SELECT LIVE" : "SELECT TEST"} ${data.deliveryVersionId} ${data.presentationHash}`;
-    if (data.confirmation !== expectedConfirmation) {
-      throw new Error(`Confirmation must exactly match "${expectedConfirmation}"`);
-    }
-    const db = await adminDb(context.userId);
-    const studio = await db.from("studios").select("id").eq("slug", "cloud-core").single();
-    if (studio.error) throw studio.error;
-    const result = await db.rpc("select_concierge_delivery_version", {
-      p_studio_id: studio.data.id,
-      p_template_key: data.templateKey,
-      p_channel: data.channel,
-      p_locale: data.locale,
-      p_delivery_mode: data.deliveryMode,
-      p_delivery_version_id: data.deliveryVersionId,
-      p_expected_presentation_hash: data.presentationHash,
-      p_actor_id: context.userId,
-      p_confirmation: data.confirmation,
-    });
-    if (result.error) throw result.error;
-    return Array.isArray(result.data) ? result.data[0] : result.data;
   });
 
 export const approveConciergeTemplates = createServerFn({ method: "POST" })
@@ -320,61 +297,6 @@ export const approveConciergeDeliveryPreview = createServerFn({ method: "POST" }
     });
     if (result.error) throw result.error;
     return { previewApprovalId: result.data };
-  });
-
-const modeSchema = z.object({
-  automationId: z.string().uuid(),
-  mode: z.enum(["paused", "shadow", "test_only", "live"]),
-  confirmation: z.string().optional(),
-});
-
-export const setConciergeAutomationMode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => modeSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const db = await adminDb(context.userId);
-    const result = await db.rpc("promote_concierge_automation", {
-      p_current_config_id: data.automationId,
-      p_actor_id: context.userId,
-      p_mode: data.mode,
-      p_confirmation: data.confirmation ?? null,
-    });
-    if (result.error) throw result.error;
-    return Array.isArray(result.data) ? result.data[0] : result.data;
-  });
-
-const channelSchema = z.object({
-  channel: z.enum(["push", "email", "whatsapp"]),
-  enabled: z.boolean(),
-});
-
-export const setConciergeChannelEnabled = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => channelSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const db = await adminDb(context.userId);
-    const studio = await db.from("studios").select("id").eq("slug", "cloud-core").single();
-    if (studio.error) throw studio.error;
-    const result = await db
-      .from("concierge_channel_controls")
-      .update({
-        enabled: data.enabled,
-        updated_by: context.userId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("studio_id", studio.data.id)
-      .eq("channel", data.channel)
-      .select("channel,enabled")
-      .single();
-    if (result.error) throw result.error;
-    const audit = await db.from("admin_activity_log").insert({
-      actor_id: context.userId,
-      action: "concierge.channel_control_changed",
-      entity_type: "concierge_channel_control",
-      metadata: { channel: data.channel, enabled: data.enabled },
-    });
-    if (audit.error) throw audit.error;
-    return result.data;
   });
 
 const simulatorSchema = z.object({

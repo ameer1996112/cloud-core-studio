@@ -1,34 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Bot, CheckCircle2, RefreshCw, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AdminSection } from "@/components/admin-shared";
-import { ConciergeTemplateLibrary } from "@/components/admin/ConciergeTemplateLibrary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  approveConciergeDeliveryPreview,
-  approveConciergeTemplates,
-  getConciergeCenter,
-  selectConciergeDeliveryVersion,
-  setConciergeAutomationMode,
-  setConciergeChannelEnabled,
-  simulateConciergeDecision,
-} from "@/lib/conciergeAdmin.functions";
-import type {
-  ConciergeAdminTemplate,
-  ConciergeWhatsappDeployment,
-} from "@/lib/conciergeTemplateAdmin";
-import type {
-  ConciergeDeliverySelectionRow,
-  ConciergeDeliveryVersionRow,
-} from "@/lib/conciergeDeliverySelection";
+import { getConciergeCenter, simulateConciergeDecision } from "@/lib/conciergeAdmin.functions";
 import type { Lang } from "@/lib/i18n";
 
-type JourneyMode = "paused" | "shadow" | "test_only" | "live";
-type MutableChannel = "push" | "email" | "whatsapp";
+type JourneyStatus = "inactive" | "partial" | "live";
 
 const COPY = {
   en: {
@@ -45,14 +27,15 @@ const COPY = {
     shadow: "Shadow evaluations",
     suppressed: "Suppressions",
     channels: "Delivery channels",
-    channelsHint: "These controls affect Concierge automation only, not the studio inbox.",
+    channelsHint: "Channels currently used by the Unified Messaging production engine.",
     durable: "Always available",
     enabled: "Enabled",
     disabled: "Disabled",
     enable: "Enable",
     disable: "Disable",
     journeys: "Automated journeys",
-    journeyHint: "Start in shadow, validate in test-only, then explicitly promote to live.",
+    journeyHint:
+      "Production status comes from the single Unified Messaging engine. The parallel Concierge dispatcher remains safely disabled.",
     simulator: "Decision simulator",
     simulatorHint: "No message is sent and no frequency reservation is created.",
     recipient: "Preview recipient identifier",
@@ -63,13 +46,10 @@ const COPY = {
     retry: "Try again",
     live: "live",
     policy: "Policy",
-    updateSuccess: "Concierge journey updated",
-    channelSuccess: "Concierge channel updated",
     simulationError: "Simulation failed",
-    livePrompt: 'Type "ENABLE LIVE CONCIERGE" to continue',
     outbox: "Outbox",
     switches: "Kill switches",
-    rollout: "Shadow → test → live",
+    rollout: "Unified production engine",
     preview: "Safe preview",
     templates: "Templates",
     approveTemplates: "Approve template library",
@@ -106,14 +86,15 @@ const COPY = {
     shadow: "בדיקות צל",
     suppressed: "הודעות שנעצרו",
     channels: "ערוצי מסירה",
-    channelsHint: "הבקרות משפיעות רק על אוטומציות הקונסיירז׳, לא על תיבת השיחות.",
+    channelsHint: "הערוצים שנמצאים כעת בשימוש של מנוע Unified Messaging בייצור.",
     durable: "זמין תמיד",
     enabled: "פעיל",
     disabled: "כבוי",
     enable: "הפעלה",
     disable: "כיבוי",
     journeys: "מסעות אוטומטיים",
-    journeyHint: "מתחילים במצב צל, בודקים במצב ניסוי ורק אז מאשרים הפעלה חיה.",
+    journeyHint:
+      "מצב הייצור מגיע ממנוע Unified Messaging היחיד. מנוע הקונסיירז׳ המקביל נשאר כבוי בבטחה.",
     simulator: "סימולטור החלטות",
     simulatorHint: "לא נשלחת הודעה ולא נוצרת שמירת תדירות.",
     recipient: "מזהה נמען לתצוגה מקדימה",
@@ -124,13 +105,10 @@ const COPY = {
     retry: "ניסיון נוסף",
     live: "פעילים",
     policy: "מדיניות",
-    updateSuccess: "מסע הקונסיירז׳ עודכן",
-    channelSuccess: "ערוץ הקונסיירז׳ עודכן",
     simulationError: "הסימולציה נכשלה",
-    livePrompt: 'כדי להמשיך, הקלידו "ENABLE LIVE CONCIERGE"',
     outbox: "תור שליחה",
     switches: "מתגי חירום",
-    rollout: "צל ← ניסוי ← חי",
+    rollout: "מנוע ייצור מאוחד",
     preview: "תצוגה בטוחה",
     templates: "תבניות",
     approveTemplates: "אישור ספריית התבניות",
@@ -166,14 +144,15 @@ const COPY = {
     shadow: "تقييمات الظل",
     suppressed: "رسائل موقوفة",
     channels: "قنوات الإرسال",
-    channelsHint: "تؤثر هذه الضوابط على أتمتة الكونسيرج فقط، وليس صندوق المحادثات.",
+    channelsHint: "القنوات المستخدمة حالياً في محرك Unified Messaging للإنتاج.",
     durable: "متاح دائماً",
     enabled: "مفعّل",
     disabled: "متوقف",
     enable: "تفعيل",
     disable: "إيقاف",
     journeys: "الرحلات الآلية",
-    journeyHint: "ابدئي بوضع الظل، تحققي في وضع الاختبار، ثم فعّلي المباشر صراحةً.",
+    journeyHint:
+      "تعرض الحالة من محرك Unified Messaging الوحيد. يبقى محرك الكونسيرج الموازي متوقفاً بأمان.",
     simulator: "محاكي القرارات",
     simulatorHint: "لن تُرسل رسالة ولن يتم إنشاء حجز للتكرار.",
     recipient: "معرّف المستلم للمعاينة",
@@ -184,13 +163,10 @@ const COPY = {
     retry: "إعادة المحاولة",
     live: "مباشر",
     policy: "السياسة",
-    updateSuccess: "تم تحديث رحلة الكونسيرج",
-    channelSuccess: "تم تحديث قناة الكونسيرج",
     simulationError: "فشلت المحاكاة",
-    livePrompt: 'للمتابعة، اكتبي "ENABLE LIVE CONCIERGE"',
     outbox: "قائمة الإرسال",
     switches: "مفاتيح الإيقاف",
-    rollout: "ظل ← اختبار ← مباشر",
+    rollout: "محرك إنتاج موحّد",
     preview: "معاينة آمنة",
     templates: "القوالب",
     approveTemplates: "اعتماد مكتبة القوالب",
@@ -216,90 +192,13 @@ const COPY = {
 
 export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const copy = COPY[lang] ?? COPY.en;
-  const queryClient = useQueryClient();
   const getCenter = useServerFn(getConciergeCenter);
-  const setMode = useServerFn(setConciergeAutomationMode);
-  const setChannel = useServerFn(setConciergeChannelEnabled);
-  const approveTemplates = useServerFn(approveConciergeTemplates);
-  const approveDeliveryPreview = useServerFn(approveConciergeDeliveryPreview);
-  const selectDeliveryVersion = useServerFn(selectConciergeDeliveryVersion);
   const simulate = useServerFn(simulateConciergeDecision);
   const [recipientId, setRecipientId] = useState("preview-recipient");
   const [simulation, setSimulation] = useState<Record<string, unknown> | null>(null);
-  const [activeView, setActiveView] = useState<"overview" | "templates">("overview");
   const center = useQuery({
     queryKey: ["concierge-center"],
     queryFn: () => getCenter(),
-  });
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["concierge-center"] });
-  const modeMutation = useMutation({
-    mutationFn: (input: { automationId: string; mode: JourneyMode; confirmation?: string }) =>
-      setMode({ data: input }),
-    onSuccess: async () => {
-      await refresh();
-      toast.success(copy.updateSuccess);
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const channelMutation = useMutation({
-    mutationFn: (input: { channel: MutableChannel; enabled: boolean }) =>
-      setChannel({ data: input }),
-    onSuccess: async () => {
-      await refresh();
-      toast.success(copy.channelSuccess);
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const templateMutation = useMutation({
-    mutationFn: (template: ConciergeAdminTemplate) => {
-      const confirmation = `APPROVE SOURCE ${template.id} ${template.content_hash}`;
-      return approveTemplates({
-        data: {
-          templateId: template.id,
-          contentHash: template.content_hash,
-          confirmation,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await refresh();
-      toast.success(copy.templateSuccess);
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const previewApprovalMutation = useMutation({
-    mutationFn: (candidate: ConciergeDeliveryVersionRow) => {
-      const confirmation = `APPROVE PREVIEW ${candidate.id} ${candidate.presentation_hash}`;
-      return approveDeliveryPreview({
-        data: {
-          deliveryVersionId: candidate.id,
-          sourceContentHash: candidate.source_content_hash,
-          presentationHash: candidate.presentation_hash,
-          confirmation,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await refresh();
-      toast.success("Exact Concierge preview approved");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const deliverySelectionMutation = useMutation({
-    mutationFn: (input: {
-      templateKey: string;
-      channel: "in_app" | "push" | "email" | "whatsapp";
-      locale: "ar" | "he" | "en";
-      deliveryMode: "test_only" | "live";
-      deliveryVersionId: string;
-      presentationHash: string;
-      confirmation: string;
-    }) => selectDeliveryVersion({ data: input }),
-    onSuccess: async () => {
-      await refresh();
-      toast.success("Concierge delivery version selected");
-    },
-    onError: (error) => toast.error(error.message),
   });
   const simulationMutation = useMutation({
     mutationFn: () =>
@@ -336,19 +235,10 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
     (total, value) => total + Number(value),
     0,
   );
-  const liveCount = (center.data?.automations ?? []).filter(
-    (automation: { mode: string }) => automation.mode === "live",
+  const liveCount = (center.data?.productionJourneys ?? []).filter(
+    (journey: { status: string }) => journey.status === "live",
   ).length;
   const unhealthy = (center.data?.queueHealth.deadLettered ?? 0) > 0;
-  const templates = (center.data?.templates ?? []) as ConciergeAdminTemplate[];
-  const whatsappDeployments = (center.data?.whatsappDeployments ??
-    []) as ConciergeWhatsappDeployment[];
-  const whatsappExpectedContentHashes = (center.data?.whatsappExpectedContentHashes ??
-    {}) as Record<string, string>;
-  const deliveryVersions = (center.data?.deliveryVersions ?? []) as ConciergeDeliveryVersionRow[];
-  const deliverySelections = (center.data?.deliverySelections ??
-    []) as ConciergeDeliverySelectionRow[];
-  const promotionEligibleVersionIds = (center.data?.promotionEligibleVersionIds ?? []) as string[];
 
   return (
     <div className="space-y-7">
@@ -384,239 +274,144 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
           <Badge variant={liveCount > 0 ? "destructive" : "secondary"}>
             {liveCount} {copy.live}
           </Badge>
-          <Badge
-            variant={center.data?.templateHealth.awaitingApproval ? "destructive" : "secondary"}
-          >
-            {center.data?.templateHealth.approved ?? 0}/{center.data?.templateHealth.total ?? 0}{" "}
-            {copy.templates}
-          </Badge>
         </div>
       </section>
 
-      <div className="flex gap-2" role="tablist" aria-label={copy.title}>
-        {(["overview", "templates"] as const).map((view) => (
-          <Button
-            key={view}
-            role="tab"
-            aria-selected={activeView === view}
-            variant={activeView === view ? "default" : "outline"}
-            onClick={() => setActiveView(view)}
-          >
-            {view === "overview" ? copy.overview : copy.templates}
-          </Button>
-        ))}
-      </div>
+      <>
+        <AdminSection title={copy.attention} eyebrow="Concierge">
+          <div className="space-y-2">
+            {(center.data?.attention ?? []).map(
+              (item: { id: string; title: string; item_type: string; severity: string }) => (
+                <div
+                  className="editorial-panel flex items-center justify-between gap-4 p-4"
+                  key={item.id}
+                >
+                  <div>
+                    <p className="font-medium text-navy">{item.title}</p>
+                    <p className="mt-1 text-xs text-slate">{item.item_type.replaceAll("_", " ")}</p>
+                  </div>
+                  <Badge variant={item.severity === "urgent" ? "destructive" : "secondary"}>
+                    {item.severity}
+                  </Badge>
+                </div>
+              ),
+            )}
+            {center.data?.attention.length === 0 && (
+              <div className="editorial-panel flex items-center gap-3 p-5 text-slate">
+                <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+                {copy.noAttention}
+              </div>
+            )}
+          </div>
+        </AdminSection>
 
-      {activeView === "overview" && (
-        <>
-          <AdminSection title={copy.attention} eyebrow="Concierge">
-            <div className="space-y-2">
-              {(center.data?.attention ?? []).map(
-                (item: { id: string; title: string; item_type: string; severity: string }) => (
-                  <div
-                    className="editorial-panel flex items-center justify-between gap-4 p-4"
-                    key={item.id}
-                  >
+        <AdminSection title={copy.health} eyebrow={copy.outbox}>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Metric label={copy.pending} value={center.data?.queueHealth.pending ?? 0} />
+            <Metric label={copy.dead} value={center.data?.queueHealth.deadLettered ?? 0} alert />
+            <Metric label={copy.shadow} value={center.data?.shadowSummary.evaluated ?? 0} />
+            <Metric label={copy.suppressed} value={suppressionCount} />
+          </div>
+          {center.data?.queueHealth.oldestPendingAt && (
+            <p className="text-xs text-slate">
+              {copy.oldest}:{" "}
+              <span dir="ltr">
+                {new Date(center.data.queueHealth.oldestPendingAt).toLocaleString()}
+              </span>
+            </p>
+          )}
+        </AdminSection>
+
+        <AdminSection title={copy.channels} eyebrow={copy.switches}>
+          <p className="mb-4 text-sm text-slate">{copy.channelsHint}</p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {(center.data?.channels ?? []).map(
+              (channel: { channel: string; status: JourneyStatus }) => (
+                <div
+                  className="editorial-panel flex items-center justify-between gap-3 p-4"
+                  key={channel.channel}
+                >
+                  <div>
+                    <p className="font-medium capitalize text-navy">
+                      {channel.channel.replace("_", " ")}
+                    </p>
+                    <p className="mt-1 text-xs capitalize text-slate">{channel.status}</p>
+                  </div>
+                  <Badge variant={channel.status === "live" ? "default" : "secondary"}>
+                    {channel.status === "live" ? copy.enabled : channel.status}
+                  </Badge>
+                </div>
+              ),
+            )}
+          </div>
+        </AdminSection>
+
+        <AdminSection title={copy.journeys} eyebrow={copy.rollout}>
+          <p className="mb-4 text-sm text-slate">{copy.journeyHint}</p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {(center.data?.productionJourneys ?? []).map(
+              (journey: {
+                journeyType: string;
+                status: JourneyStatus;
+                liveEvents: number;
+                totalEvents: number;
+                channels: string[];
+              }) => (
+                <article className="editorial-panel space-y-4 p-5" key={journey.journeyType}>
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium text-navy">{item.title}</p>
-                      <p className="mt-1 text-xs text-slate">
-                        {item.item_type.replaceAll("_", " ")}
+                      <h3 className="font-serif text-xl capitalize text-navy">
+                        {journey.journeyType.replaceAll("_", " ")}
+                      </h3>
+                      <p className="text-xs text-slate">
+                        {journey.liveEvents}/{journey.totalEvents} {copy.live}
                       </p>
                     </div>
-                    <Badge variant={item.severity === "urgent" ? "destructive" : "secondary"}>
-                      {item.severity}
+                    <Badge variant={journey.status === "live" ? "default" : "secondary"}>
+                      {journey.status}
                     </Badge>
                   </div>
-                ),
-              )}
-              {center.data?.attention.length === 0 && (
-                <div className="editorial-panel flex items-center gap-3 p-5 text-slate">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-                  {copy.noAttention}
-                </div>
-              )}
-            </div>
-          </AdminSection>
-
-          <AdminSection title={copy.health} eyebrow={copy.outbox}>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <Metric label={copy.pending} value={center.data?.queueHealth.pending ?? 0} />
-              <Metric label={copy.dead} value={center.data?.queueHealth.deadLettered ?? 0} alert />
-              <Metric label={copy.shadow} value={center.data?.shadowSummary.evaluated ?? 0} />
-              <Metric label={copy.suppressed} value={suppressionCount} />
-            </div>
-            {center.data?.queueHealth.oldestPendingAt && (
-              <p className="text-xs text-slate">
-                {copy.oldest}:{" "}
-                <span dir="ltr">
-                  {new Date(center.data.queueHealth.oldestPendingAt).toLocaleString()}
-                </span>
-              </p>
-            )}
-          </AdminSection>
-
-          <AdminSection title={copy.channels} eyebrow={copy.switches}>
-            <p className="mb-4 text-sm text-slate">{copy.channelsHint}</p>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {(center.data?.channels ?? []).map(
-                (channel: { channel: string; enabled: boolean }) => (
-                  <div
-                    className="editorial-panel flex items-center justify-between gap-3 p-4"
-                    key={channel.channel}
-                  >
-                    <div>
-                      <p className="font-medium capitalize text-navy">
-                        {channel.channel.replace("_", " ")}
-                      </p>
-                      <p className="mt-1 text-xs text-slate">
-                        {channel.channel === "in_app"
-                          ? copy.durable
-                          : channel.enabled
-                            ? copy.enabled
-                            : copy.disabled}
-                      </p>
-                    </div>
-                    {channel.channel === "in_app" ? (
-                      <Badge>{copy.durable}</Badge>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant={channel.enabled ? "destructive" : "outline"}
-                        disabled={channelMutation.isPending}
-                        onClick={() =>
-                          channelMutation.mutate({
-                            channel: channel.channel as MutableChannel,
-                            enabled: !channel.enabled,
-                          })
-                        }
-                      >
-                        {channel.enabled ? copy.disable : copy.enable}
-                      </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {journey.channels.map((channel) => (
+                      <Badge key={channel} variant="outline">
+                        {channel.replace("_", " ")}
+                      </Badge>
+                    ))}
+                    {journey.channels.length === 0 && (
+                      <span className="text-xs text-slate">Not migrated to Unified Messaging</span>
                     )}
                   </div>
-                ),
-              )}
-            </div>
-          </AdminSection>
+                </article>
+              ),
+            )}
+          </div>
+        </AdminSection>
 
-          <AdminSection title={copy.journeys} eyebrow={copy.rollout}>
-            <p className="mb-4 text-sm text-slate">{copy.journeyHint}</p>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {(center.data?.automations ?? []).map(
-                (automation: {
-                  id: string;
-                  journey_type: string;
-                  version: number;
-                  mode: JourneyMode;
-                }) => (
-                  <article className="editorial-panel space-y-4 p-5" key={automation.id}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-serif text-xl capitalize text-navy">
-                          {automation.journey_type.replaceAll("_", " ")}
-                        </h3>
-                        <p className="text-xs text-slate">
-                          {copy.policy} v{automation.version}
-                        </p>
-                      </div>
-                      <Badge>{automation.mode.replace("_", " ")}</Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(["paused", "shadow", "test_only", "live"] as const).map((mode) => (
-                        <Button
-                          key={mode}
-                          size="sm"
-                          variant={automation.mode === mode ? "default" : "outline"}
-                          disabled={modeMutation.isPending}
-                          onClick={() => {
-                            const confirmation =
-                              mode === "live"
-                                ? (window.prompt(copy.livePrompt) ?? undefined)
-                                : undefined;
-                            if (mode === "live" && confirmation !== "ENABLE LIVE CONCIERGE") return;
-                            modeMutation.mutate({
-                              automationId: automation.id,
-                              mode,
-                              confirmation,
-                            });
-                          }}
-                        >
-                          {mode.replace("_", " ")}
-                        </Button>
-                      ))}
-                    </div>
-                  </article>
-                ),
-              )}
-            </div>
-          </AdminSection>
-
-          <AdminSection title={copy.simulator} eyebrow={copy.preview}>
-            <p className="mb-4 text-sm text-slate">{copy.simulatorHint}</p>
-            <div className="editorial-panel grid gap-4 p-5 md:grid-cols-[1fr_auto]">
-              <Input
-                aria-label={copy.recipient}
-                value={recipientId}
-                onChange={(event) => setRecipientId(event.target.value)}
-              />
-              <Button
-                disabled={simulationMutation.isPending || recipientId.trim().length === 0}
-                onClick={() => simulationMutation.mutate()}
+        <AdminSection title={copy.simulator} eyebrow={copy.preview}>
+          <p className="mb-4 text-sm text-slate">{copy.simulatorHint}</p>
+          <div className="editorial-panel grid gap-4 p-5 md:grid-cols-[1fr_auto]">
+            <Input
+              aria-label={copy.recipient}
+              value={recipientId}
+              onChange={(event) => setRecipientId(event.target.value)}
+            />
+            <Button
+              disabled={simulationMutation.isPending || recipientId.trim().length === 0}
+              onClick={() => simulationMutation.mutate()}
+            >
+              {copy.simulate}
+            </Button>
+            {simulation && (
+              <pre
+                dir="ltr"
+                className="overflow-auto rounded-lg bg-navy p-4 text-left text-xs text-ivory md:col-span-2"
               >
-                {copy.simulate}
-              </Button>
-              {simulation && (
-                <pre
-                  dir="ltr"
-                  className="overflow-auto rounded-lg bg-navy p-4 text-left text-xs text-ivory md:col-span-2"
-                >
-                  {JSON.stringify(simulation, null, 2)}
-                </pre>
-              )}
-            </div>
-          </AdminSection>
-        </>
-      )}
-
-      {activeView === "templates" && (
-        <ConciergeTemplateLibrary
-          templates={templates}
-          whatsappDeployments={whatsappDeployments}
-          whatsappExpectedContentHashes={whatsappExpectedContentHashes}
-          deliveryVersions={deliveryVersions}
-          deliverySelections={deliverySelections}
-          promotionEligibleVersionIds={promotionEligibleVersionIds}
-          selectionPending={
-            deliverySelectionMutation.isPending ||
-            templateMutation.isPending ||
-            previewApprovalMutation.isPending
-          }
-          onApproveSource={(template) => {
-            const confirmation = `APPROVE SOURCE ${template.id} ${template.content_hash}`;
-            if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
-            templateMutation.mutate(template);
-          }}
-          onApprovePreview={(_template, candidate) => {
-            const confirmation = `APPROVE PREVIEW ${candidate.id} ${candidate.presentation_hash}`;
-            if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
-            previewApprovalMutation.mutate(candidate);
-          }}
-          onSelectVersion={(template, deliveryMode, candidate) => {
-            const confirmation = `${deliveryMode === "live" ? "SELECT LIVE" : "SELECT TEST"} ${candidate.id} ${candidate.presentation_hash}`;
-            if (window.prompt(`Type "${confirmation}" to continue`) !== confirmation) return;
-            deliverySelectionMutation.mutate({
-              templateKey: template.template_key,
-              channel: template.channel,
-              locale: template.locale,
-              deliveryMode,
-              deliveryVersionId: candidate.id,
-              presentationHash: candidate.presentation_hash,
-              confirmation,
-            });
-          }}
-          copy={copy}
-        />
-      )}
+                {JSON.stringify(simulation, null, 2)}
+              </pre>
+            )}
+          </div>
+        </AdminSection>
+      </>
     </div>
   );
 }
