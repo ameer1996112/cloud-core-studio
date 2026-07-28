@@ -266,9 +266,14 @@ separate from the retained 15-minute legacy notification job.
 Configure the canonical job with the exact deployed application image:
 
 ```sh
-UNIFIED_MESSAGING_JOB_IMAGE="REGION-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE:TAG" \
+UNIFIED_MESSAGING_JOB_IMAGE="REGION-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE@sha256:DIGEST" \
   scripts/configure-unified-messaging-cloud-run.sh
 ```
+
+`UNIFIED_MESSAGING_JOB_IMAGE` must use the deployed image's immutable
+`@sha256:...` digest. Do not configure this job with a mutable or expiring tag:
+Cloud Scheduler can continue firing while every execution fails before startup
+after that tag is removed.
 
 The configuration script creates or updates the scheduler in a paused state by default. Verify the
 job, service flags, database write gate, queue counts, and allowlist before resuming it. Set

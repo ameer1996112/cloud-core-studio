@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Required: UNIFIED_MESSAGING_JOB_IMAGE, for example:
-# me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio:20260721120000
+# Required: UNIFIED_MESSAGING_JOB_IMAGE pinned to an immutable digest, for example:
+# me-west1-docker.pkg.dev/cloudandcorestudio/cloud-core/cloud-core-studio@sha256:abc123...
 PROJECT_ID="${GCP_PROJECT_ID:-cloudandcorestudio}"
 REGION="${GCP_REGION:-me-west1}"
 APP_SERVICE="${CLOUD_RUN_SERVICE:-cloud-core-studio}"
@@ -14,6 +14,12 @@ JOB_SERVICE_ACCOUNT_NAME="${NOTIFICATION_JOB_SERVICE_ACCOUNT:-notification-sweep
 SCHEDULER_SERVICE_ACCOUNT_NAME="${NOTIFICATION_SCHEDULER_SERVICE_ACCOUNT:-notification-scheduler}"
 START_PAUSED="${UNIFIED_MESSAGING_START_PAUSED:-true}"
 IMAGE="${UNIFIED_MESSAGING_JOB_IMAGE:?Set UNIFIED_MESSAGING_JOB_IMAGE to the deployed application image}"
+
+if [[ "$IMAGE" != *@sha256:* ]]; then
+  echo "UNIFIED_MESSAGING_JOB_IMAGE must use an immutable @sha256: digest." >&2
+  echo "Use an immutable @sha256: digest so scheduled sweeps cannot lose a deleted tag." >&2
+  exit 1
+fi
 
 gcloud services enable run.googleapis.com cloudscheduler.googleapis.com secretmanager.googleapis.com \
   --project "$PROJECT_ID"
