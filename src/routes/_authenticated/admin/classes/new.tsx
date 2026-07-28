@@ -24,6 +24,7 @@ import {
   Users,
 } from "lucide-react";
 import { studioDateTimeInputToIso } from "@/lib/studio-time";
+import { getClassFormDisabledReason } from "@/lib/adminClassFormValidation";
 
 type SessionFormState = {
   id?: string;
@@ -192,12 +193,12 @@ export function SessionForm({
   const instructorDisplay = selectedInstructor
     ? localizedInstructorName(selectedInstructor.name, lang)
     : t("admin.classes.selectInstructor");
-  const disabledReason = getDisabledReason({
+  const disabledReason = getClassFormDisabledReason({
+    mode,
     activeRooms,
     activePrograms,
     activeInstructors,
     form,
-    hasSelectedTime,
     t,
   });
   const canSubmit = !disabledReason;
@@ -231,6 +232,28 @@ export function SessionForm({
     if (!canSubmit) return;
     if (mode === "edit" && hasBookings && !confirm(t("admin.classes.saveBookedConfirm"))) return;
     onSubmit();
+  }
+
+  if (mode === "edit") {
+    return (
+      <PremiumClassEditor
+        form={form}
+        setForm={setForm}
+        activeRooms={activeRooms}
+        activePrograms={activePrograms}
+        activeInstructors={activeInstructors}
+        selectedProgram={selectedProgram}
+        selectedInstructor={selectedInstructor}
+        roomDisplay={roomDisplay}
+        instructorDisplay={instructorDisplay}
+        disabledReason={disabledReason}
+        isDirty={isDirty}
+        isPending={isPending}
+        hasBookings={hasBookings}
+        onCancel={onCancel}
+        onSubmit={submit}
+      />
+    );
   }
 
   return (
@@ -623,6 +646,325 @@ export function SessionForm({
   );
 }
 
+function PremiumClassEditor({
+  form,
+  setForm,
+  activeRooms,
+  activePrograms,
+  activeInstructors,
+  selectedProgram,
+  selectedInstructor,
+  roomDisplay,
+  instructorDisplay,
+  disabledReason,
+  isDirty,
+  isPending,
+  hasBookings,
+  onCancel,
+  onSubmit,
+}: {
+  form: SessionFormState;
+  setForm: (value: SessionFormState | ((current: SessionFormState) => SessionFormState)) => void;
+  activeRooms: any[];
+  activePrograms: any[];
+  activeInstructors: any[];
+  selectedProgram?: any;
+  selectedInstructor?: any;
+  roomDisplay: string;
+  instructorDisplay: string;
+  disabledReason: string | null;
+  isDirty: boolean;
+  isPending: boolean;
+  hasBookings: boolean;
+  onCancel: () => void;
+  onSubmit: () => void;
+}) {
+  const { t, lang } = useI18n();
+  const [showDetails, setShowDetails] = useState(false);
+  const [datePart = "", timePart = "00:00"] = form.starts_at.split("T");
+  const [hour = "00", minute = "00"] = timePart.split(":");
+  const standardHours = Array.from({ length: 18 }, (_, index) =>
+    String(index + 5).padStart(2, "0"),
+  );
+  const hours = standardHours.includes(hour)
+    ? standardHours
+    : [...standardHours, hour].sort((a, b) => Number(a) - Number(b));
+  const standardMinutes = ["00", "15", "30", "45"];
+  const minutes = standardMinutes.includes(minute)
+    ? standardMinutes
+    : [...standardMinutes, minute].sort((a, b) => Number(a) - Number(b));
+  const hasLegacyTemplate = !form.program_type_id;
+
+  return (
+    <form
+      className="mx-auto w-full max-w-2xl space-y-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <header className="rounded-3xl border border-gold/25 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(247,241,231,0.82))] p-5 shadow-[0_18px_50px_rgba(11,29,58,0.07)] sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="text-start">
+            <p className="eyebrow">{t("admin.classes.quickEdit")}</p>
+            <h2 className="mt-2 font-display text-3xl font-light text-navy" dir="auto">
+              <bdi>{form.title}</bdi>
+            </h2>
+            <p className="mt-2 text-sm text-slate">
+              {hasBookings
+                ? t("admin.classes.bookedChangeNotice")
+                : t("admin.classes.quickEditHelp")}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {hasLegacyTemplate ? (
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                {t("admin.classes.legacyClass")}
+              </span>
+            ) : (
+              <span className="rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-xs font-semibold text-navy">
+                {selectedProgram ? programName(selectedProgram, lang) : form.title}
+              </span>
+            )}
+            <span className="rounded-full border border-navy/10 bg-white px-3 py-1 text-xs font-semibold text-navy">
+              {labelForStatus(form.status ?? "scheduled")}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <section className="rounded-3xl border border-gold/20 bg-white p-5 shadow-[0_12px_35px_rgba(11,29,58,0.05)] sm:p-6">
+        <div className="mb-5 flex items-center gap-3 text-start">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/25 bg-gold/8">
+            <Clock3 className="h-4 w-4 text-gold" />
+          </span>
+          <div>
+            <h3 className="font-display text-xl text-navy">{t("admin.classes.dateAndTime")}</h3>
+            <p className="text-xs text-slate">{t("admin.classes.dateAndTimeHelp")}</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+          <PremiumField label={t("admin.classes.date")}>
+            <input
+              type="date"
+              value={datePart}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  starts_at: `${event.target.value}T${hour}:${minute}`,
+                }))
+              }
+              className="session-input"
+            />
+          </PremiumField>
+          <PremiumField label={t("admin.classes.time")}>
+            <div
+              className="flex min-h-12 items-center gap-2 rounded-xl border border-gold/20 bg-ivory/35 px-3"
+              dir="ltr"
+            >
+              <select
+                aria-label={t("admin.classes.hour")}
+                value={hour}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    starts_at: `${datePart}T${event.target.value}:${minute}`,
+                  }))
+                }
+                className="bg-transparent px-2 py-3 text-base font-semibold text-navy outline-none"
+              >
+                {hours.map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </select>
+              <span className="font-semibold text-gold">:</span>
+              <select
+                aria-label={t("admin.classes.minute")}
+                value={minute}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    starts_at: `${datePart}T${hour}:${event.target.value}`,
+                  }))
+                }
+                className="bg-transparent px-2 py-3 text-base font-semibold text-navy outline-none"
+              >
+                {minutes.map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </select>
+            </div>
+          </PremiumField>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-gold/20 bg-white p-5 shadow-[0_12px_35px_rgba(11,29,58,0.05)] sm:p-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <PremiumField label={t("admin.classes.durationMin")}>
+            <NumberInput
+              value={form.duration_minutes}
+              min={1}
+              onChange={(value) => setForm((current) => ({ ...current, duration_minutes: value }))}
+            />
+          </PremiumField>
+          <PremiumField label={t("admin.classes.capacityPlaces")}>
+            <NumberInput
+              value={form.capacity}
+              min={1}
+              onChange={(value) => setForm((current) => ({ ...current, capacity: value }))}
+            />
+          </PremiumField>
+          <PremiumField label={t("admin.classes.cancelWindow")}>
+            <NumberInput
+              value={form.cancellation_window_hours}
+              min={0}
+              onChange={(value) =>
+                setForm((current) => ({ ...current, cancellation_window_hours: value }))
+              }
+            />
+          </PremiumField>
+        </div>
+
+        <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-gold/15 bg-ivory/30 p-4 text-start">
+          <span>
+            <span className="block text-sm font-semibold text-navy">
+              {t("admin.classes.memberVisible")}
+            </span>
+            <span className="mt-1 block text-xs text-slate">
+              {form.member_visible
+                ? t("admin.classes.memberVisibleHelp")
+                : t("admin.classes.staffOnlyHelp")}
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={form.member_visible}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, member_visible: event.target.checked }))
+            }
+            className="h-5 w-5 accent-navy"
+          />
+        </label>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-gold/20 bg-white">
+        <button
+          type="button"
+          onClick={() => setShowDetails((current) => !current)}
+          className="flex w-full items-center justify-between p-5 text-start text-sm font-semibold text-navy hover:bg-gold/5"
+        >
+          <span>{t("admin.classes.moreDetails")}</span>
+          <ChevronRight
+            className={`h-4 w-4 text-gold transition-transform ${showDetails ? "rotate-90" : ""}`}
+          />
+        </button>
+        {showDetails && (
+          <div className="space-y-4 border-t border-gold/15 p-5">
+            <PremiumField label={t("admin.classes.title")}>
+              <input
+                value={form.title}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, title: event.target.value }))
+                }
+                className="session-input text-start"
+              />
+            </PremiumField>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <PremiumField label={t("admin.classes.lessonTemplate")}>
+                <PremiumSelect
+                  value={form.program_type_id}
+                  onChange={(value) =>
+                    setForm((current) => ({ ...current, program_type_id: value }))
+                  }
+                >
+                  <option value="">{t("admin.classes.noTemplate")}</option>
+                  {activePrograms.map((program: any) => (
+                    <option key={program.id} value={program.id}>
+                      {programName(program, lang)}
+                    </option>
+                  ))}
+                </PremiumSelect>
+              </PremiumField>
+              <PremiumField label={t("admin.classes.instructor")}>
+                <PremiumSelect
+                  value={form.instructor_id}
+                  onChange={(value) => setForm((current) => ({ ...current, instructor_id: value }))}
+                >
+                  <option value="">{t("common.unassigned")}</option>
+                  {activeInstructors.map((instructor: any) => (
+                    <option key={instructor.id} value={instructor.id}>
+                      {localizedInstructorName(instructor.name, lang)}
+                    </option>
+                  ))}
+                </PremiumSelect>
+              </PremiumField>
+              <PremiumField label={t("admin.classes.location")}>
+                {activeRooms.length > 1 ? (
+                  <PremiumSelect
+                    value={form.room_id}
+                    onChange={(value) => {
+                      const room = activeRooms.find((item: any) => item.id === value);
+                      setForm((current) => ({
+                        ...current,
+                        room_id: value,
+                        room: room?.name ?? current.room,
+                      }));
+                    }}
+                  >
+                    {activeRooms.map((room: any) => (
+                      <option key={room.id} value={room.id}>
+                        {localizedRoomName(room, room.name, lang)}
+                      </option>
+                    ))}
+                  </PremiumSelect>
+                ) : (
+                  <ReadOnlyChip label={t("admin.classes.location")} value={roomDisplay} />
+                )}
+              </PremiumField>
+              <PremiumField label={t("admin.classes.creditCost")}>
+                <NumberInput
+                  value={form.credit_cost}
+                  min={0}
+                  onChange={(value) => setForm((current) => ({ ...current, credit_cost: value }))}
+                />
+              </PremiumField>
+            </div>
+            <p className="text-xs text-slate">
+              {instructorDisplay}
+              {selectedInstructor ? "" : ` · ${t("common.unassigned")}`}
+            </p>
+          </div>
+        )}
+      </section>
+
+      <div className="sticky bottom-4 z-30 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/25 bg-white/95 p-4 shadow-[0_18px_45px_rgba(11,29,58,0.13)] backdrop-blur-md">
+        <div className="text-start">
+          {disabledReason ? (
+            <p className="text-xs font-semibold text-red-600">{disabledReason}</p>
+          ) : (
+            <p className="text-xs font-medium text-slate">
+              {isDirty ? t("admin.classes.unsavedChanges") : t("admin.classes.allChangesSaved")}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={onCancel} className="btn-outline h-11 px-5 text-xs">
+            {t("common.cancel")}
+          </button>
+          <button
+            type="submit"
+            disabled={isPending || !!disabledReason || !isDirty}
+            className="btn-navy h-11 min-w-28 px-6 text-xs hover:btn-navy-hover"
+          >
+            {isPending ? t("common.saving") : t("common.save")}
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
 function ReadOnlyChip({ label, value }: { label: string; value: string }) {
   return (
     <div className="session-readonly-chip">
@@ -850,32 +1192,6 @@ export function serializeClass(form: SessionFormState) {
 
 function programName(program: any, lang: Lang) {
   return localizedProgramName(program, lang) ?? program.name_en ?? program.name ?? "";
-}
-
-function getDisabledReason({
-  activeRooms,
-  activePrograms,
-  activeInstructors,
-  form,
-  hasSelectedTime,
-  t,
-}: {
-  activeRooms: any[];
-  activePrograms: any[];
-  activeInstructors: any[];
-  form: SessionFormState;
-  hasSelectedTime: boolean;
-  t: ReturnType<typeof useI18n>["t"];
-}) {
-  if (activeRooms.length === 0) return t("admin.classes.needMainStudio");
-  if (activePrograms.length === 0) return t("admin.classes.needProgram");
-  if (activeInstructors.length === 0) return t("admin.classes.needInstructor");
-  if (!form.program_type_id) return t("admin.classes.needLessonDateTime");
-  if (!form.title.trim()) return t("admin.classes.needLessonDateTime");
-  if (!hasSelectedTime) return t("admin.classes.needDateTime");
-  if (!form.room_id && !form.room.trim()) return t("admin.classes.needRoomSelection");
-  if (!form.instructor_id) return t("admin.classes.needInstructorSelection");
-  return null;
 }
 
 function energyLabel(value: string, t: ReturnType<typeof useI18n>["t"]) {
