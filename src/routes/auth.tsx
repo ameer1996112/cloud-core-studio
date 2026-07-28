@@ -122,7 +122,11 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { name, ...(trimmedPhone ? { phone: trimmedPhone } : {}) },
+            data: {
+              name,
+              preferred_language: lang,
+              ...(trimmedPhone ? { phone: trimmedPhone } : {}),
+            },
           },
         });
         if (error) throw error;

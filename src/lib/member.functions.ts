@@ -589,6 +589,24 @@ export const updateMyProfile = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const syncMyPreferredLanguage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        preferredLanguage: z.enum(["en", "he", "ar"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("members")
+      .update({ preferred_language: data.preferredLanguage })
+      .eq("id", context.userId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 export const requestMyAccountDeletion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>

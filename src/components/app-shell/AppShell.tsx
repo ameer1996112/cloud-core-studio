@@ -10,6 +10,7 @@ import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
+import { syncMyPreferredLanguage } from "@/lib/member.functions";
 
 type Props = {
   role: AppRole;
@@ -44,6 +45,13 @@ export function AppShell({ role, children }: Props) {
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (role !== "member") return;
+    void syncMyPreferredLanguage({ data: { preferredLanguage: lang } }).catch((error) => {
+      console.warn("member_language_sync_failed", error);
+    });
+  }, [lang, role]);
 
   const groups = navForRole(role);
   const bottomTabs = bottomTabsForRole(role);
