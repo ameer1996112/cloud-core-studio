@@ -180,6 +180,27 @@ describe("outbox message materialization", () => {
     expect(noPackage.message.actions).toEqual(["choose_package"]);
   });
 
+  test("materializes scheduled Concierge journeys without inventing WhatsApp templates", () => {
+    const weekly = materializeMessagePlan({
+      ...base,
+      eventType: "weekly_schedule",
+      deduplicationKey: "member:member-1:weekly_schedule:2026-W32",
+      variables: { member_name: "נועה", class_count: 8 },
+      preferences: { ...base.preferences, scheduleOpenings: true },
+    });
+    expect(weekly.message.body).toContain("8");
+    expect(weekly.deliveries.map((delivery) => delivery.channel)).toEqual(["in_app", "push"]);
+
+    const daily = materializeMessagePlan({
+      ...base,
+      eventType: "daily_briefing",
+      deduplicationKey: "member:member-1:daily_briefing:2026-08-03",
+      variables: { member_name: "נועה", item_count: 2 },
+    });
+    expect(daily.message.body).toContain("2");
+    expect(daily.deliveries.map((delivery) => delivery.channel)).toEqual(["in_app"]);
+  });
+
   test("creates one channel-neutral message and one idempotent delivery per channel", () => {
     const result = materializeMessagePlan(base);
     expect(result.message).toMatchObject({

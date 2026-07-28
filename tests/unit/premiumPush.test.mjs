@@ -21,6 +21,7 @@ const variables = {
   expiry_date: "31/07/2026",
   renewal_date: "01/08/2026",
   credits_remaining: 2,
+  class_count: 8,
   recommendation_summary: "פילאטיס מזרן ביום ו׳ בשעה 18:00",
   announcement_title: "עדכון מהסטודיו",
   announcement_body: "מחר הסטודיו ייפתח בשעה 09:00.",
@@ -34,7 +35,7 @@ describe("premium push presentation", () => {
       .filter(([, definition]) => definition.channels.includes("push"))
       .map(([eventType]) => eventType);
 
-    expect(pushEvents).toHaveLength(34);
+    expect(pushEvents).toHaveLength(35);
     expect(validatePremiumPushCatalog()).toEqual({ ok: true, errors: [] });
 
     for (const eventType of pushEvents) {

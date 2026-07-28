@@ -22,6 +22,8 @@ const APPROVED_EVENTS = [
   "class_published",
   "class_open_spots",
   "class_recommendation",
+  "weekly_schedule",
+  "daily_briefing",
   "waitlist_joined",
   "waitlist_position_changed",
   "waitlist_spot_available",

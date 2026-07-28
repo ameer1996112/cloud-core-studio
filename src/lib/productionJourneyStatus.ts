@@ -49,7 +49,7 @@ const JOURNEY_EVENTS: Record<ProductionJourneyType, readonly string[]> = {
     "class_location_changed",
     "class_instructor_changed",
   ],
-  daily_briefing: [],
+  daily_briefing: ["daily_briefing"],
   lead_to_trial: ["trial_followup"],
   payment_outcome: [
     "payment_request_received",
@@ -69,7 +69,7 @@ const JOURNEY_EVENTS: Record<ProductionJourneyType, readonly string[]> = {
     "waitlist_offer_expired",
     "waitlist_removed",
   ],
-  weekly_schedule: [],
+  weekly_schedule: ["weekly_schedule"],
 };
 
 function isLive(row: NotificationRolloutRow | undefined) {

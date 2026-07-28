@@ -575,6 +575,19 @@ const PUSH_COPY: Partial<Record<MessageEventType, PushCopyBuilder>> = {
       en: "If you want to continue, we will help find the rhythm and class that suit you.",
     }),
   }),
+  weekly_schedule: (input) => ({
+    title: localized(input.language, {
+      he: "המערכת השבועית מוכנה ✨",
+      ar: "الجدول الأسبوعي جاهز ✨",
+      en: "Your weekly schedule is ready ✨",
+    }),
+    subtitle: "Cloud & Core",
+    body: localized(input.language, {
+      he: `${text(input.variables, "class_count", "השיעורים")} מופיעים בשבעת הימים הקרובים. בחרי את הרגעים שמתאימים לך.`,
+      ar: `${text(input.variables, "class_count", "الحصص")} في الأيام السبعة القادمة. اختاري الأوقات التي تناسبك.`,
+      en: `${text(input.variables, "class_count", "Classes")} are scheduled over the next seven days. Choose the moments that suit you.`,
+    }),
+  }),
   retention_reminder: (input) => ({
     title: localized(input.language, {
       he: "הרגע שלך עדיין כאן",

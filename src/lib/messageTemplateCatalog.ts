@@ -445,6 +445,26 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
       en: "Hi {{1}}, it was lovely meeting you at Cloud & Core. When you are ready, we can help choose your next class.",
     },
   },
+  weekly_schedule: {
+    name: null,
+    parameters: ["member_name", "class_count"],
+    examples: ["נועה", "8"],
+    bodies: {
+      he: "היי {{1}}, במערכת לשבעת הימים הקרובים מופיעים {{2}} שיעורים. אפשר לבחור באפליקציה את הרגעים שמתאימים לך.",
+      ar: "مرحباً {{1}}، يعرض جدول الأيام السبعة القادمة {{2}} حصص. اختاري من التطبيق الأوقات التي تناسبك.",
+      en: "Hi {{1}}, the next seven days include {{2}} scheduled classes. Choose the moments that suit you in the app.",
+    },
+  },
+  daily_briefing: {
+    name: null,
+    parameters: ["member_name", "item_count"],
+    examples: ["נועה", "2"],
+    bodies: {
+      he: "היי {{1}}, מחכים לך היום {{2}} פריטים רלוונטיים במקום אחד. אפשר לעבור עליהם בנחת באפליקציה.",
+      ar: "مرحباً {{1}}، لديك اليوم {{2}} عناصر مهمة مجمعة في مكان واحد. راجعيها بهدوء في التطبيق.",
+      en: "Hi {{1}}, you have {{2}} relevant items together in one place today. Review them calmly in the app.",
+    },
+  },
   retention_reminder: {
     name: "cc_retention_reminder_v2",
     category: "MARKETING",
@@ -526,6 +546,8 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     human_handoff_resolved: "השיחה טופלה",
     urgent_studio_announcement: "עדכון חשוב מהסטודיו",
     trial_followup: "שמחנו לפגוש אותך",
+    weekly_schedule: "המערכת השבועית מוכנה",
+    daily_briefing: "העדכון האישי שלך להיום",
     retention_reminder: "התגעגענו אלייך",
   },
   ar: {
@@ -571,6 +593,8 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     human_handoff_resolved: "اكتملت المحادثة",
     urgent_studio_announcement: "تحديث مهم من الاستوديو",
     trial_followup: "سعدنا بلقائك",
+    weekly_schedule: "الجدول الأسبوعي جاهز",
+    daily_briefing: "تحديثك الشخصي لليوم",
     retention_reminder: "اشتقنا لرؤيتك",
   },
   en: {
@@ -616,6 +640,8 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
     human_handoff_resolved: "Conversation resolved",
     urgent_studio_announcement: "Important studio update",
     trial_followup: "Lovely meeting you",
+    weekly_schedule: "Your weekly schedule is ready",
+    daily_briefing: "Your personal update for today",
     retention_reminder: "We have missed you",
   },
 };

@@ -47,6 +47,13 @@ import { getIsraelNowParts, getPreviousIsraelEvening } from "@/lib/notificationD
 import { notificationCategory, notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import { buildPremiumPushPayload } from "@/lib/premiumPush";
 import {
+  dailyBriefingEligible,
+  jerusalemDayKey,
+  jerusalemWeekKey,
+  nextDayKey,
+} from "@/lib/conciergeScheduledJourneys";
+import { studioDateTimeInputToIso } from "@/lib/studio-time";
+import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
 } from "@/lib/memberNotificationPreferences";
@@ -76,6 +83,20 @@ type DeliveryRow = {
   expires_at: string | null;
   attempt_count: number;
 };
+
+async function fetchAllRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+) {
+  const pageSize = 500;
+  const rows: T[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const result = await page(from, from + pageSize - 1);
+    if (result.error) throw result.error;
+    const next = result.data ?? [];
+    rows.push(...next);
+    if (next.length < pageSize) return rows;
+  }
+}
 
 async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
   if (!delivery.snapshot_id) return false;
@@ -1976,6 +1997,197 @@ async function enqueueClassRecommendations(
   return { eligibleMembers: allowedMembers.length, prepared };
 }
 
+async function enqueueScheduledConciergeJourneys(
+  now: Date,
+  limit: number,
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
+  enabledEvents: ReadonlySet<MessageEventType>,
+) {
+  const db = supabaseAdmin as any;
+  let weeklySchedules = 0;
+  let dailyBriefings = 0;
+
+  if (enabledEvents.has("weekly_schedule")) {
+    const weekKey = jerusalemWeekKey(now);
+    const scheduleEnd = new Date(now.getTime() + 7 * 86_400_000).toISOString();
+    const classes = await db
+      .from("classes")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "scheduled")
+      .eq("member_visible", true)
+      .gte("starts_at", now.toISOString())
+      .lte("starts_at", scheduleEnd);
+    if (classes.error) throw classes.error;
+    const classCount = classes.count ?? 0;
+    if (classCount > 0) {
+      const [preferences, existing, activeMembers] = await Promise.all([
+        fetchAllRows<{ member_id: string }>((from, to) =>
+          db
+            .from("member_notification_preferences")
+            .select("member_id")
+            .eq("schedule_openings_enabled", true)
+            .order("member_id")
+            .range(from, to),
+        ),
+        fetchAllRows<{ member_id: string }>((from, to) =>
+          db
+            .from("message_outbox")
+            .select("member_id")
+            .eq("event_type", "weekly_schedule")
+            .eq("payload->>week_key", weekKey)
+            .order("member_id")
+            .range(from, to),
+        ),
+        fetchAllRows<{ id: string; phone: string | null; email: string | null }>((from, to) =>
+          db
+            .from("members")
+            .select("id,phone,email")
+            .eq("status", "active")
+            .order("id")
+            .range(from, to),
+        ),
+      ]);
+      const alreadyPrepared = new Set(existing.map((row: { member_id: string }) => row.member_id));
+      const optedIn = new Set(preferences.map((row: { member_id: string }) => row.member_id));
+      if (optedIn.size) {
+        for (const member of activeMembers) {
+          if (!optedIn.has(member.id)) continue;
+          if (alreadyPrepared.has(member.id)) continue;
+          if (
+            runtime.mode === "allowlist" &&
+            !runtimeAllowsRolloutRecipient(runtime, [member.id, member.phone, member.email])
+          ) {
+            continue;
+          }
+          const result = await db.from("message_outbox").upsert(
+            {
+              event_type: "weekly_schedule",
+              aggregate_type: "studio_week",
+              aggregate_id: null,
+              member_id: member.id,
+              payload: { class_count: classCount, week_key: weekKey },
+              deduplication_key: `member:${member.id}:weekly_schedule:${weekKey}`,
+              available_at: now.toISOString(),
+              expires_at: scheduleEnd,
+            },
+            { onConflict: "deduplication_key", ignoreDuplicates: true },
+          );
+          if (result.error) throw result.error;
+          weeklySchedules += 1;
+          if (weeklySchedules >= limit) break;
+        }
+      }
+    }
+  }
+
+  if (enabledEvents.has("daily_briefing")) {
+    const dayKey = jerusalemDayKey(now);
+    const dayStart = studioDateTimeInputToIso(`${dayKey}T00:00`);
+    const dayEnd = studioDateTimeInputToIso(`${nextDayKey(dayKey)}T00:00`);
+    const [bookings, waitlist, existing, activeMembers] = await Promise.all([
+      fetchAllRows<{ member_id: string; class_id: string }>((from, to) =>
+        db
+          .from("bookings")
+          .select("member_id,class_id,class:classes!inner(starts_at,status)")
+          .eq("status", "booked")
+          .eq("class.status", "scheduled")
+          .gte("class.starts_at", dayStart)
+          .lt("class.starts_at", dayEnd)
+          .order("id")
+          .range(from, to),
+      ),
+      fetchAllRows<{ member_id: string; class_id: string }>((from, to) =>
+        db
+          .from("waitlist_entries")
+          .select("member_id,class_id,class:classes!inner(starts_at,status)")
+          .in("status", ["waiting", "promoted"])
+          .eq("class.status", "scheduled")
+          .gte("class.starts_at", dayStart)
+          .lt("class.starts_at", dayEnd)
+          .order("id")
+          .range(from, to),
+      ),
+      fetchAllRows<{ member_id: string }>((from, to) =>
+        db
+          .from("message_outbox")
+          .select("member_id")
+          .eq("event_type", "daily_briefing")
+          .eq("payload->>day_key", dayKey)
+          .order("member_id")
+          .range(from, to),
+      ),
+      fetchAllRows<{ id: string; phone: string | null; email: string | null }>((from, to) =>
+        db
+          .from("members")
+          .select("id,phone,email")
+          .eq("status", "active")
+          .order("id")
+          .range(from, to),
+      ),
+    ]);
+    const items = new Map<string, { booked: Set<string>; waitlisted: Set<string> }>();
+    for (const row of bookings) {
+      const memberItems = items.get(row.member_id) ?? {
+        booked: new Set<string>(),
+        waitlisted: new Set<string>(),
+      };
+      memberItems.booked.add(row.class_id);
+      items.set(row.member_id, memberItems);
+    }
+    for (const row of waitlist) {
+      const memberItems = items.get(row.member_id) ?? {
+        booked: new Set<string>(),
+        waitlisted: new Set<string>(),
+      };
+      if (!memberItems.booked.has(row.class_id)) memberItems.waitlisted.add(row.class_id);
+      items.set(row.member_id, memberItems);
+    }
+    const alreadyPrepared = new Set(existing.map((row: { member_id: string }) => row.member_id));
+    const eligible = [...items.entries()]
+      .map(([memberId, memberItems]) => ({
+        memberId,
+        bookingCount: memberItems.booked.size,
+        waitlistCount: memberItems.waitlisted.size,
+      }))
+      .filter((candidate) => dailyBriefingEligible(candidate))
+      .filter((candidate) => !alreadyPrepared.has(candidate.memberId));
+    const memberById = new Map(activeMembers.map((member) => [member.id, member]));
+    for (const count of eligible) {
+      const member = memberById.get(count.memberId);
+      if (!member) continue;
+      if (
+        runtime.mode === "allowlist" &&
+        !runtimeAllowsRolloutRecipient(runtime, [member.id, member.phone, member.email])
+      ) {
+        continue;
+      }
+      const result = await db.from("message_outbox").upsert(
+        {
+          event_type: "daily_briefing",
+          aggregate_type: "member_day",
+          aggregate_id: null,
+          member_id: count.memberId,
+          payload: {
+            item_count: count.bookingCount + count.waitlistCount,
+            booking_count: count.bookingCount,
+            waitlist_count: count.waitlistCount,
+            day_key: dayKey,
+          },
+          deduplication_key: `member:${count.memberId}:daily_briefing:${dayKey}`,
+          available_at: now.toISOString(),
+          expires_at: dayEnd,
+        },
+        { onConflict: "deduplication_key", ignoreDuplicates: true },
+      );
+      if (result.error) throw result.error;
+      dailyBriefings += 1;
+      if (dailyBriefings >= limit) break;
+    }
+  }
+
+  return { weeklySchedules, dailyBriefings };
+}
+
 async function enqueueDueCanonicalEvents(
   now: Date,
   limit: number,
@@ -2124,6 +2336,8 @@ async function enqueueDueCanonicalEvents(
       "trial_followup",
       "retention_reminder",
       "class_recommendation",
+      "weekly_schedule",
+      "daily_briefing",
     ]);
   if (dueRollouts.error) throw dueRollouts.error;
   const enabledDueEvents = new Set(
@@ -2258,6 +2472,12 @@ async function enqueueDueCanonicalEvents(
   const classRecommendations = enabledDueEvents.has("class_recommendation")
     ? await enqueueClassRecommendations(now, limit, runtime)
     : { eligibleMembers: 0, prepared: 0 };
+  const scheduledConcierge = await enqueueScheduledConciergeJourneys(
+    now,
+    limit,
+    runtime,
+    enabledDueEvents,
+  );
   const openClassAlerts = await enqueueOpenClassAlerts(now, limit, runtime);
   return {
     reminders,
@@ -2267,6 +2487,7 @@ async function enqueueDueCanonicalEvents(
     renewalReminders,
     engagementReminders,
     classRecommendations,
+    scheduledConcierge,
     openClassAlerts,
   };
 }

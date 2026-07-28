@@ -80,15 +80,23 @@ describe("deriveProductionJourneyStatus", () => {
     });
   });
 
-  it("reports an unmigrated journey inactive instead of reading the parallel engine mode", () => {
-    const result = deriveProductionJourneyStatus([]);
+  it("treats the published schedule as the weekly customer journey", () => {
+    const result = deriveProductionJourneyStatus([
+      {
+        event_type: "weekly_schedule",
+        enabled: true,
+        allowlist_only: false,
+        copy_reviewed: true,
+        enabled_channels: ["in_app", "push"],
+      },
+    ]);
 
-    expect(result.find((journey) => journey.journeyType === "daily_briefing")).toEqual({
-      journeyType: "daily_briefing",
-      status: "inactive",
-      liveEvents: 0,
-      totalEvents: 0,
-      channels: [],
+    expect(result.find((journey) => journey.journeyType === "weekly_schedule")).toEqual({
+      journeyType: "weekly_schedule",
+      status: "live",
+      liveEvents: 1,
+      totalEvents: 1,
+      channels: ["in_app", "push"],
     });
   });
 
