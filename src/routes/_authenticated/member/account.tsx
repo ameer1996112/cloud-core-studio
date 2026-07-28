@@ -17,6 +17,7 @@ import {
   saveMyPersonalConciergePreference,
   setMyPersonalConciergePause,
 } from "@/lib/personalConcierge.functions";
+import { resolveMemberProfileLanguage } from "@/lib/memberProfileLanguage";
 
 type ProfileForm = {
   name?: string;
@@ -171,7 +172,11 @@ function MemberAccount() {
     form[k] !== undefined ? form[k] : (me?.[k] ?? "");
   const set = <K extends keyof ProfileForm>(k: K, v: NonNullable<ProfileForm[K]>) =>
     setForm((f) => ({ ...f, [k]: v }));
-  const selectedLanguage = (form.preferred_language ?? lang) as Lang;
+  const selectedLanguage = resolveMemberProfileLanguage(
+    form.preferred_language,
+    me?.preferred_language,
+    lang,
+  );
 
   function setLanguage(value: string) {
     const next: Lang = value === "en" || value === "ar" || value === "he" ? value : "he";
