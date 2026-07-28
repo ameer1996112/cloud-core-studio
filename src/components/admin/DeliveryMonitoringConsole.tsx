@@ -82,6 +82,9 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     activity: "Last activity",
     attempts: "Attempts",
     investigate: "Investigate",
+    customerMoments: "customer moments",
+    channelsUsed: "channels",
+    openChannel: "Open channel details",
     noResults: "No deliveries match these filters.",
     loadMore: "Load more",
     showing: "Showing",
@@ -175,6 +178,9 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     activity: "פעילות אחרונה",
     attempts: "ניסיונות",
     investigate: "בדיקה",
+    customerMoments: "אירועי לקוח",
+    channelsUsed: "ערוצים",
+    openChannel: "פתיחת פרטי הערוץ",
     noResults: "לא נמצאו מסירות שמתאימות למסננים.",
     loadMore: "הצגת עוד",
     showing: "מוצגות",
@@ -263,6 +269,9 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     activity: "آخر نشاط",
     attempts: "المحاولات",
     investigate: "فحص",
+    customerMoments: "أحداث العملاء",
+    channelsUsed: "قنوات",
+    openChannel: "فتح تفاصيل القناة",
     noResults: "لا توجد عمليات تسليم تطابق عوامل التصفية.",
     loadMore: "عرض المزيد",
     showing: "يتم عرض",
@@ -388,6 +397,40 @@ function maskContact(value: string | null | undefined) {
   }
   const digits = value.replace(/\D/g, "");
   return digits.length >= 4 ? `••• ${digits.slice(-4)}` : value;
+}
+
+type DeliveryMoment = {
+  messageId: string;
+  deliveries: DeliveryMonitorRow[];
+  primary: DeliveryMonitorRow;
+  latestAt: string;
+  needsAttention: boolean;
+};
+
+function groupDeliveryMoments(rows: DeliveryMonitorRow[]): DeliveryMoment[] {
+  const groups = new Map<string, DeliveryMonitorRow[]>();
+  for (const row of rows) {
+    const key = row.message_id || row.id;
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+
+  return [...groups.entries()]
+    .map(([messageId, deliveries]) => {
+      const sorted = [...deliveries].sort(
+        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+      );
+      return {
+        messageId,
+        deliveries: sorted,
+        primary: sorted[0]!,
+        latestAt: sorted[0]!.updated_at,
+        needsAttention: sorted.some((delivery) => isDeliveryAttention(delivery.status)),
+      };
+    })
+    .sort((a, b) => {
+      const priority = Number(b.needsAttention) - Number(a.needsAttention);
+      return priority || new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime();
+    });
 }
 
 function errorExplanation(
@@ -562,7 +605,7 @@ export function DeliveryMonitoringConsole() {
   const [status, setStatus] = useState<DeliveryMonitorFilters["status"]>("all");
   const [memberId, setMemberId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(50);
+  const [visibleCount, setVisibleCount] = useState(24);
 
   const deliveries = useQuery({
     queryKey: ["canonical-deliveries"],
@@ -598,13 +641,14 @@ export function DeliveryMonitoringConsole() {
       return priority || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
   }, [allDeliveries, query, traffic, channel, status, memberId]);
-  const visible = filtered.slice(0, visibleCount);
+  const moments = useMemo(() => groupDeliveryMoments(filtered), [filtered]);
+  const visible = moments.slice(0, visibleCount);
   const selected = allDeliveries.find((delivery) => delivery.id === selectedId) ?? null;
   const focusedMember = memberId
     ? allDeliveries.find((delivery) => delivery.message?.member?.id === memberId)?.message?.member
     : null;
 
-  useEffect(() => setVisibleCount(50), [query, traffic, channel, status, memberId]);
+  useEffect(() => setVisibleCount(24), [query, traffic, channel, status, memberId]);
 
   const clearFilters = () => {
     setQuery("");
@@ -777,7 +821,7 @@ export function DeliveryMonitoringConsole() {
         <div className="mt-3 flex min-h-8 flex-wrap items-center justify-between gap-2 text-xs text-slate">
           <div className="flex flex-wrap items-center gap-2">
             <span>
-              {filtered.length} {copy.results}
+              {moments.length} {copy.customerMoments}
             </span>
             {focusedMember && (
               <button
@@ -807,156 +851,90 @@ export function DeliveryMonitoringConsole() {
         </div>
       ) : (
         <>
-          <section className="hidden overflow-hidden rounded-[24px] border border-gold/20 bg-white/80 shadow-[0_16px_50px_rgba(17,35,64,0.05)] md:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-start text-sm">
-                <thead className="border-b border-gold/20 bg-sand/35 text-xs uppercase tracking-[0.08em] text-slate">
-                  <tr>
-                    <th className="p-4 text-start">{copy.member}</th>
-                    <th className="p-4 text-start">{copy.message}</th>
-                    <th className="p-4 text-start">{copy.channel}</th>
-                    <th className="p-4 text-start">{copy.status}</th>
-                    <th className="p-4 text-start">{copy.activity}</th>
-                    <th className="p-4 text-start">{copy.attempts}</th>
-                    <th className="p-4" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gold/15">
-                  {visible.map((delivery) => {
-                    const member = delivery.message?.member;
-                    const contact = maskContact(member?.phone ?? member?.email);
-                    return (
-                      <tr
-                        key={delivery.id}
-                        className={`transition hover:bg-sand/25 ${
-                          isDeliveryAttention(delivery.status) ? "bg-rose-50/30" : ""
-                        }`}
-                      >
-                        <td className="p-4">
-                          <button
-                            type="button"
-                            onClick={() => focusMember(delivery)}
-                            disabled={!member?.id}
-                            className="group flex min-h-11 items-center gap-3 text-start disabled:cursor-default"
-                          >
-                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy text-xs font-semibold text-ivory">
-                              {initials(member?.name)}
-                            </span>
-                            <span className="min-w-0">
-                              <span className="block max-w-[190px] truncate font-semibold text-navy group-hover:text-gold">
-                                {member?.name ?? copy.unknownMember}
-                              </span>
-                              {contact && (
-                                <bdi className="block text-xs text-slate" dir="ltr">
-                                  {contact}
-                                </bdi>
-                              )}
-                            </span>
-                          </button>
-                        </td>
-                        <td className="p-4">
-                          <p className="max-w-[270px] truncate font-medium text-navy">
-                            {delivery.message?.subject ??
-                              eventLabel(delivery.message?.event_type ?? null)}
-                          </p>
-                          <p className="mt-1 text-xs text-slate">
-                            {eventLabel(delivery.message?.event_type ?? null)}
-                          </p>
-                        </td>
-                        <td className="p-4">
-                          <span className="inline-flex items-center gap-2 text-slate">
-                            <ChannelIcon channel={delivery.channel} />
-                            {channelLabel(copy, delivery.channel)}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <StatusPill delivery={delivery} copy={copy} />
-                        </td>
-                        <td className="p-4 text-xs text-slate">
-                          <time dateTime={delivery.updated_at}>
-                            {formatDateTime(delivery.updated_at, lang)}
-                          </time>
-                        </td>
-                        <td className="p-4 text-center font-medium tabular-nums text-navy">
-                          {delivery.attempt_count}
-                        </td>
-                        <td className="p-4 text-end">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedId(delivery.id)}
-                            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gold/25 px-3 text-xs font-semibold text-navy transition hover:border-gold/60 hover:bg-sand/50"
-                            aria-label={`${copy.investigate}: ${member?.name ?? copy.unknownMember}`}
-                          >
-                            {copy.investigate}
-                            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="space-y-3 md:hidden">
-            {visible.map((delivery) => {
-              const member = delivery.message?.member;
+          <section className="space-y-4">
+            {visible.map((moment) => {
+              const member = moment.primary.message?.member;
+              const contact = maskContact(member?.phone ?? member?.email);
+              const eventType = moment.primary.message?.event_type ?? null;
               return (
                 <article
-                  key={delivery.id}
-                  className={`rounded-2xl border p-4 shadow-[0_10px_32px_rgba(17,35,64,0.05)] ${
-                    isDeliveryAttention(delivery.status)
-                      ? "border-rose-200 bg-rose-50/60"
-                      : "border-gold/20 bg-white/80"
+                  key={moment.messageId}
+                  className={`overflow-hidden rounded-[26px] border bg-white/85 shadow-[0_18px_55px_rgba(17,35,64,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(17,35,64,0.09)] ${
+                    moment.needsAttention ? "border-rose-200" : "border-gold/20"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => focusMember(delivery)}
-                      className="flex items-center gap-3 text-start"
-                    >
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy text-xs font-semibold text-ivory">
+                  <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => focusMember(moment.primary)}
+                        disabled={!member?.id}
+                        className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-sm font-semibold text-ivory shadow-[inset_0_0_0_1px_rgba(212,175,90,0.35)] disabled:cursor-default"
+                        aria-label={copy.viewMemberHistory}
+                      >
                         {initials(member?.name)}
-                      </span>
-                      <span>
-                        <span className="block font-semibold text-navy">
-                          {member?.name ?? copy.unknownMember}
-                        </span>
-                        <span className="block text-xs text-slate">
-                          {maskContact(member?.phone ?? member?.email)}
-                        </span>
-                      </span>
-                    </button>
-                    <StatusPill delivery={delivery} copy={copy} />
-                  </div>
-                  <div className="mt-4 border-t border-gold/15 pt-4">
-                    <p className="font-medium text-navy">
-                      {delivery.message?.subject ??
-                        eventLabel(delivery.message?.event_type ?? null)}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate">
-                      <span className="inline-flex items-center gap-1.5">
-                        <ChannelIcon channel={delivery.channel} />
-                        {channelLabel(copy, delivery.channel)}
-                      </span>
-                      <time dateTime={delivery.updated_at}>
-                        {formatDateTime(delivery.updated_at, lang)}
-                      </time>
-                      <span>
-                        {delivery.attempt_count} {copy.attempts}
-                      </span>
+                      </button>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <h3 className="truncate font-display text-xl text-navy">
+                            {member?.name ?? copy.unknownMember}
+                          </h3>
+                          {contact && (
+                            <bdi className="text-xs text-slate" dir="ltr">
+                              {contact}
+                            </bdi>
+                          )}
+                        </div>
+                        <p className="mt-1 font-medium capitalize text-navy">
+                          {eventLabel(eventType)}
+                        </p>
+                        <time dateTime={moment.latestAt} className="mt-1 block text-xs text-slate">
+                          {formatDateTime(moment.latestAt, lang)}
+                        </time>
+                      </div>
+                    </div>
+                    <div className="inline-flex w-fit items-center gap-2 rounded-full bg-sand/55 px-3 py-1.5 text-xs font-medium text-slate">
+                      <span className="font-semibold text-navy">{moment.deliveries.length}</span>
+                      {copy.channelsUsed}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(delivery.id)}
-                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 text-sm font-semibold text-ivory"
-                  >
-                    {copy.investigate}
-                    <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-                  </button>
+
+                  <div className="grid gap-px border-t border-gold/15 bg-gold/15 sm:grid-cols-2 xl:grid-cols-4">
+                    {moment.deliveries.map((delivery) => (
+                      <button
+                        key={delivery.id}
+                        type="button"
+                        onClick={() => setSelectedId(delivery.id)}
+                        aria-label={`${copy.openChannel}: ${channelLabel(copy, delivery.channel)}`}
+                        className={`group flex min-h-24 items-center justify-between gap-3 p-4 text-start transition ${
+                          isDeliveryAttention(delivery.status)
+                            ? "bg-rose-50 hover:bg-rose-100/70"
+                            : "bg-ivory hover:bg-sand/55"
+                        }`}
+                      >
+                        <span className="flex min-w-0 items-center gap-3">
+                          <span
+                            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
+                              isDeliveryAttention(delivery.status)
+                                ? "bg-rose-100 text-rose-700"
+                                : "bg-white text-navy shadow-sm ring-1 ring-gold/20"
+                            }`}
+                          >
+                            <ChannelIcon channel={delivery.channel} />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-navy">
+                              {channelLabel(copy, delivery.channel)}
+                            </span>
+                            <span className="mt-1 block">
+                              <StatusPill delivery={delivery} copy={copy} />
+                            </span>
+                          </span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-gold transition group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                      </button>
+                    ))}
+                  </div>
                 </article>
               );
             })}
@@ -964,12 +942,12 @@ export function DeliveryMonitoringConsole() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-slate">
             <span>
-              {copy.showing} {visible.length} {copy.of} {filtered.length}
+              {copy.showing} {visible.length} {copy.of} {moments.length}
             </span>
-            {visible.length < filtered.length && (
+            {visible.length < moments.length && (
               <button
                 type="button"
-                onClick={() => setVisibleCount((count) => count + 50)}
+                onClick={() => setVisibleCount((count) => count + 24)}
                 className="min-h-11 rounded-xl border border-gold/30 bg-white px-4 font-semibold text-navy hover:bg-sand/40"
               >
                 {copy.loadMore}
