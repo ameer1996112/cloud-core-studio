@@ -477,7 +477,7 @@ function Page() {
             <ChevronDown className={`h-3.5 w-3.5 transition ${toolsOpen ? "rotate-180" : ""}`} />
           </button>
           {toolsOpen && (
-            <div className="absolute end-0 top-full z-30 mt-2 w-[min(92vw,420px)] overflow-hidden rounded-2xl border border-gold/25 bg-ivory shadow-[0_24px_70px_rgba(8,31,61,0.18)]">
+            <div className="absolute right-0 top-full z-30 mt-2 w-[min(82vw,420px)] overflow-hidden rounded-2xl border border-gold/25 bg-ivory shadow-[0_24px_70px_rgba(8,31,61,0.18)]">
               <div className="border-b border-gold/20 bg-navy px-5 py-5 text-ivory">
                 <div className="flex items-start justify-between gap-4">
                   <div>
