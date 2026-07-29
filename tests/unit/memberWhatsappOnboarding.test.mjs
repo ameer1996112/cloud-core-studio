@@ -8,6 +8,10 @@ const migrationSource = readFileSync(
   resolve(root, "supabase/migrations/20260729183000_member_whatsapp_onboarding.sql"),
   "utf8",
 );
+const identityFixMigrationSource = readFileSync(
+  resolve(root, "supabase/migrations/20260729190000_fix_member_whatsapp_onboarding_identity.sql"),
+  "utf8",
+);
 const shellSource = readFileSync(resolve(root, "src/components/app-shell/AppShell.tsx"), "utf8");
 const serverSource = readFileSync(
   resolve(root, "src/lib/memberNotifications.functions.ts"),
@@ -64,10 +68,22 @@ describe("existing-member WhatsApp onboarding", () => {
 
   test("records affirmative consent and decline as separate audited decisions", () => {
     expect(serverSource).toContain('db.rpc("set_member_whatsapp_onboarding_decision"');
+    expect(serverSource).toContain("p_member_id: context.userId");
     expect(migrationSource).toContain("'member_whatsapp_onboarding'");
     expect(migrationSource).toContain("'member_whatsapp_onboarding_declined'");
     expect(migrationSource).toContain("'app.notification_preference_source'");
     expect(migrationSource).toContain("whatsapp_consented_at = CASE");
     expect(migrationSource).toContain("whatsapp_opted_out_at = CASE");
+  });
+
+  test("uses the authenticated server member identity instead of auth.uid under service role", () => {
+    expect(identityFixMigrationSource).toContain("p_member_id uuid");
+    expect(identityFixMigrationSource).not.toContain("auth.uid()");
+    expect(identityFixMigrationSource).toContain(
+      "GRANT EXECUTE ON FUNCTION public.set_member_whatsapp_onboarding_decision(uuid, text) TO service_role",
+    );
+    expect(identityFixMigrationSource).toContain(
+      "REVOKE ALL ON FUNCTION public.set_member_whatsapp_onboarding_decision(uuid, text) FROM authenticated",
+    );
   });
 });

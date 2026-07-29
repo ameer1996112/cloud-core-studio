@@ -305,10 +305,12 @@ export const respondMemberWhatsappOnboarding = createServerFn({ method: "POST" }
     if (!current.eligible) return { ok: true as const, eligible: false };
 
     const { data: saved, error } = await db.rpc("set_member_whatsapp_onboarding_decision", {
+      p_member_id: context.userId,
       p_decision: data.decision,
     });
     if (error) throw error;
-    return { ok: true as const, eligible: saved !== true };
+    if (saved !== true) throw new Error("WhatsApp onboarding choice was not saved");
+    return { ok: true as const, eligible: false };
   });
 
 export const markMemberNotificationRead = createServerFn({ method: "POST" })
