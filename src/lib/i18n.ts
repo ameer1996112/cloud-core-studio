@@ -408,6 +408,8 @@ export const MESSAGES = {
     "packages.cashLabel": "Cash at the studio",
     "packages.cashDescription":
       "Pay at the studio. Your package will be activated after payment is confirmed.",
+    "packages.cashOneMonthDescription":
+      "Pay cash at the studio for one month. This payment does not renew automatically.",
     "packages.bitLabel": "Pay with Bit",
     "packages.bitDescription":
       "Send payment by Bit. Your package will be activated after payment is confirmed.",
@@ -425,7 +427,7 @@ export const MESSAGES = {
     "packages.cardRecurringConfirmDescription":
       "You will be redirected to HYP. First payment is today, then this renews every month until you cancel.",
     "packages.recurringDisclosure":
-      "Monthly recurring payment. First payment today, then renews every month until cancelled.",
+      "Credit card renews monthly until cancelled. Cash is a one-month payment.",
     "packages.cardPaymentError":
       "Could not open card payment. Please try again or contact the studio.",
     "packages.continue": "Continue",
@@ -1693,6 +1695,8 @@ export const MESSAGES = {
     "packages.paymentTitle": "איך תרצי לשלם?",
     "packages.cashLabel": "מזומן בסטודיו",
     "packages.cashDescription": "שלמי בסטודיו, ונאשר את החבילה לאחר קבלת התשלום.",
+    "packages.cashOneMonthDescription":
+      "תשלום במזומן בסטודיו עבור חודש אחד. התשלום אינו מתחדש אוטומטית.",
     "packages.bitLabel": "תשלום בביט",
     "packages.bitDescription": "שלחי תשלום בביט, ונאשר את החבילה לאחר קבלת התשלום.",
     "packages.cardSoonLabel": "כרטיס אשראי — בקרוב",
@@ -1707,7 +1711,7 @@ export const MESSAGES = {
     "packages.cardRecurringConfirmDescription":
       "נעביר אותך ל-HYP. החיוב הראשון היום, ולאחר מכן החבילה מתחדשת בכל חודש עד ביטול.",
     "packages.recurringDisclosure":
-      "תשלום חודשי חוזר. חיוב ראשון היום, ואז מתחדש כל חודש עד ביטול.",
+      "באשראי החבילה מתחדשת מדי חודש עד ביטול. מזומן הוא תשלום עבור חודש אחד.",
     "packages.cardPaymentError": "לא הצלחנו לפתוח תשלום באשראי. נסי שוב או פני לסטודיו.",
     "packages.continue": "המשך לאישור",
     "packages.continueToCardPayment": "המשך לתשלום מאובטח",
@@ -2953,6 +2957,8 @@ export const MESSAGES = {
     "packages.paymentTitle": "كيف بدك تدفعي؟",
     "packages.cashLabel": "كاش بالاستوديو",
     "packages.cashDescription": "ادفعي بالاستوديو، ومنأكد الباقة بعد استلام الدفع.",
+    "packages.cashOneMonthDescription":
+      "ادفعي نقدًا في الاستوديو مقابل شهر واحد. الدفع لا يتجدد تلقائيًا.",
     "packages.bitLabel": "دفع عبر Bit",
     "packages.bitDescription": "ابعتي الدفع عبر Bit، ومنأكد الباقة بعد استلام الدفع.",
     "packages.cardSoonLabel": "بطاقة ائتمان — قريبًا",
@@ -2966,8 +2972,7 @@ export const MESSAGES = {
     "packages.cardConfirmDescription": "سنحوّلك إلى صفحة الدفع الآمنة من HYP لإكمال الدفع.",
     "packages.cardRecurringConfirmDescription":
       "سنحوّلك إلى HYP. الدفعة الأولى اليوم، وبعدها تتجدد الباقة كل شهر حتى الإلغاء.",
-    "packages.recurringDisclosure":
-      "دفع شهري متكرر. الدفعة الأولى اليوم، ثم يتجدد كل شهر حتى الإلغاء.",
+    "packages.recurringDisclosure": "البطاقة تتجدد شهريًا حتى الإلغاء. الدفع النقدي هو لشهر واحد.",
     "packages.cardPaymentError": "تعذر فتح الدفع بالبطاقة. حاولي مرة أخرى أو تواصلي مع الاستوديو.",
     "packages.continue": "متابعة للتأكيد",
     "packages.continueToCardPayment": "متابعة للدفع الآمن",

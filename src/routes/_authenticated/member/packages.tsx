@@ -916,15 +916,17 @@ function PaymentMethodSheet({
 
         {!confirming ? (
           <div className="mt-5 space-y-3">
-            {!recurringCard && (
-              <PaymentOption
-                active={method === "cash"}
-                icon={<Wallet className="h-4 w-4" />}
-                label={t("packages.cashLabel")}
-                description={t("packages.cashDescription")}
-                onClick={() => setMethod("cash")}
-              />
-            )}
+            <PaymentOption
+              active={method === "cash"}
+              icon={<Wallet className="h-4 w-4" />}
+              label={t("packages.cashLabel")}
+              description={
+                recurringCard
+                  ? t("packages.cashOneMonthDescription")
+                  : t("packages.cashDescription")
+              }
+              onClick={() => setMethod("cash")}
+            />
             {!hypEnabled && !recurringCard && (
               <PaymentOption
                 active={method === "bit"}
@@ -973,7 +975,9 @@ function PaymentMethodSheet({
                     ? recurringCard
                       ? t("packages.cardRecurringConfirmDescription")
                       : t("packages.cardConfirmDescription")
-                    : t("packages.cashDescription")}
+                    : recurringCard
+                      ? t("packages.cashOneMonthDescription")
+                      : t("packages.cashDescription")}
               </p>
             </div>
             {isOnline && (
