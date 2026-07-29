@@ -3,9 +3,9 @@ import { useState } from "react";
 import { CreditCard, ShieldCheck } from "lucide-react";
 import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getCheckoutPlanDisplay } from "@/lib/checkoutPlanDisplay";
 import { getInstagramLandingData, type InstagramAdultPlan } from "@/lib/instagramLanding.functions";
 import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
-import { getPlanDisplay } from "@/lib/planDisplay";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -172,15 +172,7 @@ function PublicCheckoutPage() {
               </legend>
               <div className="grid gap-3 sm:grid-cols-2">
                 {plans.map((plan) => {
-                  const planDisplay = getPlanDisplay(
-                    {
-                      name: plan.name,
-                      description: plan.code,
-                      credits: plan.credits,
-                      duration_days: plan.durationDays,
-                    },
-                    lang,
-                  );
+                  const planDisplay = getCheckoutPlanDisplay(plan, lang);
 
                   return (
                     <label

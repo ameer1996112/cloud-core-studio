@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { getCheckoutPlanDisplay } from "../../src/lib/checkoutPlanDisplay";
 import { MESSAGES } from "../../src/lib/i18n";
-import { getPlanDisplay } from "../../src/lib/planDisplay";
 
 describe("mobile conversion localization", () => {
   test("provides checkout navigation and auth validation copy in every language", () => {
@@ -16,11 +16,11 @@ describe("mobile conversion localization", () => {
   });
 
   test("renders known checkout plans without unintended English in Arabic", () => {
-    const display = getPlanDisplay(
+    const display = getCheckoutPlanDisplay(
       {
-        description: "cloud_monthly_1x_week",
+        code: "cloud_monthly_1x_week",
         credits: 5,
-        duration_days: 30,
+        durationDays: 30,
         name: "Cloud Monthly 1x Week",
       },
       "ar",
@@ -30,5 +30,31 @@ describe("mobile conversion localization", () => {
     expect(display.memberLine).toBe("5 حصص بالشهر · مناسب لمرة بالأسبوع");
     expect(display.name).not.toContain("Monthly");
     expect(display.memberLine).not.toContain("credits");
+  });
+
+  test("uses a localized generic name for an unknown active plan code", () => {
+    const unknownArabicPlan = getCheckoutPlanDisplay(
+      {
+        code: "summer_unlimited",
+        credits: 20,
+        durationDays: 30,
+        name: "Summer Unlimited",
+      },
+      "ar",
+    );
+    const unknownHebrewPlan = getCheckoutPlanDisplay(
+      {
+        code: "summer_unlimited",
+        credits: 20,
+        durationDays: 30,
+        name: "Summer Unlimited",
+      },
+      "he",
+    );
+
+    expect(unknownArabicPlan.name).toBe("باقة حصص");
+    expect(unknownHebrewPlan.name).toBe("חבילת שיעורים");
+    expect(unknownArabicPlan.memberLine).not.toContain("credits");
+    expect(unknownHebrewPlan.memberLine).not.toContain("credits");
   });
 });

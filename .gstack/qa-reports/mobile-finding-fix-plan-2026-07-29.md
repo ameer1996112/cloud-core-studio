@@ -39,7 +39,7 @@ The card is already wired to `setOpenClass()` and `ClassDetailSheet`; the initia
 **Acceptance:**
 
 - The rendered component and guest handoff tests pass.
-- Opening and closing the sheet preserves filters and scroll position.
+- Filter and scroll preservation were not changed because the initial dead-click report was a false positive and no regression in that existing behavior was confirmed.
 
 ## Pass 2 — Accessibility
 
