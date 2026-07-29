@@ -12,6 +12,11 @@ import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
 } from "@/lib/memberNotificationPreferences";
+import { shouldOfferMemberWhatsappOnboarding } from "@/lib/memberWhatsappOnboarding";
+
+const memberWhatsappOnboardingDecisionSchema = z.object({
+  decision: z.enum(["accepted", "declined"]),
+});
 
 async function requireMember(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -256,6 +261,54 @@ export const updateMemberNotificationPreferences = createServerFn({ method: "POS
       .upsert(preferenceUpdate, { onConflict: "member_id" });
     if (error) throw error;
     return { ok: true as const, preferences: data };
+  });
+
+type MemberDatabase = Awaited<ReturnType<typeof requireMember>>;
+
+async function readMemberWhatsappOnboardingState(db: MemberDatabase, memberId: string) {
+  const [memberResult, preferencesResult] = await Promise.all([
+    db.from("members").select("phone").eq("id", memberId).maybeSingle(),
+    db
+      .from("member_notification_preferences")
+      .select(
+        "whatsapp_enabled,whatsapp_consent_source,whatsapp_consented_at,whatsapp_opted_out_at",
+      )
+      .eq("member_id", memberId)
+      .maybeSingle(),
+  ]);
+  if (memberResult.error) throw memberResult.error;
+  if (preferencesResult.error) throw preferencesResult.error;
+  const preferences = preferencesResult.data;
+  return {
+    eligible: shouldOfferMemberWhatsappOnboarding({
+      phone: memberResult.data?.phone ?? null,
+      whatsappEnabled: Boolean(preferences?.whatsapp_enabled),
+      consentSource: preferences?.whatsapp_consent_source ?? null,
+      optedOutAt: preferences?.whatsapp_opted_out_at ?? null,
+    }),
+  };
+}
+
+export const getMemberWhatsappOnboardingState = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await requireMember(context.userId);
+    return readMemberWhatsappOnboardingState(db, context.userId);
+  });
+
+export const respondMemberWhatsappOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => memberWhatsappOnboardingDecisionSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const db = await requireMember(context.userId);
+    const current = await readMemberWhatsappOnboardingState(db, context.userId);
+    if (!current.eligible) return { ok: true as const, eligible: false };
+
+    const { data: saved, error } = await db.rpc("set_member_whatsapp_onboarding_decision", {
+      p_decision: data.decision,
+    });
+    if (error) throw error;
+    return { ok: true as const, eligible: saved !== true };
   });
 
 export const markMemberNotificationRead = createServerFn({ method: "POST" })
