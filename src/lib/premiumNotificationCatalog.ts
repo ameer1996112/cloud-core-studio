@@ -153,7 +153,6 @@ export const NOTIFICATION_EVENT_CATALOG = {
     ...reminder,
     family: "class",
     channels: ["in_app", "push", "whatsapp"],
-    fallbackChannels: ["whatsapp"],
     preference: "classReminders",
     actions: ["view_class", "cancel_booking"],
   }),

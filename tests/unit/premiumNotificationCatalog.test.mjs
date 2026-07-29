@@ -83,7 +83,7 @@ describe("premium notification event catalog", () => {
     ]);
     expect(notificationDefinition("class_reminder_planning")).toMatchObject({
       channels: ["in_app", "push", "whatsapp"],
-      fallbackChannels: ["whatsapp"],
+      fallbackChannels: [],
     });
     expect(notificationDefinition("class_reminder_final").channels).toEqual(["in_app", "whatsapp"]);
     expect(notificationDefinition("payment_request_received").channels).toEqual(["in_app"]);

@@ -470,7 +470,7 @@ describe("outbox message materialization", () => {
     expect(whatsapp?.scheduledFor).toBe("2026-07-22T09:00:00.000Z");
   });
 
-  test("uses WhatsApp only as a planning-reminder fallback when push is unavailable", () => {
+  test("queues both WhatsApp and push for planning reminders when both are available", () => {
     const withPush = materializeMessagePlan({
       ...base,
       eventType: "class_reminder_planning",
@@ -487,10 +487,9 @@ describe("outbox message materialization", () => {
     expect(withPush.deliveries.find((delivery) => delivery.channel === "push")?.status).toBe(
       "queued",
     );
-    expect(withPush.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
-      status: "suppressed",
-      errorCode: "push_preferred_for_fallback_channel",
-    });
+    expect(withPush.deliveries.find((delivery) => delivery.channel === "whatsapp")?.status).toBe(
+      "queued",
+    );
 
     const withoutPush = materializeMessagePlan({
       ...base,
