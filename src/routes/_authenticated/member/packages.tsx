@@ -27,18 +27,10 @@ import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
 import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
+import type { CheckoutConsent } from "@/lib/checkoutConsent";
 
 const BIT_PAYMENT_PHONE = "0523318478";
 type OnlinePaymentMethod = "bit" | "card";
-type CheckoutDetails = {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  country: string;
-  address: string;
-  termsAccepted: boolean;
-};
 
 function isOnlineCheckoutAttempt(payment: any) {
   return payment?.provider === "hyp";
@@ -100,7 +92,7 @@ function MemberPackages() {
       planId: string;
       method: OnlinePaymentMethod;
       recurring?: boolean;
-      checkout: CheckoutDetails;
+      checkout: CheckoutConsent;
     }) =>
       createCheckout({
         data: {
@@ -146,7 +138,7 @@ function MemberPackages() {
     plan: any,
     method: "cash" | "bit" | "card",
     recurring = false,
-    checkout?: CheckoutDetails,
+    checkout?: CheckoutConsent,
   ) {
     if (hasUsableActivePackage || hasRunningSubscription) {
       toast.error(t("packages.activePackageExists"));
@@ -346,7 +338,6 @@ function MemberPackages() {
           plan={selectedPlan}
           lang={lang}
           settings={settings}
-          member={data?.member}
           pending={manualPayment.isPending || checkoutPayment.isPending}
           onClose={() => setSelectedPlan(null)}
           onSubmit={(method, recurring, checkout) =>
@@ -816,7 +807,6 @@ function PaymentMethodSheet({
   plan,
   lang,
   settings,
-  member,
   pending,
   onClose,
   onSubmit,
@@ -824,27 +814,17 @@ function PaymentMethodSheet({
   plan: any;
   lang: Lang;
   settings: any;
-  member: any;
   pending: boolean;
   onClose: () => void;
   onSubmit: (
     method: "cash" | "bit" | "card",
     recurring?: boolean,
-    checkout?: CheckoutDetails,
+    checkout?: CheckoutConsent,
   ) => void;
 }) {
   const [method, setMethod] = useState<"cash" | "bit" | "card" | null>(null);
   const [confirming, setConfirming] = useState(false);
-  const nameParts = String(member?.name ?? "")
-    .trim()
-    .split(/\s+/);
-  const [checkout, setCheckout] = useState<CheckoutDetails>({
-    firstName: nameParts[0] ?? "",
-    lastName: nameParts.slice(1).join(" "),
-    phone: member?.phone ?? "",
-    email: member?.email ?? "",
-    country: lang === "ar" ? "إسرائيل" : lang === "he" ? "ישראל" : "Israel",
-    address: "",
+  const [checkout, setCheckout] = useState<CheckoutConsent>({
     termsAccepted: false,
   });
   const dir = LANG_META[lang].dir;
@@ -861,47 +841,19 @@ function PaymentMethodSheet({
     amount: price,
   });
   const isOnline = method === "card" || method === "bit";
-  const checkoutComplete =
-    checkout.firstName.trim() &&
-    checkout.lastName.trim() &&
-    /^0\d{8,9}$/.test(checkout.phone.replace(/[-\s]/g, "")) &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(checkout.email.trim()) &&
-    checkout.country.trim() &&
-    checkout.address.trim() &&
-    checkout.termsAccepted;
+  const checkoutComplete = checkout.termsAccepted;
   const checkoutCopy =
     lang === "he"
       ? {
-          title: "פרטים לפני מעבר לתשלום",
-          firstName: "שם פרטי",
-          lastName: "שם משפחה",
-          phone: "טלפון ללא קידומת בינלאומית",
-          email: "כתובת אימייל",
-          country: "מדינה",
-          address: "כתובת מלאה",
           consent: "קראתי ואני מאשר/ת את",
           terms: "התקנון ותנאי הרכישה",
         }
       : lang === "ar"
         ? {
-            title: "التفاصيل قبل الانتقال للدفع",
-            firstName: "الاسم الأول",
-            lastName: "اسم العائلة",
-            phone: "الهاتف بدون المقدمة الدولية",
-            email: "البريد الإلكتروني",
-            country: "الدولة",
-            address: "العنوان الكامل",
             consent: "قرأت وأوافق على",
             terms: "الشروط وأحكام الشراء",
           }
         : {
-            title: "Details before payment",
-            firstName: "First name",
-            lastName: "Last name",
-            phone: "Phone without international prefix",
-            email: "Email address",
-            country: "Country",
-            address: "Full address",
             consent: "I have read and agree to the",
             terms: "terms and purchase conditions",
           };
@@ -1023,38 +975,8 @@ function PaymentMethodSheet({
               </p>
             </div>
             {isOnline && (
-              <fieldset className="grid gap-3 rounded-xl border border-gold/25 bg-ivory/70 p-4">
-                <legend className="px-2 font-display text-xl text-navy">
-                  {checkoutCopy.title}
-                </legend>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {(
-                    [
-                      ["firstName", checkoutCopy.firstName, "given-name", "text"],
-                      ["lastName", checkoutCopy.lastName, "family-name", "text"],
-                      ["phone", checkoutCopy.phone, "tel", "tel"],
-                      ["email", checkoutCopy.email, "email", "email"],
-                      ["country", checkoutCopy.country, "country-name", "text"],
-                      ["address", checkoutCopy.address, "street-address", "text"],
-                    ] as const
-                  ).map(([key, label, autoComplete, type]) => (
-                    <label key={key} className="grid gap-1.5 text-sm text-slate">
-                      <span>{label}</span>
-                      <input
-                        required
-                        type={type}
-                        inputMode={key === "phone" ? "tel" : undefined}
-                        autoComplete={autoComplete}
-                        value={checkout[key]}
-                        onChange={(event) =>
-                          setCheckout((current) => ({ ...current, [key]: event.target.value }))
-                        }
-                        className="editorial-input"
-                      />
-                    </label>
-                  ))}
-                </div>
-                <label className="mt-1 flex items-start gap-2 text-sm leading-6 text-slate">
+              <div className="rounded-xl border border-gold/25 bg-ivory/70 p-4">
+                <label className="flex items-start gap-2 text-sm leading-6 text-slate">
                   <input
                     required
                     type="checkbox"
@@ -1078,7 +1000,7 @@ function PaymentMethodSheet({
                     </Link>
                   </span>
                 </label>
-              </fieldset>
+              </div>
             )}
             {method === "bit" && !hypEnabled && (
               <div className="overflow-hidden rounded-xl border border-gold/35 bg-ivory shadow-[0_18px_44px_-34px_rgba(11,29,58,0.45)]">

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { checkoutConsentSchema } from "@/lib/checkoutConsent";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildNotificationDraftRows } from "@/lib/notificationDrafts";
 import { getPlanDisplay } from "@/lib/planDisplay";
@@ -178,19 +179,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         plan_id: z.string().uuid(),
         payment_method: z.enum(["card", "bit"]).default("card"),
         recurring: z.boolean().default(false),
-        checkout: z.object({
-          firstName: z.string().trim().min(1).max(80),
-          lastName: z.string().trim().min(1).max(80),
-          phone: z
-            .string()
-            .trim()
-            .transform((value) => value.replace(/[-\s]/g, ""))
-            .pipe(z.string().regex(/^0\d{8,9}$/)),
-          email: z.string().trim().email().max(254),
-          country: z.string().trim().min(2).max(80),
-          address: z.string().trim().min(3).max(250),
-          termsAccepted: z.literal(true),
-        }),
+        checkout: checkoutConsentSchema,
       })
       .parse(d),
   )
@@ -222,7 +211,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     await assertNoUsableActivePackage(context.supabase, context.userId);
 
     const [memberRes, planRes] = await Promise.all([
-      context.supabase.from("members").select("id,name").eq("id", context.userId).maybeSingle(),
+      context.supabase
+        .from("members")
+        .select("id,name,phone,email")
+        .eq("id", context.userId)
+        .maybeSingle(),
       context.supabase
         .from("plans")
         .select("id,name,description,price_cents,currency,credits,duration_days,active")
@@ -262,12 +255,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       subscription_setup: recurring,
       subscription_management: subscriptionManagement,
       checkout_details: {
-        first_name: data.checkout.firstName,
-        last_name: data.checkout.lastName,
-        phone: data.checkout.phone,
-        email: data.checkout.email,
-        country: data.checkout.country,
-        address: data.checkout.address,
+        member_name: memberRes.data.name,
+        phone: memberRes.data.phone,
+        email: memberRes.data.email,
         terms_accepted_at: termsAcceptedAt,
         terms_version: "2026-07-27",
       },
