@@ -36,6 +36,7 @@ const MARKETING_CATEGORIES: MemberNotificationCategory[] = [
 ];
 
 const DEFAULT_PREFERENCES: MemberNotificationPreferences = {
+  pushEnabled: true,
   lessonReminders: true,
   scheduleUpdates: true,
   packageReminders: true,
@@ -46,6 +47,7 @@ const DEFAULT_PREFERENCES: MemberNotificationPreferences = {
 function preferencesFromRow(row: any): MemberNotificationPreferences {
   if (!row) return DEFAULT_PREFERENCES;
   return {
+    pushEnabled: row.push_enabled !== false,
     lessonReminders: Boolean(row.lesson_reminders),
     scheduleUpdates: Boolean(row.schedule_updates),
     packageReminders: Boolean(row.package_reminders),
@@ -199,7 +201,7 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
     await Promise.all([
       db
         .from("member_notification_preferences")
-        .select("lesson_reminders,schedule_updates,package_reminders,marketing,sound")
+        .select("push_enabled,lesson_reminders,schedule_updates,package_reminders,marketing,sound")
         .eq("member_id", input.memberId)
         .maybeSingle(),
       db
@@ -351,7 +353,7 @@ async function reevaluateQueuedNotification(
   const [preferencesResult, weekResult, dayResult, repeatResult] = await Promise.all([
     db
       .from("member_notification_preferences")
-      .select("lesson_reminders,schedule_updates,package_reminders,marketing,sound")
+      .select("push_enabled,lesson_reminders,schedule_updates,package_reminders,marketing,sound")
       .eq("member_id", row.member_id)
       .maybeSingle(),
     isMarketing

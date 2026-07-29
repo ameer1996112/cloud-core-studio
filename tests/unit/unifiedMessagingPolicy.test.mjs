@@ -57,13 +57,13 @@ describe("unified messaging delivery policy", () => {
     ).toBe(true);
   });
 
-  test("only essential events bypass a later external opt-out", () => {
+  test("keeps essential content available in-app without bypassing channel opt-outs", () => {
     const optedOut = { whatsappEnabled: false, emailEnabled: false };
     expect(deliveryAllowedByConsent("booking_confirmed", "whatsapp", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("member_welcome", "email", optedOut)).toBe(false);
-    expect(deliveryAllowedByConsent("class_cancelled_by_admin", "whatsapp", optedOut)).toBe(true);
-    expect(deliveryAllowedByConsent("class_time_changed", "email", optedOut)).toBe(true);
-    expect(deliveryAllowedByConsent("payment_failed", "whatsapp", optedOut)).toBe(true);
+    expect(deliveryAllowedByConsent("class_cancelled_by_admin", "whatsapp", optedOut)).toBe(false);
+    expect(deliveryAllowedByConsent("class_time_changed", "email", optedOut)).toBe(false);
+    expect(deliveryAllowedByConsent("payment_failed", "whatsapp", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("waitlist_spot_available", "whatsapp", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("payment_confirmed", "email", optedOut)).toBe(false);
     expect(deliveryAllowedByConsent("booking_confirmed", "in_app", optedOut)).toBe(true);
@@ -75,6 +75,11 @@ describe("unified messaging delivery policy", () => {
         membership: false,
       }),
     ).toBe(true);
+    expect(
+      deliveryAllowedByConsent("class_cancelled_by_admin", "push", {
+        pushEnabled: false,
+      }),
+    ).toBe(false);
   });
 
   test("does not charge staff previews against the real member promotional frequency budget", () => {

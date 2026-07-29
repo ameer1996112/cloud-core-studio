@@ -7,6 +7,7 @@ import {
 } from "../../src/lib/memberNotificationPolicy.ts";
 
 const enabledPreferences = {
+  pushEnabled: true,
   lessonReminders: true,
   scheduleUpdates: true,
   packageReminders: true,
@@ -28,6 +29,28 @@ function decide(overrides = {}) {
 }
 
 describe("member notification delivery policy", () => {
+  test("honors the member-wide push opt-out in the legacy delivery path", () => {
+    const decision = decideMemberNotificationDelivery({
+      category: "lesson_reminder",
+      preferences: {
+        lessonReminders: true,
+        scheduleUpdates: true,
+        packageReminders: true,
+        marketing: false,
+        sound: true,
+        pushEnabled: false,
+      },
+      hasActivePushDevice: true,
+      isQuietHours: false,
+      marketingPushesLast7Days: 0,
+      marketingPushesToday: 0,
+      duplicateWithin7Days: false,
+    });
+
+    expect(decision.sendPush).toBe(false);
+    expect(decision.suppressedReason).toBe("preference_disabled");
+  });
+
   test("persists every member event in the inbox even without an active device", () => {
     expect(decide({ hasActivePushDevice: false })).toEqual({
       createInboxItem: true,

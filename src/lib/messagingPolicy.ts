@@ -92,14 +92,15 @@ export function deliveryAllowedByConsent(
   preferences: MessagingDeliveryPreferences,
 ) {
   const definition = notificationDefinition(eventType);
-  if (isEssentialMessageEvent(eventType)) return true;
   // The inbox is the durable transactional record. Granular preferences govern
   // interruption/external delivery, never whether that record exists.
   if (channel === "in_app") return true;
+  if (channel === "push" && preferences.pushEnabled === false) return false;
+  if (channel === "whatsapp" && preferences.whatsappEnabled !== true) return false;
+  if (channel === "email" && preferences.emailEnabled !== true) return false;
+  if (isEssentialMessageEvent(eventType)) return true;
   if (definition.preference && !preferenceEnabled(definition.preference, preferences)) return false;
-  if (channel === "push") return preferences.pushEnabled !== false;
-  if (channel === "whatsapp") return preferences.whatsappEnabled === true;
-  return preferences.emailEnabled === true;
+  return true;
 }
 
 function preferenceEnabled(

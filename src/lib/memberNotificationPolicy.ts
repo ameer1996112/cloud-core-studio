@@ -11,6 +11,7 @@ export type MemberNotificationCategory =
   | "waitlist";
 
 export type MemberNotificationPreferences = {
+  pushEnabled: boolean;
   lessonReminders: boolean;
   scheduleUpdates: boolean;
   packageReminders: boolean;
@@ -100,6 +101,9 @@ export function decideMemberNotificationDelivery(
     input.category === "urgent_class_change" ||
     input.category === "payment_failed" ||
     input.category === "waitlist";
+  if (!input.preferences.pushEnabled) {
+    return suppressed("preference_disabled", sendWhatsapp);
+  }
   if (!isPreferenceEnabled(input.category, input.preferences)) {
     return suppressed("preference_disabled", sendWhatsapp, false);
   }
