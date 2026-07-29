@@ -20,7 +20,7 @@ echo "$IMAGE" > tmp/latest-deploy-image.txt
 echo "==> Running gcloud builds submit..."
 gcloud builds submit \
   --config cloudbuild.yaml \
-  --substitutions _IMAGE="$IMAGE",_VITE_SUPABASE_PROJECT_ID="banjmspemvzrqckajvwo",_VITE_SUPABASE_URL="https://banjmspemvzrqckajvwo.supabase.co",_VITE_SUPABASE_PUBLISHABLE_KEY="sb_publishable_teQmj60vBGsYCVxVWFHlVg_i4zawbJJ"
+  --substitutions _IMAGE="$IMAGE",_VITE_SUPABASE_PROJECT_ID="banjmspemvzrqckajvwo",_VITE_SUPABASE_URL="https://banjmspemvzrqckajvwo.supabase.co",_VITE_SUPABASE_PUBLISHABLE_KEY="sb_publishable_teQmj60vBGsYCVxVWFHlVg_i4zawbJJ",_VITE_APNS_ENV="production"
 
 echo "==> Running gcloud run deploy..."
 gcloud run deploy cloud-core-studio \
