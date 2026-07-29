@@ -12,10 +12,40 @@ steps:
       - --build-arg
       - VITE_APNS_ENV=${_VITE_APNS_ENV}
       - -t
-      - ${_IMAGE}
+      - ${_IMAGE}:$COMMIT_SHA
       - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_IMAGE}:$COMMIT_SHA
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - cloud-core-studio
+      - --image
+      - ${_IMAGE}:$COMMIT_SHA
+      - --region
+      - me-west1
+      - --quiet
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - services
+      - update-traffic
+      - cloud-core-studio
+      - --region
+      - me-west1
+      - --to-latest
+      - --quiet
+
 images:
-  - ${_IMAGE}
+  - ${_IMAGE}:$COMMIT_SHA
 
 options:
   logging: CLOUD_LOGGING_ONLY

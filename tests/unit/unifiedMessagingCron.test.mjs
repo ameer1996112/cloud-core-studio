@@ -66,6 +66,38 @@ test("production build explicitly embeds the APNs environment used by device reg
   expect(cloudbuild).toContain("VITE_APNS_ENV=${_VITE_APNS_ENV}");
 });
 
+test("main-branch Cloud Build publishes an immutable image and deploys it to production", async () => {
+  const cloudbuild = Bun.YAML.parse(await readFile("cloudbuild.yaml", "utf8"));
+  const immutableImage = "${_IMAGE}:$COMMIT_SHA";
+
+  expect(cloudbuild.steps.map((step) => step.args[0])).toEqual(["build", "push", "run", "run"]);
+  expect(cloudbuild.steps[0].args).toContain(immutableImage);
+  expect(cloudbuild.steps[1].args).toEqual(["push", immutableImage]);
+  expect(cloudbuild.steps[2].entrypoint).toBe("gcloud");
+  expect(cloudbuild.steps[2].args).toEqual([
+    "run",
+    "deploy",
+    "cloud-core-studio",
+    "--image",
+    immutableImage,
+    "--region",
+    "me-west1",
+    "--quiet",
+  ]);
+  expect(cloudbuild.steps[3].entrypoint).toBe("gcloud");
+  expect(cloudbuild.steps[3].args).toEqual([
+    "run",
+    "services",
+    "update-traffic",
+    "cloud-core-studio",
+    "--region",
+    "me-west1",
+    "--to-latest",
+    "--quiet",
+  ]);
+  expect(cloudbuild.images).toEqual([immutableImage]);
+});
+
 test("Cloud Run setup reuses the production automation-token secret", async () => {
   const setup = await readFile("scripts/configure-unified-messaging-cloud-run.sh", "utf8");
   expect(setup).toContain(
