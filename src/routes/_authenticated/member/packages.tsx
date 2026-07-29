@@ -834,6 +834,7 @@ function PaymentMethodSheet({
   const bitCopy = getBitPaymentCopy(lang);
   const cardEnabled = Boolean(settings?.payments_enabled && settings?.payments_provider === "hyp");
   const hypEnabled = cardEnabled;
+  const oneTimeHypForMonthlyPlan = hypEnabled && recurringCard;
   const bitMessage = t("member.packageBitConfirmationMessage", {
     studio: settings?.studio_name ?? "Cloud & Core",
     member: t("member.friend"),
@@ -923,12 +924,16 @@ function PaymentMethodSheet({
               description={t("packages.cashDescription")}
               onClick={() => setMethod("cash")}
             />
-            {!hypEnabled && (
+            {(!hypEnabled || oneTimeHypForMonthlyPlan) && (
               <PaymentOption
                 active={method === "bit"}
                 icon={<Smartphone className="h-4 w-4" />}
                 label={t("packages.bitLabel")}
-                description={bitCopy.optionDescription}
+                description={
+                  oneTimeHypForMonthlyPlan
+                    ? t("packages.bitOneMonthDescription")
+                    : bitCopy.optionDescription
+                }
                 onClick={() => setMethod("bit")}
               />
             )}
@@ -966,7 +971,9 @@ function PaymentMethodSheet({
               </p>
               <p className="mt-2 text-sm text-slate">
                 {method === "bit"
-                  ? bitCopy.confirmDescription
+                  ? oneTimeHypForMonthlyPlan
+                    ? t("packages.bitOneMonthConfirmDescription")
+                    : bitCopy.confirmDescription
                   : method === "card"
                     ? recurringCard
                       ? t("packages.cardRecurringConfirmDescription")
