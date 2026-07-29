@@ -11,7 +11,6 @@ import {
   Clock3,
   MessageCircle,
   Settings2,
-  Smartphone,
   Sparkles,
   Users,
   X,
@@ -30,12 +29,6 @@ import {
   optimisticallyMarkAllNotificationsRead,
   safeNotificationActionUrl,
 } from "@/lib/memberNotificationsApi";
-import {
-  isMemberPushInviteDismissed,
-  MEMBER_PUSH_INVITE_DISMISSED_AT_KEY,
-  MEMBER_PUSH_REGISTRATION_FAILED_EVENT,
-  shouldShowMemberPushInvite,
-} from "@/lib/memberPushInvite";
 
 type MemberNotificationItem = {
   id: string;
@@ -239,16 +232,6 @@ const startMemberPushRegistration = createClientOnlyFn(async () => {
   return memberPush.startMemberPushRegistration();
 });
 
-const bootstrapMemberPushRegistration = createClientOnlyFn(async () => {
-  const memberPush = await import("@/lib/memberPush.client");
-  return memberPush.bootstrapMemberPushRegistration();
-});
-
-const detectNativeIos = createClientOnlyFn(async () => {
-  const { Capacitor } = await import("@capacitor/core");
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
-});
-
 const NOTIFICATION_CENTER_QUERY_KEY = ["member-notification-center"] as const;
 
 function NotificationFamilyIcon({ family }: { family: string | null }) {
@@ -283,13 +266,6 @@ export function MemberNotificationCenter({
   const [familyFilter, setFamilyFilter] = useState<
     "all" | "classes" | "waitlist" | "payments" | "membership" | "studio"
   >("all");
-  const [permissionMessage, setPermissionMessage] = useState("");
-  const [inviteDismissed, setInviteDismissed] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      isMemberPushInviteDismissed(window.localStorage.getItem(MEMBER_PUSH_INVITE_DISMISSED_AT_KEY)),
-  );
-  const [isNativeIos, setIsNativeIos] = useState(false);
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -297,16 +273,8 @@ export function MemberNotificationCenter({
   });
 
   useEffect(() => {
-    void detectNativeIos().then(setIsNativeIos);
-    void bootstrapMemberPushRegistration().catch((error) =>
-      console.warn("member_push_bootstrap_failed", error),
-    );
     const refresh = () => {
       void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
-    };
-    const registrationFailed = () => {
-      setInviteDismissed(false);
-      setPermissionMessage(copy.unavailable);
     };
     const foreground = (event: Event) => {
       const isDesktop = window.matchMedia("(min-width: 768px)").matches;
@@ -317,13 +285,18 @@ export function MemberNotificationCenter({
     };
     window.addEventListener("cc:member-notifications-changed", refresh);
     window.addEventListener("cc:member-push-received", foreground);
-    window.addEventListener(MEMBER_PUSH_REGISTRATION_FAILED_EVENT, registrationFailed);
     return () => {
       window.removeEventListener("cc:member-notifications-changed", refresh);
       window.removeEventListener("cc:member-push-received", foreground);
-      window.removeEventListener(MEMBER_PUSH_REGISTRATION_FAILED_EVENT, registrationFailed);
     };
-  }, [copy.unavailable, queryClient, viewport]);
+  }, [queryClient, viewport]);
+
+  useEffect(() => {
+    if (query.isLoading || query.data?.preferences.pushEnabled !== true) return;
+    void startMemberPushRegistration().catch((error) =>
+      console.warn("member_push_automatic_permission_failed", error),
+    );
+  }, [query.data?.preferences.pushEnabled, query.isLoading]);
 
   const markReadMutation = useMutation({
     mutationFn: (notificationId: string) => markRead({ data: { notificationId } }),
@@ -428,36 +401,6 @@ export function MemberNotificationCenter({
       ] as PreferenceKey[],
     },
   ];
-  const shouldInvite =
-    data?.preferences.pushEnabled !== false &&
-    shouldShowMemberPushInvite({
-      isNativeIos,
-      isLoading: query.isLoading,
-      hasActiveDevice: Boolean(data?.hasActiveDevice),
-      dismissed: inviteDismissed,
-    });
-
-  async function enablePush() {
-    setPermissionMessage("");
-    try {
-      const result = await startMemberPushRegistration();
-      if (result.ok || result.skipped === "already_started") {
-        setPermissionMessage(copy.enabled);
-        return;
-      }
-      setPermissionMessage(result.skipped === "permission_denied" ? copy.denied : copy.unavailable);
-    } catch (error) {
-      console.warn("member_push_enable_failed", error);
-      setPermissionMessage(copy.unavailable);
-    }
-  }
-
-  function dismissInvite() {
-    window.localStorage.setItem(MEMBER_PUSH_INVITE_DISMISSED_AT_KEY, String(Date.now()));
-    setInviteDismissed(true);
-    setPermissionMessage("");
-  }
-
   async function openNotification(notification: NotificationCenterData["notifications"][number]) {
     void recordEngagement({
       data: {
@@ -516,36 +459,6 @@ export function MemberNotificationCenter({
           </span>
         )}
       </button>
-
-      {shouldInvite && (
-        <div className="fixed inset-x-4 bottom-[calc(var(--member-bottom-nav-height)+env(safe-area-inset-bottom)+1rem)] z-40 mx-auto max-w-md rounded-[var(--radius-lg)] border border-gold/30 bg-ivory p-4 shadow-[var(--shadow-elevated)] md:bottom-6">
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={dismissInvite}
-            className="absolute end-3 top-3 rounded-full p-1 text-slate hover:bg-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <div className="flex gap-3 pe-7 text-start">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/12 text-navy">
-              <Smartphone className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-semibold text-navy">{copy.enableTitle}</p>
-              <p className="mt-1 text-sm leading-6 text-slate">{copy.enableBody}</p>
-              <button
-                type="button"
-                onClick={enablePush}
-                className="cta-navy mt-3 px-4 py-2 text-xs"
-              >
-                {copy.enable}
-              </button>
-              {permissionMessage && <p className="mt-2 text-xs text-slate">{permissionMessage}</p>}
-            </div>
-          </div>
-        </div>
-      )}
 
       {open && (
         <>
@@ -618,16 +531,6 @@ export function MemberNotificationCenter({
                     ))}
                   </fieldset>
                 ))}
-                {!data.hasActiveDevice && (
-                  <button
-                    type="button"
-                    onClick={enablePush}
-                    className="cta-navy mt-2 w-full px-4 py-2 text-xs"
-                  >
-                    {copy.enable}
-                  </button>
-                )}
-                {permissionMessage && <p className="text-xs text-slate">{permissionMessage}</p>}
               </div>
             )}
 

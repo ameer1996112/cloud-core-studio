@@ -43,9 +43,7 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [whatsappUpdatesEnabled, setWhatsappUpdatesEnabled] = useState(true);
-  const [emailUpdatesEnabled, setEmailUpdatesEnabled] = useState(true);
-  const [pushUpdatesEnabled, setPushUpdatesEnabled] = useState(true);
+  const [notificationUpdatesEnabled, setNotificationUpdatesEnabled] = useState(true);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
@@ -140,9 +138,9 @@ function AuthPage() {
             data: {
               name,
               preferred_language: lang,
-              whatsapp_updates_enabled: Boolean(trimmedPhone) && whatsappUpdatesEnabled,
-              email_updates_enabled: emailUpdatesEnabled,
-              push_updates_enabled: pushUpdatesEnabled,
+              whatsapp_updates_enabled: Boolean(trimmedPhone) && notificationUpdatesEnabled,
+              email_updates_enabled: notificationUpdatesEnabled,
+              push_updates_enabled: notificationUpdatesEnabled,
               ...(trimmedPhone ? { phone: trimmedPhone } : {}),
             },
           },
@@ -167,9 +165,7 @@ function AuthPage() {
         setMode("signin");
         setName("");
         setPhone("");
-        setWhatsappUpdatesEnabled(true);
-        setEmailUpdatesEnabled(true);
-        setPushUpdatesEnabled(true);
+        setNotificationUpdatesEnabled(true);
         setEmail("");
         setPassword("");
         setShowPassword(false);
@@ -236,9 +232,7 @@ function AuthPage() {
     setPassword("");
     setName("");
     setPhone("");
-    setWhatsappUpdatesEnabled(true);
-    setEmailUpdatesEnabled(true);
-    setPushUpdatesEnabled(true);
+    setNotificationUpdatesEnabled(true);
     setShowPassword(false);
     setFormVersion((version) => version + 1);
   }
@@ -428,24 +422,11 @@ function AuthPage() {
                       <p className="mb-3 text-xs leading-5 text-slate">
                         {t("auth.notificationConsentBody")}
                       </p>
-                      <div className="space-y-2.5">
-                        <NotificationConsentChoice
-                          checked={whatsappUpdatesEnabled}
-                          disabled={!phone.trim()}
-                          label={t("auth.notificationConsentWhatsapp")}
-                          onChange={setWhatsappUpdatesEnabled}
-                        />
-                        <NotificationConsentChoice
-                          checked={emailUpdatesEnabled}
-                          label={t("auth.notificationConsentEmail")}
-                          onChange={setEmailUpdatesEnabled}
-                        />
-                        <NotificationConsentChoice
-                          checked={pushUpdatesEnabled}
-                          label={t("auth.notificationConsentPush")}
-                          onChange={setPushUpdatesEnabled}
-                        />
-                      </div>
+                      <NotificationConsentChoice
+                        checked={notificationUpdatesEnabled}
+                        label={t("auth.notificationConsentAllChannels")}
+                        onChange={setNotificationUpdatesEnabled}
+                      />
                     </fieldset>
                   )}
                   {(mode === "signin" || mode === "signup") && (
@@ -649,12 +630,10 @@ function Field({
 
 function NotificationConsentChoice({
   checked,
-  disabled = false,
   label,
   onChange,
 }: {
   checked: boolean;
-  disabled?: boolean;
   label: string;
   onChange: (checked: boolean) => void;
 }) {
@@ -664,9 +643,8 @@ function NotificationConsentChoice({
       <input
         type="checkbox"
         checked={checked}
-        disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-5 w-5 shrink-0 accent-navy disabled:opacity-40"
+        className="h-5 w-5 shrink-0 accent-navy"
       />
     </label>
   );

@@ -103,9 +103,8 @@ export const MESSAGES = {
     "auth.notificationConsentTitle": "How should we keep you updated?",
     "auth.notificationConsentBody":
       "These choices are enabled for your booking and studio updates. You can turn any of them off now or later.",
-    "auth.notificationConsentWhatsapp": "WhatsApp confirmations and class reminders",
-    "auth.notificationConsentEmail": "Email confirmations and account updates",
-    "auth.notificationConsentPush": "iPhone notifications (permission requested in the app)",
+    "auth.notificationConsentAllChannels":
+      "Receive booking confirmations and studio updates by WhatsApp (when a phone number is provided), email, and iPhone notifications",
     "auth.email": "Email",
     "auth.password": "Password",
     "auth.enter": "Enter the studio",
@@ -1410,9 +1409,8 @@ export const MESSAGES = {
     "auth.notificationConsentTitle": "איך תרצי לקבל עדכונים?",
     "auth.notificationConsentBody":
       "האפשרויות מופעלות עבור אישורי הזמנה ועדכוני סטודיו. אפשר לבטל כל ערוץ עכשיו או בהמשך.",
-    "auth.notificationConsentWhatsapp": "אישורים ותזכורות לשיעורים ב‑WhatsApp",
-    "auth.notificationConsentEmail": "אישורים ועדכוני חשבון באימייל",
-    "auth.notificationConsentPush": "התראות iPhone (נבקש הרשאה באפליקציה)",
+    "auth.notificationConsentAllChannels":
+      "קבלת אישורי הזמנה ועדכוני סטודיו ב‑WhatsApp (כאשר הוזן מספר), באימייל ובהתראות iPhone",
     "auth.email": "אימייל",
     "auth.password": "סיסמה",
     "auth.enter": "כניסה לסטודיו",
@@ -2737,9 +2735,8 @@ export const MESSAGES = {
     "auth.notificationConsentTitle": "كيف تفضّلين تلقي التحديثات؟",
     "auth.notificationConsentBody":
       "هذه الخيارات مفعّلة لتأكيدات الحجز وتحديثات الاستوديو. يمكنك إيقاف أي قناة الآن أو لاحقاً.",
-    "auth.notificationConsentWhatsapp": "تأكيدات وتذكيرات الحصص عبر WhatsApp",
-    "auth.notificationConsentEmail": "التأكيدات وتحديثات الحساب عبر البريد الإلكتروني",
-    "auth.notificationConsentPush": "إشعارات iPhone (سنطلب الإذن داخل التطبيق)",
+    "auth.notificationConsentAllChannels":
+      "تلقي تأكيدات الحجز وتحديثات الاستوديو عبر WhatsApp (عند إدخال رقم)، والبريد الإلكتروني، وإشعارات iPhone",
     "auth.email": "البريد الإلكتروني",
     "auth.password": "كلمة المرور",
     "auth.enter": "دخول الاستوديو",

@@ -10,14 +10,15 @@ const migrationSource = readFileSync(
 );
 
 describe("signup notification consent", () => {
-  test("offers separate, default-on choices for every external channel", () => {
+  test("offers one default-on choice that covers every external channel", () => {
     expect(authSource).toContain("useState(true)");
     expect(authSource).toContain("whatsapp_updates_enabled");
     expect(authSource).toContain("email_updates_enabled");
     expect(authSource).toContain("push_updates_enabled");
-    expect(authSource).toContain('t("auth.notificationConsentWhatsapp")');
-    expect(authSource).toContain('t("auth.notificationConsentEmail")');
-    expect(authSource).toContain('t("auth.notificationConsentPush")');
+    expect(authSource).toContain('t("auth.notificationConsentAllChannels")');
+    expect(authSource).not.toContain('t("auth.notificationConsentWhatsapp")');
+    expect(authSource).not.toContain('t("auth.notificationConsentEmail")');
+    expect(authSource).not.toContain('t("auth.notificationConsentPush")');
   });
 
   test("persists the selected channels with an auditable signup source", () => {
