@@ -46,6 +46,8 @@ export function premiumJourneyTestVariables(language: MessageLanguage) {
     credits_remaining: "2",
     expiry_date: "31/07/2026",
     renewal_date: "31/07/2026",
+    class_count: "8",
+    item_count: "2",
   } satisfies Record<string, string>;
 }
 

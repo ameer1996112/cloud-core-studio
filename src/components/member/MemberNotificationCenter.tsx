@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { createClientOnlyFn, useServerFn } from "@tanstack/react-start";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Bell,
   Archive,
@@ -18,6 +18,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useI18n, type Lang } from "@/lib/i18n";
+import { MEMBER_NOTIFICATION_CENTER_QUERY_KEY } from "@/lib/memberNotificationQueryKeys";
 import {
   getMemberNotificationCenter,
   markAllMemberNotificationsRead,
@@ -212,13 +213,6 @@ const COPY: Record<Lang, Record<string, string>> = {
   },
 };
 
-const startMemberPushRegistration = createClientOnlyFn(async () => {
-  const memberPush = await import("@/lib/memberPush.client");
-  return memberPush.startMemberPushRegistration();
-});
-
-const NOTIFICATION_CENTER_QUERY_KEY = ["member-notification-center"] as const;
-
 function NotificationFamilyIcon({ family }: { family: string | null }) {
   const iconClass = "h-4 w-4";
   if (family === "payment") return <CircleDollarSign className={iconClass} />;
@@ -251,16 +245,15 @@ export function MemberNotificationCenter({
   const [familyFilter, setFamilyFilter] = useState<
     "all" | "classes" | "waitlist" | "payments" | "membership" | "studio"
   >("all");
-  const [permissionMessage, setPermissionMessage] = useState("");
   const query = useQuery<NotificationCenterData>({
-    queryKey: NOTIFICATION_CENTER_QUERY_KEY,
+    queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
     staleTime: 30_000,
   });
 
   useEffect(() => {
     const refresh = () => {
-      void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY });
     };
     const foreground = (event: Event) => {
       const isDesktop = window.matchMedia("(min-width: 768px)").matches;
@@ -277,31 +270,21 @@ export function MemberNotificationCenter({
     };
   }, [queryClient, viewport]);
 
-  useEffect(() => {
-    if (query.isLoading || query.data?.preferences.pushEnabled !== true) return;
-    void startMemberPushRegistration()
-      .then((result) => {
-        if (!result.ok && result.skipped === "permission_denied") {
-          setPermissionMessage(copy.denied);
-        }
-      })
-      .catch((error) => console.warn("member_push_automatic_permission_failed", error));
-  }, [copy.denied, query.data?.preferences.pushEnabled, query.isLoading]);
-
   const markReadMutation = useMutation({
     mutationFn: (notificationId: string) => markRead({ data: { notificationId } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY }),
   });
   const markAllMutation = useMutation({
     mutationFn: () => markAllRead({ data: {} }),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY });
       const previous = queryClient.getQueryData<NotificationCenterData>(
-        NOTIFICATION_CENTER_QUERY_KEY,
+        MEMBER_NOTIFICATION_CENTER_QUERY_KEY,
       );
       if (previous) {
         queryClient.setQueryData<NotificationCenterData>(
-          NOTIFICATION_CENTER_QUERY_KEY,
+          MEMBER_NOTIFICATION_CENTER_QUERY_KEY,
           optimisticallyMarkAllNotificationsRead(previous),
         );
       }
@@ -309,12 +292,12 @@ export function MemberNotificationCenter({
     },
     onError: (_error, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(NOTIFICATION_CENTER_QUERY_KEY, context.previous);
+        queryClient.setQueryData(MEMBER_NOTIFICATION_CENTER_QUERY_KEY, context.previous);
       }
       toast.error(copy.markAllFailed);
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY });
     },
   });
   const preferencesMutation = useMutation({
@@ -322,7 +305,7 @@ export function MemberNotificationCenter({
       updatePreferences({ data: preferences }),
     onSuccess: () => {
       toast.success(copy.preferencesSaved);
-      void queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY });
     },
   });
 
@@ -431,7 +414,9 @@ export function MemberNotificationCenter({
         eventType: "archived",
         occurredAt: new Date().toISOString(),
       },
-    }).then(() => queryClient.invalidateQueries({ queryKey: NOTIFICATION_CENTER_QUERY_KEY }));
+    }).then(() =>
+      queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY }),
+    );
   }
 
   return (
@@ -521,7 +506,6 @@ export function MemberNotificationCenter({
                     ))}
                   </fieldset>
                 ))}
-                {permissionMessage && <p className="text-xs text-slate">{permissionMessage}</p>}
               </div>
             )}
 

@@ -1,25 +1,34 @@
 import { describe, expect, test } from "bun:test";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("../..", import.meta.url).pathname;
+const scriptPath = fileURLToPath(
+  new URL("../../scripts/create-whatsapp-templates.mjs", import.meta.url),
+);
+const isolatedEnvironment = {
+  PATH: Bun.env.PATH ?? "",
+  META_GRAPH_API_VERSION: "",
+  META_ACCESS_TOKEN: "",
+  META_WABA_ID: "",
+  META_TEMPLATE_IMAGE_HEADER_HANDLE: "",
+  SUPABASE_URL: "",
+  VITE_SUPABASE_URL: "",
+  SUPABASE_SERVICE_ROLE_KEY: "",
+};
 
 async function runScript(args, env = {}, stdinText) {
-  const child = Bun.spawn(["bun", "scripts/create-whatsapp-templates.mjs", ...args], {
-    cwd: root,
-    env: { PATH: Bun.env.PATH ?? "", ...env },
-    stdin: stdinText === undefined ? "ignore" : "pipe",
+  const child = Bun.spawnSync({
+    cmd: ["bun", scriptPath, ...args],
+    cwd: import.meta.dir,
+    env: { ...isolatedEnvironment, ...env },
+    stdin: stdinText === undefined ? "ignore" : Buffer.from(stdinText),
     stdout: "pipe",
     stderr: "pipe",
   });
-  if (stdinText !== undefined) {
-    child.stdin.write(stdinText);
-    child.stdin.end();
-  }
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-    child.exited,
-  ]);
-  return { stdout, stderr, exitCode };
+  return {
+    stdout: child.stdout?.toString() ?? "",
+    stderr: child.stderr?.toString() ?? "",
+    exitCode: child.exitCode,
+  };
 }
 
 describe("WhatsApp template provisioner script", () => {

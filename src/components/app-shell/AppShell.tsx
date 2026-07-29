@@ -9,6 +9,7 @@ import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRol
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
+import { MemberPushOnboarding } from "@/components/member/MemberPushOnboarding";
 import { MemberWhatsappOnboarding } from "@/components/member/MemberWhatsappOnboarding";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
@@ -180,6 +181,7 @@ export function AppShell({ role, children }: Props) {
       className="fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground"
     >
       {role === "member" && <MemberWhatsappOnboarding />}
+      {role === "member" && <MemberPushOnboarding />}
       {useDrawer && (
         <SidebarPanel
           role={role}

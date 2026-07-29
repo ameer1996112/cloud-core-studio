@@ -14,6 +14,10 @@ const paymentLifecycleMigrationPath = new URL(
   "../../supabase/migrations/20260727110000_premium_payment_lifecycle.sql",
   import.meta.url,
 );
+const completeCatalogMigrationPath = new URL(
+  "../../supabase/migrations/20260728143000_activate_complete_concierge_catalog.sql",
+  import.meta.url,
+);
 
 describe("premium notification all-events migration", () => {
   test("keeps the complete rollout private while enabling reviewed event behavior", () => {
@@ -57,19 +61,25 @@ describe("premium notification all-events migration", () => {
   });
 
   test("keeps the database rollout channel matrix exactly aligned with the code catalog", () => {
-    const sql = readFileSync(tuningMigrationPath, "utf8");
-    const rolloutRows = new Map(
-      [...sql.matchAll(/\('([^']+)', ARRAY\[([^\]]*)\]::text\[\]\)/g)].map((match) => [
-        match[1],
-        [...match[2].matchAll(/'([^']+)'/g)].map((channel) => channel[1]),
-      ]),
-    );
-    const lifecycleSql = readFileSync(paymentLifecycleMigrationPath, "utf8");
-    for (const match of lifecycleSql.matchAll(/WHEN '([^']+)' THEN ARRAY\[([^\]]*)\]::text\[\]/g)) {
-      rolloutRows.set(
-        match[1],
-        [...match[2].matchAll(/'([^']+)'/g)].map((channel) => channel[1]),
-      );
+    const rolloutRows = new Map();
+    for (const path of [
+      tuningMigrationPath,
+      paymentLifecycleMigrationPath,
+      completeCatalogMigrationPath,
+    ]) {
+      const sql = readFileSync(path, "utf8");
+      for (const match of sql.matchAll(/\('([^']+)', ARRAY\[([^\]]*)\]::text\[\]\)/g)) {
+        rolloutRows.set(
+          match[1],
+          [...match[2].matchAll(/'([^']+)'/g)].map((channel) => channel[1]),
+        );
+      }
+      for (const match of sql.matchAll(/WHEN '([^']+)' THEN ARRAY\[([^\]]*)\]::text\[\]/g)) {
+        rolloutRows.set(
+          match[1],
+          [...match[2].matchAll(/'([^']+)'/g)].map((channel) => channel[1]),
+        );
+      }
     }
     expect(Object.fromEntries(rolloutRows)).toEqual(
       Object.fromEntries(

@@ -66,7 +66,7 @@ describe("public support route", () => {
   test("promotes direct support and public guest navigation before detailed help cards", () => {
     const html = renderSupportRoute("en");
 
-    expect(html).toContain("Contact the studio team directly");
+    expect(html).toContain("Direct support");
     expect(html).toContain("cloudandcorestudio@gmail.com");
     expect(html).toContain("https://wa.me/message/S5HBZNKUMX45O1");
     expect(html).toContain('href="/member/schedule"');

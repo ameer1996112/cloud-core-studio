@@ -7,6 +7,7 @@ import {
   getMemberWhatsappOnboardingState,
   respondMemberWhatsappOnboarding,
 } from "@/lib/memberNotifications.functions";
+import { MEMBER_NOTIFICATION_CENTER_QUERY_KEY } from "@/lib/memberNotificationQueryKeys";
 
 const QUERY_KEY = ["member-whatsapp-onboarding"] as const;
 
@@ -54,7 +55,7 @@ export function MemberWhatsappOnboarding() {
     onMutate: () => setErrorMessage(""),
     onSuccess: () => {
       queryClient.setQueryData(QUERY_KEY, { eligible: false });
-      void queryClient.invalidateQueries({ queryKey: ["member-notification-center"] });
+      void queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY });
     },
     onError: () => setErrorMessage(copy.error),
   });

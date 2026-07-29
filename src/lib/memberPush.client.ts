@@ -195,6 +195,15 @@ export function bootstrapMemberPushRegistration() {
   return runMemberPushInitialization(false);
 }
 
+export async function getMemberPushPermissionStatus() {
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform()) {
+    return "unsupported" as const;
+  }
+  const { PushNotifications } = await import("@capacitor/push-notifications");
+  const permissions = await PushNotifications.checkPermissions();
+  return permissions.receive;
+}
+
 function runMemberPushInitialization(requestPermission: boolean) {
   if (initializationPromise) return initializationPromise;
   initializationPromise = initializeMemberPush({ requestPermission }).finally(() => {

@@ -3,6 +3,7 @@ import {
   buildPremiumJourneyPreviews,
   buildPremiumJourneyTestOutbox,
 } from "../../src/lib/premiumJourneyLab.ts";
+import { NOTIFICATION_EVENT_CATALOG } from "../../src/lib/premiumNotificationCatalog.ts";
 import {
   applyStaffTestVariables,
   isStaffTestMessageContent,
@@ -12,7 +13,7 @@ describe("premium notification Journey Lab", () => {
   test("renders every event in every supported language without unresolved variables", () => {
     for (const language of ["he", "ar", "en"]) {
       const previews = buildPremiumJourneyPreviews(language);
-      expect(previews).toHaveLength(43);
+      expect(previews).toHaveLength(Object.keys(NOTIFICATION_EVENT_CATALOG).length);
       expect(previews.every((preview) => !/\{\{\d+\}\}/.test(preview.body))).toBe(true);
       expect(previews.every((preview) => preview.subject.trim().length > 0)).toBe(true);
     }

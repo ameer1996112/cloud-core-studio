@@ -14,8 +14,9 @@ describe("Concierge Messages integration", () => {
     expect(messagesRoute).toContain('"concierge"');
     expect(messagesRoute).toContain('useState<Tab>("concierge")');
     expect(messagesRoute).toContain('tab === "concierge" && <ConciergeCommandCenter');
-    expect(messagesRoute).toContain('title: "קונסיירז׳ והודעות"');
-    expect(messagesRoute).toContain('title: "الكونسيرج والرسائل"');
+    expect(messagesRoute).toContain('title: "Concierge health"');
+    expect(messagesRoute).toContain('title: "בריאות הקונסיירז׳"');
+    expect(messagesRoute).toContain('title: "صحة الكونسيرج"');
   });
 
   test("keeps the Concierge command center read-only over the unified production engine", () => {
