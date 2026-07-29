@@ -51,6 +51,25 @@ describe("member notification delivery policy", () => {
     expect(decision.suppressedReason).toBe("preference_disabled");
   });
 
+  test("does not recreate marketing inbox items when both marketing and push are disabled", () => {
+    const decision = decideMemberNotificationDelivery({
+      category: "marketing",
+      preferences: {
+        ...enabledPreferences,
+        marketing: false,
+        pushEnabled: false,
+      },
+      hasActivePushDevice: true,
+      isQuietHours: false,
+      marketingPushesLast7Days: 0,
+      marketingPushesToday: 0,
+      duplicateWithin7Days: false,
+    });
+
+    expect(decision.createInboxItem).toBe(false);
+    expect(decision.sendPush).toBe(false);
+  });
+
   test("persists every member event in the inbox even without an active device", () => {
     expect(decide({ hasActivePushDevice: false })).toEqual({
       createInboxItem: true,

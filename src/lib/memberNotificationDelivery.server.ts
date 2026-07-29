@@ -6,6 +6,7 @@ import {
   type MemberNotificationPreferences,
 } from "@/lib/memberNotificationPolicy";
 import { safeNotificationActionUrl } from "@/lib/memberNotificationsApi";
+import { readMemberNotificationPreferences } from "@/lib/memberNotificationPreferences";
 import { isApnsConfigured, sendApnsAlert } from "@/lib/apns.server";
 
 type RelatedIds = {
@@ -199,11 +200,7 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
 
   const [preferencesResult, devicesResult, weekResult, dayResult, repeatResult, duplicateResult] =
     await Promise.all([
-      db
-        .from("member_notification_preferences")
-        .select("push_enabled,lesson_reminders,schedule_updates,package_reminders,marketing,sound")
-        .eq("member_id", input.memberId)
-        .maybeSingle(),
+      readMemberNotificationPreferences(db, input.memberId),
       db
         .from("member_push_tokens")
         .select("id,token")
@@ -351,11 +348,7 @@ async function reevaluateQueuedNotification(
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
   const dayAgo = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
   const [preferencesResult, weekResult, dayResult, repeatResult] = await Promise.all([
-    db
-      .from("member_notification_preferences")
-      .select("push_enabled,lesson_reminders,schedule_updates,package_reminders,marketing,sound")
-      .eq("member_id", row.member_id)
-      .maybeSingle(),
+    readMemberNotificationPreferences(db, row.member_id),
     isMarketing
       ? db
           .from("member_notifications")

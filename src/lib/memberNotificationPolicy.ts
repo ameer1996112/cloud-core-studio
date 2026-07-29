@@ -101,11 +101,11 @@ export function decideMemberNotificationDelivery(
     input.category === "urgent_class_change" ||
     input.category === "payment_failed" ||
     input.category === "waitlist";
-  if (!input.preferences.pushEnabled) {
-    return suppressed("preference_disabled", sendWhatsapp);
-  }
   if (!isPreferenceEnabled(input.category, input.preferences)) {
     return suppressed("preference_disabled", sendWhatsapp, false);
+  }
+  if (!input.preferences.pushEnabled) {
+    return suppressed("preference_disabled", sendWhatsapp);
   }
   if (MARKETING_CATEGORIES.has(input.category)) {
     if (input.category !== "schedule" && input.duplicateWithin7Days) {
