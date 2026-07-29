@@ -102,7 +102,7 @@ export const MESSAGES = {
     "auth.phoneOptionalHelp": "Used only if you want WhatsApp or studio updates.",
     "auth.notificationConsentTitle": "How should we keep you updated?",
     "auth.notificationConsentBody":
-      "These choices are enabled for your booking and studio updates. You can turn any of them off now or later.",
+      "One choice covers WhatsApp, email, and iPhone updates. You can change individual channels later in notification settings.",
     "auth.notificationConsentAllChannels":
       "Receive booking confirmations and studio updates by WhatsApp (when a phone number is provided), email, and iPhone notifications",
     "auth.email": "Email",
@@ -1408,7 +1408,7 @@ export const MESSAGES = {
     "auth.phoneOptionalHelp": "נשתמש בו רק אם תרצו לקבל עדכוני סטודיו או וואטסאפ.",
     "auth.notificationConsentTitle": "איך תרצי לקבל עדכונים?",
     "auth.notificationConsentBody":
-      "האפשרויות מופעלות עבור אישורי הזמנה ועדכוני סטודיו. אפשר לבטל כל ערוץ עכשיו או בהמשך.",
+      "בחירה אחת כוללת WhatsApp, אימייל והתראות iPhone. בהמשך אפשר לשנות כל ערוץ בנפרד בהגדרות ההתראות.",
     "auth.notificationConsentAllChannels":
       "קבלת אישורי הזמנה ועדכוני סטודיו ב‑WhatsApp (כאשר הוזן מספר), באימייל ובהתראות iPhone",
     "auth.email": "אימייל",
@@ -2734,7 +2734,7 @@ export const MESSAGES = {
     "auth.phoneOptionalHelp": "يُستخدم فقط إذا أردتِ تحديثات واتساب أو تحديثات من الاستوديو.",
     "auth.notificationConsentTitle": "كيف تفضّلين تلقي التحديثات؟",
     "auth.notificationConsentBody":
-      "هذه الخيارات مفعّلة لتأكيدات الحجز وتحديثات الاستوديو. يمكنك إيقاف أي قناة الآن أو لاحقاً.",
+      "خيار واحد يشمل WhatsApp والبريد الإلكتروني وإشعارات iPhone. يمكنك تعديل كل قناة لاحقاً من إعدادات الإشعارات.",
     "auth.notificationConsentAllChannels":
       "تلقي تأكيدات الحجز وتحديثات الاستوديو عبر WhatsApp (عند إدخال رقم)، والبريد الإلكتروني، وإشعارات iPhone",
     "auth.email": "البريد الإلكتروني",

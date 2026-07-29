@@ -84,11 +84,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     empty: "Your reminders and studio updates will appear here.",
     markAll: "Mark all read",
     markAllFailed: "Could not mark notifications as read. Please try again.",
-    enableTitle: "Stay connected to your practice",
-    enableBody: "Get lesson reminders, schedule openings, and package updates on your iPhone.",
-    enable: "Enable iPhone reminders",
     denied: "Notifications are disabled. You can enable them in iPhone Settings.",
-    enabled: "iPhone reminders are being enabled.",
     settings: "Notification choices",
     lessonReminders: "Upcoming lesson reminders",
     scheduleUpdates: "New schedules and lesson openings",
@@ -99,7 +95,6 @@ const COPY: Record<Lang, Record<string, string>> = {
     whatsappEnabled: "WhatsApp transactional updates",
     emailEnabled: "Email transactional updates",
     preferencesSaved: "Notification choices saved.",
-    unavailable: "Open the Cloud & Core iPhone app to enable phone notifications.",
     all: "All",
     unreadOnly: "Unread",
     today: "Today",
@@ -133,11 +128,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     empty: "תזכורות ועדכוני הסטודיו יופיעו כאן.",
     markAll: "סימון הכול כנקרא",
     markAllFailed: "לא הצלחנו לסמן את ההתראות כנקראו. אפשר לנסות שוב.",
-    enableTitle: "להישאר מחוברת לאימונים",
-    enableBody: "לקבלת תזכורות לשיעורים, פתיחת מערכת ועדכוני חבילה ב-iPhone.",
-    enable: "הפעלת תזכורות ב-iPhone",
     denied: "ההתראות כבויות. אפשר להפעיל אותן בהגדרות ה-iPhone.",
-    enabled: "הפעלת ההתראות התחילה.",
     settings: "בחירת התראות",
     lessonReminders: "תזכורות לשיעורים שנרשמת אליהם",
     scheduleUpdates: "מערכת חדשה ושיעורים שנפתחו",
@@ -148,7 +139,6 @@ const COPY: Record<Lang, Record<string, string>> = {
     whatsappEnabled: "עדכונים תפעוליים ב-WhatsApp",
     emailEnabled: "עדכונים תפעוליים באימייל",
     preferencesSaved: "בחירת ההתראות נשמרה.",
-    unavailable: "יש לפתוח את אפליקציית Cloud & Core ב-iPhone כדי להפעיל התראות.",
     all: "הכול",
     unreadOnly: "לא נקראו",
     today: "היום",
@@ -182,11 +172,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     empty: "ستظهر تذكيراتك وتحديثات الاستوديو هنا.",
     markAll: "تحديد الكل كمقروء",
     markAllFailed: "تعذر تحديد الإشعارات كمقروءة. حاولي مرة أخرى.",
-    enableTitle: "ابقَي على تواصل مع تمارينك",
-    enableBody: "احصلي على تذكيرات الحصص وفتح الجدول وتحديثات الباقة على iPhone.",
-    enable: "تفعيل تذكيرات iPhone",
     denied: "الإشعارات متوقفة. يمكنك تفعيلها من إعدادات iPhone.",
-    enabled: "بدأ تفعيل إشعارات iPhone.",
     settings: "اختيارات الإشعارات",
     lessonReminders: "تذكيرات الحصص القادمة",
     scheduleUpdates: "الجداول الجديدة والحصص المفتوحة",
@@ -197,7 +183,6 @@ const COPY: Record<Lang, Record<string, string>> = {
     whatsappEnabled: "تحديثات المعاملات عبر WhatsApp",
     emailEnabled: "تحديثات المعاملات عبر البريد الإلكتروني",
     preferencesSaved: "تم حفظ اختيارات الإشعارات.",
-    unavailable: "افتحي تطبيق Cloud & Core على iPhone لتفعيل إشعارات الهاتف.",
     all: "الكل",
     unreadOnly: "غير مقروءة",
     today: "اليوم",
@@ -266,6 +251,7 @@ export function MemberNotificationCenter({
   const [familyFilter, setFamilyFilter] = useState<
     "all" | "classes" | "waitlist" | "payments" | "membership" | "studio"
   >("all");
+  const [permissionMessage, setPermissionMessage] = useState("");
   const query = useQuery<NotificationCenterData>({
     queryKey: NOTIFICATION_CENTER_QUERY_KEY,
     queryFn: () => getCenter(),
@@ -293,10 +279,14 @@ export function MemberNotificationCenter({
 
   useEffect(() => {
     if (query.isLoading || query.data?.preferences.pushEnabled !== true) return;
-    void startMemberPushRegistration().catch((error) =>
-      console.warn("member_push_automatic_permission_failed", error),
-    );
-  }, [query.data?.preferences.pushEnabled, query.isLoading]);
+    void startMemberPushRegistration()
+      .then((result) => {
+        if (!result.ok && result.skipped === "permission_denied") {
+          setPermissionMessage(copy.denied);
+        }
+      })
+      .catch((error) => console.warn("member_push_automatic_permission_failed", error));
+  }, [copy.denied, query.data?.preferences.pushEnabled, query.isLoading]);
 
   const markReadMutation = useMutation({
     mutationFn: (notificationId: string) => markRead({ data: { notificationId } }),
@@ -531,6 +521,7 @@ export function MemberNotificationCenter({
                     ))}
                   </fieldset>
                 ))}
+                {permissionMessage && <p className="text-xs text-slate">{permissionMessage}</p>}
               </div>
             )}
 
