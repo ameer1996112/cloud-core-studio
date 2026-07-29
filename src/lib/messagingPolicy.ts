@@ -97,7 +97,7 @@ export function deliveryAllowedByConsent(
   // interruption/external delivery, never whether that record exists.
   if (channel === "in_app") return true;
   if (definition.preference && !preferenceEnabled(definition.preference, preferences)) return false;
-  if (channel === "push") return true;
+  if (channel === "push") return preferences.pushEnabled !== false;
   if (channel === "whatsapp") return preferences.whatsappEnabled === true;
   return preferences.emailEnabled === true;
 }

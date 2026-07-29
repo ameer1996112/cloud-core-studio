@@ -64,6 +64,7 @@ type NotificationCenterData = {
     packageReminders: boolean;
     marketing: boolean;
     sound: boolean;
+    pushEnabled: boolean;
     whatsappEnabled: boolean;
     emailEnabled: boolean;
     classOperationsEnabled: boolean;
@@ -101,6 +102,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     packageReminders: "Credits, packages, and payment reminders",
     marketing: "Offers and studio news",
     sound: "Sound for important reminders",
+    pushEnabled: "iPhone push notifications",
     whatsappEnabled: "WhatsApp transactional updates",
     emailEnabled: "Email transactional updates",
     preferencesSaved: "Notification choices saved.",
@@ -149,6 +151,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     packageReminders: "קרדיטים, חבילות ותשלומים",
     marketing: "הטבות וחדשות מהסטודיו",
     sound: "צליל לתזכורות חשובות",
+    pushEnabled: "התראות Push ב‑iPhone",
     whatsappEnabled: "עדכונים תפעוליים ב-WhatsApp",
     emailEnabled: "עדכונים תפעוליים באימייל",
     preferencesSaved: "בחירת ההתראות נשמרה.",
@@ -197,6 +200,7 @@ const COPY: Record<Lang, Record<string, string>> = {
     packageReminders: "الأرصدة والباقات والمدفوعات",
     marketing: "العروض وأخبار الاستوديو",
     sound: "صوت للتذكيرات المهمة",
+    pushEnabled: "إشعارات Push على iPhone",
     whatsappEnabled: "تحديثات المعاملات عبر WhatsApp",
     emailEnabled: "تحديثات المعاملات عبر البريد الإلكتروني",
     preferencesSaved: "تم حفظ اختيارات الإشعارات.",
@@ -418,17 +422,20 @@ export function MemberNotificationCenter({
         "staffRepliesEnabled",
         "timeSensitiveEnabled",
         "sound",
+        "pushEnabled",
         "whatsappEnabled",
         "emailEnabled",
       ] as PreferenceKey[],
     },
   ];
-  const shouldInvite = shouldShowMemberPushInvite({
-    isNativeIos,
-    isLoading: query.isLoading,
-    hasActiveDevice: Boolean(data?.hasActiveDevice),
-    dismissed: inviteDismissed,
-  });
+  const shouldInvite =
+    data?.preferences.pushEnabled !== false &&
+    shouldShowMemberPushInvite({
+      isNativeIos,
+      isLoading: query.isLoading,
+      hasActiveDevice: Boolean(data?.hasActiveDevice),
+      dismissed: inviteDismissed,
+    });
 
   async function enablePush() {
     setPermissionMessage("");

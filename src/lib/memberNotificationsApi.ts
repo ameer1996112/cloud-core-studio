@@ -6,6 +6,7 @@ export const memberNotificationPreferencesSchema = z.object({
   packageReminders: z.boolean(),
   marketing: z.boolean(),
   sound: z.boolean(),
+  pushEnabled: z.boolean().optional(),
   whatsappEnabled: z.boolean().optional(),
   emailEnabled: z.boolean().optional(),
   classOperationsEnabled: z.boolean().optional(),

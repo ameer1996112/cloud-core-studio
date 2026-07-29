@@ -227,6 +227,9 @@ export const updateMemberNotificationPreferences = createServerFn({ method: "POS
       preferenceUpdate.whatsapp_consent_source = "member_notification_settings";
       if (data.whatsappEnabled) preferenceUpdate.whatsapp_consented_at = new Date().toISOString();
     }
+    if (data.pushEnabled != null) {
+      preferenceUpdate.push_enabled = data.pushEnabled;
+    }
     if (data.emailEnabled != null) {
       preferenceUpdate.email_enabled = data.emailEnabled;
       preferenceUpdate.email_opted_out_at = data.emailEnabled ? null : new Date().toISOString();

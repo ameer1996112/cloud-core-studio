@@ -114,6 +114,7 @@ export type NotificationActionId =
   | "view_receipt";
 
 export type MessagingDeliveryPreferences = {
+  pushEnabled?: boolean | null;
   whatsappEnabled?: boolean | null;
   emailEnabled?: boolean | null;
   scheduleUpdates?: boolean | null;

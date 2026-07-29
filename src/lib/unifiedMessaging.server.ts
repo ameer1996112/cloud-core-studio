@@ -468,6 +468,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
     locale,
     member,
     preferences: {
+      pushEnabled: mappedPreferences.pushEnabled,
       whatsappEnabled: mappedPreferences.whatsappEnabled,
       emailEnabled: mappedPreferences.emailEnabled,
       scheduleUpdates: mappedPreferences.scheduleUpdates,

@@ -4,6 +4,7 @@ export const DEFAULT_MEMBER_NOTIFICATION_PREFERENCES = {
   packageReminders: true,
   marketing: false,
   sound: true,
+  pushEnabled: true,
   whatsappEnabled: false,
   emailEnabled: false,
   classOperationsEnabled: true,
@@ -20,7 +21,7 @@ export const DEFAULT_MEMBER_NOTIFICATION_PREFERENCES = {
 
 const BASE_PREFERENCE_COLUMNS =
   "lesson_reminders,schedule_updates,package_reminders,marketing,sound";
-const EXTERNAL_PREFERENCE_COLUMNS = `${BASE_PREFERENCE_COLUMNS},whatsapp_enabled,email_enabled`;
+const EXTERNAL_PREFERENCE_COLUMNS = `${BASE_PREFERENCE_COLUMNS},push_enabled,whatsapp_enabled,email_enabled`;
 const PREMIUM_PREFERENCE_COLUMNS = `${EXTERNAL_PREFERENCE_COLUMNS},class_operations_enabled,class_reminders_enabled,schedule_openings_enabled,waitlist_enabled,payments_enabled,membership_enabled,staff_replies_enabled,recommendations_enabled,marketing_analytics_enabled,time_sensitive_enabled`;
 
 type PreferenceError = {
@@ -65,7 +66,13 @@ export async function readMemberNotificationPreferences(db: PreferenceDatabase, 
     return premiumResult;
   }
   const externalResult = await query(EXTERNAL_PREFERENCE_COLUMNS);
-  if (!isMissingPreferenceColumn(externalResult.error, ["whatsapp_enabled", "email_enabled"])) {
+  if (
+    !isMissingPreferenceColumn(externalResult.error, [
+      "push_enabled",
+      "whatsapp_enabled",
+      "email_enabled",
+    ])
+  ) {
     return externalResult;
   }
   return query(BASE_PREFERENCE_COLUMNS);
@@ -80,6 +87,7 @@ export function mapMemberNotificationPreferences(row: unknown) {
     packageReminders: Boolean(values.package_reminders),
     marketing: Boolean(values.marketing),
     sound: Boolean(values.sound),
+    pushEnabled: values.push_enabled !== false,
     whatsappEnabled: Boolean(values.whatsapp_enabled),
     emailEnabled: Boolean(values.email_enabled),
     classOperationsEnabled: values.class_operations_enabled !== false,

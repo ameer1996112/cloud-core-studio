@@ -42,6 +42,21 @@ describe("unified messaging delivery policy", () => {
     );
   });
 
+  test("honors the member-wide push channel choice for routine reminders", () => {
+    expect(
+      deliveryAllowedByConsent("class_reminder_planning", "push", {
+        classReminders: true,
+        pushEnabled: false,
+      }),
+    ).toBe(false);
+    expect(
+      deliveryAllowedByConsent("class_reminder_planning", "push", {
+        classReminders: true,
+        pushEnabled: true,
+      }),
+    ).toBe(true);
+  });
+
   test("only essential events bypass a later external opt-out", () => {
     const optedOut = { whatsappEnabled: false, emailEnabled: false };
     expect(deliveryAllowedByConsent("booking_confirmed", "whatsapp", optedOut)).toBe(false);

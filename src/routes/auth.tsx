@@ -38,6 +38,9 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [whatsappUpdatesEnabled, setWhatsappUpdatesEnabled] = useState(true);
+  const [emailUpdatesEnabled, setEmailUpdatesEnabled] = useState(true);
+  const [pushUpdatesEnabled, setPushUpdatesEnabled] = useState(true);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
@@ -125,6 +128,9 @@ function AuthPage() {
             data: {
               name,
               preferred_language: lang,
+              whatsapp_updates_enabled: Boolean(trimmedPhone) && whatsappUpdatesEnabled,
+              email_updates_enabled: emailUpdatesEnabled,
+              push_updates_enabled: pushUpdatesEnabled,
               ...(trimmedPhone ? { phone: trimmedPhone } : {}),
             },
           },
@@ -149,6 +155,9 @@ function AuthPage() {
         setMode("signin");
         setName("");
         setPhone("");
+        setWhatsappUpdatesEnabled(true);
+        setEmailUpdatesEnabled(true);
+        setPushUpdatesEnabled(true);
         setEmail("");
         setPassword("");
         setShowPassword(false);
@@ -207,6 +216,9 @@ function AuthPage() {
     setPassword("");
     setName("");
     setPhone("");
+    setWhatsappUpdatesEnabled(true);
+    setEmailUpdatesEnabled(true);
+    setPushUpdatesEnabled(true);
     setShowPassword(false);
     setFormVersion((version) => version + 1);
   }
@@ -369,6 +381,34 @@ function AuthPage() {
                         spellCheck={false}
                       />
                     </Field>
+                  )}
+                  {mode === "signup" && (
+                    <fieldset className="rounded-2xl border border-gold/25 bg-white/55 p-4 text-start">
+                      <legend className="px-2 text-sm font-semibold text-navy">
+                        {t("auth.notificationConsentTitle")}
+                      </legend>
+                      <p className="mb-3 text-xs leading-5 text-slate">
+                        {t("auth.notificationConsentBody")}
+                      </p>
+                      <div className="space-y-2.5">
+                        <NotificationConsentChoice
+                          checked={whatsappUpdatesEnabled}
+                          disabled={!phone.trim()}
+                          label={t("auth.notificationConsentWhatsapp")}
+                          onChange={setWhatsappUpdatesEnabled}
+                        />
+                        <NotificationConsentChoice
+                          checked={emailUpdatesEnabled}
+                          label={t("auth.notificationConsentEmail")}
+                          onChange={setEmailUpdatesEnabled}
+                        />
+                        <NotificationConsentChoice
+                          checked={pushUpdatesEnabled}
+                          label={t("auth.notificationConsentPush")}
+                          onChange={setPushUpdatesEnabled}
+                        />
+                      </div>
+                    </fieldset>
                   )}
                   {(mode === "signin" || mode === "signup") && (
                     <Field label={t("auth.password")}>
@@ -542,6 +582,31 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <label className="auth-field block text-start">
       <span className="auth-field-label field-label">{label}</span>
       {children}
+    </label>
+  );
+}
+
+function NotificationConsentChoice({
+  checked,
+  disabled = false,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-11 items-center justify-between gap-4 rounded-xl bg-ivory/70 px-3 py-2.5 text-sm text-navy">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-5 w-5 shrink-0 accent-navy disabled:opacity-40"
+      />
     </label>
   );
 }
