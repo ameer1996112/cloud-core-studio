@@ -834,7 +834,6 @@ function PaymentMethodSheet({
   const bitCopy = getBitPaymentCopy(lang);
   const cardEnabled = Boolean(settings?.payments_enabled && settings?.payments_provider === "hyp");
   const hypEnabled = cardEnabled;
-  const oneTimeHypForMonthlyPlan = hypEnabled && recurringCard;
   const bitMessage = t("member.packageBitConfirmationMessage", {
     studio: settings?.studio_name ?? "Cloud & Core",
     member: t("member.friend"),
@@ -917,23 +916,21 @@ function PaymentMethodSheet({
 
         {!confirming ? (
           <div className="mt-5 space-y-3">
-            <PaymentOption
-              active={method === "cash"}
-              icon={<Wallet className="h-4 w-4" />}
-              label={t("packages.cashLabel")}
-              description={t("packages.cashDescription")}
-              onClick={() => setMethod("cash")}
-            />
-            {(!hypEnabled || oneTimeHypForMonthlyPlan) && (
+            {!recurringCard && (
+              <PaymentOption
+                active={method === "cash"}
+                icon={<Wallet className="h-4 w-4" />}
+                label={t("packages.cashLabel")}
+                description={t("packages.cashDescription")}
+                onClick={() => setMethod("cash")}
+              />
+            )}
+            {!hypEnabled && !recurringCard && (
               <PaymentOption
                 active={method === "bit"}
                 icon={<Smartphone className="h-4 w-4" />}
                 label={t("packages.bitLabel")}
-                description={
-                  oneTimeHypForMonthlyPlan
-                    ? t("packages.bitOneMonthDescription")
-                    : bitCopy.optionDescription
-                }
+                description={bitCopy.optionDescription}
                 onClick={() => setMethod("bit")}
               />
             )}
@@ -971,9 +968,7 @@ function PaymentMethodSheet({
               </p>
               <p className="mt-2 text-sm text-slate">
                 {method === "bit"
-                  ? oneTimeHypForMonthlyPlan
-                    ? t("packages.bitOneMonthConfirmDescription")
-                    : bitCopy.confirmDescription
+                  ? bitCopy.confirmDescription
                   : method === "card"
                     ? recurringCard
                       ? t("packages.cardRecurringConfirmDescription")

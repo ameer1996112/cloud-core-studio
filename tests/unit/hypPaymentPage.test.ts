@@ -62,21 +62,4 @@ describe("HYP hosted payment page", () => {
     expect(request.url().searchParams.get("hideBtns")).toBe("true");
     expect(request.url().searchParams.get("HK")).toBe("True");
   });
-
-  test("Bit can buy a monthly plan once without creating a subscription", async () => {
-    const request = capturePaymentPageRequest();
-
-    await createHypPaymentPage(
-      {
-        paymentId: "payment-1",
-        amountAgorot: 28000,
-        paymentMethod: "bit",
-        recurring: false,
-      },
-      config,
-    );
-
-    expect(request.url().searchParams.get("hideBtns")).toBe("false");
-    expect(request.url().searchParams.has("HK")).toBe(false);
-  });
 });

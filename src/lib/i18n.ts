@@ -411,10 +411,6 @@ export const MESSAGES = {
     "packages.bitLabel": "Pay with Bit",
     "packages.bitDescription":
       "Send payment by Bit. Your package will be activated after payment is confirmed.",
-    "packages.bitOneMonthDescription":
-      "One-time Bit payment for one month. This purchase does not renew automatically.",
-    "packages.bitOneMonthConfirmDescription":
-      "You will be redirected to HYP for a one-time Bit payment. The package is valid for one month and will not renew automatically.",
     "packages.cardSoonLabel": "Credit card — coming soon",
     "packages.cardSoonDescription": "Card payment is not active yet.",
     "packages.cardLabel": "Credit card",
@@ -429,7 +425,7 @@ export const MESSAGES = {
     "packages.cardRecurringConfirmDescription":
       "You will be redirected to HYP. First payment is today, then this renews every month until you cancel.",
     "packages.recurringDisclosure":
-      "Credit card renews monthly until cancelled. Bit or cash purchases one month only.",
+      "Monthly recurring payment. First payment today, then renews every month until cancelled.",
     "packages.cardPaymentError":
       "Could not open card payment. Please try again or contact the studio.",
     "packages.continue": "Continue",
@@ -1699,10 +1695,6 @@ export const MESSAGES = {
     "packages.cashDescription": "שלמי בסטודיו, ונאשר את החבילה לאחר קבלת התשלום.",
     "packages.bitLabel": "תשלום בביט",
     "packages.bitDescription": "שלחי תשלום בביט, ונאשר את החבילה לאחר קבלת התשלום.",
-    "packages.bitOneMonthDescription":
-      "תשלום חד־פעמי בביט עבור חודש אחד. הרכישה אינה מתחדשת אוטומטית.",
-    "packages.bitOneMonthConfirmDescription":
-      "נעביר אותך ל-HYP לתשלום חד־פעמי בביט. החבילה תקפה לחודש אחד ולא תתחדש אוטומטית.",
     "packages.cardSoonLabel": "כרטיס אשראי — בקרוב",
     "packages.cardSoonDescription": "תשלום באשראי עדיין לא פעיל.",
     "packages.cardLabel": "כרטיס אשראי",
@@ -1715,7 +1707,7 @@ export const MESSAGES = {
     "packages.cardRecurringConfirmDescription":
       "נעביר אותך ל-HYP. החיוב הראשון היום, ולאחר מכן החבילה מתחדשת בכל חודש עד ביטול.",
     "packages.recurringDisclosure":
-      "באשראי החבילה מתחדשת מדי חודש עד ביטול. בביט או במזומן הרכישה היא לחודש אחד בלבד.",
+      "תשלום חודשי חוזר. חיוב ראשון היום, ואז מתחדש כל חודש עד ביטול.",
     "packages.cardPaymentError": "לא הצלחנו לפתוח תשלום באשראי. נסי שוב או פני לסטודיו.",
     "packages.continue": "המשך לאישור",
     "packages.continueToCardPayment": "המשך לתשלום מאובטח",
@@ -2963,10 +2955,6 @@ export const MESSAGES = {
     "packages.cashDescription": "ادفعي بالاستوديو، ومنأكد الباقة بعد استلام الدفع.",
     "packages.bitLabel": "دفع عبر Bit",
     "packages.bitDescription": "ابعتي الدفع عبر Bit، ومنأكد الباقة بعد استلام الدفع.",
-    "packages.bitOneMonthDescription":
-      "دفعة Bit لمرة واحدة مقابل شهر واحد. الشراء لا يتجدد تلقائيًا.",
-    "packages.bitOneMonthConfirmDescription":
-      "سننقلك إلى HYP لإتمام دفعة Bit لمرة واحدة. الباقة صالحة لشهر واحد ولن تتجدد تلقائيًا.",
     "packages.cardSoonLabel": "بطاقة ائتمان — قريبًا",
     "packages.cardSoonDescription": "الدفع بالبطاقة غير متاح حالياً.",
     "packages.cardLabel": "بطاقة ائتمان",
@@ -2979,7 +2967,7 @@ export const MESSAGES = {
     "packages.cardRecurringConfirmDescription":
       "سنحوّلك إلى HYP. الدفعة الأولى اليوم، وبعدها تتجدد الباقة كل شهر حتى الإلغاء.",
     "packages.recurringDisclosure":
-      "البطاقة تتجدد شهريًا حتى الإلغاء. الدفع عبر Bit أو نقدًا يشتري شهرًا واحدًا فقط.",
+      "دفع شهري متكرر. الدفعة الأولى اليوم، ثم يتجدد كل شهر حتى الإلغاء.",
     "packages.cardPaymentError": "تعذر فتح الدفع بالبطاقة. حاولي مرة أخرى أو تواصلي مع الاستوديو.",
     "packages.continue": "متابعة للتأكيد",
     "packages.continueToCardPayment": "متابعة للدفع الآمن",
