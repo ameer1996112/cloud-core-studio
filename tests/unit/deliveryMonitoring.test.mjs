@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   classifyDeliveryTraffic,
+  deliveryEventLabel,
+  deliveryPolicyReason,
   filterDeliveryRows,
   isDeliveryRetryCandidate,
   summarizeDeliveries,
@@ -55,6 +57,20 @@ function delivery(overrides = {}) {
 }
 
 describe("delivery monitoring", () => {
+  test("presents reminder events as customer-facing reminders, not internal planning", () => {
+    expect(deliveryEventLabel("class_reminder_planning", "he")).toBe("תזכורת לשיעור");
+    expect(deliveryEventLabel("class_reminder_planning", "ar")).toBe("تذكير بالحصة");
+    expect(deliveryEventLabel("class_reminder_planning", "en")).toBe("Class reminder");
+  });
+
+  test("explains why a fallback channel was intentionally skipped", () => {
+    expect(deliveryPolicyReason("push_preferred_for_fallback_channel", "he")).toBe(
+      "WhatsApp גיבוי לא נדרש · Push פעיל",
+    );
+    expect(deliveryPolicyReason("no_active_push_device", "he")).toBe("אין מכשיר פעיל");
+    expect(deliveryPolicyReason("whatsapp_opted_out", "he")).toBe("WhatsApp כבוי ללקוחה");
+  });
+
   test("separates provider handoff from provider-confirmed delivery", () => {
     const rows = [
       delivery({ status: "sent" }),

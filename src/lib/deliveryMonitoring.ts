@@ -1,4 +1,53 @@
 import type { DeliveryFailureClass, DeliveryStatus, MessageChannel } from "@/lib/messaging.types";
+import type { Lang } from "@/lib/i18n";
+
+const EVENT_LABELS: Partial<Record<string, Record<Lang, string>>> = {
+  class_reminder_planning: {
+    en: "Class reminder",
+    he: "תזכורת לשיעור",
+    ar: "تذكير بالحصة",
+  },
+  class_reminder_final: {
+    en: "Final class reminder",
+    he: "תזכורת אחרונה לשיעור",
+    ar: "التذكير الأخير بالحصة",
+  },
+};
+
+const POLICY_REASON_LABELS: Partial<Record<string, Record<Lang, string>>> = {
+  push_preferred_for_fallback_channel: {
+    en: "WhatsApp fallback not needed · Push active",
+    he: "WhatsApp גיבוי לא נדרש · Push פעיל",
+    ar: "لا حاجة إلى WhatsApp الاحتياطي · Push فعّال",
+  },
+  no_active_push_device: {
+    en: "No active device",
+    he: "אין מכשיר פעיל",
+    ar: "لا يوجد جهاز فعّال",
+  },
+  whatsapp_opted_out: {
+    en: "WhatsApp disabled by member",
+    he: "WhatsApp כבוי ללקוחה",
+    ar: "WhatsApp معطّل من قِبل المشتركة",
+  },
+};
+
+export function deliveryEventLabel(eventType: string | null, lang: Lang) {
+  if (!eventType) return "—";
+  return (
+    EVENT_LABELS[eventType]?.[lang] ??
+    eventType
+      .split("_")
+      .filter(Boolean)
+      .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+      .join(" ")
+  );
+}
+
+export function deliveryPolicyReason(errorCode: string | null, lang: Lang) {
+  if (!errorCode) return null;
+  return POLICY_REASON_LABELS[errorCode]?.[lang] ?? null;
+}
 
 export type DeliveryMonitorMember = {
   id: string;

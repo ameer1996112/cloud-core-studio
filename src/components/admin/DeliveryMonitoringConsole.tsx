@@ -35,6 +35,8 @@ import {
   retryCanonicalDeliveryAction,
 } from "@/lib/unifiedMessages.functions";
 import {
+  deliveryEventLabel,
+  deliveryPolicyReason,
   filterDeliveryRows,
   isDeliveryAttention,
   isDeliveryRetryCandidate,
@@ -366,10 +368,6 @@ function channelLabel(copy: Record<string, string>, channel: MessageChannel) {
   return copy[`channel_${channel}`] ?? channel;
 }
 
-function eventLabel(eventType: string | null) {
-  return eventType ? eventType.replaceAll("_", " ") : "—";
-}
-
 function formatDateTime(value: string | null, lang: Lang) {
   if (!value) return "—";
   return new Intl.DateTimeFormat(lang === "he" ? "he-IL" : lang === "ar" ? "ar" : "en-GB", {
@@ -489,16 +487,20 @@ function statusTone(status: DeliveryStatus) {
 function StatusPill({
   delivery,
   copy,
+  lang,
 }: {
   delivery: DeliveryMonitorRow;
   copy: Record<string, string>;
+  lang: Lang;
 }) {
+  const policyReason =
+    delivery.status === "suppressed" ? deliveryPolicyReason(delivery.error_code, lang) : null;
   return (
     <span
       className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusTone(delivery.status)}`}
     >
       <StatusIcon status={delivery.status} />
-      <span className="truncate">{statusLabel(copy, delivery.status)}</span>
+      <span className="truncate">{policyReason ?? statusLabel(copy, delivery.status)}</span>
     </span>
   );
 }
@@ -886,7 +888,7 @@ export function DeliveryMonitoringConsole() {
                           )}
                         </div>
                         <p className="mt-1 font-medium capitalize text-navy">
-                          {eventLabel(eventType)}
+                          {deliveryEventLabel(eventType, lang)}
                         </p>
                         <time dateTime={moment.latestAt} className="mt-1 block text-xs text-slate">
                           {formatDateTime(moment.latestAt, lang)}
@@ -927,7 +929,7 @@ export function DeliveryMonitoringConsole() {
                               {channelLabel(copy, delivery.channel)}
                             </span>
                             <span className="mt-1 block">
-                              <StatusPill delivery={delivery} copy={copy} />
+                              <StatusPill delivery={delivery} copy={copy} lang={lang} />
                             </span>
                           </span>
                         </span>
@@ -1009,7 +1011,7 @@ function DeliveryInvestigation({
         </SheetTitle>
         <SheetDescription>{copy.deliveryDetailDescription}</SheetDescription>
         <div className="flex flex-wrap items-center gap-2 pt-2">
-          <StatusPill delivery={delivery} copy={copy} />
+          <StatusPill delivery={delivery} copy={copy} lang={lang} />
           <span className="inline-flex items-center gap-2 rounded-full bg-sand px-3 py-1 text-xs text-navy">
             <ChannelIcon channel={delivery.channel} />
             {channelLabel(copy, delivery.channel)}
@@ -1105,10 +1107,11 @@ function DeliveryInvestigation({
             {copy.event}
           </p>
           <p className="mt-2 text-lg font-semibold text-navy">
-            {delivery.message?.subject ?? eventLabel(delivery.message?.event_type ?? null)}
+            {delivery.message?.subject ??
+              deliveryEventLabel(delivery.message?.event_type ?? null, lang)}
           </p>
           <p className="mt-1 text-xs text-slate">
-            {eventLabel(delivery.message?.event_type ?? null)}
+            {deliveryEventLabel(delivery.message?.event_type ?? null, lang)}
           </p>
           {delivery.message?.template_key && (
             <p className="mt-3 text-xs text-slate">
