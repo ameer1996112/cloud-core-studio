@@ -100,11 +100,9 @@ export const MESSAGES = {
     "auth.phone": "Phone number",
     "auth.phoneOptional": "Phone number (optional)",
     "auth.phoneOptionalHelp": "Used only if you want WhatsApp or studio updates.",
-    "auth.notificationConsentTitle": "How should we keep you updated?",
-    "auth.notificationConsentBody":
-      "One choice covers WhatsApp, email, and iPhone updates. You can change individual channels later in notification settings.",
+    "auth.notificationConsentBody": "You can change each channel later in notification settings.",
     "auth.notificationConsentAllChannels":
-      "Receive booking confirmations and studio updates by WhatsApp (when a phone number is provided), email, and iPhone notifications",
+      "Booking and studio updates by WhatsApp, email, and iPhone",
     "auth.email": "Email",
     "auth.password": "Password",
     "auth.enter": "Enter the studio",
@@ -1406,11 +1404,8 @@ export const MESSAGES = {
     "auth.phone": "מספר טלפון",
     "auth.phoneOptional": "מספר טלפון (אופציונלי)",
     "auth.phoneOptionalHelp": "נשתמש בו רק אם תרצו לקבל עדכוני סטודיו או וואטסאפ.",
-    "auth.notificationConsentTitle": "איך תרצי לקבל עדכונים?",
-    "auth.notificationConsentBody":
-      "בחירה אחת כוללת WhatsApp, אימייל והתראות iPhone. בהמשך אפשר לשנות כל ערוץ בנפרד בהגדרות ההתראות.",
-    "auth.notificationConsentAllChannels":
-      "קבלת אישורי הזמנה ועדכוני סטודיו ב‑WhatsApp (כאשר הוזן מספר), באימייל ובהתראות iPhone",
+    "auth.notificationConsentBody": "בהמשך אפשר לשנות כל ערוץ בנפרד בהגדרות ההתראות.",
+    "auth.notificationConsentAllChannels": "עדכוני הזמנה וסטודיו ב‑WhatsApp, באימייל וב‑iPhone",
     "auth.email": "אימייל",
     "auth.password": "סיסמה",
     "auth.enter": "כניסה לסטודיו",
@@ -2732,11 +2727,9 @@ export const MESSAGES = {
     "auth.phone": "رقم الهاتف",
     "auth.phoneOptional": "رقم الهاتف (اختياري)",
     "auth.phoneOptionalHelp": "يُستخدم فقط إذا أردتِ تحديثات واتساب أو تحديثات من الاستوديو.",
-    "auth.notificationConsentTitle": "كيف تفضّلين تلقي التحديثات؟",
-    "auth.notificationConsentBody":
-      "خيار واحد يشمل WhatsApp والبريد الإلكتروني وإشعارات iPhone. يمكنك تعديل كل قناة لاحقاً من إعدادات الإشعارات.",
+    "auth.notificationConsentBody": "يمكنك تعديل كل قناة لاحقاً من إعدادات الإشعارات.",
     "auth.notificationConsentAllChannels":
-      "تلقي تأكيدات الحجز وتحديثات الاستوديو عبر WhatsApp (عند إدخال رقم)، والبريد الإلكتروني، وإشعارات iPhone",
+      "تحديثات الحجز والاستوديو عبر WhatsApp والبريد الإلكتروني وiPhone",
     "auth.email": "البريد الإلكتروني",
     "auth.password": "كلمة المرور",
     "auth.enter": "دخول الاستوديو",

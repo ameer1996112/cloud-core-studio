@@ -461,20 +461,15 @@ function AuthPage() {
                     </Field>
                   )}
                   {mode === "signup" && (
-                    <div className="auth-notification-consent border-t border-gold/20 pt-4 text-start">
-                      <p className="text-sm font-semibold text-navy">
-                        {t("auth.notificationConsentTitle")}
-                      </p>
-                      <p className="mt-1 text-xs leading-5 text-slate">
+                    <div className="border-t border-gold/20 pt-4 text-start">
+                      <NotificationConsentChoice
+                        checked={notificationUpdatesEnabled}
+                        label={t("auth.notificationConsentAllChannels")}
+                        onChange={setNotificationUpdatesEnabled}
+                      />
+                      <p className="mt-2 px-1 text-xs leading-5 text-slate">
                         {t("auth.notificationConsentBody")}
                       </p>
-                      <div className="mt-3">
-                        <NotificationConsentChoice
-                          checked={notificationUpdatesEnabled}
-                          label={t("auth.notificationConsentAllChannels")}
-                          onChange={setNotificationUpdatesEnabled}
-                        />
-                      </div>
                     </div>
                   )}
 

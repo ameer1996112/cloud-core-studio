@@ -23,12 +23,12 @@ describe("signup notification consent", () => {
 
   test("keeps the unified consent compact at the end of the signup fields", () => {
     expect(authSource.indexOf('label={t("auth.password")}')).toBeLessThan(
-      authSource.indexOf('t("auth.notificationConsentTitle")'),
+      authSource.indexOf('t("auth.notificationConsentAllChannels")'),
     );
-    expect(authSource).toContain('className="auth-notification-consent');
     expect(authSource).not.toContain(
       'className="rounded-2xl border border-gold/25 bg-white/55 p-4 text-start"',
     );
+    expect(authSource).not.toContain('t("auth.notificationConsentTitle")');
   });
 
   test("persists the selected channels with an auditable signup source", () => {
