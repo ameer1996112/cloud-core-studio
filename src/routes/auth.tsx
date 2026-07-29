@@ -414,21 +414,6 @@ function AuthPage() {
                       />
                     </Field>
                   )}
-                  {mode === "signup" && (
-                    <fieldset className="rounded-2xl border border-gold/25 bg-white/55 p-4 text-start">
-                      <legend className="px-2 text-sm font-semibold text-navy">
-                        {t("auth.notificationConsentTitle")}
-                      </legend>
-                      <p className="mb-3 text-xs leading-5 text-slate">
-                        {t("auth.notificationConsentBody")}
-                      </p>
-                      <NotificationConsentChoice
-                        checked={notificationUpdatesEnabled}
-                        label={t("auth.notificationConsentAllChannels")}
-                        onChange={setNotificationUpdatesEnabled}
-                      />
-                    </fieldset>
-                  )}
                   {(mode === "signin" || mode === "signup") && (
                     <Field
                       label={t("auth.password")}
@@ -474,6 +459,23 @@ function AuthPage() {
                       </div>
                       {mode === "signup" && <PasswordStrength password={password} />}
                     </Field>
+                  )}
+                  {mode === "signup" && (
+                    <div className="auth-notification-consent border-t border-gold/20 pt-4 text-start">
+                      <p className="text-sm font-semibold text-navy">
+                        {t("auth.notificationConsentTitle")}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-slate">
+                        {t("auth.notificationConsentBody")}
+                      </p>
+                      <div className="mt-3">
+                        <NotificationConsentChoice
+                          checked={notificationUpdatesEnabled}
+                          label={t("auth.notificationConsentAllChannels")}
+                          onChange={setNotificationUpdatesEnabled}
+                        />
+                      </div>
+                    </div>
                   )}
 
                   {formError && (
@@ -638,7 +640,7 @@ function NotificationConsentChoice({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex min-h-11 items-center justify-between gap-4 rounded-xl bg-ivory/70 px-3 py-2.5 text-sm text-navy">
+    <label className="flex min-h-11 items-center justify-between gap-4 rounded-xl border border-gold/15 bg-ivory/45 px-3 py-2.5 text-sm leading-6 text-navy">
       <span>{label}</span>
       <input
         type="checkbox"
