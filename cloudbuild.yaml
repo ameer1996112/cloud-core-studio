@@ -10,7 +10,7 @@ steps:
       - --build-arg
       - VITE_SUPABASE_PUBLISHABLE_KEY=${_VITE_SUPABASE_PUBLISHABLE_KEY}
       - --build-arg
-      - VITE_APNS_ENV=${_VITE_APNS_ENV}
+      - VITE_APNS_ENV=production
       - -t
       - ${_IMAGE}:$COMMIT_SHA
       - .

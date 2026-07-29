@@ -61,9 +61,12 @@ test("production build explicitly embeds the APNs environment used by device reg
     readFile("Dockerfile", "utf8"),
     readFile("cloudbuild.yaml", "utf8"),
   ]);
+  const parsedCloudbuild = Bun.YAML.parse(cloudbuild);
+
   expect(dockerfile).toContain("ARG VITE_APNS_ENV");
   expect(dockerfile).toContain("ENV VITE_APNS_ENV=$VITE_APNS_ENV");
-  expect(cloudbuild).toContain("VITE_APNS_ENV=${_VITE_APNS_ENV}");
+  expect(parsedCloudbuild.steps[0].args).toContain("VITE_APNS_ENV=production");
+  expect(parsedCloudbuild.steps[0].args).not.toContain("VITE_APNS_ENV=${_VITE_APNS_ENV}");
 });
 
 test("main-branch Cloud Build publishes an immutable image and deploys it to production", async () => {
