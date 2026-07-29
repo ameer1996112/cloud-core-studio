@@ -31,5 +31,9 @@ gcloud run deploy cloud-core-studio \
   --set-env-vars="$RUNTIME_ENV" \
   --set-secrets="$RUNTIME_SECRETS"
 
+gcloud run services update-traffic cloud-core-studio \
+  --region "me-west1" \
+  --to-latest
+
 echo "$IMAGE" > tmp/last-deployed-image.txt
 echo "==> Deploy complete!"
