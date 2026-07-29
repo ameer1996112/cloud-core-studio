@@ -41,6 +41,15 @@ function renderCard(state) {
 }
 
 describe("VisualClassCard package cta", () => {
+  test("exposes a localized accessible name and dialog relationship", () => {
+    const markup = renderCard({ kind: "available", spotsLeft: 3 });
+
+    expect(markup).toContain('aria-haspopup="dialog"');
+    expect(markup).toContain('aria-label="');
+    expect(markup).toContain("יוגה אווירית");
+    expect(markup).toContain("פרטים והרשמה");
+  });
+
   test("renders renew credits as a direct packages link", () => {
     const markup = renderCard({ kind: "low_credits" });
 

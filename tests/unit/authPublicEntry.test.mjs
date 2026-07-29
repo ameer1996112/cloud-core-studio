@@ -101,6 +101,7 @@ mock.module("@/lib/i18n", () => ({
       "legal.privacy": currentLang === "he" ? "פרטיות" : currentLang === "ar" ? "الخصوصية" : "Privacy",
       "legal.terms": currentLang === "he" ? "תנאים" : currentLang === "ar" ? "الشروط" : "Terms",
       "legal.support": currentLang === "he" ? "תמיכה" : currentLang === "ar" ? "الدعم" : "Support",
+      "legal.checkout": currentLang === "he" ? "תשלום" : currentLang === "ar" ? "الدفع" : "Checkout",
       "profile.language": "Language",
     })[key] ?? key,
   useI18n: () => ({
@@ -163,6 +164,7 @@ describe("auth public entry", () => {
     expect(html).toContain("Checking your session");
     expect(html).toContain('href="/support"');
     expect(html).toContain(">Support</a>");
+    expect(html).toContain(">Checkout</a>");
     expect(countOccurrences(html, 'href="/support"')).toBe(1);
   });
 

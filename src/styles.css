@@ -9307,7 +9307,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 .auth-language-switcher {
   display: grid;
   width: min(16.75rem, calc(100vw - 2rem));
-  min-height: 38px;
+  min-height: 52px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 2px;
   padding: 4px;
@@ -9324,7 +9324,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .auth-language-switcher button {
   min-width: 0;
-  min-height: 28px;
+  min-height: 44px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -9434,7 +9434,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .auth-field-label {
   margin-bottom: 0.35rem;
-  color: rgba(111, 122, 140, 0.95);
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0;
@@ -9465,6 +9465,15 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .auth-form-helper {
   line-height: 1.65;
+}
+
+.auth-field-error {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  line-height: 1.45;
 }
 
 .auth-check-email-panel {
@@ -9536,19 +9545,19 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .auth-form-card .auth-password-input {
-  padding-inline-end: 3rem;
+  padding-inline-end: 3.75rem;
   padding-inline-start: 0.95rem;
 }
 
 .auth-password-toggle {
   inset-inline-end: 0.65rem;
   display: inline-flex;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   align-items: center;
   justify-content: center;
   border-radius: var(--cc-radius-button);
-  color: rgba(111, 122, 140, 0.95);
+  color: var(--color-text-secondary);
   transition:
     background-color 160ms ease,
     color 160ms ease;
@@ -9643,7 +9652,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: rgba(111, 122, 140, 0.92);
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 650;
   line-height: 1.35;
@@ -9660,7 +9669,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   flex: 0 0 1rem;
   align-items: center;
   justify-content: center;
-  color: rgba(111, 122, 140, 0.72);
+  color: var(--color-text-secondary);
   font-size: 11px;
 }
 
@@ -9677,13 +9686,13 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .auth-secondary-action {
-  min-height: 40px;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 650;
 }
 
 .auth-switch-action {
-  min-height: 38px;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 700;
 }
@@ -9695,6 +9704,11 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .auth-legal-link {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
   font-weight: 650;
 }

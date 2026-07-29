@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,6 +14,12 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
 import { notifyAdminMemberSignup } from "@/lib/adminPush.functions";
+import {
+  validateAuthFields,
+  type AuthFieldName,
+  type AuthValidationErrors,
+  type AuthValidationIssue,
+} from "@/lib/authValidation";
 
 import { authImages, authLogo } from "@/lib/auth-assets";
 
@@ -21,12 +27,11 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const SESSION_RESTORE_TIMEOUT_MS = 6000;
-const SESSION_RESTORE_RETRY_MS = 650;
-
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
+const AUTH_VALIDATION_MESSAGE_KEYS: Record<AuthValidationIssue, Parameters<typeof t>[0]> = {
+  required: "auth.validation.required",
+  invalidEmail: "auth.validation.invalidEmail",
+  passwordTooShort: "auth.validation.passwordTooShort",
+};
 
 function AuthPage() {
   const { lang, dir } = useI18n();
@@ -44,9 +49,11 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<AuthValidationErrors>({});
   const [formVersion, setFormVersion] = useState(0);
   const [restoringSession, setRestoringSession] = useState(true);
   const [returnToPath, setReturnToPath] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -72,30 +79,23 @@ function AuthPage() {
       }
 
       let redirected = false;
-      const restoreStartedAt = Date.now();
 
       try {
-        while (!cancelled && Date.now() - restoreStartedAt < SESSION_RESTORE_TIMEOUT_MS) {
-          const session = await getFreshSupabaseSession();
-          const uid = session?.user?.id;
-          if (!uid) {
-            await wait(SESSION_RESTORE_RETRY_MS);
-            continue;
-          }
+        const session = await getFreshSupabaseSession();
+        const uid = session?.user?.id;
+        if (!uid) return;
 
-          const role = await getCurrentRole(uid);
-          const fallbackTo = roleHome(role);
-          const to = resolvePostAuthDestination({
-            fallbackTo,
-            origin: window.location.origin,
-            returnTo: url.searchParams.get("returnTo"),
-            storage: window.sessionStorage,
-          });
-          if (!cancelled) {
-            redirected = true;
-            navigate({ to, replace: true });
-          }
-          return;
+        const role = await getCurrentRole(uid);
+        const fallbackTo = roleHome(role);
+        const to = resolvePostAuthDestination({
+          fallbackTo,
+          origin: window.location.origin,
+          returnTo: url.searchParams.get("returnTo"),
+          storage: window.sessionStorage,
+        });
+        if (!cancelled) {
+          redirected = true;
+          navigate({ to, replace: true });
         }
       } finally {
         if (!cancelled && !redirected) setRestoringSession(false);
@@ -116,6 +116,18 @@ function AuthPage() {
     e.preventDefault();
     setFormError("");
     setFormSuccess("");
+    const validationErrors = validateAuthFields({ mode, name, email, password });
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      window.requestAnimationFrame(() => {
+        formRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus({ preventScroll: false });
+      });
+      return;
+    }
+
+    setFieldErrors({});
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -203,15 +215,23 @@ function AuthPage() {
     }
   }
 
-  function clearError() {
+  function clearError(field?: AuthFieldName) {
     if (formError) setFormError("");
     if (formSuccess) setFormSuccess("");
+    if (field && fieldErrors[field]) {
+      setFieldErrors((current) => {
+        const next = { ...current };
+        delete next[field];
+        return next;
+      });
+    }
   }
 
   function switchMode(next: "signin" | "signup" | "forgot" | "check-email") {
     setMode(next);
     setFormError("");
     setFormSuccess("");
+    setFieldErrors({});
     setEmail("");
     setPassword("");
     setName("");
@@ -244,6 +264,10 @@ function AuthPage() {
   const browseScheduleLabel = t("auth.browseSchedule");
   const guestSupportLabel = t("auth.guestSupport");
   const isPackageReturn = returnToPath === "/member/packages";
+  const fieldErrorText = (field: AuthFieldName) => {
+    const issue = fieldErrors[field];
+    return issue ? t(AUTH_VALIDATION_MESSAGE_KEYS[issue]) : undefined;
+  };
 
   return (
     <main
@@ -311,10 +335,12 @@ function AuthPage() {
               ) : (
                 <form
                   key={`${mode}-${formVersion}`}
+                  ref={formRef}
                   onSubmit={submit}
                   className="auth-form mt-4 sm:mt-5"
                   dir={dir}
-                  autoComplete={mode === "signin" ? "on" : "off"}
+                  autoComplete="on"
+                  noValidate
                 >
                   {mode === "check-email" ? (
                     <div className="auth-check-email-panel" role="status" aria-live="polite">
@@ -324,17 +350,23 @@ function AuthPage() {
 
                   {mode === "signup" && (
                     <>
-                      <Field label={t("auth.name")}>
+                      <Field
+                        label={t("auth.name")}
+                        error={fieldErrorText("name")}
+                        errorId="auth-name-error"
+                      >
                         <input
-                          name={`signup-name-${formVersion}`}
+                          name="name"
                           value={name}
                           onChange={(e) => {
                             setName(e.target.value);
-                            clearError();
+                            clearError("name");
                           }}
                           required
                           className="auth-text-input editorial-input focus:editorial-input-focus"
-                          autoComplete="off"
+                          autoComplete="name"
+                          aria-invalid={Boolean(fieldErrors.name)}
+                          aria-describedby={fieldErrors.name ? "auth-name-error" : undefined}
                           autoCapitalize="words"
                           autoCorrect="off"
                           spellCheck={false}
@@ -362,18 +394,24 @@ function AuthPage() {
                     </>
                   )}
                   {mode !== "check-email" && (
-                    <Field label={t("auth.email")}>
+                    <Field
+                      label={t("auth.email")}
+                      error={fieldErrorText("email")}
+                      errorId="auth-email-error"
+                    >
                       <input
                         type="email"
-                        name={mode === "signup" ? `signup-email-${formVersion}` : "username"}
+                        name={mode === "signin" ? "username" : "email"}
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
-                          clearError();
+                          clearError("email");
                         }}
                         required
                         className="auth-ltr-input editorial-input focus:editorial-input-focus"
-                        autoComplete={mode === "signin" ? "username" : "off"}
+                        autoComplete={mode === "signin" ? "username" : "email"}
+                        aria-invalid={Boolean(fieldErrors.email)}
+                        aria-describedby={fieldErrors.email ? "auth-email-error" : undefined}
                         dir="ltr"
                         inputMode="email"
                         autoCapitalize="none"
@@ -411,7 +449,11 @@ function AuthPage() {
                     </fieldset>
                   )}
                   {(mode === "signin" || mode === "signup") && (
-                    <Field label={t("auth.password")}>
+                    <Field
+                      label={t("auth.password")}
+                      error={fieldErrorText("password")}
+                      errorId="auth-password-error"
+                    >
                       <div className="relative">
                         <input
                           type={showPassword ? "text" : "password"}
@@ -423,12 +465,16 @@ function AuthPage() {
                           value={password}
                           onChange={(e) => {
                             setPassword(e.target.value);
-                            clearError();
+                            clearError("password");
                           }}
                           required
                           minLength={6}
                           className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus"
                           autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                          aria-invalid={Boolean(fieldErrors.password)}
+                          aria-describedby={
+                            fieldErrors.password ? "auth-password-error" : undefined
+                          }
                           dir="ltr"
                           autoCapitalize="none"
                           autoCorrect="off"
@@ -542,7 +588,7 @@ function AuthPage() {
                 {t("legal.support")}
               </Link>
               <Link to="/checkout" className="auth-legal-link text-slate hover:text-navy">
-                Checkout
+                {t("legal.checkout")}
               </Link>
             </div>
             <p className="pb-6 text-center text-xs font-medium text-slate/80">
@@ -577,11 +623,26 @@ function localizedAuthError(err: unknown) {
   return null;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  error,
+  errorId,
+}: {
+  label: string;
+  children: React.ReactNode;
+  error?: string;
+  errorId?: string;
+}) {
   return (
     <label className="auth-field block text-start">
       <span className="auth-field-label field-label">{label}</span>
       {children}
+      {error && errorId ? (
+        <span id={errorId} className="auth-field-error" role="alert">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }

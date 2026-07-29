@@ -232,7 +232,7 @@ function SupportPage() {
               {t("legal.terms")}
             </Link>
             <Link to="/checkout" className="text-slate hover:text-gold transition-colors">
-              Checkout
+              {t("legal.checkout")}
             </Link>
           </div>
         </article>

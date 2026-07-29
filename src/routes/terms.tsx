@@ -96,7 +96,7 @@ function TermsPage() {
               {t("legal.support")}
             </Link>
             <Link to="/checkout" className="text-slate hover:text-gold transition-colors">
-              Checkout
+              {t("legal.checkout")}
             </Link>
           </div>
         </article>

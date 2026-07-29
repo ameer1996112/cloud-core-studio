@@ -6,8 +6,8 @@
   --color-sand: #e8dfd1;
   --color-blue: #e8dfd1;
   --color-text-primary: #0b1d3a;
-  --color-text-secondary: #6f7a8c;
-  --color-text-muted: #6f7a8c;
+  --color-text-secondary: #5f6b7e;
+  --color-text-muted: #5f6b7e;
   --color-surface: #ffffff;
   --color-surface-warm: #faf7f2;
   --color-border: rgba(212, 175, 106, 0.34);
@@ -24,9 +24,9 @@
   /* Typography */
   --font-serif: "Cormorant Garamond", Georgia, serif;
   --font-sans: system-ui, -apple-system, sans-serif;
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 15px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
   --text-lg: 17px;
   --text-xl: 21px;
   --text-2xl: 28px;

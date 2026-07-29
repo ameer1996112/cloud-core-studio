@@ -5,6 +5,7 @@ import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getInstagramLandingData, type InstagramAdultPlan } from "@/lib/instagramLanding.functions";
 import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
+import { getPlanDisplay } from "@/lib/planDisplay";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -170,31 +171,43 @@ function PublicCheckoutPage() {
                 {checkoutCopy.choosePackage}
               </legend>
               <div className="grid gap-3 sm:grid-cols-2">
-                {plans.map((plan) => (
-                  <label
-                    key={plan.code}
-                    className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gold/25 bg-white/75 p-4 text-sm text-slate has-[:checked]:border-gold has-[:checked]:bg-gold/10"
-                  >
-                    <span>
-                      <span className="block font-semibold text-navy">{plan.name}</span>
-                      <span className="mt-1 block">{plan.credits} credits</span>
-                    </span>
-                    <span className="flex items-center gap-3">
-                      <strong className="numeric-display text-lg text-navy">
-                        ₪{plan.priceIls}
-                      </strong>
-                      <input
-                        required
-                        type="radio"
-                        name="plan"
-                        value={plan.code}
-                        checked={selectedPlan === plan.code}
-                        onChange={(event) => setSelectedPlan(event.target.value)}
-                        className="h-4 w-4 accent-navy"
-                      />
-                    </span>
-                  </label>
-                ))}
+                {plans.map((plan) => {
+                  const planDisplay = getPlanDisplay(
+                    {
+                      name: plan.name,
+                      description: plan.code,
+                      credits: plan.credits,
+                      duration_days: plan.durationDays,
+                    },
+                    lang,
+                  );
+
+                  return (
+                    <label
+                      key={plan.code}
+                      className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gold/25 bg-white/75 p-4 text-sm text-slate has-[:checked]:border-gold has-[:checked]:bg-gold/10"
+                    >
+                      <span>
+                        <span className="block font-semibold text-navy">{planDisplay.name}</span>
+                        <span className="mt-1 block">{planDisplay.memberLine}</span>
+                      </span>
+                      <span className="flex items-center gap-3">
+                        <strong className="numeric-display text-lg text-navy">
+                          ₪{plan.priceIls}
+                        </strong>
+                        <input
+                          required
+                          type="radio"
+                          name="plan"
+                          value={plan.code}
+                          checked={selectedPlan === plan.code}
+                          onChange={(event) => setSelectedPlan(event.target.value)}
+                          className="h-4 w-4 accent-navy"
+                        />
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </fieldset>
 

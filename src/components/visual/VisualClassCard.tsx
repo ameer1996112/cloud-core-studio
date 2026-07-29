@@ -561,6 +561,18 @@ function formatTimeParts(iso: string) {
   };
 }
 
+function classCardOpenLabel({
+  title,
+  time,
+  action,
+}: {
+  title: string;
+  time: { hour: string; minute: string };
+  action: string;
+}) {
+  return [title, `${time.hour}:${time.minute}`, action].filter(Boolean).join(", ");
+}
+
 export function PremiumLessonReservationCard({
   cls,
   state,
@@ -610,11 +622,18 @@ export function PremiumLessonReservationCard({
   const imagePosition = resolveClassImagePosition(cls);
   const layoutVariant = normalizeLessonCardVariant(variant, compact, context);
   const accent = getLessonProgramAccent(cls);
+  const openLabel = classCardOpenLabel({
+    title: localizedClassTitle(cls),
+    time,
+    action: cta ? ctaLabelFor(state, cta.label, lang) : chipLabel,
+  });
 
   return (
     <div
       role="button"
       tabIndex={0}
+      aria-label={openLabel}
+      aria-haspopup="dialog"
       dir={dir}
       onClick={(event) => {
         if (shouldIgnoreCardOpen(event.target)) return;
@@ -875,12 +894,19 @@ export function LessonReservationCard({
   const tileVariant = getArtTileVariant(cls, 0);
   const displayStatus = statusLabel ?? chipLabel;
   const descriptor = instructorDescriptor(instructor, lang);
+  const openLabel = classCardOpenLabel({
+    title: localizedClassTitle(cls),
+    time,
+    action: cta ? ctaLabelFor(state, cta.label, lang) : displayStatus,
+  });
 
   return (
     <article
       dir={dir}
       role="button"
       tabIndex={0}
+      aria-label={openLabel}
+      aria-haspopup="dialog"
       data-lesson-variant="booking"
       onClick={onOpen}
       onKeyDown={(event) => {

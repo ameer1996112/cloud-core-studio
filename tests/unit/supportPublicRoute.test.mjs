@@ -30,6 +30,7 @@ mock.module("@/lib/i18n", () => ({
       ({
         "legal.privacy": "Privacy",
         "legal.terms": "Terms",
+        "legal.checkout": "Checkout",
       })[key] ?? key,
   }),
 }));
