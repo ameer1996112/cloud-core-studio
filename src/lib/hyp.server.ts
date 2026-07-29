@@ -202,7 +202,7 @@ export function parseHypPayResponse(body: string, config = getHypConfig()) {
 
 export async function createHypPaymentPage(input: HypPaymentPageRequest, config = getHypConfig()) {
   const language = input.language ?? "HEB";
-  const showWalletButtons = input.paymentMethod === "bit";
+  const showWalletButtons = !input.recurring;
   const requestUrl = hypPayBaseUrl(config);
   const params = new URLSearchParams({
     action: "APISign",

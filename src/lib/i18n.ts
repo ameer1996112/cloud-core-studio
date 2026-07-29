@@ -411,12 +411,12 @@ export const MESSAGES = {
     "packages.bitLabel": "Pay with Bit",
     "packages.bitDescription":
       "Send payment by Bit. Your package will be activated after payment is confirmed.",
-    "packages.bitAutomaticDescription":
-      "Pay automatically through the secure HYP page. Your package activates after approval.",
     "packages.cardSoonLabel": "Credit card — coming soon",
     "packages.cardSoonDescription": "Card payment is not active yet.",
     "packages.cardLabel": "Credit card",
-    "packages.cardDescription": "Pay securely by card. Your package activates after approval.",
+    "packages.hypPaymentLabel": "Secure online payment",
+    "packages.hypPaymentDescription":
+      "Choose from the payment methods available to you on HYP, such as card, Bit, Apple Pay, or Google Pay.",
     "packages.cardRecurringLabel": "Monthly credit card",
     "packages.cardRecurringDescription":
       "Pay now by card. This is a monthly recurring payment until you cancel.",
@@ -1695,12 +1695,12 @@ export const MESSAGES = {
     "packages.cashDescription": "שלמי בסטודיו, ונאשר את החבילה לאחר קבלת התשלום.",
     "packages.bitLabel": "תשלום בביט",
     "packages.bitDescription": "שלחי תשלום בביט, ונאשר את החבילה לאחר קבלת התשלום.",
-    "packages.bitAutomaticDescription":
-      "תשלום אוטומטי דרך דף HYP המאובטח. החבילה תופעל לאחר אישור העסקה.",
     "packages.cardSoonLabel": "כרטיס אשראי — בקרוב",
     "packages.cardSoonDescription": "תשלום באשראי עדיין לא פעיל.",
     "packages.cardLabel": "כרטיס אשראי",
-    "packages.cardDescription": "תשלום מאובטח באשראי. החבילה תופעל לאחר אישור העסקה.",
+    "packages.hypPaymentLabel": "תשלום אונליין מאובטח",
+    "packages.hypPaymentDescription":
+      "בדף המאובטח של HYP תוכלי לבחור מבין אמצעי התשלום הזמינים עבורך, כגון אשראי, Bit, Apple Pay או Google Pay.",
     "packages.cardRecurringLabel": "כרטיס אשראי חודשי",
     "packages.cardRecurringDescription": "תשלום חודשי חוזר באשראי עד שתבטלי.",
     "packages.cardConfirmDescription": "נעביר אותך לדף התשלום המאובטח של HYP להשלמת העסקה.",
@@ -2955,12 +2955,12 @@ export const MESSAGES = {
     "packages.cashDescription": "ادفعي بالاستوديو، ومنأكد الباقة بعد استلام الدفع.",
     "packages.bitLabel": "دفع عبر Bit",
     "packages.bitDescription": "ابعتي الدفع عبر Bit، ومنأكد الباقة بعد استلام الدفع.",
-    "packages.bitAutomaticDescription":
-      "دفع تلقائي عبر صفحة HYP الآمنة. يتم تفعيل الباقة بعد تأكيد العملية.",
     "packages.cardSoonLabel": "بطاقة ائتمان — قريبًا",
     "packages.cardSoonDescription": "الدفع بالبطاقة غير متاح حالياً.",
     "packages.cardLabel": "بطاقة ائتمان",
-    "packages.cardDescription": "ادفعي بأمان بالبطاقة. يتم تفعيل الباقة بعد تأكيد الدفع.",
+    "packages.hypPaymentLabel": "دفع آمن عبر الإنترنت",
+    "packages.hypPaymentDescription":
+      "اختاري من وسائل الدفع المتاحة لك في صفحة HYP، مثل البطاقة أو Bit أو Apple Pay أو Google Pay.",
     "packages.cardRecurringLabel": "بطاقة شهرية",
     "packages.cardRecurringDescription": "دفع شهري متكرر بالبطاقة حتى تقومي بإلغائه.",
     "packages.cardConfirmDescription": "سنحوّلك إلى صفحة الدفع الآمنة من HYP لإكمال الدفع.",

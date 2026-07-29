@@ -971,16 +971,15 @@ function PaymentMethodSheet({
               description={t("packages.cashDescription")}
               onClick={() => setMethod("cash")}
             />
-            <PaymentOption
-              active={method === "bit"}
-              disabled={!hypEnabled}
-              icon={<Smartphone className="h-4 w-4" />}
-              label={t("packages.bitLabel")}
-              description={
-                hypEnabled ? t("packages.bitAutomaticDescription") : bitCopy.optionDescription
-              }
-              onClick={() => setMethod("bit")}
-            />
+            {!hypEnabled && (
+              <PaymentOption
+                active={method === "bit"}
+                icon={<Smartphone className="h-4 w-4" />}
+                label={t("packages.bitLabel")}
+                description={bitCopy.optionDescription}
+                onClick={() => setMethod("bit")}
+              />
+            )}
             <PaymentOption
               active={method === "card"}
               disabled={!cardEnabled}
@@ -989,14 +988,14 @@ function PaymentMethodSheet({
                 cardEnabled
                   ? recurringCard
                     ? t("packages.cardRecurringLabel")
-                    : t("packages.cardLabel")
+                    : t("packages.hypPaymentLabel")
                   : t("packages.cardSoonLabel")
               }
               description={
                 cardEnabled
                   ? recurringCard
                     ? t("packages.cardRecurringDescription")
-                    : t("packages.cardDescription")
+                    : t("packages.hypPaymentDescription")
                   : t("packages.cardSoonDescription")
               }
               onClick={() => setMethod("card")}
@@ -1007,7 +1006,11 @@ function PaymentMethodSheet({
             <div className="rounded-xl border border-gold/25 bg-sand/20 p-4">
               <p className="text-xs font-medium text-slate">{t("packages.selectedMethod")}</p>
               <p className="mt-1 font-display text-2xl text-navy">
-                {method ? labelForMethod(method) : "—"}
+                {method === "card" && !recurringCard
+                  ? t("packages.hypPaymentLabel")
+                  : method
+                    ? labelForMethod(method)
+                    : "—"}
               </p>
               <p className="mt-2 text-sm text-slate">
                 {method === "bit"
