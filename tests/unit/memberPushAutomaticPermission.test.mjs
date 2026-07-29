@@ -27,12 +27,23 @@ describe("member Push permission onboarding", () => {
     expect(shellSource).toContain("import { MemberPushOnboarding }");
     expect(shellSource).toContain('role === "member" && <MemberPushOnboarding');
     expect(onboardingSource).toContain("memberPushOnboardingDecision");
-    expect(onboardingSource).toContain("onClick={enablePush}");
+    expect(onboardingSource).toContain(": enablePush}");
+  });
+
+  test("keeps the permission invitation concise and state-aware", () => {
+    expect(onboardingSource).toContain("Your class, right on time");
+    expect(onboardingSource).toContain("השיעור שלך, בזמן הנכון");
+    expect(onboardingSource).toContain("حصتكِ، في الوقت المناسب");
+    expect(onboardingSource).toContain('benefits.join(" · ")');
+    expect(onboardingSource).not.toContain("grid grid-cols-3");
+    expect(onboardingSource).toContain("openMemberPushSettings");
+    expect(onboardingSource).toContain('App.addListener("appStateChange"');
+    expect(onboardingSource).toContain("success");
   });
 
   test("opens the native prompt only from the member's enable action", () => {
     expect(onboardingSource).toContain("await startMemberPushRegistration()");
-    expect(onboardingSource).toContain("onClick={enablePush}");
+    expect(onboardingSource).toContain(": enablePush}");
     expect(onboardingSource).toContain("MEMBER_PUSH_INVITE_DISMISSED_AT_KEY");
     expect(onboardingSource).toContain("bootstrapMemberPushRegistration");
     expect(onboardingSource).toContain("getCurrentMemberPushToken");
@@ -53,7 +64,10 @@ describe("member Push permission onboarding", () => {
     expect(memberPushOnboardingDecision({ ...eligible, pushEnabled: false })).toBe("hidden");
     expect(memberPushOnboardingDecision({ ...eligible, dismissed: true })).toBe("hidden");
     expect(memberPushOnboardingDecision({ ...eligible, hasRegisteredToken: true })).toBe("hidden");
-    expect(memberPushOnboardingDecision({ ...eligible, permission: "denied" })).toBe("hidden");
+    expect(memberPushOnboardingDecision({ ...eligible, permission: "denied" })).toBe("recover");
+    expect(
+      memberPushOnboardingDecision({ ...eligible, permission: "denied", dismissed: true }),
+    ).toBe("hidden");
   });
 
   test("bootstraps an existing grant and classifies registration outcomes", () => {
@@ -72,7 +86,7 @@ describe("member Push permission onboarding", () => {
       "enabled",
     );
     expect(memberPushRegistrationDecision({ ok: false, skipped: "permission_denied" })).toBe(
-      "dismissed",
+      "denied",
     );
     expect(memberPushRegistrationDecision({ ok: false, skipped: "permission_not_granted" })).toBe(
       "error",

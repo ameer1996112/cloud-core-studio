@@ -35,6 +35,7 @@ export function memberPushOnboardingDecision(input: {
 }) {
   if (!input.pushEnabled || input.isLoading || !input.isNativeIos) return "hidden" as const;
   if (input.permission === "granted") return "bootstrap" as const;
+  if (input.permission === "denied" && !input.dismissed) return "recover" as const;
   if (
     input.permission === "prompt" &&
     shouldShowMemberPushInvite({
@@ -51,6 +52,6 @@ export function memberPushOnboardingDecision(input: {
 
 export function memberPushRegistrationDecision(result: { ok: boolean; skipped?: string }) {
   if (result.ok || result.skipped === "already_started") return "enabled" as const;
-  if (result.skipped === "permission_denied") return "dismissed" as const;
+  if (result.skipped === "permission_denied") return "denied" as const;
   return "error" as const;
 }
