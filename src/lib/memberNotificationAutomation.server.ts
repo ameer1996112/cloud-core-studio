@@ -11,6 +11,7 @@ import {
   enqueueMemberNotification,
 } from "@/lib/memberNotificationDelivery.server";
 import { decidePaymentReminderActions } from "@/lib/memberNotificationPolicy";
+import { LEGACY_PAYMENT_AUTOMATION_STATUSES } from "@/lib/paymentReminderCandidates";
 import {
   dispatchDueNotificationCampaigns,
   reconcileSendingNotificationCampaigns,
@@ -33,7 +34,7 @@ type BookingCandidate = {
 type PaymentCandidate = {
   id: string;
   member_id: string;
-  status: string;
+  status: (typeof LEGACY_PAYMENT_AUTOMATION_STATUSES)[number];
   created_at: string;
   member: {
     name: string | null;
@@ -147,7 +148,7 @@ async function runPaymentReminderSweep(now: Date, limit: number) {
       .select(
         "id,member_id,status,created_at,member:members(name,phone,email,preferred_language,status)",
       )
-      .in("status", ["pending", "failed", "paid"])
+      .in("status", [...LEGACY_PAYMENT_AUTOMATION_STATUSES])
       .gte("created_at", since)
       .order("created_at", { ascending: true })
       .limit(Math.max(limit * 20, 500)),
@@ -156,46 +157,18 @@ async function runPaymentReminderSweep(now: Date, limit: number) {
   if (error) throw error;
   if (settingsResult.error) throw settingsResult.error;
 
-  const memberIds = [
-    ...new Set(
-      ((data ?? []) as PaymentCandidate[])
-        .map((payment) => payment.member_id)
-        .filter((memberId): memberId is string => Boolean(memberId)),
-    ),
-  ];
-  const { data: preferences, error: preferencesError } = memberIds.length
-    ? await db
-        .from("member_notification_preferences")
-        .select("member_id,package_reminders")
-        .in("member_id", memberIds)
-    : { data: [], error: null };
-  if (preferencesError) throw preferencesError;
-  const packageReminderConsent = new Map<string, boolean>(
-    (preferences ?? []).map((preference: { member_id: string; package_reminders: boolean }) => [
-      preference.member_id,
-      Boolean(preference.package_reminders),
-    ]),
-  );
-
   let prepared = 0;
   let whatsappPrepared = 0;
   for (const payment of (data ?? []) as PaymentCandidate[]) {
     if (!payment.member || payment.member.status !== "active") continue;
     const ageMs = now.getTime() - new Date(payment.created_at).getTime();
     const actions = decidePaymentReminderActions({
-      status: payment.status as "pending" | "failed" | "paid",
+      status: payment.status,
       ageHours: ageMs / (60 * 60_000),
     });
     if (!actions.createInbox) continue;
-    const event: Extract<
-      MemberAutomationEvent,
-      "payment_pending" | "payment_failed" | "payment_confirmed"
-    > =
-      payment.status === "failed"
-        ? "payment_failed"
-        : payment.status === "paid"
-          ? "payment_confirmed"
-          : "payment_pending";
+    const event: Extract<MemberAutomationEvent, "payment_failed" | "payment_confirmed"> =
+      payment.status === "failed" ? "payment_failed" : "payment_confirmed";
     const language = normalizeMemberNotificationLanguage(payment.member.preferred_language);
     const copy = buildMemberNotificationCopy(event, language, {});
     const result = await enqueueMemberNotification({
@@ -210,11 +183,8 @@ async function runPaymentReminderSweep(now: Date, limit: number) {
     });
     if (!result.duplicate) prepared += 1;
 
-    if (
-      actions.sendWhatsapp &&
-      (payment.status !== "pending" || packageReminderConsent.get(payment.member_id) !== false)
-    ) {
-      const eventKey = payment.status === "failed" ? "payment_failed" : "payment_pending_reminder";
+    if (actions.sendWhatsapp && payment.status === "failed") {
+      const eventKey = "payment_failed";
       const [row] = buildNotificationDraftRows({
         eventKey,
         channels: ["whatsapp"],

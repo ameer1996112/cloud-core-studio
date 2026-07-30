@@ -57,6 +57,10 @@ import {
   mapMemberNotificationPreferences,
   readMemberNotificationPreferences,
 } from "@/lib/memberNotificationPreferences";
+import {
+  isSupersededPendingPaymentReminder,
+  selectDuePendingPaymentReminders,
+} from "@/lib/paymentReminderCandidates";
 
 type OutboxRow = {
   id: string;
@@ -803,18 +807,41 @@ async function cancelInvalidPaymentReminderDelivery(
   const db = supabaseAdmin as any;
   const payment = await db
     .from("payments")
-    .select("status")
+    .select("status,member_id")
     .eq("id", message.related_payment_id)
     .maybeSingle();
   if (payment.error) throw payment.error;
-  if (!shouldCancelPaymentReminderForDomainState(message.event_type, payment.data?.status)) {
+  let errorCode: string | null = null;
+  if (shouldCancelPaymentReminderForDomainState(message.event_type, payment.data?.status)) {
+    errorCode = "payment_no_longer_pending";
+  } else if (payment.data?.member_id) {
+    const latestPendingPayment = await db
+      .from("payments")
+      .select("id")
+      .eq("member_id", payment.data.member_id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (latestPendingPayment.error) throw latestPendingPayment.error;
+    if (
+      isSupersededPendingPaymentReminder(
+        message.related_payment_id,
+        latestPendingPayment.data?.id ?? null,
+      )
+    ) {
+      errorCode = "payment_superseded_by_newer_attempt";
+    }
+  }
+  if (!errorCode) {
     return false;
   }
   const cancelled = await db
     .from("message_deliveries")
     .update({
       status: "cancelled",
-      error_code: "payment_no_longer_pending",
+      error_code: errorCode,
       lease_owner: null,
       lease_expires_at: null,
       updated_at: now.toISOString(),
@@ -2245,14 +2272,24 @@ async function enqueueDueCanonicalEvents(
   }
 
   const pendingBefore = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
-  const pendingPayments = await db
-    .from("payments")
-    .select("id,member_id")
-    .eq("status", "pending")
-    .lte("created_at", pendingBefore)
-    .limit(limit);
-  if (pendingPayments.error) throw pendingPayments.error;
-  for (const payment of pendingPayments.data ?? []) {
+  const pendingPaymentRows = await fetchAllRows<{
+    id: string;
+    member_id: string;
+    created_at: string;
+  }>((from, to) =>
+    db
+      .from("payments")
+      .select("id,member_id,created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(from, to),
+  );
+  const pendingPayments = selectDuePendingPaymentReminders(pendingPaymentRows, {
+    dueBefore: new Date(pendingBefore),
+    limit,
+  });
+  for (const payment of pendingPayments) {
     const result = await db.from("message_outbox").upsert(
       {
         event_type: "payment_pending_reminder",
@@ -2482,7 +2519,7 @@ async function enqueueDueCanonicalEvents(
   const openClassAlerts = await enqueueOpenClassAlerts(now, limit, runtime);
   return {
     reminders,
-    paymentReminders: pendingPayments.data?.length ?? 0,
+    paymentReminders: pendingPayments.length,
     paymentFailureFollowups: failedPayments.data?.length ?? 0,
     membershipReminders,
     renewalReminders,
