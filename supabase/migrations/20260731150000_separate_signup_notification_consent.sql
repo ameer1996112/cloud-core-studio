@@ -16,6 +16,7 @@ DECLARE
   v_phone_digits text;
   v_phone_valid boolean;
   v_consent_version text;
+  v_legacy_whatsapp_declined boolean;
   v_whatsapp_enabled boolean;
   v_marketing_enabled boolean;
   v_now timestamptz := now();
@@ -31,6 +32,8 @@ BEGIN
     AND v_phone ~ '^[+0-9().[:space:]-]+$'
     AND length(v_phone_digits) BETWEEN 10 AND 15;
   v_consent_version := NEW.raw_user_meta_data->>'notification_consent_version';
+  v_legacy_whatsapp_declined := v_consent_version IS DISTINCT FROM '2'
+    AND (NEW.raw_user_meta_data->>'whatsapp_updates_enabled') = 'false';
   v_whatsapp_enabled := v_consent_version = '2'
     AND v_phone_valid
     AND NEW.raw_user_meta_data->>'whatsapp_signup_opt_in_v2' = 'true';
@@ -71,6 +74,8 @@ BEGIN
     whatsapp_enabled = v_whatsapp_enabled,
     whatsapp_consent_source = CASE
       WHEN v_whatsapp_enabled THEN 'signup_explicit_whatsapp'
+      WHEN v_legacy_whatsapp_declined AND v_phone_valid
+        THEN 'legacy_signup_whatsapp_declined'
       WHEN v_consent_version IS DISTINCT FROM '2' AND v_phone_valid
         THEN 'legacy_auto_enable_pending_reconsent'
       WHEN v_consent_version = '2' AND v_phone_valid
@@ -83,6 +88,7 @@ BEGIN
        AND v_phone_valid
        AND NOT v_whatsapp_enabled
       THEN v_now
+      WHEN v_legacy_whatsapp_declined AND v_phone_valid THEN v_now
       ELSE NULL
     END,
     marketing = v_marketing_enabled,
