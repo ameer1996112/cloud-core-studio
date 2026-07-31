@@ -73,6 +73,13 @@ function textValue(value: unknown, fallback = "-") {
   return text || fallback;
 }
 
+function paymentAmountValue(amount: unknown, currency: unknown) {
+  const amountText = textValue(amount, "עודכן");
+  const currencyText = textValue(currency, "").toUpperCase();
+  if (!currencyText || !/^-?\d+(?:\.\d+)?$/.test(amountText)) return amountText;
+  return currencyText === "ILS" ? `₪${amountText}` : `${currencyText} ${amountText}`;
+}
+
 function templateLanguage(language: string | null | undefined) {
   if (language === "ar") return { suffix: "ar", code: "ar" as const };
   if (language === "en") return { suffix: "en", code: "en_US" as const };
@@ -113,10 +120,7 @@ export function buildOfficialWhatsappTemplatePayload(
   const classTime = textValue(variables.class_time);
   const instructorName = textValue(variables.instructor_name, "צוות הסטודיו");
   const packageName = textValue(variables.package_name, "החבילה שלך");
-  const creditsAvailable = textValue(
-    variables.credits_available ?? variables.credits_remaining ?? variables.credits,
-    "עודכן",
-  );
+  const paymentAmount = paymentAmountValue(variables.amount, variables.currency);
   const language = templateLanguage(row.language);
   const name = configuredTemplateName(row.trigger_type, language.suffix);
   let bodyTexts: string[];
@@ -135,7 +139,7 @@ export function buildOfficialWhatsappTemplatePayload(
       bodyTexts = [memberName, className, classDate, classTime];
       break;
     case "payment_confirmed":
-      bodyTexts = [memberName, packageName, creditsAvailable];
+      bodyTexts = [memberName, packageName, paymentAmount];
       break;
     case "payment_pending_reminder":
     case "payment_failed":

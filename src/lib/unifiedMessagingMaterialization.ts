@@ -228,8 +228,19 @@ export function materializeMessagePlan(input: {
       templateComponents:
         channel === "whatsapp" && conciergeMetaVariant
           ? conciergeMetaVariant.components
-          : channel === "whatsapp" && legacyMetaVariant
+          : channel === "whatsapp" && legacyMetaVariant && input.eventType === "weekly_schedule"
             ? [
+                {
+                  type: "header",
+                  parameters: [
+                    {
+                      type: "image",
+                      image: {
+                        link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
+                      },
+                    },
+                  ],
+                },
                 {
                   type: "body",
                   parameters: legacyMetaVariant.parameters.map((name) => ({
@@ -238,7 +249,17 @@ export function materializeMessagePlan(input: {
                   })),
                 },
               ]
-            : [],
+            : channel === "whatsapp" && legacyMetaVariant
+              ? [
+                  {
+                    type: "body",
+                    parameters: legacyMetaVariant.parameters.map((name) => ({
+                      type: "text",
+                      text: String(input.variables[name] ?? ""),
+                    })),
+                  },
+                ]
+              : [],
     } satisfies MaterializedDeliveryPlan;
   });
 

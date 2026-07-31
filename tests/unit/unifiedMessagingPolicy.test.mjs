@@ -25,6 +25,7 @@ describe("unified messaging delivery policy", () => {
     expect(channelsForEvent("payment_request_received")).toEqual(["in_app"]);
     expect(channelsForEvent("receipt_issued")).toEqual(["in_app"]);
     expect(channelsForEvent("membership_activated")).toEqual(["in_app"]);
+    expect(channelsForEvent("weekly_schedule")).toEqual(["in_app", "push", "whatsapp"]);
   });
 
   test("keeps the durable inbox record while schedule-opening consent governs push", () => {
@@ -40,6 +41,27 @@ describe("unified messaging delivery policy", () => {
     expect(deliveryAllowedByConsent("class_open_spots", "push", { scheduleUpdates: false })).toBe(
       false,
     );
+  });
+
+  test("requires both schedule and WhatsApp consent for the weekly message", () => {
+    expect(
+      deliveryAllowedByConsent("weekly_schedule", "whatsapp", {
+        scheduleUpdates: true,
+        whatsappEnabled: true,
+      }),
+    ).toBe(true);
+    expect(
+      deliveryAllowedByConsent("weekly_schedule", "whatsapp", {
+        scheduleUpdates: true,
+        whatsappEnabled: false,
+      }),
+    ).toBe(false);
+    expect(
+      deliveryAllowedByConsent("weekly_schedule", "whatsapp", {
+        scheduleUpdates: false,
+        whatsappEnabled: true,
+      }),
+    ).toBe(false);
   });
 
   test("honors the member-wide push channel choice for routine reminders", () => {

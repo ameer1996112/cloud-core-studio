@@ -12,6 +12,10 @@ const identityFixMigrationSource = readFileSync(
   resolve(root, "supabase/migrations/20260729190000_fix_member_whatsapp_onboarding_identity.sql"),
   "utf8",
 );
+const releaseGuardMigrationSource = readFileSync(
+  resolve(root, "supabase/migrations/20260731183000_complete_notification_release_guards.sql"),
+  "utf8",
+);
 const shellSource = readFileSync(resolve(root, "src/components/app-shell/AppShell.tsx"), "utf8");
 const serverSource = readFileSync(
   resolve(root, "src/lib/memberNotifications.functions.ts"),
@@ -31,6 +35,14 @@ describe("existing-member WhatsApp onboarding", () => {
     expect(
       shouldOfferMemberWhatsappOnboarding({
         phone: null,
+        whatsappEnabled: false,
+        consentSource: null,
+        optedOutAt: null,
+      }),
+    ).toBe(false);
+    expect(
+      shouldOfferMemberWhatsappOnboarding({
+        phone: "123",
         whatsappEnabled: false,
         consentSource: null,
         optedOutAt: null,
@@ -85,5 +97,10 @@ describe("existing-member WhatsApp onboarding", () => {
     expect(identityFixMigrationSource).toContain(
       "REVOKE ALL ON FUNCTION public.set_member_whatsapp_onboarding_decision(uuid, text) FROM authenticated",
     );
+  });
+
+  test("rejects malformed phone numbers in the database decision guard", () => {
+    expect(releaseGuardMigrationSource).toContain("member.phone ~ '^[+0-9().[:space:]-]+$'");
+    expect(releaseGuardMigrationSource).toContain("BETWEEN 10 AND 15");
   });
 });

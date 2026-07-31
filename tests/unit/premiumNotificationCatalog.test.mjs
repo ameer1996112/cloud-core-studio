@@ -102,6 +102,11 @@ describe("premium notification event catalog", () => {
       "push",
       "whatsapp",
     ]);
+    expect(notificationDefinition("weekly_schedule").channels).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+    ]);
     expect(notificationDefinition("retention_reminder").channels).toEqual([
       "in_app",
       "push",

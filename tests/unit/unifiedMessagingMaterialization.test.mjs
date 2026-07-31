@@ -187,9 +187,35 @@ describe("outbox message materialization", () => {
       deduplicationKey: "member:member-1:weekly_schedule:2026-W32",
       variables: { member_name: "נועה", class_count: 8 },
       preferences: { ...base.preferences, scheduleOpenings: true },
+      approvedWhatsappVariants: new Set(["cc_weekly_schedule_branded_v5:he"]),
     });
     expect(weekly.message.body).toContain("לוח השיעורים לשבוע הבא נפתח");
-    expect(weekly.deliveries.map((delivery) => delivery.channel)).toEqual(["in_app", "push"]);
+    expect(weekly.deliveries.map((delivery) => delivery.channel)).toEqual([
+      "in_app",
+      "push",
+      "whatsapp",
+    ]);
+    expect(weekly.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
+      status: "queued",
+      templateName: "cc_weekly_schedule_branded_v5",
+      templateComponents: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "נועה" }],
+        },
+      ],
+    });
 
     const daily = materializeMessagePlan({
       ...base,

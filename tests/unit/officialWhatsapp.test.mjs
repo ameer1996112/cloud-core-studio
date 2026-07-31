@@ -59,9 +59,11 @@ describe("official WhatsApp template payloads", () => {
     });
   });
 
-  test("maps payment variables and falls back when credits are not available", () => {
+  test("maps the payment amount instead of the member credit balance", () => {
     expect(
-      buildOfficialWhatsappTemplatePayload(row("payment_confirmed", { credits_available: null })),
+      buildOfficialWhatsappTemplatePayload(
+        row("payment_confirmed", { amount: 350, currency: "ILS", credits_available: 10 }),
+      ),
     ).toEqual({
       name: "cc_payment_confirmed_v3",
       languageCode: "he",
@@ -71,7 +73,7 @@ describe("official WhatsApp template payloads", () => {
           parameters: [
             { type: "text", text: "נורה" },
             { type: "text", text: "מינוי חודשי" },
-            { type: "text", text: "עודכן" },
+            { type: "text", text: "₪350" },
           ],
         },
       ],
