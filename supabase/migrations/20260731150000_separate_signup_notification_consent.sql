@@ -71,13 +71,18 @@ BEGIN
     whatsapp_enabled = v_whatsapp_enabled,
     whatsapp_consent_source = CASE
       WHEN v_whatsapp_enabled THEN 'signup_explicit_whatsapp'
-      WHEN v_phone IS NOT NULL AND NOT v_phone_valid THEN 'signup_invalid_whatsapp_phone'
-      WHEN v_phone_valid THEN 'signup_whatsapp_not_selected'
+      WHEN v_consent_version IS DISTINCT FROM '2' AND v_phone_valid
+        THEN 'legacy_auto_enable_pending_reconsent'
+      WHEN v_consent_version = '2' AND v_phone_valid
+        THEN 'signup_whatsapp_not_selected'
       ELSE NULL
     END,
     whatsapp_consented_at = CASE WHEN v_whatsapp_enabled THEN v_now ELSE NULL END,
     whatsapp_opted_out_at = CASE
-      WHEN v_phone_valid AND NOT v_whatsapp_enabled THEN v_now
+      WHEN v_consent_version = '2'
+       AND v_phone_valid
+       AND NOT v_whatsapp_enabled
+      THEN v_now
       ELSE NULL
     END,
     marketing = v_marketing_enabled,
