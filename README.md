@@ -51,8 +51,10 @@ bun run openwa:stop
 ## Checks
 
 ```bash
+bun test tests/unit tests/integration
 bun run lint
 bun run build
+bun run whatsapp:templates:check
 ```
 
 ## Native iOS / Android Shell

@@ -12,6 +12,15 @@ export type MetaTemplateVariant = {
   examples: readonly string[];
 };
 
+type MetaTemplateJsonComponent =
+  | { type: "HEADER"; format: "IMAGE"; example: { header_handle: string[] } }
+  | { type: "BODY"; text: string; example?: { body_text: readonly (readonly string[])[] } }
+  | { type: "FOOTER"; text: string }
+  | {
+      type: "BUTTONS";
+      buttons: Array<{ type: "URL"; text: string; url: string }>;
+    };
+
 type LocalizedTemplate = {
   name: string | null;
   category?: MetaTemplateVariant["category"];
@@ -142,7 +151,7 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   payment_confirmed: {
-    name: "cc_payment_confirmed_v2",
+    name: "cc_payment_confirmed_v3",
     parameters: ["member_name", "package_name", "amount"],
     examples: ["נועה", "מינוי חודשי", "₪350"],
     bodies: {
@@ -446,13 +455,14 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
     },
   },
   weekly_schedule: {
-    name: null,
-    parameters: ["member_name", "class_count"],
-    examples: ["נועה", "8"],
+    name: "cc_weekly_schedule_branded_v5",
+    category: "MARKETING",
+    parameters: ["member_name"],
+    examples: ["נועה"],
     bodies: {
-      he: "היי {{1}}, במערכת לשבעת הימים הקרובים מופיעים {{2}} שיעורים. אפשר לבחור באפליקציה את הרגעים שמתאימים לך.",
-      ar: "مرحباً {{1}}، يعرض جدول الأيام السبعة القادمة {{2}} حصص. اختاري من التطبيق الأوقات التي تناسبك.",
-      en: "Hi {{1}}, the next seven days include {{2}} scheduled classes. Choose the moments that suit you in the app.",
+      he: "היי {{1}}, לוח השיעורים לשבוע הבא נפתח 🤍\n\nהשיעורים החדשים מחכים לך באפליקציה.\nבחרי את השיעורים שמתאימים לך ושמרי מקום מראש.\n\nנתראה בסטודיו,\nירין",
+      ar: "مرحباً {{1}}، جدول الحصص للأسبوع القادم مفتوح 🤍\n\nالحصص الجديدة بانتظارك في التطبيق.\nاختاري الحصص التي تناسبك واحجزي مكانك مسبقاً.\n\nنراك في الاستوديو،\nيارين",
+      en: "Hi {{1}}, next week's class schedule is open 🤍\n\nThe new classes are waiting for you in the app.\nChoose the classes that fit you and save your spot in advance.\n\nSee you at the studio,\nYarin",
     },
   },
   daily_briefing: {
@@ -740,16 +750,39 @@ export function validateMetaTemplateCatalog(): { ok: boolean; errors: string[] }
 }
 
 export function toMetaTemplateJson(variant: MetaTemplateVariant) {
+  const components: MetaTemplateJsonComponent[] = [];
+  if (variant.eventType === "weekly_schedule") {
+    components.push({ type: "HEADER", format: "IMAGE", example: { header_handle: [""] } });
+  }
+  components.push({
+    type: "BODY",
+    text: variant.body,
+    ...(variant.parameters.length ? { example: { body_text: [variant.examples] } } : {}),
+  });
+  if (variant.eventType === "weekly_schedule") {
+    components.push(
+      { type: "FOOTER", text: "Cloud & Core Studio" },
+      {
+        type: "BUTTONS",
+        buttons: [
+          {
+            type: "URL",
+            text:
+              variant.metaLanguage === "he"
+                ? "צפייה בלוח השיעורים"
+                : variant.metaLanguage === "ar"
+                  ? "عرض جدول الحصص"
+                  : "View class schedule",
+            url: "https://cloudandcorestudio.com/member/schedule",
+          },
+        ],
+      },
+    );
+  }
   return {
     name: variant.name,
     language: variant.metaLanguage,
     category: variant.category,
-    components: [
-      {
-        type: "BODY",
-        text: variant.body,
-        ...(variant.parameters.length ? { example: { body_text: [variant.examples] } } : {}),
-      },
-    ],
+    components,
   };
 }

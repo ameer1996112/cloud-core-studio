@@ -187,7 +187,7 @@ export const NOTIFICATION_EVENT_CATALOG = {
   weekly_schedule: current({
     ...promotional,
     family: "class",
-    channels: ["in_app", "push"],
+    channels: ["in_app", "push", "whatsapp"],
     preference: "scheduleOpenings",
     actions: ["view_schedule"],
   }),

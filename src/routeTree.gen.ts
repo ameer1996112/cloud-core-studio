@@ -17,6 +17,7 @@ import { Route as PaymentResultRouteImport } from './routes/payment-result'
 import { Route as InstagramRouteImport } from './routes/instagram'
 import { Route as DownloadRouteImport } from './routes/download'
 import { Route as DownalodRouteImport } from './routes/downalod'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -114,6 +115,11 @@ const DownloadRoute = DownloadRouteImport.update({
 const DownalodRoute = DownalodRouteImport.update({
   id: '/downalod',
   path: '/downalod',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -448,6 +454,7 @@ const ApiInternalMessagesMediaMediaIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/checkout': typeof CheckoutRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
   '/instagram': typeof InstagramRoute
@@ -515,6 +522,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/checkout': typeof CheckoutRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
   '/instagram': typeof InstagramRoute
@@ -581,6 +589,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout': typeof CheckoutRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
   '/instagram': typeof InstagramRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/checkout'
     | '/downalod'
     | '/download'
     | '/instagram'
@@ -717,6 +727,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/checkout'
     | '/downalod'
     | '/download'
     | '/instagram'
@@ -782,6 +793,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/checkout'
     | '/downalod'
     | '/download'
     | '/instagram'
@@ -851,6 +863,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CheckoutRoute: typeof CheckoutRoute
   DownalodRoute: typeof DownalodRoute
   DownloadRoute: typeof DownloadRoute
   InstagramRoute: typeof InstagramRoute
@@ -933,6 +946,13 @@ declare module '@tanstack/react-router' {
       path: '/downalod'
       fullPath: '/downalod'
       preLoaderRoute: typeof DownalodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1472,6 +1492,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CheckoutRoute: CheckoutRoute,
   DownalodRoute: DownalodRoute,
   DownloadRoute: DownloadRoute,
   InstagramRoute: InstagramRoute,

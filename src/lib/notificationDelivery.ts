@@ -17,6 +17,7 @@ const AUTOMATED_OPENWA_EVENT_TYPES = new Set([
   "no_upcoming_booking_14d",
   "payment_pending_reminder",
   "payment_failed",
+  "weekly_schedule",
 ]);
 
 const AUTOMATED_OFFICIAL_WHATSAPP_EVENT_TYPES = new Set([
@@ -28,6 +29,7 @@ const AUTOMATED_OFFICIAL_WHATSAPP_EVENT_TYPES = new Set([
   "class_time_changed",
   "payment_pending_reminder",
   "payment_failed",
+  "weekly_schedule",
 ]);
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();

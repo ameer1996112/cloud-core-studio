@@ -28,7 +28,9 @@ Required before App Store / Google Play submission:
 - Privacy Policy, Terms, Support, and Account Deletion pages live.
 - Demo reviewer account prepared.
 - Payments either fully live and tested, or clearly marked as manual/request-based.
-- Push notifications disabled unless native permission flows and backend delivery are implemented.
+- Push notification permission, token registration, and backend delivery verified on a real release device.
+- Mandatory-update policy kept at or below the App Store version documented in
+  [Mandatory iOS updates](./mandatory-ios-updates.md).
 
 ## Future Option
 

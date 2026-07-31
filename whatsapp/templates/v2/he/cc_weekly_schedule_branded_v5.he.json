@@ -1,0 +1,41 @@
+{
+  "name": "cc_weekly_schedule_branded_v5",
+  "language": "he",
+  "category": "MARKETING",
+  "components": [
+    {
+      "type": "HEADER",
+      "format": "IMAGE",
+      "example": {
+        "header_handle": [
+          ""
+        ]
+      }
+    },
+    {
+      "type": "BODY",
+      "text": "היי {{1}}, לוח השיעורים לשבוע הבא נפתח 🤍\n\nהשיעורים החדשים מחכים לך באפליקציה.\nבחרי את השיעורים שמתאימים לך ושמרי מקום מראש.\n\nנתראה בסטודיו,\nירין",
+      "example": {
+        "body_text": [
+          [
+            "נועה"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FOOTER",
+      "text": "Cloud & Core Studio"
+    },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        {
+          "type": "URL",
+          "text": "צפייה בלוח השיעורים",
+          "url": "https://cloudandcorestudio.com/member/schedule"
+        }
+      ]
+    }
+  ]
+}

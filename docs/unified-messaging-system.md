@@ -67,6 +67,11 @@ missing, so CI cannot report migration, concurrency, or RLS coverage as passing 
 
 The channel matrix is encoded in `src/lib/messagingPolicy.ts`. Only class cancellation, material class-time change, and payment failure bypass later email/WhatsApp opt-outs. Other external deliveries require the relevant preference. In-app and push are separate deliveries.
 
+At registration, essential service email is enabled independently of promotional consent.
+WhatsApp and marketing require separate affirmative choices, and native push remains off until the
+iOS permission flow succeeds. Versioned signup metadata rejects the previous all-channels default
+from older clients and preserves explicit legacy WhatsApp declines.
+
 Routine external delivery is scheduled inside 08:00–20:30 Asia/Jerusalem. Booking actions, handoff replies, class cancellation/time change, and payment failure can be immediate. The reminder sweep uses the existing cancellation-aware schedule:
 
 - planning reminder: two hours before the cancellation deadline;
@@ -230,7 +235,7 @@ Transactional deliverability requirements:
 
 ## Template catalog and provisioning
 
-`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, Meta name, and category. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog. The current catalog contains 19 semantic Meta names and 57 checked-in locale variants (19 each for `he`, `ar`, and `en_US`). Welcome remains `UTILITY`; recommendation and personal-return templates are explicitly `MARKETING`. Checked-in does not mean created or approved in Meta.
+`src/lib/messageTemplateCatalog.ts` is the immutable source for every event/language body, subject, variable schema, version, Meta name, and category. `he`, `ar`, and `en` content must remain in parity. WhatsApp JSON under `whatsapp/templates/v2` is generated from this catalog. The current catalog contains 20 semantic Meta names and 60 checked-in locale variants (20 each for `he`, `ar`, and `en_US`). Welcome remains `UTILITY`; recommendation, personal-return, and weekly-schedule templates are explicitly `MARKETING`. Checked-in does not mean created or approved in Meta.
 
 Local commands:
 

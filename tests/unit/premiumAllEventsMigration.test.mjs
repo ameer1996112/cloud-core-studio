@@ -18,6 +18,10 @@ const completeCatalogMigrationPath = new URL(
   "../../supabase/migrations/20260728143000_activate_complete_concierge_catalog.sql",
   import.meta.url,
 );
+const releaseGuardMigrationPath = new URL(
+  "../../supabase/migrations/20260731183000_complete_notification_release_guards.sql",
+  import.meta.url,
+);
 
 describe("premium notification all-events migration", () => {
   test("keeps the complete rollout private while enabling reviewed event behavior", () => {
@@ -66,6 +70,7 @@ describe("premium notification all-events migration", () => {
       tuningMigrationPath,
       paymentLifecycleMigrationPath,
       completeCatalogMigrationPath,
+      releaseGuardMigrationPath,
     ]) {
       const sql = readFileSync(path, "utf8");
       for (const match of sql.matchAll(/\('([^']+)', ARRAY\[([^\]]*)\]::text\[\]\)/g)) {

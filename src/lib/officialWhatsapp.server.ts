@@ -21,6 +21,7 @@ export const OFFICIAL_WHATSAPP_TEMPLATE_EVENT_TYPES = [
   "class_time_changed",
   "payment_pending_reminder",
   "payment_failed",
+  "weekly_schedule",
 ] as const;
 
 export type OfficialWhatsappTemplateEventType =
@@ -72,6 +73,13 @@ function textValue(value: unknown, fallback = "-") {
   return text || fallback;
 }
 
+function paymentAmountValue(amount: unknown, currency: unknown) {
+  const amountText = textValue(amount, "עודכן");
+  const currencyText = textValue(currency, "").toUpperCase();
+  if (!currencyText || !/^-?\d+(?:\.\d+)?$/.test(amountText)) return amountText;
+  return currencyText === "ILS" ? `₪${amountText}` : `${currencyText} ${amountText}`;
+}
+
 function templateLanguage(language: string | null | undefined) {
   if (language === "ar") return { suffix: "ar", code: "ar" as const };
   if (language === "en") return { suffix: "en", code: "en_US" as const };
@@ -84,7 +92,11 @@ function configuredTemplateName(eventType: OfficialWhatsappTemplateEventType, la
   return (
     process.env[languageKey]?.trim() ||
     process.env[fallbackKey]?.trim() ||
-    `${eventType}_${language}`
+    (eventType === "weekly_schedule"
+      ? "cc_weekly_schedule_branded_v5"
+      : eventType === "payment_confirmed"
+        ? "cc_payment_confirmed_v3"
+        : `${eventType}_${language}`)
   );
 }
 
@@ -108,10 +120,7 @@ export function buildOfficialWhatsappTemplatePayload(
   const classTime = textValue(variables.class_time);
   const instructorName = textValue(variables.instructor_name, "צוות הסטודיו");
   const packageName = textValue(variables.package_name, "החבילה שלך");
-  const creditsAvailable = textValue(
-    variables.credits_available ?? variables.credits_remaining ?? variables.credits,
-    "עודכן",
-  );
+  const paymentAmount = paymentAmountValue(variables.amount, variables.currency);
   const language = templateLanguage(row.language);
   const name = configuredTemplateName(row.trigger_type, language.suffix);
   let bodyTexts: string[];
@@ -130,10 +139,13 @@ export function buildOfficialWhatsappTemplatePayload(
       bodyTexts = [memberName, className, classDate, classTime];
       break;
     case "payment_confirmed":
-      bodyTexts = [memberName, packageName, creditsAvailable];
+      bodyTexts = [memberName, packageName, paymentAmount];
       break;
     case "payment_pending_reminder":
     case "payment_failed":
+      bodyTexts = [memberName];
+      break;
+    case "weekly_schedule":
       bodyTexts = [memberName];
       break;
     case "waitlist_spot_available":
@@ -143,15 +155,29 @@ export function buildOfficialWhatsappTemplatePayload(
       return null;
   }
 
+  const components: WhatsappTemplateComponent[] = [];
+  if (row.trigger_type === "weekly_schedule") {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image",
+          image: {
+            link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
+          },
+        },
+      ],
+    });
+  }
+  components.push({
+    type: "body",
+    parameters: bodyTexts.map((text) => ({ type: "text", text })),
+  });
+
   return {
     name,
     languageCode: language.code,
-    components: [
-      {
-        type: "body",
-        parameters: bodyTexts.map((text) => ({ type: "text", text })),
-      },
-    ],
+    components,
   };
 }
 

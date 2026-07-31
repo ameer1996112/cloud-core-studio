@@ -59,11 +59,13 @@ describe("official WhatsApp template payloads", () => {
     });
   });
 
-  test("maps payment variables and falls back when credits are not available", () => {
+  test("maps the payment amount instead of the member credit balance", () => {
     expect(
-      buildOfficialWhatsappTemplatePayload(row("payment_confirmed", { credits_available: null })),
+      buildOfficialWhatsappTemplatePayload(
+        row("payment_confirmed", { amount: 350, currency: "ILS", credits_available: 10 }),
+      ),
     ).toEqual({
-      name: "payment_confirmed_he",
+      name: "cc_payment_confirmed_v3",
       languageCode: "he",
       components: [
         {
@@ -71,7 +73,7 @@ describe("official WhatsApp template payloads", () => {
           parameters: [
             { type: "text", text: "נורה" },
             { type: "text", text: "מינוי חודשי" },
-            { type: "text", text: "עודכן" },
+            { type: "text", text: "₪350" },
           ],
         },
       ],
@@ -108,6 +110,30 @@ describe("official WhatsApp template payloads", () => {
     expect(
       buildOfficialWhatsappTemplatePayload({ ...row("payment_failed"), language: "en" }),
     ).toMatchObject({ name: "payment_failed_en", languageCode: "en_US" });
+  });
+
+  test("uses the approved branded v5 weekly schedule template with its image header", () => {
+    expect(buildOfficialWhatsappTemplatePayload(row("weekly_schedule"))).toEqual({
+      name: "cc_weekly_schedule_branded_v5",
+      languageCode: "he",
+      components: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
+              },
+            },
+          ],
+        },
+        {
+          type: "body",
+          parameters: [{ type: "text", text: "נורה" }],
+        },
+      ],
+    });
   });
 
   test("normalizes local Israeli phone numbers for Meta Cloud API", () => {

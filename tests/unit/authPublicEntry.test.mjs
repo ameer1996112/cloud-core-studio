@@ -51,6 +51,7 @@ mock.module("@/lib/i18n", () => ({
     ar: { dir: "rtl", label: "العربية" },
   },
   applyLang() {},
+  tForLang: (_lang, key) => key,
   t: (key) =>
     ({
       "page.auth.title": "Sign in",
