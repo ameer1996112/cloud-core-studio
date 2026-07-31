@@ -12,6 +12,15 @@ export type MetaTemplateVariant = {
   examples: readonly string[];
 };
 
+type MetaTemplateJsonComponent =
+  | { type: "HEADER"; format: "IMAGE"; example: { header_handle: string[] } }
+  | { type: "BODY"; text: string; example?: { body_text: readonly (readonly string[])[] } }
+  | { type: "FOOTER"; text: string }
+  | {
+      type: "BUTTONS";
+      buttons: Array<{ type: "URL"; text: string; url: string }>;
+    };
+
 type LocalizedTemplate = {
   name: string | null;
   category?: MetaTemplateVariant["category"];
@@ -741,16 +750,15 @@ export function validateMetaTemplateCatalog(): { ok: boolean; errors: string[] }
 }
 
 export function toMetaTemplateJson(variant: MetaTemplateVariant) {
-  const components = [
-    ...(variant.eventType === "weekly_schedule"
-      ? [{ type: "HEADER", format: "IMAGE", example: { header_handle: [""] } }]
-      : []),
-    {
-      type: "BODY",
-      text: variant.body,
-      ...(variant.parameters.length ? { example: { body_text: [variant.examples] } } : {}),
-    },
-  ];
+  const components: MetaTemplateJsonComponent[] = [];
+  if (variant.eventType === "weekly_schedule") {
+    components.push({ type: "HEADER", format: "IMAGE", example: { header_handle: [""] } });
+  }
+  components.push({
+    type: "BODY",
+    text: variant.body,
+    ...(variant.parameters.length ? { example: { body_text: [variant.examples] } } : {}),
+  });
   if (variant.eventType === "weekly_schedule") {
     components.push(
       { type: "FOOTER", text: "Cloud & Core Studio" },

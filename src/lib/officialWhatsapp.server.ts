@@ -151,30 +151,29 @@ export function buildOfficialWhatsappTemplatePayload(
       return null;
   }
 
+  const components: WhatsappTemplateComponent[] = [];
+  if (row.trigger_type === "weekly_schedule") {
+    components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "image",
+          image: {
+            link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
+          },
+        },
+      ],
+    });
+  }
+  components.push({
+    type: "body",
+    parameters: bodyTexts.map((text) => ({ type: "text", text })),
+  });
+
   return {
     name,
     languageCode: language.code,
-    components: [
-      ...(row.trigger_type === "weekly_schedule"
-        ? [
-            {
-              type: "header" as const,
-              parameters: [
-                {
-                  type: "image" as const,
-                  image: {
-                    link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
-                  },
-                },
-              ],
-            },
-          ]
-        : []),
-      {
-        type: "body",
-        parameters: bodyTexts.map((text) => ({ type: "text", text })),
-      },
-    ],
+    components,
   };
 }
 
