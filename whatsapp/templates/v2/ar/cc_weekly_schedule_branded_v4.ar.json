@@ -1,0 +1,32 @@
+{
+  "name": "cc_weekly_schedule_branded_v4",
+  "language": "ar",
+  "category": "MARKETING",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "مرحباً {{1}}، جدول الحصص للأسبوع القادم مفتوح 🤍\n\nالحصص الجديدة بانتظارك في التطبيق.\nاختاري الحصص التي تناسبك واحجزي مكانك مسبقاً.\n\nنراك في الاستوديو،\nيارين",
+      "example": {
+        "body_text": [
+          [
+            "נועה"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FOOTER",
+      "text": "Cloud & Core Studio"
+    },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        {
+          "type": "URL",
+          "text": "عرض جدول الحصص",
+          "url": "https://cloudandcorestudio.com/member/schedule"
+        }
+      ]
+    }
+  ]
+}

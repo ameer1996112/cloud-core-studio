@@ -21,6 +21,7 @@ export const OFFICIAL_WHATSAPP_TEMPLATE_EVENT_TYPES = [
   "class_time_changed",
   "payment_pending_reminder",
   "payment_failed",
+  "weekly_schedule",
 ] as const;
 
 export type OfficialWhatsappTemplateEventType =
@@ -84,7 +85,11 @@ function configuredTemplateName(eventType: OfficialWhatsappTemplateEventType, la
   return (
     process.env[languageKey]?.trim() ||
     process.env[fallbackKey]?.trim() ||
-    `${eventType}_${language}`
+    (eventType === "weekly_schedule"
+      ? "cc_weekly_schedule_branded_v5"
+      : eventType === "payment_confirmed"
+        ? "cc_payment_confirmed_v3"
+        : `${eventType}_${language}`)
   );
 }
 
@@ -136,6 +141,9 @@ export function buildOfficialWhatsappTemplatePayload(
     case "payment_failed":
       bodyTexts = [memberName];
       break;
+    case "weekly_schedule":
+      bodyTexts = [memberName];
+      break;
     case "waitlist_spot_available":
       bodyTexts = [memberName, className, classDate, classTime];
       break;
@@ -147,6 +155,21 @@ export function buildOfficialWhatsappTemplatePayload(
     name,
     languageCode: language.code,
     components: [
+      ...(row.trigger_type === "weekly_schedule"
+        ? [
+            {
+              type: "header" as const,
+              parameters: [
+                {
+                  type: "image" as const,
+                  image: {
+                    link: "https://cloudandcorestudio.com/brand/cloud-core-logo-full.png",
+                  },
+                },
+              ],
+            },
+          ]
+        : []),
       {
         type: "body",
         parameters: bodyTexts.map((text) => ({ type: "text", text })),

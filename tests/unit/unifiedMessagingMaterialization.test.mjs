@@ -180,7 +180,7 @@ describe("outbox message materialization", () => {
     expect(noPackage.message.actions).toEqual(["choose_package"]);
   });
 
-  test("materializes scheduled Concierge journeys without inventing WhatsApp templates", () => {
+  test("materializes scheduled Concierge journeys with their approved channel scopes", () => {
     const weekly = materializeMessagePlan({
       ...base,
       eventType: "weekly_schedule",
@@ -188,7 +188,7 @@ describe("outbox message materialization", () => {
       variables: { member_name: "נועה", class_count: 8 },
       preferences: { ...base.preferences, scheduleOpenings: true },
     });
-    expect(weekly.message.body).toContain("8");
+    expect(weekly.message.body).toContain("לוח השיעורים לשבוע הבא נפתח");
     expect(weekly.deliveries.map((delivery) => delivery.channel)).toEqual(["in_app", "push"]);
 
     const daily = materializeMessagePlan({
@@ -538,7 +538,7 @@ describe("outbox message materialization", () => {
         payment_was_failing: false,
       },
       preferences: { ...base.preferences, payments: true },
-      approvedWhatsappVariants: new Set(["cc_payment_confirmed_v2:he"]),
+      approvedWhatsappVariants: new Set(["cc_payment_confirmed_v3:he"]),
     });
     expect(
       ordinarySuccess.deliveries.find((delivery) => delivery.channel === "whatsapp"),
@@ -554,7 +554,7 @@ describe("outbox message materialization", () => {
         payment_was_failing: true,
       },
       preferences: { ...base.preferences, payments: true },
-      approvedWhatsappVariants: new Set(["cc_payment_confirmed_v2:he"]),
+      approvedWhatsappVariants: new Set(["cc_payment_confirmed_v3:he"]),
     });
     expect(
       recovered.deliveries.find((delivery) => delivery.channel === "whatsapp"),

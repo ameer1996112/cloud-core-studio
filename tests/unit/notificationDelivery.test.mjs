@@ -3,6 +3,7 @@ import {
   computeRetrySchedule,
   getPreviousIsraelEvening,
   getScheduleDigestIdempotencyKey,
+  shouldAutoQueueOfficialWhatsappNotification,
   shouldAutoQueueOpenwaNotification,
   shouldBypassQuietHoursForOpenwaNotification,
 } from "../../src/lib/notificationDelivery.ts";
@@ -30,6 +31,8 @@ describe("shouldAutoQueueOpenwaNotification", () => {
     expect(shouldAutoQueueOpenwaNotification("waitlist_spot_available")).toBe(true);
     expect(shouldAutoQueueOpenwaNotification("class_cancelled_by_admin")).toBe(true);
     expect(shouldAutoQueueOpenwaNotification("class_time_changed")).toBe(true);
+    expect(shouldAutoQueueOpenwaNotification("weekly_schedule")).toBe(true);
+    expect(shouldAutoQueueOfficialWhatsappNotification("weekly_schedule")).toBe(true);
 
     expect(shouldAutoQueueOpenwaNotification("receipt_issued")).toBe(false);
     expect(shouldAutoQueueOpenwaNotification("class_reminder_2h")).toBe(false);
