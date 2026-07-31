@@ -66,6 +66,14 @@ ten recipients across repeated scheduler sweeps, and pending sends stop at 85% c
 use WhatsApp. Weekly recommendations rank the same attendance signals and include the best one or two
 available lessons in one member-facing message.
 
+## Signup notification defaults
+
+New registrations always enable essential service email for confirmations, cancellations,
+receipts, and account security. WhatsApp and marketing start disabled and require separate,
+affirmative choices during signup. Native push remains disabled until iOS presents its own system
+permission prompt. The versioned signup metadata prevents older clients from recreating the former
+all-channels default, while explicit legacy WhatsApp declines remain preserved.
+
 ## Private all-events verification
 
 Admin Messages includes a Journey Lab for the complete 43-event catalog. It can queue only one
@@ -80,5 +88,5 @@ expected result for every event. Keep every rollout row Allowlist only until the
 Use the generated v2 definitions under `whatsapp/templates/v2`. Do not enable WhatsApp for a locale
 until its deployment row is approved. Missing locales are suppressed; the worker never substitutes
 another language.
-The checked-in v2 catalog currently has 19 semantic templates and 57 locale variants. Run local
+The checked-in v2 catalog currently has 20 semantic templates and 60 locale variants. Run local
 generation check and remote plan before any separately authorized apply.
