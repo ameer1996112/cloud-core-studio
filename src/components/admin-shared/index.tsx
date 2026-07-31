@@ -41,7 +41,7 @@ export function AdminPageHeader({
 }) {
   return (
     <header className="border-b border-gold/25 pb-6 text-start">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div className="min-w-0">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           <h2 className="cc-page-title mt-2">{title}</h2>
@@ -52,7 +52,7 @@ export function AdminPageHeader({
           )}
         </div>
         {(action || secondaryAction) && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:shrink-0">
             {secondaryAction}
             {action}
           </div>
