@@ -13,6 +13,9 @@ AS $function$
 DECLARE
   v_preferred_language text;
   v_phone text;
+  v_phone_digits text;
+  v_phone_valid boolean;
+  v_consent_version text;
   v_whatsapp_enabled boolean;
   v_marketing_enabled boolean;
   v_now timestamptz := now();
@@ -23,12 +26,16 @@ BEGIN
     ELSE 'en'
   END;
   v_phone := NULLIF(BTRIM(NEW.raw_user_meta_data->>'phone'), '');
-  v_whatsapp_enabled := v_phone IS NOT NULL
-    AND COALESCE((NEW.raw_user_meta_data->>'whatsapp_updates_enabled')::boolean, false);
-  v_marketing_enabled := COALESCE(
-    (NEW.raw_user_meta_data->>'marketing_updates_enabled')::boolean,
-    false
-  );
+  v_phone_digits := regexp_replace(COALESCE(v_phone, ''), '[^0-9]', '', 'g');
+  v_phone_valid := v_phone IS NOT NULL
+    AND v_phone ~ '^[+0-9().[:space:]-]+$'
+    AND length(v_phone_digits) BETWEEN 10 AND 15;
+  v_consent_version := NEW.raw_user_meta_data->>'notification_consent_version';
+  v_whatsapp_enabled := v_consent_version = '2'
+    AND v_phone_valid
+    AND NEW.raw_user_meta_data->>'whatsapp_signup_opt_in_v2' = 'true';
+  v_marketing_enabled := v_consent_version = '2'
+    AND NEW.raw_user_meta_data->>'marketing_updates_enabled' = 'true';
 
   INSERT INTO public.profiles (id, role)
   VALUES (NEW.id, 'member')
@@ -64,12 +71,13 @@ BEGIN
     whatsapp_enabled = v_whatsapp_enabled,
     whatsapp_consent_source = CASE
       WHEN v_whatsapp_enabled THEN 'signup_explicit_whatsapp'
-      WHEN v_phone IS NOT NULL THEN 'signup_whatsapp_not_selected'
+      WHEN v_phone IS NOT NULL AND NOT v_phone_valid THEN 'signup_invalid_whatsapp_phone'
+      WHEN v_phone_valid THEN 'signup_whatsapp_not_selected'
       ELSE NULL
     END,
     whatsapp_consented_at = CASE WHEN v_whatsapp_enabled THEN v_now ELSE NULL END,
     whatsapp_opted_out_at = CASE
-      WHEN v_phone IS NOT NULL AND NOT v_whatsapp_enabled THEN v_now
+      WHEN v_phone_valid AND NOT v_whatsapp_enabled THEN v_now
       ELSE NULL
     END,
     marketing = v_marketing_enabled,

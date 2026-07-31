@@ -22,5 +22,7 @@ describe("signup notification choices", () => {
     expect(html.match(/type="checkbox"/g)).toHaveLength(2);
     expect(html).not.toContain('checked=""');
     expect(html).toContain('disabled=""');
+    expect(html).toContain('aria-describedby="signup-whatsapp-phone-help"');
+    expect(html).toContain('id="signup-whatsapp-phone-help"');
   });
 });

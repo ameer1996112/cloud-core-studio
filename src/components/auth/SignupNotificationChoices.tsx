@@ -1,5 +1,8 @@
 import { MailCheck, MessageCircle, Sparkles } from "lucide-react";
 import { tForLang, type Lang } from "@/lib/i18n";
+import { isValidSignupWhatsappPhone } from "@/lib/signupNotificationConsent";
+
+const WHATSAPP_PHONE_HELP_ID = "signup-whatsapp-phone-help";
 
 type SignupNotificationChoicesProps = {
   lang: Lang;
@@ -18,7 +21,7 @@ export function SignupNotificationChoices({
   onWhatsappChange,
   onMarketingChange,
 }: SignupNotificationChoicesProps) {
-  const hasPhone = Boolean(phone.trim());
+  const hasValidPhone = isValidSignupWhatsappPhone(phone);
   const copy = (key: Parameters<typeof tForLang>[1]) => tForLang(lang, key);
 
   return (
@@ -40,14 +43,15 @@ export function SignupNotificationChoices({
 
       <div className="mt-2 space-y-2">
         <ConsentChoice
-          checked={hasPhone && whatsapp}
-          disabled={!hasPhone}
+          checked={hasValidPhone && whatsapp}
+          descriptionId={!hasValidPhone ? WHATSAPP_PHONE_HELP_ID : undefined}
+          disabled={!hasValidPhone}
           icon={<MessageCircle className="h-5 w-5" aria-hidden="true" />}
           label={copy("auth.notificationConsentWhatsapp")}
           onChange={onWhatsappChange}
         />
-        {!hasPhone ? (
-          <p className="px-1 text-xs leading-5 text-slate">
+        {!hasValidPhone ? (
+          <p id={WHATSAPP_PHONE_HELP_ID} className="px-1 text-xs leading-5 text-slate">
             {copy("auth.notificationConsentWhatsappNeedsPhone")}
           </p>
         ) : null}
@@ -68,12 +72,14 @@ export function SignupNotificationChoices({
 
 function ConsentChoice({
   checked,
+  descriptionId,
   disabled = false,
   icon,
   label,
   onChange,
 }: {
   checked: boolean;
+  descriptionId?: string;
   disabled?: boolean;
   icon: React.ReactNode;
   label: string;
@@ -95,6 +101,7 @@ function ConsentChoice({
         type="checkbox"
         checked={checked}
         disabled={disabled}
+        aria-describedby={descriptionId}
         onChange={(event) => onChange(event.target.checked)}
         className="h-5 w-5 shrink-0 accent-navy"
       />

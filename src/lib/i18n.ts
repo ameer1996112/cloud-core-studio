@@ -108,7 +108,7 @@ export const MESSAGES = {
       "Optional choices start off. You can change them later; iPhone asks separately for push permission.",
     "auth.notificationConsentWhatsapp": "Booking and studio updates on WhatsApp",
     "auth.notificationConsentWhatsappNeedsPhone":
-      "Add a phone number above to choose WhatsApp updates.",
+      "Add a valid phone number above to choose WhatsApp updates.",
     "auth.notificationConsentMarketing":
       "Offers and recommendations by email—and by WhatsApp if enabled above",
     "auth.email": "Email",
@@ -1420,7 +1420,7 @@ export const MESSAGES = {
       "האפשרויות הנוספות כבויות בהתחלה. אפשר לשנות אותן בהמשך; ה‑iPhone יבקש אישור נפרד להתראות Push.",
     "auth.notificationConsentWhatsapp": "עדכוני הזמנות וסטודיו ב‑WhatsApp",
     "auth.notificationConsentWhatsappNeedsPhone":
-      "כדי לבחור עדכוני WhatsApp, יש להוסיף מספר טלפון למעלה.",
+      "כדי לבחור עדכוני WhatsApp, יש להוסיף למעלה מספר טלפון תקין.",
     "auth.notificationConsentMarketing":
       "הטבות והמלצות באימייל — וב‑WhatsApp אם האפשרות למעלה מופעלת",
     "auth.email": "אימייל",
@@ -2751,7 +2751,8 @@ export const MESSAGES = {
     "auth.notificationConsentBody":
       "تبدأ الخيارات الإضافية متوقفة. يمكنك تعديلها لاحقاً، وسيطلب iPhone إذناً منفصلاً لإشعارات Push.",
     "auth.notificationConsentWhatsapp": "تحديثات الحجز والاستوديو عبر WhatsApp",
-    "auth.notificationConsentWhatsappNeedsPhone": "أضيفي رقم هاتف أعلاه لاختيار تحديثات WhatsApp.",
+    "auth.notificationConsentWhatsappNeedsPhone":
+      "أضيفي رقم هاتف صالحاً أعلاه لاختيار تحديثات WhatsApp.",
     "auth.notificationConsentMarketing":
       "العروض والاقتراحات عبر البريد الإلكتروني، وعبر WhatsApp إذا فُعِّل الخيار أعلاه",
     "auth.email": "البريد الإلكتروني",
