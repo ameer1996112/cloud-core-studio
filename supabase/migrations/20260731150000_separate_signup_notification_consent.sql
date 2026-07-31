@@ -74,7 +74,7 @@ BEGIN
     whatsapp_enabled = v_whatsapp_enabled,
     whatsapp_consent_source = CASE
       WHEN v_whatsapp_enabled THEN 'signup_explicit_whatsapp'
-      WHEN v_legacy_whatsapp_declined AND v_phone_valid
+      WHEN v_legacy_whatsapp_declined AND v_phone IS NOT NULL
         THEN 'legacy_signup_whatsapp_declined'
       WHEN v_consent_version IS DISTINCT FROM '2' AND v_phone_valid
         THEN 'legacy_auto_enable_pending_reconsent'
@@ -88,7 +88,7 @@ BEGIN
        AND v_phone_valid
        AND NOT v_whatsapp_enabled
       THEN v_now
-      WHEN v_legacy_whatsapp_declined AND v_phone_valid THEN v_now
+      WHEN v_legacy_whatsapp_declined AND v_phone IS NOT NULL THEN v_now
       ELSE NULL
     END,
     marketing = v_marketing_enabled,

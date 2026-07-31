@@ -77,6 +77,12 @@ describe("signup notification consent", () => {
     expect(migrationSource).toContain("v_phone_valid");
     expect(migrationSource).toContain("legacy_auto_enable_pending_reconsent");
     expect(migrationSource).toContain("legacy_signup_whatsapp_declined");
+    expect(migrationSource).toMatch(
+      /WHEN v_legacy_whatsapp_declined AND v_phone IS NOT NULL\s+THEN 'legacy_signup_whatsapp_declined'/,
+    );
+    expect(migrationSource).toContain(
+      "WHEN v_legacy_whatsapp_declined AND v_phone IS NOT NULL THEN v_now",
+    );
     expect(migrationSource).not.toContain("signup_invalid_whatsapp_phone");
     expect(migrationSource).toMatch(
       /whatsapp_opted_out_at = CASE\s+WHEN v_consent_version = '2'\s+AND v_phone_valid/,
