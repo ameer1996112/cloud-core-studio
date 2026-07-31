@@ -1,42 +1,65 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  DEFAULT_SIGNUP_NOTIFICATION_CHOICES,
+  buildSignupNotificationMetadata,
+} from "../../src/lib/signupNotificationConsent.ts";
 
-const root = resolve(import.meta.dir, "../..");
-const authSource = readFileSync(resolve(root, "src/routes/auth.tsx"), "utf8");
 const migrationSource = readFileSync(
-  resolve(root, "supabase/migrations/20260729163000_signup_notification_consent.sql"),
+  resolve(
+    import.meta.dir,
+    "../../supabase/migrations/20260731150000_separate_signup_notification_consent.sql",
+  ),
   "utf8",
 );
 
 describe("signup notification consent", () => {
-  test("offers one default-on choice that covers every external channel", () => {
-    expect(authSource).toContain("useState(true)");
-    expect(authSource).toContain("whatsapp_updates_enabled");
-    expect(authSource).toContain("email_updates_enabled");
-    expect(authSource).toContain("push_updates_enabled");
-    expect(authSource).toContain('t("auth.notificationConsentAllChannels")');
-    expect(authSource).not.toContain('t("auth.notificationConsentWhatsapp")');
-    expect(authSource).not.toContain('t("auth.notificationConsentEmail")');
-    expect(authSource).not.toContain('t("auth.notificationConsentPush")');
+  test("keeps optional channels off while enabling essential email", () => {
+    expect(DEFAULT_SIGNUP_NOTIFICATION_CHOICES).toEqual({
+      whatsapp: false,
+      marketing: false,
+    });
+
+    expect(
+      buildSignupNotificationMetadata({
+        phone: "0541234567",
+        ...DEFAULT_SIGNUP_NOTIFICATION_CHOICES,
+      }),
+    ).toEqual({
+      whatsapp_updates_enabled: false,
+      email_updates_enabled: true,
+      push_updates_enabled: false,
+      marketing_updates_enabled: false,
+    });
   });
 
-  test("keeps the unified consent compact at the end of the signup fields", () => {
-    expect(authSource.indexOf('label={t("auth.password")}')).toBeLessThan(
-      authSource.indexOf('t("auth.notificationConsentAllChannels")'),
-    );
-    expect(authSource).not.toContain(
-      'className="rounded-2xl border border-gold/25 bg-white/55 p-4 text-start"',
-    );
-    expect(authSource).not.toContain('t("auth.notificationConsentTitle")');
+  test("records affirmative WhatsApp and marketing choices independently", () => {
+    expect(
+      buildSignupNotificationMetadata({
+        phone: " 0541234567 ",
+        whatsapp: true,
+        marketing: true,
+      }),
+    ).toEqual({
+      whatsapp_updates_enabled: true,
+      email_updates_enabled: true,
+      push_updates_enabled: false,
+      marketing_updates_enabled: true,
+    });
+
+    expect(
+      buildSignupNotificationMetadata({ phone: "   ", whatsapp: true, marketing: false })
+        .whatsapp_updates_enabled,
+    ).toBe(false);
   });
 
-  test("persists the selected channels with an auditable signup source", () => {
-    expect(migrationSource).toContain("signup_channel_choices");
-    expect(migrationSource).toContain("whatsapp_updates_enabled");
-    expect(migrationSource).toContain("email_updates_enabled");
-    expect(migrationSource).toContain("push_updates_enabled");
-    expect(migrationSource).toContain("whatsapp_consented_at");
-    expect(migrationSource).toContain("email_consented_at");
+  test("persists essential email separately from optional channel consent", () => {
+    expect(migrationSource).toContain("marketing_updates_enabled");
+    expect(migrationSource).toContain("email_enabled = true");
+    expect(migrationSource).toContain("push_enabled = false");
+    expect(migrationSource).toContain("marketing = v_marketing_enabled");
+    expect(migrationSource).toContain("essential_service_email");
+    expect(migrationSource).toContain("signup_explicit_whatsapp");
   });
 });

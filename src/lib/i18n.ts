@@ -100,9 +100,17 @@ export const MESSAGES = {
     "auth.phone": "Phone number",
     "auth.phoneOptional": "Phone number (optional)",
     "auth.phoneOptionalHelp": "Used only if you want WhatsApp or studio updates.",
-    "auth.notificationConsentBody": "You can change each channel later in notification settings.",
-    "auth.notificationConsentAllChannels":
-      "Booking and studio updates by WhatsApp, email, and iPhone",
+    "auth.notificationChoicesTitle": "How should we keep in touch?",
+    "auth.essentialEmailTitle": "Essential booking and account emails are included",
+    "auth.essentialEmailBody":
+      "We use email for confirmations, cancellations, receipts, and account security—not promotions.",
+    "auth.notificationConsentBody":
+      "Optional choices start off. You can change them later; iPhone asks separately for push permission.",
+    "auth.notificationConsentWhatsapp": "Booking and studio updates on WhatsApp",
+    "auth.notificationConsentWhatsappNeedsPhone":
+      "Add a phone number above to choose WhatsApp updates.",
+    "auth.notificationConsentMarketing":
+      "Offers and recommendations by email—and by WhatsApp if enabled above",
     "auth.email": "Email",
     "auth.password": "Password",
     "auth.enter": "Enter the studio",
@@ -1404,8 +1412,17 @@ export const MESSAGES = {
     "auth.phone": "מספר טלפון",
     "auth.phoneOptional": "מספר טלפון (אופציונלי)",
     "auth.phoneOptionalHelp": "נשתמש בו רק אם תרצו לקבל עדכוני סטודיו או וואטסאפ.",
-    "auth.notificationConsentBody": "בהמשך אפשר לשנות כל ערוץ בנפרד בהגדרות ההתראות.",
-    "auth.notificationConsentAllChannels": "עדכוני הזמנה וסטודיו ב‑WhatsApp, באימייל וב‑iPhone",
+    "auth.notificationChoicesTitle": "איך נוח לך שנשמור על קשר?",
+    "auth.essentialEmailTitle": "אימיילים חיוניים להזמנות ולחשבון כלולים",
+    "auth.essentialEmailBody":
+      "נשתמש באימייל לאישורים, ביטולים, קבלות ואבטחת החשבון — לא לפרסומות.",
+    "auth.notificationConsentBody":
+      "האפשרויות הנוספות כבויות בהתחלה. אפשר לשנות אותן בהמשך; ה‑iPhone יבקש אישור נפרד להתראות Push.",
+    "auth.notificationConsentWhatsapp": "עדכוני הזמנות וסטודיו ב‑WhatsApp",
+    "auth.notificationConsentWhatsappNeedsPhone":
+      "כדי לבחור עדכוני WhatsApp, יש להוסיף מספר טלפון למעלה.",
+    "auth.notificationConsentMarketing":
+      "הטבות והמלצות באימייל — וב‑WhatsApp אם האפשרות למעלה מופעלת",
     "auth.email": "אימייל",
     "auth.password": "סיסמה",
     "auth.enter": "כניסה לסטודיו",
@@ -2727,9 +2744,16 @@ export const MESSAGES = {
     "auth.phone": "رقم الهاتف",
     "auth.phoneOptional": "رقم الهاتف (اختياري)",
     "auth.phoneOptionalHelp": "يُستخدم فقط إذا أردتِ تحديثات واتساب أو تحديثات من الاستوديو.",
-    "auth.notificationConsentBody": "يمكنك تعديل كل قناة لاحقاً من إعدادات الإشعارات.",
-    "auth.notificationConsentAllChannels":
-      "تحديثات الحجز والاستوديو عبر WhatsApp والبريد الإلكتروني وiPhone",
+    "auth.notificationChoicesTitle": "كيف تفضّلين أن نبقى على تواصل؟",
+    "auth.essentialEmailTitle": "رسائل الحجز والحساب الأساسية مشمولة",
+    "auth.essentialEmailBody":
+      "نستخدم البريد الإلكتروني للتأكيدات والإلغاءات والإيصالات وأمان الحساب، وليس للعروض.",
+    "auth.notificationConsentBody":
+      "تبدأ الخيارات الإضافية متوقفة. يمكنك تعديلها لاحقاً، وسيطلب iPhone إذناً منفصلاً لإشعارات Push.",
+    "auth.notificationConsentWhatsapp": "تحديثات الحجز والاستوديو عبر WhatsApp",
+    "auth.notificationConsentWhatsappNeedsPhone": "أضيفي رقم هاتف أعلاه لاختيار تحديثات WhatsApp.",
+    "auth.notificationConsentMarketing":
+      "العروض والاقتراحات عبر البريد الإلكتروني، وعبر WhatsApp إذا فُعِّل الخيار أعلاه",
     "auth.email": "البريد الإلكتروني",
     "auth.password": "كلمة المرور",
     "auth.enter": "دخول الاستوديو",
@@ -3945,7 +3969,11 @@ export function applyLang(lang: Lang) {
 }
 
 export function t(key: MessageKey, params?: Params): string {
-  const catalog = MESSAGES[activeLang] as Partial<Record<MessageKey, string>>;
+  return tForLang(activeLang, key, params);
+}
+
+export function tForLang(lang: Lang, key: MessageKey, params?: Params): string {
+  const catalog = MESSAGES[normalizeLang(lang)] as Partial<Record<MessageKey, string>>;
   const fallback = MESSAGES.en[key] ?? key;
   const template = catalog[key] ?? fallback;
   if (!params) return template;

@@ -14,6 +14,11 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
 import { notifyAdminMemberSignup } from "@/lib/adminPush.functions";
+import { SignupNotificationChoices } from "@/components/auth/SignupNotificationChoices";
+import {
+  DEFAULT_SIGNUP_NOTIFICATION_CHOICES,
+  buildSignupNotificationMetadata,
+} from "@/lib/signupNotificationConsent";
 import {
   validateAuthFields,
   type AuthFieldName,
@@ -43,7 +48,12 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [notificationUpdatesEnabled, setNotificationUpdatesEnabled] = useState(true);
+  const [whatsappUpdatesEnabled, setWhatsappUpdatesEnabled] = useState(
+    DEFAULT_SIGNUP_NOTIFICATION_CHOICES.whatsapp,
+  );
+  const [marketingUpdatesEnabled, setMarketingUpdatesEnabled] = useState(
+    DEFAULT_SIGNUP_NOTIFICATION_CHOICES.marketing,
+  );
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
@@ -138,9 +148,11 @@ function AuthPage() {
             data: {
               name,
               preferred_language: lang,
-              whatsapp_updates_enabled: Boolean(trimmedPhone) && notificationUpdatesEnabled,
-              email_updates_enabled: notificationUpdatesEnabled,
-              push_updates_enabled: notificationUpdatesEnabled,
+              ...buildSignupNotificationMetadata({
+                phone: trimmedPhone,
+                whatsapp: whatsappUpdatesEnabled,
+                marketing: marketingUpdatesEnabled,
+              }),
               ...(trimmedPhone ? { phone: trimmedPhone } : {}),
             },
           },
@@ -165,7 +177,8 @@ function AuthPage() {
         setMode("signin");
         setName("");
         setPhone("");
-        setNotificationUpdatesEnabled(true);
+        setWhatsappUpdatesEnabled(DEFAULT_SIGNUP_NOTIFICATION_CHOICES.whatsapp);
+        setMarketingUpdatesEnabled(DEFAULT_SIGNUP_NOTIFICATION_CHOICES.marketing);
         setEmail("");
         setPassword("");
         setShowPassword(false);
@@ -232,7 +245,8 @@ function AuthPage() {
     setPassword("");
     setName("");
     setPhone("");
-    setNotificationUpdatesEnabled(true);
+    setWhatsappUpdatesEnabled(DEFAULT_SIGNUP_NOTIFICATION_CHOICES.whatsapp);
+    setMarketingUpdatesEnabled(DEFAULT_SIGNUP_NOTIFICATION_CHOICES.marketing);
     setShowPassword(false);
     setFormVersion((version) => version + 1);
   }
@@ -461,16 +475,14 @@ function AuthPage() {
                     </Field>
                   )}
                   {mode === "signup" && (
-                    <div className="border-t border-gold/20 pt-4 text-start">
-                      <NotificationConsentChoice
-                        checked={notificationUpdatesEnabled}
-                        label={t("auth.notificationConsentAllChannels")}
-                        onChange={setNotificationUpdatesEnabled}
-                      />
-                      <p className="mt-2 px-1 text-xs leading-5 text-slate">
-                        {t("auth.notificationConsentBody")}
-                      </p>
-                    </div>
+                    <SignupNotificationChoices
+                      lang={lang}
+                      phone={phone}
+                      whatsapp={whatsappUpdatesEnabled}
+                      marketing={marketingUpdatesEnabled}
+                      onWhatsappChange={setWhatsappUpdatesEnabled}
+                      onMarketingChange={setMarketingUpdatesEnabled}
+                    />
                   )}
 
                   {formError && (
@@ -621,28 +633,6 @@ function Field({
           {error}
         </span>
       ) : null}
-    </label>
-  );
-}
-
-function NotificationConsentChoice({
-  checked,
-  label,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className="flex min-h-11 items-center justify-between gap-4 rounded-xl border border-gold/15 bg-ivory/45 px-3 py-2.5 text-sm leading-6 text-navy">
-      <span>{label}</span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="h-5 w-5 shrink-0 accent-navy"
-      />
     </label>
   );
 }
