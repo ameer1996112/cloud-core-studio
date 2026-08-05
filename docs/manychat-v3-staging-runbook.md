@@ -162,12 +162,26 @@ Run the read-only smoke script with the same environment:
 bash scripts/smoke-manychat-v3-staging.sh
 ```
 
-It describes `cloud-core-studio-staging`, verifies the returned service name, generated Cloud Run URL,
-and dedicated staging service account, then obtains a short-lived caller identity token and requests
-the existing `/support` route. The token is passed to curl over stdin, not in command arguments or
-output. The operator therefore needs Cloud Run Invoker on the staging service. The script does not read
-application secret values, add an endpoint, send a notification, mutate data, expose Cloud Run
-publicly, or change Cloud Run.
+It reads the structured Cloud Run service description, requires exactly one untagged revision to
+receive 100% of traffic, then reads that serving revision's structured description. It fails before
+authentication unless all of these deployed boundaries match the loaded staging environment:
+
+- literal service name, generated staging URL, staging revision name, dedicated service account, and
+  staging image path;
+- `APP_ENV=staging`, mutation disabled, APNs sandbox mode, and the exact expected public staging
+  Supabase project ID, URL, and publishable key;
+- no protected Supabase ref in either expected or deployed public configuration;
+- all ManyChat, scheduler, external-channel, canonical-read, immediate-dispatch, and legacy-delivery
+  flags disabled, with delivery mode exactly `disabled`;
+- no undeclared runtime variables, and exactly the three server variables referencing the expected
+  staging Secret Manager resources at `latest`.
+
+The smoke check inspects only Secret Manager resource references; it never reads secret values or
+prints the service JSON, public key, token, or environment payload. After validation it obtains a
+short-lived caller identity token and requests the existing `/support` route. The token is passed to
+curl over stdin, not in command arguments or output. The operator therefore needs Cloud Run Invoker on
+the staging service. The script does not add an endpoint, send a notification, mutate data, expose
+Cloud Run publicly, or change Cloud Run.
 
 ## Staging-only rollback
 
@@ -196,7 +210,9 @@ gcloud run revisions describe "$STAGING_ROLLBACK_REVISION" \
   --project="$GCP_PROJECT_ID"
 ```
 
-Move only staging traffic, then repeat the smoke test:
+Move only staging traffic, then repeat the smoke test. This post-rollback check revalidates the service
+identity and the selected serving revision's name, staging public values, Secret Manager references,
+image path, and disabled delivery flags before it makes the authenticated HTTP request:
 
 ```bash
 gcloud run services update-traffic "cloud-core-studio-staging" \
