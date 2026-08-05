@@ -72,14 +72,17 @@ command -v gcloud >/dev/null 2>&1 || fail "gcloud is required for the read-only 
 command -v curl >/dev/null 2>&1 || fail "curl is required for the HTTP smoke request"
 command -v node >/dev/null 2>&1 || fail "node is required to parse the Cloud Run inspection"
 
-SERVICE_JSON="$(gcloud run services describe "$STAGING_SERVICE" \
-  --project "$PROJECT_ID" \
-  --region "$REGION" \
-  --format=json)" || \
-  fail "unable to describe staging Cloud Run service"
+select_staging_service() {
+  local service_json
+  service_json="$(gcloud run services describe "$STAGING_SERVICE" \
+    --project "$PROJECT_ID" \
+    --region "$REGION" \
+    --format=json)" || {
+    echo "ERROR: unable to describe staging Cloud Run service" >&2
+    return 1
+  }
 
-if ! SERVICE_SELECTION="$(
-  printf '%s' "$SERVICE_JSON" | node -e '
+  printf '%s' "$service_json" | node -e '
 const fs = require("node:fs");
 
 function stop(message) {
@@ -125,14 +128,13 @@ if (
 
 process.stdout.write(serviceUrl + "\t" + traffic[0].revisionName);
 '
-)"; then
+}
+
+if ! SERVICE_SELECTION="$(select_staging_service)"; then
   fail "staging service boundary validation failed"
 fi
 
-unset SERVICE_JSON
-
 IFS=$'\t' read -r SERVICE_URL SERVING_REVISION <<< "$SERVICE_SELECTION"
-unset SERVICE_SELECTION
 
 [[ -n "$SERVICE_URL" && -n "$SERVING_REVISION" ]] || fail "incomplete staging service selection"
 
@@ -333,17 +335,32 @@ echo "Staging URL: $SERVICE_URL"
 IDENTITY_TOKEN="$(gcloud auth print-identity-token)" || fail "unable to obtain an identity token for staging smoke"
 [[ -n "$IDENTITY_TOKEN" ]] || fail "gcloud returned an empty identity token"
 
-curl --config - <<EOF
+HTTP_STATUS="$(curl --disable --config - <<EOF
 url = "${SERVICE_URL}/support"
 header = "Authorization: Bearer ${IDENTITY_TOKEN}"
 fail
 silent
 show-error
-location
 max-time = 20
 output = "/dev/null"
+write-out = "%{http_code}"
 EOF
+)" || fail "staging support route request failed"
 
 unset IDENTITY_TOKEN
+
+case "$HTTP_STATUS" in
+  2[0-9][0-9]) ;;
+  *) fail "staging support route must return a direct 2xx response" ;;
+esac
+unset HTTP_STATUS
+
+if ! FINAL_SERVICE_SELECTION="$(select_staging_service)"; then
+  fail "post-request staging service boundary validation failed"
+fi
+if [[ "$FINAL_SERVICE_SELECTION" != "$SERVICE_SELECTION" ]]; then
+  fail "staging service changed during smoke check"
+fi
+unset FINAL_SERVICE_SELECTION SERVICE_SELECTION
 
 echo "ManyChat V3 staging smoke check passed: GET /support returned success."

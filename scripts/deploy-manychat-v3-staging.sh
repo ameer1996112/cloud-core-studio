@@ -89,6 +89,10 @@ fi
 [[ "$VITE_SUPABASE_REF" == "$SUPABASE_REF" ]] || fail "staging Supabase public project refs must match"
 [[ "$VITE_SUPABASE_PUBLIC_URL" == "$SUPABASE_PUBLIC_URL" ]] || fail "staging Supabase public URLs must match"
 [[ "$VITE_SUPABASE_PUBLIC_KEY" == "$SUPABASE_PUBLIC_KEY" ]] || fail "staging Supabase public keys must match"
+if [[ ! "$SUPABASE_PUBLIC_KEY" =~ ^[A-Za-z0-9._-]+$ || \
+      ! "$VITE_SUPABASE_PUBLIC_KEY" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  fail "staging Supabase publishable key must use safe public-key characters"
+fi
 
 is_placeholder "$SERVICE_ACCOUNT" && fail "a dedicated staging service account is required"
 case "$SERVICE_ACCOUNT" in

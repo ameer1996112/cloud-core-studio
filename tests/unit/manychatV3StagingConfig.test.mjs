@@ -198,10 +198,14 @@ function installFakeTools() {
   const gcloudLog = join(root, "gcloud.log");
   const curlLog = join(root, "curl.log");
   const serviceJsonPath = join(root, "service.json");
+  const secondServiceJsonPath = join(root, "service-second.json");
+  const serviceDescribeCountPath = join(root, "service-describe-count");
   const revisionJsonPath = join(root, "revision.json");
 
   mkdirSync(bin);
   writeFileSync(serviceJsonPath, JSON.stringify(serviceDescription()));
+  writeFileSync(secondServiceJsonPath, JSON.stringify(serviceDescription()));
+  writeFileSync(serviceDescribeCountPath, "0");
   writeFileSync(revisionJsonPath, JSON.stringify(revisionDescription()));
   writeFileSync(
     join(bin, "gcloud"),
@@ -217,7 +221,15 @@ if [[ "\${1:-}" == "iam" && "\${2:-}" == "service-accounts" && "\${3:-}" == "des
   exit 1
 fi
 if [[ "\${1:-}" == "run" && "\${2:-}" == "services" && "\${3:-}" == "describe" ]]; then
-  command cat "$FAKE_SERVICE_JSON_PATH"
+  SERVICE_DESCRIBE_COUNT="$(command cat "$SERVICE_DESCRIBE_COUNT_PATH")"
+  SERVICE_DESCRIBE_COUNT="$((SERVICE_DESCRIBE_COUNT + 1))"
+  printf '%s' "$SERVICE_DESCRIBE_COUNT" > "$SERVICE_DESCRIBE_COUNT_PATH"
+  if [[ "$SERVICE_DESCRIBE_COUNT" -ge 2 ]]; then
+    command cat "$FAKE_SECOND_SERVICE_JSON_PATH"
+  else
+    command cat "$FAKE_SERVICE_JSON_PATH"
+  fi
+  exit 0
 fi
 if [[ "\${1:-}" == "run" && "\${2:-}" == "revisions" && "\${3:-}" == "describe" ]]; then
   command cat "$FAKE_REVISION_JSON_PATH"
@@ -241,6 +253,23 @@ CURL_CONFIG="$(cat)"
 if [[ "$CURL_CONFIG" != *"Authorization: Bearer fake-identity-token"* ]]; then
   exit 3
 fi
+LOCATION_ENABLED=false
+if [[ "\${1:-}" != "--disable" && -n "\${FAKE_CURLRC_LOCATION_ENABLED:-}" ]]; then
+  LOCATION_ENABLED=true
+  printf '%s\n' 'curl-config <default-location-enabled>' >> "$CURL_LOG"
+fi
+if [[ "$CURL_CONFIG" == *$'\nlocation\n'* ]]; then
+  LOCATION_ENABLED=true
+  printf '%s\n' 'curl-config <location-enabled>' >> "$CURL_LOG"
+fi
+if [[ "$CURL_CONFIG" == *'write-out = "%{http_code}"'* ]]; then
+  printf '%s\n' 'curl-config <http-status-output>' >> "$CURL_LOG"
+fi
+HTTP_STATUS="\${FAKE_HTTP_STATUS:-204}"
+if [[ "$LOCATION_ENABLED" == "true" && -n "\${FAKE_REDIRECT_FINAL_STATUS:-}" ]]; then
+  HTTP_STATUS="$FAKE_REDIRECT_FINAL_STATUS"
+fi
+printf '%s' "$HTTP_STATUS"
 exit "\${FAKE_CURL_STATUS:-0}"
 `,
   );
@@ -254,12 +283,16 @@ exit "\${FAKE_CURL_STATUS:-0}"
       GCLOUD_LOG: gcloudLog,
       CURL_LOG: curlLog,
       FAKE_SERVICE_JSON_PATH: serviceJsonPath,
+      FAKE_SECOND_SERVICE_JSON_PATH: secondServiceJsonPath,
+      SERVICE_DESCRIBE_COUNT_PATH: serviceDescribeCountPath,
       FAKE_REVISION_JSON_PATH: revisionJsonPath,
     },
     gcloudLog,
     curlLog,
     setServiceDescription: (description) =>
       writeFileSync(serviceJsonPath, JSON.stringify(description)),
+    setSecondServiceDescription: (description) =>
+      writeFileSync(secondServiceJsonPath, JSON.stringify(description)),
     setRevisionDescription: (description) =>
       writeFileSync(revisionJsonPath, JSON.stringify(description)),
     cleanup: () => rmSync(root, { recursive: true, force: true }),
@@ -370,6 +403,33 @@ describe("ManyChat V3 staging deploy safety", () => {
       const result = run(deployScript, ["--check"], { ...safeEnv, ...unsafe });
       expect(result.status).not.toBe(0);
       expect(result.stderr).toContain("staging Supabase");
+    }
+  });
+
+  test("rejects publishable-key substitution delimiters before any gcloud call", () => {
+    const unsafeKeys = [
+      "sb_publishable_safe,_IMAGE=attacker-image",
+      "sb_publishable safe",
+      "sb_publishable_safe\n_REGION=us-central1",
+      "sb_publishable_safe/invalid",
+    ];
+
+    for (const unsafeKey of unsafeKeys) {
+      const tools = installFakeTools();
+      try {
+        const result = run(deployScript, [], {
+          ...tools.env,
+          SUPABASE_PUBLISHABLE_KEY: unsafeKey,
+          VITE_SUPABASE_PUBLISHABLE_KEY: unsafeKey,
+        });
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("publishable key must use safe public-key characters");
+        expect(`${result.stdout}${result.stderr}`).not.toContain(unsafeKey);
+        expect(logContents(tools.gcloudLog)).toBe("");
+      } finally {
+        tools.cleanup();
+      }
     }
   });
 
@@ -637,6 +697,9 @@ describe("ManyChat V3 staging smoke checks", () => {
       expect(gcloudLog).toContain("<--format=json>");
       expect(gcloudLog).toContain(`gcloud <run> <revisions> <describe> <${defaultRevisionName}>`);
       expect(gcloudLog).toContain("gcloud <auth> <print-identity-token>");
+      expect(
+        gcloudLog.match(/gcloud <run> <services> <describe> <cloud-core-studio-staging>/g),
+      ).toHaveLength(2);
       expect(gcloudLog).not.toMatch(/<(?:deploy|update|delete|replace|update-traffic)>/);
       expect(gcloudLog.indexOf("<services> <describe>")).toBeLessThan(
         gcloudLog.indexOf("<revisions> <describe>"),
@@ -644,8 +707,10 @@ describe("ManyChat V3 staging smoke checks", () => {
       expect(gcloudLog.indexOf("<revisions> <describe>")).toBeLessThan(
         gcloudLog.indexOf("<auth> <print-identity-token>"),
       );
-      expect(curlLog).toContain("<--config> <->");
+      expect(curlLog).toContain("curl <--disable> <--config> <->");
       expect(curlLog).not.toContain("fake-identity-token");
+      expect(curlLog).not.toContain("<location-enabled>");
+      expect(curlLog).toContain("<http-status-output>");
       expect(combinedOutput).not.toContain(safeEnv.SUPABASE_PUBLISHABLE_KEY);
       expect(combinedOutput).not.toContain(safeEnv.SUPABASE_SERVICE_ROLE_SECRET);
       expect(combinedOutput).not.toContain(safeEnv.MANYCHAT_BEARER_SECRET);
@@ -654,6 +719,72 @@ describe("ManyChat V3 staging smoke checks", () => {
       expect(result.stdout).toContain("staging smoke check passed");
     } finally {
       tools.cleanup();
+    }
+  });
+
+  test("rejects direct redirects and ignores redirect-following user curl config", () => {
+    const cases = [
+      { FAKE_HTTP_STATUS: "302" },
+      {
+        FAKE_HTTP_STATUS: "302",
+        FAKE_REDIRECT_FINAL_STATUS: "204",
+        FAKE_CURLRC_LOCATION_ENABLED: "1",
+      },
+    ];
+
+    for (const redirect of cases) {
+      const tools = installFakeTools();
+      try {
+        const result = run(smokeScript, [], { ...tools.env, ...redirect });
+        const curlLog = logContents(tools.curlLog);
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("direct 2xx response");
+        expect(curlLog).toContain("curl <--disable> <--config> <->");
+        expect(curlLog).not.toContain("fake-identity-token");
+        expect(curlLog).not.toContain("<location-enabled>");
+        expect(curlLog).not.toContain("<default-location-enabled>");
+      } finally {
+        tools.cleanup();
+      }
+    }
+  });
+
+  test("fails when service URL or serving revision changes after the HTTP request", () => {
+    const cases = [
+      serviceDescription({
+        url: "https://cloud-core-studio-staging-changed-me.a.run.app",
+      }),
+      serviceDescription({
+        traffic: [
+          {
+            percent: 100,
+            revisionName: "cloud-core-studio-staging-00002-raced",
+          },
+        ],
+      }),
+    ];
+
+    for (const secondDescription of cases) {
+      const tools = installFakeTools();
+      try {
+        tools.setSecondServiceDescription(secondDescription);
+
+        const result = run(smokeScript, [], tools.env);
+        const gcloudLog = logContents(tools.gcloudLog);
+        const curlLog = logContents(tools.curlLog);
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("staging service changed during smoke check");
+        expect(
+          gcloudLog.match(/gcloud <run> <services> <describe> <cloud-core-studio-staging>/g),
+        ).toHaveLength(2);
+        expect(gcloudLog).toContain("gcloud <auth> <print-identity-token>");
+        expect(curlLog).toContain("<--config> <->");
+        expect(curlLog).not.toContain("fake-identity-token");
+      } finally {
+        tools.cleanup();
+      }
     }
   });
 
@@ -714,12 +845,12 @@ describe("ManyChat V3 staging smoke checks", () => {
     const servingRevision = "cloud-core-studio-staging-00000-safe";
     const tools = installFakeTools();
     try {
-      tools.setServiceDescription(
-        serviceDescription({
-          runtimeOverrides: { MESSAGING_DELIVERY_MODE: "live" },
-          traffic: [{ percent: 100, revisionName: servingRevision }],
-        }),
-      );
+      const description = serviceDescription({
+        runtimeOverrides: { MESSAGING_DELIVERY_MODE: "live" },
+        traffic: [{ percent: 100, revisionName: servingRevision }],
+      });
+      tools.setServiceDescription(description);
+      tools.setSecondServiceDescription(description);
       tools.setRevisionDescription(revisionDescription({ name: servingRevision }));
 
       const result = run(smokeScript, [], tools.env);

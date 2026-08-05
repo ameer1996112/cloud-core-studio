@@ -66,7 +66,9 @@ bash scripts/deploy-manychat-v3-staging.sh --check
 
 The check fails closed unless the service is exactly `cloud-core-studio-staging`, the public Supabase
 values match, the service account and secret names are staging-specific, and all three secret resource
-names are distinct. The GCP project ID is explicit but does not need to contain the word `staging`.
+names are distinct. The publishable key is restricted to public-key-safe letters, numbers, dots,
+underscores, and hyphens so it cannot alter comma-delimited Cloud Build substitutions. The GCP project
+ID is explicit but does not need to contain the word `staging`.
 
 ## Service account and Secret Manager setup
 
@@ -180,10 +182,12 @@ authentication unless all of these deployed boundaries match the loaded staging 
 
 The smoke check inspects only Secret Manager resource references; it never reads secret values or
 prints the service JSON, public key, token, or environment payload. After validation it obtains a
-short-lived caller identity token and requests the existing `/support` route. The token is passed to
-curl over stdin, not in command arguments or output. The operator therefore needs Cloud Run Invoker on
-the staging service. The script does not add an endpoint, send a notification, mutate data, expose
-Cloud Run publicly, or change Cloud Run.
+short-lived caller identity token and requests the existing `/support` route without following
+redirects. It requires a direct `2xx`, then re-reads the service and fails unless the URL and sole
+100%-serving revision are unchanged from the configuration it validated. The token is passed to curl
+over stdin, not in command arguments or output. The operator therefore needs Cloud Run Invoker on the
+staging service. The script does not add an endpoint, send a notification, mutate data, expose Cloud
+Run publicly, or change Cloud Run.
 
 ## Staging-only rollback
 
