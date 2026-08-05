@@ -174,7 +174,9 @@ authentication unless all of these deployed boundaries match the loaded staging 
 - all ManyChat, scheduler, external-channel, canonical-read, immediate-dispatch, and legacy-delivery
   flags disabled, with delivery mode exactly `disabled`;
 - no undeclared runtime variables, and exactly the three server variables referencing the expected
-  staging Secret Manager resources at `latest`.
+  staging Secret Manager resources at `latest`;
+- no Cloud Run secret alias annotation, volume, or volume mount. The approved Stage 1 manifest uses
+  none, so the smoke check rejects all of them rather than attempting to resolve aliases.
 
 The smoke check inspects only Secret Manager resource references; it never reads secret values or
 prints the service JSON, public key, token, or environment payload. After validation it obtains a
@@ -195,8 +197,9 @@ gcloud run revisions list \
   --project="$GCP_PROJECT_ID"
 ```
 
-Choose a known-safe staging revision, validate its prefix, and inspect its configuration without
-reading secret values:
+Choose a known-safe staging revision, validate its prefix, and confirm the revision exists by exact
+metadata name. The projection is captured and compared without printing the revision configuration,
+public environment, or Secret Manager references:
 
 ```bash
 STAGING_ROLLBACK_REVISION="cloud-core-studio-staging-REPLACE_WITH_REVISION"
@@ -205,14 +208,21 @@ case "$STAGING_ROLLBACK_REVISION" in
   *) echo "Refusing non-staging revision" >&2; exit 1 ;;
 esac
 
-gcloud run revisions describe "$STAGING_ROLLBACK_REVISION" \
+ACTUAL_ROLLBACK_REVISION="$(gcloud run revisions describe "$STAGING_ROLLBACK_REVISION" \
   --region="$GCP_REGION" \
-  --project="$GCP_PROJECT_ID"
+  --project="$GCP_PROJECT_ID" \
+  --format='value(metadata.name)')"
+[[ "$ACTUAL_ROLLBACK_REVISION" == "$STAGING_ROLLBACK_REVISION" ]] || {
+  echo "Revision metadata did not match the requested staging revision" >&2
+  exit 1
+}
+unset ACTUAL_ROLLBACK_REVISION
 ```
 
 Move only staging traffic, then repeat the smoke test. This post-rollback check revalidates the service
 identity and the selected serving revision's name, staging public values, Secret Manager references,
-image path, and disabled delivery flags before it makes the authenticated HTTP request:
+image path, absence of secret aliases or volumes, and disabled delivery flags before it makes the
+authenticated HTTP request:
 
 ```bash
 gcloud run services update-traffic "cloud-core-studio-staging" \

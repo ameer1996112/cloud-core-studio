@@ -9,6 +9,13 @@ fail() {
   exit 1
 }
 
+is_placeholder() {
+  case "$1" in
+    ""|*your-*|*YOUR_*|*placeholder*|*PLACEHOLDER*|*replace-me*|*REPLACE_ME*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 PROJECT_ID="${GCP_PROJECT_ID:-}"
 REGION="${GCP_REGION:-me-west1}"
 SERVICE="${CLOUD_RUN_SERVICE:-$STAGING_SERVICE}"
@@ -20,6 +27,17 @@ EXPECTED_IMAGE="${STAGING_IMAGE:-}"
 [[ "$SERVICE" == "$STAGING_SERVICE" ]] || fail "CLOUD_RUN_SERVICE must be $STAGING_SERVICE"
 [[ -n "$REGION" ]] || fail "GCP_REGION is required"
 [[ -n "$EXPECTED_SERVICE_ACCOUNT" ]] || fail "STAGING_SERVICE_ACCOUNT is required"
+is_placeholder "$EXPECTED_SERVICE_ACCOUNT" && \
+  fail "STAGING_SERVICE_ACCOUNT must be a dedicated staging service account in $PROJECT_ID"
+case "$EXPECTED_SERVICE_ACCOUNT" in
+  *staging*"@${PROJECT_ID}.iam.gserviceaccount.com") ;;
+  *) fail "STAGING_SERVICE_ACCOUNT must be a dedicated staging service account in $PROJECT_ID" ;;
+esac
+case "$EXPECTED_SERVICE_ACCOUNT" in
+  *-compute@developer.gserviceaccount.com|*@appspot.gserviceaccount.com)
+    fail "STAGING_SERVICE_ACCOUNT must be a dedicated staging service account"
+    ;;
+esac
 [[ -n "$EXPECTED_IMAGE" ]] || fail "STAGING_IMAGE is required"
 case "$EXPECTED_IMAGE" in
   "${REGION}-docker.pkg.dev/${PROJECT_ID}/"*"/${STAGING_SERVICE}") ;;
@@ -34,6 +52,21 @@ esac
 [[ -n "${SUPABASE_SERVICE_ROLE_SECRET:-}" ]] || fail "SUPABASE_SERVICE_ROLE_SECRET is required"
 [[ -n "${MANYCHAT_BEARER_SECRET:-}" ]] || fail "MANYCHAT_BEARER_SECRET is required"
 [[ -n "${TEST_NOTIFICATION_CONFIG_SECRET:-}" ]] || fail "TEST_NOTIFICATION_CONFIG_SECRET is required"
+for EXPECTED_SECRET_NAME in \
+  "$SUPABASE_SERVICE_ROLE_SECRET" \
+  "$MANYCHAT_BEARER_SECRET" \
+  "$TEST_NOTIFICATION_CONFIG_SECRET"; do
+  if is_placeholder "$EXPECTED_SECRET_NAME" || \
+    [[ ! "$EXPECTED_SECRET_NAME" =~ ^[A-Za-z0-9_-]+$ ]] || \
+    [[ "$EXPECTED_SECRET_NAME" != *staging* ]]; then
+    fail "expected staging Secret Manager resource names must be simple and staging-specific"
+  fi
+done
+if [[ "$SUPABASE_SERVICE_ROLE_SECRET" == "$MANYCHAT_BEARER_SECRET" || \
+      "$SUPABASE_SERVICE_ROLE_SECRET" == "$TEST_NOTIFICATION_CONFIG_SECRET" || \
+      "$MANYCHAT_BEARER_SECRET" == "$TEST_NOTIFICATION_CONFIG_SECRET" ]]; then
+  fail "three distinct staging Secret Manager resource names are required"
+fi
 
 command -v gcloud >/dev/null 2>&1 || fail "gcloud is required for the read-only inspection"
 command -v curl >/dev/null 2>&1 || fail "curl is required for the HTTP smoke request"
@@ -59,6 +92,10 @@ try {
   service = JSON.parse(fs.readFileSync(0, "utf8"));
 } catch {
   stop("invalid Cloud Run service description JSON");
+}
+
+if (service?.apiVersion !== "serving.knative.dev/v1" || service?.kind !== "Service") {
+  stop("unexpected Cloud Run v1 Service document");
 }
 
 const serviceName = service?.metadata?.name;
@@ -120,8 +157,21 @@ try {
   stop("invalid Cloud Run revision description JSON");
 }
 
+if (revision?.apiVersion !== "serving.knative.dev/v1" || revision?.kind !== "Revision") {
+  stop("unexpected Cloud Run v1 Revision document");
+}
+
 if (revision?.metadata?.name !== process.env.SERVING_REVISION) {
   stop("unexpected serving revision identity");
+}
+
+if (
+  Object.prototype.hasOwnProperty.call(
+    revision?.metadata?.annotations || {},
+    "run.googleapis.com/secrets",
+  )
+) {
+  stop("unexpected staging secret alias mapping");
 }
 
 const revisionSpec = revision?.spec;
@@ -129,11 +179,24 @@ if (revisionSpec?.serviceAccountName !== process.env.STAGING_SERVICE_ACCOUNT) {
   stop("unexpected Cloud Run service account");
 }
 
+if (
+  revisionSpec?.volumes !== undefined &&
+  (!Array.isArray(revisionSpec.volumes) || revisionSpec.volumes.length !== 0)
+) {
+  stop("unexpected serving revision volume configuration");
+}
+
 if (!Array.isArray(revisionSpec?.containers) || revisionSpec.containers.length !== 1) {
   stop("unexpected serving revision container layout");
 }
 
 const container = revisionSpec.containers[0];
+if (
+  container.volumeMounts !== undefined &&
+  (!Array.isArray(container.volumeMounts) || container.volumeMounts.length !== 0)
+) {
+  stop("unexpected serving revision volume configuration");
+}
 const image = container?.image;
 const expectedImage = process.env.STAGING_IMAGE || "";
 if (

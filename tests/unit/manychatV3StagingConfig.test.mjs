@@ -69,6 +69,8 @@ const safeSecretBindings = {
 };
 
 function serviceDescription({
+  apiVersion = "serving.knative.dev/v1",
+  kind = "Service",
   name = "cloud-core-studio-staging",
   url = "https://cloud-core-studio-staging-abc-me.a.run.app",
   serviceAccount = "manychat-v3-staging@cloud-core-staging-project.iam.gserviceaccount.com",
@@ -85,8 +87,8 @@ function serviceDescription({
   const missingSecretNames = new Set(missingSecrets);
 
   return {
-    apiVersion: "serving.knative.dev/v1",
-    kind: "Service",
+    apiVersion,
+    kind,
     metadata: {
       annotations: {
         "run.googleapis.com/ingress": "all",
@@ -144,13 +146,25 @@ function serviceDescription({
   };
 }
 
-function revisionDescription({ name = defaultRevisionName, ...runtimeOptions } = {}) {
+function revisionDescription({
+  apiVersion = "serving.knative.dev/v1",
+  kind = "Revision",
+  name = defaultRevisionName,
+  annotations = { "autoscaling.knative.dev/maxScale": "3" },
+  volumes,
+  volumeMounts,
+  ...runtimeOptions
+} = {}) {
   const service = serviceDescription(runtimeOptions);
+  const spec = service.spec.template.spec;
+  if (volumes !== undefined) spec.volumes = volumes;
+  if (volumeMounts !== undefined) spec.containers[0].volumeMounts = volumeMounts;
 
   return {
-    apiVersion: "serving.knative.dev/v1",
-    kind: "Revision",
+    apiVersion,
+    kind,
     metadata: {
+      annotations,
       labels: {
         "cloud.googleapis.com/location": "me-west1",
         "serving.knative.dev/service": "cloud-core-studio-staging",
@@ -158,11 +172,16 @@ function revisionDescription({ name = defaultRevisionName, ...runtimeOptions } =
       name,
       namespace: "123456789012",
     },
-    spec: service.spec.template.spec,
+    spec,
     status: {
       conditions: [{ status: "True", type: "Ready" }],
     },
   };
+}
+
+function withoutTopLevelField(document, field) {
+  delete document[field];
+  return document;
 }
 
 function run(script, args = [], env = safeEnv) {
@@ -527,6 +546,84 @@ describe("ManyChat V3 staging smoke checks", () => {
     }
   });
 
+  test("rejects non-staging or default service accounts before inspecting Cloud Run", () => {
+    const candidates = [
+      "manychat-runtime@cloud-core-staging-project.iam.gserviceaccount.com",
+      "manychat-staging@other-project.iam.gserviceaccount.com",
+      "123456789012-compute@developer.gserviceaccount.com",
+      "cloud-core-staging-project@appspot.gserviceaccount.com",
+    ];
+
+    for (const serviceAccount of candidates) {
+      const tools = installFakeTools();
+      try {
+        const result = run(smokeScript, [], {
+          ...tools.env,
+          STAGING_SERVICE_ACCOUNT: serviceAccount,
+        });
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("dedicated staging service account");
+        expect(logContents(tools.gcloudLog)).toBe("");
+        expectNoAuthenticatedRequest(tools);
+      } finally {
+        tools.cleanup();
+      }
+    }
+  });
+
+  test("rejects every non-staging or non-simple expected secret name before inspection", () => {
+    const secretVariables = [
+      "SUPABASE_SERVICE_ROLE_SECRET",
+      "MANYCHAT_BEARER_SECRET",
+      "TEST_NOTIFICATION_CONFIG_SECRET",
+    ];
+
+    for (const secretVariable of secretVariables) {
+      for (const invalidName of ["production-secret", "staging/invalid-secret"]) {
+        const tools = installFakeTools();
+        try {
+          const result = run(smokeScript, [], {
+            ...tools.env,
+            [secretVariable]: invalidName,
+          });
+
+          expect(result.status).not.toBe(0);
+          expect(result.stderr).toContain("staging Secret Manager resource names");
+          expect(logContents(tools.gcloudLog)).toBe("");
+          expectNoAuthenticatedRequest(tools);
+        } finally {
+          tools.cleanup();
+        }
+      }
+    }
+  });
+
+  test("rejects every duplicate pair of expected secret names before inspection", () => {
+    const duplicatePairs = [
+      ["SUPABASE_SERVICE_ROLE_SECRET", "MANYCHAT_BEARER_SECRET"],
+      ["SUPABASE_SERVICE_ROLE_SECRET", "TEST_NOTIFICATION_CONFIG_SECRET"],
+      ["MANYCHAT_BEARER_SECRET", "TEST_NOTIFICATION_CONFIG_SECRET"],
+    ];
+
+    for (const [first, second] of duplicatePairs) {
+      const tools = installFakeTools();
+      try {
+        const result = run(smokeScript, [], {
+          ...tools.env,
+          [second]: tools.env[first],
+        });
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("three distinct staging Secret Manager resource names");
+        expect(logContents(tools.gcloudLog)).toBe("");
+        expectNoAuthenticatedRequest(tools);
+      } finally {
+        tools.cleanup();
+      }
+    }
+  });
+
   test("read-only inspection validates deployed boundaries before requesting the support route", () => {
     const tools = installFakeTools();
     try {
@@ -555,6 +652,107 @@ describe("ManyChat V3 staging smoke checks", () => {
       expect(combinedOutput).not.toContain(safeEnv.TEST_NOTIFICATION_CONFIG_SECRET);
       expect(combinedOutput).not.toContain('"spec"');
       expect(result.stdout).toContain("staging smoke check passed");
+    } finally {
+      tools.cleanup();
+    }
+  });
+
+  test("requires Cloud Run v1 Service and Revision document identities before authentication", () => {
+    const cases = [
+      {
+        service: withoutTopLevelField(serviceDescription(), "apiVersion"),
+        error: "unexpected Cloud Run v1 Service document",
+      },
+      {
+        service: serviceDescription({ apiVersion: "serving.knative.dev/v2" }),
+        error: "unexpected Cloud Run v1 Service document",
+      },
+      {
+        service: withoutTopLevelField(serviceDescription(), "kind"),
+        error: "unexpected Cloud Run v1 Service document",
+      },
+      {
+        service: serviceDescription({ kind: "Revision" }),
+        error: "unexpected Cloud Run v1 Service document",
+      },
+      {
+        revision: withoutTopLevelField(revisionDescription(), "apiVersion"),
+        error: "unexpected Cloud Run v1 Revision document",
+      },
+      {
+        revision: revisionDescription({ apiVersion: "serving.knative.dev/v2" }),
+        error: "unexpected Cloud Run v1 Revision document",
+      },
+      {
+        revision: withoutTopLevelField(revisionDescription(), "kind"),
+        error: "unexpected Cloud Run v1 Revision document",
+      },
+      {
+        revision: revisionDescription({ kind: "Service" }),
+        error: "unexpected Cloud Run v1 Revision document",
+      },
+    ];
+
+    for (const candidate of cases) {
+      const tools = installFakeTools();
+      try {
+        if (candidate.service) tools.setServiceDescription(candidate.service);
+        if (candidate.revision) tools.setRevisionDescription(candidate.revision);
+
+        const result = run(smokeScript, [], tools.env);
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain(candidate.error);
+        expectNoAuthenticatedRequest(tools);
+      } finally {
+        tools.cleanup();
+      }
+    }
+  }, 15_000);
+
+  test("passes when older serving revision is safe even if latest template is unsafe", () => {
+    const servingRevision = "cloud-core-studio-staging-00000-safe";
+    const tools = installFakeTools();
+    try {
+      tools.setServiceDescription(
+        serviceDescription({
+          runtimeOverrides: { MESSAGING_DELIVERY_MODE: "live" },
+          traffic: [{ percent: 100, revisionName: servingRevision }],
+        }),
+      );
+      tools.setRevisionDescription(revisionDescription({ name: servingRevision }));
+
+      const result = run(smokeScript, [], tools.env);
+
+      expect(result.status).toBe(0);
+      expect(logContents(tools.gcloudLog)).toContain(
+        `gcloud <run> <revisions> <describe> <${servingRevision}>`,
+      );
+      expect(result.stdout).toContain("staging smoke check passed");
+    } finally {
+      tools.cleanup();
+    }
+  });
+
+  test("rejects unsafe older serving revision even if latest template is safe", () => {
+    const servingRevision = "cloud-core-studio-staging-00000-unsafe";
+    const tools = installFakeTools();
+    try {
+      tools.setServiceDescription(
+        serviceDescription({ traffic: [{ percent: 100, revisionName: servingRevision }] }),
+      );
+      tools.setRevisionDescription(
+        revisionDescription({
+          name: servingRevision,
+          runtimeOverrides: { MESSAGING_DELIVERY_MODE: "live" },
+        }),
+      );
+
+      const result = run(smokeScript, [], tools.env);
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("unsafe runtime env: MESSAGING_DELIVERY_MODE");
+      expectNoAuthenticatedRequest(tools);
     } finally {
       tools.cleanup();
     }
@@ -733,7 +931,7 @@ describe("ManyChat V3 staging smoke checks", () => {
         tools.cleanup();
       }
     }
-  });
+  }, 15_000);
 
   test("rejects a wrong or missing resource for each runtime secret binding", () => {
     const secretEnvNames = [
@@ -763,7 +961,7 @@ describe("ManyChat V3 staging smoke checks", () => {
         }
       }
     }
-  });
+  }, 15_000);
 
   test("rejects an undeclared Secret Manager binding on the serving revision", () => {
     const tools = installFakeTools();
@@ -789,6 +987,74 @@ describe("ManyChat V3 staging smoke checks", () => {
       tools.cleanup();
     }
   });
+
+  test("rejects every Cloud Run secret alias mapping before authentication", () => {
+    const aliasMappings = [
+      `${safeEnv.SUPABASE_SERVICE_ROLE_SECRET}:projects/999999999999/secrets/${safeEnv.SUPABASE_SERVICE_ROLE_SECRET}`,
+      `${safeEnv.SUPABASE_SERVICE_ROLE_SECRET}:different-staging-secret`,
+      `extra-staging-alias:unexpected-staging-secret`,
+    ];
+
+    for (const aliasMapping of aliasMappings) {
+      const tools = installFakeTools();
+      try {
+        tools.setRevisionDescription(
+          revisionDescription({
+            annotations: {
+              "autoscaling.knative.dev/maxScale": "3",
+              "run.googleapis.com/secrets": aliasMapping,
+            },
+          }),
+        );
+
+        const result = run(smokeScript, [], tools.env);
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("unexpected staging secret alias mapping");
+        expect(`${result.stdout}${result.stderr}`).not.toContain(aliasMapping);
+        expectNoAuthenticatedRequest(tools);
+      } finally {
+        tools.cleanup();
+      }
+    }
+  }, 15_000);
+
+  test("rejects all serving-revision volumes and volume mounts before authentication", () => {
+    const cases = [
+      revisionDescription({
+        volumes: [{ emptyDir: { medium: "Memory" }, name: "cache" }],
+      }),
+      revisionDescription({
+        volumes: [
+          {
+            name: "secret-volume",
+            secret: {
+              items: [{ key: "latest", path: "provider-token" }],
+              secretName: "unexpected-staging-secret",
+            },
+          },
+        ],
+      }),
+      revisionDescription({
+        volumeMounts: [{ mountPath: "/mnt/provider", name: "provider-config" }],
+      }),
+    ];
+
+    for (const revision of cases) {
+      const tools = installFakeTools();
+      try {
+        tools.setRevisionDescription(revision);
+
+        const result = run(smokeScript, [], tools.env);
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain("unexpected serving revision volume configuration");
+        expectNoAuthenticatedRequest(tools);
+      } finally {
+        tools.cleanup();
+      }
+    }
+  }, 15_000);
 
   test("rejects an undeclared plain runtime variable on the serving revision", () => {
     const tools = installFakeTools();
