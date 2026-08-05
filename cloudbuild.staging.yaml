@@ -1,0 +1,51 @@
+steps:
+  - id: build-staging-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --no-cache
+      - --build-arg
+      - VITE_SUPABASE_PROJECT_ID=${_VITE_SUPABASE_PROJECT_ID}
+      - --build-arg
+      - VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}
+      - --build-arg
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${_VITE_SUPABASE_PUBLISHABLE_KEY}
+      - --build-arg
+      - VITE_APNS_ENV=sandbox
+      - -t
+      - ${_IMAGE}:$BUILD_ID
+      - .
+
+  - id: push-staging-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_IMAGE}:$BUILD_ID
+
+  - id: deploy-staging-service
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - cloud-core-studio-staging
+      - --image
+      - ${_IMAGE}:$BUILD_ID
+      - --region
+      - ${_REGION}
+      - --project
+      - $PROJECT_ID
+      - --service-account
+      - ${_STAGING_SERVICE_ACCOUNT}
+      - --set-env-vars
+      - APP_ENV=staging,ALLOW_E2E_MUTATION=false,APNS_ENV=sandbox,SUPABASE_PROJECT_ID=${_VITE_SUPABASE_PROJECT_ID},SUPABASE_URL=${_VITE_SUPABASE_URL},SUPABASE_PUBLISHABLE_KEY=${_VITE_SUPABASE_PUBLISHABLE_KEY},MANYCHAT_V3_ENABLED=false,MANYCHAT_V3_OUTBOUND_ENABLED=false,MESSAGING_SCHEDULER_ENABLED=false,MESSAGING_IMMEDIATE_DISPATCH_ENABLED=false,MESSAGING_CANONICAL_READS_ENABLED=false,MESSAGING_DELIVERY_MODE=disabled,MESSAGING_WHATSAPP_ENABLED=false,MESSAGING_EMAIL_ENABLED=false,MESSAGING_PUSH_ENABLED=false,OPENWA_LEGACY_DELIVERY_ENABLED=false,OFFICIAL_WHATSAPP_LEGACY_DELIVERY_ENABLED=false,LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED=false
+      - --set-secrets
+      - SUPABASE_SERVICE_ROLE_KEY=${_SUPABASE_SERVICE_ROLE_SECRET}:latest,MANYCHAT_BEARER_TOKEN=${_MANYCHAT_BEARER_SECRET}:latest,TEST_NOTIFICATION_CONFIG=${_TEST_NOTIFICATION_CONFIG_SECRET}:latest
+      - --no-allow-unauthenticated
+      - --quiet
+
+images:
+  - ${_IMAGE}:$BUILD_ID
+
+options:
+  logging: CLOUD_LOGGING_ONLY
