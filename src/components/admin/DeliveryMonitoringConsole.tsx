@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Activity,
   AlertTriangle,
   Bell,
+  CalendarDays,
   CheckCircle2,
   ChevronRight,
   CircleAlert,
@@ -36,16 +37,20 @@ import {
 } from "@/lib/unifiedMessages.functions";
 import {
   deliveryEventLabel,
+  deliveryFailureReason,
   deliveryPolicyReason,
-  filterDeliveryRows,
+  deliveryRangeForPreset,
+  groupDeliveryMoments,
   isDeliveryAttention,
   isDeliveryRetryCandidate,
+  type DeliveryDatePreset,
   type DeliveryMonitorFilters,
   type DeliveryMonitorRow,
   type DeliveryTrafficKind,
 } from "@/lib/deliveryMonitoring";
 import type { DeliveryStatus, MessageChannel } from "@/lib/messaging.types";
 import { useI18n, type Lang } from "@/lib/i18n";
+import { formatStudioDateTimeInput } from "@/lib/studio-time";
 
 const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
   en: {
@@ -61,19 +66,37 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     live: "Live · refreshes every 30 seconds",
     updated: "Updated",
     refresh: "Refresh now",
-    deliveries24h: "Deliveries · 24h",
+    deliveriesRange: "Deliveries · selected range",
     handoffs: "Successful outcomes",
     confirmed: "confirmed delivered or read",
     attention: "Needs attention",
     noIncidents: "No active incidents",
     reached: "Members reached",
     inFlight: "in progress",
-    policySkipped: "held by policy",
+    policySkipped: "expected policy skips",
+    dateRange: "Date range",
+    range24h: "24 hours",
+    range7d: "7 days",
+    range30d: "30 days",
+    rangeCustom: "Custom",
+    fromDate: "From date",
+    toDate: "To date",
+    eventCreated: "Event created",
+    lastUpdated: "Last delivery update",
+    queueHealth: "Queue health",
+    queueHealthy: "Processing normally",
+    queueDelayed: "Processing is delayed",
+    queueCritical: "Queue requires attention",
+    queueDue: "due now",
+    queueScheduled: "scheduled",
+    queueExpired: "expired",
+    queueOldest: "oldest due",
+    queueMinutes: "minutes",
     search: "Search member, phone, email or event",
     allChannels: "All channels",
     allStatuses: "All outcomes",
     successful: "Successful handoff",
-    notSent: "Not sent by policy",
+    notSent: "Not applicable",
     memberFocus: "Showing one member",
     clear: "Clear",
     results: "results",
@@ -118,6 +141,10 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     error_recipient_not_allowlisted: "Held by the controlled rollout allowlist.",
     error_whatsapp_template_locale_unapproved:
       "The WhatsApp template is not approved for this member’s language.",
+    error_whatsapp_template_parameter_mismatch:
+      "The WhatsApp values do not match the approved template. Correct the template mapping before retrying.",
+    error_email_bounced:
+      "The email address bounced permanently. Correct the member’s email address before retrying.",
     failure_transient:
       "A temporary provider problem interrupted this delivery. It can be retried safely.",
     failure_permanent:
@@ -135,7 +162,7 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     status_read: "Read",
     status_failed: "Failed",
     status_dead_letter: "Action required",
-    status_suppressed: "Not sent by policy",
+    status_suppressed: "Not applicable",
     status_expired: "Expired",
     status_cancelled: "Cancelled",
     status_delivery_unknown: "Outcome unknown",
@@ -157,19 +184,37 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     live: "חי · מתעדכן כל 30 שניות",
     updated: "עודכן",
     refresh: "רענון עכשיו",
-    deliveries24h: "מסירות · 24 שעות",
+    deliveriesRange: "מסירות · בטווח שנבחר",
     handoffs: "תוצאות תקינות",
     confirmed: "אושרו כמסירה או קריאה",
     attention: "דורשות טיפול",
     noIncidents: "אין תקלות פעילות",
     reached: "לקוחות שקיבלו",
     inFlight: "בתהליך",
-    policySkipped: "נעצרו לפי מדיניות",
+    policySkipped: "דילוגים צפויים לפי מדיניות",
+    dateRange: "טווח תאריכים",
+    range24h: "24 שעות",
+    range7d: "7 ימים",
+    range30d: "30 ימים",
+    rangeCustom: "טווח מותאם",
+    fromDate: "מתאריך",
+    toDate: "עד תאריך",
+    eventCreated: "האירוע נוצר",
+    lastUpdated: "עדכון מסירה אחרון",
+    queueHealth: "בריאות התור",
+    queueHealthy: "העיבוד פועל כרגיל",
+    queueDelayed: "העיבוד מתעכב",
+    queueCritical: "התור דורש טיפול",
+    queueDue: "ממתינות עכשיו",
+    queueScheduled: "מתוזמנות",
+    queueExpired: "פגות תוקף",
+    queueOldest: "ההמתנה הוותיקה",
+    queueMinutes: "דקות",
     search: "חיפוש לפי שם, טלפון, אימייל או אירוע",
     allChannels: "כל הערוצים",
     allStatuses: "כל התוצאות",
     successful: "נמסר בהצלחה לספק",
-    notSent: "לא נשלח לפי מדיניות",
+    notSent: "לא נדרש",
     memberFocus: "מוצגת היסטוריה של לקוח אחד",
     clear: "ניקוי",
     results: "תוצאות",
@@ -213,6 +258,10 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     error_event_channel_not_enabled: "ההודעה לא נשלחה כי הערוץ כבוי עבור האירוע הזה.",
     error_recipient_not_allowlisted: "ההודעה נעצרה במסגרת ההשקה המבוקרת.",
     error_whatsapp_template_locale_unapproved: "תבנית WhatsApp עדיין לא אושרה בשפה של הלקוח/ה.",
+    error_whatsapp_template_parameter_mismatch:
+      "הערכים שנשלחו ל-WhatsApp אינם תואמים לתבנית המאושרת. יש לתקן את מיפוי התבנית לפני ניסיון נוסף.",
+    error_email_bounced:
+      "כתובת האימייל נדחתה באופן קבוע. יש לתקן את כתובת הלקוח/ה לפני ניסיון נוסף.",
     failure_transient: "תקלה זמנית אצל הספק עצרה את המסירה. ניתן לנסות שוב בבטחה.",
     failure_permanent: "הספק דחה את המסירה באופן קבוע. יש לבדוק את פרטי הקשר לפני פעולה נוספת.",
     failure_configuration: "הגדרת הערוץ או הספק אינה מלאה. יש לתקן את ההגדרה לפני ניסיון נוסף.",
@@ -226,7 +275,7 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     status_read: "נקראה",
     status_failed: "השליחה נכשלה",
     status_dead_letter: "דורשת טיפול",
-    status_suppressed: "לא נשלחה לפי מדיניות",
+    status_suppressed: "לא נדרש",
     status_expired: "פג תוקף",
     status_cancelled: "בוטלה",
     status_delivery_unknown: "מצב המסירה לא ידוע",
@@ -248,19 +297,37 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     live: "مباشر · يتحدّث كل 30 ثانية",
     updated: "آخر تحديث",
     refresh: "تحديث الآن",
-    deliveries24h: "عمليات التسليم · 24 ساعة",
+    deliveriesRange: "عمليات التسليم · النطاق المحدد",
     handoffs: "نتائج ناجحة",
     confirmed: "تم تأكيد تسليمها أو قراءتها",
     attention: "تحتاج متابعة",
     noIncidents: "لا توجد مشاكل نشطة",
     reached: "أعضاء تم الوصول إليهم",
     inFlight: "قيد التنفيذ",
-    policySkipped: "أوقفتها السياسة",
+    policySkipped: "تجاوزات متوقعة حسب السياسة",
+    dateRange: "النطاق الزمني",
+    range24h: "24 ساعة",
+    range7d: "7 أيام",
+    range30d: "30 يومًا",
+    rangeCustom: "مخصص",
+    fromDate: "من تاريخ",
+    toDate: "إلى تاريخ",
+    eventCreated: "تم إنشاء الحدث",
+    lastUpdated: "آخر تحديث للتسليم",
+    queueHealth: "حالة قائمة الانتظار",
+    queueHealthy: "المعالجة تعمل بصورة طبيعية",
+    queueDelayed: "المعالجة متأخرة",
+    queueCritical: "قائمة الانتظار تحتاج متابعة",
+    queueDue: "مستحقة الآن",
+    queueScheduled: "مجدولة",
+    queueExpired: "منتهية",
+    queueOldest: "أقدم انتظار",
+    queueMinutes: "دقيقة",
     search: "ابحث بالاسم أو الهاتف أو البريد أو الحدث",
     allChannels: "كل القنوات",
     allStatuses: "كل النتائج",
     successful: "تسليم ناجح للمزوّد",
-    notSent: "لم تُرسل حسب السياسة",
+    notSent: "غير مطلوب",
     memberFocus: "عرض عضو واحد",
     clear: "مسح",
     results: "نتائج",
@@ -304,6 +371,9 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     error_event_channel_not_enabled: "لم تُرسل الرسالة لأن القناة غير مفعّلة لهذا الحدث.",
     error_recipient_not_allowlisted: "تم إيقاف الرسالة ضمن الإطلاق التدريجي.",
     error_whatsapp_template_locale_unapproved: "قالب WhatsApp غير معتمد بلغة العضو.",
+    error_whatsapp_template_parameter_mismatch:
+      "قيم WhatsApp لا تطابق القالب المعتمد. أصلح ربط القالب قبل إعادة المحاولة.",
+    error_email_bounced: "تم رفض عنوان البريد نهائيًا. صحّح عنوان العضو قبل إعادة المحاولة.",
     failure_transient: "أوقفت مشكلة مؤقتة لدى المزوّد عملية التسليم. يمكن إعادة المحاولة بأمان.",
     failure_permanent: "رفض المزوّد التسليم نهائيًا. افحص بيانات تواصل العضو قبل اتخاذ إجراء.",
     failure_configuration: "إعداد القناة أو المزوّد غير مكتمل. أصلح الإعداد قبل إعادة المحاولة.",
@@ -317,7 +387,7 @@ const DELIVERY_COPY: Record<Lang, Record<string, string>> = {
     status_read: "تمت القراءة",
     status_failed: "فشل الإرسال",
     status_dead_letter: "تحتاج معالجة",
-    status_suppressed: "لم تُرسل حسب السياسة",
+    status_suppressed: "غير مطلوب",
     status_expired: "انتهت الصلاحية",
     status_cancelled: "أُلغيت",
     status_delivery_unknown: "نتيجة التسليم غير معروفة",
@@ -360,6 +430,8 @@ const TRAFFIC_OPTIONS: Array<DeliveryTrafficKind | "all"> = [
   "all",
 ];
 
+const DATE_PRESETS: DeliveryDatePreset[] = ["24h", "7d", "30d", "custom"];
+
 function statusLabel(copy: Record<string, string>, status: DeliveryStatus) {
   return copy[`status_${status}`] ?? status.replaceAll("_", " ");
 }
@@ -397,47 +469,12 @@ function maskContact(value: string | null | undefined) {
   return digits.length >= 4 ? `••• ${digits.slice(-4)}` : value;
 }
 
-type DeliveryMoment = {
-  messageId: string;
-  deliveries: DeliveryMonitorRow[];
-  primary: DeliveryMonitorRow;
-  latestAt: string;
-  needsAttention: boolean;
-};
-
-function groupDeliveryMoments(rows: DeliveryMonitorRow[]): DeliveryMoment[] {
-  const groups = new Map<string, DeliveryMonitorRow[]>();
-  for (const row of rows) {
-    const key = row.message_id || row.id;
-    groups.set(key, [...(groups.get(key) ?? []), row]);
+function errorExplanation(copy: Record<string, string>, delivery: DeliveryMonitorRow) {
+  const reason = deliveryFailureReason(delivery);
+  if (reason && copy[`error_${reason}`]) return copy[`error_${reason}`];
+  if (delivery.failure_class && copy[`failure_${delivery.failure_class}`]) {
+    return copy[`failure_${delivery.failure_class}`];
   }
-
-  return [...groups.entries()]
-    .map(([messageId, deliveries]) => {
-      const sorted = [...deliveries].sort(
-        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-      );
-      return {
-        messageId,
-        deliveries: sorted,
-        primary: sorted[0]!,
-        latestAt: sorted[0]!.updated_at,
-        needsAttention: sorted.some((delivery) => isDeliveryAttention(delivery.status)),
-      };
-    })
-    .sort((a, b) => {
-      const priority = Number(b.needsAttention) - Number(a.needsAttention);
-      return priority || new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime();
-    });
-}
-
-function errorExplanation(
-  copy: Record<string, string>,
-  errorCode: string | null,
-  failureClass: DeliveryMonitorRow["failure_class"],
-) {
-  if (errorCode && copy[`error_${errorCode}`]) return copy[`error_${errorCode}`];
-  if (failureClass && copy[`failure_${failureClass}`]) return copy[`failure_${failureClass}`];
   return copy.error_default;
 }
 
@@ -456,16 +493,18 @@ function ChannelIcon({
 
 function StatusIcon({
   status,
+  failureClass = null,
   className = "h-4 w-4",
 }: {
   status: DeliveryStatus;
+  failureClass?: DeliveryMonitorRow["failure_class"];
   className?: string;
 }) {
   if (["delivered", "read"].includes(status))
     return <CheckCircle2 className={className} aria-hidden="true" />;
   if (["accepted", "sent"].includes(status))
     return <Send className={className} aria-hidden="true" />;
-  if (["failed", "dead_letter", "delivery_unknown"].includes(status)) {
+  if (isDeliveryAttention(status, failureClass)) {
     return <AlertTriangle className={className} aria-hidden="true" />;
   }
   if (["queued", "sending"].includes(status))
@@ -473,11 +512,11 @@ function StatusIcon({
   return <ShieldCheck className={className} aria-hidden="true" />;
 }
 
-function statusTone(status: DeliveryStatus) {
+function statusTone(status: DeliveryStatus, failureClass: DeliveryMonitorRow["failure_class"]) {
   if (["delivered", "read"].includes(status))
     return "bg-emerald-50 text-emerald-800 ring-emerald-200";
   if (["accepted", "sent"].includes(status)) return "bg-sky-50 text-sky-800 ring-sky-200";
-  if (["failed", "dead_letter", "delivery_unknown"].includes(status)) {
+  if (isDeliveryAttention(status, failureClass)) {
     return "bg-rose-50 text-rose-800 ring-rose-200";
   }
   if (["queued", "sending"].includes(status)) return "bg-amber-50 text-amber-900 ring-amber-200";
@@ -497,9 +536,9 @@ function StatusPill({
     delivery.status === "suppressed" ? deliveryPolicyReason(delivery.error_code, lang) : null;
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusTone(delivery.status)}`}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusTone(delivery.status, delivery.failure_class)}`}
     >
-      <StatusIcon status={delivery.status} />
+      <StatusIcon status={delivery.status} failureClass={delivery.failure_class} />
       <span className="truncate">{policyReason ?? statusLabel(copy, delivery.status)}</span>
     </span>
   );
@@ -603,15 +642,65 @@ export function DeliveryMonitoringConsole() {
   const retryFn = useServerFn(retryCanonicalDeliveryAction);
   const [traffic, setTraffic] = useState<DeliveryMonitorFilters["traffic"]>("live");
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [channel, setChannel] = useState<DeliveryMonitorFilters["channel"]>("all");
   const [status, setStatus] = useState<DeliveryMonitorFilters["status"]>("all");
   const [memberId, setMemberId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(24);
+  const [rangeClock, setRangeClock] = useState(() => new Date());
+  const studioToday = useMemo(
+    () => formatStudioDateTimeInput(rangeClock).slice(0, 10),
+    [rangeClock],
+  );
+  const [datePreset, setDatePreset] = useState<DeliveryDatePreset>("24h");
+  const [customFrom, setCustomFrom] = useState(() =>
+    formatStudioDateTimeInput(new Date()).slice(0, 10),
+  );
+  const [customTo, setCustomTo] = useState(() =>
+    formatStudioDateTimeInput(new Date()).slice(0, 10),
+  );
+  useEffect(() => {
+    const interval = window.setInterval(() => setRangeClock(new Date()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
+  const range = useMemo(() => {
+    try {
+      return deliveryRangeForPreset({ preset: datePreset, customFrom, customTo }, rangeClock);
+    } catch {
+      return null;
+    }
+  }, [datePreset, customFrom, customTo, rangeClock]);
 
-  const deliveries = useQuery({
-    queryKey: ["canonical-deliveries"],
-    queryFn: () => listFn(),
+  const deliveries = useInfiniteQuery({
+    queryKey: [
+      "canonical-deliveries",
+      range?.from,
+      range?.to,
+      deferredQuery,
+      traffic,
+      channel,
+      status,
+      memberId,
+    ],
+    queryFn: ({ pageParam }) => {
+      if (!range) throw new Error("invalid_delivery_range");
+      return listFn({
+        data: {
+          from: range.from,
+          to: range.to,
+          query: deferredQuery,
+          traffic,
+          channel,
+          status,
+          memberId,
+          cursor: pageParam,
+          pageSize: 25,
+        },
+      });
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: Boolean(range),
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
@@ -625,32 +714,16 @@ export function DeliveryMonitoringConsole() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
   });
 
+  const monitorData = deliveries.data?.pages[0];
   const allDeliveries = useMemo(
-    () => deliveries.data?.deliveries ?? [],
-    [deliveries.data?.deliveries],
+    () => deliveries.data?.pages.flatMap((page) => page.deliveries) ?? [],
+    [deliveries.data?.pages],
   );
-  const filtered = useMemo(() => {
-    const values = filterDeliveryRows(allDeliveries, {
-      query,
-      traffic,
-      channel,
-      status,
-      memberId,
-    });
-    return [...values].sort((a, b) => {
-      const priority =
-        Number(isDeliveryAttention(b.status)) - Number(isDeliveryAttention(a.status));
-      return priority || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-    });
-  }, [allDeliveries, query, traffic, channel, status, memberId]);
-  const moments = useMemo(() => groupDeliveryMoments(filtered), [filtered]);
-  const visible = moments.slice(0, visibleCount);
+  const moments = useMemo(() => groupDeliveryMoments(allDeliveries), [allDeliveries]);
   const selected = allDeliveries.find((delivery) => delivery.id === selectedId) ?? null;
   const focusedMember = memberId
     ? allDeliveries.find((delivery) => delivery.message?.member?.id === memberId)?.message?.member
     : null;
-
-  useEffect(() => setVisibleCount(24), [query, traffic, channel, status, memberId]);
 
   const clearFilters = () => {
     setQuery("");
@@ -658,13 +731,18 @@ export function DeliveryMonitoringConsole() {
     setChannel("all");
     setStatus("all");
     setMemberId(null);
+    setDatePreset("24h");
+    setCustomFrom(studioToday);
+    setCustomTo(studioToday);
   };
   const focusMember = (delivery: DeliveryMonitorRow) => {
     if (!delivery.message?.member?.id) return;
     setMemberId(delivery.message.member.id);
     setSelectedId(null);
   };
-  const summary = deliveries.data?.summaries?.[traffic] ?? deliveries.data?.summary;
+  const summary = monitorData?.summaries?.[traffic] ?? monitorData?.summary;
+  const totalMoments = monitorData?.totalMoments ?? 0;
+  const queueHealth = monitorData?.queueHealth;
 
   return (
     <div className="space-y-5">
@@ -732,7 +810,7 @@ export function DeliveryMonitoringConsole() {
         <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
           <KpiCard
             icon={Activity}
-            label={copy.deliveries24h}
+            label={copy.deliveriesRange}
             value={summary?.total ?? 0}
             detail={`${summary?.inFlight ?? 0} ${copy.inFlight}`}
           />
@@ -758,7 +836,129 @@ export function DeliveryMonitoringConsole() {
         </div>
       </section>
 
+      {queueHealth && (
+        <section
+          className={`rounded-[24px] border p-4 shadow-[0_16px_50px_rgba(17,35,64,0.05)] sm:p-5 ${
+            queueHealth.status === "critical"
+              ? "border-rose-200 bg-rose-50/85"
+              : queueHealth.status === "delayed"
+                ? "border-amber-200 bg-amber-50/85"
+                : "border-emerald-200 bg-emerald-50/70"
+          }`}
+          aria-live="polite"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
+                  queueHealth.status === "critical"
+                    ? "bg-rose-100 text-rose-700"
+                    : queueHealth.status === "delayed"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-emerald-100 text-emerald-700"
+                }`}
+              >
+                {queueHealth.status === "healthy" ? (
+                  <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                )}
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate">
+                  {copy.queueHealth}
+                </p>
+                <p className="mt-1 font-semibold text-navy">
+                  {queueHealth.status === "critical"
+                    ? copy.queueCritical
+                    : queueHealth.status === "delayed"
+                      ? copy.queueDelayed
+                      : copy.queueHealthy}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate">
+              <span>
+                <strong className="text-navy">{queueHealth.due}</strong> {copy.queueDue}
+              </span>
+              <span>
+                <strong className="text-navy">{queueHealth.scheduled}</strong> {copy.queueScheduled}
+              </span>
+              <span>
+                <strong className={queueHealth.expired ? "text-rose-700" : "text-navy"}>
+                  {queueHealth.expired}
+                </strong>{" "}
+                {copy.queueExpired}
+              </span>
+              {queueHealth.oldestDueAt && (
+                <span>
+                  {copy.queueOldest}:{" "}
+                  <strong className="text-navy">
+                    {queueHealth.oldestDueAgeMinutes} {copy.queueMinutes}
+                  </strong>
+                </span>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="rounded-[24px] border border-gold/20 bg-white/75 p-4 shadow-[0_16px_50px_rgba(17,35,64,0.05)]">
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-gold/20 bg-ivory/70 p-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate">
+              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              {copy.dateRange}
+            </p>
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-white/75 p-1 sm:inline-grid sm:grid-cols-4">
+              {DATE_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setDatePreset(preset)}
+                  aria-pressed={datePreset === preset}
+                  className={`min-h-10 rounded-lg px-3 text-xs font-semibold transition ${
+                    datePreset === preset
+                      ? "bg-navy text-ivory"
+                      : "text-slate hover:bg-sand/60 hover:text-navy"
+                  }`}
+                >
+                  {preset === "24h"
+                    ? copy.range24h
+                    : preset === "7d"
+                      ? copy.range7d
+                      : preset === "30d"
+                        ? copy.range30d
+                        : copy.rangeCustom}
+                </button>
+              ))}
+            </div>
+          </div>
+          {datePreset === "custom" && (
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs font-medium text-slate">
+                <span className="mb-1 block">{copy.fromDate}</span>
+                <input
+                  type="date"
+                  value={customFrom}
+                  max={customTo || undefined}
+                  onChange={(event) => setCustomFrom(event.target.value)}
+                  className="min-h-11 rounded-xl border border-gold/25 bg-white px-3 text-sm text-navy outline-none focus:border-gold focus:ring-2 focus:ring-gold/15"
+                />
+              </label>
+              <label className="text-xs font-medium text-slate">
+                <span className="mb-1 block">{copy.toDate}</span>
+                <input
+                  type="date"
+                  value={customTo}
+                  min={customFrom || undefined}
+                  onChange={(event) => setCustomTo(event.target.value)}
+                  className="min-h-11 rounded-xl border border-gold/25 bg-white px-3 text-sm text-navy outline-none focus:border-gold focus:ring-2 focus:ring-gold/15"
+                />
+              </label>
+            </div>
+          )}
+        </div>
         <div className="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_190px_210px_auto]">
           <label className="relative block">
             <span className="sr-only">{copy.search}</span>
@@ -823,7 +1023,7 @@ export function DeliveryMonitoringConsole() {
         <div className="mt-3 flex min-h-8 flex-wrap items-center justify-between gap-2 text-xs text-slate">
           <div className="flex flex-wrap items-center gap-2">
             <span>
-              {moments.length} {copy.customerMoments}
+              {totalMoments} {copy.customerMoments}
             </span>
             {focusedMember && (
               <button
@@ -837,7 +1037,7 @@ export function DeliveryMonitoringConsole() {
             )}
           </div>
           <span aria-live="polite">
-            {copy.updated} {formatDateTime(deliveries.data?.generatedAt ?? null, lang)}
+            {copy.updated} {formatDateTime(monitorData?.generatedAt ?? null, lang)}
           </span>
         </div>
       </section>
@@ -846,7 +1046,7 @@ export function DeliveryMonitoringConsole() {
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
           {deliveries.error instanceof Error ? deliveries.error.message : copy.error_default}
         </div>
-      ) : visible.length === 0 ? (
+      ) : moments.length === 0 ? (
         <div className="rounded-[24px] border border-dashed border-gold/35 bg-white/60 p-12 text-center">
           <Search className="mx-auto h-8 w-8 text-gold" />
           <p className="mt-3 text-sm text-slate">{copy.noResults}</p>
@@ -854,9 +1054,12 @@ export function DeliveryMonitoringConsole() {
       ) : (
         <>
           <section className="space-y-4">
-            {visible.map((moment) => {
+            {moments.map((moment) => {
               const member = moment.primary.message?.member;
-              const contact = maskContact(member?.phone ?? member?.email);
+              const recipientName =
+                moment.primary.message?.recipient_name ?? member?.name ?? copy.unknownMember;
+              const contact =
+                moment.primary.recipient_contact ?? maskContact(member?.phone ?? member?.email);
               const eventType = moment.primary.message?.event_type ?? null;
               return (
                 <article
@@ -874,12 +1077,12 @@ export function DeliveryMonitoringConsole() {
                         className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-sm font-semibold text-ivory shadow-[inset_0_0_0_1px_rgba(212,175,90,0.35)] disabled:cursor-default"
                         aria-label={copy.viewMemberHistory}
                       >
-                        {initials(member?.name)}
+                        {initials(recipientName)}
                       </button>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                           <h3 className="truncate font-display text-xl text-navy">
-                            {member?.name ?? copy.unknownMember}
+                            {recipientName}
                           </h3>
                           {contact && (
                             <bdi className="text-xs text-slate" dir="ltr">
@@ -890,9 +1093,22 @@ export function DeliveryMonitoringConsole() {
                         <p className="mt-1 font-medium capitalize text-navy">
                           {deliveryEventLabel(eventType, lang)}
                         </p>
-                        <time dateTime={moment.latestAt} className="mt-1 block text-xs text-slate">
-                          {formatDateTime(moment.latestAt, lang)}
-                        </time>
+                        <div className="mt-1 space-y-0.5 text-xs text-slate">
+                          <p>
+                            {copy.eventCreated}:{" "}
+                            <time dateTime={moment.eventAt}>
+                              {formatDateTime(moment.eventAt, lang)}
+                            </time>
+                          </p>
+                          {moment.latestAt !== moment.eventAt && (
+                            <p>
+                              {copy.lastUpdated}:{" "}
+                              <time dateTime={moment.latestAt}>
+                                {formatDateTime(moment.latestAt, lang)}
+                              </time>
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="inline-flex w-fit items-center gap-2 rounded-full bg-sand/55 px-3 py-1.5 text-xs font-medium text-slate">
@@ -909,7 +1125,7 @@ export function DeliveryMonitoringConsole() {
                         onClick={() => setSelectedId(delivery.id)}
                         aria-label={`${copy.openChannel}: ${channelLabel(copy, delivery.channel)}`}
                         className={`group flex min-h-24 items-center justify-between gap-3 p-4 text-start transition ${
-                          isDeliveryAttention(delivery.status)
+                          isDeliveryAttention(delivery.status, delivery.failure_class)
                             ? "bg-rose-50 hover:bg-rose-100/70"
                             : "bg-ivory hover:bg-sand/55"
                         }`}
@@ -917,7 +1133,7 @@ export function DeliveryMonitoringConsole() {
                         <span className="flex min-w-0 items-center gap-3">
                           <span
                             className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
-                              isDeliveryAttention(delivery.status)
+                              isDeliveryAttention(delivery.status, delivery.failure_class)
                                 ? "bg-rose-100 text-rose-700"
                                 : "bg-white text-navy shadow-sm ring-1 ring-gold/20"
                             }`}
@@ -944,12 +1160,13 @@ export function DeliveryMonitoringConsole() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-slate">
             <span>
-              {copy.showing} {visible.length} {copy.of} {moments.length}
+              {copy.showing} {moments.length} {copy.of} {totalMoments}
             </span>
-            {visible.length < moments.length && (
+            {deliveries.hasNextPage && (
               <button
                 type="button"
-                onClick={() => setVisibleCount((count) => count + 24)}
+                onClick={() => deliveries.fetchNextPage()}
+                disabled={deliveries.isFetchingNextPage}
                 className="min-h-11 rounded-xl border border-gold/30 bg-white px-4 font-semibold text-navy hover:bg-sand/40"
               >
                 {copy.loadMore}
@@ -993,10 +1210,15 @@ function DeliveryInvestigation({
   onFocusMember: () => void;
 }) {
   const member = delivery.message?.member;
+  const recipientName = delivery.message?.recipient_name ?? member?.name ?? copy.unknownMember;
+  const recipientContact =
+    delivery.recipient_contact ?? maskContact(member?.phone ?? member?.email);
   const timeline = buildTimeline(delivery, copy);
   const retryable = isDeliveryRetryCandidate(delivery);
   const hasIssue = Boolean(
-    delivery.error_code || delivery.error_message || isDeliveryAttention(delivery.status),
+    delivery.error_code ||
+    delivery.error_message ||
+    isDeliveryAttention(delivery.status, delivery.failure_class),
   );
   const successfulTargets = delivery.targets.filter((target) =>
     ["sent", "device_received"].includes(target.status),
@@ -1006,9 +1228,7 @@ function DeliveryInvestigation({
     <div className="min-h-full">
       <SheetHeader className="border-b border-gold/20 bg-white/70 px-5 pb-5 pt-6 text-start sm:px-7">
         <p className="eyebrow">{copy.deliveryDetail}</p>
-        <SheetTitle className="pe-12 font-display text-3xl text-navy">
-          {member?.name ?? copy.unknownMember}
-        </SheetTitle>
+        <SheetTitle className="pe-12 font-display text-3xl text-navy">{recipientName}</SheetTitle>
         <SheetDescription>{copy.deliveryDetailDescription}</SheetDescription>
         <div className="flex flex-wrap items-center gap-2 pt-2">
           <StatusPill delivery={delivery} copy={copy} lang={lang} />
@@ -1023,18 +1243,13 @@ function DeliveryInvestigation({
         <section className="rounded-2xl border border-gold/20 bg-white/75 p-4">
           <div className="flex items-start gap-3">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-sm font-semibold text-ivory">
-              {initials(member?.name)}
+              {initials(recipientName)}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-navy">{member?.name ?? copy.unknownMember}</p>
-              {member?.phone && (
+              <p className="font-semibold text-navy">{recipientName}</p>
+              {recipientContact && (
                 <bdi dir="ltr" className="mt-1 block text-xs text-slate">
-                  {member.phone}
-                </bdi>
-              )}
-              {member?.email && (
-                <bdi dir="ltr" className="block truncate text-xs text-slate">
-                  {member.email}
+                  {recipientContact}
                 </bdi>
               )}
               <div className="mt-3 flex flex-wrap gap-2">
@@ -1125,25 +1340,25 @@ function DeliveryInvestigation({
 
         {hasIssue && (
           <section
-            className={`rounded-2xl border p-4 ${isDeliveryAttention(delivery.status) ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"}`}
+            className={`rounded-2xl border p-4 ${isDeliveryAttention(delivery.status, delivery.failure_class) ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"}`}
           >
             <div className="flex items-start gap-3">
               <AlertTriangle
-                className={`mt-0.5 h-5 w-5 shrink-0 ${isDeliveryAttention(delivery.status) ? "text-rose-700" : "text-amber-700"}`}
+                className={`mt-0.5 h-5 w-5 shrink-0 ${isDeliveryAttention(delivery.status, delivery.failure_class) ? "text-rose-700" : "text-amber-700"}`}
               />
               <div className="min-w-0">
                 <h3 className="font-semibold text-navy">{copy.issue}</h3>
                 <p className="mt-1 text-sm leading-6 text-slate">
-                  {errorExplanation(copy, delivery.error_code, delivery.failure_class)}
+                  {errorExplanation(copy, delivery)}
                 </p>
                 {delivery.status === "delivery_unknown" && (
                   <p className="mt-2 text-sm font-semibold text-rose-800">{copy.doNotRetry}</p>
                 )}
-                {delivery.error_code && (
+                {(delivery.error_code || delivery.error_message) && (
                   <p className="mt-3 text-xs text-slate">
                     {copy.technicalCode}:{" "}
                     <bdi dir="ltr" className="font-mono">
-                      {delivery.error_code}
+                      {delivery.error_code ?? delivery.error_message}
                     </bdi>
                   </p>
                 )}

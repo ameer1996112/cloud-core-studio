@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { materializeMessagePlan } from "../../src/lib/unifiedMessagingMaterialization.ts";
+import {
+  materializeMessagePlan,
+  scheduledJourneyVariables,
+} from "../../src/lib/unifiedMessagingMaterialization.ts";
 
 const base = {
   outboxId: "outbox-1",
@@ -22,6 +25,16 @@ const base = {
 };
 
 describe("outbox message materialization", () => {
+  test("preserves scheduled journey counts from the outbox payload", () => {
+    expect(scheduledJourneyVariables({ class_count: 8, week_key: "2026-W32" })).toEqual({
+      class_count: 8,
+    });
+    expect(
+      scheduledJourneyVariables({ item_count: "2", booking_count: 1, waitlist_count: 1 }),
+    ).toEqual({ item_count: 2 });
+    expect(scheduledJourneyVariables({ class_count: "unknown", item_count: -1 })).toEqual({});
+  });
+
   test("routes Concierge-covered events to the branded WhatsApp catalog", () => {
     const result = materializeMessagePlan({
       ...base,
