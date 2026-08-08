@@ -34,6 +34,11 @@ export type StaleOutboxDecision = {
     | "outbox_stale_transaction_reconciled_obsolete";
 };
 
+export type StaleDeliveryRepository = {
+  listStale(cutoffIso: string, nowIso: string, limit: number): Promise<Array<{ id: string }>>;
+  markStale(ids: string[], nowIso: string): Promise<number>;
+};
+
 // A recovered worker must never release an outage backlog as live customer traffic.
 // Events older than this boundary are audited and terminalized according to event policy.
 export const OUTBOX_RECOVERY_FRESHNESS_MS = 24 * 60 * 60_000;
@@ -103,6 +108,23 @@ export async function closeStaleOutboxRows(
     },
     batchSize,
     noProgressError: "stale_outbox_cleanup_made_no_progress",
+  });
+}
+
+export async function closeStaleDeliveryRows(
+  repository: StaleDeliveryRepository,
+  now: Date,
+  batchSize = 1_000,
+) {
+  if (Number.isNaN(now.getTime())) throw new RangeError("invalid_delivery_cleanup_clock");
+  const nowIso = now.toISOString();
+  const cutoffIso = new Date(now.getTime() - OUTBOX_RECOVERY_FRESHNESS_MS).toISOString();
+  return closeOutboxBatches({
+    list: (limit) => repository.listStale(cutoffIso, nowIso, limit),
+    mark: (rows) =>
+      repository.markStale([...new Set(rows.map((row) => row.id).filter(Boolean))], nowIso),
+    batchSize,
+    noProgressError: "stale_delivery_cleanup_made_no_progress",
   });
 }
 

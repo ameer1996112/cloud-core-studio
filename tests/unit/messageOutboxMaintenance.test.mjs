@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   closeExpiredOutboxRows,
+  closeStaleDeliveryRows,
   closeStaleOutboxRows,
   summarizeOutboxHealth,
 } from "../../src/lib/messageOutboxMaintenance.ts";
@@ -116,6 +117,41 @@ describe("message outbox maintenance", () => {
         id: "transaction-obsolete",
         reason: "outbox_stale_transaction_reconciled_obsolete",
       },
+    ]);
+  });
+
+  test("cancels only claimable deliveries that predate the recovery freshness window", async () => {
+    const pending = ["stale-v2", "stale-snapshot"];
+    const cutoffs = [];
+    const cancelled = [];
+    const repository = {
+      async listStale(cutoff, now, limit) {
+        cutoffs.push({ cutoff, now });
+        return pending.slice(0, limit).map((id) => ({ id }));
+      },
+      async markStale(ids, now) {
+        for (const id of ids) {
+          pending.splice(pending.indexOf(id), 1);
+          cancelled.push({ id, now });
+        }
+        return ids.length;
+      },
+    };
+
+    const result = await closeStaleDeliveryRows(
+      repository,
+      new Date("2026-08-08T12:00:00.000Z"),
+      1,
+    );
+
+    expect(result).toEqual({ closed: 2, batches: 2 });
+    expect(cutoffs[0]).toEqual({
+      cutoff: "2026-08-07T12:00:00.000Z",
+      now: "2026-08-08T12:00:00.000Z",
+    });
+    expect(cancelled).toEqual([
+      { id: "stale-v2", now: "2026-08-08T12:00:00.000Z" },
+      { id: "stale-snapshot", now: "2026-08-08T12:00:00.000Z" },
     ]);
   });
 

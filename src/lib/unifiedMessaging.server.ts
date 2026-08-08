@@ -34,6 +34,7 @@ import {
 } from "@/lib/messagingPolicy";
 import {
   closeExpiredOutboxRows,
+  closeStaleDeliveryRows,
   closeStaleOutboxRows,
   type StaleOutboxDecision,
   type StaleOutboxRow,
@@ -2777,6 +2778,64 @@ export async function runUnifiedMessagingSweep(input?: {
     now,
     (eventType) => requiresPromotionalFrequencyReservation(eventType as MessageEventType, false),
   );
+  const staleDeliveries = await closeStaleDeliveryRows(
+    {
+      async listStale(cutoffIso, nowIso, batchSize) {
+        const baseQuery = () =>
+          db
+            .from("message_deliveries")
+            .select("id,message:messages!inner(template_version)")
+            .in("status", ["queued", "failed"])
+            .lte("created_at", cutoffIso)
+            .lte("scheduled_for", nowIso)
+            .or(`next_attempt_at.is.null,next_attempt_at.lte.${nowIso}`)
+            .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+            .order("created_at", { ascending: true })
+            .limit(batchSize);
+        const [v2Result, snapshotResult] = await Promise.all([
+          baseQuery().eq("message.template_version", "v2"),
+          db
+            .from("message_deliveries")
+            .select("id")
+            .in("status", ["queued", "failed"])
+            .not("snapshot_id", "is", null)
+            .lte("created_at", cutoffIso)
+            .lte("scheduled_for", nowIso)
+            .or(`next_attempt_at.is.null,next_attempt_at.lte.${nowIso}`)
+            .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+            .order("created_at", { ascending: true })
+            .limit(batchSize),
+        ]);
+        if (v2Result.error) throw v2Result.error;
+        if (snapshotResult.error) throw snapshotResult.error;
+        return [
+          ...new Map(
+            [...(v2Result.data ?? []), ...(snapshotResult.data ?? [])].map((row) => [row.id, row]),
+          ).values(),
+        ].slice(0, batchSize);
+      },
+      async markStale(ids, nowIso) {
+        const result = await db
+          .from("message_deliveries")
+          .update({
+            status: "cancelled",
+            failure_class: null,
+            error_code: "delivery_stale_recovery_suppressed",
+            error_message: "Suppressed during outage recovery because the delivery is stale.",
+            next_attempt_at: null,
+            lease_owner: null,
+            lease_expires_at: null,
+            updated_at: nowIso,
+          })
+          .in("id", ids)
+          .in("status", ["queued", "failed"])
+          .select("id");
+        if (result.error) throw result.error;
+        return result.data?.length ?? 0;
+      },
+    },
+    now,
+  );
   const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
@@ -2836,6 +2895,7 @@ export async function runUnifiedMessagingSweep(input?: {
     disabledBacklogSuppressed,
     expiredOutbox,
     staleOutbox,
+    staleDeliveries,
     scheduled,
     outboxClaimed: outboxClaim.data?.length ?? 0,
     materialized,
