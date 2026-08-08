@@ -4,7 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import {
   appendTrackingParams,
-  detectDownloadDevice,
+  detectDownloadClient,
   getDownloadConfig,
 } from "./lib/download-config";
 
@@ -65,7 +65,7 @@ function maybeHandleDownloadRedirect(request: Request): Response | null {
   const url = new URL(request.url);
   if (url.pathname !== "/download") return null;
 
-  const device = detectDownloadDevice(request.headers.get("user-agent") ?? "");
+  const device = detectDownloadClient(request.headers.get("user-agent") ?? "");
   const config = getDownloadConfig();
 
   if (device === "ios" && config.appStoreUrl) {

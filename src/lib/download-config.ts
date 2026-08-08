@@ -3,7 +3,7 @@ export const DEFAULT_APP_STORE_URL = "https://apps.apple.com/il/app/cloud-core/i
 const TRACKING_PARAM_PREFIXES = ["utm_"];
 const TRACKING_PARAM_NAMES = ["fbclid", "gclid", "igshid"];
 
-export type DownloadDevice = "ios" | "android" | "desktop";
+export type DownloadClient = "ios" | "android" | "desktop" | "meta-in-app-browser";
 
 export type DownloadConfig = {
   appStoreUrl: string;
@@ -17,8 +17,11 @@ export function getDownloadConfig(): DownloadConfig {
   };
 }
 
-export function detectDownloadDevice(userAgent: string): DownloadDevice {
+export function detectDownloadClient(userAgent: string): DownloadClient {
   const ua = userAgent.toLowerCase();
+  if (/\binstagram\b|\bfban\b|\bfbav\b|\bfb_iab\b|\bmessenger\b/.test(ua)) {
+    return "meta-in-app-browser";
+  }
   if (/\b(iphone|ipad|ipod)\b/.test(ua)) return "ios";
   if (ua.includes("android")) return "android";
   return "desktop";
@@ -41,6 +44,18 @@ export function appendTrackingParams(storeUrl: string, search: string): string {
   }
 
   return url.toString();
+}
+
+export function buildNativeAppStoreUrl(storeUrl: string): string {
+  let url: URL;
+  try {
+    url = new URL(storeUrl);
+  } catch {
+    return storeUrl;
+  }
+
+  if (url.protocol !== "https:" || url.hostname !== "apps.apple.com") return storeUrl;
+  return "itms-appss://" + url.host + url.pathname + url.search + url.hash;
 }
 
 function isTrackingParam(key: string) {

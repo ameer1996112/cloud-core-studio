@@ -1,36 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Apple, CalendarDays, ChevronLeft, Smartphone } from "lucide-react";
+import { Apple, CalendarDays, ChevronLeft, ShieldCheck, Smartphone } from "lucide-react";
 
 import {
   appendTrackingParams,
+  buildNativeAppStoreUrl,
   getDownloadConfig,
   type DownloadConfig,
 } from "@/lib/download-config";
 
 type DownloadRouteData = DownloadConfig & {
   iosHref: string;
+  iosNativeHref: string;
   androidHref: string;
 };
+
+const CURRENT_APP_VERSION = "1.0.7";
+const UPDATE_PAGE_TITLE = "עדכון אפליקציית Cloud & Core | גרסה " + CURRENT_APP_VERSION;
+const UPDATE_PAGE_DESCRIPTION =
+  "העדכון החדש של Cloud & Core זמין עכשיו עם חיבור יציב יותר, גישה מהירה לשיעורים והתראות טובות יותר.";
 
 export const Route = createFileRoute("/download")({
   head: () => ({
     meta: [
-      { title: "Download Cloud & Core App" },
+      { title: UPDATE_PAGE_TITLE },
       {
         name: "description",
-        content:
-          "Download the Cloud & Core Studio app to book classes, manage packages, and stay connected with the studio.",
+        content: UPDATE_PAGE_DESCRIPTION,
       },
-      { property: "og:title", content: "Download Cloud & Core App" },
+      { property: "og:title", content: UPDATE_PAGE_TITLE },
       {
         property: "og:description",
-        content: "Book aerial yoga and pilates classes from the Cloud & Core Studio app.",
+        content: UPDATE_PAGE_DESCRIPTION,
       },
       { property: "og:image", content: "/images/classes/aerial-yoga-flow.webp" },
-      { name: "twitter:title", content: "Download Cloud & Core App" },
+      { name: "twitter:title", content: UPDATE_PAGE_TITLE },
       {
         name: "twitter:description",
-        content: "Book aerial yoga and pilates classes from the Cloud & Core Studio app.",
+        content: UPDATE_PAGE_DESCRIPTION,
       },
       { name: "twitter:image", content: "/images/classes/aerial-yoga-flow.webp" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -38,9 +44,11 @@ export const Route = createFileRoute("/download")({
   }),
   loader: ({ location }): DownloadRouteData => {
     const config = getDownloadConfig();
+    const iosHref = appendTrackingParams(config.appStoreUrl, location.searchStr);
     return {
       ...config,
-      iosHref: appendTrackingParams(config.appStoreUrl, location.searchStr),
+      iosHref,
+      iosNativeHref: buildNativeAppStoreUrl(iosHref),
       androidHref: config.googlePlayUrl
         ? appendTrackingParams(config.googlePlayUrl, location.searchStr)
         : "",
@@ -50,12 +58,13 @@ export const Route = createFileRoute("/download")({
 });
 
 function DownloadPage() {
-  const { iosHref, androidHref } = Route.useLoaderData();
+  const { iosHref, iosNativeHref, androidHref } = Route.useLoaderData();
 
   return (
     <main className="download-page" dir="rtl">
       <section className="download-shell" aria-labelledby="download-title">
         <div className="download-visual" aria-hidden="true">
+          <span className="download-version-orbit">{CURRENT_APP_VERSION}</span>
           <div className="download-phone">
             <div className="download-phone-bar" />
             <div className="download-phone-card">
@@ -72,21 +81,30 @@ function DownloadPage() {
         </div>
 
         <div className="download-content">
-          <p className="download-kicker">Cloud &amp; Core Studio</p>
-          <h1 id="download-title">הורדת האפליקציה</h1>
+          <img
+            className="download-wordmark"
+            src="/brand/cloud-core-wordmark.svg"
+            alt="Cloud & Core"
+          />
+          <p className="download-kicker">העדכון החדש · גרסה {CURRENT_APP_VERSION}</p>
+          <h1 id="download-title">העדכון החדש זמין עכשיו</h1>
           <p className="download-arabic" lang="ar">
-            حمّلي التطبيق
+            التحديث الجديد متوفر الآن
           </p>
           <p className="download-copy">
-            מזמינות שיעורים, מנהלות חבילות ונשארות מעודכנות מהאפליקציה של הסטודיו.
+            עדכני עכשיו לחיבור יציב יותר, גישה מהירה לשיעורים והתראות טובות יותר.
           </p>
 
           <div className="download-actions" aria-label="App download links">
-            <a className="download-store-button" href={iosHref} rel="noopener noreferrer">
+            <a
+              className="download-store-button"
+              href={iosNativeHref}
+              aria-label="פתיחת Cloud & Core ב-App Store"
+            >
               <Apple aria-hidden="true" />
               <span>
-                <small>זמין עכשיו</small>
-                App Store
+                <small>לחצי כאן לפתיחה</small>
+                עדכון ב-App Store
               </span>
               <ChevronLeft aria-hidden="true" />
             </a>
@@ -104,9 +122,20 @@ function DownloadPage() {
             )}
           </div>
 
+          <p className="download-browser-note">
+            <ShieldCheck aria-hidden="true" />
+            <span>
+              אם ה-App Store לא נפתח, לחצי על ⋯ ובחרי ״פתיחה בדפדפן״, או{" "}
+              <a href={iosHref} target="_blank" rel="noopener noreferrer">
+                פתחי את עמוד Apple
+              </a>
+              .
+            </span>
+          </p>
+
           <div className="download-proof">
             <CalendarDays aria-hidden="true" />
-            <span>הדרך הקצרה להזמין מקום בשיעור הבא שלך.</span>
+            <span>העדכון הרשמי והמאובטח של Cloud &amp; Core.</span>
           </div>
         </div>
       </section>

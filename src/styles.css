@@ -28,6 +28,9 @@
 }
 
 .download-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: min(100%, 1040px);
   min-height: min(720px, calc(100svh - 48px));
   display: grid;
@@ -42,11 +45,38 @@
   backdrop-filter: blur(20px);
 }
 
+.download-shell::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: auto -140px -190px auto;
+  width: 420px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(212, 175, 106, 0.2);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 42px rgba(212, 175, 106, 0.055),
+    0 0 0 86px rgba(11, 29, 58, 0.025);
+}
+
 .download-content {
+  position: relative;
+  z-index: 1;
   max-width: 570px;
 }
 
+.download-wordmark {
+  width: min(100%, 230px);
+  height: auto;
+  margin-bottom: 24px;
+}
+
 .download-kicker {
+  width: fit-content;
+  padding: 7px 12px;
+  border: 1px solid rgba(212, 175, 106, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
   color: var(--color-gold, #d4af6a);
   font-size: 12px;
   font-weight: 800;
@@ -56,9 +86,11 @@
 
 .download-content h1 {
   margin-top: 14px;
-  font-size: clamp(44px, 8vw, 86px);
+  max-width: 11ch;
+  font-size: clamp(44px, 6.4vw, 72px);
   font-weight: 700;
-  line-height: 0.95;
+  line-height: 1.02;
+  text-wrap: balance;
 }
 
 .download-arabic {
@@ -98,9 +130,12 @@
 
 .download-store-button {
   padding: 12px 16px;
+  border: 1px solid rgba(212, 175, 106, 0.82);
   background: var(--color-navy, #0b1d3a);
   color: #fffaf1;
-  box-shadow: 0 16px 34px rgba(11, 29, 58, 0.24);
+  box-shadow:
+    inset 0 0 0 3px rgba(250, 247, 242, 0.07),
+    0 16px 34px rgba(11, 29, 58, 0.24);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -901,6 +936,32 @@
   font-size: 14px;
 }
 
+.download-browser-note {
+  width: min(100%, 380px);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  color: rgba(11, 29, 58, 0.58);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.download-browser-note svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--color-gold, #d4af6a);
+}
+
+.download-browser-note a {
+  color: var(--color-navy, #0b1d3a);
+  font-weight: 750;
+  text-decoration-color: rgba(212, 175, 106, 0.72);
+  text-underline-offset: 3px;
+}
+
 .download-proof svg {
   width: 18px;
   height: 18px;
@@ -908,10 +969,30 @@
 }
 
 .download-visual {
+  position: relative;
   min-height: 520px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.download-version-orbit {
+  position: absolute;
+  z-index: 2;
+  inset: 36px auto auto 2px;
+  width: 76px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 106, 0.54);
+  border-radius: 50%;
+  background: rgba(250, 247, 242, 0.9);
+  box-shadow: 0 14px 34px rgba(11, 29, 58, 0.14);
+  color: var(--color-navy, #0b1d3a);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .download-phone {
@@ -1002,10 +1083,19 @@
     box-shadow: none;
   }
 
+  .download-shell::after {
+    inset: auto -180px -180px auto;
+  }
+
   .download-visual {
     min-height: 210px;
     order: -1;
     justify-content: flex-start;
+  }
+
+  .download-version-orbit {
+    inset: 10px auto auto 6px;
+    width: 64px;
   }
 
   .download-phone {
@@ -1032,7 +1122,13 @@
   }
 
   .download-content h1 {
-    max-width: 10ch;
+    max-width: 11ch;
+    font-size: clamp(42px, 12vw, 58px);
+  }
+
+  .download-wordmark {
+    width: 190px;
+    margin-bottom: 20px;
   }
 
   .download-store-button,
