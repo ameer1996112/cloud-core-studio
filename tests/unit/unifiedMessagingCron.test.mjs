@@ -8,6 +8,7 @@ test("unified messaging cron calls the protected sweep endpoint", async () => {
     CLOUD_CORE_BASE_URL: process.env.CLOUD_CORE_BASE_URL,
     NOTIFICATION_AUTOMATION_TOKEN: process.env.NOTIFICATION_AUTOMATION_TOKEN,
     UNIFIED_MESSAGING_SWEEP_LIMIT: process.env.UNIFIED_MESSAGING_SWEEP_LIMIT,
+    UNIFIED_MESSAGING_CANARY: process.env.UNIFIED_MESSAGING_CANARY,
   };
   let received;
   let output = "";
@@ -15,6 +16,7 @@ test("unified messaging cron calls the protected sweep endpoint", async () => {
   process.env.CLOUD_CORE_BASE_URL = "https://studio.example/";
   process.env.NOTIFICATION_AUTOMATION_TOKEN = "test-automation-token";
   process.env.UNIFIED_MESSAGING_SWEEP_LIMIT = "25";
+  delete process.env.UNIFIED_MESSAGING_CANARY;
   globalThis.fetch = async (url, init) => {
     received = {
       method: init?.method,
@@ -49,6 +51,35 @@ test("unified messaging cron calls the protected sweep endpoint", async () => {
   }
 });
 
+test("unified messaging canary performs a read-only readiness probe", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnvironment = {
+    CLOUD_CORE_BASE_URL: process.env.CLOUD_CORE_BASE_URL,
+    NOTIFICATION_AUTOMATION_TOKEN: process.env.NOTIFICATION_AUTOMATION_TOKEN,
+    UNIFIED_MESSAGING_CANARY: process.env.UNIFIED_MESSAGING_CANARY,
+  };
+  let receivedBody;
+
+  process.env.CLOUD_CORE_BASE_URL = "https://studio.example";
+  process.env.NOTIFICATION_AUTOMATION_TOKEN = "test-automation-token";
+  process.env.UNIFIED_MESSAGING_CANARY = "true";
+  globalThis.fetch = async (_url, init) => {
+    receivedBody = JSON.parse(String(init?.body));
+    return Response.json({ ok: true, canary: true });
+  };
+
+  try {
+    await import(`../../scripts/unified-messaging-cron.mjs?canary=${Date.now()}`);
+    expect(receivedBody).toEqual({ limit: 50, canary: true });
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const [name, value] of Object.entries(originalEnvironment)) {
+      if (value == null) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+});
+
 test("production image includes the unified messaging cron runner", async () => {
   const dockerfile = await readFile("Dockerfile", "utf8");
   expect(dockerfile).toContain(
@@ -73,7 +104,14 @@ test("main-branch Cloud Build publishes an immutable image and deploys it to pro
   const cloudbuild = Bun.YAML.parse(await readFile("cloudbuild.yaml", "utf8"));
   const immutableImage = "${_IMAGE}:$COMMIT_SHA";
 
-  expect(cloudbuild.steps.map((step) => step.args[0])).toEqual(["build", "push", "run", "run"]);
+  expect(cloudbuild.steps.map((step) => step.args[0])).toEqual([
+    "build",
+    "push",
+    "run",
+    "run",
+    "run",
+    "run",
+  ]);
   expect(cloudbuild.steps[0].args).toContain(immutableImage);
   expect(cloudbuild.steps[1].args).toEqual(["push", immutableImage]);
   expect(cloudbuild.steps[2].entrypoint).toBe("gcloud");
@@ -96,6 +134,31 @@ test("main-branch Cloud Build publishes an immutable image and deploys it to pro
     "--region",
     "me-west1",
     "--to-latest",
+    "--quiet",
+  ]);
+  expect(cloudbuild.steps[4].entrypoint).toBe("gcloud");
+  expect(cloudbuild.steps[4].args).toEqual([
+    "run",
+    "jobs",
+    "update",
+    "cloud-core-unified-messaging-sweep",
+    "--image",
+    immutableImage,
+    "--region",
+    "me-west1",
+    "--quiet",
+  ]);
+  expect(cloudbuild.steps[5].entrypoint).toBe("gcloud");
+  expect(cloudbuild.steps[5].args).toEqual([
+    "run",
+    "jobs",
+    "execute",
+    "cloud-core-unified-messaging-sweep",
+    "--region",
+    "me-west1",
+    "--update-env-vars",
+    "UNIFIED_MESSAGING_CANARY=true",
+    "--wait",
     "--quiet",
   ]);
   expect(cloudbuild.images).toEqual([immutableImage]);

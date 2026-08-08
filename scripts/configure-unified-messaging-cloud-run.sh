@@ -13,6 +13,8 @@ SECRET_NAME="${NOTIFICATION_SECRET_NAME:-NOTIFICATION_AUTOMATION_TOKEN}"
 JOB_SERVICE_ACCOUNT_NAME="${NOTIFICATION_JOB_SERVICE_ACCOUNT:-notification-sweep-job}"
 SCHEDULER_SERVICE_ACCOUNT_NAME="${NOTIFICATION_SCHEDULER_SERVICE_ACCOUNT:-notification-scheduler}"
 START_PAUSED="${UNIFIED_MESSAGING_START_PAUSED:-true}"
+ALERT_DISPLAY_NAME="${UNIFIED_MESSAGING_ALERT_NAME:-Unified messaging job failed twice}"
+ALERT_NOTIFICATION_CHANNELS="${UNIFIED_MESSAGING_ALERT_NOTIFICATION_CHANNELS:-}"
 IMAGE="${UNIFIED_MESSAGING_JOB_IMAGE:?Set UNIFIED_MESSAGING_JOB_IMAGE to the deployed application image}"
 
 if [[ "$IMAGE" != *@sha256:* ]]; then
@@ -21,7 +23,7 @@ if [[ "$IMAGE" != *@sha256:* ]]; then
   exit 1
 fi
 
-gcloud services enable run.googleapis.com cloudscheduler.googleapis.com secretmanager.googleapis.com \
+gcloud services enable run.googleapis.com cloudscheduler.googleapis.com secretmanager.googleapis.com monitoring.googleapis.com \
   --project "$PROJECT_ID"
 
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
@@ -89,6 +91,30 @@ else
   gcloud scheduler jobs create http "$SCHEDULER_JOB" "${SCHEDULER_ARGS[@]}"
 fi
 
+ALERT_POLICY_NAME="$(gcloud monitoring policies list \
+  --project "$PROJECT_ID" \
+  --filter="displayName=\"${ALERT_DISPLAY_NAME}\"" \
+  --format='value(name)' \
+  --limit=1)"
+if [[ -z "$ALERT_POLICY_NAME" ]]; then
+  ALERT_FILTER="resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"${JOB_NAME}\" AND metric.type=\"run.googleapis.com/job/completed_execution_count\" AND metric.labels.result=\"failed\""
+  ALERT_ARGS=(
+    --project "$PROJECT_ID"
+    --display-name "$ALERT_DISPLAY_NAME"
+    --condition-display-name "Two failed unified messaging executions in two minutes"
+    --condition-filter "$ALERT_FILTER"
+    --if="> 1"
+    --duration="0s"
+    --aggregation='{"alignmentPeriod":"120s","perSeriesAligner":"ALIGN_SUM"}'
+    --documentation="The scheduled unified messaging job failed at least twice in a two-minute window. Inspect the latest Cloud Run job execution before retrying."
+    --combiner="OR"
+  )
+  if [[ -n "$ALERT_NOTIFICATION_CHANNELS" ]]; then
+    ALERT_ARGS+=(--notification-channels "$ALERT_NOTIFICATION_CHANNELS")
+  fi
+  gcloud monitoring policies create "${ALERT_ARGS[@]}" >/dev/null
+fi
+
 if [[ "$START_PAUSED" == "true" ]]; then
   gcloud scheduler jobs pause "$SCHEDULER_JOB" --location "$REGION" --project "$PROJECT_ID"
 else
@@ -96,4 +122,8 @@ else
 fi
 
 echo "Configured Cloud Scheduler -> Cloud Run job -> ${SERVICE_URL}/api/internal/messages/sweep"
+echo "Cloud Monitoring policy: ${ALERT_DISPLAY_NAME}"
+if [[ -z "$ALERT_NOTIFICATION_CHANNELS" ]]; then
+  echo "No external notification channel configured; incidents remain visible in Cloud Monitoring." >&2
+fi
 echo "Scheduler state requested: $([[ "$START_PAUSED" == "true" ]] && echo PAUSED || echo ENABLED)"

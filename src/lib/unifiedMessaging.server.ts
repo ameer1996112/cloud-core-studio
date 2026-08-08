@@ -33,12 +33,22 @@ import {
   shouldCancelReminderForDomainState,
 } from "@/lib/messagingPolicy";
 import {
+  closeExpiredOutboxRows,
+  closeStaleDeliveryRows,
+  closeStaleOutboxRows,
+  type StaleOutboxDecision,
+  type StaleOutboxRow,
+} from "@/lib/messageOutboxMaintenance";
+import {
   parseWhatsappTemplateComponents,
   sendResendEmail,
   sendWhatsappFreeform,
   sendWhatsappTemplate,
 } from "@/lib/messagingProviders.server";
-import { materializeMessagePlan } from "@/lib/unifiedMessagingMaterialization";
+import {
+  materializeMessagePlan,
+  scheduledJourneyVariables,
+} from "@/lib/unifiedMessagingMaterialization";
 import { renderSelectedConciergeEmail } from "@/lib/conciergeEmail";
 import { buildConciergeRecommendationSummary } from "@/lib/conciergeRecommendation";
 import { conciergeJourneyForTemplate } from "@/lib/conciergeTemplateAdmin";
@@ -277,6 +287,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
   if (member.remaining_credits != null) {
     variables.credits_remaining = Math.max(0, Number(member.remaining_credits));
   }
+  Object.assign(variables, scheduledJourneyVariables(payload));
   for (const key of [
     "payment_was_failing",
     "whatsapp_growth_escalation",
@@ -2535,6 +2546,91 @@ export function normalizeUnifiedMessagingSweepLimit(value: unknown) {
   return Number.isFinite(parsed) ? Math.max(1, Math.min(200, Math.trunc(parsed))) : 50;
 }
 
+export async function runUnifiedMessagingCanary() {
+  const db = supabaseAdmin as any;
+  const [outboxProbe, deliveryProbe] = await Promise.all([
+    db.from("message_outbox").select("id").limit(1),
+    db.from("message_deliveries").select("id").limit(1),
+  ]);
+  if (outboxProbe.error) throw outboxProbe.error;
+  if (deliveryProbe.error) throw deliveryProbe.error;
+  return {
+    canary: true as const,
+    databaseReady: true as const,
+    mode: resolveMessagingRuntime(process.env).mode,
+  };
+}
+
+async function staleTransactionStillCurrent(row: StaleOutboxRow, nowIso: string) {
+  const db = supabaseAdmin as any;
+  if (
+    [
+      "booking_confirmed",
+      "booking_changed",
+      "booking_checked_in",
+      "booking_cancelled",
+      "booking_no_show_followup",
+      "waitlist_accepted",
+    ].includes(row.event_type)
+  ) {
+    if (!row.aggregate_id) return false;
+    const result = await db
+      .from("bookings")
+      .select("status,class:classes(status,starts_at)")
+      .eq("id", row.aggregate_id)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    const status = result.data?.status;
+    if (row.event_type === "booking_cancelled") return status === "cancelled";
+    if (row.event_type === "booking_checked_in") return status === "checked_in";
+    if (row.event_type === "booking_no_show_followup") return status === "no_show";
+    const studioClass = relation(result.data?.class);
+    return (
+      status === "booked" &&
+      studioClass?.status === "scheduled" &&
+      new Date(studioClass.starts_at).getTime() > new Date(nowIso).getTime()
+    );
+  }
+  if (row.event_type === "credits_low" || row.event_type === "credits_depleted") {
+    if (!row.member_id) return false;
+    const result = await db
+      .from("members")
+      .select("remaining_credits")
+      .eq("id", row.member_id)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    const credits = Number(result.data?.remaining_credits ?? 0);
+    return row.event_type === "credits_depleted" ? credits === 0 : credits >= 1 && credits <= 2;
+  }
+  if (row.event_type === "membership_expired") {
+    if (!row.aggregate_id) return false;
+    const result = await db
+      .from("member_plans")
+      .select("status")
+      .eq("id", row.aggregate_id)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    return result.data?.status === "expired";
+  }
+  if (row.event_type === "payment_confirmed" || row.event_type === "payment_failed") {
+    if (!row.aggregate_id) return false;
+    const result = await db
+      .from("payments")
+      .select("status")
+      .eq("id", row.aggregate_id)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    return result.data?.status === (row.event_type === "payment_confirmed" ? "paid" : "failed");
+  }
+  if (row.event_type === "member_welcome") {
+    if (!row.member_id) return false;
+    const result = await db.from("members").select("status").eq("id", row.member_id).maybeSingle();
+    if (result.error) throw result.error;
+    return result.data?.status === "active";
+  }
+  return false;
+}
+
 async function suppressDisabledExternalDeliveryBacklog(
   externalChannels: ExternalChannelAvailability,
 ) {
@@ -2607,6 +2703,139 @@ export async function runUnifiedMessagingSweep(input?: {
   const externalChannels =
     runtime.mode === "disabled" ? { whatsapp: false, email: false, push: false } : runtime.channels;
   const disabledBacklogSuppressed = await suppressDisabledExternalDeliveryBacklog(externalChannels);
+  const expiredOutbox = await closeExpiredOutboxRows(
+    {
+      async listExpired(nowIso, batchSize) {
+        const result = await db
+          .from("message_outbox")
+          .select("id")
+          .is("processed_at", null)
+          .not("expires_at", "is", null)
+          .lte("expires_at", nowIso)
+          .order("expires_at", { ascending: true })
+          .limit(batchSize);
+        if (result.error) throw result.error;
+        return result.data ?? [];
+      },
+      async markExpired(ids, nowIso) {
+        const result = await db
+          .from("message_outbox")
+          .update({
+            processed_at: nowIso,
+            claimed_at: null,
+            claimed_by: null,
+            last_error: "outbox_expired_before_materialization",
+            updated_at: nowIso,
+          })
+          .in("id", ids)
+          .is("processed_at", null)
+          .select("id");
+        if (result.error) throw result.error;
+        return result.data?.length ?? 0;
+      },
+    },
+    now,
+  );
+  const staleOutbox = await closeStaleOutboxRows(
+    {
+      async listStale(cutoffIso, nowIso, batchSize) {
+        const result = await db
+          .from("message_outbox")
+          .select("id,event_type,aggregate_id,member_id")
+          .is("processed_at", null)
+          .lte("created_at", cutoffIso)
+          .lte("available_at", nowIso)
+          .order("created_at", { ascending: true })
+          .limit(batchSize);
+        if (result.error) throw result.error;
+        return result.data ?? [];
+      },
+      transactionStillCurrent: staleTransactionStillCurrent,
+      async markStale(decisions: StaleOutboxDecision[], nowIso) {
+        let updated = 0;
+        for (const reason of [...new Set(decisions.map((decision) => decision.reason))]) {
+          const ids = decisions
+            .filter((decision) => decision.reason === reason)
+            .map((decision) => decision.id);
+          const result = await db
+            .from("message_outbox")
+            .update({
+              processed_at: nowIso,
+              claimed_at: null,
+              claimed_by: null,
+              last_error: reason,
+              updated_at: nowIso,
+            })
+            .in("id", ids)
+            .is("processed_at", null)
+            .select("id");
+          if (result.error) throw result.error;
+          updated += result.data?.length ?? 0;
+        }
+        return updated;
+      },
+    },
+    now,
+    (eventType) => requiresPromotionalFrequencyReservation(eventType as MessageEventType, false),
+  );
+  const staleDeliveries = await closeStaleDeliveryRows(
+    {
+      async listStale(cutoffIso, nowIso, batchSize) {
+        const baseQuery = () =>
+          db
+            .from("message_deliveries")
+            .select("id,message:messages!inner(template_version)")
+            .in("status", ["queued", "failed"])
+            .lte("created_at", cutoffIso)
+            .lte("scheduled_for", nowIso)
+            .or(`next_attempt_at.is.null,next_attempt_at.lte.${nowIso}`)
+            .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+            .order("created_at", { ascending: true })
+            .limit(batchSize);
+        const [v2Result, snapshotResult] = await Promise.all([
+          baseQuery().eq("message.template_version", "v2"),
+          db
+            .from("message_deliveries")
+            .select("id")
+            .in("status", ["queued", "failed"])
+            .not("snapshot_id", "is", null)
+            .lte("created_at", cutoffIso)
+            .lte("scheduled_for", nowIso)
+            .or(`next_attempt_at.is.null,next_attempt_at.lte.${nowIso}`)
+            .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+            .order("created_at", { ascending: true })
+            .limit(batchSize),
+        ]);
+        if (v2Result.error) throw v2Result.error;
+        if (snapshotResult.error) throw snapshotResult.error;
+        return [
+          ...new Map(
+            [...(v2Result.data ?? []), ...(snapshotResult.data ?? [])].map((row) => [row.id, row]),
+          ).values(),
+        ].slice(0, batchSize);
+      },
+      async markStale(ids, nowIso) {
+        const result = await db
+          .from("message_deliveries")
+          .update({
+            status: "cancelled",
+            failure_class: null,
+            error_code: "delivery_stale_recovery_suppressed",
+            error_message: "Suppressed during outage recovery because the delivery is stale.",
+            next_attempt_at: null,
+            lease_owner: null,
+            lease_expires_at: null,
+            updated_at: nowIso,
+          })
+          .in("id", ids)
+          .in("status", ["queued", "failed"])
+          .select("id");
+        if (result.error) throw result.error;
+        return result.data?.length ?? 0;
+      },
+    },
+    now,
+  );
   const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
@@ -2664,6 +2893,9 @@ export async function runUnifiedMessagingSweep(input?: {
     workerId,
     mode: runtime.mode,
     disabledBacklogSuppressed,
+    expiredOutbox,
+    staleOutbox,
+    staleDeliveries,
     scheduled,
     outboxClaimed: outboxClaim.data?.length ?? 0,
     materialized,

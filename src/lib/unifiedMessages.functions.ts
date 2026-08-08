@@ -3,11 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
-import {
-  MESSAGE_CHANNELS,
-  type DeliveryStatus,
-  type MessageEventType,
-} from "@/lib/messaging.types";
+import { MESSAGE_CHANNELS, type MessageEventType } from "@/lib/messaging.types";
 import {
   conversationReplyMode,
   resolveMessagingRuntime,
@@ -19,10 +15,11 @@ import {
   buildPremiumJourneyTestOutbox,
 } from "@/lib/premiumJourneyLab";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
+import { summarizeOutboxHealth } from "@/lib/messageOutboxMaintenance";
 import {
   classifyDeliveryTraffic,
+  buildDeliveryMonitorPage,
   firstRelation,
-  summarizeDeliveriesByTraffic,
   type DeliveryMonitorAttempt,
   type DeliveryMonitorMember,
   type DeliveryMonitorMessage,
@@ -36,24 +33,23 @@ type RawDeliveryTrafficSource = {
   audience: string | null;
   template_version: string | null;
   legacy_source_table: string | null;
-  content: { staff_test?: unknown } | null;
+  content: { staff_test?: unknown; variables?: Record<string, unknown> } | null;
   outbox: { aggregate_type: string | null } | Array<{ aggregate_type: string | null }> | null;
 };
 
-type RawDeliveryMonitorMessage = Omit<DeliveryMonitorMessage, "member"> &
+type RawDeliveryMonitorMessage = Omit<DeliveryMonitorMessage, "member" | "recipient_name"> &
   RawDeliveryTrafficSource & {
     member: DeliveryMonitorMember | DeliveryMonitorMember[] | null;
   };
 
-type RawDeliveryMonitorRow = Omit<DeliveryMonitorRow, "message" | "attempts" | "targets"> & {
+type RawDeliveryMonitorRow = Omit<
+  DeliveryMonitorRow,
+  "message" | "attempts" | "targets" | "recipient_contact"
+> & {
+  recipient_address: string | null;
   message: RawDeliveryMonitorMessage | RawDeliveryMonitorMessage[] | null;
   attempts: DeliveryMonitorAttempt[] | null;
   targets: DeliveryMonitorTarget[] | null;
-};
-
-type RawRecentDelivery = {
-  status: DeliveryStatus;
-  message: RawDeliveryTrafficSource | RawDeliveryTrafficSource[] | null;
 };
 
 function deliveryTrafficKind(message: RawDeliveryTrafficSource | null) {
@@ -66,6 +62,16 @@ function deliveryTrafficKind(message: RawDeliveryTrafficSource | null) {
     templateVersion: message?.template_version,
     legacySourceTable: message?.legacy_source_table,
   });
+}
+
+function maskedRecipient(value: string | null) {
+  if (!value) return null;
+  if (value.includes("@")) {
+    const [local, domain] = value.split("@");
+    return `${local?.slice(0, 1) ?? "•"}•••@${domain}`;
+  }
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 4 ? `••• ${digits.slice(-4)}` : "•••";
 }
 
 const messageEventSchema = z.enum(
@@ -117,31 +123,95 @@ export const getCanonicalConversation = createServerFn({ method: "GET" })
 
 export const listCanonicalDeliveries = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data) =>
+    z
+      .object({
+        from: z.string().datetime(),
+        to: z.string().datetime(),
+        query: z.string().max(200).default(""),
+        traffic: z.enum(["live", "test", "system", "historical", "all"]).default("live"),
+        channel: z.enum(["all", ...MESSAGE_CHANNELS]).default("all"),
+        status: z
+          .enum([
+            "all",
+            "attention",
+            "successful",
+            "not_sent",
+            "queued",
+            "sending",
+            "accepted",
+            "sent",
+            "delivered",
+            "read",
+            "failed",
+            "dead_letter",
+            "suppressed",
+            "expired",
+            "cancelled",
+            "delivery_unknown",
+          ])
+          .default("all"),
+        memberId: z.string().uuid().nullable().default(null),
+        cursor: z.string().max(200).nullable().default(null),
+        pageSize: z.number().int().min(1).max(100).default(25),
+      })
+      .refine((value) => new Date(value.from) < new Date(value.to), "invalid_delivery_range")
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
     const db = await requireAdmin(context.userId);
-    const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
-    const [result, recentResult] = await Promise.all([
-      db
+    const rawRows: RawDeliveryMonitorRow[] = [];
+    const pendingOutbox: Array<{
+      created_at: string;
+      available_at: string;
+      expires_at: string | null;
+    }> = [];
+    const chunkSize = 1_000;
+    for (let offset = 0; ; offset += chunkSize) {
+      const result = await db
         .from("message_deliveries")
         .select(
-          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages(id,event_type,subject,member_id,language,template_key,template_version,legacy_source_table,created_at,audience,content,outbox:message_outbox(aggregate_type),member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
+          "id,message_id,channel,provider,status,provider_status,attempt_count,failure_class,error_code,error_message,recipient_address,scheduled_for,next_attempt_at,expires_at,accepted_at,sent_at,delivered_at,read_at,failed_at,created_at,updated_at,message:messages!inner(id,event_type,subject,member_id,language,template_key,template_version,legacy_source_table,created_at,audience,content,outbox:message_outbox(aggregate_type),member:members(id,name,email,phone,preferred_language,status)),attempts:message_delivery_attempts(id,attempt_number,provider,started_at,finished_at,outcome,provider_http_status,provider_error_code,failure_class,retry_after_seconds,next_attempt_at),targets:message_delivery_targets(id,status,attempt_count,failure_class,error_code,created_at,updated_at)",
         )
+        .gte("message.created_at", data.from)
+        .lt("message.created_at", data.to)
         .order("created_at", { ascending: false })
-        .limit(500),
-      db
-        .from("message_deliveries")
-        .select(
-          "status,message:messages(member_id,event_type,audience,template_version,legacy_source_table,content,outbox:message_outbox(aggregate_type))",
-        )
-        .gte("created_at", since)
-        .limit(5_000),
-    ]);
-    if (result.error) throw result.error;
-    if (recentResult.error) throw recentResult.error;
+        .range(offset, offset + chunkSize - 1);
+      if (result.error) throw result.error;
+      const chunk = (result.data ?? []) as RawDeliveryMonitorRow[];
+      rawRows.push(...chunk);
+      if (chunk.length < chunkSize) break;
+    }
+    for (let offset = 0; ; offset += chunkSize) {
+      const result = await db
+        .from("message_outbox")
+        .select("created_at,available_at,expires_at")
+        .is("processed_at", null)
+        .order("created_at", { ascending: true })
+        .range(offset, offset + chunkSize - 1);
+      if (result.error) throw result.error;
+      const chunk = result.data ?? [];
+      pendingOutbox.push(...chunk);
+      if (chunk.length < chunkSize) break;
+    }
 
-    const deliveries = ((result.data ?? []) as RawDeliveryMonitorRow[]).map((row) => {
+    const deliveries = rawRows.map((row) => {
       const message = firstRelation(row.message);
+      const member = firstRelation(message?.member);
+      const safeMember = member
+        ? {
+            ...member,
+            email: maskedRecipient(member.email),
+            phone: maskedRecipient(member.phone),
+          }
+        : null;
       const trafficKind = deliveryTrafficKind(message);
+      const recipientName =
+        (typeof message?.content?.variables?.member_name === "string"
+          ? message.content.variables.member_name
+          : null) ??
+        member?.name ??
+        null;
       const {
         audience: _audience,
         content: _content,
@@ -149,10 +219,14 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
         legacy_source_table: _legacySourceTable,
         ...safeMessage
       } = message ?? ({} as RawDeliveryMonitorMessage);
+      const { recipient_address: recipientAddress, ...safeRow } = row;
       return {
-        ...row,
+        ...safeRow,
+        recipient_contact: maskedRecipient(recipientAddress),
         traffic_kind: trafficKind,
-        message: message ? { ...safeMessage, member: firstRelation(message.member) } : null,
+        message: message
+          ? { ...safeMessage, recipient_name: recipientName, member: safeMember }
+          : null,
         attempts: [...(row.attempts ?? [])].sort(
           (a: { attempt_number: number }, b: { attempt_number: number }) =>
             a.attempt_number - b.attempt_number,
@@ -160,22 +234,31 @@ export const listCanonicalDeliveries = createServerFn({ method: "GET" })
         targets: row.targets ?? [],
       } as DeliveryMonitorRow;
     });
-    const recent = ((recentResult.data ?? []) as RawRecentDelivery[]).map((row) => {
-      const message = firstRelation(row.message);
-      return {
-        status: row.status,
-        traffic_kind: deliveryTrafficKind(message),
-        message: message ? { member_id: message.member_id } : null,
-      } as Pick<DeliveryMonitorRow, "status" | "message" | "traffic_kind">;
-    });
-    const summaries = summarizeDeliveriesByTraffic(recent);
-
-    return {
+    const page = buildDeliveryMonitorPage({
       deliveries,
-      summary: summaries.live,
-      summaries,
-      generatedAt: new Date().toISOString(),
-      windowHours: 24,
+      filters: {
+        query: data.query,
+        traffic: data.traffic,
+        channel: data.channel,
+        status: data.status,
+        memberId: data.memberId,
+      },
+      cursor: data.cursor,
+      pageSize: data.pageSize,
+    });
+
+    const generatedAt = new Date();
+    return {
+      deliveries: page.deliveries,
+      summary: page.summaries[data.traffic],
+      summaries: page.summaries,
+      generatedAt: generatedAt.toISOString(),
+      from: data.from,
+      to: data.to,
+      totalMoments: page.totalMoments,
+      nextCursor: page.nextCursor,
+      pageSize: data.pageSize,
+      queueHealth: summarizeOutboxHealth(pendingOutbox, generatedAt),
     };
   });
 

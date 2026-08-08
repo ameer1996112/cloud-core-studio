@@ -52,6 +52,17 @@ export type MaterializedMessagePlan = {
   deliveries: MaterializedDeliveryPlan[];
 };
 
+export function scheduledJourneyVariables(
+  payload: Record<string, unknown>,
+): Partial<Record<"class_count" | "item_count", number>> {
+  const variables: Partial<Record<"class_count" | "item_count", number>> = {};
+  for (const key of ["class_count", "item_count"] as const) {
+    const value = Number(payload[key]);
+    if (Number.isFinite(value) && value >= 0) variables[key] = Math.trunc(value);
+  }
+  return variables;
+}
+
 function nextRoutineWindow(now: Date) {
   if (!isQuietHours(now)) return now;
   const jerusalem = new Intl.DateTimeFormat("en-CA", {
