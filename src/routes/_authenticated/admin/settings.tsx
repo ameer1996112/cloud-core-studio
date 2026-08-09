@@ -568,7 +568,8 @@ function Page() {
               <div className="space-y-1">
                 <p className="settings-toggle-label">iPhone admin notifications</p>
                 <p className="settings-toggle-hint">
-                  Enable alerts for new member signups on this admin device.
+                  Enable alerts for new member signups and member-booked lessons on this admin
+                  device.
                 </p>
               </div>
               <button

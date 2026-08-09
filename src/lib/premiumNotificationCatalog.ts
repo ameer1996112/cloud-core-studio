@@ -87,6 +87,15 @@ export const NOTIFICATION_EVENT_CATALOG = {
     immediate: true,
     actions: ["view_class", "cancel_booking"],
   }),
+  booking_registered_admin: current({
+    ...transactional,
+    family: "booking",
+    tier: "transactional",
+    channels: ["push", "email"],
+    immediate: true,
+    actions: ["view_class"],
+    memberVisible: false,
+  }),
   booking_cancelled: current({
     ...transactional,
     family: "booking",

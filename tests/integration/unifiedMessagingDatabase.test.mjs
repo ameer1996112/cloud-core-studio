@@ -21,6 +21,21 @@ async function psql(sql, args = []) {
   return stdout.trim();
 }
 
+async function bookClassAs({ callerId, actorId = callerId, classId }) {
+  const output = await psql(`
+    SET ROLE authenticated;
+    SET request.jwt.claim.sub = '${callerId}';
+    SELECT concat_ws(':', result->>'status', result->>'message')
+    FROM (SELECT public.book_class_v2('${actorId}', '${classId}') AS result) booking;
+    RESET ROLE;
+  `);
+  return output
+    .split("\n")
+    .find((line) =>
+      /^(booked|already_booked|full|no_active_package|insufficient_credits|error:)/.test(line),
+    );
+}
+
 describe("unified messaging database integration", () => {
   test.skipIf(!databaseUrl)(
     "migrates, backfills, claims, deduplicates, and enforces RLS",
@@ -49,6 +64,10 @@ describe("unified messaging database integration", () => {
         path.join(root, "supabase/migrations/20260722120000_premium_messaging_journey_tuning.sql"),
         "utf8",
       );
+      const adminBookingAlertMigration = await readFile(
+        path.join(root, "supabase/migrations/20260809120000_admin_self_booking_alerts.sql"),
+        "utf8",
+      );
       const rollbackReconciliation = await readFile(
         path.join(root, "docs/sql/unified-messaging-rollback-reconciliation.sql"),
         "utf8",
@@ -59,6 +78,29 @@ describe("unified messaging database integration", () => {
       await psql(premiumNotificationMigration);
       await psql(premiumAllEventsMigration);
       await psql(journeyTuningMigration);
+      await psql(`
+        ALTER TABLE public.classes ADD COLUMN credit_cost integer NOT NULL DEFAULT 1;
+        ALTER TABLE public.bookings ADD COLUMN credit_cost integer NOT NULL DEFAULT 1;
+        CREATE UNIQUE INDEX bookings_one_active_per_member
+          ON public.bookings(class_id, member_id) WHERE status = 'booked';
+        CREATE TABLE public.credit_transactions (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          member_id uuid NOT NULL REFERENCES public.members(id),
+          amount_delta integer NOT NULL,
+          reason text NOT NULL,
+          related_booking_id uuid REFERENCES public.bookings(id),
+          created_by uuid
+        );
+        CREATE TABLE public.attendance_records (
+          booking_id uuid PRIMARY KEY REFERENCES public.bookings(id),
+          member_id uuid NOT NULL REFERENCES public.members(id),
+          class_id uuid NOT NULL REFERENCES public.classes(id),
+          status text NOT NULL
+        );
+        CREATE OR REPLACE FUNCTION public.sweep_member_credits(p_member_id uuid)
+        RETURNS void LANGUAGE plpgsql AS $$ BEGIN RETURN; END; $$;
+      `);
+      await psql(adminBookingAlertMigration);
 
       expect(
         await psql("SELECT count(*) FROM public.messages WHERE legacy_source_table IS NOT NULL;"),
@@ -90,6 +132,11 @@ describe("unified messaging database integration", () => {
       ).toBe("43");
       expect(
         await psql(
+          "SELECT enabled::text || ',' || copy_reviewed::text || ',' || allowlist_only::text || ',' || enabled_channels::text FROM public.notification_event_rollouts WHERE event_type='booking_registered_admin';",
+        ),
+      ).toBe("true,true,false,{push,email}");
+      expect(
+        await psql(
           "SELECT enabled_channels::text FROM public.notification_event_rollouts WHERE event_type='member_welcome';",
         ),
       ).toBe("{in_app,whatsapp,email}");
@@ -103,6 +150,109 @@ describe("unified messaging database integration", () => {
           "SELECT has_table_privilege('authenticated','public.notification_growth_cooldowns','SELECT')::text;",
         ),
       ).toBe("false");
+
+      await psql(`
+        UPDATE public.members
+        SET remaining_credits = 5
+        WHERE id = '00000000-0000-0000-0000-000000000001';
+        INSERT INTO public.members (
+          id, name, preferred_language, phone, email, status, remaining_credits
+        ) VALUES
+          ('00000000-0000-0000-0000-000000000003', 'First booking', 'en',
+           '+972501111111', 'first@example.com', 'active', 5),
+          ('00000000-0000-0000-0000-000000000004', 'No credits', 'he',
+           '+972502222222', 'empty@example.com', 'active', 0);
+        INSERT INTO public.member_notification_preferences (member_id) VALUES
+          ('00000000-0000-0000-0000-000000000003'),
+          ('00000000-0000-0000-0000-000000000004');
+        INSERT INTO public.classes (
+          id, title, starts_at, cancellation_window_hours, instructor_id, status,
+          capacity, booked_count, credit_cost
+        ) VALUES
+          ('20000000-0000-0000-0000-000000000006', 'Repeat member class',
+           now() + interval '2 days', 24, '10000000-0000-0000-0000-000000000001',
+           'scheduled', 10, 0, 1),
+          ('20000000-0000-0000-0000-000000000007', 'First member class',
+           now() + interval '3 days', 24, '10000000-0000-0000-0000-000000000001',
+           'scheduled', 10, 0, 1),
+          ('20000000-0000-0000-0000-000000000008', 'Staff-created class',
+           now() + interval '4 days', 24, '10000000-0000-0000-0000-000000000001',
+           'scheduled', 10, 0, 1),
+          ('20000000-0000-0000-0000-000000000009', 'No-credit class',
+           now() + interval '5 days', 24, '10000000-0000-0000-0000-000000000001',
+           'scheduled', 10, 0, 1),
+          ('20000000-0000-0000-0000-000000000010', 'Full class',
+           now() + interval '6 days', 24, '10000000-0000-0000-0000-000000000001',
+           'scheduled', 1, 1, 1);
+      `);
+      expect(
+        await bookClassAs({
+          callerId: "00000000-0000-0000-0000-000000000003",
+          actorId: "00000000-0000-0000-0000-000000000001",
+          classId: "20000000-0000-0000-0000-000000000006",
+        }),
+      ).toBe("error:forbidden");
+      expect(
+        await psql(
+          "SELECT count(*)::text FROM public.message_outbox WHERE event_type='booking_registered_admin';",
+        ),
+      ).toBe("0");
+      expect(
+        await bookClassAs({
+          callerId: "00000000-0000-0000-0000-000000000001",
+          classId: "20000000-0000-0000-0000-000000000006",
+        }),
+      ).toBe("booked");
+      expect(
+        await bookClassAs({
+          callerId: "00000000-0000-0000-0000-000000000003",
+          classId: "20000000-0000-0000-0000-000000000007",
+        }),
+      ).toBe("booked");
+      expect(
+        await psql(
+          "SELECT string_agg(member_id::text || ':' || payload->>'first_booking', E'\\n' ORDER BY member_id) FROM public.message_outbox WHERE event_type='booking_registered_admin';",
+        ),
+      ).toBe(
+        "00000000-0000-0000-0000-000000000001:false\n00000000-0000-0000-0000-000000000003:true",
+      );
+      expect(
+        await bookClassAs({
+          callerId: "00000000-0000-0000-0000-000000000003",
+          classId: "20000000-0000-0000-0000-000000000007",
+        }),
+      ).toBe("already_booked");
+      expect(
+        await bookClassAs({
+          callerId: "00000000-0000-0000-0000-000000000004",
+          classId: "20000000-0000-0000-0000-000000000009",
+        }),
+      ).toBe("no_active_package");
+      expect(
+        await bookClassAs({
+          callerId: "00000000-0000-0000-0000-000000000001",
+          classId: "20000000-0000-0000-0000-000000000010",
+        }),
+      ).toBe("full");
+      await psql(`
+        INSERT INTO public.bookings (id, class_id, member_id, status, credit_cost)
+        VALUES (
+          '30000000-0000-0000-0000-000000000008',
+          '20000000-0000-0000-0000-000000000008',
+          '00000000-0000-0000-0000-000000000001', 'booked', 1
+        );
+        INSERT INTO public.waitlist_entries (id, class_id, member_id, status)
+        VALUES (
+          '70000000-0000-0000-0000-000000000001',
+          '20000000-0000-0000-0000-000000000010',
+          '00000000-0000-0000-0000-000000000003', 'waiting'
+        );
+      `);
+      expect(
+        await psql(
+          "SELECT count(*)::text FROM public.message_outbox WHERE event_type='booking_registered_admin';",
+        ),
+      ).toBe("2");
 
       await psql(`
         INSERT INTO public.member_push_tokens (

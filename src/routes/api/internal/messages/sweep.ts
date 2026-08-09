@@ -7,10 +7,14 @@ import {
 } from "@/lib/internalAutomationAuth.server";
 import {
   normalizeUnifiedMessagingSweepLimit,
+  runUnifiedMessagingCanary,
   runUnifiedMessagingSweep,
 } from "@/lib/unifiedMessaging.server";
 
-const inputSchema = z.object({ limit: z.number().finite().optional() });
+const inputSchema = z.object({
+  limit: z.number().finite().optional(),
+  canary: z.boolean().optional().default(false),
+});
 
 export const Route = createFileRoute("/api/internal/messages/sweep")({
   server: {
@@ -30,6 +34,10 @@ export const Route = createFileRoute("/api/internal/messages/sweep")({
         const parsed = inputSchema.safeParse(body);
         if (!parsed.success)
           return jsonResponse({ ok: false, reason: "invalid_request_body" }, 400);
+        if (parsed.data.canary) {
+          const result = await runUnifiedMessagingCanary();
+          return jsonResponse({ ok: true, ...result });
+        }
         const result = await runUnifiedMessagingSweep({
           limit: normalizeUnifiedMessagingSweepLimit(parsed.data.limit),
         });

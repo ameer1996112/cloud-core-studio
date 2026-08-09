@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { materializeMessagePlan } from "../../src/lib/unifiedMessagingMaterialization.ts";
+import {
+  materializeMessagePlan,
+  scheduledJourneyVariables,
+} from "../../src/lib/unifiedMessagingMaterialization.ts";
 
 const base = {
   outboxId: "outbox-1",
@@ -22,6 +25,16 @@ const base = {
 };
 
 describe("outbox message materialization", () => {
+  test("preserves scheduled journey counts from the outbox payload", () => {
+    expect(scheduledJourneyVariables({ class_count: 8, week_key: "2026-W32" })).toEqual({
+      class_count: 8,
+    });
+    expect(
+      scheduledJourneyVariables({ item_count: "2", booking_count: 1, waitlist_count: 1 }),
+    ).toEqual({ item_count: 2 });
+    expect(scheduledJourneyVariables({ class_count: "unknown", item_count: -1 })).toEqual({});
+  });
+
   test("routes Concierge-covered events to the branded WhatsApp catalog", () => {
     const result = materializeMessagePlan({
       ...base,
@@ -321,6 +334,38 @@ describe("outbox message materialization", () => {
     });
     expect(result.deliveries.find((delivery) => delivery.channel === "whatsapp")).toMatchObject({
       recipientAddress: "972501234567",
+    });
+  });
+
+  test("routes a self-booking owner alert to studio email and the admin device group", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "booking_registered_admin",
+      deduplicationKey: "booking:booking-1:registered-admin",
+      language: "he",
+      variables: {
+        ...base.variables,
+        member_phone: "+972501234567",
+        first_booking_label: "הרשמה ראשונה",
+      },
+      recipients: { whatsapp: null, email: "cloudandcorestudio@gmail.com" },
+      preferences: {},
+      enabledChannels: new Set(["email", "push"]),
+    });
+
+    expect(result.message).toMatchObject({
+      memberVisible: false,
+      audience: "admin",
+      language: "he",
+    });
+    expect(result.deliveries.map((delivery) => delivery.channel)).toEqual(["push", "email"]);
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      recipientAddress: "admin_group",
+      status: "queued",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "email")).toMatchObject({
+      recipientAddress: "cloudandcorestudio@gmail.com",
+      status: "queued",
     });
   });
 

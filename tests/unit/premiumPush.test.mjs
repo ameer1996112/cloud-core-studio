@@ -27,6 +27,8 @@ const variables = {
   announcement_body: "מחר הסטודיו ייפתח בשעה 09:00.",
   staff_message_preview: "נשמח לעזור לך כאן.",
   receipt_url: "https://example.test/private-receipt",
+  first_booking_label: "הרשמה ראשונה",
+  member_phone: "+972501234567",
 };
 
 describe("premium push presentation", () => {
@@ -35,7 +37,7 @@ describe("premium push presentation", () => {
       .filter(([, definition]) => definition.channels.includes("push"))
       .map(([eventType]) => eventType);
 
-    expect(pushEvents).toHaveLength(35);
+    expect(pushEvents).toHaveLength(36);
     expect(validatePremiumPushCatalog()).toEqual({ ok: true, errors: [] });
 
     for (const eventType of pushEvents) {
@@ -47,8 +49,13 @@ describe("premium push presentation", () => {
         expect(rendered.subtitle?.length ?? 0).toBeLessThanOrEqual(72);
         expect(rendered.body.length).toBeGreaterThan(0);
         expect(rendered.body.length).toBeLessThanOrEqual(132);
+        if (eventType !== "booking_registered_admin") {
+          expect(`${rendered.title} ${rendered.subtitle ?? ""} ${rendered.body}`).not.toContain(
+            "PRIVATE-MEMBER-NAME",
+          );
+        }
         expect(`${rendered.title} ${rendered.subtitle ?? ""} ${rendered.body}`).not.toContain(
-          "PRIVATE-MEMBER-NAME",
+          "+972501234567",
         );
         expect(`${rendered.title} ${rendered.subtitle ?? ""} ${rendered.body}`).not.toMatch(
           /https?:\/\//,
@@ -66,6 +73,17 @@ describe("premium push presentation", () => {
       subtitle: "פילאטיס מזרן · 24/07/2026 · 18:00",
       body: "הכול מוכן. נתראה עם ירין בסטודיו.",
       presentationKey: "booking_confirmed:push:v1",
+    });
+  });
+
+  test("shows the owner useful booking details without exposing the phone number", () => {
+    expect(
+      renderPremiumPush({ eventType: "booking_registered_admin", language: "he", variables }),
+    ).toEqual({
+      title: "הרשמה חדשה לשיעור",
+      subtitle: "PRIVATE-MEMBER-NAME · פילאטיס מזרן · 24/07/2026 · 18:00",
+      body: "עם ירין · הרשמה ראשונה",
+      presentationKey: "booking_registered_admin:push:v1",
     });
   });
 

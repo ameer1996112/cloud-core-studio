@@ -4,6 +4,7 @@ const limit = Math.max(
   1,
   Math.min(200, Math.trunc(Number(process.env.UNIFIED_MESSAGING_SWEEP_LIMIT ?? 50) || 50)),
 );
+const canary = process.env.UNIFIED_MESSAGING_CANARY?.trim().toLowerCase() === "true";
 
 if (!baseUrl) throw new Error("missing_env:CLOUD_CORE_BASE_URL");
 if (!token) throw new Error("missing_env:NOTIFICATION_AUTOMATION_TOKEN");
@@ -14,7 +15,7 @@ const response = await fetch(`${baseUrl}/api/internal/messages/sweep`, {
     authorization: `Bearer ${token}`,
     "content-type": "application/json",
   },
-  body: JSON.stringify({ limit }),
+  body: JSON.stringify({ limit, ...(canary ? { canary: true } : {}) }),
   signal: AbortSignal.timeout(4 * 60_000),
 });
 
