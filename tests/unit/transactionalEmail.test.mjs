@@ -110,6 +110,32 @@ describe("premium transactional email renderer", () => {
     expect(arabic.html).toContain("تحديث الدفع");
   });
 
+  test("renders the owner booking email with the private phone and admin roster link", () => {
+    const rendered = renderTransactionalEmail({
+      ...baseInput,
+      eventType: "booking_registered_admin",
+      subject: "הרשמה חדשה לשיעור",
+      body: "נועה נרשמה לשיעור פילאטיס מזרן.\n\nתאריך: 24/07/2026\nשעה: 18:00\nמדריכה: ירין\nטלפון: +972501234567\nסטטוס: הרשמה ראשונה",
+      variables: {
+        member_name: "נועה",
+        member_phone: "+972501234567",
+        class_name: "פילאטיס מזרן",
+        class_date: "24/07/2026",
+        class_time: "18:00",
+        instructor_name: "ירין",
+        first_booking_label: "הרשמה ראשונה",
+      },
+      actionUrl: "/admin/classes/20000000-0000-0000-0000-000000000001",
+    });
+
+    expect(rendered.html).toContain("+972501234567");
+    expect(rendered.html).toContain("הרשמה ראשונה");
+    expect(rendered.html).toContain(
+      "https://cloudandcorestudio.com/admin/classes/20000000-0000-0000-0000-000000000001",
+    );
+    expect(rendered.text).toContain("טלפון: +972501234567");
+  });
+
   test("escapes member content and suppresses unsafe or cross-origin actions", () => {
     const injected = renderTransactionalEmail({
       ...baseInput,

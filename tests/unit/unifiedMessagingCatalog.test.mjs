@@ -58,6 +58,24 @@ describe("unified messaging template catalog", () => {
     expect(getMetaTemplateVariant("class_open_spots", "he")).toBeUndefined();
   });
 
+  test("renders the Hebrew owner email with contact and first-booking details", () => {
+    expect(
+      renderMessageContent("booking_registered_admin", "he", {
+        member_name: "נועה",
+        member_phone: "+972501234567",
+        class_name: "פילאטיס מזרן",
+        class_date: "24/07/2026",
+        class_time: "18:00",
+        instructor_name: "ירין",
+        first_booking_label: "הרשמה ראשונה",
+      }),
+    ).toMatchObject({
+      subject: "הרשמה חדשה לשיעור",
+      body: "נועה נרשמה לשיעור פילאטיס מזרן.\n\nתאריך: 24/07/2026\nשעה: 18:00\nמדריכה: ירין\nטלפון: +972501234567\nסטטוס: הרשמה ראשונה",
+      metaTemplate: null,
+    });
+  });
+
   test("renders one premium recommendation containing up to two ranked lessons", () => {
     expect(
       renderMessageContent("class_recommendation", "en", {

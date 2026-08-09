@@ -87,6 +87,33 @@ const PUSH_COPY: Partial<Record<MessageEventType, PushCopyBuilder>> = {
       }),
     };
   },
+  booking_registered_admin: (input) => ({
+    title: localized(input.language, {
+      he: "הרשמה חדשה לשיעור",
+      ar: "تسجيل جديد في حصة",
+      en: "New class registration",
+    }),
+    subtitle: [
+      text(input.variables, "member_name"),
+      className(input),
+      text(input.variables, "class_date"),
+      text(input.variables, "class_time"),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    body: [
+      text(input.variables, "instructor_name")
+        ? localized(input.language, {
+            he: `עם ${text(input.variables, "instructor_name")}`,
+            ar: `مع ${text(input.variables, "instructor_name")}`,
+            en: `With ${text(input.variables, "instructor_name")}`,
+          })
+        : "",
+      text(input.variables, "first_booking_label"),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  }),
   booking_cancelled: (input) => ({
     title: localized(input.language, {
       he: "הביטול נקלט",

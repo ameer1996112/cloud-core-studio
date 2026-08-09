@@ -95,6 +95,9 @@ export function deliveryAllowedByConsent(
   // The inbox is the durable transactional record. Granular preferences govern
   // interruption/external delivery, never whether that record exists.
   if (channel === "in_app") return true;
+  // This is an operational alert to studio-owned destinations, so member channel
+  // preferences do not apply.
+  if (eventType === "booking_registered_admin") return definition.channels.includes(channel);
   if (channel === "push" && preferences.pushEnabled === false) return false;
   if (channel === "whatsapp" && preferences.whatsappEnabled !== true) return false;
   if (channel === "email" && preferences.emailEnabled !== true) return false;
