@@ -48,6 +48,9 @@ export function premiumJourneyTestVariables(language: MessageLanguage) {
     renewal_date: "31/07/2026",
     class_count: "8",
     item_count: "2",
+    member_phone: "+972501234567",
+    first_booking_label:
+      language === "he" ? "הרשמה ראשונה" : language === "ar" ? "التسجيل الأول" : "First booking",
   } satisfies Record<string, string>;
 }
 

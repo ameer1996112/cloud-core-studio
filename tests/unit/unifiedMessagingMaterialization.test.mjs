@@ -337,6 +337,38 @@ describe("outbox message materialization", () => {
     });
   });
 
+  test("routes a self-booking owner alert to studio email and the admin device group", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      eventType: "booking_registered_admin",
+      deduplicationKey: "booking:booking-1:registered-admin",
+      language: "he",
+      variables: {
+        ...base.variables,
+        member_phone: "+972501234567",
+        first_booking_label: "הרשמה ראשונה",
+      },
+      recipients: { whatsapp: null, email: "cloudandcorestudio@gmail.com" },
+      preferences: {},
+      enabledChannels: new Set(["email", "push"]),
+    });
+
+    expect(result.message).toMatchObject({
+      memberVisible: false,
+      audience: "admin",
+      language: "he",
+    });
+    expect(result.deliveries.map((delivery) => delivery.channel)).toEqual(["push", "email"]);
+    expect(result.deliveries.find((delivery) => delivery.channel === "push")).toMatchObject({
+      recipientAddress: "admin_group",
+      status: "queued",
+    });
+    expect(result.deliveries.find((delivery) => delivery.channel === "email")).toMatchObject({
+      recipientAddress: "cloudandcorestudio@gmail.com",
+      status: "queued",
+    });
+  });
+
   test("materializes open-class alerts as consented inbox and APNs deliveries only", () => {
     const eligible = materializeMessagePlan({
       ...base,

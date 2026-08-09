@@ -3,6 +3,7 @@ export type MessageLanguage = "he" | "ar" | "en";
 export type MessageEventType =
   | "member_welcome"
   | "booking_confirmed"
+  | "booking_registered_admin"
   | "booking_cancelled"
   | "booking_changed"
   | "booking_checked_in"

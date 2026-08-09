@@ -50,6 +50,32 @@ const DEFINITIONS: Partial<Record<MessageEventType, LocalizedTemplate>> = {
       en: "Hi {{1}}, your spot is saved 🤍\n\n{{2}}\n{{3}} · {{4}}\nWith {{5}}\n\nSee you at Cloud & Core",
     },
   },
+  booking_registered_admin: {
+    name: null,
+    parameters: [
+      "member_name",
+      "class_name",
+      "class_date",
+      "class_time",
+      "instructor_name",
+      "member_phone",
+      "first_booking_label",
+    ],
+    examples: [
+      "נועה",
+      "פילאטיס מזרן",
+      "24/07/2026",
+      "18:00",
+      "ירין",
+      "+972501234567",
+      "הרשמה ראשונה",
+    ],
+    bodies: {
+      he: "{{1}} נרשמה לשיעור {{2}}.\n\nתאריך: {{3}}\nשעה: {{4}}\nמדריכה: {{5}}\nטלפון: {{6}}\nסטטוס: {{7}}",
+      ar: "سجّلت {{1}} في حصة {{2}}.\n\nالتاريخ: {{3}}\nالوقت: {{4}}\nالمدربة: {{5}}\nالهاتف: {{6}}\nالحالة: {{7}}",
+      en: "{{1}} registered for {{2}}.\n\nDate: {{3}}\nTime: {{4}}\nInstructor: {{5}}\nPhone: {{6}}\nStatus: {{7}}",
+    },
+  },
   booking_cancelled: {
     name: "cc_booking_cancelled_v2",
     parameters: ["member_name", "class_name", "class_date", "class_time"],
@@ -516,6 +542,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
   he: {
     member_welcome: "ברוכה הבאה ל-Cloud & Core",
     booking_confirmed: "ההזמנה אושרה",
+    booking_registered_admin: "הרשמה חדשה לשיעור",
     booking_cancelled: "ההזמנה בוטלה",
     booking_changed: "פרטי ההזמנה עודכנו",
     booking_checked_in: "הגעת לשיעור",
@@ -563,6 +590,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
   ar: {
     member_welcome: "أهلاً بك في Cloud & Core",
     booking_confirmed: "تم تأكيد الحجز",
+    booking_registered_admin: "تسجيل جديد في حصة",
     booking_cancelled: "تم إلغاء الحجز",
     booking_changed: "تم تحديث تفاصيل الحجز",
     booking_checked_in: "تم تسجيل حضورك",
@@ -610,6 +638,7 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
   en: {
     member_welcome: "Welcome to Cloud & Core",
     booking_confirmed: "Booking confirmed",
+    booking_registered_admin: "New class registration",
     booking_cancelled: "Booking cancelled",
     booking_changed: "Booking details updated",
     booking_checked_in: "You are checked in",

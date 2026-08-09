@@ -22,6 +22,10 @@ const releaseGuardMigrationPath = new URL(
   "../../supabase/migrations/20260731183000_complete_notification_release_guards.sql",
   import.meta.url,
 );
+const adminBookingAlertMigrationPath = new URL(
+  "../../supabase/migrations/20260809120000_admin_self_booking_alerts.sql",
+  import.meta.url,
+);
 
 describe("premium notification all-events migration", () => {
   test("keeps the complete rollout private while enabling reviewed event behavior", () => {
@@ -64,6 +68,18 @@ describe("premium notification all-events migration", () => {
     expect(bookingFunction?.match(/PERFORM public\.emit_message_outbox\(/g)).toHaveLength(1);
   });
 
+  test("queues owner alerts only from the member self-booking transaction", () => {
+    const sql = readFileSync(adminBookingAlertMigrationPath, "utf8");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.book_class_v2");
+    expect(sql).toContain("auth.uid() IS DISTINCT FROM p_actor_id");
+    expect(sql).toContain("'message', 'forbidden'");
+    expect(sql).toContain("'booking_registered_admin'");
+    expect(sql).toContain("'first_booking', v_first_booking");
+    expect(sql).toContain("ARRAY['push', 'email']::text[]");
+    expect(sql).not.toContain("CREATE OR REPLACE FUNCTION public.admin_create_booking");
+    expect(sql).not.toContain("CREATE TRIGGER");
+  });
+
   test("keeps the database rollout channel matrix exactly aligned with the code catalog", () => {
     const rolloutRows = new Map();
     for (const path of [
@@ -71,6 +87,7 @@ describe("premium notification all-events migration", () => {
       paymentLifecycleMigrationPath,
       completeCatalogMigrationPath,
       releaseGuardMigrationPath,
+      adminBookingAlertMigrationPath,
     ]) {
       const sql = readFileSync(path, "utf8");
       for (const match of sql.matchAll(/\('([^']+)', ARRAY\[([^\]]*)\]::text\[\]\)/g)) {

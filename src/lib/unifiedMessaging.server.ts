@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import {
+  ADMIN_BOOKING_ALERT_EVENT,
+  resolveAdminBookingAlertPolicy,
+} from "@/lib/adminBookingAlerts";
 import { configuredApnsEnvironment, sendApnsAlert } from "@/lib/apns.server";
 import { ApnsPersistenceUncertainError, sendApnsDelivery } from "@/lib/messagingApnsAdapter.server";
 import {
@@ -269,7 +273,8 @@ async function loadOutboxContext(outbox: OutboxRow) {
     .single();
   if (memberResult.error) throw memberResult.error;
   const member = memberResult.data;
-  const locale = language(member.preferred_language);
+  const locale =
+    outbox.event_type === ADMIN_BOOKING_ALERT_EVENT ? "he" : language(member.preferred_language);
   if (!locale) throw new Error(`unsupported_member_language:${member.preferred_language}`);
   const preferencesResult = await readMemberNotificationPreferences(db, outbox.member_id);
   if (preferencesResult.error) throw preferencesResult.error;
@@ -284,6 +289,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
   const subscriptionId =
     typeof payload.subscription_id === "string" ? payload.subscription_id : null;
   const variables: Record<string, unknown> = { member_name: member.name };
+  let adminBookingAlertPolicy: ReturnType<typeof resolveAdminBookingAlertPolicy> | null = null;
   if (member.remaining_credits != null) {
     variables.credits_remaining = Math.max(0, Number(member.remaining_credits));
   }
@@ -300,17 +306,37 @@ async function loadOutboxContext(outbox: OutboxRow) {
     variables.retention_stage = payload.retention_stage;
   }
 
-  const pushDevice = await db
-    .from("member_push_tokens")
-    .select("id")
-    .eq("member_id", outbox.member_id)
-    .eq("active", true)
-    .eq("permission_status", "granted")
-    .is("logged_out_at", null)
-    .gt("stale_after", new Date().toISOString())
-    .limit(1);
-  if (pushDevice.error) throw pushDevice.error;
-  variables.has_active_push_device = Boolean(pushDevice.data?.length);
+  if (outbox.event_type === ADMIN_BOOKING_ALERT_EVENT) {
+    if (!classId) throw new Error("admin_booking_alert_class_required");
+    const settings = await db
+      .from("studio_settings")
+      .select("contact_email")
+      .eq("id", 1)
+      .maybeSingle();
+    if (settings.error) throw settings.error;
+    adminBookingAlertPolicy = resolveAdminBookingAlertPolicy({
+      contactEmail: settings.data?.contact_email,
+      classId,
+    });
+    variables.member_phone =
+      typeof payload.member_phone === "string" && payload.member_phone.trim()
+        ? payload.member_phone.trim()
+        : member.phone?.trim() || "לא זמין";
+    variables.first_booking_label = payload.first_booking === true ? "הרשמה ראשונה" : "לקוחה חוזרת";
+    variables.has_active_push_device = true;
+  } else {
+    const pushDevice = await db
+      .from("member_push_tokens")
+      .select("id")
+      .eq("member_id", outbox.member_id)
+      .eq("active", true)
+      .eq("permission_status", "granted")
+      .is("logged_out_at", null)
+      .gt("stale_after", new Date().toISOString())
+      .limit(1);
+    if (pushDevice.error) throw pushDevice.error;
+    variables.has_active_push_device = Boolean(pushDevice.data?.length);
+  }
 
   if (outbox.event_type === "member_welcome") {
     const nowIso = new Date().toISOString();
@@ -501,6 +527,7 @@ async function loadOutboxContext(outbox: OutboxRow) {
     },
     variables,
     approvedWhatsappVariants,
+    adminBookingAlertPolicy,
   };
 }
 
@@ -583,9 +610,12 @@ async function materializeOutbox(
       deduplicationKey: outbox.deduplication_key,
       eventType: outbox.event_type,
       memberId: outbox.member_id!,
-      language: context.locale,
+      language: context.adminBookingAlertPolicy?.language ?? context.locale,
       variables: context.variables,
-      recipients: { whatsapp: context.member.phone, email: context.member.email },
+      recipients: {
+        whatsapp: context.member.phone,
+        email: context.adminBookingAlertPolicy?.email ?? context.member.email,
+      },
       preferences: context.preferences,
       externalChannels,
       approvedWhatsappVariants: context.approvedWhatsappVariants,
@@ -625,7 +655,9 @@ async function materializeOutbox(
         return { ok: true as const, suppressed: "promotional_frequency_cap" as const };
       }
     }
-    const deepLink = notificationDeepLink(outbox, plan.message.actions[0], context.variables);
+    const deepLink =
+      context.adminBookingAlertPolicy?.deepLink ??
+      notificationDeepLink(outbox, plan.message.actions[0], context.variables);
     const threadKey = `${plan.message.notificationFamily}:${outbox.aggregate_id ?? outbox.member_id}`;
     const collapseKey = `${outbox.event_type}:${outbox.aggregate_id ?? outbox.member_id}`;
     const message = await db
