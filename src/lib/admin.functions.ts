@@ -15,6 +15,10 @@ import {
   normalizeMemberNotificationLanguage,
 } from "@/lib/memberNotificationCopy";
 import { getScheduleDigestIdempotencyKey } from "@/lib/notificationDelivery";
+import {
+  projectAdminOverviewBookings,
+  type AdminOverviewBookingRow,
+} from "@/lib/adminOverviewBookings";
 
 async function ensureStaff(supabase: any, userId: string, level: "admin" | "staff" = "staff") {
   const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
@@ -253,7 +257,15 @@ export const adminOverview = createServerFn({ method: "GET" })
         .lte("starts_at", dayEnd.toISOString())
         .order("starts_at"),
       supabase.from("members").select("id", { count: "exact", head: true }),
-      supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "booked"),
+      supabase
+        .from("bookings")
+        .select(
+          "id,status,created_at,member:members(id,name),class:classes!inner(id,title,starts_at,status,room,instructor:instructors(id,name),room_ref:rooms(id,name),program_type:program_types(id,name_en,name_he,name_ar,level))",
+        )
+        .eq("status", "booked")
+        .eq("class.status", "scheduled")
+        .gte("class.starts_at", now.toISOString())
+        .order("created_at", { ascending: false }),
       supabase
         .from("waitlist_entries")
         .select("id", { count: "exact", head: true })
@@ -283,6 +295,7 @@ export const adminOverview = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .eq("attendance_count", 0),
     ]);
+    if (bookings.error) throw bookings.error;
     const monthRevenueIls = (payments.data ?? []).reduce(
       (a: number, r: any) => a + Number(r.amount) - Number(r.refunded_amount ?? 0),
       0,
@@ -292,11 +305,16 @@ export const adminOverview = createServerFn({ method: "GET" })
       (c: any) => !hasTestClassRecord(c),
     );
     const visibleLowCredit = (lowCredit.data ?? []).filter((m: any) => !isTestRecord(m.name));
+    const bookingProjection = projectAdminOverviewBookings(
+      (bookings.data ?? []) as AdminOverviewBookingRow[],
+      now,
+    );
     return {
       upcoming: visibleUpcoming,
       todayClasses: visibleTodayClasses,
       memberCount: members.count ?? 0,
-      activeBookings: bookings.count ?? 0,
+      activeBookings: bookingProjection.activeBookings,
+      recentBookings: bookingProjection.recentBookings,
       waitingCount: waitlist.count ?? 0,
       recentLog: log.data ?? [],
       monthRevenueIls,

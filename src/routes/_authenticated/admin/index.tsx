@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { adminOverview } from "@/lib/admin.functions";
+import type { AdminOverviewRecentBooking } from "@/lib/adminOverviewBookings";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Plus, Users, Wallet, Sparkles, BarChart3 } from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
@@ -192,7 +193,7 @@ function OverviewPage() {
         </Panel>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Panel title={t("admin.overview.upcomingWeek")}>
           {d.upcoming.length === 0 ? (
             <p className="text-sm text-slate">{t("admin.overview.noUpcoming")}</p>
@@ -223,6 +224,53 @@ function OverviewPage() {
                     <span className="shrink-0 text-xs font-medium text-slate">
                       {c.booked_count}/{c.capacity}
                     </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title={t("admin.overview.recentBookings")}>
+          {d.recentBookings.length === 0 ? (
+            <p className="text-sm text-slate">{t("admin.overview.noRecentBookings")}</p>
+          ) : (
+            <ul className="divide-y divide-gold/15">
+              {d.recentBookings.map((booking: AdminOverviewRecentBooking) => {
+                const startsAt = new Date(booking.class.starts_at);
+                const bookedAt = new Date(booking.created_at).toLocaleString(locale, {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                });
+                return (
+                  <li key={booking.id}>
+                    <Link
+                      to="/admin/classes/$id"
+                      params={{ id: booking.class.id }}
+                      className="block rounded-xl px-2 py-3 transition-colors hover:bg-gold/5"
+                    >
+                      <p className="truncate text-sm font-semibold text-navy" dir="auto">
+                        <bdi>{booking.member.name}</bdi>
+                      </p>
+                      <p className="mt-0.5 truncate text-xs font-medium text-slate" dir="auto">
+                        <bdi>{localizedClassTitle(booking.class, lang)}</bdi> ·{" "}
+                        {startsAt.toLocaleDateString(locale, {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        ·{" "}
+                        {startsAt.toLocaleTimeString(locale, {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      <p className="mt-1 text-[0.7rem] text-slate/75">
+                        {t("admin.overview.bookedAt", { date: bookedAt })}
+                      </p>
+                    </Link>
                   </li>
                 );
               })}
