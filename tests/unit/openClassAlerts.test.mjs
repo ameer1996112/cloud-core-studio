@@ -208,6 +208,21 @@ describe("open-class alert planning", () => {
     expect(ranked.map((candidate) => candidate.id)).toEqual(["best", "second"]);
   });
 
+  test("ignores invalid recommendation dates instead of aborting the sweep", () => {
+    const ranked = rankClassRecommendations(
+      [
+        { id: "invalid", startsAt: "", instructorId: "preferred" },
+        { id: "valid", startsAt: "2026-07-22T15:00:00.000Z", instructorId: "preferred" },
+      ],
+      [
+        { startsAt: "not-a-date", instructorId: "preferred" },
+        { startsAt: "2026-07-15T15:00:00.000Z", instructorId: "preferred" },
+      ],
+    );
+
+    expect(ranked.map((candidate) => candidate.id)).toEqual(["valid"]);
+  });
+
   test("rechecks member, consent, and device eligibility before a delayed delivery", () => {
     expect(shouldCancelOpenClassAlert(deliveryState({ memberStatus: "inactive" }))).toBe(true);
     expect(shouldCancelOpenClassAlert(deliveryState({ remainingCredits: 0 }))).toBe(true);

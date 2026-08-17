@@ -51,14 +51,21 @@ type OpenClassAffinityPoint = {
   instructorId: string | null;
 };
 
+function timeValue(value: string) {
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
 function israelClassSignature(startsAt: string) {
+  const timestamp = timeValue(startsAt);
+  if (timestamp === null) return null;
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Jerusalem",
     weekday: "short",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
-  }).formatToParts(new Date(startsAt));
+  }).formatToParts(new Date(timestamp));
   const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
   return {
     weekday: value("weekday"),
@@ -71,8 +78,10 @@ export function scoreOpenClassAffinity(
   attendance: readonly OpenClassAffinityPoint[],
 ) {
   const target = israelClassSignature(candidate.startsAt);
+  if (!target) return 0;
   const score = attendance.reduce((total, visit) => {
     const previous = israelClassSignature(visit.startsAt);
+    if (!previous) return total;
     const instructor =
       candidate.instructorId && visit.instructorId === candidate.instructorId ? 6 : 0;
     const weekday = previous.weekday === target.weekday ? 3 : 0;
@@ -89,6 +98,7 @@ export function rankClassRecommendations(
   limit = 2,
 ) {
   return [...candidates]
+    .filter((candidate) => timeValue(candidate.startsAt) !== null)
     .sort(
       (left, right) =>
         scoreOpenClassAffinity(
@@ -99,7 +109,7 @@ export function rankClassRecommendations(
             { startsAt: left.startsAt, instructorId: left.instructorId ?? null },
             attendance,
           ) ||
-        new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime() ||
+        timeValue(left.startsAt)! - timeValue(right.startsAt)! ||
         left.id.localeCompare(right.id),
     )
     .slice(0, Math.max(0, Math.min(2, Math.trunc(limit))));
