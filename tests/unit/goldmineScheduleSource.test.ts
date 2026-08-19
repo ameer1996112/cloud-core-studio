@@ -6,7 +6,7 @@ import {
   type ScheduleSourceRow,
 } from "../../src/lib/goldmineScheduleSource.server.ts";
 
-const caller = "goldmine-schedule-publisher-staging@cloudandcorestudio.iam.gserviceaccount.com";
+const caller = "goldmine-schedule-pub-stg@cloudandcorestudio.iam.gserviceaccount.com";
 const audience = "https://cloud-core-studio-staging.example.run.app";
 const now = new Date("2026-08-19T10:00:00.000Z");
 

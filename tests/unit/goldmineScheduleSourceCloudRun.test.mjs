@@ -24,7 +24,7 @@ describe("GoldMine schedule source staging guardrails", () => {
   test("base staging configuration stays disabled", () => {
     expect(stagingEnv).toContain('GOLDMINE_SCHEDULE_SOURCE_ENABLED="false"');
     expect(stagingEnv).toContain(
-      'GOLDMINE_SCHEDULE_ALLOWED_CALLERS="goldmine-schedule-publisher-staging@cloudandcorestudio.iam.gserviceaccount.com"',
+      'GOLDMINE_SCHEDULE_ALLOWED_CALLERS="goldmine-schedule-pub-stg@cloudandcorestudio.iam.gserviceaccount.com"',
     );
     expect(stagingEnv).not.toContain("PRIVATE KEY");
   });

@@ -3,7 +3,7 @@ set -euo pipefail
 
 readonly PRODUCTION_SERVICE="cloud-core-studio"
 readonly DEFAULT_STAGING_SERVICE="cloud-core-studio-staging"
-readonly DEFAULT_PUBLISHER_CALLER="goldmine-schedule-publisher-staging@cloudandcorestudio.iam.gserviceaccount.com"
+readonly DEFAULT_PUBLISHER_CALLER="goldmine-schedule-pub-stg@cloudandcorestudio.iam.gserviceaccount.com"
 
 fail() {
   echo "ERROR: $*" >&2

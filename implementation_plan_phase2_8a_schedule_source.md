@@ -51,7 +51,7 @@ No committed HOT Pilates source slug was found. Staging must set `GOLDMINE_SCHED
   - `GOLDMINE_SCHEDULE_SOURCE_ENABLED=false` by default.
   - `GOLDMINE_SCHEDULE_SOURCE_AUDIENCE` is required when enabled.
   - `GOLDMINE_SCHEDULE_ALLOWED_CALLERS` is required and empty means deny all.
-- Allowed staging caller: `goldmine-schedule-publisher-staging@cloudandcorestudio.iam.gserviceaccount.com`.
+- Allowed staging caller: `goldmine-schedule-pub-stg@cloudandcorestudio.iam.gserviceaccount.com`.
 - Missing/invalid tokens return 401; valid but disallowed identities return 403; a disabled endpoint returns 404.
 - Authorization headers and complete token claims are never logged.
 
@@ -100,7 +100,7 @@ Baseline: `bun run test` = 587 passed, 3 skipped, 0 failed across 103 files. `bu
 
 ## Staging deployment and acceptance
 
-Read-only preflight on 2026-08-19 found the `cloud-core-studio-staging` service and confirmed its configured Supabase project differs from the two protected project references documented by this repository. The local Supabase CLI link does not point to that staging project, and the required `goldmine-schedule-publisher-staging` service account does not currently exist. No migration, service deployment, IAM mutation, or endpoint enablement was attempted.
+Read-only preflight on 2026-08-19 found the `cloud-core-studio-staging` service and confirmed its configured Supabase project differs from the two protected project references documented by this repository. The local Supabase CLI link does not point to that staging project, and the required `goldmine-schedule-pub-stg` service account did not exist at that time. No migration, service deployment, IAM mutation, or endpoint enablement was attempted.
 
 1. Apply the new migration only to the confirmed non-production Supabase project.
 2. Build an immutable staging image.
