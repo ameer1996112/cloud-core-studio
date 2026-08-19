@@ -59,6 +59,7 @@ import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin/attendance'
 import { Route as AuthenticatedAdminMembersIndexRouteImport } from './routes/_authenticated/admin/members/index'
 import { Route as AuthenticatedAdminClassesIndexRouteImport } from './routes/_authenticated/admin/classes/index'
+import { Route as InternalGoldmineV1ScheduleRouteImport } from './routes/internal/goldmine/v1/schedule'
 import { Route as ApiPublicWebhooksWhatsappRouteImport } from './routes/api/public/webhooks/whatsapp'
 import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks/resend'
 import { Route as ApiInternalSubscriptionsHypSyncRouteImport } from './routes/api/internal/subscriptions/hyp-sync'
@@ -350,6 +351,12 @@ const AuthenticatedAdminClassesIndexRoute =
     path: '/classes/',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const InternalGoldmineV1ScheduleRoute =
+  InternalGoldmineV1ScheduleRouteImport.update({
+    id: '/internal/goldmine/v1/schedule',
+    path: '/internal/goldmine/v1/schedule',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksWhatsappRoute =
   ApiPublicWebhooksWhatsappRouteImport.update({
     id: '/api/public/webhooks/whatsapp',
@@ -513,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
+  '/internal/goldmine/v1/schedule': typeof InternalGoldmineV1ScheduleRoute
   '/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
   '/api/internal/messages/media/$mediaId': typeof ApiInternalMessagesMediaMediaIdRoute
@@ -578,6 +586,7 @@ export interface FileRoutesByTo {
   '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
+  '/internal/goldmine/v1/schedule': typeof InternalGoldmineV1ScheduleRoute
   '/admin/classes': typeof AuthenticatedAdminClassesIndexRoute
   '/admin/members': typeof AuthenticatedAdminMembersIndexRoute
   '/api/internal/messages/media/$mediaId': typeof ApiInternalMessagesMediaMediaIdRoute
@@ -648,6 +657,7 @@ export interface FileRoutesById {
   '/api/internal/subscriptions/hyp-sync': typeof ApiInternalSubscriptionsHypSyncRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/whatsapp': typeof ApiPublicWebhooksWhatsappRoute
+  '/internal/goldmine/v1/schedule': typeof InternalGoldmineV1ScheduleRoute
   '/_authenticated/admin/classes/': typeof AuthenticatedAdminClassesIndexRoute
   '/_authenticated/admin/members/': typeof AuthenticatedAdminMembersIndexRoute
   '/api/internal/messages/media/$mediaId': typeof ApiInternalMessagesMediaMediaIdRoute
@@ -718,6 +728,7 @@ export interface FileRouteTypes {
     | '/api/internal/subscriptions/hyp-sync'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/whatsapp'
+    | '/internal/goldmine/v1/schedule'
     | '/admin/classes/'
     | '/admin/members/'
     | '/api/internal/messages/media/$mediaId'
@@ -783,6 +794,7 @@ export interface FileRouteTypes {
     | '/api/internal/subscriptions/hyp-sync'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/whatsapp'
+    | '/internal/goldmine/v1/schedule'
     | '/admin/classes'
     | '/admin/members'
     | '/api/internal/messages/media/$mediaId'
@@ -852,6 +864,7 @@ export interface FileRouteTypes {
     | '/api/internal/subscriptions/hyp-sync'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/whatsapp'
+    | '/internal/goldmine/v1/schedule'
     | '/_authenticated/admin/classes/'
     | '/_authenticated/admin/members/'
     | '/api/internal/messages/media/$mediaId'
@@ -885,6 +898,7 @@ export interface RootRouteChildren {
   ApiInternalSubscriptionsHypSyncRoute: typeof ApiInternalSubscriptionsHypSyncRoute
   ApiPublicWebhooksResendRoute: typeof ApiPublicWebhooksResendRoute
   ApiPublicWebhooksWhatsappRoute: typeof ApiPublicWebhooksWhatsappRoute
+  InternalGoldmineV1ScheduleRoute: typeof InternalGoldmineV1ScheduleRoute
   ApiInternalMessagesMediaMediaIdRoute: typeof ApiInternalMessagesMediaMediaIdRoute
   ApiPublicPaymentsHypReturnRoute: typeof ApiPublicPaymentsHypReturnRoute
   ApiPublicWebhooksPaymentsProviderRoute: typeof ApiPublicWebhooksPaymentsProviderRoute
@@ -1242,6 +1256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClassesIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/internal/goldmine/v1/schedule': {
+      id: '/internal/goldmine/v1/schedule'
+      path: '/internal/goldmine/v1/schedule'
+      fullPath: '/internal/goldmine/v1/schedule'
+      preLoaderRoute: typeof InternalGoldmineV1ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/whatsapp': {
       id: '/api/public/webhooks/whatsapp'
       path: '/api/public/webhooks/whatsapp'
@@ -1519,6 +1540,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInternalSubscriptionsHypSyncRoute: ApiInternalSubscriptionsHypSyncRoute,
   ApiPublicWebhooksResendRoute: ApiPublicWebhooksResendRoute,
   ApiPublicWebhooksWhatsappRoute: ApiPublicWebhooksWhatsappRoute,
+  InternalGoldmineV1ScheduleRoute: InternalGoldmineV1ScheduleRoute,
   ApiInternalMessagesMediaMediaIdRoute: ApiInternalMessagesMediaMediaIdRoute,
   ApiPublicPaymentsHypReturnRoute: ApiPublicPaymentsHypReturnRoute,
   ApiPublicWebhooksPaymentsProviderRoute:
