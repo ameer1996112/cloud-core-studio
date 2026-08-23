@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import {
+  APP_STORE_BADGE_PATHS,
   APP_MARKETING_COPY,
   getAppMarketingScreenshots,
   type AppMarketingPublicProfile,
@@ -31,7 +32,6 @@ export type AppMarketingPageProps = {
 };
 
 const LANGUAGE_ORDER: Lang[] = ["he", "ar", "en"];
-const BADGE_ROOT = "/brand/app-store-badges/";
 const APPLE_CREDIT =
   "Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries and regions. App Store is a service mark of Apple Inc.";
 
@@ -118,7 +118,7 @@ function AppStoreBadge({
     >
       <img
         className="app-marketing__store-badge"
-        src={`${BADGE_ROOT}${lang}.svg`}
+        src={APP_STORE_BADGE_PATHS[lang]}
         alt={label}
         height={40}
       />
