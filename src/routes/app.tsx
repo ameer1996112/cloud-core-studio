@@ -73,6 +73,10 @@ export const Route = createFileRoute("/app")({
   },
   head: ({ loaderData }) => {
     const meta = getAppMarketingMeta(loaderData?.lang ?? DEFAULT_LOCALE);
+    const structuredData = loaderData
+      ? JSON.stringify(buildAppMarketingStructuredData(loaderData)).replace(/</g, "\\u003c")
+      : undefined;
+
     return {
       meta: [
         { title: meta.title },
@@ -96,6 +100,14 @@ export const Route = createFileRoute("/app")({
         { rel: "alternate", hrefLang: "en", href: `${APP_MARKETING_CANONICAL_URL}?lang=en` },
         { rel: "alternate", hrefLang: "x-default", href: APP_MARKETING_CANONICAL_URL },
       ],
+      scripts: structuredData
+        ? [
+            {
+              type: "application/ld+json",
+              children: structuredData,
+            },
+          ]
+        : [],
     };
   },
   component: AppMarketingRoute,
@@ -108,15 +120,7 @@ function AppMarketingRoute() {
     if (getActiveLang() !== data.lang) applyLang(data.lang);
   }, [data.lang]);
 
-  const structuredData = JSON.stringify(buildAppMarketingStructuredData(data)).replace(
-    /</g,
-    "\\u003c",
-  );
-
   return (
-    <>
-      <script type="application/ld+json">{structuredData}</script>
-      <AppMarketingPage lang={data.lang} appStoreUrl={data.appStoreUrl} profile={data.profile} />
-    </>
+    <AppMarketingPage lang={data.lang} appStoreUrl={data.appStoreUrl} profile={data.profile} />
   );
 }
