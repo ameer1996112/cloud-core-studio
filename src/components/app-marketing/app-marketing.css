@@ -359,6 +359,11 @@
   color: #c9d1dc;
 }
 
+.app-marketing .app-marketing__features .app-marketing__section-heading h2,
+.app-marketing .app-marketing__features .app-marketing__feature h3 {
+  color: var(--app-ivory);
+}
+
 .app-marketing__section-heading {
   max-width: 760px;
   margin-block-end: 44px;
@@ -611,6 +616,10 @@
   text-wrap: balance;
 }
 
+.app-marketing .app-marketing__final-copy h2 {
+  color: var(--app-ivory);
+}
+
 .app-marketing__final-copy > p:last-child {
   max-width: 570px;
   margin: 23px 0 0;
@@ -648,7 +657,7 @@
   color: var(--app-gold);
 }
 
-.app-marketing__primary-cta--ivory {
+.app-marketing .app-marketing__primary-cta.app-marketing__primary-cta--ivory {
   color: var(--app-navy);
   background: var(--app-ivory);
   border-color: var(--app-ivory);

@@ -30,7 +30,10 @@ describe("public app marketing route", () => {
     expect(appRoute).toContain('name: "robots"');
     expect(appRoute).toContain('property: "og:title"');
     expect(appRoute).toContain('name: "twitter:card"');
-    expect(appRoute).toContain('type="application/ld+json"');
+    expect(appRoute).toContain("scripts: structuredData");
+    expect(appRoute).toContain('type: "application/ld+json"');
+    expect(appRoute).toContain("children: structuredData");
+    expect(appRoute).not.toContain('<script type="application/ld+json"');
   });
 
   test("leaves the existing protected route guard in place", () => {
