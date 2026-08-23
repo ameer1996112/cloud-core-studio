@@ -1162,7 +1162,7 @@ Run: `git status --short`
 
 Expected: unrelated pre-existing changes remain untouched; marketing work is committed or limited to the files listed in this plan.
 
-Run: `git diff --check HEAD~5..HEAD`
+Run: `git diff --check 9bc6bbe..HEAD`
 
 Expected: no whitespace errors in the feature commits.
 
