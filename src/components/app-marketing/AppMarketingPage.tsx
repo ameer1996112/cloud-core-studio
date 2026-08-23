@@ -20,6 +20,7 @@ import {
 } from "@/lib/app-marketing";
 import { authImages } from "@/lib/auth-assets";
 import { applyLang, LANG_META, type Lang } from "@/lib/i18n";
+import { buildWhatsappHref } from "@/lib/instagramLanding";
 
 import "./app-marketing.css";
 
@@ -39,19 +40,27 @@ const PAGE_LABELS: Record<
   {
     skip: string;
     language: string;
+    contact: string;
+    footerNavigation: string;
   }
 > = {
   he: {
     skip: "דילוג לתוכן",
     language: "בחירת שפה",
+    contact: "יצירת קשר",
+    footerNavigation: "קישורים שימושיים",
   },
   ar: {
     skip: "تخطّي إلى المحتوى",
     language: "اختيار اللغة",
+    contact: "التواصل",
+    footerNavigation: "روابط مفيدة",
   },
   en: {
     skip: "Skip to content",
     language: "Choose language",
+    contact: "Contact",
+    footerNavigation: "Useful links",
   },
 };
 
@@ -128,14 +137,16 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }):
 function ContactLinks({
   profile,
   supportLabel,
+  contactLabel,
 }: {
   profile: AppMarketingPublicProfile;
   supportLabel: string;
+  contactLabel: string;
 }): JSX.Element {
-  const whatsappNumber = profile.whatsappNumber?.replace(/[^\d+]/g, "");
+  const whatsappHref = buildWhatsappHref(profile.whatsappNumber, "");
 
   return (
-    <nav className="app-marketing__contact-links" aria-label={supportLabel}>
+    <nav className="app-marketing__contact-links" aria-label={contactLabel}>
       <Link to="/support" className="app-marketing__contact-link">
         <MessageCircle aria-hidden="true" />
         <span>{supportLabel}</span>
@@ -152,10 +163,10 @@ function ContactLinks({
           <span dir="ltr">{profile.publicPhone}</span>
         </a>
       ) : null}
-      {whatsappNumber ? (
+      {whatsappHref ? (
         <a
           className="app-marketing__contact-link"
-          href={`https://wa.me/${whatsappNumber.replace(/^\+/, "")}`}
+          href={whatsappHref}
           target="_blank"
           rel="noreferrer"
         >
@@ -363,6 +374,10 @@ export function AppMarketingPage({
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
             </Link>
             <AppStoreBadge lang={lang} href={appStoreUrl} label={copy.hero.storeCta} />
+            <Link to="/support" className="app-marketing__final-support">
+              <MessageCircle aria-hidden="true" />
+              <span>{copy.footer.support}</span>
+            </Link>
           </div>
         </section>
       </main>
@@ -382,8 +397,12 @@ export function AppMarketingPage({
               <p className="app-marketing__footer-address">{profile.address}</p>
             ) : null}
           </div>
-          <ContactLinks profile={profile} supportLabel={copy.footer.support} />
-          <nav className="app-marketing__footer-nav" aria-label={copy.footer.support}>
+          <ContactLinks
+            profile={profile}
+            supportLabel={copy.footer.support}
+            contactLabel={labels.contact}
+          />
+          <nav className="app-marketing__footer-nav" aria-label={labels.footerNavigation}>
             <Link to="/support">{copy.footer.support}</Link>
             <Link to="/privacy">{copy.footer.privacy}</Link>
             <Link to="/terms">{copy.footer.terms}</Link>

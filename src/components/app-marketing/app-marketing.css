@@ -625,6 +625,29 @@
   gap: 16px;
 }
 
+.app-marketing__final-support {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #d7dde5;
+  border-block-end: 1px solid rgba(212, 175, 106, 0.72);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: color 160ms ease;
+}
+
+.app-marketing__final-support:hover {
+  color: var(--app-gold);
+}
+
+.app-marketing__final-support svg {
+  width: 17px;
+  height: 17px;
+  color: var(--app-gold);
+}
+
 .app-marketing__primary-cta--ivory {
   color: var(--app-navy);
   background: var(--app-ivory);
