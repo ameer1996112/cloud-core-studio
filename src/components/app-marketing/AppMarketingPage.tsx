@@ -114,6 +114,7 @@ function AppStoreBadge({
       target="_blank"
       rel="noreferrer"
       aria-label={label}
+      data-app-store-link
     >
       <img
         className="app-marketing__store-badge"
@@ -228,7 +229,7 @@ export function AppMarketingPage({
           </Link>
           <div className="app-marketing__header-actions">
             <LanguageSelector lang={lang} onChange={changeLanguage} />
-            <Link to="/auth" className="app-marketing__header-cta">
+            <Link to="/auth" className="app-marketing__header-cta" data-auth-link>
               <span>{copy.headerAction}</span>
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
             </Link>
@@ -243,7 +244,7 @@ export function AppMarketingPage({
             <h1 id="app-marketing-title">{copy.hero.title}</h1>
             <p className="app-marketing__hero-body">{copy.hero.body}</p>
             <div className="app-marketing__hero-actions">
-              <Link to="/auth" className="app-marketing__primary-cta">
+              <Link to="/auth" className="app-marketing__primary-cta" data-auth-link>
                 <span>{copy.hero.primaryCta}</span>
                 <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
               </Link>
@@ -292,7 +293,11 @@ export function AppMarketingPage({
             tabIndex={0}
           >
             {screenshots.map((screenshot) => (
-              <figure className="app-marketing__screenshot" key={screenshot.kind}>
+              <figure
+                className="app-marketing__screenshot"
+                data-app-screenshot
+                key={screenshot.kind}
+              >
                 <div className="app-marketing__phone-top" aria-hidden="true" />
                 <img
                   src={screenshot.src}
@@ -369,6 +374,7 @@ export function AppMarketingPage({
             <Link
               to="/auth"
               className="app-marketing__primary-cta app-marketing__primary-cta--ivory"
+              data-auth-link
             >
               <span>{copy.hero.primaryCta}</span>
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />

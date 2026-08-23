@@ -139,8 +139,8 @@
   background: var(--app-navy);
 }
 
-.app-marketing__header-cta,
-.app-marketing__primary-cta {
+.app-marketing .app-marketing__header-cta,
+.app-marketing .app-marketing__primary-cta {
   display: inline-flex;
   min-height: 48px;
   padding-inline: 19px;
@@ -176,8 +176,8 @@
   border: 0;
 }
 
-.app-marketing__header-cta:hover,
-.app-marketing__primary-cta:hover {
+.app-marketing .app-marketing__header-cta:hover,
+.app-marketing .app-marketing__primary-cta:hover {
   color: var(--app-navy);
   background: var(--app-gold);
   border-color: var(--app-gold);
