@@ -83,7 +83,8 @@ async def main():
                 actions = await page.locator(".app-marketing__header-actions").bounding_box()
                 assert brand and actions
                 assert (
-                    brand["right"] <= actions["x"] or actions["right"] <= brand["x"]
+                    brand["x"] + brand["width"] <= actions["x"]
+                    or actions["x"] + actions["width"] <= brand["x"]
                 ), f"header controls overlap at {width}px"
 
         for path in ("/auth", "/support", "/privacy", "/terms"):
