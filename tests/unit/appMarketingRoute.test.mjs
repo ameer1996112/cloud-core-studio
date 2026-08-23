@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { buildWhatsappHref } from "../../src/lib/instagramLanding.ts";
+
 const root = resolve(import.meta.dir, "../..");
 const appRoute = readFileSync(resolve(root, "src/routes/app.tsx"), "utf8");
 const pageSource = readFileSync(
@@ -53,5 +55,20 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("/images/auth/cloud-core-auth-hero.webp");
     expect(pageSource).toContain("/brand/app-store-badges/");
     expect(pageSource).toContain("Apple and the Apple logo are trademarks of Apple Inc.");
+  });
+
+  test("normalizes local WhatsApp contacts with the shared public-link contract", () => {
+    const whatsappHref = buildWhatsappHref("055-939-8438", "");
+
+    expect(new URL(whatsappHref).pathname).toBe("/972559398438");
+    expect(pageSource).toContain('buildWhatsappHref(profile.whatsappNumber, "")');
+    expect(pageSource).not.toContain('profile.whatsappNumber?.replace(/[^\\d+]/g, "")');
+  });
+
+  test("keeps final support visible and gives footer navigation distinct landmark labels", () => {
+    expect(pageSource).toContain('className="app-marketing__final-support"');
+    expect(pageSource).toContain("aria-label={contactLabel}");
+    expect(pageSource).toContain("contactLabel={labels.contact}");
+    expect(pageSource).toContain("aria-label={labels.footerNavigation}");
   });
 });
