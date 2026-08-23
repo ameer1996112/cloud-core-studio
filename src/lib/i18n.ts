@@ -3895,8 +3895,21 @@ type Params = Record<string, string | number | null | undefined>;
 const listeners = new Set<() => void>();
 let activeLang: Lang = DEFAULT_LOCALE;
 
+export function readSupportedLang(value: unknown): Lang | null {
+  return value === "he" || value === "ar" || value === "en" ? value : null;
+}
+
+export function readLangCookieHeader(cookieHeader: string | null): Lang | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${LANG_COOKIE}=`));
+  return match ? readSupportedLang(decodeURIComponent(match.slice(LANG_COOKIE.length + 1))) : null;
+}
+
 function normalizeLang(lang: Lang | string | null | undefined): Lang {
-  return lang === "he" || lang === "ar" || lang === "en" ? lang : DEFAULT_LOCALE;
+  return readSupportedLang(lang) ?? DEFAULT_LOCALE;
 }
 
 function readStoredLang(): Lang {
@@ -3939,8 +3952,13 @@ export function getBootLangScript() {
     try {
       const cookieMatch = document.cookie.match(/(?:^|; )${LANG_COOKIE}=([^;]+)/);
       const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+      const url = new URL(window.location.href);
+      const requestedRouteLang = window.location.pathname === "/app" ? url.searchParams.get("lang") : null;
+      const routeLang = requestedRouteLang === "en" || requestedRouteLang === "he" || requestedRouteLang === "ar"
+        ? requestedRouteLang
+        : null;
       const currentLang = document.documentElement.lang;
-      const candidate = cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
+      const candidate = routeLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
       const next = candidate === "en" || candidate === "he" || candidate === "ar"
         ? candidate
         : ${JSON.stringify(DEFAULT_LOCALE)};

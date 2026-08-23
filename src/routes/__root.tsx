@@ -23,10 +23,11 @@ import { Toaster } from "sonner";
 import {
   applyLang,
   DEFAULT_LOCALE,
-  LANG_COOKIE,
   getDirection,
   getBootLangScript,
   getStoredLang,
+  readLangCookieHeader,
+  readSupportedLang,
   setActiveLang,
   t,
 } from "@/lib/i18n";
@@ -148,10 +149,19 @@ function RootShell({ children }: { children: ReactNode }) {
 
 const getInitialShellLang = createIsomorphicFn()
   .server(() => {
-    const cookieHeader = getStartContext().request.headers.get("cookie");
-    return readLangCookie(cookieHeader) ?? DEFAULT_LOCALE;
+    const request = getStartContext().request;
+    const url = new URL(request.url);
+    const routeLang =
+      url.pathname === "/app" ? readSupportedLang(url.searchParams.get("lang")) : null;
+    if (routeLang) return routeLang;
+    return readLangCookieHeader(request.headers.get("cookie")) ?? DEFAULT_LOCALE;
   })
   .client(() => {
+    const routeLang =
+      typeof window !== "undefined" && window.location.pathname === "/app"
+        ? readSupportedLang(new URL(window.location.href).searchParams.get("lang"))
+        : null;
+    if (routeLang) return routeLang;
     const bootLang =
       typeof window !== "undefined" && "__ccBootLang" in window
         ? (window as typeof window & { __ccBootLang?: unknown }).__ccBootLang
@@ -163,18 +173,6 @@ const getInitialShellLang = createIsomorphicFn()
     if (storedLang === "he" || storedLang === "ar" || storedLang === "en") return storedLang;
     return DEFAULT_LOCALE;
   });
-
-function readLangCookie(cookieHeader: string | null) {
-  if (!cookieHeader) return null;
-  const match = cookieHeader
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${LANG_COOKIE}=`));
-  if (!match) return null;
-  const value = decodeURIComponent(match.slice(LANG_COOKIE.length + 1));
-  if (value === "en" || value === "he" || value === "ar") return value;
-  return null;
-}
 
 const registerAdminPushNotifications = createClientOnlyFn(() => {
   void import("@/lib/adminPush.client")

@@ -1,6 +1,15 @@
 import { strict as assert } from "node:assert";
-const { DEFAULT_LOCALE, LANG_KEY, applyLang, getActiveLang, getDirection, getStoredLang, t } =
-  await import("../../src/lib/i18n.ts?test-real-catalog=1");
+const {
+  DEFAULT_LOCALE,
+  LANG_KEY,
+  applyLang,
+  getActiveLang,
+  getBootLangScript,
+  getDirection,
+  getStoredLang,
+  readLangCookieHeader,
+  t,
+} = await import("../../src/lib/i18n.ts?test-real-catalog=1");
 assert.equal(DEFAULT_LOCALE, "he");
 assert.equal(getDirection("he"), "rtl");
 assert.equal(getDirection("ar"), "rtl");
@@ -97,6 +106,14 @@ try {
   assert.equal(t("auth.guestBody"), "يمكنك تصفح الجدول وفتح تفاصيل الحصص قبل تسجيل الدخول.");
   assert.equal(t("auth.browseSchedule"), "تصفح الجدول");
   assert.equal(t("auth.guestSupport"), "الدعم");
+
+  const bootSource = getBootLangScript();
+  assert.match(bootSource, /window\.location\.pathname === "\/app"/);
+  assert.match(bootSource, /searchParams\.get\("lang"\)/);
+  assert.match(bootSource, /routeLang \|\| cookieLang/);
+  assert.equal(readLangCookieHeader("other=1; cc_lang=ar"), "ar");
+  assert.equal(readLangCookieHeader("cc_lang=fr"), null);
+  assert.equal(readLangCookieHeader(null), null);
 
   console.log("i18n defaults and catalogs OK");
 } finally {
