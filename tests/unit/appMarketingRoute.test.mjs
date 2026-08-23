@@ -4,6 +4,10 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "../..");
 const appRoute = readFileSync(resolve(root, "src/routes/app.tsx"), "utf8");
+const pageSource = readFileSync(
+  resolve(root, "src/components/app-marketing/AppMarketingPage.tsx"),
+  "utf8",
+);
 const protectedRoute = readFileSync(resolve(root, "src/routes/_authenticated/route.tsx"), "utf8");
 
 describe("public app marketing route", () => {
@@ -29,5 +33,25 @@ describe("public app marketing route", () => {
 
   test("leaves the existing protected route guard in place", () => {
     expect(protectedRoute).toContain("requireAuthenticatedRoute");
+  });
+
+  test("renders the complete semantic section and destination contract", () => {
+    expect(pageSource).toContain('<main id="main-content"');
+    expect(pageSource).toContain("aria-label={copy.features.title}");
+    expect(pageSource).toContain("aria-label={copy.screenshots.title}");
+    expect(pageSource).toContain("aria-label={copy.classes.title}");
+    expect(pageSource).toContain("aria-label={copy.steps.title}");
+    expect(pageSource).toContain('to="/auth"');
+    expect(pageSource).toContain('to="/support"');
+    expect(pageSource).toContain('to="/privacy"');
+    expect(pageSource).toContain('to="/terms"');
+    expect(pageSource).toContain("getAppMarketingScreenshots(lang)");
+  });
+
+  test("uses the official logo, real studio image, and Apple badge", () => {
+    expect(pageSource).toContain("/brand/cloud-core-logo-full.webp");
+    expect(pageSource).toContain("/images/auth/cloud-core-auth-hero.webp");
+    expect(pageSource).toContain("/brand/app-store-badges/");
+    expect(pageSource).toContain("Apple and the Apple logo are trademarks of Apple Inc.");
   });
 });
