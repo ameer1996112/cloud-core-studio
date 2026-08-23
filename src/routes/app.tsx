@@ -108,7 +108,10 @@ function AppMarketingRoute() {
     if (getActiveLang() !== data.lang) applyLang(data.lang);
   }, [data.lang]);
 
-  const structuredData = JSON.stringify(buildAppMarketingStructuredData(data)).replace(/</g, "\\u003c");
+  const structuredData = JSON.stringify(buildAppMarketingStructuredData(data)).replace(
+    /</g,
+    "\\u003c",
+  );
 
   return (
     <>
