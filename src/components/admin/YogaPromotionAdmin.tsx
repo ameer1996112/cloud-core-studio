@@ -19,6 +19,7 @@ type PromotionAdminForm = {
   creditExpiresAt: string;
   claimLimit: number | string;
   programTypeIds: string[];
+  classIds: string[];
 };
 
 export function YogaPromotionAdmin() {
@@ -39,6 +40,7 @@ export function YogaPromotionAdmin() {
       creditExpiresAt: toJerusalemInput(data.campaign.credit_expires_at),
       claimLimit: data.campaign.claim_limit,
       programTypeIds: data.eligibleProgramTypeIds,
+      classIds: data.eligibleClassIds,
     });
   }, [data, form]);
 
@@ -52,6 +54,7 @@ export function YogaPromotionAdmin() {
           creditExpiresAt: jerusalemInputToIso(form.creditExpiresAt),
           claimLimit: Number(form.claimLimit),
           programTypeIds: form.programTypeIds,
+          classIds: form.classIds,
         },
       }),
     onSuccess: async () => {
@@ -150,6 +153,36 @@ export function YogaPromotionAdmin() {
                   }
                 />
                 {type.name_he} · {type.name_ar} · {type.name_en}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="settings-label">Eligible exact class</p>
+          <p className="mt-1 text-xs text-slate">
+            When selected, the gift credit cannot be used for any other session—even another session
+            of the same Yoga class type.
+          </p>
+          <div className="mt-2 grid gap-2">
+            {data.classes.map((cls) => (
+              <label
+                key={cls.id}
+                className="flex items-center gap-3 rounded-xl border border-gold/20 p-3 text-sm text-navy"
+              >
+                <input
+                  type="radio"
+                  name="yoga-promotion-class"
+                  checked={form.classIds.includes(cls.id)}
+                  onChange={() => setForm({ ...form, classIds: [cls.id] })}
+                />
+                <span>
+                  <span className="font-semibold">{cls.title}</span>
+                  <span className="ms-2" dir="ltr">
+                    {new Date(cls.starts_at).toLocaleString(undefined, {
+                      timeZone: ADMIN_TIME_ZONE,
+                    })}
+                  </span>
+                </span>
               </label>
             ))}
           </div>
