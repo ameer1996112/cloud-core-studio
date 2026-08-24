@@ -8,6 +8,7 @@ import {
   buildAppMarketingStructuredData,
   getAppMarketingAlternates,
   getAppMarketingMeta,
+  sanitizeMarketingUtm,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
 import { applyLang, getActiveLang, type Lang } from "@/lib/i18n";
@@ -21,6 +22,7 @@ const APP_MARKETING_HERO_IMAGE = "/images/auth/cloud-core-auth-hero.webp";
 export type AppMarketingRouteData = {
   appStoreUrl: string;
   lang: Lang;
+  marketingUtm: Record<string, string>;
   profile: AppMarketingPublicProfile;
   trialPrice: number | null;
 };
@@ -41,12 +43,18 @@ function getCanonicalTrialPrice(studio: InstagramLandingData): number | null {
   return typeof price === "number" && Number.isFinite(price) && price > 0 ? price : null;
 }
 
-export async function getAppMarketingRouteLoader(lang: Lang): Promise<AppMarketingRouteData> {
+export async function getAppMarketingRouteLoader(
+  lang: Lang,
+  search = "",
+): Promise<AppMarketingRouteData> {
+  const marketingUtm = Object.fromEntries(sanitizeMarketingUtm(search));
+
   try {
     const studio = await getInstagramLandingData();
     return {
       appStoreUrl: APP_MARKETING_INSTALL_URL,
       lang,
+      marketingUtm,
       profile: getPublicProfile(studio),
       trialPrice: getCanonicalTrialPrice(studio),
     };
@@ -54,6 +62,7 @@ export async function getAppMarketingRouteLoader(lang: Lang): Promise<AppMarketi
     return {
       appStoreUrl: APP_MARKETING_INSTALL_URL,
       lang,
+      marketingUtm,
       profile: {
         address: null,
         contactEmail: null,
@@ -125,6 +134,7 @@ export function AppMarketingRoutePage({ data }: { data: AppMarketingRouteData })
     <AppMarketingPage
       lang={data.lang}
       appStoreUrl={data.appStoreUrl}
+      marketingUtm={data.marketingUtm}
       profile={data.profile}
       trialPrice={data.trialPrice}
     />

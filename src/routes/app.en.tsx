@@ -7,7 +7,7 @@ import {
 } from "./app-marketing-route";
 
 export const Route = createFileRoute("/app/en")({
-  loader: () => getAppMarketingRouteLoader("en"),
+  loader: ({ location }) => getAppMarketingRouteLoader("en", location.searchStr),
   head: ({ loaderData }) => getAppMarketingRouteHead("en", loaderData),
   component: AppEnglishMarketingRoute,
 });

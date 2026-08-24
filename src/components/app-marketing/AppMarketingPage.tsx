@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import type { JSX } from "react";
 import {
   ArrowUpRight,
@@ -15,12 +15,13 @@ import {
 
 import {
   APP_STORE_BADGE_PATHS,
+  buildMarketingHref,
   getAppMarketingCopy,
   getAppMarketingScreenshots,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
 import { authImages } from "@/lib/auth-assets";
-import { applyLang, LANG_META, type Lang } from "@/lib/i18n";
+import { LANG_META, type Lang } from "@/lib/i18n";
 import { buildWhatsappHref } from "@/lib/instagramLanding";
 
 import "./app-marketing.css";
@@ -28,6 +29,7 @@ import "./app-marketing.css";
 export type AppMarketingPageProps = {
   lang: Lang;
   appStoreUrl: string;
+  marketingUtm?: Record<string, string>;
   profile: AppMarketingPublicProfile;
   trialPrice?: number | null;
 };
@@ -75,25 +77,24 @@ const FEATURE_ICONS: [FeatureIcon, FeatureIcon, FeatureIcon, FeatureIcon] = [
 
 function LanguageSelector({
   lang,
-  onChange,
+  marketingUtm,
 }: {
   lang: Lang;
-  onChange: (lang: Lang) => void;
+  marketingUtm: Record<string, string>;
 }): JSX.Element {
   return (
     <div className="app-marketing__languages" role="group" aria-label={PAGE_LABELS[lang].language}>
       {LANGUAGE_ORDER.map((code) => (
-        <button
+        <a
           key={code}
           className="app-marketing__language"
-          type="button"
-          aria-pressed={lang === code}
+          href={buildMarketingHref(`/app/${code}`, new URLSearchParams(marketingUtm))}
+          aria-current={lang === code ? "page" : undefined}
           lang={code}
           dir={LANG_META[code].dir}
-          onClick={() => onChange(code)}
         >
           {LANG_META[code].label}
-        </button>
+        </a>
       ))}
     </div>
   );
@@ -194,18 +195,13 @@ function ContactLinks({
 export function AppMarketingPage({
   lang,
   appStoreUrl,
+  marketingUtm = {},
   profile,
   trialPrice = null,
 }: AppMarketingPageProps): JSX.Element {
-  const navigate = useNavigate();
   const copy = getAppMarketingCopy(lang, trialPrice);
   const labels = PAGE_LABELS[lang];
   const screenshots = getAppMarketingScreenshots(lang);
-
-  function changeLanguage(next: Lang) {
-    applyLang(next);
-    void navigate({ to: `/app/${next}`, replace: true });
-  }
 
   return (
     <div className="app-marketing" lang={lang} dir={LANG_META[lang].dir}>
@@ -215,8 +211,8 @@ export function AppMarketingPage({
 
       <header className="app-marketing__header">
         <div className="app-marketing__header-inner">
-          <Link
-            to={`/app/${lang}`}
+          <a
+            href={buildMarketingHref(`/app/${lang}`, new URLSearchParams(marketingUtm))}
             className="app-marketing__brand-link"
             aria-label="Cloud & Core Studio"
           >
@@ -227,9 +223,9 @@ export function AppMarketingPage({
               width={164}
               height={100}
             />
-          </Link>
+          </a>
           <div className="app-marketing__header-actions">
-            <LanguageSelector lang={lang} onChange={changeLanguage} />
+            <LanguageSelector lang={lang} marketingUtm={marketingUtm} />
             <Link to="/auth" className="app-marketing__header-cta" data-auth-link>
               <span>{copy.headerAction}</span>
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />

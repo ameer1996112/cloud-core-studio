@@ -27,6 +27,8 @@ describe("public app marketing route", () => {
     }
     expect(readFileSync(appRouteSupport, "utf8")).toContain("APP_MARKETING_INSTALL_URL");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("adultPlans");
+    expect(readFileSync(appRouteSupport, "utf8")).toContain("sanitizeMarketingUtm");
+    expect(readFileSync(appRouteSupport, "utf8")).toContain("marketingUtm");
   });
 
   test("makes /app a temporary redirect-only locale resolver", () => {
@@ -83,6 +85,9 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain('to="/privacy"');
     expect(pageSource).toContain('to="/terms"');
     expect(pageSource).toContain("getAppMarketingScreenshots(lang)");
+    expect(pageSource).toContain("marketingUtm");
+    expect(pageSource).toContain("buildMarketingHref");
+    expect(pageSource).toContain("new URLSearchParams(marketingUtm)");
   });
 
   test("uses the official logo, real studio image, and Apple badge", () => {

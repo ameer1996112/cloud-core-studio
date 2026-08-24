@@ -3953,7 +3953,10 @@ export function getBootLangScript() {
       const cookieMatch = document.cookie.match(/(?:^|; )${LANG_COOKIE}=([^;]+)/);
       const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
       const url = new URL(window.location.href);
-      const requestedRouteLang = window.location.pathname === "/app" ? url.searchParams.get("lang") : null;
+      const pathRouteLang = window.location.pathname.match(/^\\/app\\/(ar|he|en)$/)?.[1];
+      const requestedRouteLang = pathRouteLang || (
+        window.location.pathname === "/app" ? url.searchParams.get("lang") : null
+      );
       const routeLang = requestedRouteLang === "en" || requestedRouteLang === "he" || requestedRouteLang === "ar"
         ? requestedRouteLang
         : null;
