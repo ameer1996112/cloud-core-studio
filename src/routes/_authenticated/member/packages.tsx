@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sparkles,
   Check,
@@ -28,6 +28,7 @@ import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
 import type { CheckoutConsent } from "@/lib/checkoutConsent";
+import { trackYogaPromo } from "@/lib/yogaPromo";
 
 const BIT_PAYMENT_PHONE = "0523318478";
 type OnlinePaymentMethod = "bit" | "card";
@@ -133,6 +134,13 @@ function MemberPackages() {
   const visiblePlans = (data?.plans ?? [])
     .filter((p: any) => !hasTestPlanRecord(p))
     .sort(comparePricingPlans);
+  const promoEntitlements = (data?.promotionEntitlements ?? []).filter(
+    (entitlement: any) => entitlement.status === "active",
+  );
+
+  useEffect(() => {
+    if (promoEntitlements.length > 0) trackYogaPromo("yoga_promo_credit_viewed");
+  }, [promoEntitlements.length]);
 
   function submitPayment(
     plan: any,
@@ -253,6 +261,33 @@ function MemberPackages() {
           )}
         </div>
       </div>
+
+      {promoEntitlements.map((entitlement: any) => (
+        <div
+          key={entitlement.id}
+          className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_rgba(11,29,58,.16)] sm:p-6"
+          data-testid="yoga-promo-wallet-credit"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="member-eyebrow text-gold">Cloud &amp; Core</p>
+              <h2 className="mt-2 font-display text-2xl text-ivory">
+                {t("promo.yoga.walletTitle")}
+              </h2>
+              <p className="mt-3 text-sm font-semibold text-ivory/90">{t("promo.yoga.quantity")}</p>
+              <p className="mt-1 text-sm text-ivory/75">{t("promo.yoga.restriction")}</p>
+              {entitlement.expires_at ? (
+                <p className="mt-1 text-sm text-ivory/75">
+                  {t("promo.yoga.validUntil", {
+                    date: new Date(entitlement.expires_at).toLocaleDateString(locale),
+                  })}
+                </p>
+              ) : null}
+            </div>
+            <Sparkles className="h-6 w-6 shrink-0 text-gold" aria-hidden="true" />
+          </div>
+        </div>
+      ))}
 
       {requests && requests.length > 0 && (
         <div className="space-y-2">

@@ -13,6 +13,8 @@ import {
   type DateScope,
 } from "@/components/member/MemberScheduleFilterPanel";
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
+import { YogaPromoBanner } from "@/components/member/YogaPromoBanner";
+import { useYogaPromo } from "@/hooks/useYogaPromo";
 import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getMemberScheduleQueryKey, getViewerCacheKey } from "@/lib/memberQueryKeys";
@@ -314,6 +316,7 @@ export function MemberScheduleContent({
   viewerCacheKey,
 }: MemberScheduleContentProps) {
   const { lang, dir } = useI18n();
+  const yogaPromo = useYogaPromo({ autoClaim: Boolean(session) });
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
   const resolvedViewerCacheKey = viewerCacheKey ?? getViewerCacheKey(session);
@@ -450,6 +453,14 @@ export function MemberScheduleContent({
 
   return (
     <section dir={dir} className="member-page w-full space-y-6 pb-10">
+      {yogaPromo.data?.active || yogaPromo.data?.claimedByCurrentUser ? (
+        <YogaPromoBanner
+          status={yogaPromo.data}
+          publicAudience={!session}
+          claimPending={yogaPromo.claim.isPending}
+          onClaim={session ? () => yogaPromo.claim.mutate() : undefined}
+        />
+      ) : null}
       <div className="member-page-panel p-5 sm:p-8">
         <div
           className={`grid gap-6 ${session ? "md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end" : "md:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] md:items-center"}`}
