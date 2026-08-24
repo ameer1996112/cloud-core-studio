@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-const PUBLIC_SITEMAP_URLS = [
-  "https://cloudandcorestudio.com/app/ar",
-  "https://cloudandcorestudio.com/app/he",
-  "https://cloudandcorestudio.com/app/en",
-  "https://cloudandcorestudio.com/support",
-  "https://cloudandcorestudio.com/privacy",
-  "https://cloudandcorestudio.com/terms",
-] as const;
+import { PUBLIC_INDEXING_URLS } from "@/lib/app-marketing";
+import { buildRawTextResponse, type RawTextResponseMethod } from "@/lib/rawTextResponse";
 
 const SITEMAP_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600";
 const SITEMAP_CONTENT_TYPE = "application/xml; charset=utf-8";
@@ -22,7 +15,7 @@ function escapeXml(value: string) {
 }
 
 export function buildSitemapXml() {
-  const entries = PUBLIC_SITEMAP_URLS.map((url) => `    <url><loc>${escapeXml(url)}</loc></url>`);
+  const entries = PUBLIC_INDEXING_URLS.map((url) => `    <url><loc>${escapeXml(url)}</loc></url>`);
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
@@ -32,15 +25,12 @@ export function buildSitemapXml() {
   ].join("\n");
 }
 
-function buildSitemapResponseForMethod(method: "GET" | "HEAD") {
-  const body = buildSitemapXml();
-  return new Response(method === "HEAD" ? null : body, {
-    status: 200,
-    headers: {
-      "cache-control": SITEMAP_CACHE_CONTROL,
-      "content-length": String(new TextEncoder().encode(body).byteLength),
-      "content-type": SITEMAP_CONTENT_TYPE,
-    },
+function buildSitemapResponseForMethod(method: RawTextResponseMethod) {
+  return buildRawTextResponse({
+    body: buildSitemapXml(),
+    cacheControl: SITEMAP_CACHE_CONTROL,
+    contentType: SITEMAP_CONTENT_TYPE,
+    method,
   });
 }
 

@@ -1,42 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PUBLIC_SITEMAP_URL } from "@/lib/app-marketing";
+import { buildRawTextResponse, type RawTextResponseMethod } from "@/lib/rawTextResponse";
 
 const ROBOTS_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600";
 const ROBOTS_CONTENT_TYPE = "text/plain; charset=utf-8";
 
 export function buildRobotsTxt() {
-  return [
-    "User-agent: *",
-    "Allow: /",
-    "Allow: /app/ar",
-    "Allow: /app/he",
-    "Allow: /app/en",
-    "Allow: /support",
-    "Allow: /privacy",
-    "Allow: /terms",
-    "Allow: /images/",
-    "Allow: /brand/",
-    "Disallow: /auth",
-    "Disallow: /admin",
-    "Disallow: /instructor",
-    "Disallow: /member",
-    "Disallow: /checkout",
-    "Disallow: /payment",
-    "Disallow: /api/",
-    "Disallow: /_authenticated/",
-    "Sitemap: https://cloudandcorestudio.com/sitemap.xml",
-    "",
-  ].join("\n");
+  return ["User-agent: *", "Allow: /", "", `Sitemap: ${PUBLIC_SITEMAP_URL}`, ""].join("\n");
 }
 
-function buildRobotsResponseForMethod(method: "GET" | "HEAD") {
-  const body = buildRobotsTxt();
-  return new Response(method === "HEAD" ? null : body, {
-    status: 200,
-    headers: {
-      "cache-control": ROBOTS_CACHE_CONTROL,
-      "content-length": String(new TextEncoder().encode(body).byteLength),
-      "content-type": ROBOTS_CONTENT_TYPE,
-    },
+function buildRobotsResponseForMethod(method: RawTextResponseMethod) {
+  return buildRawTextResponse({
+    body: buildRobotsTxt(),
+    cacheControl: ROBOTS_CACHE_CONTROL,
+    contentType: ROBOTS_CONTENT_TYPE,
+    method,
   });
 }
 

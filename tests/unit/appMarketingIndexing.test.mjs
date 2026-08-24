@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  APP_MARKETING_LOCALE_URLS,
+  PUBLIC_INDEXING_URLS,
+  PUBLIC_SITE_ORIGIN,
+  PUBLIC_SITEMAP_URL,
+} from "../../src/lib/app-marketing";
+import {
   buildRobotsHeadResponse,
   buildRobotsResponse,
   Route as RobotsRoute,
@@ -20,7 +26,32 @@ const publicUrls = [
   "https://cloudandcorestudio.com/terms",
 ];
 
+const expectedSitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url><loc>https://cloudandcorestudio.com/app/ar</loc></url>
+    <url><loc>https://cloudandcorestudio.com/app/he</loc></url>
+    <url><loc>https://cloudandcorestudio.com/app/en</loc></url>
+    <url><loc>https://cloudandcorestudio.com/support</loc></url>
+    <url><loc>https://cloudandcorestudio.com/privacy</loc></url>
+    <url><loc>https://cloudandcorestudio.com/terms</loc></url>
+</urlset>
+`;
+
+const expectedRobotsTxt =
+  "User-agent: *\nAllow: /\n\nSitemap: https://cloudandcorestudio.com/sitemap.xml\n";
+
 describe("public indexing responses", () => {
+  test("keeps canonical public indexing metadata centralized", () => {
+    expect(PUBLIC_SITE_ORIGIN).toBe("https://cloudandcorestudio.com");
+    expect(APP_MARKETING_LOCALE_URLS).toEqual({
+      ar: "https://cloudandcorestudio.com/app/ar",
+      he: "https://cloudandcorestudio.com/app/he",
+      en: "https://cloudandcorestudio.com/app/en",
+    });
+    expect(PUBLIC_INDEXING_URLS).toEqual(publicUrls);
+    expect(PUBLIC_SITEMAP_URL).toBe("https://cloudandcorestudio.com/sitemap.xml");
+  });
+
   test("builds a deterministic XML sitemap with only canonical public entries", async () => {
     const response = buildSitemapResponse();
     const body = await response.text();
@@ -33,6 +64,10 @@ describe("public indexing responses", () => {
     expect(body.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
     expect(body).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
     expect(body.endsWith("</urlset>\n")).toBe(true);
+    expect(body).toBe(expectedSitemapXml);
+    expect(response.headers.get("content-length")).toBe(
+      String(new TextEncoder().encode(body).byteLength),
+    );
 
     for (const url of publicUrls) {
       expect(body).toContain(`<loc>${url}</loc>`);
@@ -68,31 +103,11 @@ describe("public indexing responses", () => {
     );
     expect(body).toContain("User-agent: *");
     expect(body).toContain("Allow: /");
-    for (const publicPath of [
-      "/app/ar",
-      "/app/he",
-      "/app/en",
-      "/support",
-      "/privacy",
-      "/terms",
-      "/images/",
-      "/brand/",
-    ]) {
-      expect(body).toContain(`Allow: ${publicPath}`);
-    }
-    for (const privatePath of [
-      "/auth",
-      "/admin",
-      "/instructor",
-      "/member",
-      "/checkout",
-      "/payment",
-      "/api/",
-      "/_authenticated/",
-    ]) {
-      expect(body).toContain(`Disallow: ${privatePath}`);
-    }
-    expect(body).toContain("Sitemap: https://cloudandcorestudio.com/sitemap.xml");
+    expect(body).toBe(expectedRobotsTxt);
+    expect(response.headers.get("content-length")).toBe(
+      String(new TextEncoder().encode(body).byteLength),
+    );
+    expect(body).not.toContain("Disallow:");
     expect(body).not.toContain("noindex");
   });
 
@@ -109,6 +124,9 @@ describe("public indexing responses", () => {
     );
     expect(headResponse.headers.get("content-length")).toBe(
       getResponse.headers.get("content-length"),
+    );
+    expect(getResponse.headers.get("content-length")).toBe(
+      String(new TextEncoder().encode(expectedSitemapXml).byteLength),
     );
     expect(await headResponse.text()).toBe("");
     expect(await routeHeadResponse.text()).toBe("");
@@ -127,6 +145,9 @@ describe("public indexing responses", () => {
     );
     expect(headResponse.headers.get("content-length")).toBe(
       getResponse.headers.get("content-length"),
+    );
+    expect(getResponse.headers.get("content-length")).toBe(
+      String(new TextEncoder().encode(expectedRobotsTxt).byteLength),
     );
     expect(await headResponse.text()).toBe("");
     expect(await routeHeadResponse.text()).toBe("");

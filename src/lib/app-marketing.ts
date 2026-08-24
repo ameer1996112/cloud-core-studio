@@ -1,7 +1,8 @@
 import { DEFAULT_LOCALE, type Lang } from "@/lib/i18n";
 import { roleHome, type AppRole } from "@/lib/auth-redirect";
 
-export const APP_MARKETING_CANONICAL_URL = "https://cloudandcorestudio.com/app";
+export const PUBLIC_SITE_ORIGIN = "https://cloudandcorestudio.com";
+export const APP_MARKETING_CANONICAL_URL = `${PUBLIC_SITE_ORIGIN}/app`;
 export const APP_MARKETING_OG_IMAGE =
   "https://cloudandcorestudio.com/images/auth/cloud-core-auth-hero.webp";
 export const APP_MARKETING_LANGS = ["ar", "he", "en"] as const;
@@ -10,11 +11,20 @@ const APP_MARKETING_BASE_URL = APP_MARKETING_CANONICAL_URL;
 export const APP_MARKETING_INSTALL_URL = "https://apps.apple.com/app/id6786035836";
 export const APP_MARKETING_APP_ICON =
   "https://cloudandcorestudio.com/brand/cloud-core-app-icon.svg";
-const APP_MARKETING_LOCALE_URLS: Record<AppMarketingLang, string> = {
+export const APP_MARKETING_LOCALE_URLS: Record<AppMarketingLang, string> = {
   ar: `${APP_MARKETING_BASE_URL}/ar`,
   he: `${APP_MARKETING_BASE_URL}/he`,
   en: `${APP_MARKETING_BASE_URL}/en`,
 };
+export const PUBLIC_INDEXING_URLS = [
+  APP_MARKETING_LOCALE_URLS.ar,
+  APP_MARKETING_LOCALE_URLS.he,
+  APP_MARKETING_LOCALE_URLS.en,
+  `${PUBLIC_SITE_ORIGIN}/support`,
+  `${PUBLIC_SITE_ORIGIN}/privacy`,
+  `${PUBLIC_SITE_ORIGIN}/terms`,
+] as const;
+export const PUBLIC_SITEMAP_URL = `${PUBLIC_SITE_ORIGIN}/sitemap.xml`;
 export const APP_MARKETING_OG_IMAGES: Record<AppMarketingLang, string> = {
   ar: "https://cloudandcorestudio.com/images/app-marketing/social/ar.png",
   he: "https://cloudandcorestudio.com/images/app-marketing/social/he.png",
