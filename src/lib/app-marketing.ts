@@ -1,4 +1,5 @@
 import { DEFAULT_LOCALE, type Lang } from "@/lib/i18n";
+import { roleHome, type AppRole } from "@/lib/auth-redirect";
 
 export const APP_MARKETING_CANONICAL_URL = "https://cloudandcorestudio.com/app";
 export const APP_MARKETING_OG_IMAGE =
@@ -201,6 +202,32 @@ export function resolveAppMarketingRedirect(input: {
     to: `/app/${lang}` as const,
     search: Object.fromEntries(sanitizeMarketingUtm(input.search)),
   };
+}
+
+export function isExplicitNativePlatformRequest(search: string | URLSearchParams): boolean {
+  const params =
+    typeof search === "string" ? new URLSearchParams(search.replace(/^\?/, "")) : search;
+  return params.get("platform") === "native";
+}
+
+export function resolveRootEntryRedirect(input: {
+  role: AppRole | null | undefined;
+  isExplicitNative: boolean;
+}) {
+  if (input.role) return roleHome(input.role);
+  return input.isExplicitNative ? "/auth" : null;
+}
+
+export function resolveRootPublicRedirect(input: {
+  isNative: boolean;
+  saved?: unknown;
+  accepted?: string | string[] | null;
+  search: string | URLSearchParams;
+}): string {
+  if (input.isNative) return "/auth";
+
+  const decision = resolveAppMarketingRedirect(input);
+  return buildMarketingHref(decision.to, input.search);
 }
 
 export function buildMarketingHref(path: string, utm?: string | URLSearchParams): string {
