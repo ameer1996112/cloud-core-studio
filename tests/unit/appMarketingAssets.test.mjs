@@ -56,6 +56,9 @@ describe("app marketing assets", () => {
     expect(manifest.session.startsAt).toBe("2031-09-10T17:30:00.000Z");
     expect(manifest.session.timeZone).toBe("Asia/Jerusalem");
     expect(manifest.manualReview.status).toBe("required");
+    expect(JSON.stringify(manifest)).not.toMatch(
+      /\/Users\/|\/@fs\/|cloud-core-lovable-site|\/home\//i,
+    );
     for (const lang of ["he", "ar", "en"]) {
       const localeAssets = manifest.assets[lang];
       expect(localeAssets).toBeDefined();
@@ -128,7 +131,16 @@ describe("app marketing assets", () => {
 
     expect(result.status).toBe(0);
     const payload = JSON.parse(result.stdout.trim().split("\n").at(-1));
-    expect(payload.networkProbe).toEqual({ http: "rejected", webSocket: "closed" });
+    expect(payload.networkProbe).toEqual({
+      http: "rejected",
+      webSocket: "closed",
+      serviceWorker: {
+        script: "valid",
+        registration: "blocked",
+        controller: false,
+        registrations: 0,
+      },
+    });
     expect(Object.keys(payload.hashes)).toHaveLength(18);
     expect(new Set(Object.values(payload.hashes)).size).toBeGreaterThan(12);
   }, 70_000);
@@ -145,7 +157,11 @@ describe("app marketing assets", () => {
     expect(result.status).toBe(0);
     const payload = JSON.parse(result.stdout.trim().split("\n").at(-1));
     expect(payload.stateRegression).toBe("blocked");
-    expect(payload.networkProbe).toEqual({ http: "rejected", webSocket: "closed" });
+    expect(payload.networkProbe).toMatchObject({
+      http: "rejected",
+      webSocket: "closed",
+      serviceWorker: { registration: "blocked", controller: false, registrations: 0 },
+    });
   }, 40_000);
 
   test("refuses a production capture before it can start the fixture or browser", () => {

@@ -107,6 +107,11 @@ def stop_process(process: subprocess.Popen[bytes]) -> None:
         process.wait(timeout=5)
 
 
+def vite_log_tail(log_file: Path, limit: int = 4_000) -> str:
+    content = log_file.read_bytes().decode("utf-8", errors="replace")
+    return content[-limit:] or "(Vite produced no output.)"
+
+
 def local_only(url: str, base_url: str) -> bool:
     return url.startswith(base_url + "/") or url == base_url
 
@@ -115,6 +120,11 @@ def stable_url_path(url: str, base_url: str) -> str:
     if not local_only(url, base_url):
         return url
     return urlparse(url).path or "/"
+
+
+def approved_resource_path(url: str, base_url: str) -> str | None:
+    path = stable_url_path(url, base_url)
+    return path if path.startswith(("/brand/", "/images/")) else None
 
 
 def png_metadata(path: Path) -> dict[str, object]:
@@ -212,7 +222,9 @@ async def observe_page(page, selector: str, base_url: str) -> dict[str, object]:
     )
     return {
         "state": payload["state"],
-        "resourceUrls": sorted({stable_url_path(url, base_url) for url in payload["resources"]}),
+        "resourceUrls": sorted(
+            {path for url in payload["resources"] if (path := approved_resource_path(url, base_url))}
+        ),
     }
 
 
@@ -230,12 +242,44 @@ async def run_network_probe(page, network_events: dict[str, list[str]]) -> dict[
             socket.addEventListener("close", () => resolve("closed"), { once: true });
             setTimeout(() => resolve("timed-out"), 2_000);
           });
-          return { http, webSocket };
+          const serviceWorkerUrl = new URL("/service-worker-probe.js", location.origin).href;
+          const workerScript = await fetch(serviceWorkerUrl)
+            .then(async (response) => ({
+              valid: response.ok && response.headers.get("content-type")?.includes("javascript") &&
+                (await response.text()).includes("skipWaiting"),
+            }))
+            .catch(() => ({ valid: false }));
+          let registration = "resolved";
+          try {
+            await navigator.serviceWorker.register(serviceWorkerUrl);
+          } catch {
+            registration = "rejected";
+          }
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          if (registration === "resolved" && !navigator.serviceWorker.controller && registrations.length === 0) {
+            registration = "blocked";
+          }
+          return {
+            http,
+            webSocket,
+            serviceWorker: {
+              script: workerScript.valid ? "valid" : "invalid",
+              registration,
+              controller: Boolean(navigator.serviceWorker.controller),
+              registrations: registrations.length,
+            },
+          };
         }
         """
     )
+    service_worker = probe["serviceWorker"]
     if probe["http"] != "rejected" or probe["webSocket"] in {"opened", "timed-out"}:
         raise RuntimeError(f"Network boundary probe was not blocked: {probe}")
+    if service_worker not in (
+        {"script": "valid", "registration": "rejected", "controller": False, "registrations": 0},
+        {"script": "valid", "registration": "blocked", "controller": False, "registrations": 0},
+    ):
+        raise RuntimeError(f"Service-worker boundary probe was not blocked by Playwright: {service_worker}")
     if "https://example.invalid/capture-boundary" not in network_events["abortedHttp"]:
         raise RuntimeError("Network boundary did not intercept the deliberate external HTTP probe.")
     if "wss://example.invalid/capture-boundary" not in network_events["blockedWebSockets"]:
@@ -362,7 +406,9 @@ async def capture_assets(*, write_assets: bool, verify_state_regression: bool = 
         "bun", "x", "--bun", "vite", "--config", str(FIXTURE_CONFIG), "--host", HOST,
         "--port", str(port), "--strictPort", "--mode", "development",
     ]
-    process = subprocess.Popen(command, cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    vite_log = tempfile.NamedTemporaryFile(prefix="app-marketing-vite-", suffix=".log", delete=False)
+    vite_log_path = Path(vite_log.name)
+    process = subprocess.Popen(command, cwd=ROOT, stdout=vite_log, stderr=subprocess.STDOUT)
     try:
         wait_for_loopback_server(process, port)
         async with async_playwright() as playwright:
@@ -475,8 +521,13 @@ async def capture_assets(*, write_assets: bool, verify_state_regression: bool = 
                 return {"networkProbe": network_probe, "hashes": hashes}
             finally:
                 await browser.close()
+    except Exception as error:
+        vite_log.flush()
+        raise RuntimeError(f"{error}\nVite log tail:\n{vite_log_tail(vite_log_path)}") from error
     finally:
         stop_process(process)
+        vite_log.close()
+        vite_log_path.unlink(missing_ok=True)
 
 
 def parse_args() -> argparse.Namespace:

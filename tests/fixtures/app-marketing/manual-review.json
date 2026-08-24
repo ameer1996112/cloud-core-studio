@@ -12,7 +12,11 @@
         "state": {
           "availableClassCount": 3,
           "bookingAction": true,
-          "openSpots": [5, 3, 6]
+          "openSpots": [
+            5,
+            3,
+            6
+          ]
         }
       },
       "booking": {
@@ -54,7 +58,11 @@
         "state": {
           "availableClassCount": 3,
           "bookingAction": true,
-          "openSpots": [5, 3, 6]
+          "openSpots": [
+            5,
+            3,
+            6
+          ]
         }
       },
       "booking": {
@@ -92,11 +100,15 @@
     },
     "en": {
       "schedule": {
-        "sha256": "d3b8a6efae175815061e2809e4a6180198985bf68e7f3bfa2fb2325d572ce176",
+        "sha256": "e772f3d358d1cc41644a508680f886e935b5db0c57763991b9bae1fec88fe120",
         "state": {
           "availableClassCount": 3,
           "bookingAction": true,
-          "openSpots": [5, 3, 6]
+          "openSpots": [
+            5,
+            3,
+            6
+          ]
         }
       },
       "booking": {
