@@ -14,6 +14,10 @@ const pageSource = readFileSync(
   resolve(root, "src/components/app-marketing/AppMarketingPage.tsx"),
   "utf8",
 );
+const styleSource = readFileSync(
+  resolve(root, "src/components/app-marketing/app-marketing.css"),
+  "utf8",
+);
 const protectedRoute = readFileSync(resolve(root, "src/routes/_authenticated/route.tsx"), "utf8");
 
 describe("public app marketing route", () => {
@@ -121,6 +125,9 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("copy.screenshots.headings[index]");
     expect(pageSource).toContain("copy.classes.descriptions[index]");
     expect(pageSource).toContain('<details className="app-marketing__faq-item"');
+    expect(styleSource).toContain(".app-marketing__faq-item summary::after");
+    expect(styleSource).toContain(".app-marketing__faq-item[open] summary::after");
+    expect(styleSource).toContain("inset-inline-end");
     expect(pageSource).toContain("copy.faq.map(([question, answer])");
     expect(pageSource).toContain("33.016109,35.349285");
     expect(pageSource).toContain("/images/studio/studio-sign.webp");
@@ -132,7 +139,9 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("/brand/cloud-core-logo-full.webp");
     expect(pageSource).toContain("/images/auth/cloud-core-auth-hero.webp");
     expect(pageSource).toContain("APP_STORE_BADGE_PATHS[lang]");
-    expect(pageSource).toContain('width={lang === "he" ? 122 : 120}');
+    expect(pageSource).toContain("APP_STORE_BADGE_DIMENSIONS[lang]");
+    expect(pageSource).toContain("width={dimensions.width}");
+    expect(pageSource).toContain("height={dimensions.height}");
     expect(pageSource).toContain("Apple and the Apple logo are trademarks of Apple Inc.");
   });
 
@@ -144,8 +153,11 @@ describe("public app marketing route", () => {
     expect(pageSource).not.toContain('profile.whatsappNumber?.replace(/[^\\d+]/g, "")');
   });
 
-  test("keeps final support visible and gives footer navigation distinct landmark labels", () => {
-    expect(pageSource).toContain('className="app-marketing__final-support"');
+  test("keeps final sign-in visible with a login icon and gives footer navigation distinct landmark labels", () => {
+    expect(pageSource).toContain('className="app-marketing__final-login"');
+    expect(pageSource).toContain("<LogIn");
+    expect(pageSource).toContain("data-login-link");
+    expect(pageSource).not.toContain("app-marketing__final-support");
     expect(pageSource).toContain("aria-label={contactLabel}");
     expect(pageSource).toContain("contactLabel={labels.contact}");
     expect(pageSource).toContain("aria-label={labels.footerNavigation}");

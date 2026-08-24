@@ -5,6 +5,7 @@ import {
   CalendarCheck,
   CalendarDays,
   Instagram,
+  LogIn,
   Mail,
   MapPin,
   MessageCircle,
@@ -14,6 +15,7 @@ import {
 
 import {
   APP_STORE_BADGE_PATHS,
+  APP_STORE_BADGE_DIMENSIONS,
   buildMarketingHref,
   getAppMarketingAddressDisplay,
   getAppMarketingCopy,
@@ -123,6 +125,8 @@ function AppStoreBadge({
   href: string;
   label: string;
 }): JSX.Element {
+  const dimensions = APP_STORE_BADGE_DIMENSIONS[lang];
+
   return (
     <a
       className="app-marketing__store-link"
@@ -136,8 +140,8 @@ function AppStoreBadge({
         className="app-marketing__store-badge"
         src={APP_STORE_BADGE_PATHS[lang]}
         alt={label}
-        width={lang === "he" ? 122 : 120}
-        height={40}
+        width={dimensions.width}
+        height={dimensions.height}
       />
     </a>
   );
@@ -479,8 +483,8 @@ export function AppMarketingPage({
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
             </a>
             <AppStoreBadge lang={lang} href={appStoreUrl} label={copy.storeAccessibleLabel} />
-            <a href={authHref} className="app-marketing__final-support" data-auth-link>
-              <MessageCircle aria-hidden="true" />
+            <a href={authHref} className="app-marketing__final-login" data-login-link>
+              <LogIn aria-hidden="true" />
               <span>{copy.finalCta.actions[2]}</span>
             </a>
           </div>

@@ -25,6 +25,11 @@ export const APP_STORE_BADGE_PATHS: Record<Lang, string> = {
   ar: "/brand/app-store-badges/ar.svg",
   en: "/brand/app-store-badges/en.svg",
 };
+export const APP_STORE_BADGE_DIMENSIONS: Record<Lang, { width: number; height: number }> = {
+  ar: { width: 119.66407, height: 40 },
+  he: { width: 121.664, height: 42 },
+  en: { width: 119.66407, height: 40 },
+};
 
 export type AppMarketingSearch = { lang?: Lang };
 
@@ -607,7 +612,7 @@ export function normalizeAppMarketingAddress(address: string | null | undefined)
 }
 
 function comparableAppMarketingAddress(address: string): string {
-  return address.toLocaleLowerCase().replace(/[,.·]/g, "").replace(/\s+/g, "");
+  return address.toLowerCase().replace(/[,.·]/g, "").replace(/\s+/g, "");
 }
 
 export function getAppMarketingAddressDisplay(

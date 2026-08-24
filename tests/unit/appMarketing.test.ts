@@ -3,6 +3,7 @@ import {
   APP_MARKETING_CANONICAL_URL,
   APP_MARKETING_COPY,
   APP_MARKETING_LANGS,
+  APP_STORE_BADGE_DIMENSIONS,
   buildMarketingHref,
   buildAppMarketingStructuredData,
   formatAppMarketingTrialPrice,
@@ -286,6 +287,16 @@ describe("app marketing contracts", () => {
       localized,
       canonical: null,
     });
+  });
+
+  test("uses locale-neutral address comparison for Turkish-like casing", () => {
+    expect(getAppMarketingAddressDisplay("Istanbul", "ISTANBUL").canonical).toBeNull();
+  });
+
+  test("declares the intrinsic localized App Store badge dimensions", () => {
+    expect(APP_STORE_BADGE_DIMENSIONS.ar).toEqual({ width: 119.66407, height: 40 });
+    expect(APP_STORE_BADGE_DIMENSIONS.en).toEqual({ width: 119.66407, height: 40 });
+    expect(APP_STORE_BADGE_DIMENSIONS.he).toEqual({ width: 121.664, height: 42 });
   });
 
   test("formats a verified trial price once for localized offer copy", () => {
