@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "status": "approved",
+  "reviewer": "Codex",
+  "reviewedAt": "2026-08-24",
+  "scope": "All 15 localized phone captures and 3 localized social cards inspected after the recorded capture.",
+  "result": "No real identity, contact data, payment data, or contradictory session time is visible.",
+  "assets": {
+    "ar": {
+      "schedule": {
+        "sha256": "50b5faff9b96539ef2d81d6aed8e7b9f5ce12173e5698cfc46f226c645a3bef7",
+        "state": {
+          "availableClassCount": 3,
+          "bookingAction": true,
+          "openSpots": [5, 3, 6]
+        }
+      },
+      "booking": {
+        "sha256": "9d04a98bafe18a12984698459e49466b541fe770f514b1b45a6f1b650672560f",
+        "state": {
+          "bookingAction": true,
+          "openSpots": 5
+        }
+      },
+      "bookings": {
+        "sha256": "f44710efcf035b9dac844754707b478adff0e2851f18f815ef4e4184e8dd5d02",
+        "state": {
+          "confirmed": true
+        }
+      },
+      "membership": {
+        "sha256": "df963c3332a90c23b72fdffcbc820530b85451134f1a6bdfcd0a82dc46b9cfe3",
+        "state": {
+          "active": true,
+          "credits": 8
+        }
+      },
+      "account": {
+        "sha256": "ae6ff93650b914ac9fd7c5267708a020347c52a3e1da90cb9cddf6b3867cfe94",
+        "state": {
+          "completeFictionalProfile": true
+        }
+      },
+      "social": {
+        "sha256": "7df5e1e0a0b3de5a5faa4820810d862eea6c2e90a87c40d8cfc7f15dd44eecb4",
+        "state": {
+          "socialCard": true
+        }
+      }
+    },
+    "he": {
+      "schedule": {
+        "sha256": "f01b21a3f6ded9343ef9b403acce6e4ae9db73d6adc3c9825c5f2296fe86bcdd",
+        "state": {
+          "availableClassCount": 3,
+          "bookingAction": true,
+          "openSpots": [5, 3, 6]
+        }
+      },
+      "booking": {
+        "sha256": "cdfdabb018ffa988565abf0ab77d6e390a13747f34206bb96f8950065635b781",
+        "state": {
+          "bookingAction": true,
+          "openSpots": 5
+        }
+      },
+      "bookings": {
+        "sha256": "f37a873456b613652183f8079f2f69f5b6254ab916db7f10741382bf1f54c225",
+        "state": {
+          "confirmed": true
+        }
+      },
+      "membership": {
+        "sha256": "73da4b3ffb74b874222240ce4d332d46a45f2458ed2d1cec6322a8048ae757e5",
+        "state": {
+          "active": true,
+          "credits": 8
+        }
+      },
+      "account": {
+        "sha256": "fb32b0ad2649ca820441acaee35f6b9035dea006a60250e00c6737f7b25fe2d5",
+        "state": {
+          "completeFictionalProfile": true
+        }
+      },
+      "social": {
+        "sha256": "f61bcd30b8add440cf47d83781c1d4b43701040f4c49782e7fb1d18019816b6d",
+        "state": {
+          "socialCard": true
+        }
+      }
+    },
+    "en": {
+      "schedule": {
+        "sha256": "d3b8a6efae175815061e2809e4a6180198985bf68e7f3bfa2fb2325d572ce176",
+        "state": {
+          "availableClassCount": 3,
+          "bookingAction": true,
+          "openSpots": [5, 3, 6]
+        }
+      },
+      "booking": {
+        "sha256": "021d5ad7df41e9059008ff3b53049d682b403661458406be1a04cdb693b39d86",
+        "state": {
+          "bookingAction": true,
+          "openSpots": 5
+        }
+      },
+      "bookings": {
+        "sha256": "2572ab9872f6e60e04e24a8c66b893af6ec3f17fb10bb3be2b491854e70524a8",
+        "state": {
+          "confirmed": true
+        }
+      },
+      "membership": {
+        "sha256": "723de4e9f3a6952c303c87f9cf85685aa9cd2c2b1961b1e09cf7b5e016aabc2d",
+        "state": {
+          "active": true,
+          "credits": 8
+        }
+      },
+      "account": {
+        "sha256": "90c0611866edd3378235f8e21fa515634d52630039c32ca0f4c6150c47d5e0be",
+        "state": {
+          "completeFictionalProfile": true
+        }
+      },
+      "social": {
+        "sha256": "8936536cc35107202c20482a2906cd65be44b207a769408b43cb63e42c319a05",
+        "state": {
+          "socialCard": true
+        }
+      }
+    }
+  }
+}

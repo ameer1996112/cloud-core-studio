@@ -6,6 +6,16 @@
 
 @import "../../../src/styles.css";
 
+/* Screenshot pixels must settle independently of motion preferences or blink timing. */
+*,
+*::before,
+*::after {
+  animation: none !important;
+  caret-color: transparent !important;
+  scroll-behavior: auto !important;
+  transition: none !important;
+}
+
 :root {
   background: #faf7f2;
 }
@@ -166,14 +176,26 @@ body {
  * its dense schedule-list treatment so three available classes fit a phone. */
 .capture-phone[data-capture-kind="schedule"] .premium-lesson-card__layout,
 .capture-phone[data-capture-kind="schedule"][dir="rtl"] .premium-lesson-card__layout {
-  grid-template-columns: 92px minmax(0, 1fr);
-  min-height: 0;
+  grid-template-columns: 84px minmax(0, 1fr);
+  height: 130px;
+  min-height: 130px;
+  max-height: 130px;
   gap: 10px;
-  padding: 9px;
+  overflow: hidden;
+  padding: 8px;
+}
+
+/* VisualClassCard enters with this production animation. For a source capture,
+ * keep its final visual state rather than sampling a compositor frame. */
+.capture-phone[data-capture-kind="schedule"] .animate-fade-in {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  will-change: auto !important;
 }
 
 .capture-phone[data-capture-kind="schedule"][dir="rtl"] .premium-lesson-card__layout {
-  grid-template-columns: minmax(0, 1fr) 92px;
+  grid-template-columns: minmax(0, 1fr) 84px;
 }
 
 .capture-phone[data-capture-kind="schedule"] .premium-lesson-card__media,
@@ -181,9 +203,9 @@ body {
   display: block;
   grid-column: 1;
   grid-row: 1;
-  width: 92px;
-  min-height: 106px;
-  height: 106px;
+  width: 84px;
+  min-height: 88px;
+  height: 88px;
   aspect-ratio: auto;
   border-radius: 13px;
 }
@@ -196,9 +218,11 @@ body {
 .capture-phone[data-capture-kind="schedule"][dir="rtl"] .premium-lesson-card__content {
   grid-column: 2;
   grid-row: 1;
-  gap: 4px;
+  gap: 2px;
   justify-content: flex-start;
-  padding: 1px 3px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 3px;
 }
 
 .capture-phone[data-capture-kind="schedule"][dir="rtl"] .premium-lesson-card__content {
@@ -206,18 +230,34 @@ body {
 }
 
 .capture-phone[data-capture-kind="schedule"] .premium-lesson-card .lesson-card__title {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.08;
 }
 
 .capture-phone[data-capture-kind="schedule"] .premium-lesson-card__descriptor {
-  font-size: 10px;
+  font-size: 9px;
+  line-height: 1.1;
 }
 
 .capture-phone[data-capture-kind="schedule"] .premium-lesson-card__actions {
   margin-top: 2px;
   border-top: 0;
   padding-top: 0;
+}
+
+.capture-phone[data-capture-kind="schedule"] .lesson-availability-meter {
+  display: none;
+}
+
+.capture-phone[data-capture-kind="schedule"] .premium-lesson-card .lesson-card__time-badge {
+  min-height: 24px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.capture-phone[data-capture-kind="schedule"] .lesson-card__cta {
+  min-height: 29px;
+  padding: 5px 8px;
 }
 
 .capture-detail {

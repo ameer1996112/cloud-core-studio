@@ -24,6 +24,8 @@ const STUDIO_TIME_ZONE = "Asia/Jerusalem";
 const SESSION_STARTS_AT = "2031-09-10T17:30:00.000Z";
 const SESSION_DURATION_MINUTES = 55;
 const SESSION_CANCELLATION_WINDOW_HOURS = 4;
+const SCHEDULE_OPEN_SPOTS = [5, 3, 6] as const;
+const MEMBERSHIP_CREDITS = 8;
 
 const copy = {
   en: {
@@ -279,10 +281,12 @@ function PhoneHeader({ lang, current }: { lang: Lang; current: Screen }) {
 function PhoneFrame({
   lang,
   screen,
+  captureState,
   children,
 }: {
   lang: Lang;
   screen: Screen;
+  captureState: Record<string, boolean | number | readonly number[]>;
   children: React.ReactNode;
 }) {
   return (
@@ -292,6 +296,7 @@ function PhoneFrame({
       lang={lang}
       data-capture-ready="true"
       data-capture-kind={screen}
+      data-capture-state={JSON.stringify(captureState)}
     >
       <PhoneHeader lang={lang} current={screen} />
       <div className="capture-phone__body">{children}</div>
@@ -303,7 +308,15 @@ function ScheduleScreen({ lang }: { lang: Lang }) {
   const text = copy[lang];
   const [classModel, secondClassModel, thirdClassModel] = classesFor(lang);
   return (
-    <PhoneFrame lang={lang} screen="schedule">
+    <PhoneFrame
+      lang={lang}
+      screen="schedule"
+      captureState={{
+        availableClassCount: [classModel, secondClassModel, thirdClassModel].length,
+        bookingAction: true,
+        openSpots: SCHEDULE_OPEN_SPOTS,
+      }}
+    >
       <div className="capture-phone__title-row">
         <div>
           <p>{text.today}</p>
@@ -314,19 +327,21 @@ function ScheduleScreen({ lang }: { lang: Lang }) {
       <ScheduleDaySection date={new Date(SESSION_STARTS_AT)} count={3}>
         <VisualClassCard
           cls={classModel}
-          state={{ kind: "available", spotsLeft: 5 }}
+          state={{ kind: "available", spotsLeft: SCHEDULE_OPEN_SPOTS[0] }}
           onOpen={() => {}}
           eager
         />
         <VisualClassCard
           cls={secondClassModel}
-          state={{ kind: "available", spotsLeft: 3 }}
+          state={{ kind: "available", spotsLeft: SCHEDULE_OPEN_SPOTS[1] }}
           onOpen={() => {}}
+          eager
         />
         <VisualClassCard
           cls={thirdClassModel}
-          state={{ kind: "available", spotsLeft: 6 }}
+          state={{ kind: "available", spotsLeft: SCHEDULE_OPEN_SPOTS[2] }}
           onOpen={() => {}}
+          eager
         />
       </ScheduleDaySection>
     </PhoneFrame>
@@ -338,7 +353,7 @@ function BookingScreen({ lang }: { lang: Lang }) {
   const label = labels(lang);
   const [classModel] = classesFor(lang);
   return (
-    <PhoneFrame lang={lang} screen="booking">
+    <PhoneFrame lang={lang} screen="booking" captureState={{ bookingAction: true, openSpots: 5 }}>
       <div className="capture-phone__title-row">
         <div>
           <p>{sessionLabels(lang).date}</p>
@@ -404,7 +419,7 @@ function BookingsScreen({ lang }: { lang: Lang }) {
   const label = labels(lang);
   const [classModel] = classesFor(lang);
   return (
-    <PhoneFrame lang={lang} screen="bookings">
+    <PhoneFrame lang={lang} screen="bookings" captureState={{ confirmed: Boolean(text.confirmed) }}>
       <div className="capture-phone__title-row">
         <div>
           <p>{text.upcoming}</p>
@@ -457,11 +472,21 @@ function BookingsScreen({ lang }: { lang: Lang }) {
   );
 }
 
-function MembershipScreen({ lang }: { lang: Lang }) {
+function MembershipScreen({
+  lang,
+  credits = MEMBERSHIP_CREDITS,
+}: {
+  lang: Lang;
+  credits?: number;
+}) {
   const text = copy[lang];
   const label = labels(lang);
   return (
-    <PhoneFrame lang={lang} screen="membership">
+    <PhoneFrame
+      lang={lang}
+      screen="membership"
+      captureState={{ active: Boolean(label.active), credits }}
+    >
       <div className="capture-phone__title-row">
         <div>
           <p>{text.member}</p>
@@ -478,7 +503,7 @@ function MembershipScreen({ lang }: { lang: Lang }) {
                 ? "الأرصدة المتاحة"
                 : "Available credits"}
           </span>
-          <strong>8</strong>
+          <strong>{credits}</strong>
         </div>
         <div className="capture-stat">
           <span>{label.classes}</span>
@@ -516,7 +541,11 @@ function AccountScreen({ lang }: { lang: Lang }) {
   const text = copy[lang];
   const label = labels(lang);
   return (
-    <PhoneFrame lang={lang} screen="account">
+    <PhoneFrame
+      lang={lang}
+      screen="account"
+      captureState={{ completeFictionalProfile: Boolean(text.accountTitle && label.memberSince) }}
+    >
       <section className="capture-profile-hero">
         <div className="capture-profile-hero__photo" />
         <div className="capture-profile-hero__copy">
@@ -576,6 +605,7 @@ function SocialCard({ lang }: { lang: Lang }) {
       dir={getDirection(lang)}
       data-capture-ready="true"
       data-capture-kind="social"
+      data-capture-state={JSON.stringify({ socialCard: true })}
     >
       <div className="capture-social__photo" />
       <div className="capture-social__copy">
@@ -598,6 +628,7 @@ function App() {
   const lang: Lang =
     candidate === "he" || candidate === "ar" || candidate === "en" ? candidate : "en";
   const candidateScreen = params.get("screen");
+  const isIntentionalStateRegression = params.get("fixture-state") === "invalid";
   const screen: Screen = [
     "schedule",
     "booking",
@@ -612,7 +643,14 @@ function App() {
   if (screen === "social") return <SocialCard lang={lang} />;
   if (screen === "booking") return <BookingScreen lang={lang} />;
   if (screen === "bookings") return <BookingsScreen lang={lang} />;
-  if (screen === "membership") return <MembershipScreen lang={lang} />;
+  if (screen === "membership") {
+    return (
+      <MembershipScreen
+        lang={lang}
+        credits={isIntentionalStateRegression ? 0 : MEMBERSHIP_CREDITS}
+      />
+    );
+  }
   if (screen === "account") return <AccountScreen lang={lang} />;
   return <ScheduleScreen lang={lang} />;
 }

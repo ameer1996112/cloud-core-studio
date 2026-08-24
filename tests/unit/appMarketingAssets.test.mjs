@@ -17,6 +17,8 @@ describe("app marketing assets", () => {
   };
   const sha256 = (file) => createHash("sha256").update(readFileSync(file)).digest("hex");
   const manifestFile = resolve(root, "tests/fixtures/app-marketing/asset-manifest.json");
+  const manualReviewFile = resolve(root, "tests/fixtures/app-marketing/manual-review.json");
+  const captureRequirementsFile = resolve(root, "tests/fixtures/app-marketing/requirements.txt");
 
   test("ships five distinct readable localized phone captures per language", () => {
     for (const lang of ["he", "ar", "en"]) {
@@ -53,7 +55,7 @@ describe("app marketing assets", () => {
 
     expect(manifest.session.startsAt).toBe("2031-09-10T17:30:00.000Z");
     expect(manifest.session.timeZone).toBe("Asia/Jerusalem");
-    expect(manifest.manualVisualInspection.status).toBe("passed");
+    expect(manifest.manualReview.status).toBe("required");
     for (const lang of ["he", "ar", "en"]) {
       const localeAssets = manifest.assets[lang];
       expect(localeAssets).toBeDefined();
@@ -66,30 +68,85 @@ describe("app marketing assets", () => {
         expect(asset.sha256).toBe(sha256(file));
         expect(asset.dimensions).toEqual(pngSize(file));
       }
-      expect(localeAssets.schedule.positiveState).toMatchObject({
-        availableClassCount: 3,
-        bookingAction: true,
-        openSpots: [5, 3, 6],
-      });
-      expect(localeAssets.booking.positiveState).toMatchObject({
-        bookingAction: true,
-        openSpots: 5,
-      });
-      expect(localeAssets.bookings.positiveState).toMatchObject({ confirmed: true });
-      expect(localeAssets.membership.positiveState).toMatchObject({
-        active: true,
-        credits: 8,
-      });
-      expect(localeAssets.account.positiveState).toMatchObject({
-        completeFictionalProfile: true,
-        profileName: lang === "ar" ? "عضوة تجريبية" : lang === "he" ? "חברת סטודיו" : "Demo Member",
-      });
       expect(localeAssets.social.provenance).toMatchObject({
         officialLogo: "/brand/cloud-core-logo-full.svg",
         studioImage: "/images/auth/cloud-core-auth-hero.webp",
       });
+      expect(localeAssets.social.observed.resourceUrls).toContain(
+        "/images/auth/cloud-core-auth-hero.webp",
+      );
+      expect(localeAssets.social.observed.resourceUrls).toContain(
+        "/brand/cloud-core-logo-full.svg",
+      );
+      expect(localeAssets.schedule.observed.state).toMatchObject({
+        availableClassCount: 3,
+        bookingAction: true,
+        openSpots: [5, 3, 6],
+      });
+      expect(localeAssets.booking.observed.state).toMatchObject({
+        bookingAction: true,
+        openSpots: 5,
+      });
+      expect(localeAssets.bookings.observed.state).toMatchObject({ confirmed: true });
+      expect(localeAssets.membership.observed.state).toMatchObject({ active: true, credits: 8 });
+      expect(localeAssets.account.observed.state).toMatchObject({ completeFictionalProfile: true });
     }
   });
+
+  test("keeps human review separate and binds its approval to the current asset hashes", () => {
+    expect(existsSync(manualReviewFile)).toBe(true);
+    expect(existsSync(manifestFile)).toBe(true);
+    if (!existsSync(manualReviewFile) || !existsSync(manifestFile)) return;
+
+    const review = JSON.parse(readFileSync(manualReviewFile, "utf8"));
+    const manifest = JSON.parse(readFileSync(manifestFile, "utf8"));
+    expect(review.status).toBe("approved");
+    expect(review.reviewedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    for (const lang of ["he", "ar", "en"]) {
+      for (const name of ["schedule", "booking", "bookings", "membership", "account", "social"]) {
+        const asset = manifest.assets[lang][name];
+        expect(review.assets[lang][name].sha256).toBe(asset.sha256);
+        expect(review.assets[lang][name].state).toEqual(asset.observed.state ?? null);
+      }
+    }
+  });
+
+  test("declares the exact non-production capture toolchain", () => {
+    expect(existsSync(captureRequirementsFile)).toBe(true);
+    if (!existsSync(captureRequirementsFile)) return;
+    expect(readFileSync(captureRequirementsFile, "utf8")).toContain("playwright==1.58.0");
+  });
+
+  test("executes the loopback-only HTTP and WebSocket boundary probe with two-pass byte stability", () => {
+    const script = resolve(root, "scripts/capture-app-marketing-assets.py");
+    const result = spawnSync("python3", [script, "--verify-network"], {
+      cwd: root,
+      env: { ...process.env, NODE_ENV: "test" },
+      encoding: "utf8",
+      timeout: 60_000,
+    });
+
+    expect(result.status).toBe(0);
+    const payload = JSON.parse(result.stdout.trim().split("\n").at(-1));
+    expect(payload.networkProbe).toEqual({ http: "rejected", webSocket: "closed" });
+    expect(Object.keys(payload.hashes)).toHaveLength(18);
+    expect(new Set(Object.values(payload.hashes)).size).toBeGreaterThan(12);
+  }, 70_000);
+
+  test("executes an invalid fixture-state probe and confirms capture validation blocks it", () => {
+    const script = resolve(root, "scripts/capture-app-marketing-assets.py");
+    const result = spawnSync("python3", [script, "--verify-state-regression"], {
+      cwd: root,
+      env: { ...process.env, NODE_ENV: "test" },
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+
+    expect(result.status).toBe(0);
+    const payload = JSON.parse(result.stdout.trim().split("\n").at(-1));
+    expect(payload.stateRegression).toBe("blocked");
+    expect(payload.networkProbe).toEqual({ http: "rejected", webSocket: "closed" });
+  }, 40_000);
 
   test("refuses a production capture before it can start the fixture or browser", () => {
     const script = resolve(root, "scripts/capture-app-marketing-assets.py");
@@ -164,9 +221,13 @@ describe("app marketing assets", () => {
     expect(captureSource).toContain("NODE_ENV=production");
     expect(captureSource).toContain("route");
     expect(captureSource).toContain("abort");
-    expect(fixtureSource + captureSource).not.toMatch(
+    expect(fixtureSource).not.toMatch(
       /supabase|service[_-]?role|loadEnv|process\.env|dotenv|fetch\(|axios|postgres|database|customer/i,
     );
+    expect(captureSource).not.toMatch(
+      /supabase|service[_-]?role|loadEnv|process\.env|dotenv|axios|postgres|database|customer/i,
+    );
+    expect(captureSource).toContain("https://example.invalid/capture-boundary");
     expect(fixtureSource + captureSource).not.toMatch(/generic woman|woman stock|stock photo/i);
     expect(productionRouteSources.join("\n")).not.toContain("tests/fixtures/app-marketing");
   });

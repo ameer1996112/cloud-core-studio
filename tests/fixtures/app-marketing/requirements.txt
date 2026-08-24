@@ -1,0 +1,2 @@
+# Capture-only tooling. This is intentionally outside production package dependencies.
+playwright==1.58.0
