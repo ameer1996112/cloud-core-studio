@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import {
   isExplicitNativePlatformRequest,
   isNativeRootRequest,
+  isPublicAppMarketingPathname,
   resolveRootEntryRedirect,
   resolveRootEntryRedirectAfterAuth,
   resolveRootPublicRedirect,
@@ -13,6 +14,7 @@ import capacitorConfig from "../../capacitor.config.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const rootRoute = readFileSync(resolve(root, "src/routes/index.tsx"), "utf8");
+const appRoot = readFileSync(resolve(root, "src/routes/__root.tsx"), "utf8");
 
 describe("root marketing routing", () => {
   test("uses request-scoped auth and a noindex SSR platform bridge", () => {
@@ -24,6 +26,19 @@ describe("root marketing routing", () => {
   test("marks future native server loads explicitly", () => {
     expect(capacitorConfig.server?.url).toBe("https://cloud-core-studio-6uthbm2yyq-zf.a.run.app");
     expect(capacitorConfig.appendUserAgent).toBe("CloudCoreNative/1");
+  });
+
+  test("keeps auth, push, native lifecycle, and update bootstraps off public marketing routes", () => {
+    expect(isPublicAppMarketingPathname("/app/ar")).toBe(true);
+    expect(isPublicAppMarketingPathname("/app/he/")).toBe(true);
+    expect(isPublicAppMarketingPathname("/app/en?utm_source=qa")).toBe(false);
+    expect(isPublicAppMarketingPathname("/app")).toBe(false);
+    expect(isPublicAppMarketingPathname("/member/schedule")).toBe(false);
+
+    expect(
+      appRoot.match(/isPublicAppMarketingPathname\(window\.location\.pathname\)/g),
+    ).toHaveLength(3);
+    expect(appRoot).toContain("if (session) registerAdminPushNotifications()");
   });
 
   test("recognizes only the explicit native platform marker", () => {

@@ -1,3 +1,5 @@
+import { sanitizeMarketingUtm } from "@/lib/marketing-attribution";
+
 export const GUEST_AUTH_INTENT_STORAGE_KEY = "cc_guest_auth_intent";
 
 const GUEST_AUTH_INTENT_TTL_MS = 10 * 60 * 1000;
@@ -16,12 +18,15 @@ function normalizeClassId(classId: string | null | undefined) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export function buildMemberScheduleReturnTo(classId?: string | null) {
+export function buildMemberScheduleReturnTo(
+  classId?: string | null,
+  attribution?: string | URLSearchParams,
+) {
   const normalizedClassId = normalizeClassId(classId);
-  if (!normalizedClassId) return "/member/schedule";
-
-  const search = new URLSearchParams({ classId: normalizedClassId });
-  return `/member/schedule?${search.toString()}`;
+  const search = sanitizeMarketingUtm(attribution ?? "");
+  if (normalizedClassId) search.set("classId", normalizedClassId);
+  const query = search.toString();
+  return `/member/schedule${query ? `?${query}` : ""}`;
 }
 
 export function buildAuthReturnToHref(returnTo: string) {

@@ -301,10 +301,16 @@
   object-fit: contain;
 }
 
+.app-marketing__account-actions {
+  display: flex;
+  margin-block-start: 10px;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+
 .app-marketing__member-link {
   display: inline-flex;
   min-height: 44px;
-  margin-block-start: 10px;
   align-items: center;
   color: #34445c;
   border-block-end: 1px solid currentColor;
@@ -915,6 +921,7 @@
 .app-marketing__contact-link,
 .app-marketing__footer-nav a {
   display: inline-flex;
+  min-width: 44px;
   min-height: 44px;
   align-items: center;
   gap: 10px;

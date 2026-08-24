@@ -1,5 +1,8 @@
 import { DEFAULT_LOCALE, type Lang } from "@/lib/i18n";
 import { roleHome, type AppRole } from "@/lib/auth-redirect";
+import { buildMarketingHref, sanitizeMarketingUtm } from "@/lib/marketing-attribution";
+
+export { buildMarketingHref, sanitizeMarketingUtm } from "@/lib/marketing-attribution";
 
 export const PUBLIC_SITE_ORIGIN = "https://cloudandcorestudio.com";
 export const APP_MARKETING_CANONICAL_URL = `${PUBLIC_SITE_ORIGIN}/app`;
@@ -7,6 +10,7 @@ export const APP_MARKETING_OG_IMAGE =
   "https://cloudandcorestudio.com/images/auth/cloud-core-auth-hero.webp";
 export const APP_MARKETING_LANGS = ["ar", "he", "en"] as const;
 export type AppMarketingLang = (typeof APP_MARKETING_LANGS)[number];
+const APP_MARKETING_PUBLIC_PATH = /^\/app\/(?:ar|he|en)\/?$/;
 const APP_MARKETING_BASE_URL = APP_MARKETING_CANONICAL_URL;
 export const APP_MARKETING_INSTALL_URL = "https://apps.apple.com/app/id6786035836";
 export const APP_MARKETING_APP_ICON =
@@ -42,6 +46,10 @@ export const APP_STORE_BADGE_DIMENSIONS: Record<Lang, { width: number; height: n
 };
 
 export type AppMarketingSearch = { lang?: Lang };
+
+export function isPublicAppMarketingPathname(pathname: string) {
+  return APP_MARKETING_PUBLIC_PATH.test(pathname);
+}
 
 export type AppMarketingPublicProfile = {
   address: string | null;
@@ -197,26 +205,6 @@ export function resolveMarketingLocale(input: {
   return "ar";
 }
 
-const APPROVED_UTM_KEYS = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_content",
-  "utm_term",
-  "utm_id",
-] as const;
-
-export function sanitizeMarketingUtm(input: string | URLSearchParams): URLSearchParams {
-  const source = typeof input === "string" ? new URLSearchParams(input.replace(/^\?/, "")) : input;
-  const result = new URLSearchParams();
-  for (const key of APPROVED_UTM_KEYS) {
-    const value = source.get(key);
-    const trimmedValue = value?.trim();
-    if (trimmedValue) result.set(key, trimmedValue.slice(0, 200));
-  }
-  return result;
-}
-
 export function resolveAppMarketingRedirect(input: {
   accepted?: string | string[] | null;
   explicit?: unknown;
@@ -279,20 +267,6 @@ export function resolveRootPublicRedirect(input: {
 
   const decision = resolveAppMarketingRedirect(input);
   return buildMarketingHref(decision.to, input.search);
-}
-
-export function buildMarketingHref(path: string, utm?: string | URLSearchParams): string {
-  if (!utm) return path;
-  const clean = sanitizeMarketingUtm(utm);
-  const query = clean.toString();
-  if (!query) return path;
-  const [pathWithoutFragment, fragment] = path.split("#", 2);
-  const separator = pathWithoutFragment.includes("?")
-    ? pathWithoutFragment.endsWith("?") || pathWithoutFragment.endsWith("&")
-      ? ""
-      : "&"
-    : "?";
-  return `${pathWithoutFragment}${separator}${query}${fragment ? `#${fragment}` : ""}`;
 }
 
 export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {

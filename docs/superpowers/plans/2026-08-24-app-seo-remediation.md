@@ -35,6 +35,7 @@
 ### Task 1: Locale, UTM, metadata, and schema contract
 
 **Files:**
+
 - Modify: `tests/unit/appMarketing.test.ts`
 - Modify: `src/lib/app-marketing.ts`
 
@@ -47,8 +48,10 @@ expect(resolveMarketingLocale({ explicit: "en", saved: "he", accepted: "ar-IL" }
 expect(resolveMarketingLocale({ saved: "he", accepted: "ar-IL" })).toBe("he");
 expect(resolveMarketingLocale({ accepted: "en-US,en;q=0.9" })).toBe("en");
 expect(resolveMarketingLocale({ accepted: "fr-FR" })).toBe("ar");
-expect(sanitizeMarketingUtm("?utm_source=ig&utm_campaign=fall&email=x&returnTo=/admin"))
-  .toEqual({ utm_source: "ig", utm_campaign: "fall" });
+expect(sanitizeMarketingUtm("?utm_source=ig&utm_campaign=fall&email=x&returnTo=/admin")).toEqual({
+  utm_source: "ig",
+  utm_campaign: "fall",
+});
 expect(getAppMarketingMeta("ar").canonical).toBe("https://cloudandcorestudio.com/app/ar");
 expect(getAppMarketingAlternates("he")).toContainEqual({
   rel: "alternate",
@@ -102,6 +105,7 @@ git commit -m "feat: define localized app marketing SEO contract"
 ### Task 2: Static SSR routes and `/app` redirect
 
 **Files:**
+
 - Create: `src/routes/app-marketing-route.tsx`
 - Create: `src/routes/app.ar.tsx`
 - Create: `src/routes/app.he.tsx`
@@ -172,6 +176,7 @@ git commit -m "feat: add public localized app SSR routes"
 ### Task 3: Platform-aware and auth-aware root
 
 **Files:**
+
 - Modify: `src/routes/index.tsx`
 - Modify: `capacitor.config.ts`
 - Create: `tests/unit/rootMarketingRouting.test.mjs`
@@ -222,6 +227,7 @@ git commit -m "feat: route native and browser root visits safely"
 ### Task 4: Marketing page content, crawlable links, CTAs, trust, and FAQ
 
 **Files:**
+
 - Modify: `src/components/app-marketing/AppMarketingPage.tsx`
 - Modify: `src/components/app-marketing/app-marketing.css`
 - Modify: `tests/unit/appMarketingRoute.test.mjs`
@@ -264,6 +270,7 @@ git commit -m "feat: complete authentic localized app landing content"
 ### Task 5: Privacy-safe analytics and UTM continuation
 
 **Files:**
+
 - Create: `src/lib/app-marketing.analytics.ts`
 - Create: `tests/unit/appMarketingAnalytics.test.ts`
 - Modify: `src/components/app-marketing/AppMarketingPage.tsx`
@@ -316,6 +323,7 @@ git commit -m "feat: track app landing conversions safely"
 ### Task 6: Test-only screenshot and social-card capture
 
 **Files:**
+
 - Create: `tests/fixtures/app-marketing/index.html`
 - Create: `tests/fixtures/app-marketing/main.tsx`
 - Create: `tests/fixtures/app-marketing/fixture.css`
@@ -366,6 +374,7 @@ git commit -m "feat: generate privacy-safe localized app captures"
 ### Task 7: Sitemap and robots responses
 
 **Files:**
+
 - Create: `src/routes/sitemap[.]xml.ts`
 - Create: `src/routes/robots[.]txt.ts`
 - Create: `tests/unit/appMarketingIndexing.test.mjs`
@@ -401,6 +410,7 @@ git commit -m "feat: expose public app sitemap and robots policy"
 ### Task 8: Production SSR, browser, accessibility, and responsive QA
 
 **Files:**
+
 - Modify: `tests/e2e/app-marketing-playwright.py`
 - Create: `tmp/app-seo-remediation-qa/` evidence (not committed unless repository policy requires)
 
@@ -436,6 +446,7 @@ git commit -m "test: verify app SEO remediation end to end"
 ### Task 9: Full regression, review, and delivery report
 
 **Files:**
+
 - Modify only if review finds defects: files from Tasks 1–8
 - Create: `docs/reports/2026-08-24-app-seo-remediation.md`
 

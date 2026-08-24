@@ -6,6 +6,14 @@
 
 @import "../../../src/styles.css";
 
+/* Marketing captures use the verified empty studio instead of legacy aerial figure art. */
+.lesson-card__art-tile--aerial .lesson-card__plate-photo {
+  background-image:
+    linear-gradient(135deg, rgba(11, 29, 58, 0.04), rgba(11, 29, 58, 0.58)),
+    url("/images/studio/studio-interior.webp");
+  background-position: center;
+}
+
 /* Screenshot pixels must settle independently of motion preferences or blink timing. */
 *,
 *::before,

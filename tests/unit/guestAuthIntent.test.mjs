@@ -31,6 +31,13 @@ function createStorage() {
 assert.equal(buildMemberScheduleReturnTo(), "/member/schedule");
 assert.equal(buildMemberScheduleReturnTo("open-class"), "/member/schedule?classId=open-class");
 assert.equal(
+  buildMemberScheduleReturnTo(
+    "open-class",
+    "?utm_source=instagram&utm_campaign=fall&email=private%40example.com&token=secret",
+  ),
+  "/member/schedule?utm_source=instagram&utm_campaign=fall&classId=open-class",
+);
+assert.equal(
   buildAuthReturnToHref("/member/schedule?classId=open-class"),
   "/auth?returnTo=%2Fmember%2Fschedule%3FclassId%3Dopen-class",
 );

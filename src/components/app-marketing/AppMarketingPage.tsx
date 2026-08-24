@@ -58,6 +58,7 @@ const PAGE_LABELS: Record<
     faq: string;
     location: string;
     maps: string;
+    createAccount: string;
   }
 > = {
   he: {
@@ -68,6 +69,7 @@ const PAGE_LABELS: Record<
     faq: "שאלות נפוצות",
     location: "הכתובת שלנו",
     maps: "פתיחה במפות",
+    createAccount: "חדשים כאן? יצירת חשבון",
   },
   ar: {
     skip: "تخطّي إلى المحتوى",
@@ -77,6 +79,7 @@ const PAGE_LABELS: Record<
     faq: "أسئلة شائعة",
     location: "عنواننا",
     maps: "الفتح في الخرائط",
+    createAccount: "جديد هنا؟ أنشئ حساباً",
   },
   en: {
     skip: "Skip to content",
@@ -86,6 +89,7 @@ const PAGE_LABELS: Record<
     faq: "Frequently asked questions",
     location: "Find the studio",
     maps: "Open in Maps",
+    createAccount: "New here? Create a member account",
   },
 };
 
@@ -290,6 +294,7 @@ export function AppMarketingPage({
   const utm = new URLSearchParams(marketingUtm);
   const scheduleHref = buildMarketingHref(`/member/schedule`, utm);
   const authHref = buildMarketingHref(`/auth`, utm);
+  const signupHref = buildMarketingHref(`/auth?mode=signup`, utm);
   const mapsHref = "https://www.google.com/maps/search/?api=1&query=33.016109,35.349285";
   const trackCta: AppMarketingClickTracker = (event, ctaLocation) => {
     analytics?.track(event, { cta_location: ctaLocation });
@@ -361,14 +366,24 @@ export function AppMarketingPage({
                 onTrack={trackCta}
               />
             </div>
-            <a
-              href={authHref}
-              className="app-marketing__member-link"
-              data-auth-link
-              onClick={() => trackCta("app_landing_login", "hero")}
-            >
-              {copy.hero.memberCta}
-            </a>
+            <div className="app-marketing__account-actions">
+              <a
+                href={signupHref}
+                className="app-marketing__member-link"
+                data-create-account-link
+                onClick={() => analytics?.trackCreateAccount("hero")}
+              >
+                {labels.createAccount}
+              </a>
+              <a
+                href={authHref}
+                className="app-marketing__member-link"
+                data-auth-link
+                onClick={() => trackCta("app_landing_login", "hero")}
+              >
+                {copy.hero.memberCta}
+              </a>
+            </div>
           </div>
 
           <figure className="app-marketing__hero-media">

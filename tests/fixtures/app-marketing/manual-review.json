@@ -16,14 +16,14 @@
         }
       },
       "booking": {
-        "sha256": "8e03dc6e0d204bd12e6f86a3eeba93b7e40b0e496975f0ba090c05d17534add2",
+        "sha256": "250c437661505ccebe683e1ac04302e4eb5a4b116a484763df604807e3944cf2",
         "state": {
           "bookingAction": true,
           "openSpots": 5
         }
       },
       "bookings": {
-        "sha256": "d19df53fc410adb73febc6441ac73c2695c844f15991b9906e77fa2c79fec7b9",
+        "sha256": "3224a87c654931a4a002350dcf98d3b445526cd561656359474a2313e9f9d8e8",
         "state": {
           "confirmed": true
         }
@@ -58,14 +58,14 @@
         }
       },
       "booking": {
-        "sha256": "f4c7282285bb95c0d2e4c5eb40bc7c5d200f9e055b9ab8f220f1b006f6737684",
+        "sha256": "c351e957f76bc16f8f7af2d0c400e11a1c9a3063775eff8c17c357fcc0cc9cde",
         "state": {
           "bookingAction": true,
           "openSpots": 5
         }
       },
       "bookings": {
-        "sha256": "5475446c8f5e054140a8a30ec21943af96db634d96609ab2a91192e785b73936",
+        "sha256": "50199988277ad679064fde83b17a5ad201e7c5f431ed7ca894cb05d726454a7e",
         "state": {
           "confirmed": true
         }
@@ -100,14 +100,14 @@
         }
       },
       "booking": {
-        "sha256": "ea0acf093ea26388c86725b6353659205dfa9309f9a7e50c045be1d2301e8fb1",
+        "sha256": "d29ef8a82407a6ba1def5f4d5e412e88e080b291c3884db0929d6b6b7e7fc4c3",
         "state": {
           "bookingAction": true,
           "openSpots": 5
         }
       },
       "bookings": {
-        "sha256": "199b9eba55110f69bad85d1a8f57decb5941f440538038d96e775edc569d3a20",
+        "sha256": "66c31ea51766b1762fe8d92cd9dd8b3a351c0228d3643a408d3c6c9c6131379a",
         "state": {
           "confirmed": true
         }

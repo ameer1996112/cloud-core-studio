@@ -264,6 +264,9 @@ describe("app marketing assets", () => {
     );
     expect(source).not.toMatch(/generic.*woman|stock.*woman|images\/.*women\.(?:png|webp|jpg)/i);
     expect(existsSync(manifestFile)).toBe(true);
+    const manifest = readFileSync(manifestFile, "utf8");
+    expect(manifest).not.toContain("/images/classes/aerial-yoga-flow.webp");
+    expect(manifest).toContain("/images/studio/studio-interior.webp");
 
     const genericWomanFiles = [
       resolve(root, "public/instagram/highlights/women.png"),

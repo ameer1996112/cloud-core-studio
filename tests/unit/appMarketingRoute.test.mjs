@@ -104,6 +104,9 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("aria-label={copy.steps.title}");
     expect(pageSource).toContain("`/member/schedule`");
     expect(pageSource).toContain("`/auth`");
+    expect(pageSource).toContain("`/auth?mode=signup`");
+    expect(pageSource).toContain("data-create-account-link");
+    expect(pageSource).toContain('analytics?.trackCreateAccount("hero")');
     expect(pageSource).toContain('href="/support"');
     expect(pageSource).toContain('href="/privacy"');
     expect(pageSource).toContain('href="/terms"');

@@ -33,7 +33,11 @@ import {
   type Lang,
 } from "@/lib/i18n";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
-import { APP_MARKETING_LANGS, getAppMarketingMeta } from "@/lib/app-marketing";
+import {
+  APP_MARKETING_LANGS,
+  getAppMarketingMeta,
+  isPublicAppMarketingPathname,
+} from "@/lib/app-marketing";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
 import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
 
@@ -212,6 +216,8 @@ function RootComponent() {
   const router = useRouter();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
   useEffect(() => {
+    if (isPublicAppMarketingPathname(window.location.pathname)) return;
+
     let active = true;
     const stop = startNativeAppLinkHandling(() =>
       installNativeAppLinkHandling((route) => {
@@ -229,6 +235,8 @@ function RootComponent() {
     };
   }, [router]);
   useEffect(() => {
+    if (isPublicAppMarketingPathname(window.location.pathname)) return;
+
     let active = true;
     let checkInFlight = false;
 
@@ -260,10 +268,14 @@ function RootComponent() {
     };
   }, []);
   useEffect(() => {
+    if (isPublicAppMarketingPathname(window.location.pathname)) return;
+
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
     }
-    void getFreshSupabaseSession().then(() => registerAdminPushNotifications());
+    void getFreshSupabaseSession().then((session) => {
+      if (session) registerAdminPushNotifications();
+    });
     if (typeof window !== "undefined") {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())

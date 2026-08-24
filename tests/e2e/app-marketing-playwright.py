@@ -5,6 +5,8 @@ import html
 import json
 import os
 import re
+import shutil
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -46,6 +48,105 @@ LANGUAGES = {
 }
 SAFE_UTM = {"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id"}
 QA = {"base": BASE, "locales": {}, "captures": [], "performance": {}}
+
+
+class HeadSnapshotParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.in_head = False
+        self.in_title = False
+        self.in_json_ld = False
+        self.title_parts = []
+        self.json_ld_parts = []
+        self.meta = []
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == "head":
+            self.in_head = True
+        if not self.in_head:
+            return
+        if tag == "title":
+            self.in_title = True
+        elif tag == "meta":
+            self.meta.append(attributes)
+        elif tag == "link":
+            self.links.append(attributes)
+        elif tag == "script" and attributes.get("type") == "application/ld+json":
+            self.in_json_ld = True
+
+    def handle_endtag(self, tag):
+        if tag == "title":
+            self.in_title = False
+        elif tag == "script":
+            self.in_json_ld = False
+        elif tag == "head":
+            self.in_head = False
+
+    def handle_data(self, data):
+        if self.in_title:
+            self.title_parts.append(data)
+        if self.in_json_ld:
+            self.json_ld_parts.append(data)
+
+    @property
+    def title(self):
+        return text("".join(self.title_parts))
+
+    @property
+    def structured_data(self):
+        assert self.json_ld_parts, "SSR response is missing JSON-LD"
+        return json.loads("".join(self.json_ld_parts))
+
+
+def parse_head_snapshot(markup):
+    parser = HeadSnapshotParser()
+    parser.feed(markup)
+    return parser
+
+
+def meta_values(snapshot, attribute, value):
+    return [item.get("content") for item in snapshot.meta if item.get(attribute) == value]
+
+
+def assert_ssr_head(snapshot, language):
+    expected = LANGUAGES[language]
+    canonical = f"{ORIGIN}/app/{language}"
+    assert snapshot.title == expected["title"]
+    assert meta_values(snapshot, "name", "description") == [expected["description"]]
+    assert meta_values(snapshot, "name", "robots") == ["index, follow"]
+    assert meta_values(snapshot, "name", "apple-itunes-app") == ["app-id=6786035836"]
+    assert meta_values(snapshot, "property", "og:title") == [expected["title"]]
+    assert meta_values(snapshot, "property", "og:description") == [expected["description"]]
+    assert meta_values(snapshot, "property", "og:type") == ["website"]
+    assert meta_values(snapshot, "property", "og:url") == [canonical]
+    assert meta_values(snapshot, "property", "og:locale") == [expected["locale"]]
+    assert meta_values(snapshot, "name", "twitter:card") == ["summary_large_image"]
+    assert meta_values(snapshot, "name", "twitter:title") == [expected["title"]]
+    assert meta_values(snapshot, "name", "twitter:description") == [expected["description"]]
+    social = f"{ORIGIN}/images/app-marketing/social/{language}.png"
+    assert meta_values(snapshot, "property", "og:image") == [social]
+    assert meta_values(snapshot, "name", "twitter:image") == [social]
+    canonical_links = [item for item in snapshot.links if item.get("rel") == "canonical"]
+    assert canonical_links == [{"rel": "canonical", "href": canonical}]
+    alternates = {
+        item.get("hreflang"): item.get("href")
+        for item in snapshot.links
+        if item.get("rel") == "alternate"
+    }
+    assert alternates == {
+        "ar": f"{ORIGIN}/app/ar",
+        "he": f"{ORIGIN}/app/he",
+        "en": f"{ORIGIN}/app/en",
+        "x-default": f"{ORIGIN}/app/ar",
+    }
+    assert any(
+        item.get("rel") == "preload"
+        and item.get("as") == "image"
+        and item.get("href") == "/images/auth/cloud-core-auth-hero.webp"
+        for item in snapshot.links
+    )
 
 
 def text(value):
@@ -103,6 +204,12 @@ async def assert_head(page, language):
             assert await page.locator(f'meta[property="og:locale:alternate"][content="{locale["locale"]}"]').count() == 1
     assert await page.locator('meta[property="og:url"]').get_attribute("content") == canonical
     assert await page.locator('meta[property="og:locale"]').get_attribute("content") == expected["locale"]
+    assert await page.locator('meta[property="og:title"]').get_attribute("content") == expected["title"]
+    assert await page.locator('meta[property="og:description"]').get_attribute("content") == expected["description"]
+    assert await page.locator('meta[property="og:type"]').get_attribute("content") == "website"
+    assert await page.locator('meta[name="twitter:card"]').get_attribute("content") == "summary_large_image"
+    assert await page.locator('meta[name="twitter:title"]').get_attribute("content") == expected["title"]
+    assert await page.locator('meta[name="twitter:description"]').get_attribute("content") == expected["description"]
     social = f"{ORIGIN}/images/app-marketing/social/{language}.png"
     assert await page.locator('meta[property="og:image"]').get_attribute("content") == social
     assert await page.locator('meta[name="twitter:image"]').get_attribute("content") == social
@@ -116,15 +223,23 @@ async def assert_ssr_and_schema(context, page, language):
     assert LANGUAGES[language]["h1"] in text(initial)
     assert f'<html lang="{language}" dir="{LANGUAGES[language]["dir"]}"' in initial
     assert initial.count("<h1") == 1 and "noindex" not in initial.lower() and "/auth" not in response.url
+    ssr_head = parse_head_snapshot(initial)
+    assert_ssr_head(ssr_head, language)
+    ssr_data = ssr_head.structured_data
     await page.goto(f"{BASE}/app/{language}?{UTM}&{PRIVATE}", wait_until="networkidle")
     await assert_head(page, language)
     await page.reload(wait_until="networkidle")
     await assert_head(page, language)
     data = json.loads(await page.locator('head script[type="application/ld+json"]').text_content())
+    assert data == ssr_data
     assert data["@context"] == "https://schema.org"
     health, app, faq = data["@graph"]
     assert [item["@type"] for item in data["@graph"]] == ["HealthClub", "SoftwareApplication", "FAQPage"]
     assert health["name"] == "Cloud & Core Studio"
+    assert set(health) == {
+        "@type", "@id", "name", "alternateName", "url", "logo", "image", "telephone",
+        "email", "address", "geo", "availableLanguage", "makesOffer",
+    } | ({"sameAs"} if "sameAs" in health else set())
     assert health["geo"] == {"@type": "GeoCoordinates", "latitude": 33.016109, "longitude": 35.349285}
     assert health["address"]["streetAddress"] == "Main Road 89"
     assert health["address"]["addressLocality"] == "Hurfeish"
@@ -140,6 +255,12 @@ async def assert_ssr_and_schema(context, page, language):
     assert app["installUrl"] == app["downloadUrl"] == INSTALL_URL
     assert app["image"] == f"{ORIGIN}/brand/cloud-core-app-icon.svg"
     assert app["publisher"]["@id"] == health["@id"]
+    assert set(app) == {
+        "@type", "@id", "name", "description", "applicationCategory", "operatingSystem",
+        "url", "installUrl", "downloadUrl", "image", "publisher",
+    }
+    assert set(faq) == {"@type", "@id", "url", "mainEntity"}
+    assert faq["url"] == f"{ORIGIN}/app/{language}"
     faq_items = page.locator(".app-marketing__faq-item")
     assert await faq_items.count() == len(faq["mainEntity"]) == 6
     for index, entry in enumerate(faq["mainEntity"]):
@@ -162,8 +283,9 @@ async def assert_links_and_images(page, language):
         active += int(await item.get_attribute("aria-current") == "page")
     assert active == 1
     schedules, stores, logins = page.locator("[data-schedule-link]"), page.locator("[data-app-store-link]"), page.locator("[data-auth-link], [data-login-link]")
+    signups = page.locator("[data-create-account-link]")
     schedule_count, store_count, login_count = await schedules.count(), await stores.count(), await logins.count()
-    assert schedule_count == store_count == 2 and login_count >= 3
+    assert schedule_count == store_count == 2 and login_count >= 3 and await signups.count() == 1
     for index in range(schedule_count):
         item = schedules.nth(index)
         assert route(await item.get_attribute("href")) == "/member/schedule"
@@ -172,6 +294,10 @@ async def assert_links_and_images(page, language):
     for index in range(login_count):
         assert route(await logins.nth(index).get_attribute("href")) == "/auth"
         assert_safe_params(await logins.nth(index).get_attribute("href"), expected_utm)
+    signup_href = await signups.get_attribute("href")
+    signup_params = parse_qs(urlparse(signup_href).query, keep_blank_values=True)
+    assert route(signup_href) == "/auth" and signup_params.pop("mode") == ["signup"]
+    assert set(signup_params) == expected_utm
     configured_store_urls = set()
     for index in range(store_count):
         item = stores.nth(index)
@@ -218,8 +344,9 @@ async def assert_accessibility(page, language):
     assert await faq.get_attribute("open") is not None and await faq.locator("p").is_visible()
     opened = await faq.locator("summary").evaluate("item => getComputedStyle(item,'::after').content")
     assert closed != opened and "−" in opened
-    sizes = await page.locator(".app-marketing a,.app-marketing summary").evaluate_all("items => items.map(item => {const b=item.getBoundingClientRect();return [b.width,b.height]}).filter(([w,h])=>w&&h)")
-    assert all(width >= 44 or height >= 44 for width, height in sizes)
+    sizes = await page.locator(".app-marketing a,.app-marketing summary").evaluate_all("items => items.map(item => {const b=item.getBoundingClientRect();return {label:(item.getAttribute('aria-label')||item.textContent||'').trim().slice(0,80),className:item.className,width:b.width,height:b.height}}).filter(item=>item.width&&item.height)")
+    undersized = [item for item in sizes if item["width"] < 44 or item["height"] < 44]
+    assert not undersized, f"undersized controls: {undersized}"
     images = await page.locator(".app-marketing img").evaluate_all("items => items.map(item => ({alt:item.getAttribute('alt'),hidden:Boolean(item.closest('[aria-hidden=true]'))}))")
     assert all(item["alt"] is not None and (item["alt"] or item["hidden"]) for item in images)
     if language in {"ar", "he"}:
@@ -236,12 +363,28 @@ async def assert_responsive(page, language):
     for width, height in VIEWPORTS:
         await page.set_viewport_size({"width": width, "height": height})
         await page.goto(f"{BASE}/app/{language}?{UTM}", wait_until="networkidle")
+        await page.locator(".app-marketing img").evaluate_all("items => items.forEach(item => { item.loading='eager' })")
+        await page.wait_for_function("() => [...document.querySelectorAll('.app-marketing img')].every(image => image.complete && image.naturalWidth > 0)")
         metrics = await page.evaluate("""() => {
           const box=selector=>document.querySelector(selector).getBoundingClientRect();
-          return {overflow:document.documentElement.scrollWidth-window.innerWidth,brand:box('.app-marketing__brand-link'),actions:box('.app-marketing__header-actions'),badge:box('[data-app-store-link]'),broken:[...document.images].filter(item=>!item.complete||!item.naturalWidth).map(item=>item.currentSrc)};
+          const sections=[...document.querySelectorAll('.app-marketing__main > section')].map(item=>{const value=item.getBoundingClientRect();return {name:item.className,top:value.top,bottom:value.bottom,left:value.left,right:value.right,width:value.width,height:value.height}});
+          const content=[...document.querySelectorAll('.app-marketing h1,.app-marketing h2,.app-marketing h3,.app-marketing p,.app-marketing a,.app-marketing summary')].filter(item=>item.getClientRects().length).map(item=>{const value=item.getBoundingClientRect();return {name:item.className,left:value.left,right:value.right,width:value.width,height:value.height}});
+          const ratios=[...document.querySelectorAll('[data-app-screenshot] img')].filter(item=>item.getClientRects().length).map(item=>({src:item.getAttribute('src'),natural:item.naturalWidth/item.naturalHeight,displayed:item.getBoundingClientRect().width/item.getBoundingClientRect().height}));
+          return {overflow:document.documentElement.scrollWidth-window.innerWidth,brand:box('.app-marketing__brand-link'),actions:box('.app-marketing__header-actions'),badge:box('[data-app-store-link]'),broken:[...document.images].filter(item=>!item.complete||!item.naturalWidth).map(item=>item.currentSrc),sections,content,ratios};
         }""")
         assert metrics["overflow"] <= 1, f"{language} {width}x{height}: {metrics['overflow']}px overflow"
         assert metrics["badge"]["width"] >= 44 and metrics["badge"]["height"] >= 40 and not metrics["broken"]
+        assert all(item["width"] > 0 and item["height"] > 0 for item in metrics["sections"])
+        assert all(
+            next_item["top"] + 1 >= item["bottom"]
+            for item, next_item in zip(metrics["sections"], metrics["sections"][1:])
+        ), f"{language} section overlap at {width}px"
+        assert all(
+            item["left"] >= -1 and item["right"] <= width + 1 and item["width"] > 0 and item["height"] > 0
+            for item in metrics["content"]
+        ), f"{language} clipped or hidden content at {width}px"
+        distorted = [item for item in metrics["ratios"] if abs(item["natural"] - item["displayed"]) >= 0.03]
+        assert not distorted, f"{language} distorted images at {width}px: {distorted}"
         if width <= 430:
             brand, actions = metrics["brand"], metrics["actions"]
             assert brand["x"] + brand["width"] <= actions["x"] or actions["x"] + actions["width"] <= brand["x"], f"{language} header overlap at {width}px"
@@ -263,18 +406,36 @@ async def capture(page, language):
         full = OUTPUT / f"app-{language}-{width}x{height}-full.png"
         await page.screenshot(path=full, full_page=True)
         QA["captures"].append(str(full))
-        for name, selector in sections.items():
-            item = page.locator(selector)
-            await item.scroll_into_view_if_needed()
-            target = OUTPUT / f"app-{language}-{width}x{height}-{name}.png"
-            await item.screenshot(path=target)
-            QA["captures"].append(str(target))
+        header = page.locator(".app-marketing__header")
+        skip_link = page.locator(".app-marketing__skip-link")
+        await page.evaluate("document.activeElement?.blur()")
+        await header.evaluate("item => { item.style.visibility = 'hidden' }")
+        await skip_link.evaluate("item => { item.style.visibility = 'hidden' }")
+        try:
+            for name, selector in sections.items():
+                item = page.locator(selector)
+                await item.scroll_into_view_if_needed()
+                target = OUTPUT / f"app-{language}-{width}x{height}-{name}.png"
+                await item.screenshot(path=target)
+                QA["captures"].append(str(target))
+        finally:
+            await header.evaluate("item => { item.style.visibility = '' }")
+            await skip_link.evaluate("item => { item.style.visibility = '' }")
 
 
 async def assert_routes(browser, context):
     redirect_cases = [
+        (
+            "/app?lang=en&utm_source=qa&token=private",
+            {"Cookie": "cc_lang=he", "Accept-Language": "ar-IL,ar;q=0.9"},
+            "/app/en?utm_source=qa",
+        ),
         ("/app?lang=en&utm_source=qa&token=private", {}, "/app/en?utm_source=qa"),
-        ("/app?utm_source=qa", {"Cookie": "cc_lang=he"}, "/app/he?utm_source=qa"),
+        (
+            "/app?utm_source=qa",
+            {"Cookie": "cc_lang=he", "Accept-Language": "en-US,en;q=0.8"},
+            "/app/he?utm_source=qa",
+        ),
         ("/app?utm_source=qa", {"Accept-Language": "en-US,en;q=0.8,ar;q=0.7"}, "/app/en?utm_source=qa"),
         ("/app?utm_source=qa", {}, "/app/ar?utm_source=qa"),
     ]
@@ -287,8 +448,14 @@ async def assert_routes(browser, context):
     iphone = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15"}
     response, body = await get(context, "/", headers=iphone, max_redirects=0)
     assert response.status == 200 and "noindex,follow" in body and "Opening Cloud &amp; Core" in body
-    malformed, _ = await get(context, "/", headers={"Cookie": "sb-invalid-auth-token=not-a-jwt"}, max_redirects=0)
-    assert malformed.status < 500
+    malformed, malformed_body = await get(
+        context,
+        "/",
+        headers={"Cookie": "cc_sb_access_token=%E0%A4%A; cc_sb_refresh_token=not-a-jwt"},
+        max_redirects=0,
+    )
+    assert malformed.status == 200
+    assert "noindex,follow" in malformed_body and "Opening Cloud &amp; Core" in malformed_body
     web = await browser.new_context(locale="en-US", viewport={"width": 390, "height": 844})
     root = await web.new_page()
     await root.goto(f"{BASE}/", wait_until="networkidle")
@@ -319,7 +486,11 @@ async def assert_reduced_motion(browser):
     context = await browser.new_context(viewport={"width": 390, "height": 844}, reduced_motion="reduce")
     page = await context.new_page()
     await page.goto(f"{BASE}/app/he", wait_until="networkidle")
-    durations = await page.locator(".app-marketing *").evaluate_all("items => items.map(item => {const value=getComputedStyle(item).animationDuration;return value.endsWith('ms')?Number.parseFloat(value):value.endsWith('s')?Number.parseFloat(value)*1000:0})")
+    durations = await page.locator(".app-marketing *").evaluate_all("""items => items.flatMap(item => {
+      const style=getComputedStyle(item);
+      const milliseconds=value=>value.split(',').map(part=>part.trim()).map(part=>part.endsWith('ms')?Number.parseFloat(part):part.endsWith('s')?Number.parseFloat(part)*1000:0);
+      return [...milliseconds(style.animationDuration),...milliseconds(style.animationDelay),...milliseconds(style.transitionDuration),...milliseconds(style.transitionDelay)];
+    })""")
     assert max(durations, default=0) <= 0.01
     await context.close()
 
@@ -336,41 +507,100 @@ async def assert_analytics_and_performance(browser):
     events = await page.evaluate("window.__appSeoQaEvents")
     views = [item for item in events if item["event"] == "app_landing_view"]
     allowed = {"event", "language", "route", "utm_source", "utm_medium", "utm_campaign", "device_type", "cta_location"}
-    assert len(views) == 1 and "utm_campaign" not in views[0] and set(views[0]).issubset(allowed)
+    assert len(views) == 1 and views[0]["language"] == "en" and views[0]["route"] == "/app/en"
+    assert "utm_campaign" not in views[0] and set(views[0]).issubset(allowed)
     active = page.locator('.app-marketing__language[aria-current="page"]')
     await active.evaluate("item=>{item.addEventListener('click',event=>event.preventDefault(),{once:true});item.click()}")
     assert not [item for item in await page.evaluate("window.__appSeoQaEvents") if item["event"] == "app_landing_language_change"]
-    for selector in ('.app-marketing__language[href*="/app/ar"]', "[data-app-store-link]", "[data-schedule-link]"):
+    tracked_clicks = (
+        ('.app-marketing__language[href*="/app/ar"]', "app_landing_language_change", "ar"),
+        ("[data-app-store-link]", "app_landing_app_store_click", "en"),
+        ("[data-schedule-link]", "app_landing_view_schedule", "en"),
+        ("[data-create-account-link]", "app_landing_create_account", "en"),
+        ("[data-auth-link]", "app_landing_login", "en"),
+        (".app-marketing__maps-link", "app_landing_maps_click", "en"),
+        ('.app-marketing a[href="/support"]', "app_landing_support_click", "en"),
+    )
+    for selector, expected_event, expected_language in tracked_clicks:
         item = page.locator(selector).first
         await item.evaluate("item=>{item.addEventListener('click',event=>event.preventDefault(),{once:true});item.click()}")
+        matching = [entry for entry in await page.evaluate("window.__appSeoQaEvents") if entry["event"] == expected_event]
+        assert matching and matching[-1]["language"] == expected_language
+    for selector, expected_event in (
+        ('.app-marketing a[href*="wa.me"]', "app_landing_whatsapp_click"),
+        ('.app-marketing a[href*="instagram.com"]', "app_landing_instagram_click"),
+    ):
+        item = page.locator(selector).first
+        if await item.count():
+            await item.evaluate("item=>{item.addEventListener('click',event=>event.preventDefault(),{once:true});item.click()}")
+            matching = [entry for entry in await page.evaluate("window.__appSeoQaEvents") if entry["event"] == expected_event]
+            assert matching and matching[-1]["language"] == "en"
     events = await page.evaluate("window.__appSeoQaEvents")
-    assert {"app_landing_language_change", "app_landing_app_store_click", "app_landing_view_schedule"}.issubset({item["event"] for item in events})
+    assert {
+        "app_landing_language_change", "app_landing_app_store_click", "app_landing_view_schedule",
+        "app_landing_create_account", "app_landing_login", "app_landing_maps_click",
+        "app_landing_support_click",
+    }.issubset({item["event"] for item in events})
     assert all(set(item).issubset(allowed) and "private@example.com" not in json.dumps(item) for item in events)
-    marketing_resources = await page.evaluate("performance.getEntriesByType('resource').map(item=>item.name)")
-    assert not any(re.search(r"/(admin|payments?|stripe|supabase)[-.]", item, re.I) for item in marketing_resources)
+    assert all(item.get("route") == "/app/en" for item in events)
+    data_layer = await page.evaluate("window.dataLayer")
+    assert [item["event"] for item in data_layer] == [item["event"] for item in events]
+    marketing_resources = await page.evaluate("""performance.getEntriesByType('resource').map(item=>({
+      name:item.name,initiatorType:item.initiatorType,transferSize:item.transferSize,
+      encodedBodySize:item.encodedBodySize,decodedBodySize:item.decodedBodySize
+    }))""")
+    forbidden_marketing_bundles = re.compile(
+        r"/(?:assets/)?(?:admin|payments?|stripe|supabase)[-.]|adminPush|memberPushDevice",
+        re.I,
+    )
+    assert not any(forbidden_marketing_bundles.search(item["name"]) for item in marketing_resources)
     await page.goto(f"{BASE}/app/en?{UTM}", wait_until="networkidle")
     await page.locator("[data-schedule-link]").first.click()
     await page.wait_for_url("**/member/schedule**")
+    schedule_auth_href = await page.locator('a[href^="/auth?returnTo="]').first.get_attribute("href")
+    return_to = parse_qs(urlparse(schedule_auth_href).query)["returnTo"][0]
+    return_to_url = urlparse(return_to)
+    assert return_to_url.path == "/member/schedule"
+    assert set(parse_qs(return_to_url.query)) == {"utm_source", "utm_medium", "utm_campaign", "utm_content"}
     timing = await page.evaluate("""() => {
       const nav=performance.getEntriesByType('navigation')[0];
       return {domContentLoaded:nav.domContentLoadedEventEnd,load:nav.loadEventEnd,resources:performance.getEntriesByType('resource').map(item=>item.name)};
     }""")
     assert timing["domContentLoaded"] >= 0 and timing["load"] >= 0
     assert not any(re.search(r"/(admin|payments?|stripe|supabase)[-.]", item, re.I) for item in timing["resources"])
-    QA["performance"] = {"marketing_resources": marketing_resources, "navigation": timing, "lighthouse": "blocked: no local lighthouse package or CLI; npx --no-install lighthouse --version attempted the registry and failed ENOTFOUND; no install or download was performed"}
+    local_lighthouse = Path("node_modules/.bin/lighthouse")
+    system_lighthouse = shutil.which("lighthouse")
+    lighthouse = {
+        "status": "available" if local_lighthouse.exists() or system_lighthouse else "unavailable",
+        "local_executable": str(local_lighthouse) if local_lighthouse.exists() else system_lighthouse,
+    }
+    if lighthouse["status"] == "unavailable":
+        lighthouse["reason"] = "No local Lighthouse executable was found; no score, LCP, CLS, or INP was recorded."
+    QA["performance"] = {"marketing_resources": marketing_resources, "navigation": timing, "lighthouse": lighthouse}
     await context.close()
 
 
 def write_summary():
     OUTPUT.mkdir(parents=True, exist_ok=True)
+    manual_review = os.environ.get("APP_QA_MANUAL_REVIEW", "pending")
+    QA["manual_review"] = {
+        "status": "passed" if manual_review.startswith("passed:") else "pending",
+        "notes": manual_review,
+    }
     (OUTPUT / "qa-summary.json").write_text(json.dumps(QA, ensure_ascii=False, indent=2) + "\n")
     captures = "\n".join(f"- {item}" for item in QA["captures"])
+    lighthouse = QA["performance"]["lighthouse"]
+    lighthouse_note = (
+        "Local Lighthouse executable available; run separately for scores."
+        if lighthouse["status"] == "available"
+        else lighthouse["reason"]
+    )
     (OUTPUT / "qa-summary.md").write_text(
         "# App SEO remediation QA\n\n"
         f"- Base URL: {BASE}\n"
         "- Passed: SSR, redirects, browser analytics, keyboard/a11y semantics, contrast, reduced motion, responsive viewports, and safe route regressions.\n"
-        "- Lighthouse blocker: no local package or CLI; npx --no-install lighthouse --version attempted the registry and failed ENOTFOUND. qa-summary.json contains real Navigation Timing and resource evidence; no score or INP is fabricated.\n"
-        "- Inspect captures for direction, clipping, text readability, imagery, CTA prominence, and spacing.\n\n"
+        f"- Lighthouse: {lighthouse_note}\n"
+        f"- Manual review: {manual_review}\n\n"
         "## Captures\n\n" + captures + "\n"
     )
 
