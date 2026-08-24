@@ -4,7 +4,21 @@ import {
   APP_MARKETING_ANALYTICS_EVENTS,
   createBrowserAppMarketingAnalytics,
   createAppMarketingAnalytics,
+  shouldTrackAppMarketingLanguageChange,
 } from "../../src/lib/app-marketing.analytics";
+
+const EXPECTED_APP_MARKETING_EVENTS = [
+  "app_landing_view",
+  "app_landing_language_change",
+  "app_landing_view_schedule",
+  "app_landing_create_account",
+  "app_landing_login",
+  "app_landing_app_store_click",
+  "app_landing_whatsapp_click",
+  "app_landing_instagram_click",
+  "app_landing_maps_click",
+  "app_landing_support_click",
+] as const;
 
 describe("app marketing analytics", () => {
   test("dispatches every approved conversion event and no others", () => {
@@ -16,9 +30,10 @@ describe("app marketing analytics", () => {
       getContext: () => ({ language: "en", route: "/app/en", device_type: "desktop" }),
     });
 
-    for (const event of APP_MARKETING_ANALYTICS_EVENTS) analytics.track(event);
+    for (const event of EXPECTED_APP_MARKETING_EVENTS) analytics.track(event);
 
-    expect(events.map((detail) => detail.event)).toEqual(APP_MARKETING_ANALYTICS_EVENTS);
+    expect(APP_MARKETING_ANALYTICS_EVENTS).toEqual(EXPECTED_APP_MARKETING_EVENTS);
+    expect(events.map((detail) => detail.event)).toEqual(EXPECTED_APP_MARKETING_EVENTS);
     expect(dataLayer).toEqual(events);
     expect(() => (analytics.track as (event: string) => void)("unknown_conversion")).toThrow(
       "Unsupported app marketing analytics event",
@@ -47,9 +62,9 @@ describe("app marketing analytics", () => {
       getContext: () => ({
         language: "he",
         route: "/app/he",
-        utm_source: "instagram",
-        utm_medium: "social",
-        utm_campaign: "summer",
+        utm_source: "private@example.com",
+        utm_medium: "https://tracking.example/?member_id=42",
+        utm_campaign: "summer_launch",
         device_type: "mobile",
         email: "private@example.com",
         phone: "055-939-8438",
@@ -61,23 +76,21 @@ describe("app marketing analytics", () => {
       cta_location: "location",
       name: "Private name",
       member_id: "member-1",
-    });
+    } as never);
 
     expect(events).toEqual([
       {
         event: "app_landing_whatsapp_click",
         language: "he",
         route: "/app/he",
-        utm_source: "instagram",
-        utm_medium: "social",
-        utm_campaign: "summer",
+        utm_campaign: "summer_launch",
         device_type: "mobile",
         cta_location: "location",
       },
     ]);
   });
 
-  test("filters non-analytics UTMs and PII-like values even when supplied as event parameters", () => {
+  test("filters unsafe UTM values and ignores runtime attempts to override analytics context", () => {
     const events: Record<string, unknown>[] = [];
     const analytics = createAppMarketingAnalytics({
       dispatch: (detail) => events.push(detail),
@@ -85,6 +98,8 @@ describe("app marketing analytics", () => {
         language: "en",
         route: "/account/private@example.com",
         utm_source: "newsletter",
+        utm_medium: "https://tracking.example/?member_id=42",
+        utm_campaign: "summer_launch",
         utm_content: "private-creative",
         utm_term: "private-term",
         utm_id: "private-id",
@@ -94,17 +109,17 @@ describe("app marketing analytics", () => {
 
     analytics.track("app_landing_support_click", {
       cta_location: "footer",
-      utm_campaign: "launch",
+      utm_campaign: "payment_link",
       payment_id: "payment-1",
       phone: "055-939-8438",
       href: "/support?email=private@example.com",
-    });
+    } as never);
 
     expect(events[0]).toEqual({
       event: "app_landing_support_click",
       language: "en",
       utm_source: "newsletter",
-      utm_campaign: "launch",
+      utm_campaign: "summer_launch",
       cta_location: "footer",
     });
   });
@@ -117,7 +132,7 @@ describe("app marketing analytics", () => {
     });
 
     analytics.trackLanguageChange("en");
-    analytics.track("app_landing_login", { cta_location: "not-a-location" });
+    analytics.track("app_landing_login", { cta_location: "not-a-location" } as never);
 
     expect(events).toEqual([
       {
@@ -134,6 +149,28 @@ describe("app marketing analytics", () => {
         device_type: "desktop",
       },
     ]);
+  });
+
+  test("does not treat the active language anchor as a language change", () => {
+    expect(shouldTrackAppMarketingLanguageChange("ar", "ar")).toBe(false);
+    expect(shouldTrackAppMarketingLanguageChange("ar", "en")).toBe(true);
+  });
+
+  test("exposes only a narrow CTA parameter contract", () => {
+    const analytics = createAppMarketingAnalytics({
+      dispatch: () => {},
+      getContext: () => ({}),
+    });
+
+    const compileTimeContract = () => {
+      // @ts-expect-error PII-like fields are not valid analytics parameters.
+      analytics.track("app_landing_login", { email: "private@example.com" });
+      // @ts-expect-error Navigation and attribution overrides are not valid analytics parameters.
+      analytics.track("app_landing_support_click", { href: "/support", utm_source: "instagram" });
+    };
+
+    expect(compileTimeContract).toBeTypeOf("function");
+    analytics.track("app_landing_login", { cta_location: "header" });
   });
 
   test("exposes create-account tracking for the actual signup action when one is added", () => {

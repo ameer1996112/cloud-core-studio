@@ -25,6 +25,7 @@ import {
 import { authImages } from "@/lib/auth-assets";
 import {
   createBrowserAppMarketingAnalytics,
+  shouldTrackAppMarketingLanguageChange,
   type AppMarketingAnalytics,
   type AppMarketingAnalyticsEventName,
   type AppMarketingCtaLocation,
@@ -121,7 +122,7 @@ function LanguageSelector({
           lang={code}
           dir={LANG_META[code].dir}
           onClick={() => {
-            onLanguageChange(code);
+            if (shouldTrackAppMarketingLanguageChange(lang, code)) onLanguageChange(code);
             applyLang(code);
           }}
         >
