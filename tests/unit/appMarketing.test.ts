@@ -100,6 +100,7 @@ describe("app marketing contracts", () => {
     expect(resolveMarketingLocale({ accepted: "ar;q=0,he;q=0.4,en;q=0.9" })).toBe("en");
     expect(resolveMarketingLocale({ accepted: "he;q=0.2,en;q=0.8,ar;q=0.8" })).toBe("en");
     expect(resolveMarketingLocale({ accepted: "*;q=1,en;q=0.5" })).toBe("ar");
+    expect(resolveMarketingLocale({ accepted: "*;q=0.9,ar;q=0,he;q=0.5,en;q=0" })).toBe("he");
     expect(resolveMarketingLocale({ accepted: "en;q=2,he;q=0.5" })).toBe("he");
     expect(resolveMarketingLocale({ accepted: "en;q=oops,he;q=0.5" })).toBe("he");
     expect(resolveMarketingLocale({ accepted: "en;q=-1,he;q=0" })).toBe("ar");

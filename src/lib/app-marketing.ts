@@ -121,18 +121,29 @@ export function resolveMarketingLocale(input: {
     : typeof input.accepted === "string"
       ? input.accepted.split(",")
       : [];
-  const ranked = accepted
-    .map((candidate, index) => {
-      const [language, ...parameters] = candidate.trim().toLowerCase().split(";");
-      const qParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
-      const parsedQuality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
-      const quality = parsedQuality >= 0 && parsedQuality <= 1 ? parsedQuality : 0;
-      return {
-        language: language === "*" ? "ar" : language.split(/[-_]/, 1)[0],
-        quality: Number.isFinite(quality) ? quality : 0,
-        index,
-      };
-    })
+  const parsed = accepted.map((candidate, index) => {
+    const [language, ...parameters] = candidate.trim().toLowerCase().split(";");
+    const qParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
+    const parsedQuality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
+    const quality = parsedQuality >= 0 && parsedQuality <= 1 ? parsedQuality : 0;
+    return {
+      language: language.split(/[-_]/, 1)[0],
+      wildcard: language === "*",
+      quality: Number.isFinite(quality) ? quality : 0,
+      index,
+    };
+  });
+  const explicitlyListed = new Set<AppMarketingLang>();
+  for (const { language } of parsed) {
+    const supported = asMarketingLang(language);
+    if (supported) explicitlyListed.add(supported);
+  }
+  const ranked = parsed
+    .map(({ language, wildcard, quality, index }) => ({
+      language: wildcard ? "ar" : language,
+      quality: wildcard && explicitlyListed.has("ar") ? 0 : quality,
+      index,
+    }))
     .filter(({ quality }) => quality > 0)
     .sort((a, b) => b.quality - a.quality || a.index - b.index);
   for (const { language } of ranked) {
