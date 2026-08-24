@@ -422,6 +422,13 @@ describe("app marketing contracts", () => {
     expect(APP_MARKETING_COPY.he.headerAction).toBe("כניסה לחשבון");
     expect(APP_MARKETING_COPY.en.headerAction).toBe("Sign In");
     for (const lang of ["ar", "he", "en"] as const) {
+      expect(APP_MARKETING_COPY[lang].finalCta.body).toBe(
+        lang === "ar"
+          ? "افتحي Cloud & Core، شوفي الجدول واحجزي مكانك."
+          : lang === "he"
+            ? "פתחי את Cloud & Core, צפי בלו״ז והזמיני מקום."
+            : "Open Cloud & Core, view the schedule, and reserve your place.",
+      );
       expect(APP_MARKETING_COPY[lang].finalCta.actions).toEqual(
         lang === "ar"
           ? ["شوفي الجدول واحجزي", "حمّلي من App Store", "سجّلي دخولك"]

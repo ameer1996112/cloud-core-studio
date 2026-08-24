@@ -74,7 +74,7 @@ export type AppMarketingCopy = {
 export type AppMarketingMeta = {
   title: string;
   description: string;
-  locale: "he_IL" | "ar_AR" | "en_US";
+  locale: "he_IL" | "ar_IL" | "en_US";
   canonical: string;
   canonicalUrl: string;
   ogImage: string;
@@ -135,7 +135,8 @@ export function resolveMarketingLocale(input: {
     .filter(({ quality }) => quality > 0)
     .sort((a, b) => b.quality - a.quality || a.index - b.index);
   for (const { language } of ranked) {
-    if (asMarketingLang(language)) return language;
+    const supported = asMarketingLang(language);
+    if (supported) return supported;
   }
   return "ar";
 }
@@ -386,7 +387,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     },
     finalCta: {
       title: "Ready to choose your next class?",
-      body: "Open Cloud & Core, view the schedule and reserve your place.",
+      body: "Open Cloud & Core, view the schedule, and reserve your place.",
       actions: ["View Schedule and Book", "Download on the App Store", "Sign In"],
     },
     faq: [
