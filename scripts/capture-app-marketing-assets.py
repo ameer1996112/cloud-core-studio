@@ -27,6 +27,7 @@ PHONE_SCREENS = ("schedule", "booking", "bookings", "membership", "account")
 SESSION_STARTS_AT = "2031-09-10T17:30:00.000Z"
 STUDIO_TIME_ZONE = "Asia/Jerusalem"
 PLAYWRIGHT_VERSION = "1.58.0"
+PILLOW_VERSION = "10.0.0"
 STABILITY_ATTEMPTS = 2
 CAPTURE_STABILITY_CSS = """
 *, *::before, *::after {
@@ -63,8 +64,22 @@ def preflight_toolchain() -> dict[str, str]:
             f"Python Playwright {PLAYWRIGHT_VERSION} is required; found {installed_version}. "
             "Use tests/fixtures/app-marketing/requirements.txt."
         )
-    if not REQUIREMENTS_FILE.exists() or f"playwright=={PLAYWRIGHT_VERSION}" not in REQUIREMENTS_FILE.read_text():
+    try:
+        installed_pillow_version = importlib.metadata.version("Pillow")
+    except importlib.metadata.PackageNotFoundError as error:
+        raise RuntimeError(
+            "Pillow is not installed. Use tests/fixtures/app-marketing/requirements.txt."
+        ) from error
+    if installed_pillow_version != PILLOW_VERSION:
+        raise RuntimeError(
+            f"Pillow {PILLOW_VERSION} is required; found {installed_pillow_version}. "
+            "Use tests/fixtures/app-marketing/requirements.txt."
+        )
+    requirements = REQUIREMENTS_FILE.read_text() if REQUIREMENTS_FILE.exists() else ""
+    if f"playwright=={PLAYWRIGHT_VERSION}" not in requirements:
         raise RuntimeError(f"Missing pinned Playwright requirement: {REQUIREMENTS_FILE}")
+    if f"Pillow=={PILLOW_VERSION}" not in requirements:
+        raise RuntimeError(f"Missing pinned Pillow requirement: {REQUIREMENTS_FILE}")
 
     from playwright.sync_api import sync_playwright
 
@@ -74,7 +89,11 @@ def preflight_toolchain() -> dict[str, str]:
         raise RuntimeError(
             f"Chromium is not installed at {executable}. Run `python3 -m playwright install chromium`."
         )
-    return {"playwrightVersion": installed_version, "chromiumExecutable": str(executable)}
+    return {
+        "playwrightVersion": installed_version,
+        "pillowVersion": installed_pillow_version,
+        "chromiumExecutable": str(executable),
+    }
 
 
 def free_loopback_port() -> int:
@@ -127,18 +146,41 @@ def approved_resource_path(url: str, base_url: str) -> str | None:
     return path if path.startswith(("/brand/", "/images/")) else None
 
 
-def png_metadata(path: Path) -> dict[str, object]:
+def png_metadata(path: Path, recorded_path: Path | None = None) -> dict[str, object]:
     content = path.read_bytes()
     if content[:8] != b"\x89PNG\r\n\x1a\n":
         raise RuntimeError(f"Expected a PNG capture at {path}.")
     return {
-        "file": path.relative_to(ROOT).as_posix(),
+        "file": (recorded_path or path).relative_to(ROOT).as_posix(),
         "dimensions": {
             "width": int.from_bytes(content[16:20], "big"),
             "height": int.from_bytes(content[20:24], "big"),
         },
         "sha256": hashlib.sha256(content).hexdigest(),
     }
+
+
+def normalize_capture_png(path: Path) -> None:
+    from PIL import Image
+
+    temporary = tempfile.NamedTemporaryFile(
+        prefix=f".{path.name}.", suffix=".png", dir=path.parent, delete=False
+    )
+    temporary_path = Path(temporary.name)
+    temporary.close()
+    try:
+        with Image.open(path) as captured:
+            captured.load()
+            captured.save(
+                temporary_path,
+                format="PNG",
+                optimize=False,
+                compress_level=9,
+                icc_profile=None,
+            )
+        os.replace(temporary_path, path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
 
 
 def validate_observation(screen: str, observation: dict[str, object]) -> None:
@@ -300,6 +342,8 @@ async def screenshot_loaded_target(page, selector: str, output: Path, base_url: 
         scale="css",
         clip={"x": 0, "y": 0, "width": width, "height": height},
     )
+    if screen != "social":
+        normalize_capture_png(output)
     return observation
 
 
@@ -317,6 +361,11 @@ def output_file(tmp: Path, lang: str, screen: str, attempt: int) -> Path:
 def destination_file(lang: str, screen: str) -> Path:
     directory = ROOT / "public/images/app-marketing" / ("social" if screen == "social" else lang)
     return directory / (f"{lang}.png" if screen == "social" else f"{screen}.png")
+
+
+def capture_file(directory: Path, lang: str, screen: str) -> Path:
+    target_directory = directory / ("social" if screen == "social" else lang)
+    return target_directory / (f"{lang}.png" if screen == "social" else f"{screen}.png")
 
 
 def preserve_unstable_pair(first: Path, second: Path, label: str) -> None:
@@ -338,13 +387,32 @@ def preserve_verified_output(source: Path, lang: str, screen: str) -> None:
     shutil.copyfile(source, destination / (f"{lang}.png" if screen == "social" else f"{screen}.png"))
 
 
-def write_manifest(observations: dict[tuple[str, str], dict[str, object]]) -> None:
+def serialize_observations(
+    observations: dict[tuple[str, str], dict[str, object]],
+) -> dict[str, dict[str, dict[str, object]]]:
+    return {
+        lang: {screen: observations[(lang, screen)] for screen in (*PHONE_SCREENS, "social")}
+        for lang in LANGUAGES
+    }
+
+
+def build_manifest(
+    capture_directory: Path,
+    observations: dict[str, dict[str, dict[str, object]]],
+) -> dict[str, object]:
     assets: dict[str, dict[str, dict[str, object]]] = {}
     for lang in LANGUAGES:
         language_assets: dict[str, dict[str, object]] = {}
         for screen in (*PHONE_SCREENS, "social"):
-            metadata = png_metadata(destination_file(lang, screen))
-            metadata["observed"] = observations[(lang, screen)]
+            metadata = png_metadata(
+                capture_file(capture_directory, lang, screen),
+                destination_file(lang, screen),
+            )
+            observation = observations[lang][screen]
+            metadata["observed"] = {
+                "state": observation["state"],
+                "resourceUrls": observation["resourceUrls"],
+            }
             if screen == "social":
                 metadata["provenance"] = {
                     "officialLogo": "/brand/cloud-core-logo-full.svg",
@@ -353,7 +421,7 @@ def write_manifest(observations: dict[tuple[str, str], dict[str, object]]) -> No
                 }
             language_assets[screen] = metadata
         assets[lang] = language_assets
-    manifest = {
+    return {
         "version": 2,
         "generatedBy": "scripts/capture-app-marketing-assets.py",
         "session": {"startsAt": SESSION_STARTS_AT, "timeZone": STUDIO_TIME_ZONE},
@@ -371,7 +439,53 @@ def write_manifest(observations: dict[tuple[str, str], dict[str, object]]) -> No
             "attestation": "tests/fixtures/app-marketing/manual-review.json",
         },
     }
-    MANIFEST_FILE.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+
+
+def atomic_copy(source: Path, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = tempfile.NamedTemporaryFile(
+        prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent, delete=False
+    )
+    temporary_path = Path(temporary.name)
+    try:
+        with source.open("rb") as source_file:
+            shutil.copyfileobj(source_file, temporary)
+        temporary.flush()
+        os.fsync(temporary.fileno())
+        temporary.close()
+        os.replace(temporary_path, destination)
+    finally:
+        temporary.close()
+        temporary_path.unlink(missing_ok=True)
+
+
+def atomic_write_text(destination: Path, content: str) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = tempfile.NamedTemporaryFile(
+        mode="w", encoding="utf-8", prefix=f".{destination.name}.", suffix=".tmp",
+        dir=destination.parent, delete=False
+    )
+    temporary_path = Path(temporary.name)
+    try:
+        temporary.write(content)
+        temporary.flush()
+        os.fsync(temporary.fileno())
+        temporary.close()
+        os.replace(temporary_path, destination)
+    finally:
+        temporary.close()
+        temporary_path.unlink(missing_ok=True)
+
+
+def accept_verified_capture(
+    capture_directory: Path,
+    observations: dict[str, dict[str, dict[str, object]]],
+) -> None:
+    manifest = build_manifest(capture_directory, observations)
+    for lang in LANGUAGES:
+        for screen in (*PHONE_SCREENS, "social"):
+            atomic_copy(capture_file(capture_directory, lang, screen), destination_file(lang, screen))
+    atomic_write_text(MANIFEST_FILE, json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 
 
 def approve_manual_review(reviewer: str, reviewed_at: str) -> None:
@@ -396,7 +510,9 @@ def approve_manual_review(reviewer: str, reviewed_at: str) -> None:
     MANUAL_REVIEW_FILE.write_text(json.dumps(review, ensure_ascii=False, indent=2) + "\n")
 
 
-async def capture_assets(*, write_assets: bool, verify_state_regression: bool = False) -> dict[str, object]:
+async def capture_assets(
+    *, output_directory: Path | None = None, verify_state_regression: bool = False
+) -> dict[str, object]:
     from playwright.async_api import async_playwright
 
     port = free_loopback_port()
@@ -408,18 +524,25 @@ async def capture_assets(*, write_assets: bool, verify_state_regression: bool = 
     ]
     vite_log = tempfile.NamedTemporaryFile(prefix="app-marketing-vite-", suffix=".log", delete=False)
     vite_log_path = Path(vite_log.name)
-    process = subprocess.Popen(command, cwd=ROOT, stdout=vite_log, stderr=subprocess.STDOUT)
+    process = None
     try:
+        process = subprocess.Popen(command, cwd=ROOT, stdout=vite_log, stderr=subprocess.STDOUT)
         wait_for_loopback_server(process, port)
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(
                 headless=True,
                 args=[
                     "--disable-gpu",
+                    "--disable-gpu-compositing",
                     "--disable-lcd-text",
+                    "--disable-oop-rasterization",
                     "--disable-font-subpixel-positioning",
+                    "--disable-threaded-animation",
+                    "--disable-threaded-scrolling",
+                    "--disable-zero-copy",
                     "--font-render-hinting=none",
                     "--force-color-profile=srgb",
+                    "--num-raster-threads=1",
                 ],
             )
             try:
@@ -509,36 +632,157 @@ async def capture_assets(*, write_assets: bool, verify_state_regression: bool = 
                     for lang in LANGUAGES:
                         for screen in (*PHONE_SCREENS, "social"):
                             preserve_verified_output(output_file(temporary, lang, screen, 2), lang, screen)
-                    if write_assets:
+                    if output_directory is not None:
                         for lang in LANGUAGES:
                             for screen in (*PHONE_SCREENS, "social"):
-                                target = destination_file(lang, screen)
+                                target = capture_file(output_directory, lang, screen)
                                 target.parent.mkdir(parents=True, exist_ok=True)
                                 shutil.copyfile(output_file(temporary, lang, screen, 2), target)
-                        write_manifest(observations)
                 await social_context.close()
                 await phone_context.close()
-                return {"networkProbe": network_probe, "hashes": hashes}
+                return {
+                    "captureProcessId": os.getpid(),
+                    "networkProbe": network_probe,
+                    "hashes": hashes,
+                    "observations": serialize_observations(observations),
+                }
             finally:
                 await browser.close()
     except Exception as error:
         vite_log.flush()
         raise RuntimeError(f"{error}\nVite log tail:\n{vite_log_tail(vite_log_path)}") from error
     finally:
-        stop_process(process)
+        if process is not None:
+            stop_process(process)
         vite_log.close()
         vite_log_path.unlink(missing_ok=True)
+
+
+def expected_capture_labels() -> set[str]:
+    return {
+        f"{lang}/{screen}"
+        for lang in LANGUAGES
+        for screen in (*PHONE_SCREENS, "social")
+    }
+
+
+def read_child_result(completed: subprocess.CompletedProcess[str]) -> dict[str, object]:
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "Independent capture process failed.\n"
+            f"stdout:\n{completed.stdout[-4_000:]}\n"
+            f"stderr:\n{completed.stderr[-4_000:]}"
+        )
+    output_lines = [line for line in completed.stdout.splitlines() if line.strip()]
+    if not output_lines:
+        raise RuntimeError("Independent capture process returned no result.")
+    try:
+        result = json.loads(output_lines[-1])
+    except json.JSONDecodeError as error:
+        raise RuntimeError(
+            f"Independent capture process returned invalid JSON: {output_lines[-1]}"
+        ) from error
+    if set(result.get("hashes", {})) != expected_capture_labels():
+        raise RuntimeError("Independent capture process did not return all 18 expected hashes.")
+    return result
+
+
+def run_capture_child(output_directory: Path) -> dict[str, object]:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--capture-child",
+            "--output-directory",
+            str(output_directory),
+        ],
+        cwd=ROOT,
+        env=os.environ.copy(),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    result = read_child_result(completed)
+    for label, expected_hash in result["hashes"].items():
+        lang, screen = label.split("/", 1)
+        actual_hash = hashlib.sha256(capture_file(output_directory, lang, screen).read_bytes()).hexdigest()
+        if actual_hash != expected_hash:
+            raise RuntimeError(f"Independent capture output hash did not match its result for {label}.")
+    return result
+
+
+def compare_capture_processes(
+    first_directory: Path,
+    first: dict[str, object],
+    second_directory: Path,
+    second: dict[str, object],
+) -> None:
+    process_ids = [first["captureProcessId"], second["captureProcessId"]]
+    if len(set(process_ids)) != 2 or os.getpid() in process_ids:
+        raise RuntimeError(f"Stability check did not use two independent child processes: {process_ids}")
+    mismatches = [
+        label
+        for label in sorted(expected_capture_labels())
+        if first["hashes"][label] != second["hashes"][label]
+    ]
+    for label in mismatches:
+        lang, screen = label.split("/", 1)
+        preserve_unstable_pair(
+            capture_file(first_directory, lang, screen),
+            capture_file(second_directory, lang, screen),
+            f"cross-process-{lang}-{screen}",
+        )
+    if mismatches:
+        evidence = ", ".join(
+            f"{label} ({first['hashes'][label]} != {second['hashes'][label]})"
+            for label in mismatches
+        )
+        raise RuntimeError(f"Independent capture processes produced different PNG bytes: {evidence}")
+    if first["observations"] != second["observations"]:
+        raise RuntimeError("Independent capture processes produced different live DOM observations.")
+    if first["networkProbe"] != second["networkProbe"]:
+        raise RuntimeError("Independent capture processes produced different network-boundary results.")
+
+
+def run_reproducible_capture(*, write_assets: bool) -> dict[str, object]:
+    with tempfile.TemporaryDirectory(prefix="app-marketing-process-1-") as first_tmp:
+        with tempfile.TemporaryDirectory(prefix="app-marketing-process-2-") as second_tmp:
+            first_directory = Path(first_tmp)
+            second_directory = Path(second_tmp)
+            first = run_capture_child(first_directory)
+            second = run_capture_child(second_directory)
+            compare_capture_processes(first_directory, first, second_directory, second)
+            for lang in LANGUAGES:
+                for screen in (*PHONE_SCREENS, "social"):
+                    preserve_verified_output(capture_file(first_directory, lang, screen), lang, screen)
+            if write_assets:
+                accept_verified_capture(first_directory, first["observations"])
+            return {
+                "captureProcessIds": [first["captureProcessId"], second["captureProcessId"]],
+                "hashes": first["hashes"],
+                "networkProbe": first["networkProbe"],
+                "reproduced": True,
+            }
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preflight", action="store_true", help="Verify the pinned Python Playwright and Chromium runtime.")
-    parser.add_argument("--verify-network", action="store_true", help="Run external HTTP/WebSocket probes without writing assets.")
-    parser.add_argument("--verify-stability", action="store_true", help="Capture every target twice into temporary files without writing assets.")
+    parser.add_argument(
+        "--verify-network", action="store_true",
+        help="Run external HTTP, WebSocket, and service-worker probes without writing assets.",
+    )
+    parser.add_argument(
+        "--stability-check", "--verify-stability", dest="stability_check", action="store_true",
+        help="Compare exact hashes from two independent fixture and browser processes without writing assets.",
+    )
     parser.add_argument("--verify-state-regression", action="store_true", help="Prove an invalid fixture state is rejected without writing assets.")
     parser.add_argument("--approve-manual-review", action="store_true", help="Write an attestation for the current manifest hashes.")
     parser.add_argument("--reviewer", help="Required reviewer name for --approve-manual-review.")
     parser.add_argument("--reviewed-at", help="Required YYYY-MM-DD date for --approve-manual-review.")
+    parser.add_argument("--capture-child", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--output-directory", type=Path, help=argparse.SUPPRESS)
     return parser.parse_args()
 
 
@@ -556,12 +800,22 @@ def main() -> int:
         if args.preflight:
             print(json.dumps(toolchain, sort_keys=True))
             return 0
-        result = asyncio.run(
-            capture_assets(
-                write_assets=not (args.verify_network or args.verify_stability or args.verify_state_regression),
-                verify_state_regression=args.verify_state_regression,
+        if args.capture_child:
+            if args.output_directory is None:
+                raise RuntimeError("The internal capture child requires an output directory.")
+            output_directory = args.output_directory.resolve()
+            if output_directory == ROOT or output_directory.is_relative_to(ROOT):
+                raise RuntimeError("The internal capture child output must be outside the repository.")
+            output_directory.mkdir(parents=True, exist_ok=True)
+            result = asyncio.run(capture_assets(output_directory=output_directory))
+        elif args.stability_check:
+            result = run_reproducible_capture(write_assets=False)
+        elif args.verify_network or args.verify_state_regression:
+            result = asyncio.run(
+                capture_assets(verify_state_regression=args.verify_state_regression)
             )
-        )
+        else:
+            result = run_reproducible_capture(write_assets=True)
         print(json.dumps(result, sort_keys=True))
     except Exception as error:
         print(f"app-marketing capture failed: {error}", file=sys.stderr)

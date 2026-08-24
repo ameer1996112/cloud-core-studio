@@ -12,6 +12,15 @@ Verify the pinned, non-production capture runtime:
 bun run marketing:capture-assets:check
 ```
 
+Verify exact PNG reproduction across two independent Vite and Chromium processes:
+
+```sh
+bun run marketing:capture-assets:stability-check
+```
+
+Normal generation uses the same two-process comparison and only atomically replaces
+the checked-in assets and manifest after all 18 hashes match.
+
 Bootstrap a missing local runtime deliberately (the capture script never downloads it):
 
 ```sh

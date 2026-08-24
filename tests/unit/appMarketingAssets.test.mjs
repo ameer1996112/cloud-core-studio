@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 
 const root = resolve(import.meta.dir, "../..");
 
@@ -118,9 +119,53 @@ describe("app marketing assets", () => {
     expect(existsSync(captureRequirementsFile)).toBe(true);
     if (!existsSync(captureRequirementsFile)) return;
     expect(readFileSync(captureRequirementsFile, "utf8")).toContain("playwright==1.58.0");
+    expect(readFileSync(captureRequirementsFile, "utf8")).toContain("Pillow==10.0.0");
   });
 
-  test("executes the loopback-only HTTP and WebSocket boundary probe with two-pass byte stability", () => {
+  test("canonically re-encodes equivalent phone PNG pixels", () => {
+    const temporary = mkdtempSync(resolve(tmpdir(), "app-marketing-normalize-"));
+    const first = resolve(temporary, "first.png");
+    const second = resolve(temporary, "second.png");
+    writeFileSync(
+      first,
+      Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAEklEQVR4AQEHAPj/Afr38gAAAA6FAuW7lejzAAAAAElFTkSuQmCC",
+        "base64",
+      ),
+    );
+    writeFileSync(
+      second,
+      Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR42mP89f0TAwMDAA6FAuUnJc8sAAAAAElFTkSuQmCC",
+        "base64",
+      ),
+    );
+    const script = resolve(root, "scripts/capture-app-marketing-assets.py");
+    const normalize = [
+      "import importlib.util, pathlib, sys",
+      "spec = importlib.util.spec_from_file_location('capture_assets', sys.argv[1])",
+      "module = importlib.util.module_from_spec(spec)",
+      "spec.loader.exec_module(module)",
+      "[module.normalize_capture_png(pathlib.Path(value)) for value in sys.argv[2:]]",
+    ].join("; ");
+
+    try {
+      const result = spawnSync("python3", ["-c", normalize, script, first, second], {
+        cwd: root,
+        encoding: "utf8",
+      });
+      expect(result.status).toBe(0);
+      expect(readFileSync(first)).toEqual(readFileSync(second));
+      expect(sha256(first)).toBe(
+        "e9e4c7b8ef10449c54272b4984ccf0cb5a7d3c8b5ed900fa1297669caf039419",
+      );
+      expect(pngSize(first)).toEqual({ width: 2, height: 1 });
+    } finally {
+      rmSync(temporary, { recursive: true, force: true });
+    }
+  });
+
+  test("executes the loopback-only HTTP, WebSocket, and service-worker boundary probes", () => {
     const script = resolve(root, "scripts/capture-app-marketing-assets.py");
     const result = spawnSync("python3", [script, "--verify-network"], {
       cwd: root,
@@ -144,6 +189,32 @@ describe("app marketing assets", () => {
     expect(Object.keys(payload.hashes)).toHaveLength(18);
     expect(new Set(Object.values(payload.hashes)).size).toBeGreaterThan(12);
   }, 70_000);
+
+  test("compares exact hashes from two independent fixture and browser processes", () => {
+    const script = resolve(root, "scripts/capture-app-marketing-assets.py");
+    const before = JSON.parse(readFileSync(manifestFile, "utf8"));
+    const result = spawnSync("python3", [script, "--stability-check"], {
+      cwd: root,
+      env: { ...process.env, NODE_ENV: "test" },
+      encoding: "utf8",
+      timeout: 120_000,
+    });
+
+    expect(result.status).toBe(0);
+    const payload = JSON.parse(result.stdout.trim().split("\n").at(-1));
+    expect(payload.captureProcessIds).toHaveLength(2);
+    expect(new Set(payload.captureProcessIds).size).toBe(2);
+    expect(payload.captureProcessIds).not.toContain(process.pid);
+    expect(Object.keys(payload.hashes)).toHaveLength(18);
+    expect(payload.reproduced).toBe(true);
+    const manifestHashes = Object.fromEntries(
+      Object.entries(before.assets).flatMap(([lang, assets]) =>
+        Object.entries(assets).map(([screen, asset]) => [`${lang}/${screen}`, asset.sha256]),
+      ),
+    );
+    expect(payload.hashes).toEqual(manifestHashes);
+    expect(JSON.parse(readFileSync(manifestFile, "utf8"))).toEqual(before);
+  }, 130_000);
 
   test("executes an invalid fixture-state probe and confirms capture validation blocks it", () => {
     const script = resolve(root, "scripts/capture-app-marketing-assets.py");

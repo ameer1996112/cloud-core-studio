@@ -7,14 +7,8 @@
   },
   "captureEnvironment": {
     "viewport": {
-      "phone": [
-        390,
-        844
-      ],
-      "social": [
-        1200,
-        630
-      ]
+      "phone": [390, 844],
+      "social": [1200, 630]
     },
     "deviceScaleFactor": 1,
     "locale": "en-GB",
@@ -30,20 +24,14 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "50b5faff9b96539ef2d81d6aed8e7b9f5ce12173e5698cfc46f226c645a3bef7",
+        "sha256": "7087c94ffb716ffc861647e64a9bd727048c81d59a172a7d09517c010572b93f",
         "observed": {
           "state": {
             "availableClassCount": 3,
             "bookingAction": true,
-            "openSpots": [
-              5,
-              3,
-              6
-            ]
+            "openSpots": [5, 3, 6]
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
         }
       },
       "booking": {
@@ -52,7 +40,7 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "9d04a98bafe18a12984698459e49466b541fe770f514b1b45a6f1b650672560f",
+        "sha256": "8e03dc6e0d204bd12e6f86a3eeba93b7e40b0e496975f0ba090c05d17534add2",
         "observed": {
           "state": {
             "bookingAction": true,
@@ -71,7 +59,7 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "f44710efcf035b9dac844754707b478adff0e2851f18f815ef4e4184e8dd5d02",
+        "sha256": "d19df53fc410adb73febc6441ac73c2695c844f15991b9906e77fa2c79fec7b9",
         "observed": {
           "state": {
             "confirmed": true
@@ -89,15 +77,13 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "df963c3332a90c23b72fdffcbc820530b85451134f1a6bdfcd0a82dc46b9cfe3",
+        "sha256": "1acf3e416018bb46ead24abce811268343f5f81f7682b57fed32869fb32c0619",
         "observed": {
           "state": {
             "active": true,
             "credits": 8
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
         }
       },
       "account": {
@@ -106,15 +92,12 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "ae6ff93650b914ac9fd7c5267708a020347c52a3e1da90cb9cddf6b3867cfe94",
+        "sha256": "a1ffae7aae982dbd447dba6effd5f580c257fcb7eec74a33bc0090f8604c9f48",
         "observed": {
           "state": {
             "completeFictionalProfile": true
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg",
-            "/images/studio/studio-interior.webp"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg", "/images/studio/studio-interior.webp"]
         }
       },
       "social": {
@@ -147,20 +130,14 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "f01b21a3f6ded9343ef9b403acce6e4ae9db73d6adc3c9825c5f2296fe86bcdd",
+        "sha256": "7c32b01363723f6be44a83c8bb6da031dd2923142ff1d56f4bd5314985911247",
         "observed": {
           "state": {
             "availableClassCount": 3,
             "bookingAction": true,
-            "openSpots": [
-              5,
-              3,
-              6
-            ]
+            "openSpots": [5, 3, 6]
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
         }
       },
       "booking": {
@@ -169,7 +146,7 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "cdfdabb018ffa988565abf0ab77d6e390a13747f34206bb96f8950065635b781",
+        "sha256": "f4c7282285bb95c0d2e4c5eb40bc7c5d200f9e055b9ab8f220f1b006f6737684",
         "observed": {
           "state": {
             "bookingAction": true,
@@ -188,7 +165,7 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "f37a873456b613652183f8079f2f69f5b6254ab916db7f10741382bf1f54c225",
+        "sha256": "5475446c8f5e054140a8a30ec21943af96db634d96609ab2a91192e785b73936",
         "observed": {
           "state": {
             "confirmed": true
@@ -206,15 +183,13 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "73da4b3ffb74b874222240ce4d332d46a45f2458ed2d1cec6322a8048ae757e5",
+        "sha256": "546273f64660450795bdbc285fb0e6d0df7c905416c64c07e3adc3fb402b40ce",
         "observed": {
           "state": {
             "active": true,
             "credits": 8
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
         }
       },
       "account": {
@@ -223,15 +198,12 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "fb32b0ad2649ca820441acaee35f6b9035dea006a60250e00c6737f7b25fe2d5",
+        "sha256": "f740a19f329a49980223fe99bd469347b1f25cb9d8d48b7552f307eaf481ec11",
         "observed": {
           "state": {
             "completeFictionalProfile": true
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg",
-            "/images/studio/studio-interior.webp"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg", "/images/studio/studio-interior.webp"]
         }
       },
       "social": {
@@ -264,20 +236,14 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "e772f3d358d1cc41644a508680f886e935b5db0c57763991b9bae1fec88fe120",
+        "sha256": "c043807cfc467ef83979efda480c12a2cafff24ca785a7ef8b4988faf4949147",
         "observed": {
           "state": {
             "availableClassCount": 3,
             "bookingAction": true,
-            "openSpots": [
-              5,
-              3,
-              6
-            ]
+            "openSpots": [5, 3, 6]
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
         }
       },
       "booking": {
@@ -286,7 +252,7 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "021d5ad7df41e9059008ff3b53049d682b403661458406be1a04cdb693b39d86",
+        "sha256": "ea0acf093ea26388c86725b6353659205dfa9309f9a7e50c045be1d2301e8fb1",
         "observed": {
           "state": {
             "bookingAction": true,
@@ -305,7 +271,7 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "2572ab9872f6e60e04e24a8c66b893af6ec3f17fb10bb3be2b491854e70524a8",
+        "sha256": "199b9eba55110f69bad85d1a8f57decb5941f440538038d96e775edc569d3a20",
         "observed": {
           "state": {
             "confirmed": true
@@ -323,15 +289,13 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "723de4e9f3a6952c303c87f9cf85685aa9cd2c2b1961b1e09cf7b5e016aabc2d",
+        "sha256": "796b9e809a78b06e40ecfe289f9aee79441a60b727d904ad2473e66de74d4bc2",
         "observed": {
           "state": {
             "active": true,
             "credits": 8
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
         }
       },
       "account": {
@@ -340,15 +304,12 @@
           "width": 390,
           "height": 844
         },
-        "sha256": "90c0611866edd3378235f8e21fa515634d52630039c32ca0f4c6150c47d5e0be",
+        "sha256": "7a05ee14eab262d03d6839764e395eb3b06a797a1763167a63004b5f05e6bafa",
         "observed": {
           "state": {
             "completeFictionalProfile": true
           },
-          "resourceUrls": [
-            "/brand/cloud-core-logo-full.svg",
-            "/images/studio/studio-interior.webp"
-          ]
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg", "/images/studio/studio-interior.webp"]
         }
       },
       "social": {

@@ -27,7 +27,7 @@
     "marketing:capture-assets": "python3 scripts/capture-app-marketing-assets.py",
     "marketing:capture-assets:check": "python3 scripts/capture-app-marketing-assets.py --preflight",
     "marketing:capture-assets:network-check": "python3 scripts/capture-app-marketing-assets.py --verify-network",
-    "marketing:capture-assets:stability-check": "python3 scripts/capture-app-marketing-assets.py --verify-stability",
+    "marketing:capture-assets:stability-check": "python3 scripts/capture-app-marketing-assets.py --stability-check",
     "marketing:capture-assets:approve": "python3 scripts/capture-app-marketing-assets.py --approve-manual-review",
     "test:integration": "bun scripts/run-messaging-integration-tests.ts",
     "whatsapp:templates:generate": "bun scripts/generate-whatsapp-templates.ts --write",
