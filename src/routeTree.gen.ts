@@ -24,6 +24,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PromoYogaLinaRouteImport } from './routes/promo.yoga-lina'
 import { Route as MemberScheduleRouteImport } from './routes/member.schedule'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AppHeRouteImport } from './routes/app.he'
@@ -155,6 +156,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromoYogaLinaRoute = PromoYogaLinaRouteImport.update({
+  id: '/promo/yoga-lina',
+  path: '/promo/yoga-lina',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MemberScheduleRoute = MemberScheduleRouteImport.update({
@@ -513,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
+  '/promo/yoga-lina': typeof PromoYogaLinaRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -584,6 +591,7 @@ export interface FileRoutesByTo {
   '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
+  '/promo/yoga-lina': typeof PromoYogaLinaRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -660,6 +668,7 @@ export interface FileRoutesById {
   '/app/he': typeof AppHeRoute
   '/auth_/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
+  '/promo/yoga-lina': typeof PromoYogaLinaRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -736,6 +745,7 @@ export interface FileRouteTypes {
     | '/app/he'
     | '/auth/reset'
     | '/member/schedule'
+    | '/promo/yoga-lina'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/automations'
@@ -807,6 +817,7 @@ export interface FileRouteTypes {
     | '/app/he'
     | '/auth/reset'
     | '/member/schedule'
+    | '/promo/yoga-lina'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/automations'
@@ -882,6 +893,7 @@ export interface FileRouteTypes {
     | '/app/he'
     | '/auth_/reset'
     | '/member/schedule'
+    | '/promo/yoga-lina'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/automations'
@@ -949,6 +961,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
+  PromoYogaLinaRoute: typeof PromoYogaLinaRoute
   ApiInternalConciergeDispatchRoute: typeof ApiInternalConciergeDispatchRoute
   ApiInternalConciergeRunRoute: typeof ApiInternalConciergeRunRoute
   ApiInternalMessagesSweepRoute: typeof ApiInternalMessagesSweepRoute
@@ -1070,6 +1083,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promo/yoga-lina': {
+      id: '/promo/yoga-lina'
+      path: '/promo/yoga-lina'
+      fullPath: '/promo/yoga-lina'
+      preLoaderRoute: typeof PromoYogaLinaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/member/schedule': {
@@ -1637,6 +1657,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
+  PromoYogaLinaRoute: PromoYogaLinaRoute,
   ApiInternalConciergeDispatchRoute: ApiInternalConciergeDispatchRoute,
   ApiInternalConciergeRunRoute: ApiInternalConciergeRunRoute,
   ApiInternalMessagesSweepRoute: ApiInternalMessagesSweepRoute,

@@ -16,6 +16,8 @@ import {
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
 import { MemberPageIntro } from "@/components/member/MemberPage";
 import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
+import { YogaPromoBanner } from "@/components/member/YogaPromoBanner";
+import { useYogaPromo } from "@/hooks/useYogaPromo";
 import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getMemberScheduleQueryKey, getViewerCacheKey } from "@/lib/memberQueryKeys";
@@ -323,6 +325,7 @@ export function MemberScheduleContent({
   viewerCacheKey,
 }: MemberScheduleContentProps) {
   const { lang, dir } = useI18n();
+  const yogaPromo = useYogaPromo({ autoClaim: Boolean(session) });
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
   const resolvedViewerCacheKey = viewerCacheKey ?? getViewerCacheKey(session);
@@ -553,6 +556,9 @@ export function MemberScheduleContent({
   if (!session) {
     return (
       <section dir={dir} className="member-page w-full space-y-6 pb-10">
+        {yogaPromo.data?.active || yogaPromo.data?.claimedByCurrentUser ? (
+          <YogaPromoBanner status={yogaPromo.data} publicAudience claimPending={false} />
+        ) : null}
         <div className="member-page-panel p-5 sm:p-8">
           <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] md:items-center">
             <div className="member-page-copy">
@@ -609,6 +615,14 @@ export function MemberScheduleContent({
 
   return (
     <section dir={dir} className="member-schedule-page member-page w-full space-y-6 pb-10">
+      {yogaPromo.data?.active || yogaPromo.data?.claimedByCurrentUser ? (
+        <YogaPromoBanner
+          status={yogaPromo.data}
+          publicAudience={false}
+          claimPending={yogaPromo.claim.isPending}
+          onClaim={() => yogaPromo.claim.mutate()}
+        />
+      ) : null}
       <MemberPageIntro
         eyebrow={t("member.schedule.kicker")}
         title={t("nav.schedule")}
