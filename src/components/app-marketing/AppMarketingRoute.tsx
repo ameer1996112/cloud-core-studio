@@ -11,6 +11,7 @@ import {
   sanitizeMarketingUtm,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
+import { getDownloadConfig } from "@/lib/download-config";
 import { applyLang, getActiveLang, type Lang } from "@/lib/i18n";
 import {
   getInstagramLandingData,
@@ -26,6 +27,10 @@ export type AppMarketingRouteData = {
   profile: AppMarketingPublicProfile;
   trialPrice: number | null;
 };
+
+export function getAppMarketingVisibleAppStoreUrl() {
+  return getDownloadConfig().appStoreUrl;
+}
 
 function getPublicProfile(studio: InstagramLandingData): AppMarketingPublicProfile {
   return {
@@ -47,12 +52,13 @@ export async function getAppMarketingRouteLoader(
   lang: Lang,
   search = "",
 ): Promise<AppMarketingRouteData> {
+  const appStoreUrl = getAppMarketingVisibleAppStoreUrl();
   const marketingUtm = Object.fromEntries(sanitizeMarketingUtm(search));
 
   try {
     const studio = await getInstagramLandingData();
     return {
-      appStoreUrl: APP_MARKETING_INSTALL_URL,
+      appStoreUrl,
       lang,
       marketingUtm,
       profile: getPublicProfile(studio),
@@ -60,7 +66,7 @@ export async function getAppMarketingRouteLoader(
     };
   } catch {
     return {
-      appStoreUrl: APP_MARKETING_INSTALL_URL,
+      appStoreUrl,
       lang,
       marketingUtm,
       profile: {

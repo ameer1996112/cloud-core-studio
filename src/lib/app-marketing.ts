@@ -189,6 +189,20 @@ export function sanitizeMarketingUtm(input: string | URLSearchParams): URLSearch
   return result;
 }
 
+export function resolveAppMarketingRedirect(input: {
+  accepted?: string | string[] | null;
+  explicit?: unknown;
+  saved?: unknown;
+  search: string | URLSearchParams;
+}) {
+  const lang = resolveMarketingLocale(input);
+  return {
+    lang,
+    to: `/app/${lang}` as const,
+    search: Object.fromEntries(sanitizeMarketingUtm(input.search)),
+  };
+}
+
 export function buildMarketingHref(path: string, utm?: string | URLSearchParams): string {
   if (!utm) return path;
   const clean = sanitizeMarketingUtm(utm);

@@ -10,10 +10,12 @@ import {
   getAppMarketingAlternates,
   getAppMarketingScreenshots,
   parseAppMarketingSearch,
+  resolveAppMarketingRedirect,
   resolveMarketingLocale,
   resolveAppMarketingLang,
   sanitizeMarketingUtm,
 } from "../../src/lib/app-marketing";
+import { getAppMarketingVisibleAppStoreUrl } from "../../src/components/app-marketing/AppMarketingRoute";
 
 describe("app marketing contracts", () => {
   test("accepts only supported explicit languages", () => {
@@ -126,6 +128,37 @@ describe("app marketing contracts", () => {
     expect(buildMarketingHref("/app/he#schedule", utm)).toBe(
       "/app/he?utm_source=instagram&utm_medium=social&utm_campaign=summer&utm_content=hero&utm_term=aerial&utm_id=42#schedule",
     );
+  });
+
+  test("resolves the legacy redirect through one pure locale and attribution decision", () => {
+    expect(
+      resolveAppMarketingRedirect({
+        explicit: "en",
+        saved: "he",
+        accepted: "ar-IL,ar;q=0.9",
+        search: "utm_source=instagram&utm_campaign=summer&email=private",
+      }),
+    ).toEqual({
+      lang: "en",
+      to: "/app/en",
+      search: { utm_source: "instagram", utm_campaign: "summer" },
+    });
+  });
+
+  test("uses the configured App Store URL for visible CTAs while schema stays canonical", () => {
+    const original = process.env.APP_STORE_URL;
+    process.env.APP_STORE_URL =
+      "https://apps.apple.com/il/app/cloud-core/id6786035836?campaign=visible";
+
+    try {
+      expect(getAppMarketingVisibleAppStoreUrl()).toBe(process.env.APP_STORE_URL);
+    } finally {
+      if (original === undefined) delete process.env.APP_STORE_URL;
+      else process.env.APP_STORE_URL = original;
+    }
+
+    const data = buildAppMarketingStructuredData({ lang: "en" });
+    expect(data["@graph"][1].installUrl).toBe("https://apps.apple.com/app/id6786035836");
   });
 
   test("trims UTM values, rejects blank values, and caps values at 200 characters", () => {

@@ -4,7 +4,7 @@ import {
   AppMarketingRoutePage,
   getAppMarketingRouteHead,
   getAppMarketingRouteLoader,
-} from "./app-marketing-route";
+} from "@/components/app-marketing/AppMarketingRoute";
 
 export const Route = createFileRoute("/app/en")({
   loader: ({ location }) => getAppMarketingRouteLoader("en", location.searchStr),

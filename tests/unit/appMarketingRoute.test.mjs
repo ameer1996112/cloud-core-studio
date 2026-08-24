@@ -6,7 +6,7 @@ import { buildWhatsappHref } from "../../src/lib/instagramLanding.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const appRoute = readFileSync(resolve(root, "src/routes/app.tsx"), "utf8");
-const appRouteSupport = resolve(root, "src/routes/app-marketing-route.tsx");
+const appRouteSupport = resolve(root, "src/components/app-marketing/AppMarketingRoute.tsx");
 const rootRoute = readFileSync(resolve(root, "src/routes/__root.tsx"), "utf8");
 const pageSource = readFileSync(
   resolve(root, "src/components/app-marketing/AppMarketingPage.tsx"),
@@ -26,6 +26,7 @@ describe("public app marketing route", () => {
       expect(route).not.toContain("validateSearch");
     }
     expect(readFileSync(appRouteSupport, "utf8")).toContain("APP_MARKETING_INSTALL_URL");
+    expect(readFileSync(appRouteSupport, "utf8")).toContain("getDownloadConfig().appStoreUrl");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("adultPlans");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("sanitizeMarketingUtm");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("marketingUtm");
@@ -37,9 +38,8 @@ describe("public app marketing route", () => {
     expect(appRoute).not.toContain("requireRouteRole");
     expect(appRoute).toContain("redirect({");
     expect(appRoute).toContain("statusCode: 307");
-    expect(appRoute).toContain("resolveMarketingLocale");
-    expect(appRoute).toContain("sanitizeMarketingUtm");
-    expect(appRoute).toContain("to: `/app/${lang}`");
+    expect(appRoute).toContain("resolveAppMarketingRedirect");
+    expect(appRoute).toContain("to: decision.to");
     expect(appRoute).toContain("component: Outlet");
     expect(appRoute).toContain('location.pathname !== "/app"');
     expect(appRoute).not.toContain("AppMarketingPage");
