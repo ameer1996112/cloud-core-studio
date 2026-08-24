@@ -1,7 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 
 const TRUSTED_APP_LINK_HOSTS = new Set(["cloudandcorestudio.com", "www.cloudandcorestudio.com"]);
-const NATIVE_MEMBER_ROUTES = new Map([
+const NATIVE_APP_ROUTES = new Map([
   ["/member", "/member"],
   ["/member/", "/member"],
   ["/member/account", "/member/account"],
@@ -9,9 +9,10 @@ const NATIVE_MEMBER_ROUTES = new Map([
   ["/member/packages", "/member/packages"],
   ["/member/payments", "/member/packages"],
   ["/member/schedule", "/member/schedule"],
+  ["/promo/yoga-lina", "/promo/yoga-lina"],
 ]);
 
-export function nativeMemberRouteFromUrl(rawUrl: string) {
+export function nativeAppRouteFromUrl(rawUrl: string) {
   let url: URL;
   try {
     url = new URL(rawUrl);
@@ -19,7 +20,7 @@ export function nativeMemberRouteFromUrl(rawUrl: string) {
     return null;
   }
   if (url.protocol !== "https:" || !TRUSTED_APP_LINK_HOSTS.has(url.hostname)) return null;
-  const route = NATIVE_MEMBER_ROUTES.get(url.pathname);
+  const route = NATIVE_APP_ROUTES.get(url.pathname);
   if (!route) return null;
   return `${route}${url.search}${url.hash}`;
 }
@@ -32,7 +33,7 @@ export async function installNativeAppLinkHandling(
   const { App } = await import("@capacitor/app");
   const openInApp = (rawUrl: string | undefined) => {
     if (!rawUrl) return;
-    const route = nativeMemberRouteFromUrl(rawUrl);
+    const route = nativeAppRouteFromUrl(rawUrl);
     if (route) navigate(route);
   };
 

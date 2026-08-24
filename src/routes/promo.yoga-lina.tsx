@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Capacitor } from "@capacitor/core";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { YogaPromoBanner } from "@/components/member/YogaPromoBanner";
 import { useYogaPromo } from "@/hooks/useYogaPromo";
 import { captureYogaPromoAttribution, trackYogaPromo, YOGA_PROMO_PATH } from "@/lib/yogaPromo";
+import { DEFAULT_APP_STORE_URL } from "@/lib/download-config";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
@@ -13,17 +15,28 @@ function YogaLinaPromoPage() {
   const { dir } = useI18n();
   const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [nativeApp, setNativeApp] = useState(false);
+  const [runtimeReady, setRuntimeReady] = useState(false);
   const [attributionReady, setAttributionReady] = useState(false);
   const promo = useYogaPromo({ autoClaim: authenticated && attributionReady });
   const refetchPromo = promo.refetch;
   useDocumentTitle("page.home.title");
 
   useEffect(() => {
+    setNativeApp(Capacitor.isNativePlatform());
+    setRuntimeReady(true);
+  }, []);
+
+  useEffect(() => {
     trackYogaPromo("yoga_promo_landing_viewed");
     void captureYogaPromoAttribution(window.location.search)
       .then(() => refetchPromo())
       .finally(() => setAttributionReady(true));
-    void supabase.auth.getSession().then(({ data }) => setAuthenticated(Boolean(data.session)));
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => setAuthenticated(Boolean(data.session)))
+      .finally(() => setAuthReady(true));
   }, [refetchPromo]);
 
   useEffect(() => {
@@ -34,16 +47,17 @@ function YogaLinaPromoPage() {
   }, [navigate, promo.claim.data?.status]);
 
   async function act() {
-    if (!authenticated) {
-      trackYogaPromo("yoga_promo_signup_started");
-      const returnTo = encodeURIComponent(YOGA_PROMO_PATH);
-      window.location.assign(`/auth?mode=signup&returnTo=${returnTo}`);
-      return;
-    }
+    if (!authenticated) return;
     const result = await promo.claim.mutateAsync();
     if (result.status === "claimed" || result.status === "already_claimed") {
       await navigate({ to: "/member/schedule" });
     }
+  }
+
+  function startSignup() {
+    trackYogaPromo("yoga_promo_signup_started");
+    const returnTo = encodeURIComponent(YOGA_PROMO_PATH);
+    window.location.assign(`/auth?mode=signup&returnTo=${returnTo}`);
   }
 
   return (
@@ -62,14 +76,24 @@ function YogaLinaPromoPage() {
         </header>
         <YogaPromoBanner
           status={promo.data}
-          loading={promo.isLoading || !attributionReady}
+          loading={promo.isLoading || !attributionReady || !authReady || !runtimeReady}
           claimPending={promo.claim.isPending}
           publicAudience={!authenticated}
-          onClaim={act}
+          onClaim={authenticated ? act : nativeApp ? startSignup : undefined}
+          claimHref={
+            authReady && runtimeReady && !authenticated && !nativeApp
+              ? DEFAULT_APP_STORE_URL
+              : undefined
+          }
         />
         <p className="mx-auto mt-5 max-w-2xl text-center text-xs leading-5 text-[#667085]">
           {t("promo.yoga.restriction")}
         </p>
+        {authReady && runtimeReady && !authenticated && !nativeApp ? (
+          <p className="mx-auto mt-2 max-w-2xl text-center text-xs leading-5 text-[#667085]">
+            {t("promo.yoga.installReturnHint")}
+          </p>
+        ) : null}
       </div>
     </main>
   );

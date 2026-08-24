@@ -96,6 +96,8 @@ export const MESSAGES = {
     "promo.yoga.landingHeadline": "Yoga with Lina",
     "promo.yoga.landingBody":
       "Join through this official campaign link, complete a new member registration, and the first 10 eligible members receive one restricted class credit.",
+    "promo.yoga.installReturnHint":
+      "After installing, return to the campaign message and tap its link again to open the app and receive the benefit.",
     "promo.yoga.loading": "Checking the live benefit availability…",
     "promo.yoga.claiming": "Preparing your benefit…",
     "shell.practice": "Your practice",
@@ -1439,6 +1441,8 @@ export const MESSAGES = {
     "promo.yoga.landingHeadline": "יוגה עם לינה",
     "promo.yoga.landingBody":
       "הצטרפי דרך קישור הקמפיין הרשמי, השלימי הרשמה כחברה חדשה, ו-10 המצטרפות הזכאיות הראשונות יקבלו קרדיט מוגבל לשיעור אחד.",
+    "promo.yoga.installReturnHint":
+      "לאחר ההתקנה, חזרי להודעת הקמפיין ולחצי שוב על הקישור כדי לפתוח את האפליקציה ולקבל את ההטבה.",
     "promo.yoga.loading": "בודקות את זמינות ההטבה בזמן אמת…",
     "promo.yoga.claiming": "מכינות את ההטבה שלך…",
     "shell.practice": "התרגול שלך",
@@ -2742,6 +2746,8 @@ export const MESSAGES = {
     "promo.yoga.landingHeadline": "يوغا مع لينا",
     "promo.yoga.landingBody":
       "انضمي من رابط الحملة الرسمي، كمّلي تسجيل عضوة جديدة، وأول 10 مشتركات مستحقات بياخدوا رصيد مقيّد لحصة واحدة.",
+    "promo.yoga.installReturnHint":
+      "بعد التثبيت، ارجعي لرسالة الحملة واضغطي على الرابط مرة ثانية عشان يفتح التطبيق وتاخدي العرض.",
     "promo.yoga.loading": "عم نتحقق من توفر العرض مباشرة…",
     "promo.yoga.claiming": "عم نجهّز عرضك…",
     "shell.practice": "ممارستك",
