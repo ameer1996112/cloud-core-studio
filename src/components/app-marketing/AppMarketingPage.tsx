@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX } from "react";
+import { useEffect, useMemo, type JSX } from "react";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -25,8 +25,8 @@ import {
 import { authImages } from "@/lib/auth-assets";
 import {
   createBrowserAppMarketingAnalytics,
+  createAppMarketingAnalyticsPageContext,
   shouldTrackAppMarketingLanguageChange,
-  type AppMarketingAnalytics,
   type AppMarketingAnalyticsEventName,
   type AppMarketingCtaLocation,
 } from "@/lib/app-marketing.analytics";
@@ -259,16 +259,26 @@ export function AppMarketingPage({
   profile,
   trialPrice = null,
 }: AppMarketingPageProps): JSX.Element {
-  const pageContextRef = useRef<Record<string, unknown>>({});
-  pageContextRef.current = { language: lang, ...marketingUtm };
-  const analyticsRef = useRef<AppMarketingAnalytics | null>(null);
-  if (!analyticsRef.current) {
-    analyticsRef.current = createBrowserAppMarketingAnalytics(() => pageContextRef.current);
-  }
+  const analyticsUtmSource = marketingUtm.utm_source;
+  const analyticsUtmMedium = marketingUtm.utm_medium;
+  const analyticsUtmCampaign = marketingUtm.utm_campaign;
+  const analyticsContext = useMemo(
+    () =>
+      createAppMarketingAnalyticsPageContext(lang, {
+        ...(analyticsUtmSource ? { utm_source: analyticsUtmSource } : {}),
+        ...(analyticsUtmMedium ? { utm_medium: analyticsUtmMedium } : {}),
+        ...(analyticsUtmCampaign ? { utm_campaign: analyticsUtmCampaign } : {}),
+      }),
+    [lang, analyticsUtmCampaign, analyticsUtmMedium, analyticsUtmSource],
+  );
+  const analytics = useMemo(
+    () => createBrowserAppMarketingAnalytics(analyticsContext),
+    [analyticsContext],
+  );
 
   useEffect(() => {
-    analyticsRef.current?.trackView();
-  }, [lang]);
+    analytics?.trackView();
+  }, [analytics]);
 
   const copy = getAppMarketingCopy(lang, trialPrice);
   const address = getAppMarketingAddressDisplay(copy.footer.address, profile.address);
@@ -279,7 +289,7 @@ export function AppMarketingPage({
   const authHref = buildMarketingHref(`/auth`, utm);
   const mapsHref = "https://www.google.com/maps/search/?api=1&query=33.016109,35.349285";
   const trackCta: AppMarketingClickTracker = (event, ctaLocation) => {
-    analyticsRef.current?.track(event, { cta_location: ctaLocation });
+    analytics?.track(event, { cta_location: ctaLocation });
   };
 
   return (
@@ -307,7 +317,7 @@ export function AppMarketingPage({
             <LanguageSelector
               lang={lang}
               marketingUtm={marketingUtm}
-              onLanguageChange={(language) => analyticsRef.current?.trackLanguageChange(language)}
+              onLanguageChange={(language) => analytics?.trackLanguageChange(language)}
             />
             <a
               href={authHref}

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   APP_MARKETING_ANALYTICS_EVENTS,
+  createAppMarketingAnalyticsPageContext,
   createBrowserAppMarketingAnalytics,
   createAppMarketingAnalytics,
   shouldTrackAppMarketingLanguageChange,
@@ -144,7 +145,7 @@ describe("app marketing analytics", () => {
       getContext: () => ({
         language: "en",
         route: "/app/en",
-        utm_source: "instagram",
+        utm_source: " ｉｎｓｔａｇｒａｍ ",
         utm_medium: "paid_social",
         utm_campaign: "summer-launch-2026",
       }),
@@ -185,6 +186,123 @@ describe("app marketing analytics", () => {
     ]);
   });
 
+  test("rejects Unicode identifiers and preserves human-readable UTM labels", () => {
+    const events: Record<string, unknown>[] = [];
+    createAppMarketingAnalytics({
+      dispatch: (detail) => events.push(detail),
+      getContext: () => ({
+        language: "ar",
+        route: "/app/ar",
+        utm_source: "٠٥٥-٩٣٩-٨٤٣٨",
+        utm_medium: "private.مثال",
+        utm_campaign: "user_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      }),
+    }).track("app_landing_view_schedule", { cta_location: "hero" });
+
+    createAppMarketingAnalytics({
+      dispatch: (detail) => events.push(detail),
+      getContext: () => ({
+        language: "en",
+        route: "/app/en",
+        utm_source: "instagram",
+        utm_medium: "paid_social",
+        utm_campaign: "aerial yoga",
+      }),
+    }).track("app_landing_view_schedule", { cta_location: "hero" });
+
+    expect(events).toEqual([
+      {
+        event: "app_landing_view_schedule",
+        language: "ar",
+        route: "/app/ar",
+        cta_location: "hero",
+      },
+      {
+        event: "app_landing_view_schedule",
+        language: "en",
+        route: "/app/en",
+        utm_source: "instagram",
+        utm_medium: "paid_social",
+        utm_campaign: "aerial yoga",
+        cta_location: "hero",
+      },
+    ]);
+  });
+
+  test("uses explicit sensitive token boundaries without dropping membership campaigns", () => {
+    const events: Record<string, unknown>[] = [];
+    createAppMarketingAnalytics({
+      dispatch: (detail) => events.push(detail),
+      getContext: () => ({
+        language: "en",
+        route: "/app/en",
+        utm_source: "membership_launch",
+        utm_medium: "member_id",
+        utm_campaign: "payment_id",
+      }),
+    }).track("app_landing_login", { cta_location: "header" });
+
+    expect(events[0]).toEqual({
+      event: "app_landing_login",
+      language: "en",
+      route: "/app/en",
+      utm_source: "membership_launch",
+      cta_location: "header",
+    });
+  });
+
+  test("dispatches frozen independent payloads and keeps dataLayer clean after listener failure", () => {
+    const dataLayer: Record<string, unknown>[] = [];
+    let dispatched: Record<string, unknown> | undefined;
+    const analytics = createAppMarketingAnalytics({
+      dataLayer,
+      dispatch: (detail) => {
+        dispatched = detail;
+        try {
+          (detail as Record<string, unknown>).email = "private@example.com";
+          (detail as Record<string, unknown>).phone = "055-939-8438";
+        } catch {
+          // A frozen browser event detail is expected to reject this mutation.
+        }
+        throw new Error("listener failed");
+      },
+      getContext: () => ({ language: "en", route: "/app/en", utm_source: "instagram" }),
+    });
+
+    expect(() => analytics.track("app_landing_login", { cta_location: "header" })).toThrow(
+      "listener failed",
+    );
+    expect(dispatched).toEqual({
+      event: "app_landing_login",
+      language: "en",
+      route: "/app/en",
+      utm_source: "instagram",
+      cta_location: "header",
+    });
+    expect(dataLayer).toEqual([dispatched]);
+    expect(dataLayer[0]).not.toBe(dispatched);
+    expect(Object.isFrozen(dispatched)).toBe(true);
+    expect(Object.isFrozen(dataLayer[0])).toBe(true);
+  });
+
+  test("creates an immutable analytics page-context snapshot", () => {
+    const utm = {
+      utm_source: "instagram",
+      utm_campaign: "summer-launch-2026",
+      utm_content: "hero",
+    };
+    const snapshot = createAppMarketingAnalyticsPageContext("en", utm);
+    utm.utm_source = "private@example.com";
+
+    expect(snapshot).toEqual({
+      language: "en",
+      route: "/app/en",
+      utm_source: "instagram",
+      utm_campaign: "summer-launch-2026",
+    });
+    expect(Object.isFrozen(snapshot)).toBe(true);
+  });
+
   test("allows only valid CTA locations and uses the target language for language changes", () => {
     const events: Record<string, unknown>[] = [];
     const analytics = createAppMarketingAnalytics({
@@ -215,23 +333,6 @@ describe("app marketing analytics", () => {
   test("does not treat the active language anchor as a language change", () => {
     expect(shouldTrackAppMarketingLanguageChange("ar", "ar")).toBe(false);
     expect(shouldTrackAppMarketingLanguageChange("ar", "en")).toBe(true);
-  });
-
-  test("exposes only a narrow CTA parameter contract", () => {
-    const analytics = createAppMarketingAnalytics({
-      dispatch: () => {},
-      getContext: () => ({}),
-    });
-
-    const compileTimeContract = () => {
-      // @ts-expect-error PII-like fields are not valid analytics parameters.
-      analytics.track("app_landing_login", { email: "private@example.com" });
-      // @ts-expect-error Navigation and attribution overrides are not valid analytics parameters.
-      analytics.track("app_landing_support_click", { href: "/support", utm_source: "instagram" });
-    };
-
-    expect(compileTimeContract).toBeTypeOf("function");
-    analytics.track("app_landing_login", { cta_location: "header" });
   });
 
   test("exposes create-account tracking for the actual signup action when one is added", () => {
@@ -267,11 +368,9 @@ describe("app marketing analytics", () => {
     });
 
     try {
-      const analytics = createBrowserAppMarketingAnalytics(() => ({
-        language: "en",
-        utm_source: "instagram",
-        email: "private@example.com",
-      }));
+      const analytics = createBrowserAppMarketingAnalytics(
+        createAppMarketingAnalyticsPageContext("en", { utm_source: "instagram" }),
+      );
       analytics?.trackView();
 
       expect(dataLayer).toEqual([

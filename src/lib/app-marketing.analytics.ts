@@ -18,6 +18,13 @@ export type AppMarketingCtaLocation = "header" | "hero" | "final" | "location" |
 export type AppMarketingAnalyticsTrackOptions = {
   cta_location?: AppMarketingCtaLocation;
 };
+export type AppMarketingAnalyticsPageContext = Readonly<{
+  language: Lang;
+  route: `/app/${Lang}`;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+}>;
 
 type AppMarketingAnalyticsDetail = {
   event: AppMarketingAnalyticsEventName;
@@ -47,21 +54,25 @@ const CTA_LOCATIONS = new Set<AppMarketingCtaLocation>([
 ]);
 const APP_MARKETING_ROUTE = /^\/app(?:\/(?:ar|he|en))?$/;
 const SAFE_UTM_VALUE = /^[\p{L}\p{N} _.-]+$/u;
-const PRIVATE_UTM_TOKEN = /email|phone|member|booking|payment/i;
-const HOSTNAME_LIKE_VALUE = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}$/i;
+const PRIVATE_UTM_TOKEN = /(?:^|[_\s.-])(email|phone|member|booking|payment)(?:$|[_\s.-])/i;
+const HOSTNAME_LIKE_VALUE = /^(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]*[\p{L}\p{N}])?\.)+[\p{L}]{2,63}$/u;
 const UUID_VALUE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LONG_HEX_IDENTIFIER = /^[0-9a-f]{24,}$/i;
+const ULID_LIKE_IDENTIFIER = /^(?:[a-z][a-z0-9]*[_-])?[0-7][0-9A-HJKMNP-TV-Z]{25}$/i;
+const LONG_MIXED_IDENTIFIER = /^(?=.{24,}$)(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[A-Za-z0-9_-]+$/;
 
 function isCtaLocation(value: unknown): value is AppMarketingCtaLocation {
   return typeof value === "string" && CTA_LOCATIONS.has(value as AppMarketingCtaLocation);
 }
 
 function sanitizedString(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim().slice(0, 200) : undefined;
+  if (typeof value !== "string") return undefined;
+  const normalized = value.normalize("NFKC").trim();
+  return normalized ? normalized.slice(0, 200) : undefined;
 }
 
 function looksLikePhoneNumber(value: string) {
-  return /^[+\d().\s-]+$/.test(value) && value.replace(/\D/g, "").length >= 7;
+  return /^[+\p{Nd}().\s-]+$/u.test(value) && (value.match(/\p{Nd}/gu)?.length ?? 0) >= 7;
 }
 
 /**
@@ -77,11 +88,36 @@ function sanitizedAnalyticsUtm(value: unknown) {
     looksLikePhoneNumber(normalized) ||
     HOSTNAME_LIKE_VALUE.test(normalized) ||
     UUID_VALUE.test(normalized) ||
-    LONG_HEX_IDENTIFIER.test(normalized)
+    LONG_HEX_IDENTIFIER.test(normalized) ||
+    ULID_LIKE_IDENTIFIER.test(normalized) ||
+    LONG_MIXED_IDENTIFIER.test(normalized)
   ) {
     return undefined;
   }
   return normalized;
+}
+
+export function createAppMarketingAnalyticsPageContext(
+  language: Lang,
+  attribution: Record<string, string>,
+): AppMarketingAnalyticsPageContext {
+  const snapshot: {
+    language: Lang;
+    route: `/app/${Lang}`;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+  } = {
+    language,
+    route: `/app/${language}`,
+  };
+
+  for (const key of UTM_KEYS) {
+    const value = attribution[key];
+    if (value) snapshot[key] = value;
+  }
+
+  return Object.freeze(snapshot);
 }
 
 function sanitizedContext(
@@ -124,8 +160,13 @@ export function createAppMarketingAnalytics(runtime: AppMarketingAnalyticsRuntim
       ...sanitizedContext(runtime.getContext()),
       ...sanitizedContext(overrides),
     };
-    runtime.dispatch(detail);
-    runtime.dataLayer?.push(detail);
+    const dispatchPayload = Object.freeze({ ...detail });
+    const dataLayerPayload = Object.freeze({ ...detail });
+    try {
+      runtime.dispatch(dispatchPayload);
+    } finally {
+      runtime.dataLayer?.push(dataLayerPayload);
+    }
   };
 
   const track = (
@@ -161,7 +202,7 @@ export function shouldTrackAppMarketingLanguageChange(current: Lang, target: Lan
 export type AppMarketingAnalytics = ReturnType<typeof createAppMarketingAnalytics>;
 
 export function createBrowserAppMarketingAnalytics(
-  getPageContext: () => Record<string, unknown>,
+  pageContext: AppMarketingAnalyticsPageContext,
 ): AppMarketingAnalytics | null {
   if (typeof window === "undefined") return null;
 
@@ -172,8 +213,7 @@ export function createBrowserAppMarketingAnalytics(
       window.dispatchEvent(new CustomEvent("cloudcore:analytics", { detail }));
     },
     getContext: () => ({
-      ...getPageContext(),
-      route: window.location.pathname,
+      ...pageContext,
       device_type: window.matchMedia("(max-width: 767px)").matches ? "mobile" : "desktop",
     }),
   });
