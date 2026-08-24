@@ -7,6 +7,8 @@ import { buildWhatsappHref } from "../../src/lib/instagramLanding.ts";
 const root = resolve(import.meta.dir, "../..");
 const appRoute = readFileSync(resolve(root, "src/routes/app.tsx"), "utf8");
 const appRouteSupport = resolve(root, "src/components/app-marketing/AppMarketingRoute.tsx");
+const appMarketingPublicData = resolve(root, "src/lib/appMarketing.functions.ts");
+const appMarketingServerData = resolve(root, "src/lib/appMarketing.server.ts");
 const rootRoute = readFileSync(resolve(root, "src/routes/__root.tsx"), "utf8");
 const pageSource = readFileSync(
   resolve(root, "src/components/app-marketing/AppMarketingPage.tsx"),
@@ -25,9 +27,24 @@ describe("public app marketing route", () => {
       expect(route).not.toContain("requireRouteRole");
       expect(route).not.toContain("validateSearch");
     }
-    expect(readFileSync(appRouteSupport, "utf8")).toContain("APP_MARKETING_INSTALL_URL");
-    expect(readFileSync(appRouteSupport, "utf8")).toContain("getDownloadConfig().appStoreUrl");
-    expect(readFileSync(appRouteSupport, "utf8")).toContain("adultPlans");
+    const source = readFileSync(appRouteSupport, "utf8");
+    expect(source).toContain("APP_MARKETING_INSTALL_URL");
+    const publicDataSource = readFileSync(appMarketingPublicData, "utf8");
+    const serverDataSource = readFileSync(appMarketingServerData, "utf8");
+    expect(source).toContain('from "@/lib/appMarketing.functions"');
+    expect(source).toContain(
+      "getPublicData: () => Promise<AppMarketingPublicData> = getAppMarketingRoutePublicData",
+    );
+    expect(source).toContain("const publicData = await getPublicData()");
+    expect(source).not.toContain("getDownloadConfig");
+    expect(publicDataSource).toContain("getAppMarketingPublicData = createServerFn");
+    expect(source).toContain("loadAppMarketingPublicData");
+    expect(serverDataSource).toContain("const appStoreUrl = getDownloadConfig().appStoreUrl");
+    expect(serverDataSource).toContain("loadInstagramLandingData");
+    expect(
+      serverDataSource.indexOf("const appStoreUrl = getDownloadConfig().appStoreUrl"),
+    ).toBeGreaterThan(serverDataSource.indexOf("loadAppMarketingPublicData"));
+    expect(serverDataSource).toContain("adultPlans");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("sanitizeMarketingUtm");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("marketingUtm");
   });
@@ -47,7 +64,8 @@ describe("public app marketing route", () => {
 
   test("shares complete static SSR head and page contracts", () => {
     const source = readFileSync(appRouteSupport, "utf8");
-    expect(source).toContain("getInstagramLandingData");
+    const serverDataSource = readFileSync(appMarketingServerData, "utf8");
+    expect(serverDataSource).toContain("loadInstagramLandingData");
     expect(source).toContain('name: "robots"');
     expect(source).toContain('name: "apple-itunes-app"');
     expect(source).toContain("app-id=6786035836");

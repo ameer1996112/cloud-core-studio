@@ -15,7 +15,7 @@ import {
   resolveAppMarketingLang,
   sanitizeMarketingUtm,
 } from "../../src/lib/app-marketing";
-import { getAppMarketingVisibleAppStoreUrl } from "../../src/components/app-marketing/AppMarketingRoute";
+import { getAppMarketingRouteLoader } from "../../src/components/app-marketing/AppMarketingRoute";
 
 describe("app marketing contracts", () => {
   test("accepts only supported explicit languages", () => {
@@ -145,17 +145,23 @@ describe("app marketing contracts", () => {
     });
   });
 
-  test("uses the configured App Store URL for visible CTAs while schema stays canonical", () => {
-    const original = process.env.APP_STORE_URL;
-    process.env.APP_STORE_URL =
+  test("uses the App Store URL returned by public server data while schema stays canonical", async () => {
+    const visibleAppStoreUrl =
       "https://apps.apple.com/il/app/cloud-core/id6786035836?campaign=visible";
+    const loaderData = await getAppMarketingRouteLoader("en", "utm_source=instagram", async () => ({
+      appStoreUrl: visibleAppStoreUrl,
+      profile: {
+        address: null,
+        contactEmail: null,
+        instagramUrl: null,
+        publicPhone: null,
+        whatsappNumber: null,
+      },
+      trialPrice: null,
+    }));
 
-    try {
-      expect(getAppMarketingVisibleAppStoreUrl()).toBe(process.env.APP_STORE_URL);
-    } finally {
-      if (original === undefined) delete process.env.APP_STORE_URL;
-      else process.env.APP_STORE_URL = original;
-    }
+    expect(loaderData.appStoreUrl).toBe(visibleAppStoreUrl);
+    expect(loaderData.marketingUtm).toEqual({ utm_source: "instagram" });
 
     const data = buildAppMarketingStructuredData({ lang: "en" });
     expect(data["@graph"][1].installUrl).toBe("https://apps.apple.com/app/id6786035836");

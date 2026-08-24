@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- shared static route support */
 import { useEffect } from "react";
+import { createIsomorphicFn } from "@tanstack/react-start";
 
 import { AppMarketingPage } from "@/components/app-marketing/AppMarketingPage";
 import {
@@ -11,14 +12,20 @@ import {
   sanitizeMarketingUtm,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
-import { getDownloadConfig } from "@/lib/download-config";
-import { applyLang, getActiveLang, type Lang } from "@/lib/i18n";
 import {
-  getInstagramLandingData,
-  type InstagramLandingData,
-} from "@/lib/instagramLanding.functions";
+  getAppMarketingPublicData,
+  type AppMarketingPublicData,
+} from "@/lib/appMarketing.functions";
+import { applyLang, getActiveLang, type Lang } from "@/lib/i18n";
 
 const APP_MARKETING_HERO_IMAGE = "/images/auth/cloud-core-auth-hero.webp";
+
+const getAppMarketingRoutePublicData = createIsomorphicFn()
+  .server(async () => {
+    const { loadAppMarketingPublicData } = await import("@/lib/appMarketing.server");
+    return loadAppMarketingPublicData();
+  })
+  .client(() => getAppMarketingPublicData());
 
 export type AppMarketingRouteData = {
   appStoreUrl: string;
@@ -28,57 +35,19 @@ export type AppMarketingRouteData = {
   trialPrice: number | null;
 };
 
-export function getAppMarketingVisibleAppStoreUrl() {
-  return getDownloadConfig().appStoreUrl;
-}
-
-function getPublicProfile(studio: InstagramLandingData): AppMarketingPublicProfile {
-  return {
-    address: studio.address,
-    contactEmail: studio.contactEmail,
-    instagramUrl: studio.instagramUrl,
-    publicPhone: studio.publicPhone,
-    whatsappNumber: studio.whatsappNumber,
-  };
-}
-
-function getCanonicalTrialPrice(studio: InstagramLandingData): number | null {
-  if (!studio.trialClassAllowed) return null;
-  const price = studio.adultPlans.find((plan) => plan.credits === 1)?.priceIls;
-  return typeof price === "number" && Number.isFinite(price) && price > 0 ? price : null;
-}
-
 export async function getAppMarketingRouteLoader(
   lang: Lang,
   search = "",
+  getPublicData: () => Promise<AppMarketingPublicData> = getAppMarketingRoutePublicData,
 ): Promise<AppMarketingRouteData> {
-  const appStoreUrl = getAppMarketingVisibleAppStoreUrl();
+  const publicData = await getPublicData();
   const marketingUtm = Object.fromEntries(sanitizeMarketingUtm(search));
 
-  try {
-    const studio = await getInstagramLandingData();
-    return {
-      appStoreUrl,
-      lang,
-      marketingUtm,
-      profile: getPublicProfile(studio),
-      trialPrice: getCanonicalTrialPrice(studio),
-    };
-  } catch {
-    return {
-      appStoreUrl,
-      lang,
-      marketingUtm,
-      profile: {
-        address: null,
-        contactEmail: null,
-        instagramUrl: null,
-        publicPhone: null,
-        whatsappNumber: null,
-      },
-      trialPrice: null,
-    };
-  }
+  return {
+    ...publicData,
+    lang,
+    marketingUtm,
+  };
 }
 
 export function getAppMarketingRouteHead(lang: Lang, loaderData?: AppMarketingRouteData) {
