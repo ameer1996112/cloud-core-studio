@@ -196,6 +196,33 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       message: "PROMO_CREDIT_NOT_VALID_FOR_CLASS",
     });
 
+    const ordinaryIndex = statuses.findIndex((status) => status === "sold_out");
+    const ordinary = clients[ordinaryIndex];
+    const [funded, fundingLedger] = await Promise.all([
+      admin.from("members").update({ remaining_credits: 1 }).eq("id", ordinary.userId),
+      admin.from("credit_transactions").insert({
+        member_id: ordinary.userId,
+        amount_delta: 1,
+        reason: "compatibility test manual credit",
+        created_by: ordinary.userId,
+      }),
+    ]);
+    if (funded.error) throw funded.error;
+    if (fundingLedger.error) throw fundingLedger.error;
+    const ordinaryBooking = await ordinary.client.rpc("book_class_v2", {
+      p_actor_id: ordinary.userId,
+      p_class_id: ineligibleClass.id,
+    });
+    if (ordinaryBooking.error) throw ordinaryBooking.error;
+    expect(ordinaryBooking.data.status).toBe("booked");
+    expect(ordinaryBooking.data.promotion_entitlement_id).toBeNull();
+    const ordinaryBalance = await admin
+      .from("members")
+      .select("remaining_credits")
+      .eq("id", ordinary.userId)
+      .single();
+    expect(ordinaryBalance.data.remaining_credits).toBe(0);
+
     const booked = await winner.client.rpc("book_class_v3", {
       p_actor_id: winnerUserId,
       p_class_id: eligibleClass.id,
