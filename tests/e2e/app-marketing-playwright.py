@@ -545,6 +545,15 @@ async def assert_analytics_and_performance(browser):
     assert all(item.get("route") == "/app/en" for item in events)
     data_layer = await page.evaluate("window.dataLayer")
     assert [item["event"] for item in data_layer] == [item["event"] for item in events]
+    signup_href = await page.locator("[data-create-account-link]").get_attribute("href")
+    signup_url = urlparse(signup_href)
+    signup_search = parse_qs(signup_url.query)
+    assert signup_url.path == "/auth" and signup_search["mode"] == ["signup"]
+    assert signup_search["utm_source"] == ["qa"] and signup_search["utm_medium"] == ["browser"]
+    signup_page = await context.new_page()
+    await signup_page.goto(f"{BASE}{signup_href}", wait_until="networkidle")
+    await signup_page.locator('input[name="name"]').wait_for(state="visible")
+    await signup_page.close()
     marketing_resources = await page.evaluate("""performance.getEntriesByType('resource').map(item=>({
       name:item.name,initiatorType:item.initiatorType,transferSize:item.transferSize,
       encodedBodySize:item.encodedBodySize,decodedBodySize:item.decodedBodySize
@@ -554,6 +563,20 @@ async def assert_analytics_and_performance(browser):
         re.I,
     )
     assert not any(forbidden_marketing_bundles.search(item["name"]) for item in marketing_resources)
+    loaded_scripts = await page.locator("script[src]").evaluate_all(
+        "items=>items.map(item=>item.src).filter(src=>src.startsWith(location.origin))"
+    )
+    loaded_script_sources = await page.evaluate("""async urls => Promise.all(urls.map(async url => ({
+      url,
+      source: await fetch(url).then(response => response.text())
+    })))""", loaded_scripts)
+    forbidden_auth_client_source = re.compile(
+        r"(?:@supabase|SupabaseClient|GoTrueClient|RealtimeClient|realtime/v1)", re.I
+    )
+    assert not [
+        item["url"] for item in loaded_script_sources
+        if forbidden_auth_client_source.search(item["source"])
+    ]
     await page.goto(f"{BASE}/app/en?{UTM}", wait_until="networkidle")
     await page.locator("[data-schedule-link]").first.click()
     await page.wait_for_url("**/member/schedule**")

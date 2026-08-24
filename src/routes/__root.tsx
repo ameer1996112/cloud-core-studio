@@ -13,12 +13,6 @@ import { getStartContext } from "@tanstack/start-storage-context";
 
 import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  clearSupabaseAccessTokenCookie,
-  syncSupabaseAccessTokenCookie,
-} from "@/integrations/supabase/session-cookie";
-import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
 import { Toaster } from "sonner";
 import {
   applyLang,
@@ -39,7 +33,6 @@ import {
   isPublicAppMarketingPathname,
 } from "@/lib/app-marketing";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
-import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
 
 function NotFoundComponent() {
   return (
@@ -211,6 +204,25 @@ const checkRequiredIosAppUpdate = createClientOnlyFn(() =>
   ),
 );
 
+const getFreshRootSession = createClientOnlyFn(() =>
+  import("@/lib/root-session-lifecycle.client").then(({ getFreshRootSession }) =>
+    getFreshRootSession(),
+  ),
+);
+
+type RootSessionLifecycleHandlers = {
+  onSessionAvailable: () => void;
+  onSessionChanged: () => void;
+  onSignedOut: () => void;
+  onError: (error: unknown) => void;
+};
+
+const startRootSessionLifecycle = createClientOnlyFn((handlers: RootSessionLifecycleHandlers) =>
+  import("@/lib/root-session-lifecycle.client").then(({ startRootSessionLifecycle }) =>
+    startRootSessionLifecycle(handlers),
+  ),
+);
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
@@ -219,16 +231,27 @@ function RootComponent() {
     if (isPublicAppMarketingPathname(window.location.pathname)) return;
 
     let active = true;
-    const stop = startNativeAppLinkHandling(() =>
-      installNativeAppLinkHandling((route) => {
-        void getFreshSupabaseSession().then(async () => {
-          if (!active) return;
-          await router.invalidate();
-          if (!active) return;
-          await router.navigate({ to: route as never, replace: true });
-        });
-      }),
-    );
+    let stop: () => void = () => undefined;
+    void import("@/lib/nativeAppLinks")
+      .then(({ installNativeAppLinkHandling, startNativeAppLinkHandling }) => {
+        if (!active) return;
+        const nextStop = startNativeAppLinkHandling(() =>
+          installNativeAppLinkHandling((route) => {
+            void getFreshRootSession().then(async () => {
+              if (!active) return;
+              await router.invalidate();
+              if (!active) return;
+              await router.navigate({ to: route as never, replace: true });
+            });
+          }),
+        );
+        if (!active) {
+          nextStop();
+          return;
+        }
+        stop = nextStop;
+      })
+      .catch((error) => console.warn("native_app_link_setup_failed", error));
     return () => {
       active = false;
       stop();
@@ -273,79 +296,36 @@ function RootComponent() {
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
     }
-    void getFreshSupabaseSession().then((session) => {
-      if (session) registerAdminPushNotifications();
-    });
     if (typeof window !== "undefined") {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())
         .catch(() => undefined);
     }
-    const syncCurrentSession = () => {
-      void getFreshSupabaseSession().then((session) => {
-        if (session) {
-          void router.invalidate();
-          void queryClient.invalidateQueries();
-        }
-      });
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") syncCurrentSession();
-    };
-
-    window.addEventListener("focus", syncCurrentSession);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    let nativeAppStateListener: { remove: () => Promise<void> } | undefined;
     let effectActive = true;
-    void Promise.all([import("@capacitor/core"), import("@capacitor/app")])
-      .then(async ([{ Capacitor }, { App }]) => {
-        if (!effectActive || !Capacitor.isNativePlatform()) return;
-        nativeAppStateListener = await App.addListener("appStateChange", ({ isActive }) => {
-          if (isActive) {
-            supabase.auth.startAutoRefresh();
-            syncCurrentSession();
-          } else {
-            supabase.auth.stopAutoRefresh();
-          }
-        });
-        if (!effectActive) {
-          await nativeAppStateListener.remove();
-          nativeAppStateListener = undefined;
-          return;
-        }
-        supabase.auth.startAutoRefresh();
-      })
-      .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
-
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event !== "SIGNED_IN" &&
-        event !== "SIGNED_OUT" &&
-        event !== "USER_UPDATED" &&
-        event !== "TOKEN_REFRESHED"
-      ) {
-        return;
-      }
-      if (event === "SIGNED_OUT") {
-        clearSupabaseAccessTokenCookie();
+    let stop: () => void = () => undefined;
+    void startRootSessionLifecycle({
+      onSessionAvailable: registerAdminPushNotifications,
+      onSessionChanged: () => {
+        void router.invalidate();
+        void queryClient.invalidateQueries();
+      },
+      onSignedOut: () => {
         void queryClient.cancelQueries().finally(() => queryClient.clear());
         void router.navigate({ to: "/auth", replace: true });
-        return;
-      }
-      syncSupabaseAccessTokenCookie(session);
-      registerAdminPushNotifications();
-      if (event === "SIGNED_IN") return;
-      router.invalidate();
-      void queryClient.invalidateQueries();
-    });
+      },
+      onError: (error) => console.warn("native_auth_lifecycle_setup_failed", error),
+    })
+      .then((nextStop) => {
+        if (!effectActive) {
+          nextStop();
+          return;
+        }
+        stop = nextStop;
+      })
+      .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
     return () => {
       effectActive = false;
-      window.removeEventListener("focus", syncCurrentSession);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (nativeAppStateListener) void nativeAppStateListener.remove();
-      sub.subscription.unsubscribe();
+      stop();
     };
   }, [router, queryClient]);
 

@@ -15,6 +15,10 @@ import capacitorConfig from "../../capacitor.config.ts";
 const root = resolve(import.meta.dir, "../..");
 const rootRoute = readFileSync(resolve(root, "src/routes/index.tsx"), "utf8");
 const appRoot = readFileSync(resolve(root, "src/routes/__root.tsx"), "utf8");
+const rootSessionLifecycle = readFileSync(
+  resolve(root, "src/lib/root-session-lifecycle.client.ts"),
+  "utf8",
+);
 
 describe("root marketing routing", () => {
   test("uses request-scoped auth and a noindex SSR platform bridge", () => {
@@ -38,7 +42,11 @@ describe("root marketing routing", () => {
     expect(
       appRoot.match(/isPublicAppMarketingPathname\(window\.location\.pathname\)/g),
     ).toHaveLength(3);
-    expect(appRoot).toContain("if (session) registerAdminPushNotifications()");
+    expect(appRoot).toContain('import("@/lib/root-session-lifecycle.client")');
+    expect(appRoot).not.toContain('from "@/integrations/supabase/client"');
+    expect(appRoot).not.toContain('from "@/integrations/supabase/auth-session"');
+    expect(rootSessionLifecycle).toContain('from "@/integrations/supabase/client"');
+    expect(rootSessionLifecycle).toContain("onSessionAvailable");
   });
 
   test("recognizes only the explicit native platform marker", () => {

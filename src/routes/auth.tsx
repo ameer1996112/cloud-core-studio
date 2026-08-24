@@ -68,8 +68,10 @@ function AuthPage() {
       const searchParams = new URL(window.location.href).searchParams;
       const requestedMode = searchParams.get("mode");
       setReturnToPath(searchParams.get("returnTo"));
+      if (requestedMode === "forgot" || requestedMode === "signup") {
+        setMode(requestedMode);
+      }
       if (requestedMode === "forgot") {
-        setMode("forgot");
         window.history.replaceState(null, document.title, window.location.pathname);
       }
     }
