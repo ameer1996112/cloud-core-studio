@@ -24,6 +24,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MemberScheduleRouteImport } from './routes/member.schedule'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
+import { Route as AppHeRouteImport } from './routes/app.he'
+import { Route as AppEnRouteImport } from './routes/app.en'
+import { Route as AppArRouteImport } from './routes/app.ar'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
@@ -151,6 +154,21 @@ const AuthResetRoute = AuthResetRouteImport.update({
   id: '/auth_/reset',
   path: '/auth/reset',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppHeRoute = AppHeRouteImport.update({
+  id: '/he',
+  path: '/he',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEnRoute = AppEnRouteImport.update({
+  id: '/en',
+  path: '/en',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppArRoute = AppArRouteImport.update({
+  id: '/ar',
+  path: '/ar',
+  getParentRoute: () => AppRoute,
 } as any)
 const AuthenticatedStudioRoute = AuthenticatedStudioRouteImport.update({
   id: '/studio',
@@ -459,7 +477,7 @@ const ApiInternalMessagesMediaMediaIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/downalod': typeof DownalodRoute
@@ -476,6 +494,9 @@ export interface FileRoutesByFullPath {
   '/plans': typeof AuthenticatedPlansRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
+  '/app/ar': typeof AppArRoute
+  '/app/en': typeof AppEnRoute
+  '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
@@ -528,7 +549,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/downalod': typeof DownalodRoute
@@ -542,6 +563,9 @@ export interface FileRoutesByTo {
   '/plans': typeof AuthenticatedPlansRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
+  '/app/ar': typeof AppArRoute
+  '/app/en': typeof AppEnRoute
+  '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
@@ -596,7 +620,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/downalod': typeof DownalodRoute
@@ -613,6 +637,9 @@ export interface FileRoutesById {
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
+  '/app/ar': typeof AppArRoute
+  '/app/en': typeof AppEnRoute
+  '/app/he': typeof AppHeRoute
   '/auth_/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
@@ -684,6 +711,9 @@ export interface FileRouteTypes {
     | '/plans'
     | '/schedule'
     | '/studio'
+    | '/app/ar'
+    | '/app/en'
+    | '/app/he'
     | '/auth/reset'
     | '/member/schedule'
     | '/admin/attendance'
@@ -750,6 +780,9 @@ export interface FileRouteTypes {
     | '/plans'
     | '/schedule'
     | '/studio'
+    | '/app/ar'
+    | '/app/en'
+    | '/app/he'
     | '/auth/reset'
     | '/member/schedule'
     | '/admin/attendance'
@@ -820,6 +853,9 @@ export interface FileRouteTypes {
     | '/_authenticated/plans'
     | '/_authenticated/schedule'
     | '/_authenticated/studio'
+    | '/app/ar'
+    | '/app/en'
+    | '/app/he'
     | '/auth_/reset'
     | '/member/schedule'
     | '/_authenticated/admin/attendance'
@@ -874,7 +910,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AppRoute: typeof AppRoute
+  AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
   DownalodRoute: typeof DownalodRoute
@@ -1009,6 +1045,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/reset'
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/he': {
+      id: '/app/he'
+      path: '/he'
+      fullPath: '/app/he'
+      preLoaderRoute: typeof AppHeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/en': {
+      id: '/app/en'
+      path: '/en'
+      fullPath: '/app/en'
+      preLoaderRoute: typeof AppEnRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ar': {
+      id: '/app/ar'
+      path: '/ar'
+      fullPath: '/app/ar'
+      preLoaderRoute: typeof AppArRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_authenticated/studio': {
       id: '/_authenticated/studio'
@@ -1508,10 +1565,24 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AppRouteChildren {
+  AppArRoute: typeof AppArRoute
+  AppEnRoute: typeof AppEnRoute
+  AppHeRoute: typeof AppHeRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppArRoute: AppArRoute,
+  AppEnRoute: AppEnRoute,
+  AppHeRoute: AppHeRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AppRoute: AppRoute,
+  AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
   DownalodRoute: DownalodRoute,

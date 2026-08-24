@@ -6,6 +6,8 @@ import { buildWhatsappHref } from "../../src/lib/instagramLanding.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const appRoute = readFileSync(resolve(root, "src/routes/app.tsx"), "utf8");
+const appRouteSupport = resolve(root, "src/routes/app-marketing-route.tsx");
+const rootRoute = readFileSync(resolve(root, "src/routes/__root.tsx"), "utf8");
 const pageSource = readFileSync(
   resolve(root, "src/components/app-marketing/AppMarketingPage.tsx"),
   "utf8",
@@ -13,27 +15,57 @@ const pageSource = readFileSync(
 const protectedRoute = readFileSync(resolve(root, "src/routes/_authenticated/route.tsx"), "utf8");
 
 describe("public app marketing route", () => {
-  test("registers /app outside authenticated routing", () => {
+  test("registers three public static localized routes outside authenticated routing", () => {
+    for (const lang of ["ar", "he", "en"]) {
+      const route = readFileSync(resolve(root, `src/routes/app.${lang}.tsx`), "utf8");
+      expect(route).toContain(`createFileRoute("/app/${lang}")`);
+      expect(route).toContain("getAppMarketingRouteLoader");
+      expect(route).toContain("getAppMarketingRouteHead");
+      expect(route).not.toContain("requireAuthenticatedRoute");
+      expect(route).not.toContain("requireRouteRole");
+      expect(route).not.toContain("validateSearch");
+    }
+    expect(readFileSync(appRouteSupport, "utf8")).toContain("APP_MARKETING_INSTALL_URL");
+    expect(readFileSync(appRouteSupport, "utf8")).toContain("adultPlans");
+  });
+
+  test("makes /app a temporary redirect-only locale resolver", () => {
     expect(appRoute).toContain('createFileRoute("/app")');
     expect(appRoute).not.toContain("requireAuthenticatedRoute");
     expect(appRoute).not.toContain("requireRouteRole");
-    expect(appRoute).not.toContain("redirect(");
+    expect(appRoute).toContain("redirect({");
+    expect(appRoute).toContain("statusCode: 307");
+    expect(appRoute).toContain("resolveMarketingLocale");
+    expect(appRoute).toContain("sanitizeMarketingUtm");
+    expect(appRoute).toContain("to: `/app/${lang}`");
+    expect(appRoute).toContain("component: Outlet");
+    expect(appRoute).toContain('location.pathname !== "/app"');
+    expect(appRoute).not.toContain("AppMarketingPage");
   });
 
-  test("uses the existing public data and App Store sources", () => {
-    expect(appRoute).toContain("getInstagramLandingData");
-    expect(appRoute).toContain("getDownloadConfig");
+  test("shares complete static SSR head and page contracts", () => {
+    const source = readFileSync(appRouteSupport, "utf8");
+    expect(source).toContain("getInstagramLandingData");
+    expect(source).toContain('name: "robots"');
+    expect(source).toContain('name: "apple-itunes-app"');
+    expect(source).toContain("app-id=6786035836");
+    expect(source).toContain('property: "og:locale"');
+    expect(source).toContain('property: "og:locale:alternate"');
+    expect(source).toContain("getAppMarketingAlternates");
+    expect(source).toContain('rel: "canonical"');
+    expect(source).toContain('rel: "preload"');
+    expect(source).toContain('as: "image"');
+    expect(source).toContain("buildAppMarketingStructuredData");
+    expect(source).toContain('replace(/</g, "\\\\u003c")');
+    expect(source).toContain("faqVisible: false");
+    expect(source).not.toContain('<script type="application/ld+json"');
   });
 
-  test("emits canonical, robots, social, and structured-data contracts", () => {
-    expect(appRoute).toContain("APP_MARKETING_CANONICAL_URL");
-    expect(appRoute).toContain('name: "robots"');
-    expect(appRoute).toContain('property: "og:title"');
-    expect(appRoute).toContain('name: "twitter:card"');
-    expect(appRoute).toContain("scripts: structuredData");
-    expect(appRoute).toContain('type: "application/ld+json"');
-    expect(appRoute).toContain("children: structuredData");
-    expect(appRoute).not.toContain('<script type="application/ld+json"');
+  test("uses static localized paths before saved language and a studio hero for generic social cards", () => {
+    expect(rootRoute).toContain("url.pathname.match(/^\\/app\\/(ar|he|en)$/)");
+    expect(rootRoute).toContain("window.location.pathname.match(/^\\/app\\/(ar|he|en)$/)");
+    expect(rootRoute).toContain("/images/auth/cloud-core-auth-hero.webp");
+    expect(rootRoute).not.toContain("/images/classes/aerial-yoga-flow.webp");
   });
 
   test("leaves the existing protected route guard in place", () => {

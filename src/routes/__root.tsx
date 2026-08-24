@@ -30,8 +30,10 @@ import {
   readSupportedLang,
   setActiveLang,
   t,
+  type Lang,
 } from "@/lib/i18n";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
+import { APP_MARKETING_LANGS, getAppMarketingMeta } from "@/lib/app-marketing";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
 import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
 
@@ -103,8 +105,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "Boutique aerial yoga & mat pilates — Cloud & Core Studio.",
       },
-      { property: "og:image", content: "/images/classes/aerial-yoga-flow.webp" },
-      { name: "twitter:image", content: "/images/classes/aerial-yoga-flow.webp" },
+      { property: "og:image", content: "/images/auth/cloud-core-auth-hero.webp" },
+      { name: "twitter:image", content: "/images/auth/cloud-core-auth-hero.webp" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -131,12 +133,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const initialLang = getInitialShellLang();
+  const alternateAppMarketingLocale = getStaticAppMarketingAlternateLocale();
   setActiveLang(initialLang);
 
   return (
     <html lang={initialLang} dir={getDirection(initialLang)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: getBootLangScript() }} />
+        {alternateAppMarketingLocale ? (
+          <meta property="og:locale:alternate" content={alternateAppMarketingLocale} />
+        ) : null}
         <HeadContent />
       </head>
       <body>
@@ -147,20 +153,26 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const getInitialShellLang = createIsomorphicFn()
+const getStaticAppMarketingLang = createIsomorphicFn()
   .server(() => {
     const request = getStartContext().request;
     const url = new URL(request.url);
-    const routeLang =
-      url.pathname === "/app" ? readSupportedLang(url.searchParams.get("lang")) : null;
-    if (routeLang) return routeLang;
-    return readLangCookieHeader(request.headers.get("cookie")) ?? DEFAULT_LOCALE;
+    return readSupportedLang(url.pathname.match(/^\/app\/(ar|he|en)$/)?.[1]);
   })
   .client(() => {
-    const routeLang =
-      typeof window !== "undefined" && window.location.pathname === "/app"
-        ? readSupportedLang(new URL(window.location.href).searchParams.get("lang"))
-        : null;
+    return typeof window !== "undefined"
+      ? readSupportedLang(window.location.pathname.match(/^\/app\/(ar|he|en)$/)?.[1])
+      : null;
+  });
+
+const getInitialShellLang = createIsomorphicFn()
+  .server(() => {
+    const routeLang = getStaticAppMarketingLang();
+    if (routeLang) return routeLang;
+    return readLangCookieHeader(getStartContext().request.headers.get("cookie")) ?? DEFAULT_LOCALE;
+  })
+  .client(() => {
+    const routeLang = getStaticAppMarketingLang();
     if (routeLang) return routeLang;
     const bootLang =
       typeof window !== "undefined" && "__ccBootLang" in window
@@ -173,6 +185,15 @@ const getInitialShellLang = createIsomorphicFn()
     if (storedLang === "he" || storedLang === "ar" || storedLang === "en") return storedLang;
     return DEFAULT_LOCALE;
   });
+
+const getStaticAppMarketingAlternateLocale = createIsomorphicFn()
+  .server(() => getSecondaryAppMarketingLocale(getStaticAppMarketingLang()))
+  .client(() => getSecondaryAppMarketingLocale(getStaticAppMarketingLang()));
+
+function getSecondaryAppMarketingLocale(lang: Lang | null) {
+  const alternate = lang ? APP_MARKETING_LANGS.find((locale) => locale !== lang) : null;
+  return alternate ? getAppMarketingMeta(alternate).locale : null;
+}
 
 const registerAdminPushNotifications = createClientOnlyFn(() => {
   void import("@/lib/adminPush.client")

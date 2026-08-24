@@ -6,9 +6,9 @@ const root = resolve(import.meta.dir, "../..");
 const source = readFileSync(resolve(root, "src/routes/__root.tsx"), "utf8");
 
 describe("app marketing shell language", () => {
-  test("reads the request URL before the saved cookie only for /app", () => {
-    expect(source).toContain('url.pathname === "/app"');
-    expect(source).toContain('url.searchParams.get("lang")');
+  test("reads fixed localized app paths before the saved cookie", () => {
+    expect(source).toContain("url.pathname.match(/^\\/app\\/(ar|he|en)$/)");
+    expect(source).toContain("window.location.pathname.match(/^\\/app\\/(ar|he|en)$/)");
     expect(source).toContain("readSupportedLang");
   });
 

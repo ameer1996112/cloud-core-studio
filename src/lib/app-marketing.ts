@@ -568,9 +568,6 @@ export function getAppMarketingAlternates(lang: AppMarketingLang) {
 
 export type AppMarketingStructuredDataInput = {
   lang: AppMarketingLang;
-  installUrl?: string;
-  /** @deprecated Use installUrl; retained for existing route compatibility. */
-  appStoreUrl?: string;
   trialPrice?: number | null;
   faqVisible?: boolean;
   profile?: AppMarketingPublicProfile;
@@ -578,8 +575,6 @@ export type AppMarketingStructuredDataInput = {
 
 export function buildAppMarketingStructuredData({
   lang,
-  installUrl,
-  appStoreUrl,
   trialPrice,
   faqVisible = false,
   profile = {
@@ -590,8 +585,6 @@ export function buildAppMarketingStructuredData({
     whatsappNumber: null,
   },
 }: AppMarketingStructuredDataInput) {
-  void installUrl;
-  void appStoreUrl;
   const resolvedInstallUrl = APP_MARKETING_INSTALL_URL;
   const meta = getAppMarketingMeta(lang);
   const copy = getAppMarketingCopy(lang, trialPrice);

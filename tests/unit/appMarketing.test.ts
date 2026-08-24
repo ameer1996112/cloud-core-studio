@@ -59,7 +59,6 @@ describe("app marketing contracts", () => {
   test("structured data contains verified application facts and no social proof", () => {
     const data = buildAppMarketingStructuredData({
       lang: "en",
-      appStoreUrl: "https://apps.apple.com/il/app/cloud-core/id6786035836",
       profile: {
         address: "Main Road 89, Hurfeish, Israel",
         contactEmail: "cloudandcorestudio@gmail.com",
@@ -397,7 +396,6 @@ describe("app marketing contracts", () => {
   test("emits verified HealthClub, application and visible FAQ JSON-LD without social proof", () => {
     const data = buildAppMarketingStructuredData({
       lang: "en",
-      installUrl: "https://apps.apple.com/app/id6786035836",
       faqVisible: true,
       trialPrice: 80,
       profile: {
@@ -444,7 +442,6 @@ describe("app marketing contracts", () => {
   test("keeps JSON-LD safe when price or visible FAQ are unavailable", () => {
     const data = buildAppMarketingStructuredData({
       lang: "en",
-      appStoreUrl: "https://apps.apple.com/il/app/cloud-core/id6786035836?campaign=legacy",
       trialPrice: null,
     });
     expect(data["@graph"].map((entry) => entry["@type"])).toEqual([

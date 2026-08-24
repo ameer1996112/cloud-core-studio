@@ -15,7 +15,7 @@ import {
 
 import {
   APP_STORE_BADGE_PATHS,
-  APP_MARKETING_COPY,
+  getAppMarketingCopy,
   getAppMarketingScreenshots,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
@@ -29,6 +29,7 @@ export type AppMarketingPageProps = {
   lang: Lang;
   appStoreUrl: string;
   profile: AppMarketingPublicProfile;
+  trialPrice?: number | null;
 };
 
 const LANGUAGE_ORDER: Lang[] = ["he", "ar", "en"];
@@ -194,15 +195,16 @@ export function AppMarketingPage({
   lang,
   appStoreUrl,
   profile,
+  trialPrice = null,
 }: AppMarketingPageProps): JSX.Element {
   const navigate = useNavigate();
-  const copy = APP_MARKETING_COPY[lang];
+  const copy = getAppMarketingCopy(lang, trialPrice);
   const labels = PAGE_LABELS[lang];
   const screenshots = getAppMarketingScreenshots(lang);
 
   function changeLanguage(next: Lang) {
     applyLang(next);
-    void navigate({ to: "/app", search: { lang: next }, replace: true });
+    void navigate({ to: `/app/${next}`, replace: true });
   }
 
   return (
@@ -214,8 +216,7 @@ export function AppMarketingPage({
       <header className="app-marketing__header">
         <div className="app-marketing__header-inner">
           <Link
-            to="/app"
-            search={{ lang }}
+            to={`/app/${lang}`}
             className="app-marketing__brand-link"
             aria-label="Cloud & Core Studio"
           >
