@@ -4,13 +4,13 @@
 - Branch: `codex/app-seo-remediation`
 - Worktree: `.worktrees/codex-app-marketing-release`
 - Base / merge-base with `origin/main`: `5d01e03` (`feat: launch multilingual app marketing page (#18)`)
-- Implementation head before this report: `98d15a0`
+- Implementation head before this report update: `dfa1d85`
 
 ## Release boundary
 
 This work is isolated on `codex/app-seo-remediation`. It has not been merged, pushed, deployed, or enabled in production. No database migration was added or applied. The six Yoga-with-Lina commits currently on `origin/main` are not part of this branch's remediation diff, and the dirty `feature/yoga-lina-launch-promo` checkout was not modified.
 
-At report time the branch is 37 commits ahead of and 6 commits behind `origin/main`, including this documentation commit. Any later integration must first reconcile the six Yoga-with-Lina commits through a separately authorized review. This report does not authorize that integration.
+At report time the branch is 39 commits ahead of and 6 commits behind `origin/main`, including the two documentation commits that create and update this report. Any later integration must first reconcile the six Yoga-with-Lina commits through a separately authorized review. This report does not authorize that integration.
 
 ## Requested outcomes
 
@@ -25,7 +25,7 @@ At report time the branch is 37 commits ahead of and 6 commits behind `origin/ma
 9. **Separate CTAs:** schedule browsing, App Store installation, account creation, and existing-member sign-in are distinct crawlable actions.
 10. **Structured data:** server-rendered JSON-LD includes `HealthClub` (a `LocalBusiness` subtype), `SoftwareApplication`, and only the visible verified FAQ entries. No invented ratings, reviews, instructors, or social proof are emitted.
 11. **Indexing:** localized canonical URLs are in `sitemap.xml`; the public app pages and assets are allowed by `robots.txt`; public responses are indexable while the legacy platform/auth bridge remains `noindex`.
-12. **Safe root routing:** authenticated visitors retain role-aware homes; explicitly marked native unauthenticated visitors go to `/auth`; ordinary unauthenticated browsers go to the best localized marketing route. Public marketing routes do not initialize or load native lifecycle, required-update, Supabase auth/realtime, admin-push, or member-device bootstraps.
+12. **Safe root routing:** authenticated visitors retain role-aware homes; explicitly marked native unauthenticated visitors go to `/auth`; ordinary unauthenticated browsers go to the best localized marketing route. Public marketing routes do not initialize native lifecycle, required-update, Supabase auth/realtime, admin-push, or member-device bootstraps, and the browser harness verifies that they make no Supabase auth, REST, or realtime network request.
 13. **Analytics and attribution:** page view, language, App Store, schedule, create-account, login, maps, support, and configured social/contact actions emit privacy-filtered semantic events. Approved UTM parameters survive root routing, CTA navigation, and the schedule-to-auth handoff.
 14. **Responsive QA:** 42 Arabic, Hebrew, and English captures cover 390×844 and 1440×900 full pages plus hero, gallery, class, FAQ, location, and final-CTA sections.
 15. **Verification:** results and known repository baselines are recorded below without fabricating unavailable Lighthouse data.
@@ -35,15 +35,15 @@ At report time the branch is 37 commits ahead of and 6 commits behind `origin/ma
 | Check                                | Result                                                                                                                                                                                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bun install --frozen-lockfile`      | PASS — 525 installs / 596 packages; lockfile unchanged                                                                                                                                                                                                  |
-| Focused remediation regression suite | PASS — 60 tests, 0 failures, 341 assertions                                                                                                                                                                                                             |
-| Full `bun run test`                  | PASS — 669 passed, 3 environment-gated database integration tests skipped, 0 failed, 5,342 assertions across 110 files                                                                                                                                  |
+| Focused remediation regression suite | PASS — 60 tests, 0 failures                                                                                                                                                                                                                             |
+| Full `bun run test`                  | PASS — 669 passed, 3 environment-gated database integration tests skipped, 0 failed, 5,355 assertions across 110 files                                                                                                                                  |
 | Capture security/reproducibility     | PASS — loopback HTTP/WebSocket/service-worker boundaries, two independent fixture/browser processes, exact asset hashes, invalid-state rejection, and production-capture refusal                                                                        |
 | Focused analytics TypeScript config  | PASS — `bunx tsc -p tests/types/tsconfig.app-marketing-analytics.json --noEmit`                                                                                                                                                                         |
 | Changed-file Prettier check          | PASS                                                                                                                                                                                                                                                    |
 | `git diff --check`                   | PASS                                                                                                                                                                                                                                                    |
 | `bun run lint`                       | PASS — 0 errors; 752 warnings remain in the repository warning baseline                                                                                                                                                                                 |
 | `bun run build`                      | PASS — client and SSR production bundles completed                                                                                                                                                                                                      |
-| Playwright SEO/QA harness            | PASS — raw SSR metadata/JSON-LD, redirect precedence, malformed auth cookie handling, analytics, real signup-form navigation, UTM continuation, loaded-script auth-client isolation, accessibility, reduced motion, and seven responsive viewport cases |
+| Playwright SEO/QA harness            | PASS — raw SSR metadata/JSON-LD, redirect precedence, malformed auth cookie handling, analytics, real signup-form navigation, UTM continuation, all-resource auth-network isolation, accessibility, reduced motion, and seven responsive viewport cases |
 | Global `bunx tsc --noEmit`           | BASELINE FAIL — unrelated existing admin, concierge, member, messaging, and payment typing errors; the remediation-specific typecheck passes                                                                                                            |
 | Global `bunx prettier --check .`     | BASELINE FAIL — 125 existing files outside this remediation are not formatted; every changed supported file passes                                                                                                                                      |
 | Lighthouse                           | NOT AVAILABLE — no local Lighthouse executable was installed, so no score or Web Vitals were claimed                                                                                                                                                    |
@@ -63,7 +63,7 @@ Manual inspection passed for RTL/LTR direction, readable localized text, authent
 
 ## Commits
 
-The remediation consists of these ordered commits after the merge-base:
+The implementation consists of these ordered commits after the merge-base (the report-only commits are omitted):
 
 ```text
 72828d3 docs: design app SEO remediation
@@ -102,6 +102,7 @@ c8378df fix: serve indexing metadata for head requests
 9ec8dac test: verify app SEO remediation end to end
 c3ad60e fix: close final app SEO review gaps
 98d15a0 fix: isolate public app auth bootstraps
+dfa1d85 fix: keep auth bootstraps off public app routes
 ```
 
 ## Integration note
