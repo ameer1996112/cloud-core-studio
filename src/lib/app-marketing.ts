@@ -1,5 +1,5 @@
 import { DEFAULT_LOCALE, type Lang } from "@/lib/i18n";
-import { roleHome, type AppRole } from "@/lib/auth-redirect";
+import { roleHome, type AppRole } from "@/lib/auth-role-home";
 import { buildMarketingHref, sanitizeMarketingUtm } from "@/lib/marketing-attribution";
 
 export { buildMarketingHref, sanitizeMarketingUtm } from "@/lib/marketing-attribution";

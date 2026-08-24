@@ -563,20 +563,20 @@ async def assert_analytics_and_performance(browser):
         re.I,
     )
     assert not any(forbidden_marketing_bundles.search(item["name"]) for item in marketing_resources)
-    loaded_scripts = await page.locator("script[src]").evaluate_all(
-        "items=>items.map(item=>item.src).filter(src=>src.startsWith(location.origin))"
-    )
-    loaded_script_sources = await page.evaluate("""async urls => Promise.all(urls.map(async url => ({
-      url,
-      source: await fetch(url).then(response => response.text())
-    })))""", loaded_scripts)
-    forbidden_auth_client_source = re.compile(
-        r"(?:@supabase|SupabaseClient|GoTrueClient|RealtimeClient|realtime/v1)", re.I
-    )
-    assert not [
-        item["url"] for item in loaded_script_sources
-        if forbidden_auth_client_source.search(item["source"])
+    loaded_scripts = [
+        item["name"] for item in marketing_resources
+        if urlparse(item["name"]).netloc == urlparse(BASE).netloc
+        and urlparse(item["name"]).path.endswith(".js")
     ]
+    forbidden_auth_bootstrap = re.compile(
+        r"(?:\.supabase\.co|/auth/v1/|/rest/v1/|/realtime/v1/)", re.I
+    )
+    auth_bootstrap_resources = [
+        item["name"] for item in marketing_resources
+        if forbidden_auth_bootstrap.search(item["name"])
+    ]
+    assert loaded_scripts
+    assert not auth_bootstrap_resources, f"public marketing bootstrapped auth: {auth_bootstrap_resources}"
     await page.goto(f"{BASE}/app/en?{UTM}", wait_until="networkidle")
     await page.locator("[data-schedule-link]").first.click()
     await page.wait_for_url("**/member/schedule**")

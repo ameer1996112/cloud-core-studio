@@ -19,6 +19,14 @@ const rootSessionLifecycle = readFileSync(
   resolve(root, "src/lib/root-session-lifecycle.client.ts"),
   "utf8",
 );
+const authAttacher = readFileSync(
+  resolve(root, "src/integrations/supabase/auth-attacher.ts"),
+  "utf8",
+);
+const authRedirect = readFileSync(resolve(root, "src/lib/auth-redirect.ts"), "utf8");
+const appMarketing = readFileSync(resolve(root, "src/lib/app-marketing.ts"), "utf8");
+const routeGuards = readFileSync(resolve(root, "src/lib/route-guards.ts"), "utf8");
+const authRoute = readFileSync(resolve(root, "src/routes/auth.tsx"), "utf8");
 
 describe("root marketing routing", () => {
   test("uses request-scoped auth and a noindex SSR platform bridge", () => {
@@ -47,6 +55,19 @@ describe("root marketing routing", () => {
     expect(appRoot).not.toContain('from "@/integrations/supabase/auth-session"');
     expect(rootSessionLifecycle).toContain('from "@/integrations/supabase/client"');
     expect(rootSessionLifecycle).toContain("onSessionAvailable");
+    expect(authAttacher).toContain("PUBLIC_APP_MARKETING_PATH.test(window.location.pathname)");
+    expect(authAttacher).toContain('await import("./client")');
+    expect(authAttacher).not.toContain('from "./client"');
+    expect(authRedirect).toContain('await import("@/integrations/supabase/client")');
+    expect(authRedirect).not.toContain('from "@/integrations/supabase/client"');
+    expect(appMarketing).toContain('from "@/lib/auth-role-home"');
+    expect(appMarketing).not.toContain('from "@/lib/auth-redirect"');
+    expect(routeGuards).toContain('await import("@/integrations/supabase/client")');
+    expect(routeGuards).not.toContain('from "@/integrations/supabase/client"');
+    expect(routeGuards).toContain('from "@/lib/auth-role-home"');
+    expect(authRoute).toContain('await import("@/integrations/supabase/client")');
+    expect(authRoute).not.toContain('from "@/integrations/supabase/client"');
+    expect(authRoute).toContain('import("@/integrations/supabase/auth-session")');
   });
 
   test("recognizes only the explicit native platform marker", () => {
