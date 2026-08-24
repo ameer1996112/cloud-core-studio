@@ -32,6 +32,13 @@ describe("Yoga with Lina promotion database contract", () => {
     expect(claimFunction).not.toContain("UPDATE public.members SET remaining_credits");
   });
 
+  test("preserves ordinary member and admin paid-credit safeguards", () => {
+    expect(migration).toContain(
+      "IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','member_not_found'); END IF;",
+    );
+    expect(migration).toContain("PERFORM public.sweep_member_credits(p_member_id);");
+  });
+
   test("rejects a forged entitlement for a different class type", () => {
     expect(migration).toContain("PROMO_CREDIT_NOT_VALID_FOR_CLASS");
     expect(migration).toContain("pct.program_type_id=v_class.program_type_id");
