@@ -125,9 +125,10 @@ export function resolveMarketingLocale(input: {
     .map((candidate, index) => {
       const [language, ...parameters] = candidate.trim().toLowerCase().split(";");
       const qParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
-      const quality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
+      const parsedQuality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
+      const quality = parsedQuality >= 0 && parsedQuality <= 1 ? parsedQuality : 0;
       return {
-        language: language.split(/[-_]/, 1)[0],
+        language: language === "*" ? "ar" : language.split(/[-_]/, 1)[0],
         quality: Number.isFinite(quality) ? quality : 0,
         index,
       };
@@ -155,7 +156,8 @@ export function sanitizeMarketingUtm(input: string | URLSearchParams): URLSearch
   const result = new URLSearchParams();
   for (const key of APPROVED_UTM_KEYS) {
     const value = source.get(key);
-    if (value !== null && value !== "") result.set(key, value);
+    const trimmedValue = value?.trim();
+    if (trimmedValue) result.set(key, trimmedValue.slice(0, 200));
   }
   return result;
 }

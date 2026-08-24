@@ -99,6 +99,10 @@ describe("app marketing contracts", () => {
     expect(resolveMarketingLocale({ accepted: "en-US,en;q=0.9" })).toBe("en");
     expect(resolveMarketingLocale({ accepted: "ar;q=0,he;q=0.4,en;q=0.9" })).toBe("en");
     expect(resolveMarketingLocale({ accepted: "he;q=0.2,en;q=0.8,ar;q=0.8" })).toBe("en");
+    expect(resolveMarketingLocale({ accepted: "*;q=1,en;q=0.5" })).toBe("ar");
+    expect(resolveMarketingLocale({ accepted: "en;q=2,he;q=0.5" })).toBe("he");
+    expect(resolveMarketingLocale({ accepted: "en;q=oops,he;q=0.5" })).toBe("he");
+    expect(resolveMarketingLocale({ accepted: "en;q=-1,he;q=0" })).toBe("ar");
     expect(resolveMarketingLocale({ accepted: ["fr-FR"] })).toBe("ar");
   });
 
@@ -117,6 +121,20 @@ describe("app marketing contracts", () => {
     expect(buildMarketingHref("/app/he#schedule", utm)).toBe(
       "/app/he?utm_source=instagram&utm_medium=social&utm_campaign=summer&utm_content=hero&utm_term=aerial&utm_id=42#schedule",
     );
+  });
+
+  test("trims UTM values, rejects blank values, and caps values at 200 characters", () => {
+    const campaign = "x".repeat(240);
+    const utm = sanitizeMarketingUtm(
+      new URLSearchParams({
+        utm_source: "  instagram  ",
+        utm_medium: "   ",
+        utm_campaign: ` ${campaign} `,
+      }),
+    );
+    expect(utm.get("utm_source")).toBe("instagram");
+    expect(utm.has("utm_medium")).toBe(false);
+    expect(utm.get("utm_campaign")).toBe("x".repeat(200));
   });
 
   test("uses self-referencing localized canonicals and reciprocal alternates", () => {
@@ -395,6 +413,23 @@ describe("app marketing contracts", () => {
       latitude: 33.016109,
       longitude: 35.349285,
     });
+    expect(data["@graph"][0].address).toEqual({
+      "@type": "PostalAddress",
+      streetAddress: "Main Road 89",
+      addressLocality: "Hurfeish",
+      addressCountry: "IL",
+      name: "Main Road 89, Hurfeish, Israel",
+    });
+    expect(data["@graph"][0].telephone).toBe("055-939-8438");
+    expect(data["@graph"][0].email).toBe("cloudandcorestudio@gmail.com");
+    expect(data["@graph"][0].availableLanguage).toEqual(["ar", "he", "en"]);
+    expect(data["@graph"][0].makesOffer.map((offer) => offer.itemOffered.name)).toEqual([
+      "Aerial Yoga for Women",
+      "Kids Aerial Yoga",
+      "Mat Pilates",
+      "HOT Pilates",
+    ]);
+    expect(data["@graph"][0].sameAs).toEqual(["https://www.instagram.com/cloudandcorestudio/"]);
     expect(data["@graph"][1].installUrl).toBe("https://apps.apple.com/app/id6786035836");
     expect(data["@graph"][2].mainEntity).toHaveLength(6);
     expect(serialized).not.toMatch(/aggregateRating|review|openingHours|price/);
