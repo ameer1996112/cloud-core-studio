@@ -10,6 +10,7 @@ const PUBLIC_SITEMAP_URLS = [
 ] as const;
 
 const SITEMAP_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600";
+const SITEMAP_CONTENT_TYPE = "application/xml; charset=utf-8";
 
 function escapeXml(value: string) {
   return value
@@ -31,20 +32,31 @@ export function buildSitemapXml() {
   ].join("\n");
 }
 
-export function buildSitemapResponse() {
-  return new Response(buildSitemapXml(), {
+function buildSitemapResponseForMethod(method: "GET" | "HEAD") {
+  const body = buildSitemapXml();
+  return new Response(method === "HEAD" ? null : body, {
     status: 200,
     headers: {
       "cache-control": SITEMAP_CACHE_CONTROL,
-      "content-type": "application/xml; charset=utf-8",
+      "content-length": String(new TextEncoder().encode(body).byteLength),
+      "content-type": SITEMAP_CONTENT_TYPE,
     },
   });
+}
+
+export function buildSitemapResponse() {
+  return buildSitemapResponseForMethod("GET");
+}
+
+export function buildSitemapHeadResponse() {
+  return buildSitemapResponseForMethod("HEAD");
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: () => buildSitemapResponse(),
+      HEAD: () => buildSitemapHeadResponse(),
     },
   },
 });

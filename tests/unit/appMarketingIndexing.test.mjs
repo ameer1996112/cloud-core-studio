@@ -1,7 +1,15 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildRobotsResponse } from "../../src/routes/robots[.]txt";
-import { buildSitemapResponse } from "../../src/routes/sitemap[.]xml";
+import {
+  buildRobotsHeadResponse,
+  buildRobotsResponse,
+  Route as RobotsRoute,
+} from "../../src/routes/robots[.]txt";
+import {
+  buildSitemapHeadResponse,
+  buildSitemapResponse,
+  Route as SitemapRoute,
+} from "../../src/routes/sitemap[.]xml";
 
 const publicUrls = [
   "https://cloudandcorestudio.com/app/ar",
@@ -86,5 +94,41 @@ describe("public indexing responses", () => {
     }
     expect(body).toContain("Sitemap: https://cloudandcorestudio.com/sitemap.xml");
     expect(body).not.toContain("noindex");
+  });
+
+  test("serves an empty sitemap HEAD response with the GET metadata", async () => {
+    const getResponse = buildSitemapResponse();
+    const headResponse = buildSitemapHeadResponse();
+    const routeHeadResponse = SitemapRoute.options.server.handlers.HEAD({});
+
+    expect(headResponse.status).toBe(200);
+    expect(routeHeadResponse.status).toBe(200);
+    expect(headResponse.headers.get("content-type")).toBe(getResponse.headers.get("content-type"));
+    expect(headResponse.headers.get("cache-control")).toBe(
+      getResponse.headers.get("cache-control"),
+    );
+    expect(headResponse.headers.get("content-length")).toBe(
+      getResponse.headers.get("content-length"),
+    );
+    expect(await headResponse.text()).toBe("");
+    expect(await routeHeadResponse.text()).toBe("");
+  });
+
+  test("serves an empty robots HEAD response with the GET metadata", async () => {
+    const getResponse = buildRobotsResponse();
+    const headResponse = buildRobotsHeadResponse();
+    const routeHeadResponse = RobotsRoute.options.server.handlers.HEAD({});
+
+    expect(headResponse.status).toBe(200);
+    expect(routeHeadResponse.status).toBe(200);
+    expect(headResponse.headers.get("content-type")).toBe(getResponse.headers.get("content-type"));
+    expect(headResponse.headers.get("cache-control")).toBe(
+      getResponse.headers.get("cache-control"),
+    );
+    expect(headResponse.headers.get("content-length")).toBe(
+      getResponse.headers.get("content-length"),
+    );
+    expect(await headResponse.text()).toBe("");
+    expect(await routeHeadResponse.text()).toBe("");
   });
 });
