@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "generatedBy": "scripts/capture-app-marketing-assets.py",
+  "session": {
+    "startsAt": "2031-09-10T17:30:00.000Z",
+    "timeZone": "Asia/Jerusalem"
+  },
+  "assets": {
+    "ar": {
+      "schedule": {
+        "file": "public/images/app-marketing/ar/schedule.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "111037c408fd3c21fd21c435caea89b7d2768f19ad087e754d2300f33dee63fe",
+        "positiveState": {
+          "availableClassCount": 3,
+          "bookingAction": true,
+          "openSpots": [5, 3, 6]
+        }
+      },
+      "booking": {
+        "file": "public/images/app-marketing/ar/booking.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "9d04a98bafe18a12984698459e49466b541fe770f514b1b45a6f1b650672560f",
+        "positiveState": {
+          "bookingAction": true,
+          "openSpots": 5
+        }
+      },
+      "bookings": {
+        "file": "public/images/app-marketing/ar/bookings.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "f44710efcf035b9dac844754707b478adff0e2851f18f815ef4e4184e8dd5d02",
+        "positiveState": {
+          "confirmed": true
+        }
+      },
+      "membership": {
+        "file": "public/images/app-marketing/ar/membership.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "df963c3332a90c23b72fdffcbc820530b85451134f1a6bdfcd0a82dc46b9cfe3",
+        "positiveState": {
+          "active": true,
+          "credits": 8
+        }
+      },
+      "account": {
+        "file": "public/images/app-marketing/ar/account.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "ae6ff93650b914ac9fd7c5267708a020347c52a3e1da90cb9cddf6b3867cfe94",
+        "positiveState": {
+          "completeFictionalProfile": true,
+          "profileName": "عضوة تجريبية"
+        }
+      },
+      "social": {
+        "file": "public/images/app-marketing/social/ar.png",
+        "dimensions": {
+          "width": 1200,
+          "height": 630
+        },
+        "sha256": "7df5e1e0a0b3de5a5faa4820810d862eea6c2e90a87c40d8cfc7f15dd44eecb4",
+        "provenance": {
+          "officialLogo": "/brand/cloud-core-logo-full.svg",
+          "studioImage": "/images/auth/cloud-core-auth-hero.webp",
+          "people": false
+        }
+      }
+    },
+    "he": {
+      "schedule": {
+        "file": "public/images/app-marketing/he/schedule.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "ee1c6819be6056eb7e07c1f1d30ad4f7c33797f72cfa5a036988530027e12fc5",
+        "positiveState": {
+          "availableClassCount": 3,
+          "bookingAction": true,
+          "openSpots": [5, 3, 6]
+        }
+      },
+      "booking": {
+        "file": "public/images/app-marketing/he/booking.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "cdfdabb018ffa988565abf0ab77d6e390a13747f34206bb96f8950065635b781",
+        "positiveState": {
+          "bookingAction": true,
+          "openSpots": 5
+        }
+      },
+      "bookings": {
+        "file": "public/images/app-marketing/he/bookings.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "f37a873456b613652183f8079f2f69f5b6254ab916db7f10741382bf1f54c225",
+        "positiveState": {
+          "confirmed": true
+        }
+      },
+      "membership": {
+        "file": "public/images/app-marketing/he/membership.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "73da4b3ffb74b874222240ce4d332d46a45f2458ed2d1cec6322a8048ae757e5",
+        "positiveState": {
+          "active": true,
+          "credits": 8
+        }
+      },
+      "account": {
+        "file": "public/images/app-marketing/he/account.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "fb32b0ad2649ca820441acaee35f6b9035dea006a60250e00c6737f7b25fe2d5",
+        "positiveState": {
+          "completeFictionalProfile": true,
+          "profileName": "חברת סטודיו"
+        }
+      },
+      "social": {
+        "file": "public/images/app-marketing/social/he.png",
+        "dimensions": {
+          "width": 1200,
+          "height": 630
+        },
+        "sha256": "f61bcd30b8add440cf47d83781c1d4b43701040f4c49782e7fb1d18019816b6d",
+        "provenance": {
+          "officialLogo": "/brand/cloud-core-logo-full.svg",
+          "studioImage": "/images/auth/cloud-core-auth-hero.webp",
+          "people": false
+        }
+      }
+    },
+    "en": {
+      "schedule": {
+        "file": "public/images/app-marketing/en/schedule.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "56e2fdbb5cae9b8ce4137a2f266b39f0b281f6a4cfb2a4674f6c42d063ad9162",
+        "positiveState": {
+          "availableClassCount": 3,
+          "bookingAction": true,
+          "openSpots": [5, 3, 6]
+        }
+      },
+      "booking": {
+        "file": "public/images/app-marketing/en/booking.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "021d5ad7df41e9059008ff3b53049d682b403661458406be1a04cdb693b39d86",
+        "positiveState": {
+          "bookingAction": true,
+          "openSpots": 5
+        }
+      },
+      "bookings": {
+        "file": "public/images/app-marketing/en/bookings.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "2572ab9872f6e60e04e24a8c66b893af6ec3f17fb10bb3be2b491854e70524a8",
+        "positiveState": {
+          "confirmed": true
+        }
+      },
+      "membership": {
+        "file": "public/images/app-marketing/en/membership.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "723de4e9f3a6952c303c87f9cf85685aa9cd2c2b1961b1e09cf7b5e016aabc2d",
+        "positiveState": {
+          "active": true,
+          "credits": 8
+        }
+      },
+      "account": {
+        "file": "public/images/app-marketing/en/account.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "90c0611866edd3378235f8e21fa515634d52630039c32ca0f4c6150c47d5e0be",
+        "positiveState": {
+          "completeFictionalProfile": true,
+          "profileName": "Demo Member"
+        }
+      },
+      "social": {
+        "file": "public/images/app-marketing/social/en.png",
+        "dimensions": {
+          "width": 1200,
+          "height": 630
+        },
+        "sha256": "8936536cc35107202c20482a2906cd65be44b207a769408b43cb63e42c319a05",
+        "provenance": {
+          "officialLogo": "/brand/cloud-core-logo-full.svg",
+          "studioImage": "/images/auth/cloud-core-auth-hero.webp",
+          "people": false
+        }
+      }
+    }
+  },
+  "manualVisualInspection": {
+    "status": "passed",
+    "method": "Reviewed all 15 phone captures and 3 social cards as local PNGs after generation.",
+    "result": "No real instructor identity, contact data, payment data, or contradictory session time is visible."
+  }
+}

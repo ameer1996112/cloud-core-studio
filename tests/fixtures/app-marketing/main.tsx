@@ -20,6 +20,10 @@ if (import.meta.env.PROD || window.MARKETING_CAPTURE_FIXTURE !== "1") {
 }
 
 type Screen = "schedule" | "booking" | "bookings" | "membership" | "account" | "social";
+const STUDIO_TIME_ZONE = "Asia/Jerusalem";
+const SESSION_STARTS_AT = "2031-09-10T17:30:00.000Z";
+const SESSION_DURATION_MINUTES = 55;
+const SESSION_CANCELLATION_WINDOW_HOURS = 4;
 
 const copy = {
   en: {
@@ -30,7 +34,6 @@ const copy = {
     membership: "Membership",
     account: "Profile",
     today: "This week",
-    date: "Tuesday · 10 September",
     detailTitle: "Aerial Yoga",
     details: "Class details",
     confirmed: "Confirmed",
@@ -49,7 +52,6 @@ const copy = {
     membership: "מנוי",
     account: "פרופיל",
     today: "השבוע שלך",
-    date: "יום שלישי · 10 בספטמבר",
     detailTitle: "יוגה אווירית",
     details: "פרטי השיעור",
     confirmed: "מאושר",
@@ -68,7 +70,6 @@ const copy = {
     membership: "الاشتراك",
     account: "الملف الشخصي",
     today: "أسبوعك",
-    date: "الثلاثاء · 10 أيلول",
     detailTitle: "يوغا هوائية",
     details: "تفاصيل الحصة",
     confirmed: "تم التأكيد",
@@ -81,64 +82,104 @@ const copy = {
   },
 } as const;
 
-const classModel = {
-  title: "Cloud & Core — Aerial Yoga",
-  starts_at: "2031-09-10T17:30:00.000Z",
-  duration_minutes: 55,
-  capacity: 12,
-  booked_count: 7,
-  credit_cost: 1,
-  cancellation_window_hours: 4,
-  energy: "flow",
-  room: "Main Studio",
-  instructor: { name: "Noor Amer" },
-  program_type: {
-    name: "Aerial Yoga",
-    name_en: "Aerial Yoga",
-    name_he: "יוגה אווירית",
-    name_ar: "يوغا هوائية",
-    level: "Beginner to intermediate",
-  },
-};
+function instructorRole(lang: Lang) {
+  if (lang === "he") return "מדריכת סטודיו";
+  if (lang === "ar") return "مدرّبة الاستوديو";
+  return "Studio Instructor";
+}
 
-const secondClassModel = {
-  ...classModel,
-  title: "Cloud & Core — Mat Pilates",
-  starts_at: "2031-09-10T19:00:00.000Z",
-  booked_count: 9,
-  instructor: { name: "Yareen Shobash" },
-  program_type: {
-    name: "Mat Pilates",
-    name_en: "Mat Pilates",
-    name_he: "פילאטיס מזרן",
-    name_ar: "بيلاتيس فرشة",
-    level: "All levels",
-  },
-};
+function sessionAtOffset(minutes: number) {
+  return new Date(new Date(SESSION_STARTS_AT).getTime() + minutes * 60_000).toISOString();
+}
 
-const thirdClassModel = {
-  ...classModel,
-  title: "Cloud & Core — Hot Pilates",
-  starts_at: "2031-09-10T20:15:00.000Z",
-  booked_count: 6,
-  program_type: {
-    name: "Hot Pilates",
-    name_en: "Hot Pilates",
-    name_he: "הוט פילאטיס",
-    name_ar: "هوت بيلاتيس",
-    level: "Intermediate to advanced",
-  },
-};
+function sessionLabels(lang: Lang) {
+  const locale = lang === "he" ? "he-IL" : lang === "ar" ? "ar-IL" : "en-GB";
+  const startsAt = new Date(SESSION_STARTS_AT);
+  const cancellationDeadline = new Date(
+    startsAt.getTime() - SESSION_CANCELLATION_WINDOW_HOURS * 60 * 60_000,
+  );
+  const date = new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIME_ZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(startsAt);
+  const time = new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(startsAt);
+  const cancellationTime = new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(cancellationDeadline);
+  return { date, time, dateTime: `${date} · ${time}`, cancellationTime };
+}
+
+function classesFor(lang: Lang) {
+  const instructor = { name: instructorRole(lang) };
+  const classModel = {
+    title: "Cloud & Core — Aerial Yoga",
+    starts_at: SESSION_STARTS_AT,
+    duration_minutes: SESSION_DURATION_MINUTES,
+    capacity: 12,
+    booked_count: 7,
+    credit_cost: 1,
+    cancellation_window_hours: SESSION_CANCELLATION_WINDOW_HOURS,
+    energy: "flow",
+    room: "Main Studio",
+    instructor,
+    program_type: {
+      name: "Aerial Yoga",
+      name_en: "Aerial Yoga",
+      name_he: "יוגה אווירית",
+      name_ar: "يوغا هوائية",
+      level: "Beginner to intermediate",
+    },
+  };
+  const secondClassModel = {
+    ...classModel,
+    title: "Cloud & Core — Mat Pilates",
+    starts_at: sessionAtOffset(90),
+    booked_count: 9,
+    program_type: {
+      name: "Mat Pilates",
+      name_en: "Mat Pilates",
+      name_he: "פילאטיס מזרן",
+      name_ar: "بيلاتيس فرشة",
+      level: "All levels",
+    },
+  };
+  const thirdClassModel = {
+    ...classModel,
+    title: "Cloud & Core — Hot Pilates",
+    starts_at: sessionAtOffset(165),
+    booked_count: 6,
+    program_type: {
+      name: "Hot Pilates",
+      name_en: "Hot Pilates",
+      name_he: "הוט פילאטיס",
+      name_ar: "هوت بيلاتيس",
+      level: "Intermediate to advanced",
+    },
+  };
+  return [classModel, secondClassModel, thirdClassModel] as const;
+}
 
 function labels(lang: Lang) {
+  const session = sessionLabels(lang);
   if (lang === "he") {
     return {
       book: "הזמנת מקום",
-      with: "עם נור עאמר",
+      with: `עם ${instructorRole(lang)}`,
       studio: "סטודיו Cloud & Core",
       spots: "5 מקומות פנויים",
-      duration: "55 דק׳",
-      when: "יום שלישי · 17:30",
+      duration: `${SESSION_DURATION_MINUTES} דק׳`,
+      when: session.dateTime,
+      cancellationTime: session.cancellationTime,
       notes: "אפשר לבטל עד 4 שעות לפני השיעור. הביאי מים ובגדים נוחים.",
       credits: "1 קרדיט",
       addCalendar: "להוסיף ליומן",
@@ -161,11 +202,12 @@ function labels(lang: Lang) {
   if (lang === "ar") {
     return {
       book: "احجزي مكانك",
-      with: "مع نور عامر",
+      with: `مع ${instructorRole(lang)}`,
       studio: "استوديو Cloud & Core",
       spots: "5 أماكن متاحة",
-      duration: "55 دقيقة",
-      when: "الثلاثاء · 17:30",
+      duration: `${SESSION_DURATION_MINUTES} دقيقة`,
+      when: session.dateTime,
+      cancellationTime: session.cancellationTime,
       notes: "يمكنك الإلغاء حتى 4 ساعات قبل الحصة. أحضري الماء وملابس مريحة.",
       credits: "رصيد واحد",
       addCalendar: "أضيفي إلى التقويم",
@@ -187,11 +229,12 @@ function labels(lang: Lang) {
   }
   return {
     book: "Book your spot",
-    with: "With Noor Amer",
+    with: `With ${instructorRole(lang)}`,
     studio: "Cloud & Core Studio",
     spots: "5 spots open",
-    duration: "55 min",
-    when: "Tuesday · 17:30",
+    duration: `${SESSION_DURATION_MINUTES} min`,
+    when: session.dateTime,
+    cancellationTime: session.cancellationTime,
     notes: "Cancel up to 4 hours before class. Bring water and comfortable movement clothes.",
     credits: "1 credit",
     addCalendar: "Add to calendar",
@@ -258,6 +301,7 @@ function PhoneFrame({
 
 function ScheduleScreen({ lang }: { lang: Lang }) {
   const text = copy[lang];
+  const [classModel, secondClassModel, thirdClassModel] = classesFor(lang);
   return (
     <PhoneFrame lang={lang} screen="schedule">
       <div className="capture-phone__title-row">
@@ -267,7 +311,7 @@ function ScheduleScreen({ lang }: { lang: Lang }) {
         </div>
         <CalendarDays size={20} color="#D4AF6A" />
       </div>
-      <ScheduleDaySection date={new Date("2031-09-10T12:00:00")} count={3}>
+      <ScheduleDaySection date={new Date(SESSION_STARTS_AT)} count={3}>
         <VisualClassCard
           cls={classModel}
           state={{ kind: "available", spotsLeft: 5 }}
@@ -292,11 +336,12 @@ function ScheduleScreen({ lang }: { lang: Lang }) {
 function BookingScreen({ lang }: { lang: Lang }) {
   const text = copy[lang];
   const label = labels(lang);
+  const [classModel] = classesFor(lang);
   return (
     <PhoneFrame lang={lang} screen="booking">
       <div className="capture-phone__title-row">
         <div>
-          <p>{text.date}</p>
+          <p>{sessionLabels(lang).date}</p>
           <h1>{text.details}</h1>
         </div>
         <Sparkles size={20} color="#D4AF6A" />
@@ -357,6 +402,7 @@ function BookingScreen({ lang }: { lang: Lang }) {
 function BookingsScreen({ lang }: { lang: Lang }) {
   const text = copy[lang];
   const label = labels(lang);
+  const [classModel] = classesFor(lang);
   return (
     <PhoneFrame lang={lang} screen="bookings">
       <div className="capture-phone__title-row">
@@ -388,7 +434,13 @@ function BookingsScreen({ lang }: { lang: Lang }) {
           <span>
             {lang === "he" ? "חלון ביטול" : lang === "ar" ? "مهلة الإلغاء" : "Cancellation window"}
           </span>
-          <span>{lang === "he" ? "עד 13:30" : lang === "ar" ? "حتى 13:30" : "Until 13:30"}</span>
+          <span>
+            {lang === "he"
+              ? `עד ${label.cancellationTime}`
+              : lang === "ar"
+                ? `حتى ${label.cancellationTime}`
+                : `Until ${label.cancellationTime}`}
+          </span>
         </div>
         <div className="capture-list__row">
           <span>
