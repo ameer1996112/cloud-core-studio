@@ -175,14 +175,16 @@ DECLARE
   v_campaign public.promotion_campaigns%ROWTYPE;
   v_user uuid := auth.uid();
   v_claimed boolean := false;
+  v_entitlement_status text;
   v_eligible boolean := false;
+  v_class_type_id uuid;
   v_class_name text;
   v_now timestamptz := now();
 BEGIN
   SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE slug = p_slug;
   IF NOT FOUND THEN RETURN jsonb_build_object('active', false, 'soldOut', false, 'remaining', 0); END IF;
 
-  SELECT COALESCE(pt.name_he, pt.name_en) INTO v_class_name
+  SELECT pt.id, COALESCE(pt.name_he, pt.name_en) INTO v_class_type_id, v_class_name
   FROM public.promotion_eligible_class_types pct
   JOIN public.program_types pt ON pt.id = pct.program_type_id
   WHERE pct.promotion_id = v_campaign.id ORDER BY pt.sort_order LIMIT 1;
@@ -190,6 +192,9 @@ BEGIN
   IF v_user IS NOT NULL THEN
     SELECT EXISTS (SELECT 1 FROM public.promotion_claims WHERE promotion_id = v_campaign.id AND user_id = v_user AND status = 'claimed')
     INTO v_claimed;
+    SELECT e.status INTO v_entitlement_status
+    FROM public.promotion_entitlements e
+    WHERE e.promotion_id = v_campaign.id AND e.member_id = v_user;
     SELECT EXISTS (
       SELECT 1 FROM public.profiles p
       JOIN public.members m ON m.id = p.id
@@ -212,11 +217,14 @@ BEGIN
     'remaining', GREATEST(v_campaign.claim_limit - v_campaign.claimed_count, 0),
     'claimLimit', v_campaign.claim_limit,
     'claimedByCurrentUser', v_claimed,
+    'entitlementStatus', v_entitlement_status,
+    'creditAvailable', v_entitlement_status IN ('active','reserved'),
     'eligible', v_eligible,
     'soldOut', v_campaign.claimed_count >= v_campaign.claim_limit,
     'startsAt', v_campaign.starts_at,
     'endsAt', v_campaign.ends_at,
     'creditExpiresAt', v_campaign.credit_expires_at,
+    'eligibleClassTypeId', v_class_type_id,
     'eligibleClassTypeName', v_class_name
   );
 END;
@@ -396,9 +404,32 @@ RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
   SELECT public.book_class_v3(p_actor_id,p_class_id,NULL);
 $$;
 
+CREATE OR REPLACE FUNCTION public._restore_promotion_entitlement(
+  p_entitlement_id uuid,
+  p_actor_id uuid,
+  p_booking_id uuid,
+  p_restore_reason text,
+  p_expiry_reason text
+) RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_ent public.promotion_entitlements%ROWTYPE; v_result text;
+BEGIN
+  SELECT * INTO v_ent FROM public.promotion_entitlements WHERE id=p_entitlement_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN 'not_found'; END IF;
+  IF v_ent.expires_at>now() THEN
+    UPDATE public.promotion_entitlements SET status='active',consumed_booking_id=NULL,consumed_at=NULL,updated_at=now() WHERE id=v_ent.id;
+    INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'restored',p_booking_id,p_restore_reason);
+    v_result := 'restored';
+  ELSE
+    UPDATE public.promotion_entitlements SET status='expired',updated_at=now() WHERE id=v_ent.id;
+    INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'expired',p_booking_id,p_expiry_reason);
+    v_result := 'expired';
+  END IF;
+  RETURN v_result;
+END; $$;
+
 CREATE OR REPLACE FUNCTION public.member_cancel_booking(p_actor_id uuid, p_booking_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE v_booking public.bookings%ROWTYPE; v_class public.classes%ROWTYPE; v_deadline timestamptz; v_next public.waitlist_entries%ROWTYPE; v_ent public.promotion_entitlements%ROWTYPE;
+DECLARE v_booking public.bookings%ROWTYPE; v_class public.classes%ROWTYPE; v_deadline timestamptz; v_next public.waitlist_entries%ROWTYPE;
 BEGIN
   IF p_actor_id IS NULL THEN RETURN jsonb_build_object('status','error','message','not_authenticated'); END IF;
   SELECT * INTO v_booking FROM public.bookings WHERE id=p_booking_id FOR UPDATE;
@@ -412,14 +443,7 @@ BEGIN
   UPDATE public.classes SET booked_count=GREATEST(0,booked_count-1) WHERE id=v_class.id;
   UPDATE public.attendance_records SET status='cancelled',marked_by=p_actor_id,marked_at=now() WHERE booking_id=p_booking_id;
   IF v_booking.promotion_entitlement_id IS NOT NULL THEN
-    SELECT * INTO v_ent FROM public.promotion_entitlements WHERE id=v_booking.promotion_entitlement_id FOR UPDATE;
-    IF v_ent.expires_at>now() THEN
-      UPDATE public.promotion_entitlements SET status='active',consumed_booking_id=NULL,consumed_at=NULL,updated_at=now() WHERE id=v_ent.id;
-      INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'restored',p_booking_id,'timely member cancellation');
-    ELSE
-      UPDATE public.promotion_entitlements SET status='expired',updated_at=now() WHERE id=v_ent.id;
-      INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'expired',p_booking_id,'expired before cancellation restoration');
-    END IF;
+    PERFORM public._restore_promotion_entitlement(v_booking.promotion_entitlement_id,p_actor_id,p_booking_id,'timely member cancellation','expired before cancellation restoration');
   ELSIF v_booking.credit_cost>0 THEN
     UPDATE public.members SET remaining_credits=remaining_credits+v_booking.credit_cost WHERE id=v_booking.member_id;
     INSERT INTO public.credit_transactions(member_id,amount_delta,reason,related_booking_id,created_by) VALUES(v_booking.member_id,v_booking.credit_cost,'member self cancel refund',p_booking_id,p_actor_id);
@@ -467,7 +491,7 @@ END; $$;
 
 CREATE OR REPLACE FUNCTION public.admin_cancel_booking(p_actor_id uuid,p_booking_id uuid,p_refund boolean DEFAULT true)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE v_booking public.bookings%ROWTYPE; v_ent public.promotion_entitlements%ROWTYPE;
+DECLARE v_booking public.bookings%ROWTYPE;
 BEGIN
   IF NOT public.has_role(p_actor_id,'admin') THEN RETURN jsonb_build_object('status','error','message','forbidden'); END IF;
   SELECT * INTO v_booking FROM public.bookings WHERE id=p_booking_id FOR UPDATE;
@@ -477,14 +501,7 @@ BEGIN
   UPDATE public.classes SET booked_count=GREATEST(0,booked_count-1) WHERE id=v_booking.class_id;
   UPDATE public.attendance_records SET status='cancelled',marked_by=p_actor_id,marked_at=now() WHERE booking_id=p_booking_id;
   IF p_refund AND v_booking.promotion_entitlement_id IS NOT NULL THEN
-    SELECT * INTO v_ent FROM public.promotion_entitlements WHERE id=v_booking.promotion_entitlement_id FOR UPDATE;
-    IF v_ent.expires_at>now() THEN
-      UPDATE public.promotion_entitlements SET status='active',consumed_booking_id=NULL,consumed_at=NULL,updated_at=now() WHERE id=v_ent.id;
-      INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'restored',p_booking_id,'admin cancellation refund');
-    ELSE
-      UPDATE public.promotion_entitlements SET status='expired',updated_at=now() WHERE id=v_ent.id;
-      INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'expired',p_booking_id,'expired before admin cancellation');
-    END IF;
+    PERFORM public._restore_promotion_entitlement(v_booking.promotion_entitlement_id,p_actor_id,p_booking_id,'admin cancellation refund','expired before admin cancellation');
   ELSIF p_refund AND v_booking.credit_cost>0 THEN
     UPDATE public.members SET remaining_credits=remaining_credits+v_booking.credit_cost WHERE id=v_booking.member_id;
     INSERT INTO public.credit_transactions(member_id,amount_delta,reason,related_booking_id,created_by) VALUES(v_booking.member_id,v_booking.credit_cost,'admin cancel refund',p_booking_id,p_actor_id);
@@ -501,8 +518,10 @@ DECLARE v_campaign public.promotion_campaigns%ROWTYPE;
 BEGIN
   IF auth.uid() IS DISTINCT FROM p_actor_id OR NOT public.has_role(p_actor_id,'admin') THEN RETURN jsonb_build_object('status','error','message','forbidden'); END IF;
   SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE slug=p_slug FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','campaign_not_found'); END IF;
   IF p_claim_limit<v_campaign.claimed_count THEN RETURN jsonb_build_object('status','error','message','limit_below_claimed_count'); END IF;
   IF p_enabled AND (p_starts_at IS NULL OR p_credit_expires_at IS NULL OR cardinality(p_program_type_ids)=0) THEN RETURN jsonb_build_object('status','error','message','incomplete_configuration'); END IF;
+  IF p_enabled AND (p_credit_expires_at<=now() OR (p_ends_at IS NOT NULL AND p_ends_at<=now())) THEN RETURN jsonb_build_object('status','error','message','promotion_window_expired'); END IF;
   UPDATE public.promotion_campaigns SET enabled=p_enabled,starts_at=p_starts_at,ends_at=p_ends_at,claim_limit=p_claim_limit,credit_expires_at=p_credit_expires_at,updated_at=now() WHERE id=v_campaign.id;
   DELETE FROM public.promotion_eligible_class_types WHERE promotion_id=v_campaign.id;
   INSERT INTO public.promotion_eligible_class_types(promotion_id,program_type_id) SELECT v_campaign.id,unnest(p_program_type_ids);
@@ -519,6 +538,10 @@ BEGIN
   SELECT * INTO v_ent FROM public.promotion_entitlements WHERE id=p_entitlement_id FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','not_found'); END IF;
   IF p_action='restore' AND (v_ent.expires_at<=now() OR v_ent.status NOT IN ('revoked','consumed')) THEN RETURN jsonb_build_object('status','error','message','cannot_restore'); END IF;
+  IF p_action='restore' AND v_ent.status='consumed' AND EXISTS (
+    SELECT 1 FROM public.bookings b
+    WHERE b.id=v_ent.consumed_booking_id AND b.status='booked'
+  ) THEN RETURN jsonb_build_object('status','error','message','cannot_restore_active_booking'); END IF;
   UPDATE public.promotion_entitlements SET status=CASE WHEN p_action='revoke' THEN 'revoked' ELSE 'active' END,
     consumed_booking_id=CASE WHEN p_action='restore' THEN NULL ELSE consumed_booking_id END,
     consumed_at=CASE WHEN p_action='restore' THEN NULL ELSE consumed_at END,updated_at=now() WHERE id=p_entitlement_id;
@@ -533,6 +556,7 @@ REVOKE ALL ON FUNCTION public.claim_promotion(text,uuid,text) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.expire_promotion_entitlements(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.book_class_v3(uuid,uuid,uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.book_class_v2(uuid,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public._restore_promotion_entitlement(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.admin_update_promotion(uuid,text,boolean,timestamptz,timestamptz,integer,timestamptz,uuid[]) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.admin_adjust_promotion_entitlement(uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.begin_promotion_attribution(text,text,text,text) TO anon, authenticated;
@@ -548,31 +572,3 @@ GRANT EXECUTE ON FUNCTION public.admin_adjust_promotion_entitlement(uuid,uuid,te
 
 COMMENT ON TABLE public.promotion_entitlements IS 'Restricted, non-cash promotional credits; never included in members.remaining_credits.';
 COMMENT ON FUNCTION public.claim_promotion(text,uuid,text) IS 'Atomic, idempotent, authenticated promotion claim with row-locked capacity.';
-
--- Fresh signup can legitimately encounter legacy nullable preference columns. Keep
--- the existing non-null audit contract by recording their effective false value.
-CREATE OR REPLACE FUNCTION public.audit_member_notification_preferences()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE
-  v_key text;
-  v_old jsonb := COALESCE(to_jsonb(OLD),'{}'::jsonb);
-  v_new jsonb := COALESCE(to_jsonb(NEW),'{}'::jsonb);
-  v_source text := COALESCE(NULLIF(current_setting('app.notification_preference_source',true),''),'member_settings');
-  v_keys constant text[] := ARRAY[
-    'lesson_reminders','schedule_updates','package_reminders','marketing','sound',
-    'push_enabled','whatsapp_enabled','email_enabled','class_operations_enabled',
-    'class_reminders_enabled','schedule_openings_enabled','waitlist_enabled',
-    'payments_enabled','membership_enabled','staff_replies_enabled',
-    'recommendations_enabled','marketing_analytics_enabled','time_sensitive_enabled'
-  ];
-BEGIN
-  FOREACH v_key IN ARRAY v_keys LOOP
-    IF COALESCE((v_old->>v_key)::boolean,false) IS DISTINCT FROM COALESCE((v_new->>v_key)::boolean,false) THEN
-      INSERT INTO public.notification_preference_events(member_id,preference_key,previous_value,new_value,source,actor_id)
-      VALUES(NEW.member_id,v_key,CASE WHEN v_old?v_key THEN COALESCE((v_old->>v_key)::boolean,false) ELSE NULL END,
-        COALESCE((v_new->>v_key)::boolean,false),v_source,auth.uid());
-    END IF;
-  END LOOP;
-  NEW.preference_revision:=COALESCE(OLD.preference_revision,0)+1;
-  RETURN NEW;
-END; $$;
