@@ -707,6 +707,12 @@
   font-style: normal;
 }
 
+.app-marketing__canonical-address {
+  margin: -10px 0 18px;
+  color: #34445c;
+  font-size: 0.92rem;
+}
+
 .app-marketing__maps-link {
   display: inline-flex;
   min-height: 44px;
@@ -865,6 +871,11 @@
 .app-marketing__footer-brand .app-marketing__footer-address {
   max-width: 33ch;
   margin-block-start: 5px;
+}
+
+.app-marketing__footer-brand .app-marketing__footer-address--canonical {
+  margin-block-start: 4px;
+  color: #e1e5eb;
 }
 
 .app-marketing__contact-links,

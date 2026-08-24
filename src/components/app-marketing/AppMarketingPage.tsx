@@ -15,6 +15,7 @@ import {
 import {
   APP_STORE_BADGE_PATHS,
   buildMarketingHref,
+  getAppMarketingAddressDisplay,
   getAppMarketingCopy,
   getAppMarketingScreenshots,
   type AppMarketingPublicProfile,
@@ -223,6 +224,7 @@ export function AppMarketingPage({
   trialPrice = null,
 }: AppMarketingPageProps): JSX.Element {
   const copy = getAppMarketingCopy(lang, trialPrice);
+  const address = getAppMarketingAddressDisplay(copy.footer.address, profile.address);
   const labels = PAGE_LABELS[lang];
   const screenshots = getAppMarketingScreenshots(lang);
   const utm = new URLSearchParams(marketingUtm);
@@ -435,7 +437,12 @@ export function AppMarketingPage({
           <div className="app-marketing__location-copy">
             <p className="app-marketing__eyebrow">{copy.footer.location}</p>
             <h2 id="app-marketing-location-title">{labels.location}</h2>
-            <address>{copy.footer.address}</address>
+            <address>{address.localized}</address>
+            {address.canonical ? (
+              <p className="app-marketing__canonical-address" dir="auto">
+                {address.canonical}
+              </p>
+            ) : null}
             <a
               className="app-marketing__maps-link"
               href={mapsHref}
@@ -491,7 +498,15 @@ export function AppMarketingPage({
             />
             <p>Cloud &amp; Core Studio</p>
             <p className="app-marketing__footer-location">{copy.footer.location}</p>
-            <p className="app-marketing__footer-address">{copy.footer.address}</p>
+            <p className="app-marketing__footer-address">{address.localized}</p>
+            {address.canonical ? (
+              <p
+                className="app-marketing__footer-address app-marketing__footer-address--canonical"
+                dir="auto"
+              >
+                {address.canonical}
+              </p>
+            ) : null}
           </div>
           <ContactLinks
             profile={profile}

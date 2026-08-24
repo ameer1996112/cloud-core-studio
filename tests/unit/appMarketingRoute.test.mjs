@@ -117,6 +117,7 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("copy.hero.memberCta");
     expect(pageSource).toContain("copy.trustSignals.items.map");
     expect(pageSource).toContain("copy.footer.address");
+    expect(pageSource).toContain("getAppMarketingAddressDisplay");
     expect(pageSource).toContain("copy.screenshots.headings[index]");
     expect(pageSource).toContain("copy.classes.descriptions[index]");
     expect(pageSource).toContain('<details className="app-marketing__faq-item"');

@@ -9,6 +9,7 @@ import {
   getAppMarketingCopy,
   getAppMarketingMeta,
   getAppMarketingAlternates,
+  getAppMarketingAddressDisplay,
   getAppMarketingScreenshots,
   parseAppMarketingSearch,
   resolveAppMarketingRedirect,
@@ -268,6 +269,23 @@ describe("app marketing contracts", () => {
     for (const lang of ["ar", "he", "en"] as const) {
       expect(APP_MARKETING_COPY[lang].trustSignals.items).toHaveLength(6);
     }
+  });
+
+  test("keeps the localized address primary while surfacing a normalized canonical address", () => {
+    const localized = APP_MARKETING_COPY.ar.footer.address;
+
+    expect(getAppMarketingAddressDisplay(localized, "  Main Road 89, Hurfeish, Israel  ")).toEqual({
+      localized,
+      canonical: "Main Road 89, Hurfeish, Israel",
+    });
+    expect(getAppMarketingAddressDisplay(localized, localized)).toEqual({
+      localized,
+      canonical: null,
+    });
+    expect(getAppMarketingAddressDisplay(localized, "   ")).toEqual({
+      localized,
+      canonical: null,
+    });
   });
 
   test("formats a verified trial price once for localized offer copy", () => {

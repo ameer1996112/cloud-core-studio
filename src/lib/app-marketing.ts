@@ -601,6 +601,30 @@ export function formatAppMarketingTrialPrice(trialPrice: number): string {
   }).format(trialPrice);
 }
 
+export function normalizeAppMarketingAddress(address: string | null | undefined): string | null {
+  const normalized = address?.replace(/\s+/g, " ").trim();
+  return normalized || null;
+}
+
+function comparableAppMarketingAddress(address: string): string {
+  return address.toLocaleLowerCase().replace(/[,.·]/g, "").replace(/\s+/g, "");
+}
+
+export function getAppMarketingAddressDisplay(
+  localized: string,
+  profileAddress: string | null | undefined,
+): { localized: string; canonical: string | null } {
+  const canonical = normalizeAppMarketingAddress(profileAddress);
+  return {
+    localized,
+    canonical:
+      canonical &&
+      comparableAppMarketingAddress(canonical) !== comparableAppMarketingAddress(localized)
+        ? canonical
+        : null,
+  };
+}
+
 const SCREENSHOT_KINDS: AppMarketingScreenshot["kind"][] = [
   "schedule",
   "booking",
@@ -712,6 +736,7 @@ export function buildAppMarketingStructuredData({
   const resolvedInstallUrl = APP_MARKETING_INSTALL_URL;
   const meta = getAppMarketingMeta(lang);
   const copy = getAppMarketingCopy(lang, trialPrice);
+  const canonicalAddress = normalizeAppMarketingAddress(profile.address);
   const studioId = `${APP_MARKETING_BASE_URL}#studio`;
   const appId = `${APP_MARKETING_BASE_URL}#app`;
   return {
@@ -732,7 +757,7 @@ export function buildAppMarketingStructuredData({
           streetAddress: "Main Road 89",
           addressLocality: "Hurfeish",
           addressCountry: "IL",
-          ...(profile.address ? { name: profile.address } : {}),
+          ...(canonicalAddress ? { name: canonicalAddress } : {}),
         },
         geo: {
           "@type": "GeoCoordinates",
