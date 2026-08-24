@@ -129,7 +129,8 @@ describe("public app marketing route", () => {
     expect(styleSource).toContain(".app-marketing__faq-item[open] summary::after");
     expect(styleSource).toContain("inset-inline-end");
     expect(styleSource).toContain('content: "+"');
-    expect(styleSource).toContain("transform: rotate(45deg)");
+    expect(styleSource).toContain('content: "−"');
+    expect(styleSource).toContain("transform: none");
     expect(pageSource).toContain("copy.faq.map(([question, answer])");
     expect(pageSource).toContain("33.016109,35.349285");
     expect(pageSource).toContain("/images/studio/studio-sign.webp");

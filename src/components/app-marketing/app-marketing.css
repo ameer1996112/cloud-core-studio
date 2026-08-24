@@ -702,7 +702,8 @@
 }
 
 .app-marketing__faq-item[open] summary::after {
-  transform: rotate(45deg);
+  content: "−";
+  transform: none;
 }
 
 .app-marketing__faq-item p {
