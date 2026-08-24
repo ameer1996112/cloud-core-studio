@@ -7,16 +7,17 @@ export const APP_MARKETING_LANGS = ["ar", "he", "en"] as const;
 export type AppMarketingLang = (typeof APP_MARKETING_LANGS)[number];
 const APP_MARKETING_BASE_URL = APP_MARKETING_CANONICAL_URL;
 export const APP_MARKETING_INSTALL_URL = "https://apps.apple.com/app/id6786035836";
-export const APP_MARKETING_TRIAL_PRICE_ILS = 80;
+export const APP_MARKETING_APP_ICON =
+  "https://cloudandcorestudio.com/brand/cloud-core-app-icon.svg";
 const APP_MARKETING_LOCALE_URLS: Record<AppMarketingLang, string> = {
   ar: `${APP_MARKETING_BASE_URL}/ar`,
   he: `${APP_MARKETING_BASE_URL}/he`,
   en: `${APP_MARKETING_BASE_URL}/en`,
 };
 export const APP_MARKETING_OG_IMAGES: Record<AppMarketingLang, string> = {
-  ar: "https://cloudandcorestudio.com/images/app-marketing/ar/social.webp",
-  he: "https://cloudandcorestudio.com/images/app-marketing/he/social.webp",
-  en: "https://cloudandcorestudio.com/images/app-marketing/en/social.webp",
+  ar: "https://cloudandcorestudio.com/images/app-marketing/social/ar.png",
+  he: "https://cloudandcorestudio.com/images/app-marketing/social/he.png",
+  en: "https://cloudandcorestudio.com/images/app-marketing/social/en.png",
 };
 export const APP_STORE_BADGE_PATHS: Record<Lang, string> = {
   he: "/brand/app-store-badges/he.svg",
@@ -36,6 +37,7 @@ export type AppMarketingPublicProfile = {
 
 export type AppMarketingCopy = {
   headerAction: string;
+  storeAccessibleLabel: string;
   hero: {
     eyebrow: string;
     title: string;
@@ -60,7 +62,11 @@ export type AppMarketingCopy = {
     descriptions: [string, string, string, string];
   };
   steps: { eyebrow: string; title: string; items: [string, string, string] };
-  finalCta: { title: string; body: string };
+  finalCta: {
+    title: string;
+    body: string;
+    actions: [string, string, string];
+  };
   faq: [string, string][];
   footer: { location: string; support: string; privacy: string; terms: string; signIn: string };
 };
@@ -115,9 +121,21 @@ export function resolveMarketingLocale(input: {
     : typeof input.accepted === "string"
       ? input.accepted.split(",")
       : [];
-  for (const candidate of accepted) {
-    const lang = candidate.trim().toLowerCase().split(/[-_;]/, 1)[0];
-    if (asMarketingLang(lang)) return lang;
+  const ranked = accepted
+    .map((candidate, index) => {
+      const [language, ...parameters] = candidate.trim().toLowerCase().split(";");
+      const qParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
+      const quality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
+      return {
+        language: language.split(/[-_]/, 1)[0],
+        quality: Number.isFinite(quality) ? quality : 0,
+        index,
+      };
+    })
+    .filter(({ quality }) => quality > 0)
+    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+  for (const { language } of ranked) {
+    if (asMarketingLang(language)) return language;
   }
   return "ar";
 }
@@ -146,25 +164,27 @@ export function buildMarketingHref(path: string, utm?: string | URLSearchParams)
   const clean = sanitizeMarketingUtm(utm);
   const query = clean.toString();
   if (!query) return path;
-  const separator = path.includes("?")
-    ? path.endsWith("?") || path.endsWith("&")
+  const [pathWithoutFragment, fragment] = path.split("#", 2);
+  const separator = pathWithoutFragment.includes("?")
+    ? pathWithoutFragment.endsWith("?") || pathWithoutFragment.endsWith("&")
       ? ""
       : "&"
     : "?";
-  return `${path}${separator}${query}`;
+  return `${pathWithoutFragment}${separator}${query}${fragment ? `#${fragment}` : ""}`;
 }
 
 export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
   he: {
-    headerAction: "פתיחת האפליקציה",
+    headerAction: "כניסה לחשבון",
+    storeAccessibleLabel: "הורדת Cloud & Core מה־App Store",
     hero: {
       eyebrow: "Cloud & Core Studio · חורפיש",
       title: "יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה",
       body: "צפי בלוח השיעורים, בחרי את החוג שמתאים לך, הזמיני מקום ועקבי אחרי המנוי והקרדיטים — הכול במקום אחד.",
       primaryCta: "צפייה בלוח והרשמה",
-      storeCta: "הורדה מ־App Store",
+      storeCta: "הורדה מה־App Store",
       trust: "מתאים למתחילות · קבוצות קטנות · יחס אישי",
-      offer: "שיעור ניסיון ב־80 ₪",
+      offer: "",
       memberCta: "כבר חברה? כניסה לחשבון",
     },
     features: {
@@ -208,6 +228,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     finalCta: {
       title: "מוכנה לבחור את השיעור הבא שלך?",
       body: "פתחי את Cloud & Core, צפי בלו״ז והזמיני מקום.",
+      actions: ["צפייה בלוח והרשמה", "הורדה מה־App Store", "כניסה לחשבון"],
     },
     faq: [
       [
@@ -228,11 +249,12 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       support: "תמיכה",
       privacy: "פרטיות",
       terms: "תנאי שימוש",
-      signIn: "פתיחת האפליקציה",
+      signIn: "כניסה לחשבון",
     },
   },
   ar: {
-    headerAction: "افتحي التطبيق",
+    headerAction: "سجّلي دخولك",
+    storeAccessibleLabel: "حمّلي تطبيق Cloud & Core من App Store",
     hero: {
       eyebrow: "Cloud & Core Studio · حرفيش",
       title: "يوغا هوائية وبيلاتس بحرفيش — الحجز بسهولة من التطبيق",
@@ -240,7 +262,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       primaryCta: "شوفي الجدول واحجزي",
       storeCta: "حمّلي من App Store",
       trust: "مناسب للمبتدئات · مجموعات صغيرة · اهتمام شخصي",
-      offer: "حصة تجريبية بـ80 ₪",
+      offer: "",
       memberCta: "عضوة بالاستوديو؟ سجّلي دخولك",
     },
     features: {
@@ -284,6 +306,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     finalCta: {
       title: "جاهزة تختاري حصتك الجاية؟",
       body: "افتحي Cloud & Core، شوفي الجدول واحجزي مكانك.",
+      actions: ["شوفي الجدول واحجزي", "حمّلي من App Store", "سجّلي دخولك"],
     },
     faq: [
       [
@@ -304,11 +327,12 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       support: "الدعم",
       privacy: "الخصوصية",
       terms: "شروط الاستخدام",
-      signIn: "افتحي التطبيق",
+      signIn: "سجّلي دخولك",
     },
   },
   en: {
-    headerAction: "Open the app",
+    headerAction: "Sign In",
+    storeAccessibleLabel: "Download Cloud & Core on the App Store",
     hero: {
       eyebrow: "Cloud & Core Studio · Hurfeish",
       title: "Aerial Yoga and Pilates in Hurfeish — Easy Booking Through the App",
@@ -316,7 +340,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       primaryCta: "View Schedule and Book",
       storeCta: "Download on the App Store",
       trust: "Beginner friendly · Small groups · Personal attention",
-      offer: "Trial class for ₪80",
+      offer: "",
       memberCta: "Already a member? Sign in",
     },
     features: {
@@ -326,7 +350,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
         ["Live Class Schedule", "View upcoming classes, times, and availability."],
         ["Easy Class Booking", "Choose a class and reserve your place in a few steps."],
         [
-          "Booking management",
+          "Booking Management",
           "View upcoming bookings and use the available change or cancellation options.",
         ],
         ["Membership Tracking", "View membership details and remaining class credits."],
@@ -363,6 +387,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     finalCta: {
       title: "Ready to choose your next class?",
       body: "Open Cloud & Core, view the schedule and reserve your place.",
+      actions: ["View Schedule and Book", "Download on the App Store", "Sign In"],
     },
     faq: [
       [
@@ -389,10 +414,38 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       support: "Support",
       privacy: "Privacy",
       terms: "Terms of Use",
-      signIn: "Open the app",
+      signIn: "Sign In",
     },
   },
 };
+
+export function getAppMarketingCopy(
+  lang: AppMarketingLang,
+  trialPrice?: number | null,
+): AppMarketingCopy {
+  const copy = APP_MARKETING_COPY[lang];
+  if (trialPrice == null) return copy;
+  const offer =
+    lang === "ar"
+      ? `حصة تجريبية بـ${trialPrice} ₪`
+      : lang === "he"
+        ? `שיעור ניסיון ב־${trialPrice} ₪`
+        : `Trial class for ₪${trialPrice}`;
+  const faqTrialAnswer =
+    lang === "ar"
+      ? `الحصة التجريبية بـ${trialPrice} ₪. شوفي الجدول بالتطبيق، اختاري الحصة واحجزي مكانك.`
+      : lang === "he"
+        ? `שיעור הניסיון עולה ${trialPrice} ₪. צפי בלוח השיעורים באפליקציה, בחרי שיעור והזמיני מקום.`
+        : `The trial class is ₪${trialPrice}. View the schedule in the app, choose a class, and reserve your place.`;
+  return {
+    ...copy,
+    hero: { ...copy.hero, offer },
+    faq: copy.faq.map((item, index) => (index === 4 ? [item[0], faqTrialAnswer] : item)) as [
+      string,
+      string,
+    ][],
+  };
+}
 
 const SCREENSHOT_KINDS: AppMarketingScreenshot["kind"][] = [
   "schedule",
@@ -441,7 +494,7 @@ const APP_MARKETING_META: Record<AppMarketingLang, AppMarketingMeta> = {
     title: "Cloud & Core | يوغا هوائية وبيلاتس في حرفيش",
     description:
       "استوديو Cloud & Core في حرفيش لليوغا الهوائية، بيلاتس الفرشات و-HOT Pilates للنساء والأطفال. شوفي الجدول واحجزي من التطبيق.",
-    locale: "ar_AR",
+    locale: "ar_IL",
     canonical: APP_MARKETING_LOCALE_URLS.ar,
     canonicalUrl: APP_MARKETING_LOCALE_URLS.ar,
     ogImage: APP_MARKETING_OG_IMAGES.ar,
@@ -476,10 +529,10 @@ export function getAppMarketingMeta(lang: AppMarketingLang): AppMarketingMeta {
 export function getAppMarketingAlternates(lang: AppMarketingLang) {
   void lang;
   return [
-    { hrefLang: "ar", href: APP_MARKETING_LOCALE_URLS.ar },
-    { hrefLang: "he", href: APP_MARKETING_LOCALE_URLS.he },
-    { hrefLang: "en", href: APP_MARKETING_LOCALE_URLS.en },
-    { hrefLang: "x-default", href: APP_MARKETING_LOCALE_URLS.ar },
+    { rel: "alternate", hrefLang: "ar", href: APP_MARKETING_LOCALE_URLS.ar },
+    { rel: "alternate", hrefLang: "he", href: APP_MARKETING_LOCALE_URLS.he },
+    { rel: "alternate", hrefLang: "en", href: APP_MARKETING_LOCALE_URLS.en },
+    { rel: "alternate", hrefLang: "x-default", href: APP_MARKETING_LOCALE_URLS.ar },
   ] as const;
 }
 
@@ -488,6 +541,8 @@ export type AppMarketingStructuredDataInput = {
   installUrl?: string;
   /** @deprecated Use installUrl; retained for existing route compatibility. */
   appStoreUrl?: string;
+  trialPrice?: number | null;
+  faqVisible?: boolean;
   profile?: AppMarketingPublicProfile;
 };
 
@@ -495,6 +550,8 @@ export function buildAppMarketingStructuredData({
   lang,
   installUrl,
   appStoreUrl,
+  trialPrice,
+  faqVisible = false,
   profile = {
     address: null,
     contactEmail: null,
@@ -503,8 +560,11 @@ export function buildAppMarketingStructuredData({
     whatsappNumber: null,
   },
 }: AppMarketingStructuredDataInput) {
-  const resolvedInstallUrl = installUrl ?? appStoreUrl ?? APP_MARKETING_INSTALL_URL;
+  void installUrl;
+  void appStoreUrl;
+  const resolvedInstallUrl = APP_MARKETING_INSTALL_URL;
   const meta = getAppMarketingMeta(lang);
+  const copy = getAppMarketingCopy(lang, trialPrice);
   const studioId = `${APP_MARKETING_BASE_URL}#studio`;
   const appId = `${APP_MARKETING_BASE_URL}#app`;
   return {
@@ -533,7 +593,7 @@ export function buildAppMarketingStructuredData({
           longitude: 35.349285,
         },
         availableLanguage: ["ar", "he", "en"],
-        makesOffer: APP_MARKETING_COPY[lang].classes.items.map((name) => ({
+        makesOffer: copy.classes.items.map((name) => ({
           "@type": "Offer",
           itemOffered: { "@type": "Service", name },
         })),
@@ -549,19 +609,23 @@ export function buildAppMarketingStructuredData({
         url: meta.canonical,
         installUrl: resolvedInstallUrl,
         downloadUrl: resolvedInstallUrl,
-        image: meta.ogImage,
+        image: APP_MARKETING_APP_ICON,
         publisher: { "@id": studioId },
       },
-      {
-        "@type": "FAQPage",
-        "@id": `${meta.canonical}#faq`,
-        url: meta.canonical,
-        mainEntity: APP_MARKETING_COPY[lang].faq.map(([name, text]) => ({
-          "@type": "Question",
-          name,
-          acceptedAnswer: { "@type": "Answer", text },
-        })),
-      },
+      ...(faqVisible
+        ? [
+            {
+              "@type": "FAQPage",
+              "@id": `${meta.canonical}#faq`,
+              url: meta.canonical,
+              mainEntity: copy.faq.map(([name, text]) => ({
+                "@type": "Question",
+                name,
+                acceptedAnswer: { "@type": "Answer", text },
+              })),
+            },
+          ]
+        : []),
     ],
   };
 }
