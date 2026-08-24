@@ -6,25 +6,37 @@ import {
   adjustYogaPromotionEntitlement,
   getYogaPromotionAdmin,
   updateYogaPromotionAdmin,
+  type YogaPromotionAdminData,
 } from "@/lib/yogaPromo.functions";
 
 const queryKey = ["admin", "promotion", "yoga-lina-launch"] as const;
+const ADMIN_TIME_ZONE = "Asia/Jerusalem";
+
+type PromotionAdminForm = {
+  enabled: boolean;
+  startsAt: string;
+  endsAt: string;
+  creditExpiresAt: string;
+  claimLimit: number | string;
+  programTypeIds: string[];
+};
 
 export function YogaPromotionAdmin() {
   const getPromotion = useServerFn(getYogaPromotionAdmin);
   const updatePromotion = useServerFn(updateYogaPromotionAdmin);
   const adjustEntitlement = useServerFn(adjustYogaPromotionEntitlement);
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey, queryFn: () => getPromotion() });
-  const [form, setForm] = useState<any>(null);
+  const { data: response } = useQuery({ queryKey, queryFn: () => getPromotion() });
+  const data = response as YogaPromotionAdminData | undefined;
+  const [form, setForm] = useState<PromotionAdminForm | null>(null);
 
   useEffect(() => {
     if (!data || form) return;
     setForm({
       enabled: data.campaign.enabled,
-      startsAt: toLocalInput(data.campaign.starts_at),
-      endsAt: toLocalInput(data.campaign.ends_at),
-      creditExpiresAt: toLocalInput(data.campaign.credit_expires_at),
+      startsAt: toJerusalemInput(data.campaign.starts_at),
+      endsAt: toJerusalemInput(data.campaign.ends_at),
+      creditExpiresAt: toJerusalemInput(data.campaign.credit_expires_at),
       claimLimit: data.campaign.claim_limit,
       programTypeIds: data.eligibleProgramTypeIds,
     });
@@ -35,9 +47,9 @@ export function YogaPromotionAdmin() {
       updatePromotion({
         data: {
           enabled: Boolean(form.enabled),
-          startsAt: toIso(form.startsAt),
-          endsAt: toIso(form.endsAt),
-          creditExpiresAt: toIso(form.creditExpiresAt),
+          startsAt: jerusalemInputToIso(form.startsAt),
+          endsAt: jerusalemInputToIso(form.endsAt),
+          creditExpiresAt: jerusalemInputToIso(form.creditExpiresAt),
           claimLimit: Number(form.claimLimit),
           programTypeIds: form.programTypeIds,
         },
@@ -120,7 +132,7 @@ export function YogaPromotionAdmin() {
         <div>
           <p className="settings-label">Eligible class type</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            {data.programTypes.map((type: any) => (
+            {data.programTypes.map((type) => (
               <label
                 key={type.id}
                 className="flex items-center gap-2 rounded-xl border border-gold/20 p-3 text-sm text-navy"
@@ -162,7 +174,7 @@ export function YogaPromotionAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {data.entitlements.map((entitlement: any) => (
+                {data.entitlements.map((entitlement) => (
                   <tr key={entitlement.id} className="border-t border-gold/15">
                     <td className="p-2" dir="ltr">
                       {new Date(entitlement.issued_at).toLocaleString()}
@@ -177,16 +189,11 @@ export function YogaPromotionAdmin() {
                         onClick={() =>
                           adjust.mutate({
                             entitlementId: entitlement.id,
-                            action:
-                              entitlement.status === "revoked" || entitlement.status === "consumed"
-                                ? "restore"
-                                : "revoke",
+                            action: entitlement.status === "revoked" ? "restore" : "revoke",
                           })
                         }
                       >
-                        {entitlement.status === "revoked" || entitlement.status === "consumed"
-                          ? "Restore"
-                          : "Revoke"}
+                        {entitlement.status === "revoked" ? "Restore" : "Revoke"}
                       </button>
                     </td>
                   </tr>
@@ -200,7 +207,7 @@ export function YogaPromotionAdmin() {
             Audit trail ({data.audit.length})
           </summary>
           <ul className="mt-3 space-y-2 text-xs text-slate">
-            {data.audit.map((row: any) => (
+            {data.audit.map((row) => (
               <li key={row.id}>
                 {new Date(row.created_at).toLocaleString()} · {row.action} · {row.reason ?? "—"}
               </li>
@@ -235,13 +242,39 @@ function DateField({
   );
 }
 
-function toLocalInput(value: string | null) {
+function toJerusalemInput(value: string | null) {
   if (!value) return "";
-  const date = new Date(value);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ADMIN_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  })
+    .formatToParts(new Date(value))
+    .reduce<Record<string, string>>((result, part) => {
+      result[part.type] = part.value;
+      return result;
+    }, {});
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
 }
 
-function toIso(value: string) {
-  return value ? new Date(value).toISOString() : null;
+function jerusalemInputToIso(value: string) {
+  if (!value) return null;
+  const [date, time] = value.split("T");
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  const desiredWallClock = Date.UTC(year, month - 1, day, hour, minute);
+  let instant = desiredWallClock;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const displayed = toJerusalemInput(new Date(instant).toISOString());
+    const [shownDate, shownTime] = displayed.split("T");
+    const [shownYear, shownMonth, shownDay] = shownDate.split("-").map(Number);
+    const [shownHour, shownMinute] = shownTime.split(":").map(Number);
+    instant +=
+      desiredWallClock - Date.UTC(shownYear, shownMonth - 1, shownDay, shownHour, shownMinute);
+  }
+  return new Date(instant).toISOString();
 }
