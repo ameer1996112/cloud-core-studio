@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -23,6 +23,12 @@ import {
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
 import { authImages } from "@/lib/auth-assets";
+import {
+  createBrowserAppMarketingAnalytics,
+  type AppMarketingAnalytics,
+  type AppMarketingAnalyticsEventName,
+  type AppMarketingCtaLocation,
+} from "@/lib/app-marketing.analytics";
 import { applyLang, LANG_META, type Lang } from "@/lib/i18n";
 import { buildWhatsappHref } from "@/lib/instagramLanding";
 
@@ -89,12 +95,19 @@ const FEATURE_ICONS: [FeatureIcon, FeatureIcon, FeatureIcon, FeatureIcon] = [
   BadgeCheck,
 ];
 
+type AppMarketingClickTracker = (
+  event: AppMarketingAnalyticsEventName,
+  ctaLocation: AppMarketingCtaLocation,
+) => void;
+
 function LanguageSelector({
   lang,
   marketingUtm,
+  onLanguageChange,
 }: {
   lang: Lang;
   marketingUtm: Record<string, string>;
+  onLanguageChange: (language: Lang) => void;
 }): JSX.Element {
   return (
     <div className="app-marketing__languages" role="group" aria-label={PAGE_LABELS[lang].language}>
@@ -107,7 +120,10 @@ function LanguageSelector({
           hrefLang={code}
           lang={code}
           dir={LANG_META[code].dir}
-          onClick={() => applyLang(code)}
+          onClick={() => {
+            onLanguageChange(code);
+            applyLang(code);
+          }}
         >
           {LANG_META[code].label}
         </a>
@@ -120,10 +136,14 @@ function AppStoreBadge({
   lang,
   href,
   label,
+  ctaLocation,
+  onTrack,
 }: {
   lang: Lang;
   href: string;
   label: string;
+  ctaLocation: AppMarketingCtaLocation;
+  onTrack: AppMarketingClickTracker;
 }): JSX.Element {
   const dimensions = APP_STORE_BADGE_DIMENSIONS[lang];
 
@@ -135,6 +155,7 @@ function AppStoreBadge({
       rel="noreferrer"
       aria-label={label}
       data-app-store-link
+      onClick={() => onTrack("app_landing_app_store_click", ctaLocation)}
     >
       <img
         className="app-marketing__store-badge"
@@ -168,17 +189,25 @@ function ContactLinks({
   profile,
   supportLabel,
   contactLabel,
+  ctaLocation,
+  onTrack,
 }: {
   profile: AppMarketingPublicProfile;
   supportLabel: string;
   contactLabel: string;
+  ctaLocation: "location" | "footer";
+  onTrack: AppMarketingClickTracker;
 }): JSX.Element {
   const publicPhone = profile.publicPhone ?? "055-939-8438";
   const whatsappHref = buildWhatsappHref(profile.whatsappNumber ?? publicPhone, "");
 
   return (
     <nav className="app-marketing__contact-links" aria-label={contactLabel}>
-      <a href="/support" className="app-marketing__contact-link">
+      <a
+        href="/support"
+        className="app-marketing__contact-link"
+        onClick={() => onTrack("app_landing_support_click", ctaLocation)}
+      >
         <MessageCircle aria-hidden="true" />
         <span>{supportLabel}</span>
       </a>
@@ -200,6 +229,7 @@ function ContactLinks({
           href={whatsappHref}
           target="_blank"
           rel="noreferrer"
+          onClick={() => onTrack("app_landing_whatsapp_click", ctaLocation)}
         >
           <MessageCircle aria-hidden="true" />
           <span>WhatsApp</span>
@@ -211,6 +241,7 @@ function ContactLinks({
           href={profile.instagramUrl}
           target="_blank"
           rel="noreferrer"
+          onClick={() => onTrack("app_landing_instagram_click", ctaLocation)}
         >
           <Instagram aria-hidden="true" />
           <span>Instagram</span>
@@ -227,6 +258,17 @@ export function AppMarketingPage({
   profile,
   trialPrice = null,
 }: AppMarketingPageProps): JSX.Element {
+  const pageContextRef = useRef<Record<string, unknown>>({});
+  pageContextRef.current = { language: lang, ...marketingUtm };
+  const analyticsRef = useRef<AppMarketingAnalytics | null>(null);
+  if (!analyticsRef.current) {
+    analyticsRef.current = createBrowserAppMarketingAnalytics(() => pageContextRef.current);
+  }
+
+  useEffect(() => {
+    analyticsRef.current?.trackView();
+  }, [lang]);
+
   const copy = getAppMarketingCopy(lang, trialPrice);
   const address = getAppMarketingAddressDisplay(copy.footer.address, profile.address);
   const labels = PAGE_LABELS[lang];
@@ -235,6 +277,9 @@ export function AppMarketingPage({
   const scheduleHref = buildMarketingHref(`/member/schedule`, utm);
   const authHref = buildMarketingHref(`/auth`, utm);
   const mapsHref = "https://www.google.com/maps/search/?api=1&query=33.016109,35.349285";
+  const trackCta: AppMarketingClickTracker = (event, ctaLocation) => {
+    analyticsRef.current?.track(event, { cta_location: ctaLocation });
+  };
 
   return (
     <div className="app-marketing" lang={lang} dir={LANG_META[lang].dir}>
@@ -258,8 +303,17 @@ export function AppMarketingPage({
             />
           </a>
           <div className="app-marketing__header-actions">
-            <LanguageSelector lang={lang} marketingUtm={marketingUtm} />
-            <a href={authHref} className="app-marketing__header-cta" data-auth-link>
+            <LanguageSelector
+              lang={lang}
+              marketingUtm={marketingUtm}
+              onLanguageChange={(language) => analyticsRef.current?.trackLanguageChange(language)}
+            />
+            <a
+              href={authHref}
+              className="app-marketing__header-cta"
+              data-auth-link
+              onClick={() => trackCta("app_landing_login", "header")}
+            >
               <span>{copy.headerAction}</span>
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
             </a>
@@ -276,13 +330,29 @@ export function AppMarketingPage({
             <p className="app-marketing__trust">{copy.hero.trust}</p>
             {copy.hero.offer ? <p className="app-marketing__offer">{copy.hero.offer}</p> : null}
             <div className="app-marketing__hero-actions">
-              <a href={scheduleHref} className="app-marketing__primary-cta" data-schedule-link>
+              <a
+                href={scheduleHref}
+                className="app-marketing__primary-cta"
+                data-schedule-link
+                onClick={() => trackCta("app_landing_view_schedule", "hero")}
+              >
                 <span>{copy.hero.primaryCta}</span>
                 <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
               </a>
-              <AppStoreBadge lang={lang} href={appStoreUrl} label={copy.storeAccessibleLabel} />
+              <AppStoreBadge
+                lang={lang}
+                href={appStoreUrl}
+                label={copy.storeAccessibleLabel}
+                ctaLocation="hero"
+                onTrack={trackCta}
+              />
             </div>
-            <a href={authHref} className="app-marketing__member-link" data-auth-link>
+            <a
+              href={authHref}
+              className="app-marketing__member-link"
+              data-auth-link
+              onClick={() => trackCta("app_landing_login", "hero")}
+            >
               {copy.hero.memberCta}
             </a>
           </div>
@@ -452,6 +522,7 @@ export function AppMarketingPage({
               href={mapsHref}
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackCta("app_landing_maps_click", "location")}
             >
               <MapPin aria-hidden="true" />
               <span>{labels.maps}</span>
@@ -461,6 +532,8 @@ export function AppMarketingPage({
             profile={profile}
             supportLabel={copy.footer.support}
             contactLabel={labels.contact}
+            ctaLocation="location"
+            onTrack={trackCta}
           />
         </section>
 
@@ -478,12 +551,24 @@ export function AppMarketingPage({
               href={scheduleHref}
               className="app-marketing__primary-cta app-marketing__primary-cta--ivory"
               data-schedule-link
+              onClick={() => trackCta("app_landing_view_schedule", "final")}
             >
               <span>{copy.hero.primaryCta}</span>
               <ArrowUpRight className="app-marketing__direction-icon" aria-hidden="true" />
             </a>
-            <AppStoreBadge lang={lang} href={appStoreUrl} label={copy.storeAccessibleLabel} />
-            <a href={authHref} className="app-marketing__final-login" data-login-link>
+            <AppStoreBadge
+              lang={lang}
+              href={appStoreUrl}
+              label={copy.storeAccessibleLabel}
+              ctaLocation="final"
+              onTrack={trackCta}
+            />
+            <a
+              href={authHref}
+              className="app-marketing__final-login"
+              data-login-link
+              onClick={() => trackCta("app_landing_login", "final")}
+            >
               <LogIn aria-hidden="true" />
               <span>{copy.finalCta.actions[2]}</span>
             </a>
@@ -516,12 +601,18 @@ export function AppMarketingPage({
             profile={profile}
             supportLabel={copy.footer.support}
             contactLabel={labels.contact}
+            ctaLocation="footer"
+            onTrack={trackCta}
           />
           <nav className="app-marketing__footer-nav" aria-label={labels.footerNavigation}>
-            <a href="/support">{copy.footer.support}</a>
+            <a href="/support" onClick={() => trackCta("app_landing_support_click", "footer")}>
+              {copy.footer.support}
+            </a>
             <a href="/privacy">{copy.footer.privacy}</a>
             <a href="/terms">{copy.footer.terms}</a>
-            <a href={authHref}>{copy.footer.signIn}</a>
+            <a href={authHref} onClick={() => trackCta("app_landing_login", "footer")}>
+              {copy.footer.signIn}
+            </a>
           </nav>
         </div>
         <div className="app-marketing__footer-legal">

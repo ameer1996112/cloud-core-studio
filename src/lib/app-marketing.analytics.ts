@@ -1,0 +1,136 @@
+import type { Lang } from "@/lib/i18n";
+
+export const APP_MARKETING_ANALYTICS_EVENTS = [
+  "app_landing_view",
+  "app_landing_language_change",
+  "app_landing_view_schedule",
+  "app_landing_create_account",
+  "app_landing_login",
+  "app_landing_app_store_click",
+  "app_landing_whatsapp_click",
+  "app_landing_instagram_click",
+  "app_landing_maps_click",
+  "app_landing_support_click",
+] as const;
+
+export type AppMarketingAnalyticsEventName = (typeof APP_MARKETING_ANALYTICS_EVENTS)[number];
+export type AppMarketingCtaLocation = "header" | "hero" | "final" | "location" | "footer";
+
+type AppMarketingAnalyticsDetail = {
+  event: AppMarketingAnalyticsEventName;
+  language?: Lang;
+  route?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  device_type?: "mobile" | "desktop";
+  cta_location?: AppMarketingCtaLocation;
+};
+
+type AppMarketingAnalyticsRuntime = {
+  dataLayer?: Array<Record<string, unknown>>;
+  dispatch: (detail: AppMarketingAnalyticsDetail) => void;
+  getContext: () => Record<string, unknown>;
+};
+
+const EVENT_SET = new Set<string>(APP_MARKETING_ANALYTICS_EVENTS);
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign"] as const;
+const CTA_LOCATIONS = new Set<AppMarketingCtaLocation>([
+  "header",
+  "hero",
+  "final",
+  "location",
+  "footer",
+]);
+const APP_MARKETING_ROUTE = /^\/app(?:\/(?:ar|he|en))?$/;
+
+function isCtaLocation(value: unknown): value is AppMarketingCtaLocation {
+  return typeof value === "string" && CTA_LOCATIONS.has(value as AppMarketingCtaLocation);
+}
+
+function sanitizedString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, 200) : undefined;
+}
+
+function sanitizedContext(
+  input: Record<string, unknown>,
+): Omit<AppMarketingAnalyticsDetail, "event"> {
+  const detail: Omit<AppMarketingAnalyticsDetail, "event"> = {};
+  const language = input.language;
+  if (language === "ar" || language === "he" || language === "en") detail.language = language;
+
+  const route = sanitizedString(input.route);
+  if (route && APP_MARKETING_ROUTE.test(route)) detail.route = route;
+
+  for (const key of UTM_KEYS) {
+    const value = sanitizedString(input[key]);
+    if (value) detail[key] = value;
+  }
+
+  if (input.device_type === "mobile" || input.device_type === "desktop") {
+    detail.device_type = input.device_type;
+  }
+
+  if (isCtaLocation(input.cta_location)) {
+    detail.cta_location = input.cta_location;
+  }
+
+  return detail;
+}
+
+export function createAppMarketingAnalytics(runtime: AppMarketingAnalyticsRuntime) {
+  const trackedOnce = new Set<string>();
+
+  const track = (
+    event: AppMarketingAnalyticsEventName,
+    parameters: Record<string, unknown> = {},
+  ) => {
+    if (!EVENT_SET.has(event)) throw new Error("Unsupported app marketing analytics event");
+
+    const detail: AppMarketingAnalyticsDetail = {
+      event,
+      ...sanitizedContext({ ...runtime.getContext(), ...parameters }),
+    };
+    runtime.dispatch(detail);
+    runtime.dataLayer?.push(detail);
+  };
+
+  return {
+    track,
+    trackView() {
+      const context = sanitizedContext(runtime.getContext());
+      const key = `view:${context.route ?? ""}:${context.language ?? ""}`;
+      if (trackedOnce.has(key)) return;
+      trackedOnce.add(key);
+      track("app_landing_view");
+    },
+    trackLanguageChange(language: Lang) {
+      track("app_landing_language_change", { language, cta_location: "header" });
+    },
+    /** Wire this only to a distinct signup action, not an auth or schedule link. */
+    trackCreateAccount(ctaLocation: AppMarketingCtaLocation) {
+      track("app_landing_create_account", { cta_location: ctaLocation });
+    },
+  };
+}
+
+export type AppMarketingAnalytics = ReturnType<typeof createAppMarketingAnalytics>;
+
+export function createBrowserAppMarketingAnalytics(
+  getPageContext: () => Record<string, unknown>,
+): AppMarketingAnalytics | null {
+  if (typeof window === "undefined") return null;
+
+  const analyticsWindow = window as Window & { dataLayer?: Array<Record<string, unknown>> };
+  return createAppMarketingAnalytics({
+    dataLayer: analyticsWindow.dataLayer,
+    dispatch: (detail) => {
+      window.dispatchEvent(new CustomEvent("cloudcore:analytics", { detail }));
+    },
+    getContext: () => ({
+      ...getPageContext(),
+      route: window.location.pathname,
+      device_type: window.matchMedia("(max-width: 767px)").matches ? "mobile" : "desktop",
+    }),
+  });
+}
