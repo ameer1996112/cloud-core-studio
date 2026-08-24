@@ -55,11 +55,14 @@ const CTA_LOCATIONS = new Set<AppMarketingCtaLocation>([
 const APP_MARKETING_ROUTE = /^\/app(?:\/(?:ar|he|en))?$/;
 const SAFE_UTM_VALUE = /^[\p{L}\p{N} _.-]+$/u;
 const PRIVATE_UTM_TOKEN = /(?:^|[_\s.-])(email|phone|member|booking|payment)(?:$|[_\s.-])/i;
+const SENSITIVE_IDENTIFIER_PREFIX = /^(?:member|booking|payment|user|lead)(?:[\p{Nd}]|[_\s.-])/iu;
 const HOSTNAME_LIKE_VALUE = /^(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]*[\p{L}\p{N}])?\.)+[\p{L}]{2,63}$/u;
+const PUNYCODE_LABEL = /(?:^|\.)xn--[a-z0-9-]+(?:$|\.)/i;
 const UUID_VALUE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LONG_HEX_IDENTIFIER = /^[0-9a-f]{24,}$/i;
 const ULID_LIKE_IDENTIFIER = /^(?:[a-z][a-z0-9]*[_-])?[0-7][0-9A-HJKMNP-TV-Z]{25}$/i;
-const LONG_MIXED_IDENTIFIER = /^(?=.{24,}$)(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[A-Za-z0-9_-]+$/;
+const LONG_OPAQUE_ALPHANUMERIC_SEGMENT =
+  /(?:^|[_-])(?=[A-Za-z0-9]{20,}(?:$|[_-]))(?=[A-Za-z0-9]*[A-Za-z])(?=[A-Za-z0-9]*\d)[A-Za-z0-9]{20,}(?=$|[_-])/;
 
 function isCtaLocation(value: unknown): value is AppMarketingCtaLocation {
   return typeof value === "string" && CTA_LOCATIONS.has(value as AppMarketingCtaLocation);
@@ -71,13 +74,16 @@ function sanitizedString(value: unknown) {
   return normalized ? normalized.slice(0, 200) : undefined;
 }
 
-function looksLikePhoneNumber(value: string) {
-  return /^[+\p{Nd}().\s-]+$/u.test(value) && (value.match(/\p{Nd}/gu)?.length ?? 0) >= 7;
+function hasPhoneLikeDigitRun(value: string) {
+  return Array.from(value.matchAll(/[+\p{Nd}().\s-]+/gu)).some(
+    ([run]) => (run.match(/\p{Nd}/gu)?.length ?? 0) >= 7,
+  );
 }
 
 /**
- * Attribution may reach navigation unchanged, but analytics accepts only plain campaign labels.
- * This deliberately conservative character allowlist excludes contact details, URLs, queries, and IDs.
+ * Analytics accepts only conservative plain campaign labels: short human-readable words, numbers,
+ * spaces, underscores, hyphens, and dots. Values failing this policy are omitted from analytics;
+ * navigation attribution is preserved separately by the marketing URL sanitizer.
  */
 function sanitizedAnalyticsUtm(value: unknown) {
   const normalized = sanitizedString(value);
@@ -85,12 +91,14 @@ function sanitizedAnalyticsUtm(value: unknown) {
     !normalized ||
     !SAFE_UTM_VALUE.test(normalized) ||
     PRIVATE_UTM_TOKEN.test(normalized) ||
-    looksLikePhoneNumber(normalized) ||
+    SENSITIVE_IDENTIFIER_PREFIX.test(normalized) ||
+    hasPhoneLikeDigitRun(normalized) ||
     HOSTNAME_LIKE_VALUE.test(normalized) ||
+    PUNYCODE_LABEL.test(normalized) ||
     UUID_VALUE.test(normalized) ||
     LONG_HEX_IDENTIFIER.test(normalized) ||
     ULID_LIKE_IDENTIFIER.test(normalized) ||
-    LONG_MIXED_IDENTIFIER.test(normalized)
+    LONG_OPAQUE_ALPHANUMERIC_SEGMENT.test(normalized)
   ) {
     return undefined;
   }
@@ -197,6 +205,17 @@ export function createAppMarketingAnalytics(runtime: AppMarketingAnalyticsRuntim
 
 export function shouldTrackAppMarketingLanguageChange(current: Lang, target: Lang) {
   return current !== target;
+}
+
+export function createAppMarketingPageViewGate() {
+  let claimed = false;
+  return {
+    claim() {
+      if (claimed) return false;
+      claimed = true;
+      return true;
+    },
+  };
 }
 
 export type AppMarketingAnalytics = ReturnType<typeof createAppMarketingAnalytics>;

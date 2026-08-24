@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -26,6 +26,7 @@ import { authImages } from "@/lib/auth-assets";
 import {
   createBrowserAppMarketingAnalytics,
   createAppMarketingAnalyticsPageContext,
+  createAppMarketingPageViewGate,
   shouldTrackAppMarketingLanguageChange,
   type AppMarketingAnalyticsEventName,
   type AppMarketingCtaLocation,
@@ -259,6 +260,7 @@ export function AppMarketingPage({
   profile,
   trialPrice = null,
 }: AppMarketingPageProps): JSX.Element {
+  const [pageViewGate] = useState(createAppMarketingPageViewGate);
   const analyticsUtmSource = marketingUtm.utm_source;
   const analyticsUtmMedium = marketingUtm.utm_medium;
   const analyticsUtmCampaign = marketingUtm.utm_campaign;
@@ -277,8 +279,9 @@ export function AppMarketingPage({
   );
 
   useEffect(() => {
-    analytics?.trackView();
-  }, [analytics]);
+    if (!analytics || !pageViewGate.claim()) return;
+    analytics.trackView();
+  }, [analytics, pageViewGate]);
 
   const copy = getAppMarketingCopy(lang, trialPrice);
   const address = getAppMarketingAddressDisplay(copy.footer.address, profile.address);

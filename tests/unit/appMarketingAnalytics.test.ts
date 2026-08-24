@@ -4,6 +4,7 @@ import {
   APP_MARKETING_ANALYTICS_EVENTS,
   createAppMarketingAnalyticsPageContext,
   createBrowserAppMarketingAnalytics,
+  createAppMarketingPageViewGate,
   createAppMarketingAnalytics,
   shouldTrackAppMarketingLanguageChange,
 } from "../../src/lib/app-marketing.analytics";
@@ -249,6 +250,63 @@ describe("app marketing analytics", () => {
       utm_source: "membership_launch",
       cta_location: "header",
     });
+  });
+
+  test("enforces the conservative plain-label policy for prefixed, phone-like, punycode, and opaque IDs", () => {
+    const events: Record<string, unknown>[] = [];
+    const trackWith = (attribution: Record<string, string>) => {
+      createAppMarketingAnalytics({
+        dispatch: (detail) => events.push(detail),
+        getContext: () => ({ language: "en", route: "/app/en", ...attribution }),
+      }).track("app_landing_view_schedule", { cta_location: "hero" });
+    };
+
+    trackWith({
+      utm_source: "lead_٠٥٥٩٣٩٨٤٣٨",
+      utm_medium: "member123",
+      utm_campaign: "booking98765",
+    });
+    trackWith({
+      utm_source: "payment_reference",
+      utm_medium: "user_01arz3ndektsv4rrffq69g5favx",
+      utm_campaign: "01ARZ3NDEKTSV4RRFFQ69G5FAVXYZ123",
+    });
+    trackWith({
+      utm_source: "private.xn--mgbh0fb",
+      utm_medium: "membership_launch",
+      utm_campaign: "aerial yoga",
+    });
+
+    expect(events).toEqual([
+      {
+        event: "app_landing_view_schedule",
+        language: "en",
+        route: "/app/en",
+        cta_location: "hero",
+      },
+      {
+        event: "app_landing_view_schedule",
+        language: "en",
+        route: "/app/en",
+        cta_location: "hero",
+      },
+      {
+        event: "app_landing_view_schedule",
+        language: "en",
+        route: "/app/en",
+        utm_medium: "membership_launch",
+        utm_campaign: "aerial yoga",
+        cta_location: "hero",
+      },
+    ]);
+  });
+
+  test("page-view gate emits once for a page instance despite context changes", () => {
+    const firstPage = createAppMarketingPageViewGate();
+
+    expect(firstPage.claim()).toBe(true);
+    expect(firstPage.claim()).toBe(false);
+    expect(createAppMarketingPageViewGate().claim()).toBe(true);
   });
 
   test("dispatches frozen independent payloads and keeps dataLayer clean after listener failure", () => {
