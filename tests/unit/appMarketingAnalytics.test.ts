@@ -124,6 +124,67 @@ describe("app marketing analytics", () => {
     });
   });
 
+  test("rejects identifier-shaped UTM values while retaining normal campaign labels", () => {
+    const events: Record<string, unknown>[] = [];
+    const identifierContext = createAppMarketingAnalytics({
+      dispatch: (detail) => events.push(detail),
+      getContext: () => ({
+        language: "en",
+        route: "/app/en",
+        utm_source: "055-939-8438",
+        utm_medium: "private.example.com",
+        utm_campaign: "550e8400-e29b-41d4-a716-446655440000",
+      }),
+    });
+
+    identifierContext.track("app_landing_app_store_click", { cta_location: "hero" });
+
+    const normalContext = createAppMarketingAnalytics({
+      dispatch: (detail) => events.push(detail),
+      getContext: () => ({
+        language: "en",
+        route: "/app/en",
+        utm_source: "instagram",
+        utm_medium: "paid_social",
+        utm_campaign: "summer-launch-2026",
+      }),
+    });
+    normalContext.track("app_landing_app_store_click", { cta_location: "hero" });
+
+    createAppMarketingAnalytics({
+      dispatch: (detail) => events.push(detail),
+      getContext: () => ({
+        language: "en",
+        route: "/app/en",
+        utm_source: "a3f29d84c7b14e9fa1c4d82b91e760a4",
+      }),
+    }).track("app_landing_app_store_click", { cta_location: "hero" });
+
+    expect(events).toEqual([
+      {
+        event: "app_landing_app_store_click",
+        language: "en",
+        route: "/app/en",
+        cta_location: "hero",
+      },
+      {
+        event: "app_landing_app_store_click",
+        language: "en",
+        route: "/app/en",
+        utm_source: "instagram",
+        utm_medium: "paid_social",
+        utm_campaign: "summer-launch-2026",
+        cta_location: "hero",
+      },
+      {
+        event: "app_landing_app_store_click",
+        language: "en",
+        route: "/app/en",
+        cta_location: "hero",
+      },
+    ]);
+  });
+
   test("allows only valid CTA locations and uses the target language for language changes", () => {
     const events: Record<string, unknown>[] = [];
     const analytics = createAppMarketingAnalytics({

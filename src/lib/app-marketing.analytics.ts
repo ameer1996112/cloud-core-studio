@@ -48,6 +48,9 @@ const CTA_LOCATIONS = new Set<AppMarketingCtaLocation>([
 const APP_MARKETING_ROUTE = /^\/app(?:\/(?:ar|he|en))?$/;
 const SAFE_UTM_VALUE = /^[\p{L}\p{N} _.-]+$/u;
 const PRIVATE_UTM_TOKEN = /email|phone|member|booking|payment/i;
+const HOSTNAME_LIKE_VALUE = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}$/i;
+const UUID_VALUE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LONG_HEX_IDENTIFIER = /^[0-9a-f]{24,}$/i;
 
 function isCtaLocation(value: unknown): value is AppMarketingCtaLocation {
   return typeof value === "string" && CTA_LOCATIONS.has(value as AppMarketingCtaLocation);
@@ -57,13 +60,25 @@ function sanitizedString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim().slice(0, 200) : undefined;
 }
 
+function looksLikePhoneNumber(value: string) {
+  return /^[+\d().\s-]+$/.test(value) && value.replace(/\D/g, "").length >= 7;
+}
+
 /**
  * Attribution may reach navigation unchanged, but analytics accepts only plain campaign labels.
  * This deliberately conservative character allowlist excludes contact details, URLs, queries, and IDs.
  */
 function sanitizedAnalyticsUtm(value: unknown) {
   const normalized = sanitizedString(value);
-  if (!normalized || !SAFE_UTM_VALUE.test(normalized) || PRIVATE_UTM_TOKEN.test(normalized)) {
+  if (
+    !normalized ||
+    !SAFE_UTM_VALUE.test(normalized) ||
+    PRIVATE_UTM_TOKEN.test(normalized) ||
+    looksLikePhoneNumber(normalized) ||
+    HOSTNAME_LIKE_VALUE.test(normalized) ||
+    UUID_VALUE.test(normalized) ||
+    LONG_HEX_IDENTIFIER.test(normalized)
+  ) {
     return undefined;
   }
   return normalized;
