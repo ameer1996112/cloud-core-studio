@@ -112,8 +112,8 @@ export function resolveMarketingLocale(input: {
   saved?: unknown;
   accepted?: string | string[] | null;
 }): AppMarketingLang {
-  const explicit = asMarketingLang(input.explicit);
-  if (explicit) return explicit;
+  const explicitLang = asMarketingLang(input.explicit);
+  if (explicitLang) return explicitLang;
   const saved = asMarketingLang(input.saved);
   if (saved) return saved;
   const accepted = Array.isArray(input.accepted)
@@ -121,35 +121,46 @@ export function resolveMarketingLocale(input: {
     : typeof input.accepted === "string"
       ? input.accepted.split(",")
       : [];
-  const parsed = accepted.map((candidate, index) => {
-    const [language, ...parameters] = candidate.trim().toLowerCase().split(";");
+  const explicitRanges = new Map<AppMarketingLang, { quality: number; order: number }>();
+  let wildcard: { quality: number; order: number } | undefined;
+  accepted.forEach((candidate, order) => {
+    const [rawLanguage, ...parameters] = candidate.trim().toLowerCase().split(";");
+    const language = rawLanguage.split(/[-_]/, 1)[0];
     const qParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
     const parsedQuality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
-    const quality = parsedQuality >= 0 && parsedQuality <= 1 ? parsedQuality : 0;
-    return {
-      language: language.split(/[-_]/, 1)[0],
-      wildcard: language === "*",
-      quality: Number.isFinite(quality) ? quality : 0,
-      index,
-    };
+    const quality =
+      Number.isFinite(parsedQuality) && parsedQuality >= 0 && parsedQuality <= 1
+        ? parsedQuality
+        : 0;
+    if (language === "*") {
+      if (!wildcard) wildcard = { quality, order };
+      return;
+    }
+    const supported = asMarketingLang(language);
+    if (supported && !explicitRanges.has(supported)) {
+      explicitRanges.set(supported, { quality, order });
+    }
   });
-  const explicitlyListed = new Set<AppMarketingLang>();
-  for (const { language } of parsed) {
-    const supported = asMarketingLang(language);
-    if (supported) explicitlyListed.add(supported);
-  }
-  const ranked = parsed
-    .map(({ language, wildcard, quality, index }) => ({
-      language: wildcard ? "ar" : language,
-      quality: wildcard && explicitlyListed.has("ar") ? 0 : quality,
-      index,
-    }))
-    .filter(({ quality }) => quality > 0)
-    .sort((a, b) => b.quality - a.quality || a.index - b.index);
-  for (const { language } of ranked) {
-    const supported = asMarketingLang(language);
-    if (supported) return supported;
-  }
+
+  const ranked = APP_MARKETING_LANGS.map((language, fallbackOrder) => {
+    const explicitCandidate = explicitRanges.get(language);
+    const quality = explicitCandidate?.quality ?? wildcard?.quality;
+    return {
+      language,
+      quality,
+      order: explicitCandidate?.order ?? wildcard?.order ?? Number.MAX_SAFE_INTEGER,
+      source: explicitCandidate ? "explicit" : "wildcard",
+      fallbackOrder,
+    };
+  })
+    .filter(({ quality }) => quality !== undefined && quality > 0)
+    .sort((a, b) => {
+      if (a.quality !== b.quality) return (b.quality ?? 0) - (a.quality ?? 0);
+      if (a.source !== b.source) return a.source === "explicit" ? -1 : 1;
+      if (a.source === "explicit") return a.order - b.order;
+      return a.fallbackOrder - b.fallbackOrder;
+    });
+  if (ranked[0]) return ranked[0].language;
   return "ar";
 }
 
