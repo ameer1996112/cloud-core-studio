@@ -12,6 +12,7 @@ import { recordMemberNotificationCampaignBooking } from "@/lib/memberNotificatio
 import { readCampaignAttribution } from "@/lib/memberNotificationsApi";
 import { trackYogaPromo } from "@/lib/yogaPromo";
 import { useYogaPromo } from "@/hooks/useYogaPromo";
+import { YogaPromoBanner } from "@/components/member/YogaPromoBanner";
 import {
   ClassImage,
   StateBadge,
@@ -327,6 +328,10 @@ export function ClassDetailSheet({
     yogaPromo.data.eligibleClassTypeId &&
     yogaPromo.data.eligibleClassTypeId === cls?.program_type?.id,
   );
+  const isYogaPromoClass = Boolean(
+    yogaPromo.data?.eligibleClassTypeId &&
+    yogaPromo.data.eligibleClassTypeId === cls?.program_type?.id,
+  );
   const title = cls ? localizedClassTitle(cls) : "";
   const titleParts = cls ? localizedClassTitleParts(cls, lang) : null;
   const instructor = cls ? localizedOptionalInstructorName(cls.instructor?.name) : null;
@@ -538,6 +543,23 @@ export function ClassDetailSheet({
                 </p>
                 <p>{t("booking.bring")}</p>
               </div>
+
+              {isYogaPromoClass ? (
+                <YogaPromoBanner
+                  status={yogaPromo.data}
+                  loading={yogaPromo.isLoading}
+                  claimPending={yogaPromo.claim.isPending}
+                  publicAudience={isGuestView}
+                  onClaim={
+                    isGuestView
+                      ? () => navigate({ to: "/auth" })
+                      : yogaPromo.data?.eligible
+                        ? () => yogaPromo.claim.mutate()
+                        : undefined
+                  }
+                  className="rounded-2xl"
+                />
+              ) : null}
 
               {canUseYogaPromo ? (
                 <div className="rounded-2xl border border-gold/45 bg-gold/10 px-4 py-3 text-sm font-semibold leading-6 text-navy">
