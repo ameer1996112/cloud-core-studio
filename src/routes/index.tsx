@@ -6,7 +6,9 @@ import { useEffect } from "react";
 
 import {
   isExplicitNativePlatformRequest,
+  isNativeRootRequest,
   resolveRootEntryRedirect,
+  resolveRootEntryRedirectAfterAuth,
   resolveRootPublicRedirect,
 } from "@/lib/app-marketing";
 import { LANG_KEY, readLangCookieHeader, readSupportedLang } from "@/lib/i18n";
@@ -16,15 +18,19 @@ const getRootRequestContext = createIsomorphicFn()
   .server(() => {
     const request = getStartContext().request;
     const url = new URL(request.url);
-    return { isExplicitNative: isExplicitNativePlatformRequest(url.search) };
+    return {
+      isExplicitNative: isNativeRootRequest({
+        search: url.search,
+        userAgent: request.headers.get("user-agent"),
+      }),
+    };
   })
   .client(() => ({ isExplicitNative: isExplicitNativePlatformRequest(window.location.search) }));
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
-    const auth = await getAuthRouteContext();
-    const rootEntryRedirect = resolveRootEntryRedirect({
-      role: auth?.role,
+    const rootEntryRedirect = await resolveRootEntryRedirectAfterAuth({
+      auth: getAuthRouteContext(),
       isExplicitNative: getRootRequestContext()?.isExplicitNative ?? false,
     });
     if (rootEntryRedirect) {
@@ -66,7 +72,7 @@ function RootPlatformBridge() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6">
-      <section className="max-w-sm text-center">
+      <section className="max-w-sm text-center" lang="en" dir="ltr">
         <h1 className="font-display text-3xl text-foreground">Opening Cloud &amp; Core</h1>
         <p className="mt-3 text-sm text-muted-foreground" role="status" aria-live="polite">
           Preparing your destination…

@@ -1,15 +1,15 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const PRODUCTION_SERVER_URL = "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app";
-const NATIVE_SERVER_URL = `${PRODUCTION_SERVER_URL}?platform=native`;
 
 const config: CapacitorConfig = {
   appId: "com.cloudandcore.studio",
   appName: "Cloud & Core",
   webDir: "native-fallback",
   bundledWebRuntime: false,
+  appendUserAgent: "CloudCoreNative/1",
   server: {
-    url: NATIVE_SERVER_URL,
+    url: PRODUCTION_SERVER_URL,
     cleartext: false,
   },
   plugins: {

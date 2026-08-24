@@ -210,12 +210,36 @@ export function isExplicitNativePlatformRequest(search: string | URLSearchParams
   return params.get("platform") === "native";
 }
 
+const NATIVE_ROOT_USER_AGENT_TOKEN = "CloudCoreNative/1";
+
+export function isNativeRootRequest(input: {
+  search: string | URLSearchParams;
+  userAgent: string | null;
+}) {
+  return (
+    isExplicitNativePlatformRequest(input.search) ||
+    input.userAgent?.split(/\s+/).includes(NATIVE_ROOT_USER_AGENT_TOKEN) === true
+  );
+}
+
 export function resolveRootEntryRedirect(input: {
   role: AppRole | null | undefined;
   isExplicitNative: boolean;
 }) {
   if (input.role) return roleHome(input.role);
   return input.isExplicitNative ? "/auth" : null;
+}
+
+export async function resolveRootEntryRedirectAfterAuth(input: {
+  auth: Promise<{ role: AppRole } | null>;
+  isExplicitNative: boolean;
+}) {
+  try {
+    const auth = await input.auth;
+    return resolveRootEntryRedirect({ role: auth?.role, isExplicitNative: input.isExplicitNative });
+  } catch {
+    return resolveRootEntryRedirect({ role: null, isExplicitNative: input.isExplicitNative });
+  }
 }
 
 export function resolveRootPublicRedirect(input: {

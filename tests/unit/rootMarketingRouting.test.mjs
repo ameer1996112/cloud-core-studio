@@ -4,7 +4,9 @@ import { resolve } from "node:path";
 
 import {
   isExplicitNativePlatformRequest,
+  isNativeRootRequest,
   resolveRootEntryRedirect,
+  resolveRootEntryRedirectAfterAuth,
   resolveRootPublicRedirect,
 } from "../../src/lib/app-marketing.ts";
 import capacitorConfig from "../../capacitor.config.ts";
@@ -20,9 +22,8 @@ describe("root marketing routing", () => {
   });
 
   test("marks future native server loads explicitly", () => {
-    expect(capacitorConfig.server?.url).toBe(
-      "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app?platform=native",
-    );
+    expect(capacitorConfig.server?.url).toBe("https://cloud-core-studio-6uthbm2yyq-zf.a.run.app");
+    expect(capacitorConfig.appendUserAgent).toBe("CloudCoreNative/1");
   });
 
   test("recognizes only the explicit native platform marker", () => {
@@ -30,6 +31,19 @@ describe("root marketing routing", () => {
     expect(isExplicitNativePlatformRequest("?platform=web")).toBe(false);
     expect(isExplicitNativePlatformRequest("?platform=native-app")).toBe(false);
     expect(isExplicitNativePlatformRequest("?utm_source=native")).toBe(false);
+  });
+
+  test("recognizes the native token without classifying an ordinary iPhone browser", () => {
+    const iPhoneUserAgent =
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1";
+
+    expect(isNativeRootRequest({ search: "", userAgent: iPhoneUserAgent })).toBe(false);
+    expect(
+      isNativeRootRequest({ search: "", userAgent: `${iPhoneUserAgent} CloudCoreNative/1` }),
+    ).toBe(true);
+    expect(isNativeRootRequest({ search: "?platform=native", userAgent: iPhoneUserAgent })).toBe(
+      true,
+    );
   });
 
   test("sends native visitors to auth without carrying request parameters", () => {
@@ -54,6 +68,22 @@ describe("root marketing routing", () => {
   test("sends an unauthenticated explicit native request to auth", () => {
     expect(resolveRootEntryRedirect({ role: null, isExplicitNative: true })).toBe("/auth");
     expect(resolveRootEntryRedirect({ role: null, isExplicitNative: false })).toBeNull();
+  });
+
+  test("treats a rejected auth lookup as unauthenticated instead of throwing", async () => {
+    await expect(
+      resolveRootEntryRedirectAfterAuth({
+        auth: Promise.reject(new URIError("malformed auth cookie")),
+        isExplicitNative: true,
+      }),
+    ).resolves.toBe("/auth");
+
+    await expect(
+      resolveRootEntryRedirectAfterAuth({
+        auth: Promise.reject(new URIError("malformed auth cookie")),
+        isExplicitNative: false,
+      }),
+    ).resolves.toBeNull();
   });
 
   test("routes ordinary web visitors through their saved locale and approved UTMs only", () => {
@@ -90,6 +120,7 @@ describe("root marketing routing", () => {
     expect(rootRoute).toContain("isExplicitNativePlatformRequest(window.location.search)");
     expect(rootRoute).toContain("Capacitor.isNativePlatform()");
     expect(rootRoute).toContain("window.localStorage.getItem(LANG_KEY)");
-    expect(rootRoute).not.toContain("userAgent");
+    expect(rootRoute).not.toContain("navigator.userAgent");
+    expect(rootRoute).toContain('lang="en" dir="ltr"');
   });
 });
