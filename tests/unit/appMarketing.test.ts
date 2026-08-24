@@ -5,6 +5,7 @@ import {
   APP_MARKETING_LANGS,
   buildMarketingHref,
   buildAppMarketingStructuredData,
+  formatAppMarketingTrialPrice,
   getAppMarketingCopy,
   getAppMarketingMeta,
   getAppMarketingAlternates,
@@ -258,6 +259,10 @@ describe("app marketing contracts", () => {
     expect(getAppMarketingCopy("he", 80).hero.offer).toBe("שיעור ניסיון ב־80 ₪");
     expect(getAppMarketingCopy("en", 80).hero.offer).toBe("Trial class for ₪80");
     expect(getAppMarketingCopy("en", 80).faq[4][1]).toContain("₪80");
+  });
+
+  test("formats a verified trial price once for localized offer copy", () => {
+    expect(formatAppMarketingTrialPrice(80.5)).toBe("80.5");
   });
 
   test("matches every localized benefit, service, screenshot heading and FAQ answer", () => {

@@ -520,18 +520,19 @@ export function getAppMarketingCopy(
 ): AppMarketingCopy {
   const copy = APP_MARKETING_COPY[lang];
   if (trialPrice == null) return copy;
+  const formattedTrialPrice = formatAppMarketingTrialPrice(trialPrice);
   const offer =
     lang === "ar"
-      ? `حصة تجريبية بـ${trialPrice} ₪`
+      ? `حصة تجريبية بـ${formattedTrialPrice} ₪`
       : lang === "he"
-        ? `שיעור ניסיון ב־${trialPrice} ₪`
-        : `Trial class for ₪${trialPrice}`;
+        ? `שיעור ניסיון ב־${formattedTrialPrice} ₪`
+        : `Trial class for ₪${formattedTrialPrice}`;
   const faqTrialAnswer =
     lang === "ar"
-      ? `الحصة التجريبية بـ${trialPrice} ₪. شوفي الجدول بالتطبيق، اختاري الحصة واحجزي مكانك.`
+      ? `الحصة التجريبية بـ${formattedTrialPrice} ₪. شوفي الجدول بالتطبيق، اختاري الحصة واحجزي مكانك.`
       : lang === "he"
-        ? `שיעור הניסיון עולה ${trialPrice} ₪. צפי בלוח השיעורים באפליקציה, בחרי שיעור והזמיני מקום.`
-        : `The trial class is ₪${trialPrice}. View the schedule in the app, choose a class, and reserve your place.`;
+        ? `שיעור הניסיון עולה ${formattedTrialPrice} ₪. צפי בלוח השיעורים באפליקציה, בחרי שיעור והזמיני מקום.`
+        : `The trial class is ₪${formattedTrialPrice}. View the schedule in the app, choose a class, and reserve your place.`;
   return {
     ...copy,
     hero: { ...copy.hero, offer },
@@ -540,6 +541,13 @@ export function getAppMarketingCopy(
       string,
     ][],
   };
+}
+
+export function formatAppMarketingTrialPrice(trialPrice: number): string {
+  return new Intl.NumberFormat("en-IL", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  }).format(trialPrice);
 }
 
 const SCREENSHOT_KINDS: AppMarketingScreenshot["kind"][] = [

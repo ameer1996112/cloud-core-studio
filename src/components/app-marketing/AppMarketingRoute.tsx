@@ -58,7 +58,7 @@ export function getAppMarketingRouteHead(lang: Lang, loaderData?: AppMarketingRo
           lang,
           profile: loaderData.profile,
           trialPrice: loaderData.trialPrice,
-          faqVisible: false,
+          faqVisible: true,
         }),
       ).replace(/</g, "\\u003c")
     : undefined;

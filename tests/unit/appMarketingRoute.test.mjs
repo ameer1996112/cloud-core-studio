@@ -77,7 +77,7 @@ describe("public app marketing route", () => {
     expect(source).toContain('as: "image"');
     expect(source).toContain("buildAppMarketingStructuredData");
     expect(source).toContain('replace(/</g, "\\\\u003c")');
-    expect(source).toContain("faqVisible: false");
+    expect(source).toContain("faqVisible: true");
     expect(source).not.toContain('<script type="application/ld+json"');
   });
 
@@ -98,20 +98,38 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("aria-label={copy.screenshots.title}");
     expect(pageSource).toContain("aria-label={copy.classes.title}");
     expect(pageSource).toContain("aria-label={copy.steps.title}");
-    expect(pageSource).toContain('to="/auth"');
-    expect(pageSource).toContain('to="/support"');
-    expect(pageSource).toContain('to="/privacy"');
-    expect(pageSource).toContain('to="/terms"');
+    expect(pageSource).toContain("`/member/schedule`");
+    expect(pageSource).toContain("`/auth`");
+    expect(pageSource).toContain('href="/support"');
+    expect(pageSource).toContain('href="/privacy"');
+    expect(pageSource).toContain('href="/terms"');
     expect(pageSource).toContain("getAppMarketingScreenshots(lang)");
     expect(pageSource).toContain("marketingUtm");
     expect(pageSource).toContain("buildMarketingHref");
     expect(pageSource).toContain("new URLSearchParams(marketingUtm)");
+    expect(pageSource).toContain("hrefLang={code}");
+    expect(pageSource).toContain('aria-current={lang === code ? "page" : undefined}');
+  });
+
+  test("renders the verified details, localized content, and distinct crawlable actions", () => {
+    expect(pageSource).toContain("copy.hero.trust");
+    expect(pageSource).toContain("copy.hero.offer");
+    expect(pageSource).toContain("copy.hero.memberCta");
+    expect(pageSource).toContain("copy.screenshots.headings[index]");
+    expect(pageSource).toContain("copy.classes.descriptions[index]");
+    expect(pageSource).toContain('<details className="app-marketing__faq-item"');
+    expect(pageSource).toContain("copy.faq.map(([question, answer])");
+    expect(pageSource).toContain("Main Road 89");
+    expect(pageSource).toContain("33.016109,35.349285");
+    expect(pageSource).toContain("/images/studio/studio-sign.webp");
+    expect(pageSource).not.toContain("/images/classes/aerial-yoga-flow.webp");
   });
 
   test("uses the official logo, real studio image, and Apple badge", () => {
     expect(pageSource).toContain("/brand/cloud-core-logo-full.webp");
     expect(pageSource).toContain("/images/auth/cloud-core-auth-hero.webp");
     expect(pageSource).toContain("APP_STORE_BADGE_PATHS[lang]");
+    expect(pageSource).toContain('width={lang === "he" ? 122 : 120}');
     expect(pageSource).toContain("Apple and the Apple logo are trademarks of Apple Inc.");
   });
 
@@ -119,7 +137,7 @@ describe("public app marketing route", () => {
     const whatsappHref = buildWhatsappHref("055-939-8438", "");
 
     expect(new URL(whatsappHref).pathname).toBe("/972559398438");
-    expect(pageSource).toContain('buildWhatsappHref(profile.whatsappNumber, "")');
+    expect(pageSource).toContain('buildWhatsappHref(profile.whatsappNumber ?? publicPhone, "")');
     expect(pageSource).not.toContain('profile.whatsappNumber?.replace(/[^\\d+]/g, "")');
   });
 
