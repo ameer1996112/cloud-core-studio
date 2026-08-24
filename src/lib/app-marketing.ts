@@ -128,17 +128,22 @@ export function resolveMarketingLocale(input: {
     const language = rawLanguage.split(/[-_]/, 1)[0];
     const qParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
     const parsedQuality = qParameter ? Number(qParameter.trim().slice(2)) : 1;
-    const quality =
-      Number.isFinite(parsedQuality) && parsedQuality >= 0 && parsedQuality <= 1
-        ? parsedQuality
-        : 0;
+    if (!Number.isFinite(parsedQuality) || parsedQuality < 0 || parsedQuality > 1) return;
+    const quality = parsedQuality;
     if (language === "*") {
-      if (!wildcard) wildcard = { quality, order };
+      if (!wildcard || quality > wildcard.quality) {
+        wildcard = { quality, order: wildcard?.order ?? order };
+      }
       return;
     }
     const supported = asMarketingLang(language);
     if (supported && !explicitRanges.has(supported)) {
       explicitRanges.set(supported, { quality, order });
+    } else if (supported) {
+      const current = explicitRanges.get(supported);
+      if (current && quality > current.quality) {
+        explicitRanges.set(supported, { quality, order: current.order });
+      }
     }
   });
 
