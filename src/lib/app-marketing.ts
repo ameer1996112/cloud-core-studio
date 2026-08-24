@@ -26,9 +26,9 @@ export const APP_STORE_BADGE_PATHS: Record<Lang, string> = {
   en: "/brand/app-store-badges/en.svg",
 };
 export const APP_STORE_BADGE_DIMENSIONS: Record<Lang, { width: number; height: number }> = {
-  ar: { width: 119.66407, height: 40 },
-  he: { width: 121.664, height: 42 },
-  en: { width: 119.66407, height: 40 },
+  ar: { width: 120, height: 40 },
+  he: { width: 122, height: 42 },
+  en: { width: 120, height: 40 },
 };
 
 export type AppMarketingSearch = { lang?: Lang };

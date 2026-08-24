@@ -298,6 +298,7 @@
   display: block;
   width: auto;
   height: auto;
+  object-fit: contain;
 }
 
 .app-marketing__member-link {

@@ -294,9 +294,13 @@ describe("app marketing contracts", () => {
   });
 
   test("declares the intrinsic localized App Store badge dimensions", () => {
-    expect(APP_STORE_BADGE_DIMENSIONS.ar).toEqual({ width: 119.66407, height: 40 });
-    expect(APP_STORE_BADGE_DIMENSIONS.en).toEqual({ width: 119.66407, height: 40 });
-    expect(APP_STORE_BADGE_DIMENSIONS.he).toEqual({ width: 121.664, height: 42 });
+    expect(APP_STORE_BADGE_DIMENSIONS.ar).toEqual({ width: 120, height: 40 });
+    expect(APP_STORE_BADGE_DIMENSIONS.en).toEqual({ width: 120, height: 40 });
+    expect(APP_STORE_BADGE_DIMENSIONS.he).toEqual({ width: 122, height: 42 });
+    for (const dimensions of Object.values(APP_STORE_BADGE_DIMENSIONS)) {
+      expect(Number.isInteger(dimensions.width)).toBe(true);
+      expect(Number.isInteger(dimensions.height)).toBe(true);
+    }
   });
 
   test("formats a verified trial price once for localized offer copy", () => {
