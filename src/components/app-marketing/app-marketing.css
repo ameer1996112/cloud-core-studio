@@ -362,7 +362,8 @@
 
 .app-marketing__features,
 .app-marketing__screens-section,
-.app-marketing__steps {
+.app-marketing__steps,
+.app-marketing__trust-signals {
   padding-block: 76px;
 }
 
@@ -402,6 +403,36 @@
   letter-spacing: -0.045em;
   line-height: 1.03;
   text-wrap: balance;
+}
+
+.app-marketing__trust-signals {
+  width: min(100% - 32px, 1240px);
+  margin-inline: auto;
+}
+
+.app-marketing__trust-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: 1px solid rgba(11, 29, 58, 0.2);
+}
+
+.app-marketing__trust-list li {
+  display: flex;
+  min-height: 56px;
+  padding: 12px 0;
+  align-items: center;
+  gap: 10px;
+  border-block-end: 1px solid rgba(11, 29, 58, 0.2);
+  font-weight: 750;
+}
+
+.app-marketing__trust-list svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  color: #5c4215;
 }
 
 .app-marketing__feature-grid {
@@ -689,7 +720,25 @@
 .app-marketing__maps-link svg {
   width: 18px;
   height: 18px;
-  color: #8f692d;
+  color: #5c4215;
+}
+
+.app-marketing__location .app-marketing__contact-link {
+  color: var(--app-navy);
+}
+
+.app-marketing__location .app-marketing__contact-link svg {
+  color: #5c4215;
+}
+
+.app-marketing__location .app-marketing__contact-link:hover,
+.app-marketing__location .app-marketing__maps-link:hover {
+  color: #5c4215;
+}
+
+.app-marketing__location .app-marketing__contact-link:focus-visible,
+.app-marketing__location .app-marketing__maps-link:focus-visible {
+  outline-color: #5c4215;
 }
 
 .app-marketing__final-cta {
@@ -900,6 +949,7 @@
   .app-marketing__screenshots,
   .app-marketing__steps > .app-marketing__section-heading,
   .app-marketing__steps-list,
+  .app-marketing__trust-signals,
   .app-marketing__classes,
   .app-marketing__faq,
   .app-marketing__location,
@@ -916,6 +966,19 @@
 
   .app-marketing__feature-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-marketing__trust-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .app-marketing__trust-list li {
+    padding-inline: 16px;
+    border-inline-end: 1px solid rgba(11, 29, 58, 0.2);
+  }
+
+  .app-marketing__trust-list li:nth-child(3n) {
+    border-inline-end: 0;
   }
 
   .app-marketing__feature:nth-child(odd) {

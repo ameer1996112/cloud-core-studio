@@ -294,6 +294,25 @@ export function AppMarketingPage({
           </figure>
         </section>
 
+        <section
+          className="app-marketing__trust-signals"
+          aria-labelledby="app-marketing-trust-title"
+        >
+          <SectionHeading
+            eyebrow={copy.trustSignals.eyebrow}
+            title={copy.trustSignals.title}
+            titleId="app-marketing-trust-title"
+          />
+          <ul className="app-marketing__trust-list">
+            {copy.trustSignals.items.map((item) => (
+              <li key={item}>
+                <BadgeCheck aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <section className="app-marketing__features" aria-label={copy.features.title}>
           <SectionHeading eyebrow={copy.features.eyebrow} title={copy.features.title} />
           <div className="app-marketing__feature-grid">
@@ -373,7 +392,7 @@ export function AppMarketingPage({
               <img
                 src="/images/studio/studio-sign.webp"
                 alt=""
-                width={512}
+                width={502}
                 height={357}
                 loading="lazy"
                 decoding="async"
@@ -416,7 +435,7 @@ export function AppMarketingPage({
           <div className="app-marketing__location-copy">
             <p className="app-marketing__eyebrow">{copy.footer.location}</p>
             <h2 id="app-marketing-location-title">{labels.location}</h2>
-            <address>Main Road 89, Hurfeish</address>
+            <address>{copy.footer.address}</address>
             <a
               className="app-marketing__maps-link"
               href={mapsHref}
@@ -472,7 +491,7 @@ export function AppMarketingPage({
             />
             <p>Cloud &amp; Core Studio</p>
             <p className="app-marketing__footer-location">{copy.footer.location}</p>
-            <p className="app-marketing__footer-address">Main Road 89, Hurfeish</p>
+            <p className="app-marketing__footer-address">{copy.footer.address}</p>
           </div>
           <ContactLinks
             profile={profile}

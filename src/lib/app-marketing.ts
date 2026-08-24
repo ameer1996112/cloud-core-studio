@@ -68,8 +68,20 @@ export type AppMarketingCopy = {
     body: string;
     actions: [string, string, string];
   };
+  trustSignals: {
+    eyebrow: string;
+    title: string;
+    items: [string, string, string, string, string, string];
+  };
   faq: [string, string][];
-  footer: { location: string; support: string; privacy: string; terms: string; signIn: string };
+  footer: {
+    location: string;
+    address: string;
+    support: string;
+    privacy: string;
+    terms: string;
+    signIn: string;
+  };
 };
 
 export type AppMarketingMeta = {
@@ -325,6 +337,18 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       body: "פתחי את Cloud & Core, צפי בלו״ז והזמיני מקום.",
       actions: ["צפייה בלוח והרשמה", "הורדה מה־App Store", "כניסה לחשבון"],
     },
+    trustSignals: {
+      eyebrow: "Cloud & Core בחורפיש",
+      title: "מה חשוב לדעת לפני שמתחילים",
+      items: [
+        "מתאים למתחילות",
+        "קבוצות קטנות",
+        "יחס אישי",
+        "שיעורים לנשים",
+        "ילדים מגיל 7",
+        "חורפיש",
+      ],
+    },
     faq: [
       [
         "האם יוגה אווירית מתאימה למתחילות?",
@@ -341,6 +365,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     ],
     footer: {
       location: "חורפיש, צפון ישראל",
+      address: "חורפיש · כביש ראשי 89",
       support: "תמיכה",
       privacy: "פרטיות",
       terms: "תנאי שימוש",
@@ -403,6 +428,18 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       body: "افتحي Cloud & Core، شوفي الجدول واحجزي مكانك.",
       actions: ["شوفي الجدول واحجزي", "حمّلي من App Store", "سجّلي دخولك"],
     },
+    trustSignals: {
+      eyebrow: "Cloud & Core في حرفيش",
+      title: "معلومات مهمة قبل ما تبلّشي",
+      items: [
+        "مناسب للمبتدئات",
+        "مجموعات صغيرة",
+        "اهتمام شخصي",
+        "حصص للنساء",
+        "للأطفال من عمر 7",
+        "حرفيش",
+      ],
+    },
     faq: [
       [
         "هل اليوغا الهوائية مناسبة للمبتدئات؟",
@@ -419,6 +456,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     ],
     footer: {
       location: "حرفيش، شمال إسرائيل",
+      address: "حرفيش · الشارع الرئيسي 89",
       support: "الدعم",
       privacy: "الخصوصية",
       terms: "شروط الاستخدام",
@@ -484,6 +522,18 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
       body: "Open Cloud & Core, view the schedule, and reserve your place.",
       actions: ["View Schedule and Book", "Download on the App Store", "Sign In"],
     },
+    trustSignals: {
+      eyebrow: "Cloud & Core in Hurfeish",
+      title: "What to know before you begin",
+      items: [
+        "Beginner friendly",
+        "Small groups",
+        "Personal attention",
+        "Women’s classes",
+        "Kids from age 7",
+        "Hurfeish",
+      ],
+    },
     faq: [
       [
         "Is aerial yoga suitable for beginners?",
@@ -506,6 +556,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     ],
     footer: {
       location: "Hurfeish, North Israel",
+      address: "Main Road 89, Hurfeish",
       support: "Support",
       privacy: "Privacy",
       terms: "Terms of Use",

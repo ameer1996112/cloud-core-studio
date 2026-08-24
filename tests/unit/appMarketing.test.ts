@@ -261,6 +261,15 @@ describe("app marketing contracts", () => {
     expect(getAppMarketingCopy("en", 80).faq[4][1]).toContain("₪80");
   });
 
+  test("centralizes the verified localized studio address and six trust facts", () => {
+    expect(APP_MARKETING_COPY.ar.footer.address).toBe("حرفيش · الشارع الرئيسي 89");
+    expect(APP_MARKETING_COPY.he.footer.address).toBe("חורפיש · כביש ראשי 89");
+    expect(APP_MARKETING_COPY.en.footer.address).toBe("Main Road 89, Hurfeish");
+    for (const lang of ["ar", "he", "en"] as const) {
+      expect(APP_MARKETING_COPY[lang].trustSignals.items).toHaveLength(6);
+    }
+  });
+
   test("formats a verified trial price once for localized offer copy", () => {
     expect(formatAppMarketingTrialPrice(80.5)).toBe("80.5");
   });

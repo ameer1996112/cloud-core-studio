@@ -115,13 +115,15 @@ describe("public app marketing route", () => {
     expect(pageSource).toContain("copy.hero.trust");
     expect(pageSource).toContain("copy.hero.offer");
     expect(pageSource).toContain("copy.hero.memberCta");
+    expect(pageSource).toContain("copy.trustSignals.items.map");
+    expect(pageSource).toContain("copy.footer.address");
     expect(pageSource).toContain("copy.screenshots.headings[index]");
     expect(pageSource).toContain("copy.classes.descriptions[index]");
     expect(pageSource).toContain('<details className="app-marketing__faq-item"');
     expect(pageSource).toContain("copy.faq.map(([question, answer])");
-    expect(pageSource).toContain("Main Road 89");
     expect(pageSource).toContain("33.016109,35.349285");
     expect(pageSource).toContain("/images/studio/studio-sign.webp");
+    expect(pageSource).toContain("width={502}");
     expect(pageSource).not.toContain("/images/classes/aerial-yoga-flow.webp");
   });
 
