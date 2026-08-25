@@ -25,7 +25,6 @@ import {
   type AuthValidationErrors,
   type AuthValidationIssue,
 } from "@/lib/authValidation";
-import { getYogaPromoAttributionToken, trackYogaPromo } from "@/lib/yogaPromo";
 
 import { authImages, authLogo } from "@/lib/auth-assets";
 
@@ -69,14 +68,9 @@ function AuthPage() {
       const searchParams = new URL(window.location.href).searchParams;
       const requestedMode = searchParams.get("mode");
       setReturnToPath(searchParams.get("returnTo"));
-      if (requestedMode === "forgot" || requestedMode === "signup") {
-        setMode(requestedMode);
-        if (requestedMode === "signup" && getYogaPromoAttributionToken()) {
-          trackYogaPromo("yoga_promo_signup_started");
-        }
-        if (requestedMode === "forgot") {
-          window.history.replaceState(null, document.title, window.location.pathname);
-        }
+      if (requestedMode === "forgot") {
+        setMode("forgot");
+        window.history.replaceState(null, document.title, window.location.pathname);
       }
     }
   }, []);
@@ -176,7 +170,6 @@ function AuthPage() {
             console.error("admin_signup_push_failed", error);
           }
         }
-        if (getYogaPromoAttributionToken()) trackYogaPromo("yoga_promo_signup_completed");
         if (signed.session) {
           await supabase.auth.signOut();
           clearSupabaseAccessTokenCookie();
