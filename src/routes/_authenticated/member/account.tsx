@@ -1,17 +1,19 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { friendlyErrorMessage } from "@/lib/error-messages";
 import { LogOut, Save, Trash2 } from "lucide-react";
 import { getMyPackages, requestMyAccountDeletion, updateMyProfile } from "@/lib/member.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { flushSync } from "react-dom";
-import { applyLang, labelForStatus, t, useI18n, getLocale, type Lang } from "@/lib/i18n";
-import { studioImages, localizedAlt } from "@/lib/image-assets";
+import { applyLang, labelForStatus, LANG_META, t, useI18n, getLocale, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
+import { MemberField, MemberProfileSaveStatus } from "@/components/member/MemberField";
+import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
+import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
 import {
   getMyPersonalConcierge,
   saveMyPersonalConciergePreference,
@@ -58,12 +60,18 @@ function MemberAccount() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data } = useQuery({ queryKey: ["member-packages"], queryFn: () => fetchPkg() });
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["member-packages"],
+    queryFn: () => fetchPkg(),
+  });
   const { data: concierge } = useQuery({
     queryKey: ["personal-concierge"],
     queryFn: () => fetchConcierge(),
   });
   const me = data?.member as MemberProfile | undefined;
+  const hasProfileData = Boolean(me);
+  const isInitialLoading = isLoading && !hasProfileData;
+  const hasFatalError = !hasProfileData && (isError || !isLoading);
 
   const [form, setForm] = useState<ProfileForm>({});
   const [deletionReason, setDeletionReason] = useState("");
@@ -124,6 +132,18 @@ function MemberAccount() {
     },
     onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.saveError"))),
   });
+  const {
+    isSuccess: profileSaveSucceeded,
+    isError: profileSaveFailed,
+    reset: resetProfileSave,
+  } = update;
+
+  useEffect(() => {
+    if (!profileSaveSucceeded && !profileSaveFailed) return;
+
+    const timeout = window.setTimeout(() => resetProfileSave(), 4_000);
+    return () => window.clearTimeout(timeout);
+  }, [profileSaveSucceeded, profileSaveFailed, resetProfileSave]);
 
   const conciergeCopy =
     lang === "he"
@@ -193,227 +213,246 @@ function MemberAccount() {
   }
 
   return (
-    <section dir={dir} className="member-page w-full space-y-6 sm:space-y-8 pb-10">
-      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="member-page-copy p-5 sm:p-8">
-          <p className="member-eyebrow">{t("member.account.kicker")}</p>
-          <h1 className="member-page-title mt-3 capitalize">{me?.name ?? t("nav.profile")}</h1>
-          <p className="member-page-body mt-3">
-            {me?.email ? (
-              <LtrInline className="inline-block">{me.email}</LtrInline>
-            ) : (
-              t("member.account.body")
-            )}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="member-chip">{labelForStatus(me?.status ?? "active")}</span>
-            <span className="member-chip">{selectedLanguage.toUpperCase()}</span>
-          </div>
-        </div>
-        <div className="relative min-h-[150px] sm:min-h-[180px] md:min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
-          <img
-            src={studioImages.logoWall.src}
-            alt={localizedAlt(studioImages.logoWall, getLocale())}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-navy/10"
-          />
-        </div>
-      </div>
+    <section dir={dir} className="member-page member-account-page w-full pb-10">
+      {isInitialLoading ? <MemberRouteSkeleton route="account" /> : null}
 
-      <div className="member-card p-5 sm:p-6 space-y-4">
-        <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
-          <div>
-            <h2 className="member-section-title">{t("profile.details")}</h2>
-          </div>
-          {me?.created_at && (
-            <div className="text-xs bg-gold/10 text-gold border border-gold/20 px-3 py-1 rounded-full font-medium tracking-wide">
-              {t("profile.memberSince")}{" "}
-              <span className="font-semibold">
-                {new Date(me.created_at).toLocaleDateString(
-                  getLocale() === "he" ? "he-IL" : "en-GB",
-                  {
-                    year: "numeric",
-                    month: "long",
-                  },
-                )}
-              </span>
+      {hasFatalError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
+
+      {hasProfileData && me ? (
+        <div className="member-account-page__content">
+          {isError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
+
+          <MemberPageIntro
+            eyebrow={t("member.account.kicker")}
+            title={me.name?.trim() || t("nav.profile")}
+            body={
+              me.email ? (
+                <LtrInline className="inline-block">{me.email}</LtrInline>
+              ) : (
+                t("member.account.body")
+              )
+            }
+            aside={
+              <div className="member-account-summary" aria-label={t("profile.details")}>
+                {me.status ? (
+                  <span className="member-chip">{labelForStatus(me.status)}</span>
+                ) : null}
+                <span className="member-chip">{LANG_META[selectedLanguage].label}</span>
+              </div>
+            }
+          />
+
+          <MemberSection
+            id="profile-details"
+            title={t("profile.details")}
+            action={
+              me.created_at ? (
+                <span className="member-account-since">
+                  {t("profile.memberSince")}{" "}
+                  <strong>
+                    {new Date(me.created_at).toLocaleDateString(
+                      getLocale() === "he" ? "he-IL" : "en-GB",
+                      { year: "numeric", month: "long" },
+                    )}
+                  </strong>
+                </span>
+              ) : undefined
+            }
+          >
+            <div className="member-account-fields">
+              <MemberField id="profile-name" label={t("profile.name")}>
+                <input
+                  className="editorial-input"
+                  dir={val("name") ? "auto" : undefined}
+                  value={val("name")}
+                  onChange={(event) => set("name", event.target.value)}
+                />
+              </MemberField>
+              <MemberField id="profile-phone" label={t("profile.phone")}>
+                <input
+                  className="editorial-input"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={val("phone") ?? ""}
+                  onChange={(event) => set("phone", event.target.value)}
+                />
+              </MemberField>
+              <MemberField id="profile-language" label={t("profile.language")}>
+                <select
+                  className="editorial-input"
+                  value={selectedLanguage}
+                  onChange={(event) => setLanguage(event.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="he">עברית</option>
+                  <option value="ar">العربية</option>
+                </select>
+              </MemberField>
+              <MemberField id="profile-emergency-contact" label={t("profile.emergency")}>
+                <input
+                  className="editorial-input"
+                  dir={val("emergency_contact") ? "auto" : undefined}
+                  value={val("emergency_contact") ?? ""}
+                  onChange={(event) => set("emergency_contact", event.target.value)}
+                  placeholder={t("profile.emergencyPlaceholder")}
+                />
+              </MemberField>
+              <MemberField id="profile-energy-preference" label={t("profile.energy")}>
+                <input
+                  className="editorial-input"
+                  dir={val("energy_preference") ? "auto" : undefined}
+                  value={val("energy_preference") ?? ""}
+                  onChange={(event) => set("energy_preference", event.target.value)}
+                  placeholder={t("profile.energyPlaceholder")}
+                />
+              </MemberField>
             </div>
-          )}
-        </div>
 
-        <Field label={t("profile.name")}>
-          <input
-            className="editorial-input"
-            dir={val("name") ? "auto" : undefined}
-            value={val("name")}
-            onChange={(e) => set("name", e.target.value)}
-          />
-        </Field>
-        <Field label={t("profile.phone")}>
-          <input
-            className="editorial-input"
-            inputMode="tel"
-            autoComplete="tel"
-            value={val("phone") ?? ""}
-            onChange={(e) => set("phone", e.target.value)}
-          />
-        </Field>
-        <Field label={t("profile.language")}>
-          <select
-            className="editorial-input"
-            value={selectedLanguage}
-            onChange={(e) => setLanguage(e.target.value)}
-          >
-            <option value="en">English</option>
-            <option value="he">עברית</option>
-            <option value="ar">العربية</option>
-          </select>
-        </Field>
-        <Field label={t("profile.emergency")}>
-          <input
-            className="editorial-input"
-            dir={val("emergency_contact") ? "auto" : undefined}
-            value={val("emergency_contact") ?? ""}
-            onChange={(e) => set("emergency_contact", e.target.value)}
-            placeholder={t("profile.emergencyPlaceholder")}
-          />
-        </Field>
-        <Field label={t("profile.energy")}>
-          <input
-            className="editorial-input"
-            dir={val("energy_preference") ? "auto" : undefined}
-            value={val("energy_preference") ?? ""}
-            onChange={(e) => set("energy_preference", e.target.value)}
-            placeholder={t("profile.energyPlaceholder")}
-          />
-        </Field>
-
-        <div className="pt-3 border-t hairline flex justify-start">
-          <button
-            disabled={update.isPending || Object.keys(form).length === 0}
-            onClick={() => update.mutate()}
-            className="btn-navy hover:btn-navy-hover disabled:opacity-50"
-          >
-            <Save className="h-3 w-3" /> {update.isPending ? t("common.saving") : t("profile.save")}
-          </button>
-        </div>
-      </div>
-
-      {concierge?.available && (
-        <section id="between-us" className="member-card member-panel-sand p-5 sm:p-7 space-y-5">
-          <div>
-            <p className="member-eyebrow">{conciergeCopy.eyebrow}</p>
-            <h2 className="member-section-title mt-2">{conciergeCopy.title}</h2>
-            <p className="member-page-body mt-2 max-w-2xl">{conciergeCopy.body}</p>
-          </div>
-          <Field label={conciergeCopy.pace}>
-            <select
-              className="editorial-input"
-              value={conciergePace}
-              onChange={(event) => setConciergePace(event.target.value)}
-            >
-              <option value="">{conciergeCopy.balanced}</option>
-              <option value="quiet">{conciergeCopy.quiet}</option>
-              <option value="balanced">{conciergeCopy.balanced}</option>
-              <option value="attentive">{conciergeCopy.attentive}</option>
-            </select>
-          </Field>
-          <Field label={conciergeCopy.intention}>
-            <input
-              className="editorial-input"
-              dir="auto"
-              value={conciergeIntention}
-              onChange={(event) => setConciergeIntention(event.target.value)}
-              placeholder={conciergeCopy.intentionPlaceholder}
-              maxLength={120}
-            />
-          </Field>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline pt-4">
-            <label className="flex items-center gap-2 text-sm text-slate">
-              <input
-                type="checkbox"
-                checked={concierge?.relationship?.personalization_paused === true}
-                onChange={(event) => pauseBetweenUs.mutate(event.target.checked)}
-                disabled={pauseBetweenUs.isPending}
+            <div className="member-account-save-row">
+              <button
+                id="profile-save"
+                type="button"
+                disabled={update.isPending || Object.keys(form).length === 0}
+                onClick={() => update.mutate()}
+                className="btn-navy member-account-action hover:btn-navy-hover disabled:opacity-50"
+                aria-describedby="profile-save-status"
+              >
+                <Save className="h-4 w-4" aria-hidden="true" />
+                {update.isPending ? t("common.saving") : t("profile.save")}
+              </button>
+              <MemberProfileSaveStatus
+                id="profile-save-status"
+                pending={update.isPending}
+                succeeded={update.isSuccess}
+                failed={update.isError}
               />
-              {conciergeCopy.pause}
-            </label>
-            <button
-              className="btn-navy hover:btn-navy-hover disabled:opacity-50"
-              disabled={saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())}
-              onClick={() => saveBetweenUs.mutate()}
-            >
-              <Save className="h-3 w-3" />
-              {conciergeCopy.save}
-            </button>
-          </div>
-        </section>
-      )}
+            </div>
+          </MemberSection>
 
-      <div className="member-card p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
-          <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
-        </div>
-        <button
-          onClick={signOut}
-          disabled={signingOut}
-          className="btn-outline hover:btn-outline-hover"
-        >
-          <LogOut className="h-3 w-3" /> {t("shell.signOut")}
-        </button>
-      </div>
-
-      <div className="member-card p-5 sm:p-6 space-y-4">
-        <div className="member-section-heading">
-          <div>
-            <p className="member-eyebrow">{t("profile.privacyKicker")}</p>
-            <h2 className="member-section-title mt-1">{t("profile.privacyTitle")}</h2>
-          </div>
-        </div>
-        <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <Link to="/privacy" className="btn-outline hover:btn-outline-hover justify-center">
-            {t("legal.privacy")}
-          </Link>
-          <Link to="/terms" className="btn-outline hover:btn-outline-hover justify-center">
-            {t("legal.terms")}
-          </Link>
-          <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
-            {t("legal.support")}
-          </Link>
-        </div>
-        <div className="border-t hairline pt-4">
-          <Field label={t("profile.deleteReason")}>
-            <textarea
-              className="editorial-input min-h-24 resize-y"
-              dir="auto"
-              value={deletionReason}
-              onChange={(e) => setDeletionReason(e.target.value)}
-              placeholder={t("profile.deleteReasonPlaceholder")}
-            />
-          </Field>
-          <div className="mt-3 flex justify-start">
-            <button
-              disabled={deletion.isPending}
-              onClick={() => deletion.mutate()}
-              className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
+          {concierge?.available ? (
+            <MemberSection
+              id="between-us"
+              eyebrow={conciergeCopy.eyebrow}
+              title={conciergeCopy.title}
             >
-              <Trash2 className="h-3 w-3" />
-              {deletion.isPending ? t("common.saving") : t("profile.deleteRequest")}
-            </button>
-          </div>
+              <p className="member-page-body max-w-2xl">{conciergeCopy.body}</p>
+              <div className="member-account-fields member-account-fields--concierge">
+                <MemberField id="concierge-pace" label={conciergeCopy.pace}>
+                  <select
+                    className="editorial-input"
+                    value={conciergePace}
+                    onChange={(event) => setConciergePace(event.target.value)}
+                  >
+                    <option value="">{conciergeCopy.balanced}</option>
+                    <option value="quiet">{conciergeCopy.quiet}</option>
+                    <option value="balanced">{conciergeCopy.balanced}</option>
+                    <option value="attentive">{conciergeCopy.attentive}</option>
+                  </select>
+                </MemberField>
+                <MemberField id="concierge-intention" label={conciergeCopy.intention}>
+                  <input
+                    className="editorial-input"
+                    dir="auto"
+                    value={conciergeIntention}
+                    onChange={(event) => setConciergeIntention(event.target.value)}
+                    placeholder={conciergeCopy.intentionPlaceholder}
+                    maxLength={120}
+                  />
+                </MemberField>
+              </div>
+              <div className="member-account-save-row">
+                <div className="member-toggle-row">
+                  <input
+                    id="concierge-paused"
+                    type="checkbox"
+                    checked={concierge?.relationship?.personalization_paused === true}
+                    onChange={(event) => pauseBetweenUs.mutate(event.target.checked)}
+                    disabled={pauseBetweenUs.isPending}
+                  />
+                  <label htmlFor="concierge-paused">{conciergeCopy.pause}</label>
+                </div>
+                <button
+                  id="concierge-save"
+                  type="button"
+                  className="btn-navy member-account-action hover:btn-navy-hover disabled:opacity-50"
+                  disabled={
+                    saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())
+                  }
+                  onClick={() => saveBetweenUs.mutate()}
+                >
+                  <Save className="h-4 w-4" aria-hidden="true" />
+                  {conciergeCopy.save}
+                </button>
+              </div>
+            </MemberSection>
+          ) : null}
+
+          <MemberSection id="session" title={t("shell.signOut")}>
+            <div className="member-account-session">
+              <p className="text-sm leading-6 text-slate">{t("profile.endSession")}</p>
+              <button
+                id="account-sign-out"
+                type="button"
+                onClick={signOut}
+                disabled={signingOut}
+                className="btn-outline member-account-action hover:btn-outline-hover"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                {t("shell.signOut")}
+              </button>
+            </div>
+          </MemberSection>
+
+          <MemberSection
+            id="privacy"
+            eyebrow={t("profile.privacyKicker")}
+            title={t("profile.privacyTitle")}
+          >
+            <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
+            <nav className="member-account-legal-links" aria-label={t("profile.privacyTitle")}>
+              <Link
+                to="/privacy"
+                className="btn-outline member-account-action hover:btn-outline-hover"
+              >
+                {t("legal.privacy")}
+              </Link>
+              <Link
+                to="/terms"
+                className="btn-outline member-account-action hover:btn-outline-hover"
+              >
+                {t("legal.terms")}
+              </Link>
+              <Link
+                to="/support"
+                className="btn-outline member-account-action hover:btn-outline-hover"
+              >
+                {t("legal.support")}
+              </Link>
+            </nav>
+            <div className="member-danger-zone">
+              <MemberField id="delete-reason" label={t("profile.deleteReason")}>
+                <textarea
+                  className="editorial-input min-h-24 resize-y"
+                  dir="auto"
+                  value={deletionReason}
+                  onChange={(event) => setDeletionReason(event.target.value)}
+                  placeholder={t("profile.deleteReasonPlaceholder")}
+                />
+              </MemberField>
+              <button
+                id="account-delete-request"
+                type="button"
+                disabled={deletion.isPending}
+                onClick={() => deletion.mutate()}
+                className="btn-ghost member-account-action border-destructive/30 text-destructive hover:btn-ghost-hover hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                {deletion.isPending ? t("common.saving") : t("profile.deleteRequest")}
+              </button>
+            </div>
+          </MemberSection>
         </div>
-      </div>
+      ) : null}
     </section>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="field-label">{label}</label>
-      {children}
-    </div>
   );
 }
