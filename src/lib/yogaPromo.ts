@@ -12,14 +12,11 @@ export type YogaPromoStatus = {
   remaining: number;
   claimLimit: number;
   claimedByCurrentUser: boolean;
-  entitlementStatus: "active" | "reserved" | "consumed" | "revoked" | "expired" | null;
-  creditAvailable: boolean;
   eligible: boolean;
   soldOut: boolean;
   startsAt: string | null;
   endsAt: string | null;
   creditExpiresAt: string | null;
-  eligibleClassTypeId: string | null;
   eligibleClassTypeName: string | null;
 };
 

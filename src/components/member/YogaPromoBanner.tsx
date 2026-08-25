@@ -41,8 +41,7 @@ export function YogaPromoBanner({
   const state = loading || !status ? "loading" : getBannerState(status, publicAudience);
   const copy = bannerCopy(state, status);
   const canClaim = state === "active" && Boolean(onClaim);
-  const scheduleCta =
-    state === "claimed" || state === "used" || state === "sold_out" || state === "ineligible";
+  const scheduleCta = state === "claimed" || state === "sold_out" || state === "ineligible";
 
   return (
     <aside
@@ -102,18 +101,10 @@ export function YogaPromoBanner({
   );
 }
 
-type BannerState =
-  | "loading"
-  | "active"
-  | "claimed"
-  | "used"
-  | "sold_out"
-  | "ineligible"
-  | "inactive";
+type BannerState = "loading" | "active" | "claimed" | "sold_out" | "ineligible" | "inactive";
 
 function getBannerState(status: YogaPromoStatus, publicAudience: boolean): BannerState {
-  if (status.claimedByCurrentUser && status.creditAvailable) return "claimed";
-  if (status.claimedByCurrentUser) return "used";
+  if (status.claimedByCurrentUser) return "claimed";
   if (status.soldOut) return "sold_out";
   if (!status.active) return "inactive";
   if (!publicAudience && !status.eligible) return "ineligible";
@@ -127,12 +118,6 @@ function bannerCopy(state: BannerState, status?: YogaPromoStatus) {
     return {
       title: t("promo.yoga.claimedTitle"),
       body: t("promo.yoga.claimedBody"),
-      cta: t("promo.yoga.claimedCta"),
-    };
-  if (state === "used")
-    return {
-      title: t("promo.yoga.usedTitle"),
-      body: t("promo.yoga.usedBody"),
       cta: t("promo.yoga.claimedCta"),
     };
   if (state === "sold_out")

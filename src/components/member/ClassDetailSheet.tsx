@@ -11,7 +11,6 @@ import { bookClass } from "@/lib/cloud-core.functions";
 import { recordMemberNotificationCampaignBooking } from "@/lib/memberNotifications.functions";
 import { readCampaignAttribution } from "@/lib/memberNotificationsApi";
 import { trackYogaPromo } from "@/lib/yogaPromo";
-import { useYogaPromo } from "@/hooks/useYogaPromo";
 import {
   ClassImage,
   StateBadge,
@@ -199,7 +198,6 @@ export function ClassDetailSheet({
   const fetchDetail = useServerFn(getClassDetail);
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const yogaPromo = useYogaPromo();
   const [confirmation, setConfirmation] = useState<null | { bookingId: string; remaining: number }>(
     null,
   );
@@ -243,9 +241,7 @@ export function ClassDetailSheet({
 
   const book = useMutation({
     mutationFn: () => {
-      if (canUseYogaPromo) {
-        trackYogaPromo("yoga_promo_booking_started", { class_id: classId });
-      }
+      trackYogaPromo("yoga_promo_booking_started", { class_id: classId });
       return bookFn({ data: { classId: classId! } });
     },
     onSuccess: (res: BookClassResult) => {
@@ -321,12 +317,6 @@ export function ClassDetailSheet({
   });
 
   const cls = data?.cls;
-  const canUseYogaPromo = Boolean(
-    !isGuestView &&
-    yogaPromo.data?.creditAvailable &&
-    yogaPromo.data.eligibleClassTypeId &&
-    yogaPromo.data.eligibleClassTypeId === cls?.program_type?.id,
-  );
   const title = cls ? localizedClassTitle(cls) : "";
   const titleParts = cls ? localizedClassTitleParts(cls, lang) : null;
   const instructor = cls ? localizedOptionalInstructorName(cls.instructor?.name) : null;
@@ -358,10 +348,8 @@ export function ClassDetailSheet({
       : deriveClassState(cls, {
           booked: data?.myBooking?.status === "booked",
           waiting: data?.myWaitlist?.status === "waiting" || data?.myWaitlist?.status === "ready",
-          remainingCredits: canUseYogaPromo
-            ? Math.max(data?.member?.remaining_credits ?? 0, cls.credit_cost)
-            : (data?.member?.remaining_credits ?? 0),
-          hasActivePackage: canUseYogaPromo || data?.hasActivePackage,
+          remainingCredits: data?.member?.remaining_credits ?? 0,
+          hasActivePackage: data?.hasActivePackage,
         })
     : null;
   const guestDetailCta = isGuestView && state ? getGuestDetailCtaModel(state, lang) : null;
@@ -538,13 +526,6 @@ export function ClassDetailSheet({
                 </p>
                 <p>{t("booking.bring")}</p>
               </div>
-
-              {canUseYogaPromo ? (
-                <div className="rounded-2xl border border-gold/45 bg-gold/10 px-4 py-3 text-sm font-semibold leading-6 text-navy">
-                  <Sparkles className="me-2 inline h-4 w-4 text-gold" aria-hidden="true" />
-                  {t("promo.yoga.bookingEligible")}
-                </div>
-              ) : null}
 
               <div className="lesson-detail__cta">
                 {guestDetailCta ? (

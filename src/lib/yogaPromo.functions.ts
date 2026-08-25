@@ -3,47 +3,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { YOGA_PROMO_SLUG } from "@/lib/yogaPromo";
 
-export type YogaPromotionAdminData = {
-  campaign: {
-    id: string;
-    enabled: boolean;
-    starts_at: string | null;
-    ends_at: string | null;
-    credit_expires_at: string | null;
-    claim_limit: number;
-    claimed_count: number;
-  };
-  programTypes: Array<{
-    id: string;
-    slug: string;
-    name_en: string;
-    name_he: string;
-    name_ar: string;
-    active: boolean;
-  }>;
-  eligibleProgramTypeIds: string[];
-  entitlements: Array<{
-    id: string;
-    status: "active" | "reserved" | "consumed" | "revoked" | "expired";
-    member_id: string;
-    issued_at: string;
-    expires_at: string | null;
-    consumed_at: string | null;
-  }>;
-  audit: Array<{
-    id: string;
-    entitlement_id: string;
-    actor_id: string | null;
-    action: string;
-    reason: string | null;
-    created_at: string;
-  }>;
-  metrics: Record<
-    "claims" | "remaining" | "successfulBookings" | "used" | "restored" | "expired",
-    number
-  >;
-};
-
 async function requireAdmin(context: any) {
   const { data } = await context.supabase
     .from("profiles")
@@ -97,14 +56,13 @@ export const getYogaPromotionAdmin = createServerFn({ method: "GET" })
       metrics: {
         claims: campaign.claimed_count,
         remaining: Math.max(campaign.claim_limit - campaign.claimed_count, 0),
-        successfulBookings: rows.filter((row: any) => Boolean(row.consumed_at)).length,
         used: rows.filter((row: any) => row.status === "consumed").length,
         restored: (audit.data ?? []).filter((row: any) =>
           ["restored", "admin_restored"].includes(row.action),
         ).length,
         expired: rows.filter((row: any) => row.status === "expired").length,
       },
-    } as YogaPromotionAdminData;
+    };
   });
 
 export const updateYogaPromotionAdmin = createServerFn({ method: "POST" })

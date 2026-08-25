@@ -38,20 +38,11 @@ describe("Yoga with Lina promotion database contract", () => {
   });
 
   test("restores the restricted entitlement on timely cancellation only", () => {
-    expect(migration).toContain(
-      "p_booking_id,'timely member cancellation','expired before cancellation restoration'",
-    );
+    expect(migration).toContain("'restored',p_booking_id,'timely member cancellation'");
     expect(migration).toContain(
       "IF now()>v_deadline THEN RETURN jsonb_build_object('status','window_passed'",
     );
     expect(migration).toContain("'expired before cancellation restoration'");
-    expect(migration).toContain("cannot_restore_active_booking");
-  });
-
-  test("reports availability separately from historical claim ownership", () => {
-    expect(migration).toContain("'entitlementStatus', v_entitlement_status");
-    expect(migration).toContain("'creditAvailable', v_entitlement_status IN ('active','reserved')");
-    expect(migration).toContain("'eligibleClassTypeId', v_class_type_id");
   });
 
   test("direct writes are not granted to members", () => {
