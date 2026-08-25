@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemberField, MemberProfileSaveStatus } from "../../src/components/member/MemberField.tsx";
-import { applyLang } from "../../src/lib/i18n.ts";
+import { t } from "../../src/lib/i18n.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const accountSource = readFileSync(
@@ -45,7 +45,11 @@ describe("member profile fields", () => {
   });
 
   test("announces only the truthful profile save state", () => {
-    applyLang("en");
+    const copy = {
+      pending: t("common.saving"),
+      succeeded: t("profile.saved"),
+      failed: t("profile.saveError"),
+    };
 
     const render = (props) =>
       renderToStaticMarkup(
@@ -55,14 +59,19 @@ describe("member profile fields", () => {
         }),
       );
 
-    expect(render({ pending: true, succeeded: false, failed: false })).toContain("Saving…");
-    expect(render({ pending: false, succeeded: true, failed: false })).toContain("Profile saved.");
+    expect(render({ pending: true, succeeded: false, failed: false })).toContain(
+      `>${copy.pending}</span>`,
+    );
+    expect(render({ pending: false, succeeded: true, failed: false })).toContain(
+      `>${copy.succeeded}</span>`,
+    );
     expect(render({ pending: false, succeeded: false, failed: true })).toContain(
-      "Could not save your profile.",
+      `>${copy.failed}</span>`,
     );
     const idle = render({ pending: false, succeeded: false, failed: false });
     expect(idle).toContain('role="status"');
-    expect(idle).not.toContain("Profile saved.");
+    expect(idle).toMatch(/aria-atomic="true"><\/span>$/);
+    expect(idle).not.toContain(copy.succeeded);
   });
 
   test("the production account route uses stable ids for every editable setting", () => {

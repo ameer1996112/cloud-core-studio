@@ -130,6 +130,38 @@ mock.module("@/lib/i18n", () => ({
 }));
 
 mock.module("@/components/member/PremiumClassCard", () => ({
+  formatTime: (iso) =>
+    new Date(iso).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }),
+  formatDate: (iso) =>
+    new Date(iso).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }),
+  ClassImage: ({ children }) =>
+    React.createElement("div", { "data-testid": "class-image" }, children),
+  StateBadge: ({ state }) =>
+    React.createElement("div", { "data-testid": "state-badge" }, state.kind),
+  deriveClassState: (cls, ctx) => {
+    if (cls.status === "cancelled") return { kind: "cancelled" };
+    if (cls.status !== "scheduled") return { kind: "closed" };
+    if (ctx.booked) return { kind: "booked" };
+
+    const spotsLeft = (cls.capacity ?? 0) - (cls.booked_count ?? 0);
+    if (spotsLeft <= 0) {
+      return ctx.waiting ? { kind: "waiting" } : { kind: "waitlist_available" };
+    }
+    if (ctx.remainingCredits < (cls.credit_cost ?? 1)) {
+      return ctx.hasActivePackage === false
+        ? { kind: "package_required" }
+        : { kind: "low_credits" };
+    }
+    return spotsLeft <= 2 ? { kind: "almost", spotsLeft } : { kind: "available", spotsLeft };
+  },
   MemberEmptyState: ({ title, body }) =>
     React.createElement("div", { "data-testid": "empty-state" }, `${title} ${body}`),
 }));
