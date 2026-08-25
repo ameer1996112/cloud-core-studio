@@ -7404,6 +7404,13 @@ select.input:focus {
   padding: 1.35rem;
 }
 
+.package-plan-card:focus-visible,
+.member-package-inventory-focus-target:focus-visible {
+  border-radius: var(--cc-radius-card);
+  outline: 2px solid var(--color-navy);
+  outline-offset: 3px;
+}
+
 .package-plan-card::before {
   content: "";
   position: absolute;

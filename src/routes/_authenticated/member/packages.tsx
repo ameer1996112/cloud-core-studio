@@ -71,6 +71,8 @@ function MemberPackages() {
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const purchaseOpenerRef = useRef<HTMLButtonElement | null>(null);
+  const purchaseCardRef = useRef<HTMLElement | null>(null);
+  const inventoryFallbackRef = useRef<HTMLDivElement | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["member-packages"],
@@ -231,47 +233,56 @@ function MemberPackages() {
         }
       />
 
-      <MemberSection
-        id="available-packages"
-        eyebrow={t("member.packages.kicker")}
-        title={t("packages.available")}
+      <div
+        ref={inventoryFallbackRef}
+        tabIndex={-1}
+        aria-labelledby="available-packages-title"
+        data-package-inventory-focus-target="true"
+        className="member-package-inventory-focus-target"
       >
-        {isInitialLoading ? (
-          <MemberRouteSkeleton route="packages" />
-        ) : fatalError ? (
-          <MemberRouteError onRetry={() => void refetch()} />
-        ) : visiblePlans.length === 0 ? (
-          <MemberEmptyState
-            variant="packages"
-            title={t("member.empty.packages.title")}
-            body={t("member.empty.packages.body")}
-          />
-        ) : (
-          <div className="package-pricing-grid">
-            {visiblePlans.map((plan: any) => (
-              <PackagePricingCard
-                key={plan.id}
-                plan={plan}
-                lang={lang}
-                request={requestsByPlan[plan.id]}
-                payment={pendingPayments.find((payment: any) => payment.plan?.id === plan.id)}
-                onRequest={(opener) => {
-                  purchaseOpenerRef.current = opener;
-                  setSelectedPlan(plan);
-                  setPaymentSheetOpen(true);
-                }}
-                pending={
-                  manualPayment.isPending ||
-                  checkoutPayment.isPending ||
-                  hasUsableActivePackage ||
-                  hasRunningSubscription
-                }
-                blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
-              />
-            ))}
-          </div>
-        )}
-      </MemberSection>
+        <MemberSection
+          id="available-packages"
+          eyebrow={t("member.packages.kicker")}
+          title={t("packages.available")}
+        >
+          {isInitialLoading ? (
+            <MemberRouteSkeleton route="packages" />
+          ) : fatalError ? (
+            <MemberRouteError onRetry={() => void refetch()} />
+          ) : visiblePlans.length === 0 ? (
+            <MemberEmptyState
+              variant="packages"
+              title={t("member.empty.packages.title")}
+              body={t("member.empty.packages.body")}
+            />
+          ) : (
+            <div className="package-pricing-grid">
+              {visiblePlans.map((plan: any) => (
+                <PackagePricingCard
+                  key={plan.id}
+                  plan={plan}
+                  lang={lang}
+                  request={requestsByPlan[plan.id]}
+                  payment={pendingPayments.find((payment: any) => payment.plan?.id === plan.id)}
+                  onRequest={(opener, card) => {
+                    purchaseOpenerRef.current = opener;
+                    purchaseCardRef.current = card;
+                    setSelectedPlan(plan);
+                    setPaymentSheetOpen(true);
+                  }}
+                  pending={
+                    manualPayment.isPending ||
+                    checkoutPayment.isPending ||
+                    hasUsableActivePackage ||
+                    hasRunningSubscription
+                  }
+                  blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
+                />
+              ))}
+            </div>
+          )}
+        </MemberSection>
+      </div>
 
       {selectedPlan && (
         <PaymentMethodSheet
@@ -281,6 +292,8 @@ function MemberPackages() {
           settings={settings}
           pending={manualPayment.isPending || checkoutPayment.isPending}
           restoreFocusRef={purchaseOpenerRef}
+          restoreCardRef={purchaseCardRef}
+          inventoryFallbackRef={inventoryFallbackRef}
           onOpenChange={setPaymentSheetOpen}
           onClosed={() => setSelectedPlan(null)}
           onSubmit={(method, recurring, checkout) =>
@@ -487,7 +500,7 @@ function PackagePricingCard({
   lang: Lang;
   request?: any;
   payment?: any;
-  onRequest: (opener: HTMLButtonElement) => void;
+  onRequest: (opener: HTMLButtonElement, card: HTMLElement | null) => void;
   pending: boolean;
   blockedByActivePackage: boolean;
 }) {
@@ -497,14 +510,21 @@ function PackagePricingCard({
   const isRecommended = marketing.kind === "recommended";
   const isRecurringMonthly = isRecurringCardPlan(plan);
   const creditsLine = getPackageCreditsLine(plan.credits, lang);
+  const cardId = `package-plan-${String(plan.id).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   return (
-    <div
+    <article
+      id={cardId}
+      data-package-plan-card="true"
+      tabIndex={-1}
+      aria-labelledby={`${cardId}-title`}
       className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
       data-plan-kind={marketing.kind}
     >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-display text-2xl leading-tight text-navy">{display.name}</h3>
+          <h3 id={`${cardId}-title`} className="font-display text-2xl leading-tight text-navy">
+            {display.name}
+          </h3>
           {marketing.badge || marketing.secondaryBadge ? (
             <span className="package-plan-badge">
               {marketing.badge || marketing.secondaryBadge}
@@ -554,7 +574,12 @@ function PackagePricingCard({
           </span>
         ) : (
           <button
-            onClick={(event) => onRequest(event.currentTarget)}
+            onClick={(event) =>
+              onRequest(
+                event.currentTarget,
+                event.currentTarget.closest<HTMLElement>('[data-package-plan-card="true"]'),
+              )
+            }
             disabled={pending}
             className={
               isRecommended
@@ -566,7 +591,7 @@ function PackagePricingCard({
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -816,15 +841,19 @@ function formatCreditReason(reason: string | null | undefined, amountDelta: numb
   return reason?.trim() || t("packages.creditReasonGrant");
 }
 
-type PaymentSheetFocusRef = { current: HTMLButtonElement | null };
+type PaymentSheetFocusRef<T extends HTMLElement = HTMLElement> = { current: T | null };
 
 function createPaymentSheetFocusHandlers({
   initialFocusRef,
   restoreFocusRef,
+  restoreCardRef,
+  inventoryFallbackRef,
   onClosed,
 }: {
-  initialFocusRef: PaymentSheetFocusRef;
+  initialFocusRef: PaymentSheetFocusRef<HTMLButtonElement>;
   restoreFocusRef: PaymentSheetFocusRef;
+  restoreCardRef: PaymentSheetFocusRef;
+  inventoryFallbackRef: PaymentSheetFocusRef;
   onClosed: () => void;
 }) {
   return {
@@ -835,11 +864,13 @@ function createPaymentSheetFocusHandlers({
       initialTarget.focus();
     },
     onCloseAutoFocus(event: { preventDefault: () => void }) {
-      const opener = restoreFocusRef.current;
-      if (opener?.isConnected) {
-        event.preventDefault();
-        opener.focus();
-      }
+      event.preventDefault();
+      const focusTarget = [
+        restoreFocusRef.current,
+        restoreCardRef.current,
+        inventoryFallbackRef.current,
+      ].find((candidate) => candidate?.isConnected);
+      focusTarget?.focus();
       onClosed();
     },
   };
@@ -853,6 +884,8 @@ export function PaymentMethodSheet({
   pending,
   initialFocusRef: providedInitialFocusRef,
   restoreFocusRef,
+  restoreCardRef,
+  inventoryFallbackRef,
   onOpenChange,
   onClosed,
   onSubmit,
@@ -862,8 +895,10 @@ export function PaymentMethodSheet({
   lang: Lang;
   settings: any;
   pending: boolean;
-  initialFocusRef?: PaymentSheetFocusRef;
+  initialFocusRef?: PaymentSheetFocusRef<HTMLButtonElement>;
   restoreFocusRef: PaymentSheetFocusRef;
+  restoreCardRef: PaymentSheetFocusRef;
+  inventoryFallbackRef: PaymentSheetFocusRef;
   onOpenChange: (open: boolean) => void;
   onClosed: () => void;
   onSubmit: (
@@ -912,6 +947,8 @@ export function PaymentMethodSheet({
   const focusHandlers = createPaymentSheetFocusHandlers({
     initialFocusRef,
     restoreFocusRef,
+    restoreCardRef,
+    inventoryFallbackRef,
     onClosed,
   });
 

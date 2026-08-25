@@ -175,6 +175,8 @@ describe("member packages presentation", () => {
     expect(html).toContain("min-h-11 w-full");
     expect(html).toContain("member-history-disclosure");
     expect(html).not.toContain("cloud_monthly_1x_week");
+    expect(html).toMatch(/<article[^>]*data-package-plan-card="true"[^>]*tabindex="-1"/);
+    expect(html).toContain('aria-labelledby="package-plan-plan-1-title"');
   });
 
   test("separates loading, fatal error, cached-content, and empty states truthfully", () => {
@@ -234,8 +236,16 @@ describe("member packages presentation", () => {
     const initialPrevented = [];
     const closed = [];
     const prevented = [];
+    const cardFocused = [];
+    const inventoryFocused = [];
     const restoreFocusRef = {
       current: { isConnected: true, focus: () => focused.push("purchase") },
+    };
+    const restoreCardRef = {
+      current: { isConnected: true, focus: () => cardFocused.push("card") },
+    };
+    const inventoryFallbackRef = {
+      current: { isConnected: true, focus: () => inventoryFocused.push("inventory") },
     };
 
     const html = renderToStaticMarkup(
@@ -247,6 +257,8 @@ describe("member packages presentation", () => {
         pending: false,
         initialFocusRef: { current: { focus: () => initialFocused.push("cash") } },
         restoreFocusRef,
+        restoreCardRef,
+        inventoryFallbackRef,
         onOpenChange: () => {},
         onClosed: () => closed.push(true),
         onSubmit: () => {},
@@ -276,6 +288,21 @@ describe("member packages presentation", () => {
     expect(prevented).toEqual([true]);
     expect(focused).toEqual(["purchase"]);
     expect(closed).toEqual([true]);
+
+    restoreFocusRef.current.isConnected = false;
+    capturedSheetContentProps.onCloseAutoFocus({
+      preventDefault: () => prevented.push(true),
+    });
+    expect(prevented).toEqual([true, true]);
+    expect(cardFocused).toEqual(["card"]);
+    expect(inventoryFocused).toEqual([]);
+
+    restoreCardRef.current.isConnected = false;
+    capturedSheetContentProps.onCloseAutoFocus({
+      preventDefault: () => prevented.push(true),
+    });
+    expect(prevented).toEqual([true, true, true]);
+    expect(inventoryFocused).toEqual(["inventory"]);
   });
 
   test("checkout terms consent gives its link a 44px focusable target", () => {
