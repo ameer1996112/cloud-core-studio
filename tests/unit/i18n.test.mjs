@@ -111,7 +111,7 @@ try {
   assert.match(bootSource, /window\.location\.pathname === "\/app"/);
   assert.match(bootSource, /searchParams\.get\("lang"\)/);
   assert.match(bootSource, /pathname\.match\(\/\^\\\/app\\\/\(ar\|he\|en\)\$\/\)/);
-  assert.match(bootSource, /routeLang \|\| cookieLang/);
+  assert.match(bootSource, /routeLang \|\| storedLang \|\| cookieLang/);
 
   document.cookie = "cc_lang=he";
   window.location = {

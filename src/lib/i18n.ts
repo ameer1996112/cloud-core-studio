@@ -3961,7 +3961,8 @@ export function getBootLangScript() {
         ? requestedRouteLang
         : null;
       const currentLang = document.documentElement.lang;
-      const candidate = routeLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
+      const storedLang = window.localStorage.getItem(${JSON.stringify(LANG_KEY)});
+      const candidate = routeLang || storedLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
       const next = candidate === "en" || candidate === "he" || candidate === "ar"
         ? candidate
         : ${JSON.stringify(DEFAULT_LOCALE)};

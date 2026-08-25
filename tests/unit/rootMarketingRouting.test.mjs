@@ -44,7 +44,7 @@ describe("root marketing routing", () => {
     expect(isPublicAppMarketingPathname("/app/ar")).toBe(true);
     expect(isPublicAppMarketingPathname("/app/he/")).toBe(true);
     expect(isPublicAppMarketingPathname("/app/en?utm_source=qa")).toBe(false);
-    expect(isPublicAppMarketingPathname("/app")).toBe(false);
+    expect(isPublicAppMarketingPathname("/app")).toBe(true);
     expect(isPublicAppMarketingPathname("/member/schedule")).toBe(false);
 
     expect(

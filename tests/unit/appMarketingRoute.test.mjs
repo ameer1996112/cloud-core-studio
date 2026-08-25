@@ -53,7 +53,7 @@ describe("public app marketing route", () => {
     expect(readFileSync(appRouteSupport, "utf8")).toContain("marketingUtm");
   });
 
-  test("makes /app a temporary redirect-only locale resolver", () => {
+  test("makes /app a noindex browser locale resolver with explicit-query redirects", () => {
     expect(appRoute).toContain('createFileRoute("/app")');
     expect(appRoute).not.toContain("requireAuthenticatedRoute");
     expect(appRoute).not.toContain("requireRouteRole");
@@ -61,7 +61,12 @@ describe("public app marketing route", () => {
     expect(appRoute).toContain("statusCode: 307");
     expect(appRoute).toContain("resolveAppMarketingRedirect");
     expect(appRoute).toContain("to: decision.to");
-    expect(appRoute).toContain("component: Outlet");
+    expect(appRoute).toContain("AppMarketingLocaleBridge");
+    expect(appRoute).toContain("window.localStorage.getItem(LANG_KEY)");
+    expect(appRoute).toContain('name: "robots", content: "noindex,follow"');
+    expect(appRoute).toContain('"X-Robots-Tag": "noindex, follow"');
+    expect(appRoute).toContain("sanitizeMarketingUtm(search)");
+    expect(appRoute).toContain("component: AppMarketingResolverRoute");
     expect(appRoute).toContain('location.pathname !== "/app"');
     expect(appRoute).not.toContain("AppMarketingPage");
   });

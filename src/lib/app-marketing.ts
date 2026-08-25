@@ -10,7 +10,7 @@ export const APP_MARKETING_OG_IMAGE =
   "https://cloudandcorestudio.com/images/auth/cloud-core-auth-hero.webp";
 export const APP_MARKETING_LANGS = ["ar", "he", "en"] as const;
 export type AppMarketingLang = (typeof APP_MARKETING_LANGS)[number];
-const APP_MARKETING_PUBLIC_PATH = /^\/app\/(?:ar|he|en)\/?$/;
+const APP_MARKETING_PUBLIC_PATH = /^\/app(?:\/(?:ar|he|en))?\/?$/;
 const APP_MARKETING_BASE_URL = APP_MARKETING_CANONICAL_URL;
 export const APP_MARKETING_INSTALL_URL = "https://apps.apple.com/app/id6786035836";
 export const APP_MARKETING_APP_ICON =

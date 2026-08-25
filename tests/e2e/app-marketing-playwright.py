@@ -431,17 +431,29 @@ async def assert_routes(browser, context):
             "/app/en?utm_source=qa",
         ),
         ("/app?lang=en&utm_source=qa&token=private", {}, "/app/en?utm_source=qa"),
-        (
-            "/app?utm_source=qa",
-            {"Cookie": "cc_lang=he", "Accept-Language": "en-US,en;q=0.8"},
-            "/app/he?utm_source=qa",
-        ),
-        ("/app?utm_source=qa", {"Accept-Language": "en-US,en;q=0.8,ar;q=0.7"}, "/app/en?utm_source=qa"),
-        ("/app?utm_source=qa", {}, "/app/ar?utm_source=qa"),
     ]
     for value, headers, expected in redirect_cases:
         response, _ = await get(context, value, headers=headers, max_redirects=0)
         assert response.status == 307 and response.headers["location"] == expected
+    resolver, resolver_body = await get(context, "/app?utm_source=qa", max_redirects=0)
+    assert resolver.status == 200
+    assert resolver.headers["x-robots-tag"] == "noindex, follow"
+    assert "noindex,follow" in resolver_body
+    assert all(f'href="/app/{language}?utm_source=qa"' in resolver_body for language in LANGUAGES)
+    saved_locale = await browser.new_context(locale="en-US", viewport={"width": 390, "height": 844})
+    saved_page = await saved_locale.new_page()
+    await saved_page.add_init_script("localStorage.setItem('cc_lang', 'he')")
+    await saved_page.goto(f"{BASE}/app?utm_source=qa&token=private", wait_until="networkidle")
+    await saved_page.wait_for_url(re.compile(r".*/app/he\?utm_source=qa$"), timeout=10000)
+    assert await saved_page.locator("html").get_attribute("lang") == "he"
+    await saved_locale.close()
+    for locale, expected in (("en-US", "en"), ("fr-FR", "ar")):
+        browser_locale = await browser.new_context(locale=locale, viewport={"width": 390, "height": 844})
+        locale_page = await browser_locale.new_page()
+        await locale_page.goto(f"{BASE}/app?utm_source=qa&token=private", wait_until="networkidle")
+        await locale_page.wait_for_url(re.compile(rf".*/app/{expected}\?utm_source=qa$"), timeout=10000)
+        assert await locale_page.locator("html").get_attribute("lang") == expected
+        await browser_locale.close()
     for value, headers in (("/?platform=native&token=private", {}), ("/", {"User-Agent": "CloudCoreNative/1"})):
         response, _ = await get(context, value, headers=headers, max_redirects=0)
         assert response.status in (302, 303, 307, 308) and route(response.headers["location"]) == "/auth"
