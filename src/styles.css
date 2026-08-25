@@ -8401,6 +8401,14 @@ select.input:focus {
   text-decoration-color: currentColor;
 }
 
+.member-concierge-defer-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.75rem;
+}
+
 .member-booking-action:focus-visible {
   border-radius: var(--cc-radius-button);
   outline: 2px solid var(--color-navy, #0b1d3a);

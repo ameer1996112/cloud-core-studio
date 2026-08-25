@@ -41,6 +41,18 @@ export const Route = createFileRoute("/_authenticated/member/bookings")({
 
 type Tab = "upcoming" | "past" | "waitlist" | "cancelled";
 
+// eslint-disable-next-line react-refresh/only-export-components -- Public pure ordering seam.
+export function sortUpcomingBookingsByStart<
+  Booking extends { class?: { starts_at?: string | null } | null },
+>(bookings: readonly Booking[]) {
+  const startTime = (booking: Booking) => {
+    const parsed = Date.parse(booking.class?.starts_at ?? "");
+    return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+  };
+
+  return [...bookings].sort((left, right) => startTime(left) - startTime(right));
+}
+
 function MyBookings() {
   const { dir, lang } = useI18n();
   useDocumentTitle("page.bookings.title");
@@ -140,8 +152,10 @@ function MyBookings() {
   const now = Date.now();
   const bookings = data?.bookings ?? [];
   const attMap = data?.attendanceByBooking ?? {};
-  const upcoming = bookings.filter(
-    (b: any) => b.status === "booked" && b.class && new Date(b.class.starts_at).getTime() >= now,
+  const upcoming = sortUpcomingBookingsByStart(
+    bookings.filter(
+      (b: any) => b.status === "booked" && b.class && new Date(b.class.starts_at).getTime() >= now,
+    ),
   );
   const past = bookings.filter(
     (b: any) =>
@@ -295,7 +309,7 @@ function MyBookings() {
               type="button"
               disabled={resolveOnboarding.isPending}
               onClick={() => resolveOnboarding.mutate({ kind: "deferred" })}
-              className="text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
+              className="member-concierge-defer-action min-h-11 text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
             >
               {onboardingCopy.later}
             </button>

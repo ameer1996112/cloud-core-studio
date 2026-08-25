@@ -54,6 +54,7 @@ let bookingsQueryResult = {
   isError: false,
   refetch: () => Promise.resolve(),
 };
+let conciergeQueryResult = { data: null, isLoading: false };
 
 const scheduleDataByScope = {
   guest: {
@@ -149,6 +150,10 @@ mock.module("@tanstack/react-query", () => ({
 
     if (queryKey[0] === "public-studio-settings") {
       return { data: null, isLoading: false };
+    }
+
+    if (queryKey[0] === "personal-concierge") {
+      return conciergeQueryResult;
     }
 
     return { data: null, isLoading: false };
@@ -511,6 +516,64 @@ describe("guest schedule handoff", () => {
         isError: false,
         refetch: () => Promise.resolve(),
       };
+    }
+  });
+
+  test("member bookings sorts only upcoming bookings by nearest class start", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+    const bookings = [
+      { id: "later", class: { starts_at: "2099-08-03T09:00:00.000Z" } },
+      { id: "nearest", class: { starts_at: "2099-07-03T09:00:00.000Z" } },
+      { id: "middle", class: { starts_at: "2099-07-10T09:00:00.000Z" } },
+    ];
+
+    expect(bookingsModule.sortUpcomingBookingsByStart(bookings).map(({ id }) => id)).toEqual([
+      "nearest",
+      "middle",
+      "later",
+    ]);
+    expect(bookings.map(({ id }) => id)).toEqual(["later", "nearest", "middle"]);
+  });
+
+  test("member concierge defer action exposes a 44px touch target", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+    const upcomingClass = {
+      ...openClass,
+      id: "future-concierge-class",
+      starts_at: "2099-07-03T09:00:00.000Z",
+    };
+
+    try {
+      bookingsQueryResult = {
+        data: {
+          bookings: [{ id: "future-booking", status: "booked", class: upcomingClass }],
+          attendanceByBooking: {},
+          waitlist: [],
+          hasAttended: false,
+        },
+        isLoading: false,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+      conciergeQueryResult = {
+        data: { available: true, preferences: [] },
+        isLoading: false,
+      };
+
+      const html = renderToStaticMarkup(
+        React.createElement(bookingsModule.Route.options.component),
+      );
+      expect(html).toMatch(
+        /<button[^>]*class="[^"]*member-concierge-defer-action[^"]*min-h-11[^"]*"[^>]*>Maybe later<\/button>/,
+      );
+    } finally {
+      bookingsQueryResult = {
+        data: emptyBookingsData,
+        isLoading: false,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+      conciergeQueryResult = { data: null, isLoading: false };
     }
   });
 });
