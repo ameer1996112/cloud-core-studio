@@ -4,6 +4,11 @@ import { mkdir, rename, unlink, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import sharp from "sharp";
 import { composeOne } from "./generate";
+import {
+  apertureMatchedViewport,
+  horizontalSourceCropPercent,
+  physicalCaptureSize,
+} from "./geometry";
 
 type Rect = { x: number; y: number; width: number; height: number };
 type Locale = "en" | "ar";
@@ -60,11 +65,10 @@ function expectedCaptureDimensions(device: DeviceName, screen: string) {
     return { width: config.expectedWidth, height: config.expectedHeight };
   }
   const aperture = layout[device].appScreenshotMasks[screen] as Rect;
-  const cssHeight = Math.round((config.cssWidth * aperture.height) / aperture.width);
-  return {
-    width: config.expectedWidth,
-    height: cssHeight * config.deviceScaleFactor,
-  };
+  return physicalCaptureSize(
+    apertureMatchedViewport(config.cssWidth, aperture),
+    config.deviceScaleFactor,
+  );
 }
 
 async function validateCaptureGeometry() {
@@ -77,9 +81,10 @@ async function validateCaptureGeometry() {
       }
       const metadata = await sharp(capture).metadata();
       const appMask = layout["ipad-13"].appScreenshotMasks[screen] as Rect;
-      const sourceRatio = Number(metadata.width) / Number(metadata.height);
-      const apertureRatio = appMask.width / appMask.height;
-      const horizontalCropPercent = Math.max(0, 1 - apertureRatio / sourceRatio) * 100;
+      const horizontalCropPercent = horizontalSourceCropPercent(
+        { width: Number(metadata.width), height: Number(metadata.height) },
+        appMask,
+      );
       if (horizontalCropPercent > 0.1) {
         failures.push(
           `iPad capture would crop horizontally by ${horizontalCropPercent.toFixed(2)}%: ${locale}/${screen}`,
@@ -525,9 +530,10 @@ async function validateResponsiveCaptures() {
       const ipadWidth = expectedTablet.width;
       const ipadHeight = expectedTablet.height;
       const appMask = layout["ipad-13"].appScreenshotMasks[screen] as Rect;
-      const sourceRatio = Number(tabletMeta.width) / Number(tabletMeta.height);
-      const apertureRatio = appMask.width / appMask.height;
-      const horizontalSourceCropPercent = Math.max(0, 1 - apertureRatio / sourceRatio) * 100;
+      const sourceCropPercent = horizontalSourceCropPercent(
+        { width: Number(tabletMeta.width), height: Number(tabletMeta.height) },
+        appMask,
+      );
       const stretchedPhone = await sharp(iphoneCapture)
         .resize(ipadWidth, ipadHeight, { fit: "fill" })
         .greyscale()
@@ -549,7 +555,7 @@ async function validateResponsiveCaptures() {
         ipadDimensions: [tabletMeta.width, tabletMeta.height],
         iphoneHasAlpha: Boolean(phoneMeta.hasAlpha),
         ipadHasAlpha: Boolean(tabletMeta.hasAlpha),
-        horizontalSourceCropPercent: Number(horizontalSourceCropPercent.toFixed(6)),
+        horizontalSourceCropPercent: Number(sourceCropPercent.toFixed(6)),
         stretchedIphoneVsIpadMeanAbsolutePercent: Number(stretchedDifferencePercent.toFixed(6)),
         reusedOrStretched: stretchedDifferencePercent < 2,
       });

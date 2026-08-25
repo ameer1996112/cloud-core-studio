@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
+import { apertureMatchedViewport, physicalCaptureSize } from "./geometry";
 
 type Locale = "he" | "en" | "ar";
 type DeviceName = "iphone-6.5" | "ipad-13";
@@ -54,11 +55,7 @@ function captureViewport(device: DeviceName, screen: string) {
   if (device === "iphone-6.5") {
     return { width: config.cssWidth, height: config.cssHeight };
   }
-  const aperture = layout[device].appScreenshotMasks[screen];
-  return {
-    width: config.cssWidth,
-    height: Math.round((config.cssWidth * aperture.height) / aperture.width),
-  };
+  return apertureMatchedViewport(config.cssWidth, layout[device].appScreenshotMasks[screen]);
 }
 
 function loadEnv(path: string) {
@@ -522,11 +519,12 @@ async function main() {
             const path = resolve(CAPTURE_DIR, device, locale, `${screen.key}-${locale}.png`);
             const viewport = captureViewport(device, screen.key);
             const scale = layout[device].capture.deviceScaleFactor;
+            const physicalSize = physicalCaptureSize(viewport, scale);
             return {
               path: path.slice(CAPTURE_DIR.length + 1),
               sha256: createHash("sha256").update(readFileSync(path)).digest("hex"),
-              width: viewport.width * scale,
-              height: viewport.height * scale,
+              width: physicalSize.width,
+              height: physicalSize.height,
             };
           }),
         ),
