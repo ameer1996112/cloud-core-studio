@@ -1,8 +1,7 @@
 import { redirect } from "@tanstack/react-router";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-import { roleHome, type AppRole } from "@/lib/auth-redirect";
+import { roleHome, type AppRole } from "@/lib/auth-role-home";
 import { buildProtectedRouteAuthHref } from "@/lib/guest-auth-intent";
 
 export type AuthRouteContext = {
@@ -21,6 +20,7 @@ const getAuthRouteContextForEnv = createIsomorphicFn()
     return getServerAuthRouteContext();
   })
   .client(async (): Promise<AuthRouteContext | null> => {
+    const { supabase } = await import("@/integrations/supabase/client");
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (sessionError || !user) return null;

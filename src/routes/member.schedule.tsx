@@ -160,7 +160,12 @@ function MemberSchedulePublic({
   const [session, setSession] = useState<any>(authSnapshot?.session ?? null);
   const [checkingSession, setCheckingSession] = useState(!isAuthSnapshotInitialized);
   const guestCopy = GUEST_SCHEDULE_COPY[lang];
-  const authHref = buildAuthReturnToHref(buildMemberScheduleReturnTo(selectedClassId));
+  const authHref = buildAuthReturnToHref(
+    buildMemberScheduleReturnTo(
+      selectedClassId,
+      typeof window === "undefined" ? "" : window.location.search,
+    ),
+  );
 
   useEffect(() => {
     if (isAuthSnapshotInitialized) return;
@@ -338,7 +343,12 @@ export function MemberScheduleContent({
     initialSelectedClassId,
   );
   const openClass = selectedClassId === undefined ? uncontrolledOpenClass : selectedClassId;
-  const guestAuthHref = buildAuthReturnToHref(buildMemberScheduleReturnTo(openClass));
+  const guestAuthHref = buildAuthReturnToHref(
+    buildMemberScheduleReturnTo(
+      openClass,
+      typeof window === "undefined" ? "" : window.location.search,
+    ),
+  );
   const setOpenClass = (classId: string | null) => {
     if (selectedClassId === undefined) {
       setUncontrolledOpenClass(classId);

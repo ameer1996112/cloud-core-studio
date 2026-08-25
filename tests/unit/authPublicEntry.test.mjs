@@ -1,9 +1,11 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "bun:test";
 
 const decoder = new TextDecoder();
 const cwd = process.cwd();
 const authRoutePath = fileURLToPath(new URL("../../src/routes/auth.tsx", import.meta.url));
+const authRouteSource = readFileSync(authRoutePath, "utf8");
 
 function countOccurrences(haystack, needle) {
   return haystack.split(needle).length - 1;
@@ -158,6 +160,11 @@ process.stdout.write(renderToStaticMarkup(React.createElement(routeModule.Route.
 }
 
 describe("auth public entry", () => {
+  test("opens the signup form for the marketing create-account destination", () => {
+    expect(authRouteSource).toContain('requestedMode === "forgot" || requestedMode === "signup"');
+    expect(authRouteSource).toContain("setMode(requestedMode)");
+  });
+
   test("renders the session recovery state before interactive auth controls", () => {
     const html = renderAuthRoute("en");
 

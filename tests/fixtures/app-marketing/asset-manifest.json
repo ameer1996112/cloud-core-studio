@@ -1,0 +1,343 @@
+{
+  "version": 2,
+  "generatedBy": "scripts/capture-app-marketing-assets.py",
+  "session": {
+    "startsAt": "2031-09-10T17:30:00.000Z",
+    "timeZone": "Asia/Jerusalem"
+  },
+  "captureEnvironment": {
+    "viewport": {
+      "phone": [390, 844],
+      "social": [1200, 630]
+    },
+    "deviceScaleFactor": 1,
+    "locale": "en-GB",
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "serviceWorkers": "block"
+  },
+  "assets": {
+    "ar": {
+      "schedule": {
+        "file": "public/images/app-marketing/ar/schedule.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "7087c94ffb716ffc861647e64a9bd727048c81d59a172a7d09517c010572b93f",
+        "observed": {
+          "state": {
+            "availableClassCount": 3,
+            "bookingAction": true,
+            "openSpots": [5, 3, 6]
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
+        }
+      },
+      "booking": {
+        "file": "public/images/app-marketing/ar/booking.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "250c437661505ccebe683e1ac04302e4eb5a4b116a484763df604807e3944cf2",
+        "observed": {
+          "state": {
+            "bookingAction": true,
+            "openSpots": 5
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/brand/cloud-core-mark.svg",
+            "/images/studio/studio-interior.webp"
+          ]
+        }
+      },
+      "bookings": {
+        "file": "public/images/app-marketing/ar/bookings.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "3224a87c654931a4a002350dcf98d3b445526cd561656359474a2313e9f9d8e8",
+        "observed": {
+          "state": {
+            "confirmed": true
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/brand/cloud-core-mark.svg",
+            "/images/studio/studio-interior.webp"
+          ]
+        }
+      },
+      "membership": {
+        "file": "public/images/app-marketing/ar/membership.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "1acf3e416018bb46ead24abce811268343f5f81f7682b57fed32869fb32c0619",
+        "observed": {
+          "state": {
+            "active": true,
+            "credits": 8
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
+        }
+      },
+      "account": {
+        "file": "public/images/app-marketing/ar/account.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "a1ffae7aae982dbd447dba6effd5f580c257fcb7eec74a33bc0090f8604c9f48",
+        "observed": {
+          "state": {
+            "completeFictionalProfile": true
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg", "/images/studio/studio-interior.webp"]
+        }
+      },
+      "social": {
+        "file": "public/images/app-marketing/social/ar.png",
+        "dimensions": {
+          "width": 1200,
+          "height": 630
+        },
+        "sha256": "7df5e1e0a0b3de5a5faa4820810d862eea6c2e90a87c40d8cfc7f15dd44eecb4",
+        "observed": {
+          "state": {
+            "socialCard": true
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/images/auth/cloud-core-auth-hero.webp"
+          ]
+        },
+        "provenance": {
+          "officialLogo": "/brand/cloud-core-logo-full.svg",
+          "studioImage": "/images/auth/cloud-core-auth-hero.webp",
+          "people": false
+        }
+      }
+    },
+    "he": {
+      "schedule": {
+        "file": "public/images/app-marketing/he/schedule.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "7c32b01363723f6be44a83c8bb6da031dd2923142ff1d56f4bd5314985911247",
+        "observed": {
+          "state": {
+            "availableClassCount": 3,
+            "bookingAction": true,
+            "openSpots": [5, 3, 6]
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
+        }
+      },
+      "booking": {
+        "file": "public/images/app-marketing/he/booking.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "c351e957f76bc16f8f7af2d0c400e11a1c9a3063775eff8c17c357fcc0cc9cde",
+        "observed": {
+          "state": {
+            "bookingAction": true,
+            "openSpots": 5
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/brand/cloud-core-mark.svg",
+            "/images/studio/studio-interior.webp"
+          ]
+        }
+      },
+      "bookings": {
+        "file": "public/images/app-marketing/he/bookings.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "50199988277ad679064fde83b17a5ad201e7c5f431ed7ca894cb05d726454a7e",
+        "observed": {
+          "state": {
+            "confirmed": true
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/brand/cloud-core-mark.svg",
+            "/images/studio/studio-interior.webp"
+          ]
+        }
+      },
+      "membership": {
+        "file": "public/images/app-marketing/he/membership.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "546273f64660450795bdbc285fb0e6d0df7c905416c64c07e3adc3fb402b40ce",
+        "observed": {
+          "state": {
+            "active": true,
+            "credits": 8
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
+        }
+      },
+      "account": {
+        "file": "public/images/app-marketing/he/account.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "f740a19f329a49980223fe99bd469347b1f25cb9d8d48b7552f307eaf481ec11",
+        "observed": {
+          "state": {
+            "completeFictionalProfile": true
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg", "/images/studio/studio-interior.webp"]
+        }
+      },
+      "social": {
+        "file": "public/images/app-marketing/social/he.png",
+        "dimensions": {
+          "width": 1200,
+          "height": 630
+        },
+        "sha256": "f61bcd30b8add440cf47d83781c1d4b43701040f4c49782e7fb1d18019816b6d",
+        "observed": {
+          "state": {
+            "socialCard": true
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/images/auth/cloud-core-auth-hero.webp"
+          ]
+        },
+        "provenance": {
+          "officialLogo": "/brand/cloud-core-logo-full.svg",
+          "studioImage": "/images/auth/cloud-core-auth-hero.webp",
+          "people": false
+        }
+      }
+    },
+    "en": {
+      "schedule": {
+        "file": "public/images/app-marketing/en/schedule.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "c043807cfc467ef83979efda480c12a2cafff24ca785a7ef8b4988faf4949147",
+        "observed": {
+          "state": {
+            "availableClassCount": 3,
+            "bookingAction": true,
+            "openSpots": [5, 3, 6]
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
+        }
+      },
+      "booking": {
+        "file": "public/images/app-marketing/en/booking.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "d29ef8a82407a6ba1def5f4d5e412e88e080b291c3884db0929d6b6b7e7fc4c3",
+        "observed": {
+          "state": {
+            "bookingAction": true,
+            "openSpots": 5
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/brand/cloud-core-mark.svg",
+            "/images/studio/studio-interior.webp"
+          ]
+        }
+      },
+      "bookings": {
+        "file": "public/images/app-marketing/en/bookings.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "66c31ea51766b1762fe8d92cd9dd8b3a351c0228d3643a408d3c6c9c6131379a",
+        "observed": {
+          "state": {
+            "confirmed": true
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/brand/cloud-core-mark.svg",
+            "/images/studio/studio-interior.webp"
+          ]
+        }
+      },
+      "membership": {
+        "file": "public/images/app-marketing/en/membership.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "796b9e809a78b06e40ecfe289f9aee79441a60b727d904ad2473e66de74d4bc2",
+        "observed": {
+          "state": {
+            "active": true,
+            "credits": 8
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg"]
+        }
+      },
+      "account": {
+        "file": "public/images/app-marketing/en/account.png",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "sha256": "7a05ee14eab262d03d6839764e395eb3b06a797a1763167a63004b5f05e6bafa",
+        "observed": {
+          "state": {
+            "completeFictionalProfile": true
+          },
+          "resourceUrls": ["/brand/cloud-core-logo-full.svg", "/images/studio/studio-interior.webp"]
+        }
+      },
+      "social": {
+        "file": "public/images/app-marketing/social/en.png",
+        "dimensions": {
+          "width": 1200,
+          "height": 630
+        },
+        "sha256": "8936536cc35107202c20482a2906cd65be44b207a769408b43cb63e42c319a05",
+        "observed": {
+          "state": {
+            "socialCard": true
+          },
+          "resourceUrls": [
+            "/brand/cloud-core-logo-full.svg",
+            "/images/auth/cloud-core-auth-hero.webp"
+          ]
+        },
+        "provenance": {
+          "officialLogo": "/brand/cloud-core-logo-full.svg",
+          "studioImage": "/images/auth/cloud-core-auth-hero.webp",
+          "people": false
+        }
+      }
+    }
+  },
+  "manualReview": {
+    "status": "required",
+    "attestation": "tests/fixtures/app-marketing/manual-review.json"
+  }
+}

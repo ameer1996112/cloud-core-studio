@@ -1,12 +1,10 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   clearSupabaseAccessTokenCookie,
   syncSupabaseAccessTokenCookie,
 } from "@/integrations/supabase/session-cookie";
-import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
@@ -68,8 +66,10 @@ function AuthPage() {
       const searchParams = new URL(window.location.href).searchParams;
       const requestedMode = searchParams.get("mode");
       setReturnToPath(searchParams.get("returnTo"));
+      if (requestedMode === "forgot" || requestedMode === "signup") {
+        setMode(requestedMode);
+      }
       if (requestedMode === "forgot") {
-        setMode("forgot");
         window.history.replaceState(null, document.title, window.location.pathname);
       }
     }
@@ -89,6 +89,7 @@ function AuthPage() {
       let redirected = false;
 
       try {
+        const { getFreshSupabaseSession } = await import("@/integrations/supabase/auth-session");
         const session = await getFreshSupabaseSession();
         const uid = session?.user?.id;
         if (!uid) return;
@@ -138,6 +139,7 @@ function AuthPage() {
     setFieldErrors({});
     setBusy(true);
     try {
+      const { supabase } = await import("@/integrations/supabase/client");
       if (mode === "signup") {
         const trimmedPhone = phone.trim();
         const { data: signed, error } = await supabase.auth.signUp({

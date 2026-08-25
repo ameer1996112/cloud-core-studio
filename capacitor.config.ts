@@ -7,6 +7,7 @@ const config: CapacitorConfig = {
   appName: "Cloud & Core",
   webDir: "native-fallback",
   bundledWebRuntime: false,
+  appendUserAgent: "CloudCoreNative/1",
   server: {
     url: PRODUCTION_SERVER_URL,
     cleartext: false,

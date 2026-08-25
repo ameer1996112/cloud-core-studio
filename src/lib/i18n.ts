@@ -3953,12 +3953,16 @@ export function getBootLangScript() {
       const cookieMatch = document.cookie.match(/(?:^|; )${LANG_COOKIE}=([^;]+)/);
       const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
       const url = new URL(window.location.href);
-      const requestedRouteLang = window.location.pathname === "/app" ? url.searchParams.get("lang") : null;
+      const pathRouteLang = window.location.pathname.match(/^\\/app\\/(ar|he|en)$/)?.[1];
+      const requestedRouteLang = pathRouteLang || (
+        window.location.pathname === "/app" ? url.searchParams.get("lang") : null
+      );
       const routeLang = requestedRouteLang === "en" || requestedRouteLang === "he" || requestedRouteLang === "ar"
         ? requestedRouteLang
         : null;
       const currentLang = document.documentElement.lang;
-      const candidate = routeLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
+      const storedLang = window.localStorage.getItem(${JSON.stringify(LANG_KEY)});
+      const candidate = routeLang || storedLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
       const next = candidate === "en" || candidate === "he" || candidate === "ar"
         ? candidate
         : ${JSON.stringify(DEFAULT_LOCALE)};

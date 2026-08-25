@@ -1,126 +1,102 @@
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { createIsomorphicFn } from "@tanstack/react-start";
-import { getStartContext } from "@tanstack/start-storage-context";
 
-import { AppMarketingPage } from "@/components/app-marketing/AppMarketingPage";
 import {
-  APP_MARKETING_CANONICAL_URL,
-  APP_MARKETING_OG_IMAGE,
-  buildAppMarketingStructuredData,
-  getAppMarketingMeta,
+  APP_MARKETING_LANGS,
+  buildMarketingHref,
   parseAppMarketingSearch,
-  resolveAppMarketingLang,
-  type AppMarketingPublicProfile,
+  resolveAppMarketingRedirect,
+  sanitizeMarketingUtm,
 } from "@/lib/app-marketing";
-import { getDownloadConfig } from "@/lib/download-config";
-import {
-  applyLang,
-  DEFAULT_LOCALE,
-  getActiveLang,
-  getStoredLang,
-  readLangCookieHeader,
-  type Lang,
-} from "@/lib/i18n";
-import { getInstagramLandingData } from "@/lib/instagramLanding.functions";
-
-export type AppMarketingRouteData = {
-  lang: Lang;
-  appStoreUrl: string;
-  profile: AppMarketingPublicProfile;
-};
-
-const getSavedAppMarketingLang = createIsomorphicFn()
-  .server(() => {
-    const cookieHeader = getStartContext().request.headers.get("cookie");
-    return readLangCookieHeader(cookieHeader) ?? DEFAULT_LOCALE;
-  })
-  .client(() => getStoredLang());
+import { LANG_KEY, LANG_META, readLangCookieHeader, readSupportedLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app")({
   validateSearch: parseAppMarketingSearch,
-  loaderDeps: ({ search }) => ({ explicitLang: search.lang }),
-  loader: async ({ deps }): Promise<AppMarketingRouteData> => {
-    const lang = resolveAppMarketingLang(deps.explicitLang, getSavedAppMarketingLang());
-    const appStoreUrl = getDownloadConfig().appStoreUrl;
+  beforeLoad: ({ location }) => {
+    if (location.pathname !== "/app") return;
 
-    try {
-      const studio = await getInstagramLandingData();
-      return {
-        lang,
-        appStoreUrl,
-        profile: {
-          address: studio.address,
-          contactEmail: studio.contactEmail,
-          instagramUrl: studio.instagramUrl,
-          publicPhone: studio.publicPhone,
-          whatsappNumber: studio.whatsappNumber,
-        },
-      };
-    } catch {
-      return {
-        lang,
-        appStoreUrl,
-        profile: {
-          address: null,
-          contactEmail: null,
-          instagramUrl: null,
-          publicPhone: null,
-          whatsappNumber: null,
-        },
-      };
-    }
-  },
-  head: ({ loaderData }) => {
-    const meta = getAppMarketingMeta(loaderData?.lang ?? DEFAULT_LOCALE);
-    const structuredData = loaderData
-      ? JSON.stringify(buildAppMarketingStructuredData(loaderData)).replace(/</g, "\\u003c")
-      : undefined;
+    const search = parseAppMarketingSearch(location.search);
+    if (!search.lang) return;
 
-    return {
-      meta: [
-        { title: meta.title },
-        { name: "description", content: meta.description },
-        { name: "robots", content: "index, follow" },
-        { property: "og:title", content: meta.title },
-        { property: "og:description", content: meta.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: APP_MARKETING_CANONICAL_URL },
-        { property: "og:locale", content: meta.locale },
-        { property: "og:image", content: APP_MARKETING_OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: meta.title },
-        { name: "twitter:description", content: meta.description },
-        { name: "twitter:image", content: APP_MARKETING_OG_IMAGE },
-      ],
-      links: [
-        { rel: "canonical", href: APP_MARKETING_CANONICAL_URL },
-        { rel: "alternate", hrefLang: "he", href: `${APP_MARKETING_CANONICAL_URL}?lang=he` },
-        { rel: "alternate", hrefLang: "ar", href: `${APP_MARKETING_CANONICAL_URL}?lang=ar` },
-        { rel: "alternate", hrefLang: "en", href: `${APP_MARKETING_CANONICAL_URL}?lang=en` },
-        { rel: "alternate", hrefLang: "x-default", href: APP_MARKETING_CANONICAL_URL },
-      ],
-      scripts: structuredData
-        ? [
-            {
-              type: "application/ld+json",
-              children: structuredData,
-            },
-          ]
-        : [],
-    };
+    const decision = resolveAppMarketingRedirect({
+      explicit: search.lang,
+      search: location.searchStr,
+    });
+
+    throw redirect({
+      to: decision.to,
+      search: decision.search,
+      replace: true,
+      statusCode: 307,
+    });
   },
-  component: AppMarketingRoute,
+  head: ({ matches }) =>
+    matches.at(-1)?.pathname === "/app"
+      ? {
+          meta: [{ title: "Opening Cloud & Core" }, { name: "robots", content: "noindex,follow" }],
+        }
+      : {},
+  headers: ({ matches }) =>
+    matches.at(-1)?.pathname === "/app"
+      ? { "X-Robots-Tag": "noindex, follow", "Cache-Control": "private, no-store" }
+      : undefined,
+  component: AppMarketingResolverRoute,
 });
 
-function AppMarketingRoute() {
-  const data = Route.useLoaderData();
+function AppMarketingResolverRoute() {
+  const location = useLocation();
+  if (location.pathname !== "/app") return <Outlet />;
+  return <AppMarketingLocaleBridge search={location.searchStr} />;
+}
 
+function AppMarketingLocaleBridge({ search }: { search: string }) {
   useEffect(() => {
-    if (getActiveLang() !== data.lang) applyLang(data.lang);
-  }, [data.lang]);
+    let saved = readLangCookieHeader(document.cookie);
+    try {
+      saved = readSupportedLang(window.localStorage.getItem(LANG_KEY)) ?? saved;
+    } catch {
+      // Privacy modes can deny local storage. Cookie and browser language remain valid fallbacks.
+    }
+
+    const decision = resolveAppMarketingRedirect({
+      saved,
+      accepted: [...navigator.languages],
+      search,
+    });
+    window.location.replace(
+      buildMarketingHref(decision.to, new URLSearchParams(Object.entries(decision.search))),
+    );
+  }, [search]);
+
+  const marketingUtm = new URLSearchParams(sanitizeMarketingUtm(search));
 
   return (
-    <AppMarketingPage lang={data.lang} appStoreUrl={data.appStoreUrl} profile={data.profile} />
+    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+      <section className="max-w-sm text-center" lang="en" dir="ltr">
+        <h1 className="font-display text-3xl text-foreground">Opening Cloud &amp; Core</h1>
+        <p className="mt-3 text-sm text-muted-foreground" role="status" aria-live="polite">
+          Choosing your saved language…
+        </p>
+        <nav className="mt-5 flex flex-wrap justify-center gap-4" aria-label="Choose language">
+          {APP_MARKETING_LANGS.map((lang) => (
+            <a
+              key={lang}
+              className="underline underline-offset-4"
+              href={buildMarketingHref(`/app/${lang}`, marketingUtm)}
+              hrefLang={lang}
+              lang={lang}
+              dir={LANG_META[lang].dir}
+            >
+              {LANG_META[lang].label}
+            </a>
+          ))}
+        </nav>
+        <noscript>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Choose a language to continue to the public studio page.
+          </p>
+        </noscript>
+      </section>
+    </main>
   );
 }

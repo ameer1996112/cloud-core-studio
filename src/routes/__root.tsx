@@ -13,12 +13,6 @@ import { getStartContext } from "@tanstack/start-storage-context";
 
 import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  clearSupabaseAccessTokenCookie,
-  syncSupabaseAccessTokenCookie,
-} from "@/integrations/supabase/session-cookie";
-import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
 import { Toaster } from "sonner";
 import {
   applyLang,
@@ -30,10 +24,15 @@ import {
   readSupportedLang,
   setActiveLang,
   t,
+  type Lang,
 } from "@/lib/i18n";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
+import {
+  APP_MARKETING_LANGS,
+  getAppMarketingMeta,
+  isPublicAppMarketingPathname,
+} from "@/lib/app-marketing";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
-import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
 
 function NotFoundComponent() {
   return (
@@ -103,8 +102,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "Boutique aerial yoga & mat pilates — Cloud & Core Studio.",
       },
-      { property: "og:image", content: "/images/classes/aerial-yoga-flow.webp" },
-      { name: "twitter:image", content: "/images/classes/aerial-yoga-flow.webp" },
+      { property: "og:image", content: "/images/auth/cloud-core-auth-hero.webp" },
+      { name: "twitter:image", content: "/images/auth/cloud-core-auth-hero.webp" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -131,12 +130,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const initialLang = getInitialShellLang();
+  const alternateAppMarketingLocale = getStaticAppMarketingAlternateLocale();
   setActiveLang(initialLang);
 
   return (
     <html lang={initialLang} dir={getDirection(initialLang)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: getBootLangScript() }} />
+        {alternateAppMarketingLocale ? (
+          <meta property="og:locale:alternate" content={alternateAppMarketingLocale} />
+        ) : null}
         <HeadContent />
       </head>
       <body>
@@ -147,20 +150,26 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const getInitialShellLang = createIsomorphicFn()
+const getStaticAppMarketingLang = createIsomorphicFn()
   .server(() => {
     const request = getStartContext().request;
     const url = new URL(request.url);
-    const routeLang =
-      url.pathname === "/app" ? readSupportedLang(url.searchParams.get("lang")) : null;
-    if (routeLang) return routeLang;
-    return readLangCookieHeader(request.headers.get("cookie")) ?? DEFAULT_LOCALE;
+    return readSupportedLang(url.pathname.match(/^\/app\/(ar|he|en)$/)?.[1]);
   })
   .client(() => {
-    const routeLang =
-      typeof window !== "undefined" && window.location.pathname === "/app"
-        ? readSupportedLang(new URL(window.location.href).searchParams.get("lang"))
-        : null;
+    return typeof window !== "undefined"
+      ? readSupportedLang(window.location.pathname.match(/^\/app\/(ar|he|en)$/)?.[1])
+      : null;
+  });
+
+const getInitialShellLang = createIsomorphicFn()
+  .server(() => {
+    const routeLang = getStaticAppMarketingLang();
+    if (routeLang) return routeLang;
+    return readLangCookieHeader(getStartContext().request.headers.get("cookie")) ?? DEFAULT_LOCALE;
+  })
+  .client(() => {
+    const routeLang = getStaticAppMarketingLang();
     if (routeLang) return routeLang;
     const bootLang =
       typeof window !== "undefined" && "__ccBootLang" in window
@@ -174,6 +183,15 @@ const getInitialShellLang = createIsomorphicFn()
     return DEFAULT_LOCALE;
   });
 
+const getStaticAppMarketingAlternateLocale = createIsomorphicFn()
+  .server(() => getSecondaryAppMarketingLocale(getStaticAppMarketingLang()))
+  .client(() => getSecondaryAppMarketingLocale(getStaticAppMarketingLang()));
+
+function getSecondaryAppMarketingLocale(lang: Lang | null) {
+  const alternate = lang ? APP_MARKETING_LANGS.find((locale) => locale !== lang) : null;
+  return alternate ? getAppMarketingMeta(alternate).locale : null;
+}
+
 const registerAdminPushNotifications = createClientOnlyFn(() => {
   void import("@/lib/adminPush.client")
     .then(({ maybeRegisterAdminPushNotifications }) => maybeRegisterAdminPushNotifications())
@@ -186,28 +204,62 @@ const checkRequiredIosAppUpdate = createClientOnlyFn(() =>
   ),
 );
 
+const getFreshRootSession = createClientOnlyFn(() =>
+  import("@/lib/root-session-lifecycle.client").then(({ getFreshRootSession }) =>
+    getFreshRootSession(),
+  ),
+);
+
+type RootSessionLifecycleHandlers = {
+  onSessionAvailable: () => void;
+  onSessionChanged: () => void;
+  onSignedOut: () => void;
+  onError: (error: unknown) => void;
+};
+
+const startRootSessionLifecycle = createClientOnlyFn((handlers: RootSessionLifecycleHandlers) =>
+  import("@/lib/root-session-lifecycle.client").then(({ startRootSessionLifecycle }) =>
+    startRootSessionLifecycle(handlers),
+  ),
+);
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
   useEffect(() => {
+    if (isPublicAppMarketingPathname(window.location.pathname)) return;
+
     let active = true;
-    const stop = startNativeAppLinkHandling(() =>
-      installNativeAppLinkHandling((route) => {
-        void getFreshSupabaseSession().then(async () => {
-          if (!active) return;
-          await router.invalidate();
-          if (!active) return;
-          await router.navigate({ to: route as never, replace: true });
-        });
-      }),
-    );
+    let stop: () => void = () => undefined;
+    void import("@/lib/nativeAppLinks")
+      .then(({ installNativeAppLinkHandling, startNativeAppLinkHandling }) => {
+        if (!active) return;
+        const nextStop = startNativeAppLinkHandling(() =>
+          installNativeAppLinkHandling((route) => {
+            void getFreshRootSession().then(async () => {
+              if (!active) return;
+              await router.invalidate();
+              if (!active) return;
+              await router.navigate({ to: route as never, replace: true });
+            });
+          }),
+        );
+        if (!active) {
+          nextStop();
+          return;
+        }
+        stop = nextStop;
+      })
+      .catch((error) => console.warn("native_app_link_setup_failed", error));
     return () => {
       active = false;
       stop();
     };
   }, [router]);
   useEffect(() => {
+    if (isPublicAppMarketingPathname(window.location.pathname)) return;
+
     let active = true;
     let checkInFlight = false;
 
@@ -239,80 +291,41 @@ function RootComponent() {
     };
   }, []);
   useEffect(() => {
+    if (isPublicAppMarketingPathname(window.location.pathname)) return;
+
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
     }
-    void getFreshSupabaseSession().then(() => registerAdminPushNotifications());
     if (typeof window !== "undefined") {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())
         .catch(() => undefined);
     }
-    const syncCurrentSession = () => {
-      void getFreshSupabaseSession().then((session) => {
-        if (session) {
-          void router.invalidate();
-          void queryClient.invalidateQueries();
-        }
-      });
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") syncCurrentSession();
-    };
-
-    window.addEventListener("focus", syncCurrentSession);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    let nativeAppStateListener: { remove: () => Promise<void> } | undefined;
     let effectActive = true;
-    void Promise.all([import("@capacitor/core"), import("@capacitor/app")])
-      .then(async ([{ Capacitor }, { App }]) => {
-        if (!effectActive || !Capacitor.isNativePlatform()) return;
-        nativeAppStateListener = await App.addListener("appStateChange", ({ isActive }) => {
-          if (isActive) {
-            supabase.auth.startAutoRefresh();
-            syncCurrentSession();
-          } else {
-            supabase.auth.stopAutoRefresh();
-          }
-        });
-        if (!effectActive) {
-          await nativeAppStateListener.remove();
-          nativeAppStateListener = undefined;
-          return;
-        }
-        supabase.auth.startAutoRefresh();
-      })
-      .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
-
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event !== "SIGNED_IN" &&
-        event !== "SIGNED_OUT" &&
-        event !== "USER_UPDATED" &&
-        event !== "TOKEN_REFRESHED"
-      ) {
-        return;
-      }
-      if (event === "SIGNED_OUT") {
-        clearSupabaseAccessTokenCookie();
+    let stop: () => void = () => undefined;
+    void startRootSessionLifecycle({
+      onSessionAvailable: registerAdminPushNotifications,
+      onSessionChanged: () => {
+        void router.invalidate();
+        void queryClient.invalidateQueries();
+      },
+      onSignedOut: () => {
         void queryClient.cancelQueries().finally(() => queryClient.clear());
         void router.navigate({ to: "/auth", replace: true });
-        return;
-      }
-      syncSupabaseAccessTokenCookie(session);
-      registerAdminPushNotifications();
-      if (event === "SIGNED_IN") return;
-      router.invalidate();
-      void queryClient.invalidateQueries();
-    });
+      },
+      onError: (error) => console.warn("native_auth_lifecycle_setup_failed", error),
+    })
+      .then((nextStop) => {
+        if (!effectActive) {
+          nextStop();
+          return;
+        }
+        stop = nextStop;
+      })
+      .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
     return () => {
       effectActive = false;
-      window.removeEventListener("focus", syncCurrentSession);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (nativeAppStateListener) void nativeAppStateListener.remove();
-      sub.subscription.unsubscribe();
+      stop();
     };
   }, [router, queryClient]);
 
