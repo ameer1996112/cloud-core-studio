@@ -5,7 +5,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createClientOnlyFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRoleNav";
+import {
+  navForRole,
+  bottomTabsForRole,
+  isActive,
+  usesMemberShell,
+  type NavGroup,
+  type NavItem,
+} from "./useRoleNav";
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
@@ -19,6 +26,107 @@ type Props = {
   role: AppRole;
   children: ReactNode;
 };
+
+type MemberDesktopHeaderProps = {
+  tabs: NavItem[];
+  pathname: string;
+  isRtl: boolean;
+  notificationControl: ReactNode;
+  signOutControl: ReactNode;
+};
+
+type MemberMobileBottomNavigationProps = {
+  tabs: NavItem[];
+  pathname: string;
+  isRtl: boolean;
+};
+
+export function MemberDesktopHeader({
+  tabs,
+  pathname,
+  isRtl,
+  notificationControl,
+  signOutControl,
+}: MemberDesktopHeaderProps) {
+  return (
+    <header className="member-desktop-header hidden md:block">
+      <div className="member-content-frame member-desktop-header__row">
+        <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
+          <BrandHeaderWordmark />
+        </Link>
+        <nav
+          aria-label={t("shell.practice")}
+          className="member-desktop-header__nav"
+          dir={isRtl ? "rtl" : "ltr"}
+        >
+          {tabs.map((item) => {
+            const { to, icon: Icon, label } = item;
+            const active = isActive(pathname, item);
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={active ? "page" : undefined}
+                className={
+                  active
+                    ? "member-desktop-nav__link member-desktop-nav__link--active"
+                    : "member-desktop-nav__link"
+                }
+              >
+                <Icon aria-hidden="true" className="h-4 w-4" />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="member-desktop-header__actions">
+          {notificationControl}
+          {signOutControl}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function MemberMobileBottomNavigation({
+  tabs,
+  pathname,
+  isRtl,
+}: MemberMobileBottomNavigationProps) {
+  return (
+    <nav
+      aria-label={t("shell.practice")}
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.45rem)] pt-1.5 pointer-events-none"
+    >
+      <div
+        dir={isRtl ? "rtl" : "ltr"}
+        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[calc(var(--radius-lg)+2px)] border border-gold/30 bg-ivory/96 px-1.5 py-1 shadow-[0_-10px_34px_-28px_rgba(28,43,69,0.28)] backdrop-blur pointer-events-auto"
+      >
+        {tabs.map((item) => {
+          const { to, icon: Icon, label } = item;
+          const active = isActive(pathname, item);
+          return (
+            <Link
+              key={to}
+              to={to}
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              className={`member-bottom-nav-link relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[11px] leading-tight transition-colors ${
+                active ? "bg-white/72 text-navy" : "text-slate hover:text-navy"
+              }`}
+            >
+              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
+              <span className="max-w-full truncate text-center leading-tight">{label}</span>
+              {active && (
+                <span aria-hidden className="absolute bottom-1 h-[2px] w-5 rounded-full bg-gold" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
 
 const disconnectMemberPushSession = createClientOnlyFn(async () => {
   const memberPush = await import("@/lib/memberPush.client");
@@ -61,7 +169,7 @@ export function AppShell({ role, children }: Props) {
 
   // Shell separation: members use bottom nav (no drawer);
   // admin/instructor use sidebar+drawer (no bottom nav).
-  const useBottomNav = role === "member";
+  const useBottomNav = usesMemberShell(role);
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
@@ -230,63 +338,26 @@ export function AppShell({ role, children }: Props) {
 
         {/* Compact desktop navigation — member only */}
         {useBottomNav && (
-          <header className="member-desktop-header hidden md:block">
-            <div className={`${contentFrameClass} member-desktop-header__row`}>
-              <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
-                <BrandHeaderWordmark />
-              </Link>
-              <nav
-                aria-label={t("shell.practice")}
-                className="member-desktop-header__nav"
-                dir={isRtl ? "rtl" : "ltr"}
-              >
-                {bottomTabs.map((item) => {
-                  const { to, icon: Icon, label } = item;
-                  const active = isActive(pathname, item);
-                  return (
-                    <Link
-                      key={to}
-                      to={to}
-                      aria-current={active ? "page" : undefined}
-                      className={
-                        active
-                          ? "member-desktop-nav__link member-desktop-nav__link--active"
-                          : "member-desktop-nav__link"
-                      }
-                    >
-                      <Icon aria-hidden="true" className="h-4 w-4" />
-                      <span>{label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-              <div className="member-desktop-header__actions">
-                <MemberNotificationCenter viewport="desktop" className="member-shell-action" />
-                {signOutControl}
-              </div>
-            </div>
-          </header>
+          <MemberDesktopHeader
+            tabs={bottomTabs}
+            pathname={pathname}
+            isRtl={isRtl}
+            notificationControl={
+              <MemberNotificationCenter viewport="desktop" className="member-shell-action" />
+            }
+            signOutControl={signOutControl}
+          />
         )}
 
         {/* Page header — admin/instructor only */}
         {!useBottomNav && (
           <header className="block px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6">
-            <div
-              className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
-            >
+            <div className={contentFrameClass}>
               <div className="min-w-0">
                 <p className="eyebrow">{eyebrowFor(role)}</p>
                 <h1 className="cc-page-title mt-2 truncate">
                   {currentSectionLabel(pathname, groups)}
                 </h1>
-              </div>
-              <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
-                {useBottomNav ? (
-                  <>
-                    <MemberNotificationCenter viewport="desktop" />
-                    <BrandHeaderWordmark className="scale-[0.95]" />
-                  </>
-                ) : null}
               </div>
             </div>
           </header>
@@ -307,38 +378,7 @@ export function AppShell({ role, children }: Props) {
 
         {/* Bottom tabs — member only, mobile only */}
         {useBottomNav && (
-          <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.45rem)] pt-1.5 pointer-events-none">
-            <div
-              dir={isRtl ? "rtl" : "ltr"}
-              className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[calc(var(--radius-lg)+2px)] border border-gold/30 bg-ivory/96 px-1.5 py-1 shadow-[0_-10px_34px_-28px_rgba(28,43,69,0.28)] backdrop-blur pointer-events-auto"
-            >
-              {bottomTabs.map(({ to, icon: Icon, label, exact }) => {
-                const active = exact
-                  ? pathname === to
-                  : pathname === to || pathname.startsWith(to + "/");
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    aria-label={label}
-                    aria-current={active ? "page" : undefined}
-                    className={`member-bottom-nav-link relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[11px] leading-tight transition-colors ${
-                      active ? "bg-white/72 text-navy" : "text-slate hover:text-navy"
-                    }`}
-                  >
-                    <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
-                    <span className="max-w-full truncate text-center leading-tight">{label}</span>
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute bottom-1 h-[2px] w-5 rounded-full bg-gold"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
+          <MemberMobileBottomNavigation tabs={bottomTabs} pathname={pathname} isRtl={isRtl} />
         )}
       </main>
     </div>

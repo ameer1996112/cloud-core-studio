@@ -22,6 +22,10 @@ import { t } from "@/lib/i18n";
 export type NavItem = { to: string; label: string; icon: LucideIcon; exact?: boolean };
 export type NavGroup = { label: string; items: NavItem[] };
 
+export function usesMemberShell(role: AppRole) {
+  return role === "member";
+}
+
 export function navForRole(role: AppRole): NavGroup[] {
   if (role === "admin") {
     return [
