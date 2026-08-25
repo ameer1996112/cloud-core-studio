@@ -54,7 +54,7 @@
 - Modify: `src/lib/i18n.ts`
 - Modify: `tests/unit/i18n.test.mjs`
 
-- [ ] **Step 1: Write failing tests for filter counting, empty-state classification, and concise localized copy**
+- [x] **Step 1: Write failing tests for filter counting, empty-state classification, and concise localized copy**
 
 Add this public behavior to `tests/unit/memberUi.test.mjs`:
 
@@ -90,7 +90,7 @@ assert.equal(tForLang("he", "member.schedule.empty.filtered.title"), "אין ש�
 assert.equal(tForLang("ar", "member.schedule.empty.inventory.title"), "لا توجد حصص في هذا اليوم");
 ```
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run:
 
@@ -100,7 +100,7 @@ bun test tests/unit/memberUi.test.mjs tests/unit/i18n.test.mjs
 
 Expected: FAIL because `src/lib/member-ui.ts` and the new message keys do not exist.
 
-- [ ] **Step 3: Add the pure presentation helpers**
+- [x] **Step 3: Add the pure presentation helpers**
 
 Create `src/lib/member-ui.ts`:
 
@@ -137,7 +137,7 @@ export function getScheduleEmptyStateKind(
 }
 ```
 
-- [ ] **Step 4: Add exact English, Hebrew, and Arabic messages**
+- [x] **Step 4: Add exact English, Hebrew, and Arabic messages**
 
 Add each key to all three catalogs in `src/lib/i18n.ts`:
 
@@ -180,7 +180,7 @@ Add each key to all three catalogs in `src/lib/i18n.ts`:
 "member.error.body": "تحققي من الاتصال وحاولي مجدداً.",
 ```
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 5: Run focused tests and verify GREEN**
 
 Run:
 
@@ -190,7 +190,7 @@ bun test tests/unit/memberUi.test.mjs tests/unit/i18n.test.mjs
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the localized presentation rules**
+- [x] **Step 6: Commit the localized presentation rules**
 
 ```bash
 git add src/lib/member-ui.ts src/lib/i18n.ts tests/unit/memberUi.test.mjs tests/unit/i18n.test.mjs
@@ -206,7 +206,7 @@ git commit -m "feat: add localized member presentation rules"
 - Create: `tests/unit/memberPresentationComponents.test.mjs`
 - Modify: `src/styles.css`
 
-- [ ] **Step 1: Write failing server-render tests for semantic sections, tabs, and loading status**
+- [x] **Step 1: Write failing server-render tests for semantic sections, tabs, and loading status**
 
 Create `tests/unit/memberPresentationComponents.test.mjs` with router `Link` mocked as an anchor and these assertions:
 
@@ -286,7 +286,7 @@ describe("member presentation primitives", () => {
 });
 ```
 
-- [ ] **Step 2: Run the component test and verify RED**
+- [x] **Step 2: Run the component test and verify RED**
 
 Run:
 
@@ -296,7 +296,7 @@ bun test tests/unit/memberPresentationComponents.test.mjs
 
 Expected: FAIL because the three component modules do not exist.
 
-- [ ] **Step 3: Implement the page and section primitives**
+- [x] **Step 3: Implement the page and section primitives**
 
 Create `src/components/member/MemberPage.tsx` with typed props, one semantic `h1`, optional router action, section `aria-labelledby`, and an action-bar wrapper:
 
@@ -355,7 +355,7 @@ export function MemberActionBar({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Step 4: Implement the segmented control and route skeleton**
+- [x] **Step 4: Implement the segmented control and route skeleton**
 
 Create `src/components/member/MemberSegmentedControl.tsx`:
 
@@ -420,7 +420,7 @@ export function MemberRouteError({ onRetry }: { onRetry: () => void }) {
 }
 ```
 
-- [ ] **Step 5: Add the shared editorial utility styles**
+- [x] **Step 5: Add the shared editorial utility styles**
 
 Append focused classes to the member section of `src/styles.css`:
 
@@ -446,7 +446,7 @@ Append focused classes to the member section of `src/styles.css`:
 @media (prefers-reduced-motion: reduce) { .member-route-transition, .member-segmented-control__tab { animation:none!important; transition:none!important; } }
 ```
 
-- [ ] **Step 6: Run the component test and verify GREEN**
+- [x] **Step 6: Run the component test and verify GREEN**
 
 Run:
 
@@ -456,7 +456,7 @@ bun test tests/unit/memberPresentationComponents.test.mjs
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the shared primitives**
+- [x] **Step 7: Commit the shared primitives**
 
 ```bash
 git add src/components/member/MemberPage.tsx src/components/member/MemberSegmentedControl.tsx src/components/member/MemberRouteSkeleton.tsx src/styles.css tests/unit/memberPresentationComponents.test.mjs
@@ -471,7 +471,7 @@ git commit -m "feat: add member presentation primitives"
 - Modify: `src/styles.css`
 - Create: `tests/unit/memberNavigation.test.mjs`
 
-- [ ] **Step 1: Write failing navigation behavior tests**
+- [x] **Step 1: Write failing navigation behavior tests**
 
 Create `tests/unit/memberNavigation.test.mjs`:
 
@@ -508,7 +508,7 @@ describe("member navigation", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run:
 
@@ -518,7 +518,7 @@ bun test tests/unit/memberNavigation.test.mjs
 
 Expected: FAIL because the booking destination still uses `nav.myBookings`.
 
-- [ ] **Step 3: Use concise labels only for member navigation**
+- [x] **Step 3: Use concise labels only for member navigation**
 
 In both member arrays in `useRoleNav.ts`, change the bookings item to:
 
@@ -528,7 +528,7 @@ In both member arrays in `useRoleNav.ts`, change the bookings item to:
 
 Keep page titles on `nav.myBookings`; only the navigation label becomes shorter.
 
-- [ ] **Step 4: Replace the duplicate desktop title region with one compact member header**
+- [x] **Step 4: Replace the duplicate desktop title region with one compact member header**
 
 In `AppShell.tsx`, preserve the admin/instructor header branch. For members, render a single desktop header containing `BrandHeaderWordmark`, the five navigation links, `MemberNotificationCenter`, and the 44 px sign-out control. Remove the member-only shell `h1`; route components remain responsible for the single page `h1`.
 
@@ -562,7 +562,7 @@ Replace the branded hydration card with:
 </div>
 ```
 
-- [ ] **Step 5: Add member shell, safe-area, focus, and transition styles**
+- [x] **Step 5: Add member shell, safe-area, focus, and transition styles**
 
 Use a 44 px minimum for every shell action, reserve `var(--member-bottom-nav-offset)` on mobile, style the desktop navigation as one compact horizontal row, and add:
 
@@ -575,7 +575,7 @@ Use a 44 px minimum for every shell action, reserve `var(--member-bottom-nav-off
 .member-desktop-nav__link:focus-visible, .member-bottom-nav-link:focus-visible { outline:2px solid var(--color-navy); outline-offset:3px; }
 ```
 
-- [ ] **Step 6: Run focused shell/navigation tests**
+- [x] **Step 6: Run focused shell/navigation tests**
 
 Run:
 
@@ -585,7 +585,7 @@ bun test tests/unit/memberNavigation.test.mjs tests/unit/memberLanguageSynchroni
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the shell redesign**
+- [x] **Step 7: Commit the shell redesign**
 
 ```bash
 git add src/components/app-shell/useRoleNav.ts src/components/app-shell/AppShell.tsx src/styles.css tests/unit/memberNavigation.test.mjs
@@ -598,7 +598,7 @@ git commit -m "feat: refine member shell navigation"
 - Modify: `src/routes/_authenticated/member/index.tsx`
 - Modify: `src/styles.css`
 
-- [ ] **Step 1: Capture the current failing visual assertions from the approved audit baseline**
+- [x] **Step 1: Capture the current failing visual assertions from the approved audit baseline**
 
 At 390 by 844, record that the current “Find a class” action is below the first viewport. At 1440 by 1000, record the duplicate shell/route title and enlarged card stack. Use the existing baseline screenshots under:
 
@@ -608,7 +608,7 @@ At 390 by 844, record that the current “Find a class” action is below the fi
 
 Expected before implementation: primary action not visible in the first mobile viewport.
 
-- [ ] **Step 2: Replace the image-heavy hero with the shared task-first introduction**
+- [x] **Step 2: Replace the image-heavy hero with the shared task-first introduction**
 
 Keep greeting computation, queries, concierge data, and class state derivation unchanged. Replace the route hero with:
 
@@ -624,7 +624,7 @@ Keep greeting computation, queries, concierge data, and class state derivation u
 
 This keeps the existing language-specific word order while removing the image hero.
 
-- [ ] **Step 3: Reorder Home content around the member's next action**
+- [x] **Step 3: Reorder Home content around the member's next action**
 
 Destructure `isError` and `refetch` from the `member-home` query. Immediately after the introduction, render `<MemberRouteError onRetry={() => void refetch()} />` when the core query fails; otherwise use this content order inside the existing route section:
 
@@ -644,11 +644,11 @@ Destructure `isError` and `refetch` from the `member-home` query. Immediately af
 
 Place announcement immediately after the introduction only when present. Move concierge, weekly promotion, recommended list, and additional bookings below next booking and package status. Remove the separate `QuickActions` card; render studio contact as a quiet link below the primary content.
 
-- [ ] **Step 4: Simplify Home styles and verify responsive order**
+- [x] **Step 4: Simplify Home styles and verify responsive order**
 
 Remove route-specific hero image space from the authenticated Home path. Ensure the introduction action and either next-booking header or empty-state prompt fit within 844 px at 390 px width. At desktop, cap the main column and package summary into a deliberate two-column intro rather than a full-width card stack.
 
-- [ ] **Step 5: Run focused Home regressions**
+- [x] **Step 5: Run focused Home regressions**
 
 Run:
 
@@ -658,7 +658,7 @@ bun test tests/unit/personalConciergeExperience.test.mjs tests/unit/lessonCardVa
 
 Expected: PASS; concierge destinations, class states, and package CTAs remain unchanged.
 
-- [ ] **Step 6: Commit Home**
+- [x] **Step 6: Commit Home**
 
 ```bash
 git add src/routes/_authenticated/member/index.tsx src/styles.css
@@ -673,7 +673,7 @@ git commit -m "feat: prioritize member home actions"
 - Modify: `src/styles.css`
 - Create: `tests/unit/memberScheduleFilters.test.mjs`
 
-- [ ] **Step 1: Write failing server-render tests for localized options and the mobile filter trigger**
+- [x] **Step 1: Write failing server-render tests for localized options and the mobile filter trigger**
 
 Render `MemberScheduleFilterPanel` with `level: "all-levels"`, a formatter returning `All levels`, and one active value. Assert:
 
@@ -687,7 +687,7 @@ expect(html).toContain("1 active");
 
 Mock the project `Sheet` module as semantic dialog elements so the test observes the public trigger/label contract without depending on Radix internals.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run:
 
@@ -697,7 +697,7 @@ bun test tests/unit/memberScheduleFilters.test.mjs
 
 Expected: FAIL because secondary filters are currently inline and there is no dialog trigger.
 
-- [ ] **Step 3: Split primary and secondary Schedule controls**
+- [x] **Step 3: Split primary and secondary Schedule controls**
 
 Import `DateScope`, `ScheduleFilterState`, and `countActiveScheduleFilters` from `@/lib/member-ui`, remove the local duplicate types, and export `DateScope` from the filter module for existing callers. Add an `onClearAll: () => void` prop. Keep search and date scope in a compact `MemberActionBar`. On mobile, render a `Sheet` trigger with the total active count and place only level, energy, room, and instructor groups inside `SheetContent side="bottom"`. On desktop, render those groups inline.
 
@@ -723,7 +723,7 @@ The trigger contract is:
 
 Use `SheetTitle`, `SheetDescription`, `SheetClose`, and the existing reset callback. Rely on Radix Dialog for focus trap, Escape close, background inertness, and trigger focus restoration.
 
-- [ ] **Step 4: Use shared empty-state classification only in the authenticated schedule**
+- [x] **Step 4: Use shared empty-state classification only in the authenticated schedule**
 
 In `MemberScheduleContent`, calculate:
 
@@ -753,15 +753,15 @@ const emptyBody = emptyStateKind === "filtered"
 
 Render `MemberEmptyState` with `emptyTitle` and `emptyBody`. When `emptyStateKind === "filtered"`, render a neighboring `button type="button"` calling the existing `clearAllFilters` callback; do not widen `MemberEmptyState`'s route-link action type. Keep guest empty-state links and guest auth intent exactly as they are.
 
-- [ ] **Step 5: Replace the authenticated Schedule hero and loader**
+- [x] **Step 5: Replace the authenticated Schedule hero and loader**
 
 For `session !== null`, use `MemberPageIntro` with schedule title, concise body, and credits aside; remove the large panel and stat card. Destructure `isError` and `refetch` from the schedule query, render `<MemberRouteError onRetry={() => void refetch()} />` for authenticated query failure, and replace four generic rectangles with `<MemberRouteSkeleton route="schedule" />`. Do not change the public guest hero or public guest statistics.
 
-- [ ] **Step 6: Apply responsive filter sizing**
+- [x] **Step 6: Apply responsive filter sizing**
 
 The mobile search input, date segments, filter trigger, reset control, chips, and sheet actions must all be at least 44 px high. Hide `.member-schedule-secondary-filters--desktop` below 768 px and hide the sheet trigger from 768 px upward. Keep search plus date controls within the first mobile viewport above class inventory.
 
-- [ ] **Step 7: Run Schedule regressions**
+- [x] **Step 7: Run Schedule regressions**
 
 Run:
 
@@ -771,7 +771,7 @@ bun test tests/unit/memberScheduleFilters.test.mjs tests/unit/guestScheduleGuest
 
 Expected: PASS, including the unchanged public guest handoff.
 
-- [ ] **Step 8: Commit Schedule**
+- [x] **Step 8: Commit Schedule**
 
 ```bash
 git add src/components/member/MemberScheduleFilterPanel.tsx src/routes/member.schedule.tsx src/styles.css tests/unit/memberScheduleFilters.test.mjs
@@ -784,11 +784,11 @@ git commit -m "feat: streamline member schedule filters"
 - Modify: `src/routes/_authenticated/member/bookings.tsx`
 - Modify: `src/styles.css`
 
-- [ ] **Step 1: Verify the shared segmented-control RED baseline at 320 px**
+- [x] **Step 1: Verify the shared segmented-control RED baseline at 320 px**
 
 Use the existing audit finding as the failing visual assertion: the cancelled category begins outside the 390 px viewport. Also verify the shared component test fails if a non-selected tab is not `tabIndex=-1` or if focus does not reveal an off-screen tab.
 
-- [ ] **Step 2: Replace the image hero and custom tab row**
+- [x] **Step 2: Replace the image hero and custom tab row**
 
 Use:
 
@@ -815,11 +815,11 @@ Use:
 
 Remove the atmosphere image and the old `.member-tab-bar` markup.
 
-- [ ] **Step 3: Tighten booking cards without changing operations**
+- [x] **Step 3: Tighten booking cards without changing operations**
 
 Keep `memberCancelBooking`, `leaveWaitlist`, query invalidations, calendar creation, WhatsApp support, and `ClassDetailSheet` unchanged. Make class/date/instructor/status the visible card hierarchy. Keep cancellation inside the action row, style it as a secondary text action, and ensure calendar/contact/cancel targets are 44 px high.
 
-- [ ] **Step 4: Replace generic loading rectangles**
+- [x] **Step 4: Replace generic loading rectangles**
 
 Destructure `isError` and `refetch` from `my-bookings-all`. Use separate observable loading, error, empty, and content branches:
 
@@ -837,7 +837,7 @@ Destructure `isError` and `refetch` from `my-bookings-all`. Use separate observa
 {!isLoading && !isError && current.length > 0 ? <div className="space-y-3">{tab === "waitlist" ? waitlist.map((entry) => <WaitlistCard key={entry.id} entry={entry} onOpen={() => setOpenClass(entry.class.id)} onLeave={() => leave.mutate(entry.id)} />) : current.map((booking) => <BookingCard key={booking.id} booking={booking} attendance={attMap[booking.id]} onOpen={() => setOpenClass(booking.class.id)} onCancel={tab === "upcoming" ? () => setConfirmCancel(booking) : undefined} muted={tab !== "upcoming"} studio={settings ?? null} />)}</div> : null}
 ```
 
-- [ ] **Step 5: Run booking regressions and component semantics**
+- [x] **Step 5: Run booking regressions and component semantics**
 
 Run:
 
@@ -847,7 +847,7 @@ bun test tests/unit/memberPresentationComponents.test.mjs tests/unit/guestSchedu
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit Bookings**
+- [x] **Step 6: Commit Bookings**
 
 ```bash
 git add src/routes/_authenticated/member/bookings.tsx src/styles.css
@@ -860,15 +860,15 @@ git commit -m "feat: improve member bookings workspace"
 - Modify: `src/routes/_authenticated/member/packages.tsx`
 - Modify: `src/styles.css`
 
-- [ ] **Step 1: Record the failing mobile inventory-order assertion**
+- [x] **Step 1: Record the failing mobile inventory-order assertion**
 
 At 390 by 844, confirm the first package purchase action currently begins near 1.5 viewports below the top. The acceptance assertion is that the first visible package and purchase action appear before long explanatory copy and history.
 
-- [ ] **Step 2: Replace the large pricing introduction with a compact status introduction**
+- [x] **Step 2: Replace the large pricing introduction with a compact status introduction**
 
 Use `MemberPageIntro` with `t("nav.plans")`, `t("member.packages.body")`, and a concise active-package/credit aside. Do not put value-chip marketing text before inventory.
 
-- [ ] **Step 3: Move available packages immediately after the introduction**
+- [x] **Step 3: Move available packages immediately after the introduction**
 
 Destructure `isError` and `refetch` from the package query. Render the package grid in a labeled section before subscription details, value chips, credit history, and payment history:
 
@@ -884,15 +884,15 @@ Destructure `isError` and `refetch` from the package query. Render the package g
 </MemberSection>
 ```
 
-- [ ] **Step 4: Simplify package cards and preserve checkout behavior**
+- [x] **Step 4: Simplify package cards and preserve checkout behavior**
 
 Keep `PackagePricingCard` responsible for name, formatted price, credit allowance, validity, recommended treatment, pending state, and purchase request. Raise every purchase/control target to 44 px. Replace heavy recommendation banners with the existing gold border/accent. Do not change `submitPayment`, `PaymentMethodSheet`, online/manual method selection, terms consent, subscription cancellation, or payment history filtering.
 
-- [ ] **Step 5: Move explanation and history below inventory**
+- [x] **Step 5: Move explanation and history below inventory**
 
 Keep credit and payment history as quiet disclosure-style sections after purchasable inventory. Retain receipts and all current data. Place value chips and terms beneath the package grid, not above it.
 
-- [ ] **Step 6: Run package/checkout regressions**
+- [x] **Step 6: Run package/checkout regressions**
 
 Run:
 
@@ -902,7 +902,7 @@ bun test tests/unit/visualClassCardPackageCta.test.mjs tests/unit/transactionalE
 
 Expected: PASS; direct package destinations and receipt/payment links remain intact.
 
-- [ ] **Step 7: Commit Packages**
+- [x] **Step 7: Commit Packages**
 
 ```bash
 git add src/routes/_authenticated/member/packages.tsx src/styles.css
@@ -917,7 +917,7 @@ git commit -m "feat: prioritize member package purchase"
 - Modify: `src/styles.css`
 - Create: `tests/unit/memberProfileFields.test.mjs`
 
-- [ ] **Step 1: Write a failing server-render test for label association**
+- [x] **Step 1: Write a failing server-render test for label association**
 
 Add `tests/unit/memberProfileFields.test.mjs`:
 
@@ -936,7 +936,7 @@ test("profile field associates its label and control", () => {
 });
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run:
 
@@ -946,7 +946,7 @@ bun test tests/unit/memberProfileFields.test.mjs
 
 Expected: FAIL because `MemberField.tsx` does not exist.
 
-- [ ] **Step 3: Create a focused field component and associate its single form control**
+- [x] **Step 3: Create a focused field component and associate its single form control**
 
 Create `src/components/member/MemberField.tsx`:
 
@@ -960,11 +960,11 @@ export function MemberField({ id, label, children }: { id:string; label:string; 
 
 Import `MemberField` in the account route, remove its local `Field`, and give stable IDs to every identity, language, concierge, deletion, checkbox, and textarea field.
 
-- [ ] **Step 4: Replace the image hero with a compact account introduction**
+- [x] **Step 4: Replace the image hero with a compact account introduction**
 
 Destructure `isLoading`, `isError`, and `refetch` from the `member-packages` profile query. Render `<MemberRouteSkeleton route="account" />` while loading and `<MemberRouteError onRetry={() => void refetch()} />` on failure. Once loaded, use `MemberPageIntro` with the member name as the sole route `h1`, email/body below, and status/language chips in the aside. Remove the logo-wall image and duplicate card framing.
 
-- [ ] **Step 5: Group routine, concierge, session, and privacy actions semantically**
+- [x] **Step 5: Group routine, concierge, session, and privacy actions semantically**
 
 Use `MemberSection` for `profile-details`, `between-us`, `session`, and `privacy`. Use whitespace/dividers rather than wrapping every section in `.member-card`. Keep sign-out and deletion separate from routine settings. Use an inline `role="status"` near the save button for pending/success/error state while retaining existing toasts.
 
@@ -977,11 +977,11 @@ The personalization checkbox contract is:
 </div>
 ```
 
-- [ ] **Step 6: Increase input and action targets**
+- [x] **Step 6: Increase input and action targets**
 
 Inputs remain at least 44 px high; checkboxes use a 20 px visual control inside a 44 px row; save, sign-out, privacy links, and deletion request use at least 44 px targets. Ensure destructive styling remains legible and separate.
 
-- [ ] **Step 7: Run profile regressions**
+- [x] **Step 7: Run profile regressions**
 
 Run:
 
@@ -991,7 +991,7 @@ bun test tests/unit/memberProfileFields.test.mjs tests/unit/memberProfileLanguag
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit Profile**
+- [x] **Step 8: Commit Profile**
 
 ```bash
 git add src/components/member/MemberField.tsx src/routes/_authenticated/member/account.tsx src/styles.css tests/unit/memberProfileFields.test.mjs
@@ -1066,13 +1066,13 @@ Blocked: all available disposable member credentials are invalid, and the archiv
 
 Use the repository `code-review` skill against the complete branch diff. Re-run the focused test that covers each accepted fix, followed by lint and build if source changes.
 
-- [ ] **Step 9: Commit final verified polish**
+- [x] **Step 9: Commit final verified polish**
 
 ```bash
 git add docs/superpowers/plans/2026-08-25-member-ui-redesign.md src/styles.css src/components/member/MemberField.tsx src/components/member/MemberPage.tsx src/components/member/MemberRouteSkeleton.tsx src/components/member/MemberScheduleFilterPanel.tsx src/components/member/MemberSegmentedControl.tsx src/components/app-shell/AppShell.tsx src/components/app-shell/useRoleNav.ts src/routes/member.schedule.tsx src/routes/_authenticated/member/index.tsx src/routes/_authenticated/member/bookings.tsx src/routes/_authenticated/member/packages.tsx src/routes/_authenticated/member/account.tsx src/lib/member-ui.ts src/lib/i18n.ts tests/unit/memberUi.test.mjs tests/unit/memberPresentationComponents.test.mjs tests/unit/memberNavigation.test.mjs tests/unit/memberScheduleFilters.test.mjs tests/unit/memberProfileFields.test.mjs tests/unit/i18n.test.mjs
 git commit -m "fix: finalize member experience redesign"
 ```
 
-- [ ] **Step 10: Confirm delivery boundary**
+- [x] **Step 10: Confirm delivery boundary**
 
 Verify `git status --short` is clean and report the branch plus commits. Do not push, merge, deploy, migrate, submit an App Store build, enable Yoga promotion, or modify the isolated App Store branch unless the user separately authorizes that action.

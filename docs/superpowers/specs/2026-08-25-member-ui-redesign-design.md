@@ -1,7 +1,7 @@
 # Cloud & Core Member Experience Redesign
 
-**Date:** 2026-08-25  
-**Status:** Ready for final review  
+**Date:** 2026-08-25
+**Status:** Ready for final review
 **Branch:** `codex/member-ui-redesign`
 
 ## Summary
