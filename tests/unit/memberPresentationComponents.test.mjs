@@ -49,6 +49,7 @@ describe("member presentation components", () => {
   test("MemberSegmentedControl exposes selected and unselected tabs", () => {
     const markup = renderToStaticMarkup(
       React.createElement(MemberSegmentedControl, {
+        baseId: "bookings",
         label: "Booking history",
         value: "upcoming",
         items: [
@@ -62,7 +63,30 @@ describe("member presentation components", () => {
 
     expect(markup).toContain('role="tablist"');
     expect(markup.match(/aria-selected="true"/g)).toHaveLength(1);
-    expect(markup).toContain('aria-selected="false" tabindex="-1"');
+    expect(markup).toMatch(/aria-selected="false"[^>]*tabindex="-1"/);
+    expect(markup).toContain('id="bookings-tab-upcoming"');
+    expect(markup).toContain('aria-controls="bookings-panel-upcoming"');
+  });
+
+  test("MemberSegmentedControl keeps one tab reachable when value is invalid", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(MemberSegmentedControl, {
+        baseId: "bookings",
+        label: "Booking history",
+        value: "missing",
+        items: [
+          { value: "upcoming", label: "Upcoming" },
+          { value: "past", label: "Past" },
+        ],
+        onChange: () => {},
+        dir: "ltr",
+      }),
+    );
+
+    expect(markup.match(/tabindex="0"/g) ?? []).toHaveLength(1);
+    expect(markup).toMatch(
+      /<button[^>]*aria-selected="true"[^>]*tabindex="0"[^>]*><span>Upcoming<\/span>/,
+    );
   });
 
   test("MemberRouteSkeleton exposes loading status and decorative content", () => {

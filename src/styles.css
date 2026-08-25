@@ -6392,6 +6392,11 @@ select.input:focus {
     animation: none !important;
     transition: none !important;
   }
+
+  .member-route-skeleton .skeleton-brand {
+    animation: none !important;
+    background-position: 50% 0;
+  }
 }
 
 @utility member-card {

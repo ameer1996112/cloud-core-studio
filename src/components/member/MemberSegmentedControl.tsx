@@ -6,19 +6,31 @@ type Segment<Value extends string> = {
   count?: number;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- Consumers share these reciprocal IDs.
+export function memberSegmentIds(baseId: string, value: string) {
+  return {
+    tabId: `${baseId}-tab-${value}`,
+    panelId: `${baseId}-panel-${value}`,
+  };
+}
+
 export function MemberSegmentedControl<Value extends string>({
+  baseId,
   label,
   value,
   items,
   onChange,
   dir,
 }: {
+  baseId: string;
   label: string;
   value: Value;
-  items: Segment<Value>[];
+  items: readonly [Segment<Value>, ...Segment<Value>[]];
   onChange: (value: Value) => void;
   dir: "rtl" | "ltr";
 }) {
+  const selectedValue = items.some((item) => item.value === value) ? value : items[0].value;
+
   function move(event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
     const visualDelta = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
     const delta = dir === "rtl" ? -visualDelta : visualDelta;
@@ -49,13 +61,16 @@ export function MemberSegmentedControl<Value extends string>({
       dir={dir}
     >
       {items.map((item, index) => {
-        const selected = item.value === value;
+        const selected = item.value === selectedValue;
+        const { tabId, panelId } = memberSegmentIds(baseId, item.value);
         return (
           <button
             key={item.value}
+            id={tabId}
             type="button"
             role="tab"
             aria-selected={selected}
+            aria-controls={panelId}
             tabIndex={selected ? 0 : -1}
             className="member-segmented-control__tab"
             onClick={() => onChange(item.value)}
