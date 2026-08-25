@@ -43,6 +43,17 @@ const renderedCardOpeners = [];
 const renderedCardStates = [];
 const invalidateCalls = [];
 const mutationConfigs = [];
+const emptyBookingsData = {
+  bookings: [],
+  attendanceByBooking: {},
+  waitlist: [],
+};
+let bookingsQueryResult = {
+  data: emptyBookingsData,
+  isLoading: false,
+  isError: false,
+  refetch: () => Promise.resolve(),
+};
 
 const scheduleDataByScope = {
   guest: {
@@ -133,14 +144,7 @@ mock.module("@tanstack/react-query", () => ({
     }
 
     if (queryKey[0] === "my-bookings-all") {
-      return {
-        data: {
-          bookings: [],
-          attendanceByBooking: {},
-          waitlist: [],
-        },
-        isLoading: false,
-      };
+      return bookingsQueryResult;
     }
 
     if (queryKey[0] === "public-studio-settings") {
@@ -414,7 +418,14 @@ describe("guest schedule handoff", () => {
     invalidateCalls.length = 0;
     mutationConfigs.length = 0;
 
-    renderToStaticMarkup(React.createElement(bookingsModule.Route.options.component));
+    const bookingsHtml = renderToStaticMarkup(
+      React.createElement(bookingsModule.Route.options.component),
+    );
+
+    expect(bookingsHtml).toContain('role="tablist"');
+    expect(bookingsHtml).toContain('role="tabpanel"');
+    expect(bookingsHtml).toContain('id="member-bookings-panel-upcoming"');
+    expect(bookingsHtml).toContain('aria-labelledby="member-bookings-tab-upcoming"');
 
     expect(mutationConfigs.length).toBeGreaterThan(0);
 
@@ -440,5 +451,66 @@ describe("guest schedule handoff", () => {
       scheduleInvalidation.predicate({ queryKey: ["member-schedule", "member:member-1"] }),
     ).toBe(true);
     expect(scheduleInvalidation.predicate({ queryKey: ["member-schedule", "guest"] })).toBe(false);
+  });
+
+  test("member bookings separates initial loading, fatal errors, and cached refetch errors", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+    const renderBookings = () =>
+      renderToStaticMarkup(React.createElement(bookingsModule.Route.options.component));
+    const cachedClass = {
+      ...openClass,
+      id: "future-class",
+      starts_at: "2099-07-03T09:00:00.000Z",
+    };
+
+    try {
+      bookingsQueryResult = {
+        data: undefined,
+        isLoading: true,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+      const loadingHtml = renderBookings();
+      expect(loadingHtml).toContain('role="status"');
+      expect(loadingHtml).not.toContain('data-testid="empty-state"');
+
+      bookingsQueryResult = {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        refetch: () => Promise.resolve(),
+      };
+      const errorHtml = renderBookings();
+      expect(errorHtml).toContain('role="alert"');
+      expect(errorHtml).not.toContain('data-testid="empty-state"');
+      expect(errorHtml).not.toContain(">reservation<");
+
+      bookingsQueryResult = {
+        data: {
+          bookings: [
+            {
+              id: "booking-future",
+              status: "booked",
+              class: cachedClass,
+            },
+          ],
+          attendanceByBooking: {},
+          waitlist: [],
+        },
+        isLoading: false,
+        isError: true,
+        refetch: () => Promise.resolve(),
+      };
+      const cachedErrorHtml = renderBookings();
+      expect(cachedErrorHtml).toContain('role="alert"');
+      expect(cachedErrorHtml).toContain(">reservation<");
+    } finally {
+      bookingsQueryResult = {
+        data: emptyBookingsData,
+        isLoading: false,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+    }
   });
 });

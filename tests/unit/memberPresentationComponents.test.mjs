@@ -89,6 +89,61 @@ describe("member presentation components", () => {
     );
   });
 
+  test("MemberSegmentedControl moves focus, wraps, and reveals tabs in LTR and RTL", () => {
+    const items = [
+      { value: "upcoming", label: "Upcoming" },
+      { value: "waitlist", label: "Waitlist" },
+      { value: "past", label: "Past" },
+      { value: "cancelled", label: "Cancelled" },
+    ];
+
+    function exercise(dir, currentIndex, key) {
+      const changes = [];
+      const focused = [];
+      const revealed = [];
+      const prevented = [];
+      const tree = MemberSegmentedControl({
+        baseId: `bookings-${dir}`,
+        label: "Booking history",
+        value: items[currentIndex].value,
+        items,
+        onChange: (value) => changes.push(value),
+        dir,
+      });
+      const tabs = tree.props.children;
+      const nodes = tabs.map((_, index) => ({
+        focus: () => focused.push(index),
+        scrollIntoView: (options) => revealed.push({ index, options }),
+      }));
+      const parentElement = {
+        querySelectorAll: (selector) => {
+          expect(selector).toBe('[role="tab"]');
+          return nodes;
+        },
+      };
+
+      tabs[currentIndex].props.onKeyDown({
+        key,
+        currentTarget: { parentElement },
+        preventDefault: () => prevented.push(true),
+      });
+
+      return { changes, focused, revealed, prevented };
+    }
+
+    expect(exercise("ltr", 3, "ArrowRight")).toEqual({
+      changes: ["upcoming"],
+      focused: [0],
+      revealed: [{ index: 0, options: { block: "nearest", inline: "nearest" } }],
+      prevented: [true],
+    });
+    expect(exercise("ltr", 0, "ArrowLeft").changes).toEqual(["cancelled"]);
+    expect(exercise("rtl", 0, "ArrowRight").changes).toEqual(["cancelled"]);
+    expect(exercise("rtl", 3, "ArrowLeft").changes).toEqual(["upcoming"]);
+    expect(exercise("ltr", 2, "Home").changes).toEqual(["upcoming"]);
+    expect(exercise("rtl", 1, "End").changes).toEqual(["cancelled"]);
+  });
+
   test("MemberRouteSkeleton exposes loading status and decorative content", () => {
     const markup = renderToStaticMarkup(
       React.createElement(MemberRouteSkeleton, { route: "home" }),

@@ -8335,58 +8335,120 @@ select.input:focus {
   box-shadow: 0 10px 22px -20px rgba(11, 29, 58, 0.72);
 }
 
-.member-tab-bar {
-  display: flex;
-  gap: 0.35rem;
-  overflow-x: auto;
-  padding: 0.4rem;
+.member-booking-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(6.25rem, 1fr));
+  min-width: min(100%, 14rem);
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 24%, transparent);
+  border-radius: var(--cc-radius-card);
+  background: color-mix(in srgb, var(--color-surface) 76%, transparent);
 }
 
-.member-tab-button {
-  min-height: var(--cc-control-height-sm);
-  border: 1px solid transparent;
-  border-radius: var(--cc-radius-button);
-  padding: 0 1rem;
+.member-bookings-panel {
+  min-width: 0;
+  scroll-margin-top: 1rem;
+}
+
+.member-bookings-panel:focus-visible {
+  border-radius: var(--cc-radius-card);
+  outline: 2px solid var(--color-navy, #0b1d3a);
+  outline-offset: 4px;
+}
+
+.member-bookings-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.member-bookings-page .premium-lesson-card.lesson-reservation-card,
+.member-bookings-page[dir="rtl"] .premium-lesson-card.lesson-reservation-card {
+  grid-template-columns: 124px minmax(0, 1fr);
+  min-height: 0;
+  padding: 0.85rem;
+}
+
+.member-bookings-page[dir="rtl"] .premium-lesson-card.lesson-reservation-card {
+  grid-template-columns: minmax(0, 1fr) 124px;
+}
+
+.member-bookings-page .premium-lesson-card.lesson-reservation-card .lesson-reservation-card__media {
+  min-height: 104px;
+  border-radius: 14px;
+  aspect-ratio: 1;
+}
+
+.member-bookings-page .premium-lesson-card.lesson-reservation-card .lesson-card__title {
+  font-size: clamp(1.35rem, 2.1vw, 1.7rem);
+}
+
+.member-booking-action {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.member-booking-action--cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-slate, #6f7a8c);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-  transition:
-    transform 160ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
 }
 
-.member-tab-button:hover {
-  background: rgba(232, 223, 209, 0.45);
+.member-booking-action--cancel:hover {
   color: var(--color-navy, #0b1d3a);
+  text-decoration-color: currentColor;
 }
 
-.member-tab-button:active {
-  transform: scale(0.96);
-}
-
-.member-tab-button-active {
-  background: var(--color-navy, #0b1d3a);
-  border-color: var(--color-navy, #0b1d3a);
-  color: var(--color-ivory, #faf7f2);
-  box-shadow: 0 12px 24px -20px rgba(11, 29, 58, 0.85);
-}
-
-.member-tab-button-active .member-tab-count {
-  color: rgba(250, 247, 242, 0.72);
-}
-
-.member-tab-count {
-  color: var(--color-slate, #6f7a8c);
+.member-booking-action:focus-visible {
+  border-radius: var(--cc-radius-button);
+  outline: 2px solid var(--color-navy, #0b1d3a);
+  outline-offset: 2px;
 }
 
 @media (max-width: 760px) {
   :root {
     --member-bottom-nav-height: 84px;
+  }
+
+  .member-bookings-page .member-page-intro__aside,
+  .member-booking-counts {
+    width: 100%;
+  }
+
+  .member-bookings-page .member-segmented-control {
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+  }
+
+  .member-bookings-page .premium-lesson-card.lesson-reservation-card,
+  .member-bookings-page[dir="rtl"] .premium-lesson-card.lesson-reservation-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 0.85rem;
+  }
+
+  .member-bookings-page
+    .premium-lesson-card.lesson-reservation-card
+    .lesson-reservation-card__media,
+  .member-bookings-page[dir="rtl"]
+    .premium-lesson-card.lesson-reservation-card
+    .lesson-reservation-card__media {
+    display: none;
+  }
+
+  .member-bookings-page .premium-lesson-card.lesson-reservation-card .lesson-reservation-card__copy,
+  .member-bookings-page[dir="rtl"]
+    .premium-lesson-card.lesson-reservation-card
+    .lesson-reservation-card__copy {
+    grid-column: 1;
+    grid-row: 1;
+    padding-inline: 0;
+  }
+
+  .member-bookings-page .lesson-reservation-card__action-row {
+    align-items: stretch;
   }
 
   .member-schedule-filter-panel {
@@ -9711,7 +9773,6 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
     .field-label,
     label,
     .member-announcement-copy,
-    .member-tab-button,
     .session-panel-header,
     .session-field,
     .session-readonly-chip
@@ -9747,7 +9808,6 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
     .field-label,
     label,
     .member-announcement-copy,
-    .member-tab-button,
     .session-panel-header,
     .session-field,
     .session-readonly-chip
