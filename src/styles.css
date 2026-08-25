@@ -6181,6 +6181,96 @@ select.input:focus {
   margin-inline: auto;
 }
 
+.member-desktop-header {
+  flex: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold) 24%, transparent);
+  background: color-mix(in srgb, var(--color-surface-warm) 94%, transparent);
+  padding-inline: clamp(1rem, 4vw, 3rem);
+  backdrop-filter: blur(12px);
+}
+
+.member-desktop-header__row {
+  display: grid;
+  min-height: 68px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.member-desktop-header__brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+
+.member-desktop-header__brand img {
+  width: clamp(7.5rem, 15vw, 10rem);
+}
+
+.member-desktop-header__nav {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(0.55rem, 1.4vw, 1.3rem);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+
+.member-desktop-header__nav::-webkit-scrollbar {
+  display: none;
+}
+
+.member-desktop-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.member-shell-action > button,
+.member-desktop-header__actions > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.member-desktop-nav__link {
+  position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-slate);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.member-desktop-nav__link:hover {
+  color: var(--color-navy);
+}
+
+.member-desktop-nav__link--active {
+  color: var(--color-navy);
+  font-weight: 700;
+}
+
+.member-desktop-nav__link--active::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-gold);
+}
+
+.member-desktop-nav__link:focus-visible,
+.member-bottom-nav-link:focus-visible {
+  outline: 2px solid var(--color-navy);
+  outline-offset: 3px;
+}
+
 @media (max-width: 767px) {
   .member-content-frame,
   .admin-content-frame {
@@ -6367,6 +6457,22 @@ select.input:focus {
   padding-block: 1.25rem;
   color: var(--color-slate, #6f7a8c);
   text-align: start;
+}
+
+.member-route-transition {
+  animation: member-route-enter 190ms ease-out both;
+}
+
+@keyframes member-route-enter {
+  from {
+    opacity: 0.4;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 639px) {

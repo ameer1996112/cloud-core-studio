@@ -11,6 +11,7 @@ import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
 import { MemberPushOnboarding } from "@/components/member/MemberPushOnboarding";
 import { MemberWhatsappOnboarding } from "@/components/member/MemberWhatsappOnboarding";
+import { MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
 
@@ -101,18 +102,18 @@ export function AppShell({ role, children }: Props) {
     <button
       onClick={() => setMobileOpen(true)}
       aria-label={t("shell.openMenu")}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
     >
       <StandardMenuIcon />
     </button>
   ) : (
-    <MemberNotificationCenter viewport="mobile" />
+    <MemberNotificationCenter viewport="mobile" className="member-shell-action" />
   );
   const signOutControl = (
     <button
       onClick={signOut}
       aria-label={t("shell.signOut")}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] bg-transparent text-[var(--color-text-muted)] transition-[background-color,color] duration-200 hover:bg-gold/10 hover:text-[var(--color-text-primary)]"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-transparent text-[var(--color-text-muted)] transition-[background-color,color] duration-200 hover:bg-gold/10 hover:text-[var(--color-text-primary)]"
     >
       <LogOut className="h-[18px] w-[18px]" />
     </button>
@@ -155,21 +156,9 @@ export function AppShell({ role, children }: Props) {
 
   if (role === "member" && !isHydrated) {
     return (
-      <div className="fixed inset-0 bg-ivory text-foreground">
-        <div className="mx-auto flex min-h-full w-full max-w-[28rem] items-center justify-center px-6">
-          <div className="member-card w-full max-w-sm p-8 text-center shadow-[var(--shadow-elevated)]">
-            <img
-              src="/brand/cloud-core-logo-full.png"
-              alt="Cloud & Core Studio"
-              className="mx-auto h-auto w-[12.5rem]"
-            />
-            <div className="mx-auto mt-5 h-px w-12 bg-gold/70" />
-            <div className="mt-6 space-y-3">
-              <div className="skeleton-brand h-4 rounded-full" />
-              <div className="skeleton-brand mx-auto h-4 w-3/4 rounded-full" />
-              <div className="skeleton-brand mx-auto h-11 w-full rounded-[16px]" />
-            </div>
-          </div>
+      <div className="fixed inset-0 bg-ivory text-foreground" dir={isRtl ? "rtl" : "ltr"}>
+        <div className="member-content-frame px-4 pt-[calc(env(safe-area-inset-top)+4rem)]">
+          <MemberRouteSkeleton route="home" />
         </div>
       </div>
     );
@@ -239,70 +228,81 @@ export function AppShell({ role, children }: Props) {
           </div>
         </div>
 
-        {/* Page header */}
-        <header
-          className={`${useBottomNav ? "hidden md:block" : "block"} px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6`}
-        >
-          <div
-            className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
-          >
-            <div className="min-w-0">
-              <p className="eyebrow">{eyebrowFor(role)}</p>
-              <h1 className="cc-page-title mt-2 truncate">
-                {currentSectionLabel(pathname, groups)}
-              </h1>
-            </div>
-            <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
-              {useBottomNav ? (
-                <>
-                  <MemberNotificationCenter viewport="desktop" />
-                  <BrandHeaderWordmark className="scale-[0.95]" />
-                </>
-              ) : null}
-            </div>
-          </div>
-        </header>
-
-        {/* Member desktop/tablet top nav — replaces the missing sidebar */}
+        {/* Compact desktop navigation — member only */}
         {useBottomNav && (
-          <nav
-            aria-label={t("shell.practice")}
-            className="hidden md:block px-[clamp(1rem,4vw,3rem)] pb-3"
-          >
-            <div
-              className={`${contentFrameClass} flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gold/30 pb-2`}
-              dir={isRtl ? "rtl" : "ltr"}
-            >
-              {bottomTabs.map(({ to, icon: Icon, label, exact }) => {
-                const active = exact
-                  ? pathname === to
-                  : pathname === to || pathname.startsWith(to + "/");
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={`relative inline-flex min-h-11 items-center gap-2 text-sm transition-colors pb-2 ${
-                      active ? "text-navy font-medium" : "text-slate hover:text-navy"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 opacity-80" />
-                    <span>{label}</span>
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 -bottom-[1px] h-[2px] rounded-full bg-gold"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
+          <header className="member-desktop-header hidden md:block">
+            <div className={`${contentFrameClass} member-desktop-header__row`}>
+              <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
+                <BrandHeaderWordmark />
+              </Link>
+              <nav
+                aria-label={t("shell.practice")}
+                className="member-desktop-header__nav"
+                dir={isRtl ? "rtl" : "ltr"}
+              >
+                {bottomTabs.map((item) => {
+                  const { to, icon: Icon, label } = item;
+                  const active = isActive(pathname, item);
+                  return (
+                    <Link
+                      key={to}
+                      to={to}
+                      aria-current={active ? "page" : undefined}
+                      className={
+                        active
+                          ? "member-desktop-nav__link member-desktop-nav__link--active"
+                          : "member-desktop-nav__link"
+                      }
+                    >
+                      <Icon aria-hidden="true" className="h-4 w-4" />
+                      <span>{label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+              <div className="member-desktop-header__actions">
+                <MemberNotificationCenter viewport="desktop" className="member-shell-action" />
+                {signOutControl}
+              </div>
             </div>
-          </nav>
+          </header>
+        )}
+
+        {/* Page header — admin/instructor only */}
+        {!useBottomNav && (
+          <header className="block px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6">
+            <div
+              className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
+            >
+              <div className="min-w-0">
+                <p className="eyebrow">{eyebrowFor(role)}</p>
+                <h1 className="cc-page-title mt-2 truncate">
+                  {currentSectionLabel(pathname, groups)}
+                </h1>
+              </div>
+              <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
+                {useBottomNav ? (
+                  <>
+                    <MemberNotificationCenter viewport="desktop" />
+                    <BrandHeaderWordmark className="scale-[0.95]" />
+                  </>
+                ) : null}
+              </div>
+            </div>
+          </header>
         )}
 
         {/* Content */}
         <div className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
-          <div className={contentFrameClass}>{children}</div>
+          <div className={contentFrameClass}>
+            {useBottomNav ? (
+              <div key={pathname} className="member-route-transition">
+                {children}
+              </div>
+            ) : (
+              children
+            )}
+          </div>
         </div>
 
         {/* Bottom tabs — member only, mobile only */}
@@ -322,7 +322,7 @@ export function AppShell({ role, children }: Props) {
                     to={to}
                     aria-label={label}
                     aria-current={active ? "page" : undefined}
-                    className={`relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[11px] leading-tight transition-colors ${
+                    className={`member-bottom-nav-link relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[11px] leading-tight transition-colors ${
                       active ? "bg-white/72 text-navy" : "text-slate hover:text-navy"
                     }`}
                   >
