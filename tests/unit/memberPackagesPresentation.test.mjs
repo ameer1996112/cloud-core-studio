@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as actualRouter from "@tanstack/react-router";
+import * as actualI18n from "../../src/lib/i18n.ts";
+import { getPlanDisplay } from "../../src/lib/planDisplay.ts";
 
 const emptyPackageData = {
   mine: [],
@@ -21,6 +23,7 @@ const availablePlan = {
   credits: 5,
   duration_days: 30,
 };
+const availablePlanDisplay = getPlanDisplay(availablePlan, "en");
 
 let packageQueryResult = {
   data: { ...emptyPackageData, plans: [availablePlan] },
@@ -90,6 +93,7 @@ mock.module("@/lib/receipts.functions", () => ({ createCheckoutSession: {} }));
 mock.module("@/lib/subscriptions.functions", () => ({ cancelMySubscription: {} }));
 
 mock.module("@/lib/i18n", () => ({
+  ...actualI18n,
   LANG_META: {
     en: { dir: "ltr" },
     he: { dir: "rtl" },
@@ -166,15 +170,6 @@ mock.module("@/components/member/PremiumClassCard", () => ({
     React.createElement("div", { "data-testid": "empty-state" }, `${title} ${body}`),
 }));
 
-mock.module("@/lib/planDisplay", () => ({
-  formatPlanPrice: (plan) => `₪${Number(plan.price_cents) / 100}`,
-  getPlanDisplay: (plan) => ({
-    name: plan.name,
-    description: plan.description,
-    memberLine: plan.name,
-  }),
-}));
-
 mock.module("@/lib/test-records", () => ({ hasTestPlanRecord: () => false }));
 mock.module("@/hooks/useDocumentTitle", () => ({ useDocumentTitle: () => {} }));
 mock.module("@/components/ui/bidi", () => ({
@@ -244,7 +239,7 @@ describe("member packages presentation", () => {
         refetch: () => Promise.resolve(),
       };
       const cached = renderPackages();
-      expect(cached).toContain("Studio Five");
+      expect(cached).toContain(availablePlanDisplay.name);
       expect(cached).toContain("Choose package");
       expect(cached).not.toContain('role="alert"');
 
@@ -301,7 +296,7 @@ describe("member packages presentation", () => {
     expect(html).toContain('aria-labelledby="payment-sheet-title"');
     expect(html).toContain('aria-describedby="payment-sheet-description"');
     expect(html).toContain("packages.paymentTitle");
-    expect(html).toContain("Studio Five");
+    expect(html).toContain(availablePlanDisplay.name);
     expect(html).toContain("packages.cashLabel");
     expect(html).toContain("packages.cardRecurringLabel");
     expect(html).toContain("common.cancel");
