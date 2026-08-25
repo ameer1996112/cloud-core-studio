@@ -356,7 +356,6 @@ BEGIN
   IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','class_not_found'); END IF;
   IF v_class.status <> 'scheduled' THEN RETURN jsonb_build_object('status','error','message','class_not_open'); END IF;
   SELECT * INTO v_member FROM public.members WHERE id=v_user FOR UPDATE;
-  IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','member_not_found'); END IF;
   SELECT * INTO v_existing FROM public.bookings WHERE class_id=p_class_id AND member_id=v_user AND status='booked' LIMIT 1;
   IF FOUND THEN RETURN jsonb_build_object('status','already_booked','booking_id',v_existing.id,'remaining_credits',v_member.remaining_credits); END IF;
   IF v_class.booked_count >= v_class.capacity THEN RETURN jsonb_build_object('status','full'); END IF;
@@ -461,7 +460,6 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE v_class public.classes%ROWTYPE; v_member public.members%ROWTYPE; v_booking_id uuid; v_existing uuid; v_ent public.promotion_entitlements%ROWTYPE;
 BEGIN
   IF NOT public.has_role(p_actor_id,'admin') THEN RETURN jsonb_build_object('status','error','message','forbidden'); END IF;
-  PERFORM public.sweep_member_credits(p_member_id);
   PERFORM public.expire_promotion_entitlements(p_member_id);
   SELECT * INTO v_class FROM public.classes WHERE id=p_class_id FOR UPDATE;
   SELECT * INTO v_member FROM public.members WHERE id=p_member_id FOR UPDATE;
