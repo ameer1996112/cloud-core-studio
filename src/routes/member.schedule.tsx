@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
+import { RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState, MemberEmptyState } from "@/components/member/PremiumClassCard";
@@ -13,6 +14,8 @@ import {
   type DateScope,
 } from "@/components/member/MemberScheduleFilterPanel";
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
+import { MemberPageIntro } from "@/components/member/MemberPage";
+import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
 import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getMemberScheduleQueryKey, getViewerCacheKey } from "@/lib/memberQueryKeys";
@@ -30,6 +33,7 @@ import {
   readMemberScheduleClassId,
   syncGuestScheduleAuthIntent,
 } from "@/lib/guest-auth-intent";
+import { getScheduleEmptyStateKind } from "@/lib/member-ui";
 
 export const Route = createFileRoute("/member/schedule")({
   component: MemberSchedulePublic,
@@ -326,7 +330,7 @@ export function MemberScheduleContent({
     selectedClassId === undefined && typeof window !== "undefined"
       ? readMemberScheduleClassId(window.location.href)
       : null;
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: getMemberScheduleQueryKey(resolvedViewerCacheKey),
     queryFn: () => fetchSchedule({ data: { days: 14 } }),
   });
@@ -339,6 +343,11 @@ export function MemberScheduleContent({
     room?: string;
   }>({});
   const [dateScope, setDateScope] = useState<DateScope>("all");
+  const clearAllFilters = () => {
+    setSearch("");
+    setDateScope("all");
+    setFilter({});
+  };
   const [uncontrolledOpenClass, setUncontrolledOpenClass] = useState<string | null>(
     initialSelectedClassId,
   );
@@ -374,6 +383,9 @@ export function MemberScheduleContent({
   }, [openClass, session]);
 
   const classes = useMemo(() => data?.classes ?? [], [data?.classes]);
+  const hasScheduleData = data != null;
+  const isInitialLoading = isLoading && !hasScheduleData;
+  const fatalError = isError && !hasScheduleData;
   const member = data?.member;
   const booked = data?.bookingsByClass ?? {};
   const waiting = data?.waitlistByClass ?? {};
@@ -425,6 +437,20 @@ export function MemberScheduleContent({
   }
 
   const hasNoClasses = classes.length === 0;
+  const contentFilterCount = (search.trim() ? 1 : 0) + Object.values(filter).filter(Boolean).length;
+  const emptyStateKind = getScheduleEmptyStateKind(
+    classes.length,
+    filtered.length,
+    contentFilterCount,
+  );
+  const emptyTitle =
+    emptyStateKind === "filtered"
+      ? t("member.schedule.empty.filtered.title")
+      : t("member.schedule.empty.inventory.title");
+  const emptyBody =
+    emptyStateKind === "filtered"
+      ? t("member.schedule.empty.filtered.body")
+      : t("member.schedule.empty.inventory.body");
   const guestStatCells =
     guestCopy && guestStats
       ? [
@@ -458,136 +484,182 @@ export function MemberScheduleContent({
         })
       : deriveGuestClassState(cls);
 
-  return (
-    <section dir={dir} className="member-page w-full space-y-6 pb-10">
-      <div className="member-page-panel p-5 sm:p-8">
-        <div
-          className={`grid gap-6 ${session ? "md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:items-end" : "md:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] md:items-center"}`}
-        >
-          <div className="member-page-copy">
-            {session ? (
-              <>
-                <p className="member-eyebrow">{t("member.schedule.kicker")}</p>
-                <h1 className="member-page-title mt-3">{t("nav.schedule")}</h1>
-                <p className="member-page-body mt-3">{t("member.schedule.body")}</p>
-              </>
-            ) : (
-              <>
-                <p className="member-eyebrow">{t("nav.schedule")}</p>
-                <p className="member-page-body mt-2 max-w-2xl">{guestCopy?.scheduleHint}</p>
-              </>
-            )}
-          </div>
-          <div className="member-stat-strip" dir={dir}>
-            {session ? (
-              <>
-                <StatCell label={t("member.stat.available")} value={filtered.length} />
-                <StatCell label={t("member.stat.credits")} value={member?.remaining_credits ?? 0} />
-              </>
-            ) : (
-              guestStatCells.map((stat) => (
+  const filterPanel = (
+    <MemberScheduleFilterPanel
+      dir={dir}
+      lang={lang}
+      search={search}
+      onSearchChange={setSearch}
+      dateScope={dateScope}
+      onDateScopeChange={setDateScope}
+      filters={[
+        {
+          key: "level",
+          label: t("member.filter.level"),
+          options: levels,
+          value: filter.level,
+          formatOption: (value) => localizedFilterLabel(value, lang),
+        },
+        {
+          key: "energy",
+          label: t("member.filter.energy"),
+          options: energies,
+          value: filter.energy,
+          formatOption: (value) => localizedToneName(value, undefined, lang),
+        },
+        ...(rooms.length > 1
+          ? [
+              {
+                key: "room" as const,
+                label: t("common.room"),
+                options: rooms,
+                value: filter.room,
+                formatOption: (value: string) => localizedRoomName({ name: value }, value) ?? value,
+              },
+            ]
+          : []),
+        {
+          key: "instructor",
+          label: t("common.with"),
+          options: instructors,
+          value: filter.instructor,
+          formatOption: (value) => localizedInstructorName(value),
+        },
+      ]}
+      onFilterChange={(key, value) => setFilter((current) => ({ ...current, [key]: value }))}
+      onClearAll={clearAllFilters}
+    />
+  );
+
+  const scheduleSections = Array.from(groups.entries()).map(([key, items]) => (
+    <ScheduleDaySection key={key} date={new Date(key)} count={items.length}>
+      {items.map((c: any, index: number) => (
+        <VisualClassCard
+          key={c.id}
+          cls={c}
+          state={cardStateFor(c)}
+          onOpen={() => setOpenClass(c.id)}
+          variant="standard"
+          index={index}
+          previousLesson={index > 0 ? items[index - 1] : null}
+          roomCount={rooms.length}
+          context="memberSchedule"
+          eager={index === 0}
+        />
+      ))}
+    </ScheduleDaySection>
+  ));
+
+  if (!session) {
+    return (
+      <section dir={dir} className="member-page w-full space-y-6 pb-10">
+        <div className="member-page-panel p-5 sm:p-8">
+          <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] md:items-center">
+            <div className="member-page-copy">
+              <p className="member-eyebrow">{t("nav.schedule")}</p>
+              <p className="member-page-body mt-2 max-w-2xl">{guestCopy?.scheduleHint}</p>
+            </div>
+            <div className="member-stat-strip" dir={dir}>
+              {guestStatCells.map((stat) => (
                 <StatCell
                   key={stat.label}
                   label={stat.label}
                   value={stat.value}
                   valueClassName={stat.valueClassName}
                 />
-              ))
-            )}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      <WeeklyPromoBanner onThisWeekClick={() => setDateScope("week")} />
+        <WeeklyPromoBanner onThisWeekClick={() => setDateScope("week")} />
 
-      <MemberScheduleFilterPanel
-        dir={dir}
-        lang={lang}
-        search={search}
-        onSearchChange={setSearch}
-        dateScope={dateScope}
-        onDateScopeChange={setDateScope}
-        filters={[
-          {
-            key: "level",
-            label: t("member.filter.level"),
-            options: levels,
-            value: filter.level,
-            formatOption: (value) => localizedFilterLabel(value, lang),
-          },
-          {
-            key: "energy",
-            label: t("member.filter.energy"),
-            options: energies,
-            value: filter.energy,
-            formatOption: (value) => localizedToneName(value, undefined, lang),
-          },
-          ...(rooms.length > 1
-            ? [
-                {
-                  key: "room" as const,
-                  label: t("common.room"),
-                  options: rooms,
-                  value: filter.room,
-                  formatOption: (value: string) =>
-                    localizedRoomName({ name: value }, value) ?? value,
-                },
-              ]
-            : []),
-          {
-            key: "instructor",
-            label: t("common.with"),
-            options: instructors,
-            value: filter.instructor,
-            formatOption: (value) => localizedInstructorName(value),
-          },
-        ]}
-        onFilterChange={(key, value) => setFilter((current) => ({ ...current, [key]: value }))}
+        {filterPanel}
+
+        {isLoading && (
+          <div className="space-y-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-[148px] skeleton-brand rounded-[var(--cc-radius-card)]" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && filtered.length === 0 && (
+          <MemberEmptyState
+            variant="schedule"
+            title={hasNoClasses ? t("member.empty.schedule.title") : t("member.noSessions")}
+            body={hasNoClasses ? t("member.empty.schedule.body") : t("member.clearFilters")}
+            primaryAction={emptyStatePrimaryAction}
+            secondaryAction={emptyStateSecondaryAction}
+          />
+        )}
+
+        {!isLoading && scheduleSections}
+
+        <ClassDetailSheet
+          classId={openClass}
+          open={!!openClass}
+          onOpenChange={(v) => !v && setOpenClass(null)}
+          viewerContext="guest"
+          viewerCacheKey={resolvedViewerCacheKey}
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section dir={dir} className="member-schedule-page member-page w-full space-y-6 pb-10">
+      <MemberPageIntro
+        eyebrow={t("member.schedule.kicker")}
+        title={t("nav.schedule")}
+        body={t("member.schedule.body")}
+        aside={
+          hasScheduleData ? (
+            <div className="member-schedule-credit-aside">
+              <p className="member-eyebrow">{t("member.stat.credits")}</p>
+              <p className="numeric-display numeric-display-md">{member?.remaining_credits ?? 0}</p>
+            </div>
+          ) : (
+            <div className="member-schedule-credit-placeholder skeleton-brand" aria-hidden="true" />
+          )
+        }
       />
 
-      {isLoading && (
-        <div className="space-y-3">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-[148px] skeleton-brand rounded-[var(--cc-radius-card)]" />
-          ))}
-        </div>
-      )}
+      {fatalError ? (
+        <MemberRouteError onRetry={() => void refetch()} />
+      ) : isInitialLoading ? (
+        <MemberRouteSkeleton route="schedule" />
+      ) : (
+        <>
+          {filterPanel}
 
-      {!isLoading && filtered.length === 0 && (
-        <MemberEmptyState
-          variant="schedule"
-          title={hasNoClasses ? t("member.empty.schedule.title") : t("member.noSessions")}
-          body={hasNoClasses ? t("member.empty.schedule.body") : t("member.clearFilters")}
-          primaryAction={emptyStatePrimaryAction}
-          secondaryAction={emptyStateSecondaryAction}
-        />
-      )}
+          {filtered.length === 0 ? (
+            <div className="member-schedule-empty-state">
+              <MemberEmptyState variant="schedule" title={emptyTitle} body={emptyBody} />
+              {emptyStateKind === "filtered" ? (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="btn-outline member-schedule-empty-reset"
+                >
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  <span>{t("member.schedule.filter.clear")}</span>
+                </button>
+              ) : null}
+            </div>
+          ) : (
+            scheduleSections
+          )}
 
-      {!isLoading &&
-        Array.from(groups.entries()).map(([key, items]) => (
-          <ScheduleDaySection key={key} date={new Date(key)} count={items.length}>
-            {items.map((c: any, index: number) => (
-              <VisualClassCard
-                key={c.id}
-                cls={c}
-                state={cardStateFor(c)}
-                onOpen={() => setOpenClass(c.id)}
-                variant="standard"
-                index={index}
-                previousLesson={index > 0 ? items[index - 1] : null}
-                roomCount={rooms.length}
-                context="memberSchedule"
-                eager={index === 0}
-              />
-            ))}
-          </ScheduleDaySection>
-        ))}
+          <WeeklyPromoBanner onThisWeekClick={() => setDateScope("week")} />
+        </>
+      )}
 
       <ClassDetailSheet
         classId={openClass}
         open={!!openClass}
         onOpenChange={(v) => !v && setOpenClass(null)}
-        viewerContext={session ? "member" : "guest"}
+        viewerContext="member"
         viewerCacheKey={resolvedViewerCacheKey}
       />
     </section>
