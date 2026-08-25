@@ -54,35 +54,37 @@ export function MemberSegmentedControl<Value extends string>({
   }
 
   return (
-    <div
-      className="member-segmented-control no-scrollbar"
-      role="tablist"
-      aria-label={label}
-      dir={dir}
-    >
-      {items.map((item, index) => {
-        const selected = item.value === selectedValue;
-        const { tabId, panelId } = memberSegmentIds(baseId, item.value);
-        return (
-          <button
-            key={item.value}
-            id={tabId}
-            type="button"
-            role="tab"
-            aria-selected={selected}
-            aria-controls={panelId}
-            tabIndex={selected ? 0 : -1}
-            className="member-segmented-control__tab"
-            onClick={() => onChange(item.value)}
-            onKeyDown={(event) => move(event, index)}
-          >
-            <span>{item.label}</span>
-            {typeof item.count === "number" ? (
-              <span aria-label={`${item.count}`}> · {item.count}</span>
-            ) : null}
-          </button>
-        );
-      })}
+    <div className="member-segmented-control-frame" dir={dir}>
+      <div
+        className="member-segmented-control no-scrollbar"
+        role="tablist"
+        aria-label={label}
+        dir={dir}
+      >
+        {items.map((item, index) => {
+          const selected = item.value === selectedValue;
+          const { tabId, panelId } = memberSegmentIds(baseId, item.value);
+          return (
+            <button
+              key={item.value}
+              id={tabId}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-controls={panelId}
+              tabIndex={selected ? 0 : -1}
+              className="member-segmented-control__tab"
+              onClick={() => onChange(item.value)}
+              onKeyDown={(event) => move(event, index)}
+            >
+              <span>{item.label}</span>
+              {typeof item.count === "number" ? (
+                <span aria-label={`${item.count}`}> · {item.count}</span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

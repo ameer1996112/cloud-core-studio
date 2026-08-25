@@ -56,7 +56,7 @@ export default defineConfig({
         "./src/routes/__root.tsx",
         "./src/routes/_authenticated/route.tsx",
         "./src/routes/_authenticated/member/index.tsx",
-        "./src/routes/_authenticated/member/schedule.tsx",
+        "./src/routes/member.schedule.tsx",
         "./src/components/app-shell/AppShell.tsx",
         "./src/components/visual/VisualClassCard.tsx",
       ],

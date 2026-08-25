@@ -110,7 +110,8 @@ describe("member presentation components", () => {
         onChange: (value) => changes.push(value),
         dir,
       });
-      const tabs = tree.props.children;
+      const tablist = tree.props.children;
+      const tabs = tablist.props.children;
       const nodes = tabs.map((_, index) => ({
         focus: () => focused.push(index),
         scrollIntoView: (options) => revealed.push({ index, options }),

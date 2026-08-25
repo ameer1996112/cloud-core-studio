@@ -281,89 +281,6 @@ function MyBookings() {
         }
       />
 
-      {showConciergeOnboarding && (
-        <section className="member-card overflow-hidden border-gold/30">
-          <div className="bg-navy px-5 py-5 text-cream sm:px-7">
-            <div className="flex items-center gap-2 text-gold">
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              <p className="text-xs font-semibold uppercase tracking-[0.18em]">
-                {onboardingCopy.eyebrow}
-              </p>
-            </div>
-            <h2 className="mt-3 text-2xl font-semibold">{onboardingCopy.title}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-cream/75">{onboardingCopy.body}</p>
-          </div>
-          <div className="grid gap-3 bg-cream/70 p-5 sm:grid-cols-3 sm:p-7">
-            {(
-              [
-                ["quiet", onboardingCopy.quiet, onboardingCopy.quietNote],
-                ["balanced", onboardingCopy.balanced, onboardingCopy.balancedNote],
-                ["attentive", onboardingCopy.attentive, onboardingCopy.attentiveNote],
-              ] as const
-            ).map(([choice, label, note]) => (
-              <button
-                key={choice}
-                type="button"
-                disabled={resolveOnboarding.isPending}
-                onClick={() => resolveOnboarding.mutate({ kind: "choice", choice })}
-                className="rounded-2xl border border-gold/25 bg-white p-4 text-start transition hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-sm disabled:opacity-50"
-              >
-                <span className="block font-semibold text-navy">{label}</span>
-                <span className="mt-1 block text-xs leading-5 text-slate">{note}</span>
-              </button>
-            ))}
-            <button
-              type="button"
-              disabled={resolveOnboarding.isPending}
-              onClick={() => resolveOnboarding.mutate({ kind: "deferred" })}
-              className="member-concierge-defer-action min-h-11 text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
-            >
-              {onboardingCopy.later}
-            </button>
-          </div>
-        </section>
-      )}
-
-      {firstVisitBooking?.class && (
-        <section className="member-card member-panel-sand p-5 sm:p-7">
-          <p className="member-eyebrow">{firstVisitCopy.eyebrow}</p>
-          <h2 className="member-section-title mt-2">{firstVisitCopy.title}</h2>
-          <p className="mt-3 font-medium text-navy">
-            {localizedClassTitle(firstVisitBooking.class)}
-          </p>
-          <p className="mt-1 text-sm text-slate">
-            {formatDate(firstVisitBooking.class.starts_at)} ·{" "}
-            {formatTime(firstVisitBooking.class.starts_at)}
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {[firstVisitCopy.arrival, firstVisitCopy.clothing, firstVisitCopy.expectation].map(
-              (item) => (
-                <div key={item} className="rounded-xl border border-gold/20 bg-white/70 p-4">
-                  <p className="text-sm leading-6 text-slate">{item}</p>
-                </div>
-              ),
-            )}
-          </div>
-          {(firstVisitBooking.class.room_ref?.name ||
-            firstVisitBooking.class.room ||
-            settings?.address) && (
-            <p className="mt-4 text-sm text-slate">
-              <span className="font-semibold text-navy">{firstVisitCopy.location}: </span>
-              {firstVisitBooking.class.room_ref?.name ||
-                firstVisitBooking.class.room ||
-                settings?.address}
-            </p>
-          )}
-          <p className="mt-5 text-xs text-slate">
-            {lang === "he"
-              ? "Cloud & Core Concierge"
-              : lang === "ar"
-                ? "كونسيرج Cloud & Core"
-                : "Cloud & Core Concierge"}
-          </p>
-        </section>
-      )}
-
       <MemberSegmentedControl
         baseId="member-bookings"
         label={t("nav.myBookings")}
@@ -462,6 +379,89 @@ function MyBookings() {
           </div>
         ) : null}
       </div>
+
+      {showConciergeOnboarding && (
+        <section className="member-card overflow-hidden border-gold/30">
+          <div className="bg-navy px-5 py-5 text-cream sm:px-7">
+            <div className="flex items-center gap-2 text-gold">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <p className="text-xs font-semibold uppercase tracking-[0.18em]">
+                {onboardingCopy.eyebrow}
+              </p>
+            </div>
+            <h2 className="mt-3 text-2xl font-semibold">{onboardingCopy.title}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-cream/75">{onboardingCopy.body}</p>
+          </div>
+          <div className="grid gap-3 bg-cream/70 p-5 sm:grid-cols-3 sm:p-7">
+            {(
+              [
+                ["quiet", onboardingCopy.quiet, onboardingCopy.quietNote],
+                ["balanced", onboardingCopy.balanced, onboardingCopy.balancedNote],
+                ["attentive", onboardingCopy.attentive, onboardingCopy.attentiveNote],
+              ] as const
+            ).map(([choice, label, note]) => (
+              <button
+                key={choice}
+                type="button"
+                disabled={resolveOnboarding.isPending}
+                onClick={() => resolveOnboarding.mutate({ kind: "choice", choice })}
+                className="rounded-2xl border border-gold/25 bg-white p-4 text-start transition hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-sm disabled:opacity-50"
+              >
+                <span className="block font-semibold text-navy">{label}</span>
+                <span className="mt-1 block text-xs leading-5 text-slate">{note}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={resolveOnboarding.isPending}
+              onClick={() => resolveOnboarding.mutate({ kind: "deferred" })}
+              className="member-concierge-defer-action min-h-11 text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
+            >
+              {onboardingCopy.later}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {firstVisitBooking?.class && (
+        <section className="member-card member-panel-sand p-5 sm:p-7">
+          <p className="member-eyebrow">{firstVisitCopy.eyebrow}</p>
+          <h2 className="member-section-title mt-2">{firstVisitCopy.title}</h2>
+          <p className="mt-3 font-medium text-navy">
+            {localizedClassTitle(firstVisitBooking.class)}
+          </p>
+          <p className="mt-1 text-sm text-slate">
+            {formatDate(firstVisitBooking.class.starts_at)} ·{" "}
+            {formatTime(firstVisitBooking.class.starts_at)}
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[firstVisitCopy.arrival, firstVisitCopy.clothing, firstVisitCopy.expectation].map(
+              (item) => (
+                <div key={item} className="rounded-xl border border-gold/20 bg-white/70 p-4">
+                  <p className="text-sm leading-6 text-slate">{item}</p>
+                </div>
+              ),
+            )}
+          </div>
+          {(firstVisitBooking.class.room_ref?.name ||
+            firstVisitBooking.class.room ||
+            settings?.address) && (
+            <p className="mt-4 text-sm text-slate">
+              <span className="font-semibold text-navy">{firstVisitCopy.location}: </span>
+              {firstVisitBooking.class.room_ref?.name ||
+                firstVisitBooking.class.room ||
+                settings?.address}
+            </p>
+          )}
+          <p className="mt-5 text-xs text-slate">
+            {lang === "he"
+              ? "Cloud & Core Concierge"
+              : lang === "ar"
+                ? "كونسيرج Cloud & Core"
+                : "Cloud & Core Concierge"}
+          </p>
+        </section>
+      )}
 
       <Dialog open={!!confirmCancel} onOpenChange={(v) => !v && setConfirmCancel(null)}>
         <DialogContent dir={dir} className="max-w-md bg-ivory border-gold/30">

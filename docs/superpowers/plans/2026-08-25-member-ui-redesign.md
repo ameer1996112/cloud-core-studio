@@ -1005,7 +1005,7 @@ git commit -m "feat: improve member profile accessibility"
 - Modify only if a defect is found: the member files changed in Tasks 1–8
 - Update: this plan's checkboxes during execution
 
-- [ ] **Step 1: Install exactly the locked dependencies**
+- [x] **Step 1: Install exactly the locked dependencies**
 
 Run:
 
@@ -1015,7 +1015,7 @@ bun install
 
 Expected: dependencies install successfully without changing application source or committing environment files.
 
-- [ ] **Step 2: Run all focused member tests**
+- [x] **Step 2: Run all focused member tests**
 
 Run:
 
@@ -1025,7 +1025,7 @@ bun test tests/unit/memberUi.test.mjs tests/unit/memberPresentationComponents.te
 
 Expected: PASS with zero failures.
 
-- [ ] **Step 3: Run the full automated suite**
+- [x] **Step 3: Run the full automated suite**
 
 Run:
 
@@ -1035,7 +1035,9 @@ bun test tests/unit tests/integration
 
 Expected: PASS with zero failures. Fix only regressions caused by this branch; document unrelated pre-existing failures rather than masking them.
 
-- [ ] **Step 4: Run lint and production build**
+Result: 713 passed and 3 skipped in the restricted sandbox; the three loopback-only App Marketing probes were blocked by sandbox networking. Their complete file passed separately outside that restriction (14 passed, 0 failed).
+
+- [x] **Step 4: Run lint and production build**
 
 Run:
 
@@ -1058,7 +1060,9 @@ Verify navigation, booking tabs, schedule filter sheet, profile fields, dialogs,
 
 Capture mobile 390 by 844 and desktop 1440 by 1000 screenshots for all five routes in Hebrew, plus representative Arabic and English screenshots for direction validation. Store them in a new dated directory adjacent to the approved audit baseline and include the absolute directory path in the handoff.
 
-- [ ] **Step 8: Run code review and apply verified fixes**
+Blocked: all available disposable member credentials are invalid, and the archived browser sessions have expired (refresh returns 400). No safe authenticated fixture is available, so Steps 5–7 remain intentionally incomplete.
+
+- [x] **Step 8: Run code review and apply verified fixes**
 
 Use the repository `code-review` skill against the complete branch diff. Re-run the focused test that covers each accepted fix, followed by lint and build if source changes.
 
