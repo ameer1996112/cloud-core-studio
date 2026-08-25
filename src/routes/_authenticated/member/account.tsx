@@ -20,6 +20,10 @@ import {
   setMyPersonalConciergePause,
 } from "@/lib/personalConcierge.functions";
 import { resolveMemberProfileLanguage } from "@/lib/memberProfileLanguage";
+import {
+  getMemberProfileQueryView,
+  shouldResetMemberProfileSaveOnEdit,
+} from "@/lib/memberProfileState";
 
 type ProfileForm = {
   name?: string;
@@ -60,7 +64,7 @@ function MemberAccount() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isPending, isError, isSuccess, refetch } = useQuery({
     queryKey: ["member-packages"],
     queryFn: () => fetchPkg(),
   });
@@ -70,8 +74,12 @@ function MemberAccount() {
   });
   const me = data?.member as MemberProfile | undefined;
   const hasProfileData = Boolean(me);
-  const isInitialLoading = isLoading && !hasProfileData;
-  const hasFatalError = !hasProfileData && (isError || !isLoading);
+  const profileQueryView = getMemberProfileQueryView({
+    hasProfileData,
+    isPending,
+    isError,
+    isSuccess,
+  });
 
   const [form, setForm] = useState<ProfileForm>({});
   const [deletionReason, setDeletionReason] = useState("");
@@ -190,8 +198,10 @@ function MemberAccount() {
 
   const val = <K extends keyof ProfileForm>(k: K) =>
     form[k] !== undefined ? form[k] : (me?.[k] ?? "");
-  const set = <K extends keyof ProfileForm>(k: K, v: NonNullable<ProfileForm[K]>) =>
+  const set = <K extends keyof ProfileForm>(k: K, v: NonNullable<ProfileForm[K]>) => {
+    if (shouldResetMemberProfileSaveOnEdit(update)) update.reset();
     setForm((f) => ({ ...f, [k]: v }));
+  };
   const selectedLanguage = resolveMemberProfileLanguage(
     form.preferred_language,
     me?.preferred_language,
@@ -214,14 +224,12 @@ function MemberAccount() {
 
   return (
     <section dir={dir} className="member-page member-account-page w-full pb-10">
-      {isInitialLoading ? <MemberRouteSkeleton route="account" /> : null}
+      {profileQueryView === "loading" ? <MemberRouteSkeleton route="account" /> : null}
 
-      {hasFatalError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
+      {profileQueryView === "error" ? <MemberRouteError onRetry={() => void refetch()} /> : null}
 
-      {hasProfileData && me ? (
+      {profileQueryView === "content" && me ? (
         <div className="member-account-page__content">
-          {isError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
-
           <MemberPageIntro
             eyebrow={t("member.account.kicker")}
             title={me.name?.trim() || t("nav.profile")}
