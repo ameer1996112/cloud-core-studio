@@ -148,8 +148,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 521.367,
-      "sha256": "eb40ae1de79682a1d58a94d7bfb651d21c9ddaf4b6081fef84eb4b968aa13018",
+      "sharpnessLaplacianVariance": 521.498,
+      "sha256": "e902366104952c35953bbeaac505236a3e91e6bbfd2aeacfae7739c642a51d50",
       "deterministicCompositeMatches": true
     },
     {
@@ -163,8 +163,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 583.711,
-      "sha256": "8ff4bee6384ba262984cfc426dad9da4348b4ea2ec5477007c5c92c7c347339b",
+      "sharpnessLaplacianVariance": 574.246,
+      "sha256": "e6217b4b7a17a0382cbba4244e999c769bc44c039037d429825ba3b3e2191f99",
       "deterministicCompositeMatches": true
     },
     {
@@ -178,8 +178,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 424.145,
-      "sha256": "3015d5286239adddd689d9502a7f9b884558eb9065d9e3e25c498aa250d34acc",
+      "sharpnessLaplacianVariance": 397.271,
+      "sha256": "3d05b490f4c0978ec26ede389f05243bc05e11b1ebb5b11f3a5760ea08a241d2",
       "deterministicCompositeMatches": true
     },
     {
@@ -193,8 +193,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 488.582,
-      "sha256": "e3357169fdcabd64161161f2da9547e7e108f1502ed822bb1c9e8eacca8ccb7b",
+      "sharpnessLaplacianVariance": 460.467,
+      "sha256": "d677bf4629f9ddc68bc212848a36f7e0c50a0d327fb45d4c9bafbebf49b23c42",
       "deterministicCompositeMatches": true
     },
     {
@@ -208,8 +208,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 1280.585,
-      "sha256": "da50d5c6faf3d3d23a534f579ff1ea80d81e73eab1764569e056d9a2dcf53255",
+      "sharpnessLaplacianVariance": 1214.846,
+      "sha256": "f194b3d8c1adb6967a936a7a596b6412a80d3fd8fc716afaf379194c829fc754",
       "deterministicCompositeMatches": true
     },
     {
@@ -223,8 +223,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 451.756,
-      "sha256": "be01e742b37080a7c438de090c7f9a5d1f31f59d3bef149acfbb83df9c504988",
+      "sharpnessLaplacianVariance": 518.327,
+      "sha256": "111fc2a4193e46fb6c2d74dbd4910f928f4114e3745e5afeea22cae6996edccf",
       "deterministicCompositeMatches": true
     },
     {
@@ -238,8 +238,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 485.693,
-      "sha256": "090ef02e992490f5153b92090a915a01ca330cc0b9e77fdc1f74d9aa934effff",
+      "sharpnessLaplacianVariance": 478.207,
+      "sha256": "c458ad469484b0e37cb42c184c67aa4cd172ab32ed2df529669d7844a9328f0f",
       "deterministicCompositeMatches": true
     },
     {
@@ -253,8 +253,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 392.268,
-      "sha256": "536539068c441b6dd08df4005bd54e3344745c62afe5ed84d008b73328df98ab",
+      "sharpnessLaplacianVariance": 367.701,
+      "sha256": "a7df4b89c1ad19bc667924ca4eda9e10ebb65ad4196edb750e598286fc773fe4",
       "deterministicCompositeMatches": true
     },
     {
@@ -268,8 +268,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 388.781,
-      "sha256": "ade9470194e17845bde59acf0ee1951249b5c56243941739e28abf5c68538d04",
+      "sharpnessLaplacianVariance": 373.668,
+      "sha256": "2d0c0214d0363bf9bc441f07686b72427c03a8efc3d064c28e2c09202e394049",
       "deterministicCompositeMatches": true
     },
     {
@@ -283,8 +283,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 1129.496,
-      "sha256": "2aba11f8ad3ca9b7b40c710a54924c7f0f2504fbdb31b1914b47837f6ddb6cb8",
+      "sharpnessLaplacianVariance": 1119.519,
+      "sha256": "c8461de77253fd2ce1dc6f5904c7bc9b67aa217ae71e9e4053db993ebb41a32c",
       "deterministicCompositeMatches": true
     },
     {
@@ -298,8 +298,8 @@
       "channels": 3,
       "hasAlpha": false,
       "opaque": true,
-      "sharpnessLaplacianVariance": 437.434,
-      "sha256": "e35143e8ec3245bd34c91bd5c12448986046f0974ed96c5b32576c85e472230a",
+      "sharpnessLaplacianVariance": 511.961,
+      "sha256": "f3ee66d96defea03f45283f36d6df038a867cf27dd990cf1b061e77471349501",
       "deterministicCompositeMatches": true
     }
   ],
@@ -313,11 +313,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        2800
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 14.862514,
+      "horizontalSourceCropPercent": 0,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 14.948397,
       "reusedOrStretched": false
     },
     {
@@ -329,11 +330,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        2992
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 4.87658,
+      "horizontalSourceCropPercent": 0,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 4.892725,
       "reusedOrStretched": false
     },
     {
@@ -345,11 +347,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        2902
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 22.087146,
+      "horizontalSourceCropPercent": 0,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 21.553915,
       "reusedOrStretched": false
     },
     {
@@ -361,11 +364,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        3196
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 6.670372,
+      "horizontalSourceCropPercent": 0.013904,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 6.151765,
       "reusedOrStretched": false
     },
     {
@@ -377,11 +381,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        3052
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 9.017787,
+      "horizontalSourceCropPercent": 0.01062,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 9.12889,
       "reusedOrStretched": false
     },
     {
@@ -393,11 +398,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        2800
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 15.165211,
+      "horizontalSourceCropPercent": 0,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 14.995906,
       "reusedOrStretched": false
     },
     {
@@ -409,11 +415,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        2992
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 5.262443,
+      "horizontalSourceCropPercent": 0,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 5.325883,
       "reusedOrStretched": false
     },
     {
@@ -425,11 +432,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        2902
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 21.585088,
+      "horizontalSourceCropPercent": 0,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 21.146004,
       "reusedOrStretched": false
     },
     {
@@ -441,11 +449,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        3196
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 6.388379,
+      "horizontalSourceCropPercent": 0.013904,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 6.157307,
       "reusedOrStretched": false
     },
     {
@@ -457,11 +466,12 @@
       ],
       "ipadDimensions": [
         2048,
-        2732
+        3052
       ],
       "iphoneHasAlpha": false,
       "ipadHasAlpha": false,
-      "stretchedIphoneVsIpadMeanAbsolutePercent": 9.22863,
+      "horizontalSourceCropPercent": 0.01062,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 9.348163,
       "reusedOrStretched": false
     }
   ],
@@ -492,123 +502,183 @@
     "captureFiles": [
       {
         "path": "iphone-6.5/he/01-home-he.png",
-        "sha256": "e3ee6278a8e3f626a2bccec6cc6e950c9a85f66a3e684c04cc4c82b9b455376b"
+        "sha256": "e3ee6278a8e3f626a2bccec6cc6e950c9a85f66a3e684c04cc4c82b9b455376b",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/he/02-schedule-he.png",
-        "sha256": "8a44f35bde0e20381208c80cc915cfd94072028fb2982cd7d22e4d17871b959f"
+        "sha256": "8a44f35bde0e20381208c80cc915cfd94072028fb2982cd7d22e4d17871b959f",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/he/03-bookings-he.png",
-        "sha256": "5dc2c81d2926a6ef160c69cc267b184d004a6bed3b490e1e558be8243dcbdc09"
+        "sha256": "5dc2c81d2926a6ef160c69cc267b184d004a6bed3b490e1e558be8243dcbdc09",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/he/04-packages-he.png",
-        "sha256": "70dadaefaba6d03f754ec16d0486b2ba7918d8f59a99564c0d6f01d70aa5b04a"
+        "sha256": "70dadaefaba6d03f754ec16d0486b2ba7918d8f59a99564c0d6f01d70aa5b04a",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/he/05-profile-he.png",
-        "sha256": "4f26af8dda06882ab0b60b0dcf28e21cae96e2bf5df503bc67c95647af7864c9"
+        "sha256": "4f26af8dda06882ab0b60b0dcf28e21cae96e2bf5df503bc67c95647af7864c9",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/en/01-home-en.png",
-        "sha256": "1aa08e379b3ef16499c1121a644cbda3bb7af91653038101d4b494c2e9724cf1"
+        "sha256": "1aa08e379b3ef16499c1121a644cbda3bb7af91653038101d4b494c2e9724cf1",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/en/02-schedule-en.png",
-        "sha256": "a52e325b151cfaa4ed1eb1b4dfa9f01998e80372a97ad3be35bcb88afebd9a29"
+        "sha256": "a52e325b151cfaa4ed1eb1b4dfa9f01998e80372a97ad3be35bcb88afebd9a29",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/en/03-bookings-en.png",
-        "sha256": "b64c4ef8cf3fbf048f1b74c25810c9dd5b19812893936959b715a2e20cf1ea0a"
+        "sha256": "b64c4ef8cf3fbf048f1b74c25810c9dd5b19812893936959b715a2e20cf1ea0a",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/en/04-packages-en.png",
-        "sha256": "893575f2cca52b7c2e6524cfe2a80a03963fd8d245ad031452cce1d32f89e204"
+        "sha256": "893575f2cca52b7c2e6524cfe2a80a03963fd8d245ad031452cce1d32f89e204",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/en/05-profile-en.png",
-        "sha256": "4834d229b3ef17e422c25bb63c1c5511a2b07eb48ff0dd832465e13605e76097"
+        "sha256": "4834d229b3ef17e422c25bb63c1c5511a2b07eb48ff0dd832465e13605e76097",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/ar/01-home-ar.png",
-        "sha256": "5304387829a0efd48fc7fae9e24c0d90e831b90d585640359b62d9d395c0e0e4"
+        "sha256": "5304387829a0efd48fc7fae9e24c0d90e831b90d585640359b62d9d395c0e0e4",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/ar/02-schedule-ar.png",
-        "sha256": "2fe98ebe0eb1bebecd742555f3742db48f40f37fdda4e61ecff0a1b50895120e"
+        "sha256": "2fe98ebe0eb1bebecd742555f3742db48f40f37fdda4e61ecff0a1b50895120e",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/ar/03-bookings-ar.png",
-        "sha256": "8db29b205910225c5e33b4255b0ee5400e46ee40159da68f2876fcf77b028986"
+        "sha256": "8db29b205910225c5e33b4255b0ee5400e46ee40159da68f2876fcf77b028986",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/ar/04-packages-ar.png",
-        "sha256": "8224e9b6c5eed81f38781a6b2a48b88c4b3f31c86bf90dd6833f22a2463a42a6"
+        "sha256": "8224e9b6c5eed81f38781a6b2a48b88c4b3f31c86bf90dd6833f22a2463a42a6",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "iphone-6.5/ar/05-profile-ar.png",
-        "sha256": "362f0c29c06de47def41d59b627ea5ed3138d1f2994f52476de4998584962c7b"
+        "sha256": "5f5c79b2eaf7296631a37762d8937c74bec75bad8288e6999dd38ec2b00a0d06",
+        "width": 1170,
+        "height": 2532
       },
       {
         "path": "ipad-13/he/01-home-he.png",
-        "sha256": "55f421fe0e61fd96d5876e7e5ebd15b38e6ce60ec8229f4b8dafd9ac1fdd7c15"
+        "sha256": "0c95591260b5f9d763059c2c07aa6d88935b1c4946e39cb8bcc1688e0bd77ba4",
+        "width": 2048,
+        "height": 2800
       },
       {
         "path": "ipad-13/he/02-schedule-he.png",
-        "sha256": "b9a3bfe128823895891be4f7e88e9a4109521c83c465adf9f70dbe5a715d9ea2"
+        "sha256": "5e7c9860b403e6d71fb3ef7cab63d32a9a62fafb52a27eccd7853c4471302619",
+        "width": 2048,
+        "height": 2992
       },
       {
         "path": "ipad-13/he/03-bookings-he.png",
-        "sha256": "ad41da21aceff0d07c8c13bbc944caf8e415c31537e6e89094afc2115ef49b72"
+        "sha256": "7e9e46395e2257bf757c5e2932dbb270c5bec2bd8c08654f99d85018a15b525f",
+        "width": 2048,
+        "height": 2902
       },
       {
         "path": "ipad-13/he/04-packages-he.png",
-        "sha256": "02a86bb0f9486ecb88cb681f56b3d1ac9bd376a06bb3ef441aacd10ba63fb3d1"
+        "sha256": "1611cb1853ca430f2ee3c72a7579ea464b202316535922733675145f954ea245",
+        "width": 2048,
+        "height": 3196
       },
       {
         "path": "ipad-13/he/05-profile-he.png",
-        "sha256": "bd89c8e28654c1cd2ecfad819426cd7f4ce613974dcf0999df09b6a949c3ca88"
+        "sha256": "187b350b3b15f2c294265e60292e3c6de917bb38f387a9b22a2f3d7f3ebc9807",
+        "width": 2048,
+        "height": 3052
       },
       {
         "path": "ipad-13/en/01-home-en.png",
-        "sha256": "81411d52a15a7fd180aa9a57b94b4eb2cc3d22f1345e4270b7848b0d0fb55397"
+        "sha256": "34cd0ea522f7fa20dab756e367d8cc1c6406253e9d721b151dbc8de7ab7a3b33",
+        "width": 2048,
+        "height": 2800
       },
       {
         "path": "ipad-13/en/02-schedule-en.png",
-        "sha256": "fca1bf1ba26d5e7b9a5e8ce1c7d4c9cb334c251fff8c73b10788e4ad09fbaee1"
+        "sha256": "3a74859a8d1ee9390d2fc99cb4f7adce64de19bbdcd6150f73ff204e42511d5b",
+        "width": 2048,
+        "height": 2992
       },
       {
         "path": "ipad-13/en/03-bookings-en.png",
-        "sha256": "efa62759164b2fa78e7605949462bf8ca07e7ff3525568498cf00f01cbb75771"
+        "sha256": "7b0d8e204504048cab4b8b22384a3b50696e9e30a90f5a8d4d04daf22517d1c4",
+        "width": 2048,
+        "height": 2902
       },
       {
         "path": "ipad-13/en/04-packages-en.png",
-        "sha256": "a5c4bd19584e3b4585d77b65f72594ccc2c2ec240ba87aab8b64201aeb3855d2"
+        "sha256": "5e452a02f0fa69825bd426e9e1a637547a839012dcc2c4f8ccaf49f13c4ab846",
+        "width": 2048,
+        "height": 3196
       },
       {
         "path": "ipad-13/en/05-profile-en.png",
-        "sha256": "2297de2551c55a62df847f0b1f01c68d6f3b28dba074098d889158c3717e1f6d"
+        "sha256": "9ea4c843a1f0e1dea1ab12684e9899a530039442549020168061f5cddca9591d",
+        "width": 2048,
+        "height": 3052
       },
       {
         "path": "ipad-13/ar/01-home-ar.png",
-        "sha256": "f522b9686b237e8dafe42f705919f9d3e900809a35cf1148c51fd3df6a5799f9"
+        "sha256": "3f8089e050cf306d3b3e8c7ff6232b56a3978da8e8b5bef730aa56d44c2a2886",
+        "width": 2048,
+        "height": 2800
       },
       {
         "path": "ipad-13/ar/02-schedule-ar.png",
-        "sha256": "310abf04c154aef49219b6cf537f3833152a962982013deffd143a77e3042d81"
+        "sha256": "0fe48ae1de3e6778e475f6f7ffb1b727421c1a67a5b39e8dea96e154c080110f",
+        "width": 2048,
+        "height": 2992
       },
       {
         "path": "ipad-13/ar/03-bookings-ar.png",
-        "sha256": "cba1733dbccba63f24dda68bc841f0749e17a2bcbfcae17833dab600578c453c"
+        "sha256": "f4ea14fcce84fe7d898e654b68fe85bcc3d6de8b973018bfd17f9bbe53c93650",
+        "width": 2048,
+        "height": 2902
       },
       {
         "path": "ipad-13/ar/04-packages-ar.png",
-        "sha256": "0f35075bf9d3de34dfea322825d7d570a94da2306bc8ae82532059dd6e63e124"
+        "sha256": "a5c24870b64f28e361b4d540e946634cac44169326cf9c0d3f6b04e0ca735162",
+        "width": 2048,
+        "height": 3196
       },
       {
         "path": "ipad-13/ar/05-profile-ar.png",
-        "sha256": "5e46adc6232a83ce19f4fcfe6cf204bbd63fa16b7360d7f6e8f096f336a34b35"
+        "sha256": "8ca722bef77d607409f267d5f7396c15b1feeebd61932d94bc623e97855d3c14",
+        "width": 2048,
+        "height": 3052
       }
     ]
   },

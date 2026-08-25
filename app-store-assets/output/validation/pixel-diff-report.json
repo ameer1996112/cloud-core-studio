@@ -94,7 +94,7 @@
       "device": "iphone-6.5",
       "locale": "ar",
       "filename": "05-profile-ar.png",
-      "overallMeanAbsolutePercent": 3.381034,
+      "overallMeanAbsolutePercent": 3.381324,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -103,7 +103,7 @@
       "device": "ipad-13",
       "locale": "en",
       "filename": "01-home-en.png",
-      "overallMeanAbsolutePercent": 7.916979,
+      "overallMeanAbsolutePercent": 7.905006,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -112,7 +112,7 @@
       "device": "ipad-13",
       "locale": "en",
       "filename": "02-schedule-en.png",
-      "overallMeanAbsolutePercent": 3.140325,
+      "overallMeanAbsolutePercent": 3.062305,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -121,7 +121,7 @@
       "device": "ipad-13",
       "locale": "en",
       "filename": "03-bookings-en.png",
-      "overallMeanAbsolutePercent": 9.761805,
+      "overallMeanAbsolutePercent": 9.509708,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -130,7 +130,7 @@
       "device": "ipad-13",
       "locale": "en",
       "filename": "04-packages-en.png",
-      "overallMeanAbsolutePercent": 4.143604,
+      "overallMeanAbsolutePercent": 3.899721,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -139,7 +139,7 @@
       "device": "ipad-13",
       "locale": "en",
       "filename": "05-profile-en.png",
-      "overallMeanAbsolutePercent": 5.091453,
+      "overallMeanAbsolutePercent": 5.081174,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -148,7 +148,7 @@
       "device": "ipad-13",
       "locale": "ar",
       "filename": "01-home-ar.png",
-      "overallMeanAbsolutePercent": 7.893165,
+      "overallMeanAbsolutePercent": 7.864914,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -157,7 +157,7 @@
       "device": "ipad-13",
       "locale": "ar",
       "filename": "02-schedule-ar.png",
-      "overallMeanAbsolutePercent": 3.021871,
+      "overallMeanAbsolutePercent": 2.918888,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     },
@@ -166,7 +166,7 @@
       "device": "ipad-13",
       "locale": "ar",
       "filename": "03-bookings-ar.png",
-      "overallMeanAbsolutePercent": 9.778353,
+      "overallMeanAbsolutePercent": 9.506108,
       "outsideMaskMeanAbsolutePercent": 0.000488,
       "outsideMaskChangedPixelPercent": 0.001025
     },
@@ -175,7 +175,7 @@
       "device": "ipad-13",
       "locale": "ar",
       "filename": "04-packages-ar.png",
-      "overallMeanAbsolutePercent": 3.937608,
+      "overallMeanAbsolutePercent": 3.675072,
       "outsideMaskMeanAbsolutePercent": 0.000989,
       "outsideMaskChangedPixelPercent": 0.00211
     },
@@ -184,7 +184,7 @@
       "device": "ipad-13",
       "locale": "ar",
       "filename": "05-profile-ar.png",
-      "overallMeanAbsolutePercent": 4.924944,
+      "overallMeanAbsolutePercent": 5.034858,
       "outsideMaskMeanAbsolutePercent": 0,
       "outsideMaskChangedPixelPercent": 0
     }

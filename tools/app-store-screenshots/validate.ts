@@ -24,6 +24,7 @@ const screens = ["01-home", "02-schedule", "03-bookings", "04-packages", "05-pro
 const locales: Locale[] = ["en", "ar"];
 const devices: DeviceName[] = ["iphone-6.5", "ipad-13"];
 const iphoneOnly = process.argv.includes("--iphone-only");
+const captureGeometryOnly = process.argv.includes("--capture-geometry-only");
 const validatedDevices: DeviceName[] = iphoneOnly ? ["iphone-6.5"] : devices;
 const failures: string[] = [];
 const dimensionFiles: Record<string, unknown>[] = [];
@@ -53,6 +54,41 @@ function relative(path: string) {
   return path.slice(ROOT.length + 1);
 }
 
+function expectedCaptureDimensions(device: DeviceName, screen: string) {
+  const config = layout[device].capture;
+  if (device === "iphone-6.5") {
+    return { width: config.expectedWidth, height: config.expectedHeight };
+  }
+  const aperture = layout[device].appScreenshotMasks[screen] as Rect;
+  const cssHeight = Math.round((config.cssWidth * aperture.height) / aperture.width);
+  return {
+    width: config.expectedWidth,
+    height: cssHeight * config.deviceScaleFactor,
+  };
+}
+
+async function validateCaptureGeometry() {
+  for (const locale of locales) {
+    for (const screen of screens) {
+      const capture = resolve(CAPTURE_DIR, "ipad-13", locale, `${screen}-${locale}.png`);
+      if (!existsSync(capture)) {
+        failures.push(`missing iPad capture for geometry validation: ${locale}/${screen}`);
+        continue;
+      }
+      const metadata = await sharp(capture).metadata();
+      const appMask = layout["ipad-13"].appScreenshotMasks[screen] as Rect;
+      const sourceRatio = Number(metadata.width) / Number(metadata.height);
+      const apertureRatio = appMask.width / appMask.height;
+      const horizontalCropPercent = Math.max(0, 1 - apertureRatio / sourceRatio) * 100;
+      if (horizontalCropPercent > 0.1) {
+        failures.push(
+          `iPad capture would crop horizontally by ${horizontalCropPercent.toFixed(2)}%: ${locale}/${screen}`,
+        );
+      }
+    }
+  }
+}
+
 async function validateCaptureReport() {
   if (!existsSync(CAPTURE_REPORT_PATH)) {
     failures.push("missing capture provenance report");
@@ -68,26 +104,31 @@ async function validateCaptureReport() {
       screens.map((screen) => `${device}/${locale}/${screen}-${locale}.png`),
     ),
   );
-  const reported = new Map<string, string>(
-    (report.captureFiles ?? []).map((file: { path: string; sha256: string }) => [
-      file.path,
-      file.sha256,
-    ]),
+  const reported = new Map<string, { path: string; sha256: string; width: number; height: number }>(
+    (report.captureFiles ?? []).map(
+      (file: { path: string; sha256: string; width: number; height: number }) => [file.path, file],
+    ),
   );
   if (JSON.stringify([...reported.keys()].sort()) !== JSON.stringify([...expectedPaths].sort())) {
     failures.push("capture provenance file set is incomplete or incorrect");
   }
   for (const path of expectedPaths) {
     const absolute = resolve(CAPTURE_DIR, path);
-    if (!existsSync(absolute) || reported.get(path) !== hash(absolute)) {
+    const reportedFile = reported.get(path);
+    if (!existsSync(absolute) || reportedFile?.sha256 !== hash(absolute)) {
       failures.push(`capture hash differs from provenance report: ${path}`);
       continue;
     }
     const metadata = await sharp(absolute).metadata();
     const device = path.startsWith("iphone-6.5/") ? "iphone-6.5" : "ipad-13";
+    const filename = path.split("/").at(-1) ?? "";
+    const screen = filename.replace(/-(?:he|en|ar)\.png$/, "");
+    const expected = expectedCaptureDimensions(device, screen);
     if (
-      metadata.width !== layout[device].capture.expectedWidth ||
-      metadata.height !== layout[device].capture.expectedHeight ||
+      metadata.width !== expected.width ||
+      metadata.height !== expected.height ||
+      reportedFile.width !== expected.width ||
+      reportedFile.height !== expected.height ||
       metadata.hasAlpha
     ) {
       failures.push(`capture metadata differs from provenance contract: ${path}`);
@@ -464,15 +505,14 @@ async function validateResponsiveCaptures() {
       }
       const phoneMeta = await sharp(iphoneCapture).metadata();
       const tabletMeta = await sharp(ipadCapture).metadata();
-      if (
-        phoneMeta.width !== layout["iphone-6.5"].capture.expectedWidth ||
-        phoneMeta.height !== layout["iphone-6.5"].capture.expectedHeight
-      ) {
+      const expectedPhone = expectedCaptureDimensions("iphone-6.5", screen);
+      const expectedTablet = expectedCaptureDimensions("ipad-13", screen);
+      if (phoneMeta.width !== expectedPhone.width || phoneMeta.height !== expectedPhone.height) {
         failures.push(`unexpected iPhone capture dimensions ${iphoneCapture}`);
       }
       if (
-        tabletMeta.width !== layout["ipad-13"].capture.expectedWidth ||
-        tabletMeta.height !== layout["ipad-13"].capture.expectedHeight
+        tabletMeta.width !== expectedTablet.width ||
+        tabletMeta.height !== expectedTablet.height
       ) {
         failures.push(`unexpected iPad capture dimensions ${ipadCapture}`);
       }
@@ -482,8 +522,12 @@ async function validateResponsiveCaptures() {
       if (hash(iphoneCapture) === hash(ipadCapture)) {
         failures.push(`iPhone capture reused as iPad ${locale}/${screen}`);
       }
-      const ipadWidth = layout["ipad-13"].capture.expectedWidth;
-      const ipadHeight = layout["ipad-13"].capture.expectedHeight;
+      const ipadWidth = expectedTablet.width;
+      const ipadHeight = expectedTablet.height;
+      const appMask = layout["ipad-13"].appScreenshotMasks[screen] as Rect;
+      const sourceRatio = Number(tabletMeta.width) / Number(tabletMeta.height);
+      const apertureRatio = appMask.width / appMask.height;
+      const horizontalSourceCropPercent = Math.max(0, 1 - apertureRatio / sourceRatio) * 100;
       const stretchedPhone = await sharp(iphoneCapture)
         .resize(ipadWidth, ipadHeight, { fit: "fill" })
         .greyscale()
@@ -505,6 +549,7 @@ async function validateResponsiveCaptures() {
         ipadDimensions: [tabletMeta.width, tabletMeta.height],
         iphoneHasAlpha: Boolean(phoneMeta.hasAlpha),
         ipadHasAlpha: Boolean(tabletMeta.hasAlpha),
+        horizontalSourceCropPercent: Number(horizontalSourceCropPercent.toFixed(6)),
         stretchedIphoneVsIpadMeanAbsolutePercent: Number(stretchedDifferencePercent.toFixed(6)),
         reusedOrStretched: stretchedDifferencePercent < 2,
       });
@@ -595,30 +640,41 @@ async function buildZip() {
   await rename(TEMP_ZIP_PATH, ZIP_PATH);
 }
 
-await mkdir(VALIDATION_DIR, { recursive: true });
-if (existsSync(ZIP_PATH)) await unlink(ZIP_PATH);
-if (existsSync(TEMP_ZIP_PATH)) await unlink(TEMP_ZIP_PATH);
-validateCopy();
-await validateLogo();
-await validateCaptureReport();
-await validateResponsiveCaptures();
-for (const device of validatedDevices) await validateFinals(device);
-await writeReports();
-
-if (!iphoneOnly && failures.length === 0) {
-  try {
-    await buildZip();
-  } catch (error) {
-    failures.push(error instanceof Error ? error.message : String(error));
-    await writeReports();
+if (captureGeometryOnly) {
+  await validateCaptureGeometry();
+  if (failures.length) {
+    for (const failure of failures) process.stderr.write(`FAIL ${failure}\n`);
+    process.exitCode = 1;
+  } else {
+    process.stdout.write("capture geometry validation passed\n");
   }
-}
-
-if (failures.length) {
-  for (const failure of failures) process.stderr.write(`FAIL ${failure}\n`);
-  process.exitCode = 1;
 } else {
-  process.stdout.write(
-    `validation passed (${dimensionFiles.length} production files${iphoneOnly ? "" : "; ZIP created"})\n`,
-  );
+  await mkdir(VALIDATION_DIR, { recursive: true });
+  if (existsSync(ZIP_PATH)) await unlink(ZIP_PATH);
+  if (existsSync(TEMP_ZIP_PATH)) await unlink(TEMP_ZIP_PATH);
+  validateCopy();
+  await validateLogo();
+  await validateCaptureReport();
+  await validateCaptureGeometry();
+  await validateResponsiveCaptures();
+  for (const device of validatedDevices) await validateFinals(device);
+  await writeReports();
+
+  if (!iphoneOnly && failures.length === 0) {
+    try {
+      await buildZip();
+    } catch (error) {
+      failures.push(error instanceof Error ? error.message : String(error));
+      await writeReports();
+    }
+  }
+
+  if (failures.length) {
+    for (const failure of failures) process.stderr.write(`FAIL ${failure}\n`);
+    process.exitCode = 1;
+  } else {
+    process.stdout.write(
+      `validation passed (${dimensionFiles.length} production files${iphoneOnly ? "" : "; ZIP created"})\n`,
+    );
+  }
 }

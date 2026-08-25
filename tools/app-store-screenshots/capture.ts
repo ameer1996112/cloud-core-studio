@@ -19,6 +19,7 @@ type Layout = Record<
       expectedWidth: number;
       expectedHeight: number;
     };
+    appScreenshotMasks: Record<string, { width: number; height: number }>;
   }
 >;
 
@@ -47,6 +48,18 @@ const localeButtonLabels: Record<Locale, string> = {
   en: "English",
   ar: "العربية",
 };
+
+function captureViewport(device: DeviceName, screen: string) {
+  const config = layout[device].capture;
+  if (device === "iphone-6.5") {
+    return { width: config.cssWidth, height: config.cssHeight };
+  }
+  const aperture = layout[device].appScreenshotMasks[screen];
+  return {
+    width: config.cssWidth,
+    height: Math.round((config.cssWidth * aperture.height) / aperture.width),
+  };
+}
 
 function loadEnv(path: string) {
   if (!existsSync(path))
@@ -458,6 +471,7 @@ async function captureLocale(
   await mkdir(outputDir, { recursive: true });
 
   for (const screen of screens) {
+    await page.setViewportSize(captureViewport(device, screen.key));
     await page.goto(`${baseUrl}${screen.route}`, { waitUntil: "networkidle" });
     await stabilize(page, screen.ready, locale, device);
     const output = resolve(outputDir, `${screen.key}-${locale}.png`);
@@ -506,9 +520,13 @@ async function main() {
         locales.flatMap((locale) =>
           screens.map((screen) => {
             const path = resolve(CAPTURE_DIR, device, locale, `${screen.key}-${locale}.png`);
+            const viewport = captureViewport(device, screen.key);
+            const scale = layout[device].capture.deviceScaleFactor;
             return {
               path: path.slice(CAPTURE_DIR.length + 1),
               sha256: createHash("sha256").update(readFileSync(path)).digest("hex"),
+              width: viewport.width * scale,
+              height: viewport.height * scale,
             };
           }),
         ),

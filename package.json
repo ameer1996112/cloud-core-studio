@@ -32,6 +32,7 @@
     "whatsapp:templates:status": "node scripts/check-whatsapp-template-status.mjs",
     "appstore:capture": "bun tools/app-store-screenshots/capture.ts",
     "appstore:generate": "bun tools/app-store-screenshots/generate.ts",
+    "appstore:validate:geometry": "bun tools/app-store-screenshots/validate.ts --capture-geometry-only",
     "appstore:validate:iphone": "bun tools/app-store-screenshots/validate.ts --iphone-only",
     "appstore:validate": "bun tools/app-store-screenshots/validate.ts"
   },

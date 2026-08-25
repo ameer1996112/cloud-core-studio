@@ -31,7 +31,7 @@ The device frame, official logo, cream background outside the text rectangle, na
 - Backend and app URLs must be loopback addresses; `capture.ts` refuses non-local URLs.
 - Clock: `2026-08-25T14:30:00+03:00`, supplied as `APP_STORE_FIXED_TIME` in the gitignored `.env.app-store.local` and verified in the capture provenance report.
 - Timezone: `Asia/Jerusalem` by default.
-- Viewports: iPhone 390×844 CSS at 3× (1170×2532 capture); iPad 1024×1366 CSS at 2× (2048×2732 capture).
+- Viewports: iPhone 390×844 CSS at 3× (1170×2532 capture). iPad always uses the real 1024 CSS-pixel tablet width at 2×; each screen's viewport height is deterministically matched to its measured approved device aperture (2800, 2992, 2902, 3196, and 3052 physical pixels for Home through Profile). This preserves the responsive iPad layout while preventing `cover` composition from discarding either horizontal edge.
 - The visible language control on the sign-in screen selects each locale. The script then verifies the rendered `lang` and `dir` values.
 - Every language and device uses the same account and locally seeded account-owned state.
 - Fonts, images, network activity, two animation frames, and stable layout dimensions are awaited. Animations, transitions, carets, service workers, and scrollbars are disabled for capture. The iPhone browser viewport receives the app's native-style top and bottom safe-area treatment before stabilization: the wordmark clears the approved Dynamic Island, and the bottom navigation stays anchored above an opaque 12px protected strip so underlying page content cannot enter the safe area.
@@ -48,6 +48,7 @@ Prerequisites: Bun, Docker/Colima, Supabase CLI, Google Chrome, and the gitignor
 ```sh
 CI=1 DO_NOT_TRACK=1 SUPABASE_TELEMETRY_DISABLED=true supabase start --exclude vector
 bun run appstore:capture
+bun run appstore:validate:geometry
 bun run appstore:generate
 bun run appstore:validate
 ```
@@ -60,7 +61,7 @@ The full validation command checks all 20 production PNGs, writes reports and pi
 - `generate.ts`: deterministic composition with Sharp, exact approved-master background pixels, and shaped SVG text layers.
 - `layout.json`: exact per-device and per-screen master measurements.
 - `copy.json`: exact supplied English and Arabic copy.
-- `validate.ts`: capture provenance, exact filenames, dimensions, RGB/alpha, sharpness, deterministic composite hashes, official-logo hash and output comparison, copy/direction, responsive iPad independence, pixel masks, contact sheets, stale-ZIP removal, and archive-content checks.
+- `validate.ts`: capture provenance, no-horizontal-crop geometry, exact filenames, dimensions, RGB/alpha, sharpness, deterministic composite hashes, official-logo hash and output comparison, copy/direction, responsive iPad independence, pixel masks, contact sheets, stale-ZIP removal, and archive-content checks.
 - `app-store-assets/output/validation/diffs/`: one pixel-difference PNG for every localized production design.
 
 The validation reports are `dimension-report.json` and `pixel-diff-report.json`. A passing report permits differences only inside the marketing-copy and real-app-capture masks; outside-mask changed pixels must remain at or below 1%.
