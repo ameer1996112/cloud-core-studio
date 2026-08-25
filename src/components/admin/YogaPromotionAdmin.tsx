@@ -177,9 +177,7 @@ export function YogaPromotionAdmin() {
                 {data.entitlements.map((entitlement) => (
                   <tr key={entitlement.id} className="border-t border-gold/15">
                     <td className="p-2" dir="ltr">
-                      {new Date(entitlement.issued_at).toLocaleString(undefined, {
-                        timeZone: ADMIN_TIME_ZONE,
-                      })}
+                      {new Date(entitlement.issued_at).toLocaleString()}
                     </td>
                     <td className="p-2">{entitlement.status}</td>
                     <td className="p-2 font-mono text-xs" dir="ltr">
@@ -211,10 +209,7 @@ export function YogaPromotionAdmin() {
           <ul className="mt-3 space-y-2 text-xs text-slate">
             {data.audit.map((row) => (
               <li key={row.id}>
-                {new Date(row.created_at).toLocaleString(undefined, {
-                  timeZone: ADMIN_TIME_ZONE,
-                })}{" "}
-                · {row.action} · {row.reason ?? "—"}
+                {new Date(row.created_at).toLocaleString()} · {row.action} · {row.reason ?? "—"}
               </li>
             ))}
           </ul>

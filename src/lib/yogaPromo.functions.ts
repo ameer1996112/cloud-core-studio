@@ -35,7 +35,6 @@ export type YogaPromotionAdminData = {
     entitlement_id: string;
     actor_id: string | null;
     action: string;
-    booking_id: string | null;
     reason: string | null;
     created_at: string;
   }>;
@@ -80,26 +79,15 @@ export const getYogaPromotionAdmin = createServerFn({ method: "GET" })
     for (const result of [types, eligible, entitlements]) if (result.error) throw result.error;
     const rows = entitlements.data ?? [];
     const entitlementIds = rows.map((row: any) => row.id);
-    const [audit, consumedAudit] = entitlementIds.length
-      ? await Promise.all([
-          db
-            .from("promotion_entitlement_audit")
-            .select("id,entitlement_id,actor_id,action,booking_id,reason,created_at")
-            .in("entitlement_id", entitlementIds)
-            .order("created_at", { ascending: false })
-            .limit(50),
-          db
-            .from("promotion_entitlement_audit")
-            .select("booking_id", { count: "exact", head: true })
-            .in("entitlement_id", entitlementIds)
-            .eq("action", "consumed"),
-        ])
-      : [
-          { data: [], error: null },
-          { count: 0, error: null },
-        ];
+    const audit = entitlementIds.length
+      ? await db
+          .from("promotion_entitlement_audit")
+          .select("id,entitlement_id,actor_id,action,reason,created_at")
+          .in("entitlement_id", entitlementIds)
+          .order("created_at", { ascending: false })
+          .limit(50)
+      : { data: [], error: null };
     if (audit.error) throw audit.error;
-    if (consumedAudit.error) throw consumedAudit.error;
     return {
       campaign,
       programTypes: types.data ?? [],
@@ -109,7 +97,7 @@ export const getYogaPromotionAdmin = createServerFn({ method: "GET" })
       metrics: {
         claims: campaign.claimed_count,
         remaining: Math.max(campaign.claim_limit - campaign.claimed_count, 0),
-        successfulBookings: consumedAudit.count ?? 0,
+        successfulBookings: rows.filter((row: any) => Boolean(row.consumed_at)).length,
         used: rows.filter((row: any) => row.status === "consumed").length,
         restored: (audit.data ?? []).filter((row: any) =>
           ["restored", "admin_restored"].includes(row.action),

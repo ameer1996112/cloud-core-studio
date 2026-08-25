@@ -176,7 +176,6 @@ DECLARE
   v_user uuid := auth.uid();
   v_claimed boolean := false;
   v_entitlement_status text;
-  v_entitlement_expires_at timestamptz;
   v_eligible boolean := false;
   v_class_type_id uuid;
   v_class_name text;
@@ -193,7 +192,7 @@ BEGIN
   IF v_user IS NOT NULL THEN
     SELECT EXISTS (SELECT 1 FROM public.promotion_claims WHERE promotion_id = v_campaign.id AND user_id = v_user AND status = 'claimed')
     INTO v_claimed;
-    SELECT e.status, e.expires_at INTO v_entitlement_status, v_entitlement_expires_at
+    SELECT e.status INTO v_entitlement_status
     FROM public.promotion_entitlements e
     WHERE e.promotion_id = v_campaign.id AND e.member_id = v_user;
     SELECT EXISTS (
@@ -219,7 +218,7 @@ BEGIN
     'claimLimit', v_campaign.claim_limit,
     'claimedByCurrentUser', v_claimed,
     'entitlementStatus', v_entitlement_status,
-    'creditAvailable', v_entitlement_status = 'active' AND v_entitlement_expires_at > v_now,
+    'creditAvailable', v_entitlement_status IN ('active','reserved'),
     'eligible', v_eligible,
     'soldOut', v_campaign.claimed_count >= v_campaign.claim_limit,
     'startsAt', v_campaign.starts_at,

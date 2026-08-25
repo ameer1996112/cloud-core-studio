@@ -50,9 +50,7 @@ describe("Yoga with Lina promotion database contract", () => {
 
   test("reports availability separately from historical claim ownership", () => {
     expect(migration).toContain("'entitlementStatus', v_entitlement_status");
-    expect(migration).toContain(
-      "'creditAvailable', v_entitlement_status = 'active' AND v_entitlement_expires_at > v_now",
-    );
+    expect(migration).toContain("'creditAvailable', v_entitlement_status IN ('active','reserved')");
     expect(migration).toContain("'eligibleClassTypeId', v_class_type_id");
   });
 
