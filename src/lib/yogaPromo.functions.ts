@@ -22,15 +22,6 @@ export type YogaPromotionAdminData = {
     active: boolean;
   }>;
   eligibleProgramTypeIds: string[];
-  classes: Array<{
-    id: string;
-    title: string;
-    starts_at: string;
-    duration_minutes: number;
-    status: string;
-    program_type_id: string | null;
-  }>;
-  eligibleClassIds: string[];
   entitlements: Array<{
     id: string;
     status: "active" | "reserved" | "consumed" | "revoked" | "expired";
@@ -74,27 +65,19 @@ export const getYogaPromotionAdmin = createServerFn({ method: "GET" })
       .eq("slug", YOGA_PROMO_SLUG)
       .single();
     if (error) throw error;
-    const [types, eligible, classes, eligibleClasses, entitlements] = await Promise.all([
+    const [types, eligible, entitlements] = await Promise.all([
       db.from("program_types").select("id,slug,name_en,name_he,name_ar,active").order("sort_order"),
       db
         .from("promotion_eligible_class_types")
         .select("program_type_id")
         .eq("promotion_id", campaign.id),
       db
-        .from("classes")
-        .select("id,title,starts_at,duration_minutes,status,program_type_id")
-        .eq("status", "scheduled")
-        .gte("starts_at", new Date().toISOString())
-        .order("starts_at"),
-      db.from("promotion_eligible_classes").select("class_id").eq("promotion_id", campaign.id),
-      db
         .from("promotion_entitlements")
         .select("id,status,member_id,issued_at,expires_at,consumed_at")
         .eq("promotion_id", campaign.id)
         .order("issued_at", { ascending: false }),
     ]);
-    for (const result of [types, eligible, classes, eligibleClasses, entitlements])
-      if (result.error) throw result.error;
+    for (const result of [types, eligible, entitlements]) if (result.error) throw result.error;
     const rows = entitlements.data ?? [];
     const entitlementIds = rows.map((row: any) => row.id);
     const [audit, consumedAudit] = entitlementIds.length
@@ -121,8 +104,6 @@ export const getYogaPromotionAdmin = createServerFn({ method: "GET" })
       campaign,
       programTypes: types.data ?? [],
       eligibleProgramTypeIds: (eligible.data ?? []).map((row: any) => row.program_type_id),
-      classes: classes.data ?? [],
-      eligibleClassIds: (eligibleClasses.data ?? []).map((row: any) => row.class_id),
       entitlements: rows,
       audit: audit.data ?? [],
       metrics: {
@@ -149,26 +130,21 @@ export const updateYogaPromotionAdmin = createServerFn({ method: "POST" })
         claimLimit: z.number().int().positive(),
         creditExpiresAt: z.string().datetime().nullable(),
         programTypeIds: z.array(z.string().uuid()),
-        classIds: z.array(z.string().uuid()),
       })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const { data: result, error } = await (context.supabase as any).rpc(
-      "admin_update_promotion_v2",
-      {
-        p_actor_id: context.userId,
-        p_slug: YOGA_PROMO_SLUG,
-        p_enabled: data.enabled,
-        p_starts_at: data.startsAt,
-        p_ends_at: data.endsAt,
-        p_claim_limit: data.claimLimit,
-        p_credit_expires_at: data.creditExpiresAt,
-        p_program_type_ids: data.programTypeIds,
-        p_class_ids: data.classIds,
-      },
-    );
+    const { data: result, error } = await (context.supabase as any).rpc("admin_update_promotion", {
+      p_actor_id: context.userId,
+      p_slug: YOGA_PROMO_SLUG,
+      p_enabled: data.enabled,
+      p_starts_at: data.startsAt,
+      p_ends_at: data.endsAt,
+      p_claim_limit: data.claimLimit,
+      p_credit_expires_at: data.creditExpiresAt,
+      p_program_type_ids: data.programTypeIds,
+    });
     if (error) throw error;
     if (result?.status !== "ok") throw new Error(result?.message ?? "promotion_update_failed");
     return result;

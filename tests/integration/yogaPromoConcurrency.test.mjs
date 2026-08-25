@@ -18,36 +18,12 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
   const classIds = [];
   let campaignId;
   let programTypeId;
-  let eligibleClassId;
-  let sameTypeIneligibleClassId;
-  let configAdminId;
 
   beforeAll(async () => {
     admin = createClient(url, serviceKey, { auth: { persistSession: false } });
     const startsAt = new Date(Date.now() - 2_000).toISOString();
     const endsAt = new Date(Date.now() + 60 * 60_000).toISOString();
-    const classStartsAt = new Date(Date.now() + 48 * 60 * 60_000).toISOString();
-    const expiresAt = classStartsAt;
-    const configAdmin = await admin.auth.admin.createUser({
-      email: `promo-config-admin-${suffix}@example.invalid`,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        name: "Promotion config admin",
-        preferred_language: "en",
-        notification_consent_version: "2",
-        whatsapp_signup_opt_in_v2: false,
-        marketing_updates_enabled: false,
-      },
-    });
-    if (configAdmin.error) throw configAdmin.error;
-    configAdminId = configAdmin.data.user.id;
-    userIds.push(configAdminId);
-    const adminRole = await admin
-      .from("profiles")
-      .update({ role: "admin" })
-      .eq("id", configAdminId);
-    if (adminRole.error) throw adminRole.error;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60_000).toISOString();
     const type = await admin
       .from("program_types")
       .insert({
@@ -66,7 +42,7 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       .insert({
         slug,
         name: "Concurrency test",
-        enabled: false,
+        enabled: true,
         starts_at: startsAt,
         ends_at: endsAt,
         claim_limit: 10,
@@ -78,51 +54,15 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       .single();
     if (campaign.error) throw campaign.error;
     campaignId = campaign.data.id;
-    const classes = await admin
-      .from("classes")
-      .insert([
-        {
-          title: "Yoga with Lina exact eligible class",
-          starts_at: classStartsAt,
-          duration_minutes: 60,
-          capacity: 12,
-          room: "Local test room",
-          energy: "calm",
-          credit_cost: 1,
-          program_type_id: programTypeId,
-        },
-        {
-          title: "Yoga with Lina same type but not eligible",
-          starts_at: new Date(Date.now() + 72 * 60 * 60_000).toISOString(),
-          duration_minutes: 60,
-          capacity: 12,
-          room: "Local test room",
-          energy: "calm",
-          credit_cost: 1,
-          program_type_id: programTypeId,
-        },
-      ])
-      .select("id");
-    if (classes.error) throw classes.error;
-    [eligibleClassId, sameTypeIneligibleClassId] = classes.data.map((row) => row.id);
-    classIds.push(eligibleClassId, sameTypeIneligibleClassId);
-    const configured = await admin.rpc("admin_update_promotion_v2", {
-      p_actor_id: configAdminId,
-      p_slug: slug,
-      p_enabled: true,
-      p_starts_at: startsAt,
-      p_ends_at: endsAt,
-      p_claim_limit: 10,
-      p_credit_expires_at: expiresAt,
-      p_program_type_ids: [programTypeId],
-      p_class_ids: [eligibleClassId],
-    });
-    if (configured.error) throw configured.error;
-    expect(configured.data).toMatchObject({ status: "ok" });
+    const relation = await admin
+      .from("promotion_eligible_class_types")
+      .insert({ promotion_id: campaignId, program_type_id: programTypeId });
+    if (relation.error) throw relation.error;
   });
 
   afterAll(async () => {
     if (userIds.length) await admin.from("bookings").delete().in("member_id", userIds);
+    if (classIds.length) await admin.from("classes").delete().in("id", classIds);
     if (campaignId) {
       const entitlementIds = await admin
         .from("promotion_entitlements")
@@ -135,11 +75,9 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       await admin.from("promotion_claims").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_claim_rate_limits").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_attributions").delete().eq("promotion_id", campaignId);
-      await admin.from("promotion_eligible_classes").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_eligible_class_types").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_campaigns").delete().eq("id", campaignId);
     }
-    if (classIds.length) await admin.from("classes").delete().in("id", classIds);
     if (programTypeId) await admin.from("program_types").delete().eq("id", programTypeId);
     await Promise.all(userIds.map((id) => admin.auth.admin.deleteUser(id)));
   });
@@ -216,10 +154,20 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       .limit(1)
       .single();
     if (ineligibleType.error) throw ineligibleType.error;
-    const startsAt = new Date(Date.now() + 96 * 60 * 60_000).toISOString();
+    const startsAt = new Date(Date.now() + 48 * 60 * 60_000).toISOString();
     const classes = await admin
       .from("classes")
       .insert([
+        {
+          title: "Yoga with Lina eligibility test",
+          starts_at: startsAt,
+          duration_minutes: 60,
+          capacity: 12,
+          room: "Local test room",
+          energy: "calm",
+          credit_cost: 1,
+          program_type_id: programTypeId,
+        },
         {
           title: "Ineligible promotion test",
           starts_at: startsAt,
@@ -234,18 +182,8 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       .select("id,program_type_id");
     if (classes.error) throw classes.error;
     classIds.push(...classes.data.map((row) => row.id));
-    const ineligibleClass = classes.data[0];
-
-    const sameTypeForged = await winner.client.rpc("book_class_v3", {
-      p_actor_id: winnerUserId,
-      p_class_id: sameTypeIneligibleClassId,
-      p_promotion_entitlement_id: winnerEntitlementId,
-    });
-    if (sameTypeForged.error) throw sameTypeForged.error;
-    expect(sameTypeForged.data).toMatchObject({
-      status: "error",
-      message: "PROMO_CREDIT_NOT_VALID_FOR_CLASS",
-    });
+    const eligibleClass = classes.data.find((row) => row.program_type_id === programTypeId);
+    const ineligibleClass = classes.data.find((row) => row.program_type_id !== programTypeId);
 
     const forged = await winner.client.rpc("book_class_v3", {
       p_actor_id: winnerUserId,
@@ -287,7 +225,7 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
 
     const booked = await winner.client.rpc("book_class_v3", {
       p_actor_id: winnerUserId,
-      p_class_id: eligibleClassId,
+      p_class_id: eligibleClass.id,
       p_promotion_entitlement_id: winnerEntitlementId,
     });
     if (booked.error) throw booked.error;

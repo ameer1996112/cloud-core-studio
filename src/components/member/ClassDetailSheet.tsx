@@ -322,13 +322,16 @@ export function ClassDetailSheet({
   });
 
   const cls = data?.cls;
-  const matchesYogaPromoClass = Boolean(
-    yogaPromo.data?.eligibleClassId && yogaPromo.data.eligibleClassId === cls?.id,
-  );
   const canUseYogaPromo = Boolean(
-    !isGuestView && yogaPromo.data?.creditAvailable && matchesYogaPromoClass,
+    !isGuestView &&
+    yogaPromo.data?.creditAvailable &&
+    yogaPromo.data.eligibleClassTypeId &&
+    yogaPromo.data.eligibleClassTypeId === cls?.program_type?.id,
   );
-  const isYogaPromoClass = matchesYogaPromoClass;
+  const isYogaPromoClass = Boolean(
+    yogaPromo.data?.eligibleClassTypeId &&
+    yogaPromo.data.eligibleClassTypeId === cls?.program_type?.id,
+  );
   const title = cls ? localizedClassTitle(cls) : "";
   const titleParts = cls ? localizedClassTitleParts(cls, lang) : null;
   const instructor = cls ? localizedOptionalInstructorName(cls.instructor?.name) : null;

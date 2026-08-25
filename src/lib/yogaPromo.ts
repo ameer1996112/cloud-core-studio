@@ -21,9 +21,6 @@ export type YogaPromoStatus = {
   creditExpiresAt: string | null;
   eligibleClassTypeId: string | null;
   eligibleClassTypeName: string | null;
-  eligibleClassId: string | null;
-  eligibleClassTitle: string | null;
-  eligibleClassStartsAt: string | null;
 };
 
 export type YogaPromoClaimResult = {

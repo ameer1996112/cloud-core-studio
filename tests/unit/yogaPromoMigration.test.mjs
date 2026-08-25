@@ -1,16 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
-const migration = [
-  "20260824120000_yoga_lina_launch_promotion.sql",
-  "20260824130000_yoga_promotion_exact_class.sql",
-]
-  .map((file) =>
-    readFileSync(new URL(`../../supabase/migrations/${file}`, import.meta.url), "utf8"),
-  )
-  .join("\n");
-const classDetail = readFileSync(
-  new URL("../../src/components/member/ClassDetailSheet.tsx", import.meta.url),
+const migration = readFileSync(
+  new URL(
+    "../../supabase/migrations/20260824120000_yoga_lina_launch_promotion.sql",
+    import.meta.url,
+  ),
   "utf8",
 );
 
@@ -44,15 +39,9 @@ describe("Yoga with Lina promotion database contract", () => {
     expect(migration).toContain("PERFORM public.sweep_member_credits(p_member_id);");
   });
 
-  test("makes configured class instances authoritative for redemption", () => {
-    expect(migration).toContain("CREATE TABLE public.promotion_eligible_classes");
-    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.promotion_allows_class");
-    expect(migration).toContain("pc.slug = 'yoga-lina-launch'");
-    expect(migration).toContain("pec.class_id = p_class_id");
-    expect(migration).toContain("WHERE slug='yoga-lina-launch';");
+  test("rejects a forged entitlement for a different class type", () => {
     expect(migration).toContain("PROMO_CREDIT_NOT_VALID_FOR_CLASS");
-    expect(migration).toContain("public.promotion_allows_class(v_ent.promotion_id, v_class.id)");
-    expect(migration).toContain("credit_expiry_must_match_class_start");
+    expect(migration).toContain("pct.program_type_id=v_class.program_type_id");
   });
 
   test("restores the restricted entitlement on timely cancellation only", () => {
@@ -72,23 +61,11 @@ describe("Yoga with Lina promotion database contract", () => {
       "'creditAvailable', v_entitlement_status = 'active' AND v_entitlement_expires_at > v_now",
     );
     expect(migration).toContain("'eligibleClassTypeId', v_class_type_id");
-    expect(migration).toContain("'eligibleClassId', v_class_id");
   });
 
   test("direct writes are not granted to members", () => {
     expect(migration).toContain("ALTER TABLE public.promotion_claims ENABLE ROW LEVEL SECURITY");
     expect(migration).toContain("GRANT SELECT ON public.promotion_claims");
     expect(migration).not.toMatch(/GRANT\s+(INSERT|ALL).*promotion_claims.*authenticated/i);
-  });
-
-  test("class details advertise the gift only for the exact configured class", () => {
-    const exactMatch = classDetail.slice(
-      classDetail.indexOf("const matchesYogaPromoClass"),
-      classDetail.indexOf("const title ="),
-    );
-    expect(exactMatch).toContain(
-      "yogaPromo.data?.eligibleClassId && yogaPromo.data.eligibleClassId === cls?.id",
-    );
-    expect(exactMatch).not.toContain("eligibleClassTypeId");
   });
 });
