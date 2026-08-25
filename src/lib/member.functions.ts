@@ -515,62 +515,50 @@ export const getMyPackages = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     await supabase.rpc("sweep_member_credits", { p_member_id: userId });
-    const [
-      memberRes,
-      mineRes,
-      plansRes,
-      ledgerRes,
-      paymentsRes,
-      subscriptionsRes,
-      promotionEntitlementsRes,
-    ] = await Promise.all([
-      supabase
-        .from("members")
-        .select(
-          "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference,created_at",
-        )
-        .eq("id", userId)
-        .maybeSingle(),
-      supabase
-        .from("member_plans")
-        .select(
-          "id,credits_granted,starts_at,expires_at,status,notes,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
-        )
-        .eq("member_id", userId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("plans")
-        .select("*")
-        .eq("active", true)
-        .order("price_cents", { ascending: true }),
-      supabase
-        .from("credit_transactions")
-        .select("id,amount_delta,reason,created_at,related_booking_id")
-        .eq("member_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(50),
-      supabase
-        .from("payments")
-        .select(
-          "id,amount,currency,method,status,provider,paid_at,created_at,notes,subscription_id,plan:plans(id,name,description,credits,duration_days,price_cents,currency),receipt:receipts(id,receipt_number)",
-        )
-        .eq("member_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(50),
-      (supabase as any)
-        .from("member_subscriptions")
-        .select(
-          "id,status,amount,currency,next_charge_at,current_period_end,card_mask,cancelled_at,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
-        )
-        .eq("member_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(10),
-      (supabase as any)
-        .from("promotion_entitlements")
-        .select("id,status,quantity,issued_at,expires_at,consumed_at,promotion_id")
-        .eq("member_id", userId)
-        .order("issued_at", { ascending: false }),
-    ]);
+    const [memberRes, mineRes, plansRes, ledgerRes, paymentsRes, subscriptionsRes] =
+      await Promise.all([
+        supabase
+          .from("members")
+          .select(
+            "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference,created_at",
+          )
+          .eq("id", userId)
+          .maybeSingle(),
+        supabase
+          .from("member_plans")
+          .select(
+            "id,credits_granted,starts_at,expires_at,status,notes,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
+          )
+          .eq("member_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("plans")
+          .select("*")
+          .eq("active", true)
+          .order("price_cents", { ascending: true }),
+        supabase
+          .from("credit_transactions")
+          .select("id,amount_delta,reason,created_at,related_booking_id")
+          .eq("member_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("payments")
+          .select(
+            "id,amount,currency,method,status,provider,paid_at,created_at,notes,subscription_id,plan:plans(id,name,description,credits,duration_days,price_cents,currency),receipt:receipts(id,receipt_number)",
+          )
+          .eq("member_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        (supabase as any)
+          .from("member_subscriptions")
+          .select(
+            "id,status,amount,currency,next_charge_at,current_period_end,card_mask,cancelled_at,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
+          )
+          .eq("member_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
     return {
       member: memberRes.data,
       mine: (mineRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
@@ -578,7 +566,6 @@ export const getMyPackages = createServerFn({ method: "GET" })
       ledger: (ledgerRes.data ?? []).filter((row: any) => !isTestRecord(row.reason)),
       payments: (paymentsRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
       subscriptions: (subscriptionsRes.data ?? []).filter((s: any) => !hasTestPlanRecord(s)),
-      promotionEntitlements: promotionEntitlementsRes.data ?? [],
     };
   });
 

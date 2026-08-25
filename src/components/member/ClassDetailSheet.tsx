@@ -10,7 +10,6 @@ import { getClassDetail, joinWaitlist, leaveWaitlist } from "@/lib/member.functi
 import { bookClass } from "@/lib/cloud-core.functions";
 import { recordMemberNotificationCampaignBooking } from "@/lib/memberNotifications.functions";
 import { readCampaignAttribution } from "@/lib/memberNotificationsApi";
-import { trackYogaPromo } from "@/lib/yogaPromo";
 import {
   ClassImage,
   StateBadge,
@@ -48,12 +47,7 @@ import {
 } from "@/lib/memberQueryKeys";
 
 type BookClassResult =
-  | {
-      status: "booked";
-      booking_id: string;
-      remaining_credits?: number | null;
-      promotion_entitlement_id?: string | null;
-    }
+  | { status: "booked"; booking_id: string; remaining_credits?: number | null }
   | {
       status: "already_booked" | "full" | "insufficient_credits" | "no_active_package" | string;
       booking_id?: string | null;
@@ -240,18 +234,9 @@ export function ClassDetailSheet({
   const leaveFn = useServerFn(leaveWaitlist);
 
   const book = useMutation({
-    mutationFn: () => {
-      trackYogaPromo("yoga_promo_booking_started", { class_id: classId });
-      return bookFn({ data: { classId: classId! } });
-    },
+    mutationFn: () => bookFn({ data: { classId: classId! } }),
     onSuccess: (res: BookClassResult) => {
       if (hasBookingId(res)) {
-        if (res.promotion_entitlement_id) {
-          trackYogaPromo("yoga_promo_credit_redeemed", {
-            class_id: classId,
-            booking_id: res.booking_id,
-          });
-        }
         const attribution =
           typeof window === "undefined"
             ? null
