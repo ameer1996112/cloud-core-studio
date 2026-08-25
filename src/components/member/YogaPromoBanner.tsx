@@ -10,7 +10,6 @@ type Props = {
   claimPending?: boolean;
   publicAudience?: boolean;
   onClaim?: () => void;
-  claimHref?: string;
   className?: string;
 };
 
@@ -20,7 +19,6 @@ export function YogaPromoBanner({
   claimPending,
   publicAudience = false,
   onClaim,
-  claimHref,
   className = "",
 }: Props) {
   const { dir } = useI18n();
@@ -42,7 +40,7 @@ export function YogaPromoBanner({
 
   const state = loading || !status ? "loading" : getBannerState(status, publicAudience);
   const copy = bannerCopy(state, status);
-  const canClaim = state === "active" && Boolean(onClaim || claimHref);
+  const canClaim = state === "active" && Boolean(onClaim);
   const scheduleCta =
     state === "claimed" || state === "used" || state === "sold_out" || state === "ineligible";
 
@@ -77,20 +75,7 @@ export function YogaPromoBanner({
             <p className="mt-2 text-xs text-[#fff8e9]/65">{t("promo.yoga.restriction")}</p>
           ) : null}
         </div>
-        {canClaim && claimHref ? (
-          <a
-            href={claimHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              trackYogaPromo("yoga_promo_cta_clicked", { remaining: status?.remaining });
-            }}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b] bg-[#efc36b] px-5 text-sm font-bold text-[#071a32] transition hover:bg-[#f8d88f]"
-          >
-            {copy.cta}
-            <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" aria-hidden="true" />
-          </a>
-        ) : canClaim ? (
+        {canClaim ? (
           <button
             type="button"
             disabled={claimPending}

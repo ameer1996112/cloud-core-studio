@@ -1,33 +1,30 @@
 import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
-import { nativeAppRouteFromUrl, startNativeAppLinkHandling } from "../../src/lib/nativeAppLinks.ts";
+import {
+  nativeMemberRouteFromUrl,
+  startNativeAppLinkHandling,
+} from "../../src/lib/nativeAppLinks.ts";
 
 describe("native app links", () => {
   test("opens Cloud & Core member URLs at the matching in-app route", () => {
     expect(
-      nativeAppRouteFromUrl(
+      nativeMemberRouteFromUrl(
         "https://cloudandcorestudio.com/member/bookings?source=whatsapp#upcoming",
       ),
     ).toBe("/member/bookings?source=whatsapp#upcoming");
   });
 
-  test("opens the Yoga campaign URL in-app with attribution intact", () => {
-    expect(
-      nativeAppRouteFromUrl(
-        "https://cloudandcorestudio.com/promo/yoga-lina?utm_source=instagram&utm_medium=dm&utm_campaign=yoga_lina_launch",
-      ),
-    ).toBe("/promo/yoga-lina?utm_source=instagram&utm_medium=dm&utm_campaign=yoga_lina_launch");
-  });
-
   test("leaves non-member and untrusted URLs in the browser", () => {
-    expect(nativeAppRouteFromUrl("https://cloudandcorestudio.com/admin/messages")).toBeNull();
-    expect(nativeAppRouteFromUrl("https://cloudandcorestudio.com/member/not-a-route")).toBeNull();
-    expect(nativeAppRouteFromUrl("https://example.com/member/bookings")).toBeNull();
+    expect(nativeMemberRouteFromUrl("https://cloudandcorestudio.com/admin/messages")).toBeNull();
+    expect(
+      nativeMemberRouteFromUrl("https://cloudandcorestudio.com/member/not-a-route"),
+    ).toBeNull();
+    expect(nativeMemberRouteFromUrl("https://example.com/member/bookings")).toBeNull();
   });
 
   test("maps the retired payment destination to the current packages screen", () => {
     expect(
-      nativeAppRouteFromUrl("https://cloudandcorestudio.com/member/payments?source=email"),
+      nativeMemberRouteFromUrl("https://cloudandcorestudio.com/member/payments?source=email"),
     ).toBe("/member/packages?source=email");
   });
 
@@ -62,7 +59,6 @@ describe("native app links", () => {
         { "/": "/member/packages" },
         { "/": "/member/payments" },
         { "/": "/member/schedule" },
-        { "/": "/promo/yoga-lina" },
       ],
     });
 

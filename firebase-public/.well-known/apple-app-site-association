@@ -10,8 +10,7 @@
           { "/": "/member/bookings" },
           { "/": "/member/packages" },
           { "/": "/member/payments" },
-          { "/": "/member/schedule" },
-          { "/": "/promo/yoga-lina" }
+          { "/": "/member/schedule" }
         ]
       }
     ]
