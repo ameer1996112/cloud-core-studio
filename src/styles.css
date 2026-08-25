@@ -8344,6 +8344,20 @@ select.input:focus {
   background: color-mix(in srgb, var(--color-surface) 76%, transparent);
 }
 
+.member-booking-counts-placeholder {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(6.25rem, 1fr));
+  min-width: min(100%, 14rem);
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 18%, transparent);
+  border-radius: var(--cc-radius-card);
+}
+
+.member-booking-counts-placeholder > span {
+  min-height: 74px;
+}
+
 .member-bookings-panel {
   min-width: 0;
   scroll-margin-top: 1rem;
@@ -8421,7 +8435,8 @@ select.input:focus {
   }
 
   .member-bookings-page .member-page-intro__aside,
-  .member-booking-counts {
+  .member-booking-counts,
+  .member-booking-counts-placeholder {
     width: 100%;
   }
 

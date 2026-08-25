@@ -267,10 +267,17 @@ function MyBookings() {
         title={t("nav.myBookings")}
         body={t("member.bookings.body")}
         aside={
-          <div className="member-booking-counts">
-            <StatCell label={t("bookings.upcoming")} value={counts.upcoming} />
-            <StatCell label={t("bookings.waitlist")} value={counts.waitlist} />
-          </div>
+          hasBookingsData ? (
+            <div className="member-booking-counts">
+              <StatCell label={t("bookings.upcoming")} value={counts.upcoming} />
+              <StatCell label={t("bookings.waitlist")} value={counts.waitlist} />
+            </div>
+          ) : (
+            <div className="member-booking-counts-placeholder" aria-hidden="true">
+              <span className="skeleton-brand" />
+              <span className="skeleton-brand" />
+            </div>
+          )
         }
       />
 
@@ -364,10 +371,26 @@ function MyBookings() {
         onChange={setTab}
         dir={dir}
         items={[
-          { value: "upcoming", label: t("bookings.upcoming"), count: counts.upcoming },
-          { value: "waitlist", label: t("bookings.waitlist"), count: counts.waitlist },
-          { value: "past", label: t("bookings.past"), count: counts.past },
-          { value: "cancelled", label: t("bookings.cancelled"), count: counts.cancelled },
+          {
+            value: "upcoming",
+            label: t("bookings.upcoming"),
+            count: hasBookingsData ? counts.upcoming : undefined,
+          },
+          {
+            value: "waitlist",
+            label: t("bookings.waitlist"),
+            count: hasBookingsData ? counts.waitlist : undefined,
+          },
+          {
+            value: "past",
+            label: t("bookings.past"),
+            count: hasBookingsData ? counts.past : undefined,
+          },
+          {
+            value: "cancelled",
+            label: t("bookings.cancelled"),
+            count: hasBookingsData ? counts.cancelled : undefined,
+          },
         ]}
       />
 
@@ -381,7 +404,7 @@ function MyBookings() {
       >
         {isInitialLoading ? <MemberRouteSkeleton route="bookings" /> : null}
 
-        {!isInitialLoading && isError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
+        {hasFatalError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
 
         {hasBookingsData && !hasFatalError && current.length === 0 && (
           <MemberEmptyState
