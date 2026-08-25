@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
-  Sparkles,
   Check,
   ClipboardCheck,
   CreditCard,
@@ -28,6 +27,8 @@ import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
 import type { CheckoutConsent } from "@/lib/checkoutConsent";
+import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
+import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
 
 const BIT_PAYMENT_PHONE = "0523318478";
 type OnlinePaymentMethod = "bit" | "card";
@@ -63,7 +64,7 @@ function MemberPackages() {
   const qc = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["member-packages"],
     queryFn: () => fetchPackages(),
   });
@@ -120,6 +121,9 @@ function MemberPackages() {
     onError: () => toast.error(t("packages.subscriptionCancelError")),
   });
 
+  const hasPackageData = data != null;
+  const isInitialLoading = isLoading && !hasPackageData;
+  const fatalError = isError && !hasPackageData;
   const active = data?.mine.find((p: any) => p.status === "active");
   const activeSubscription = (data?.subscriptions ?? []).find((subscription: any) =>
     ["active", "past_due", "incomplete"].includes(subscription.status),
@@ -174,137 +178,61 @@ function MemberPackages() {
   for (const r of requests ?? []) if (r.plan_id) requestsByPlan[r.plan_id] = r;
 
   return (
-    <section dir={dir} className="member-page w-full space-y-6 sm:space-y-8 pb-10">
-      <div className="member-page-panel p-5 sm:p-8">
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] md:items-end">
-          <div className="member-page-copy">
-            <p className="member-eyebrow">{t("member.packages.kicker")}</p>
-            <h1 className="member-page-title mt-3">{t("nav.plans")}</h1>
-            <p className="member-page-body mt-3">{t("member.packages.body")}</p>
-          </div>
-          <div className="member-stat-strip">
-            <StatCell label={t("member.stat.credits")} value={credits} />
-            <StatCell label={t("payments.pending")} value={pendingPayments.length} />
-          </div>
-        </div>
-        <div className="mt-6 border-t border-gold/25 pt-5">
-          <p className="member-eyebrow">{t("member.activePackage")}</p>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <p className="font-display text-[clamp(1.55rem,7vw,1.875rem)] text-navy leading-tight">
-              {active?.plan
-                ? t("member.planWithCredits", {
-                    plan: getPlanDisplay(active.plan, lang).name,
-                    count: credits,
-                  })
-                : credits > 0
-                  ? t("member.creditsAvailable", { count: credits })
-                  : t("member.noActivePackage")}
-            </p>
-            {active?.expires_at && (
-              <p className="text-sm text-slate">
-                {t("member.expires")}{" "}
-                <LtrInline className="text-navy">
-                  {new Date(active.expires_at).toLocaleDateString(locale, {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </LtrInline>
+    <section
+      dir={dir}
+      className="member-page member-package-page w-full space-y-6 sm:space-y-8 pb-10"
+    >
+      <MemberPageIntro
+        eyebrow={t("member.packages.kicker")}
+        title={t("nav.plans")}
+        body={t("member.packages.body")}
+        aside={
+          hasPackageData ? (
+            <div className="member-package-status">
+              <p className="member-eyebrow">{t("member.activePackage")}</p>
+              <p className="member-package-status__plan">
+                {active?.plan
+                  ? t("member.planWithCredits", {
+                      plan: getPlanDisplay(active.plan, lang).name,
+                      count: credits,
+                    })
+                  : credits > 0
+                    ? t("member.creditsAvailable", { count: credits })
+                    : t("member.noActivePackage")}
               </p>
-            )}
-          </div>
-          {activeSubscription && (
-            <div className="mt-4 rounded-xl border border-gold/25 bg-white/55 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
-                    <RefreshCw className="h-4 w-4 text-gold" />
-                    {activeSubscription.status === "past_due"
-                      ? t("packages.subscriptionPastDue")
-                      : t("packages.subscriptionActive")}
-                  </p>
-                  <p className="mt-1 text-sm text-slate">
-                    {t("packages.subscriptionRenews", {
-                      date: new Date(
-                        activeSubscription.next_charge_at ??
-                          activeSubscription.current_period_end ??
-                          Date.now(),
-                      ).toLocaleDateString(locale),
+              {active?.expires_at ? (
+                <p className="member-package-status__expiry">
+                  {t("member.expires")}{" "}
+                  <LtrInline className="text-navy">
+                    {new Date(active.expires_at).toLocaleDateString(locale, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
                     })}
-                  </p>
-                  {activeSubscription.card_mask && (
-                    <p className="mt-1 text-xs font-medium text-slate">
-                      {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => cancelSubscriptionMutation.mutate()}
-                  disabled={cancelSubscriptionMutation.isPending}
-                  className="btn-outline shrink-0 disabled:opacity-50"
-                >
-                  {cancelSubscriptionMutation.isPending
-                    ? t("common.saving")
-                    : t("packages.subscriptionCancel")}
-                </button>
+                  </LtrInline>
+                </p>
+              ) : null}
+              <div className="member-package-status__counts">
+                <StatCell label={t("member.stat.credits")} value={credits} />
+                <StatCell label={t("payments.pending")} value={pendingPayments.length} />
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          ) : (
+            <div className="member-package-status-placeholder skeleton-brand" aria-hidden="true" />
+          )
+        }
+      />
 
-      {requests && requests.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="member-eyebrow">{t("packages.recent")}</h2>
-          <div className="member-card divide-y hairline">
-            {requests.slice(0, 4).map((r: any) => (
-              <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3 text-sm">
-                <div className="min-w-0">
-                  <p className="text-navy truncate">
-                    {r.plan ? getPlanDisplay(r.plan, lang).name : t("nav.plans")}
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-slate">
-                    {new Date(r.created_at).toLocaleDateString(locale)}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
-                    r.status === "paid"
-                      ? "border-navy bg-navy text-ivory"
-                      : r.status === "contacted"
-                        ? "border-powder/70 bg-powder/75 text-navy"
-                        : r.status === "cancelled"
-                          ? "border-sand bg-sand/70 text-slate"
-                          : "border-gold/35 bg-gold/12 text-navy"
-                  }`}
-                >
-                  {labelForStatus(r.status)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <div className="member-section-heading">
-          <div>
-            <h2 className="member-section-title">{t("packages.available")}</h2>
-            <p className="member-page-body mt-2 max-w-2xl text-sm sm:text-base">
-              {pricingCopy[lang].subtitle}
-            </p>
-          </div>
-        </div>
-        <div className="package-value-strip" aria-label={pricingCopy[lang].valueStripLabel}>
-          {pricingCopy[lang].valueChips.map((chip) => (
-            <span key={chip} className="package-value-chip">
-              {chip}
-            </span>
-          ))}
-        </div>
-        {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
-        {visiblePlans.length === 0 && !isLoading ? (
+      <MemberSection
+        id="available-packages"
+        eyebrow={t("member.packages.kicker")}
+        title={t("packages.available")}
+      >
+        {isInitialLoading ? (
+          <MemberRouteSkeleton route="packages" />
+        ) : fatalError ? (
+          <MemberRouteError onRetry={() => void refetch()} />
+        ) : visiblePlans.length === 0 ? (
           <MemberEmptyState
             variant="packages"
             title={t("member.empty.packages.title")}
@@ -312,14 +240,14 @@ function MemberPackages() {
           />
         ) : (
           <div className="package-pricing-grid">
-            {visiblePlans.map((p: any) => (
+            {visiblePlans.map((plan: any) => (
               <PackagePricingCard
-                key={p.id}
-                plan={p}
+                key={plan.id}
+                plan={plan}
                 lang={lang}
-                request={requestsByPlan[p.id]}
-                payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
-                onRequest={() => setSelectedPlan(p)}
+                request={requestsByPlan[plan.id]}
+                payment={pendingPayments.find((payment: any) => payment.plan?.id === plan.id)}
+                onRequest={() => setSelectedPlan(plan)}
                 pending={
                   manualPayment.isPending ||
                   checkoutPayment.isPending ||
@@ -331,7 +259,7 @@ function MemberPackages() {
             ))}
           </div>
         )}
-      </div>
+      </MemberSection>
 
       {selectedPlan && (
         <PaymentMethodSheet
@@ -346,93 +274,178 @@ function MemberPackages() {
         />
       )}
 
-      <div className="space-y-3">
-        <div className="member-section-heading">
-          <h2 className="member-section-title">{t("packages.creditHistory")}</h2>
-        </div>
-        {data?.ledger.length === 0 ? (
-          <MemberEmptyState
-            variant="packages"
-            title={t("packages.noCredit")}
-            body={t("member.empty.packages.body")}
-            align="start"
-            tone="sand"
-            illustration={null}
-          />
-        ) : (
-          <div className="member-card divide-y hairline">
-            {data?.ledger.map((t: any) => (
-              <div key={t.id} className="px-4 py-3 flex items-center justify-between text-sm">
+      {hasPackageData && activeSubscription ? (
+        <section className="member-package-subscription" aria-label={t("member.activePackage")}>
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
+              <RefreshCw className="h-4 w-4 text-gold" />
+              {activeSubscription.status === "past_due"
+                ? t("packages.subscriptionPastDue")
+                : t("packages.subscriptionActive")}
+            </p>
+            <p className="mt-1 text-sm text-slate">
+              {t("packages.subscriptionRenews", {
+                date: new Date(
+                  activeSubscription.next_charge_at ??
+                    activeSubscription.current_period_end ??
+                    Date.now(),
+                ).toLocaleDateString(locale),
+              })}
+            </p>
+            {activeSubscription.card_mask ? (
+              <p className="mt-1 text-xs font-medium text-slate">
+                {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
+              </p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => cancelSubscriptionMutation.mutate()}
+            disabled={cancelSubscriptionMutation.isPending}
+            className="btn-outline min-h-11 shrink-0 disabled:opacity-50"
+          >
+            {cancelSubscriptionMutation.isPending
+              ? t("common.saving")
+              : t("packages.subscriptionCancel")}
+          </button>
+        </section>
+      ) : null}
+
+      {hasPackageData ? (
+        <section className="package-explainer" aria-label={pricingCopy[lang].valueStripLabel}>
+          <p className="member-page-body max-w-2xl text-sm sm:text-base">
+            {pricingCopy[lang].subtitle}
+          </p>
+          <div className="package-value-strip">
+            {pricingCopy[lang].valueChips.map((chip) => (
+              <span key={chip} className="package-value-chip">
+                {chip}
+              </span>
+            ))}
+          </div>
+          <Link to="/terms" className="package-terms-link">
+            {t("legal.terms")}
+          </Link>
+        </section>
+      ) : null}
+
+      {hasPackageData && requests && requests.length > 0 ? (
+        <details className="member-history-disclosure member-card">
+          <summary>{t("packages.recent")}</summary>
+          <div className="divide-y hairline">
+            {requests.slice(0, 4).map((request: any) => (
+              <div
+                key={request.id}
+                className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+              >
                 <div className="min-w-0">
-                  <p className="text-navy truncate">
-                    {formatCreditReason(t.reason, t.amount_delta)}
+                  <p className="truncate text-navy">
+                    {request.plan ? getPlanDisplay(request.plan, lang).name : t("nav.plans")}
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-slate">
-                    {new Date(t.created_at).toLocaleDateString(locale)}
+                    {new Date(request.created_at).toLocaleDateString(locale)}
                   </p>
                 </div>
-                <span
-                  className={`numeric-display font-display text-xl ${t.amount_delta >= 0 ? "text-navy" : "text-slate"}`}
-                >
-                  {t.amount_delta > 0 ? "+" : ""}
-                  {t.amount_delta}
+                <span className="shrink-0 rounded-full border border-gold/35 bg-gold/10 px-2.5 py-1 text-xs font-medium text-navy">
+                  {labelForStatus(request.status)}
                 </span>
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </details>
+      ) : null}
 
-      <div className="space-y-3">
-        <div className="member-section-heading">
-          <h2 className="member-section-title">{t("packages.paymentHistory")}</h2>
-        </div>
-        {visiblePaymentHistory.length === 0 ? (
-          <MemberEmptyState
-            variant="payments"
-            title={t("packages.noPayments")}
-            body={t("member.empty.payments.body")}
-            align="start"
-            tone="ivory"
-          />
-        ) : (
-          <div className="member-card divide-y hairline">
-            {visiblePaymentHistory.map((p: any) => {
-              const receipt = Array.isArray(p.receipt) ? p.receipt[0] : p.receipt;
-              return (
-                <div
-                  key={p.id}
-                  className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="text-navy truncate">
-                      {p.plan ? getPlanDisplay(p.plan, lang).name : t("receipt.studioPayment")}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs font-medium text-slate">
-                      {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)} ·{" "}
-                      {labelForMethod(p.method)} · {labelForStatus(p.status)}
-                    </p>
+      {hasPackageData ? (
+        <details className="member-history-disclosure member-card">
+          <summary>{t("packages.creditHistory")}</summary>
+          <div className="member-history-disclosure__content">
+            {data?.ledger.length === 0 ? (
+              <MemberEmptyState
+                variant="packages"
+                title={t("packages.noCredit")}
+                body={t("member.empty.packages.body")}
+                align="start"
+                tone="sand"
+                illustration={null}
+              />
+            ) : (
+              <div className="divide-y hairline">
+                {data?.ledger.map((t: any) => (
+                  <div key={t.id} className="px-4 py-3 flex items-center justify-between text-sm">
+                    <div className="min-w-0">
+                      <p className="text-navy truncate">
+                        {formatCreditReason(t.reason, t.amount_delta)}
+                      </p>
+                      <p className="mt-0.5 text-xs font-medium text-slate">
+                        {new Date(t.created_at).toLocaleDateString(locale)}
+                      </p>
+                    </div>
+                    <span
+                      className={`numeric-display font-display text-xl ${t.amount_delta >= 0 ? "text-navy" : "text-slate"}`}
+                    >
+                      {t.amount_delta > 0 ? "+" : ""}
+                      {t.amount_delta}
+                    </span>
                   </div>
-                  <div className="text-start shrink-0">
-                    <p className="font-display text-xl text-navy">
-                      <LtrInline>{formatPaymentAmount(p.amount, p.currency)}</LtrInline>
-                    </p>
-                    {receipt && (
-                      <Link
-                        to="/receipts/$id"
-                        params={{ id: receipt.id }}
-                        className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-gold"
-                      >
-                        <FileText className="h-3 w-3" /> {receipt.receipt_number}
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </details>
+      ) : null}
+
+      {hasPackageData ? (
+        <details className="member-history-disclosure member-card">
+          <summary>{t("packages.paymentHistory")}</summary>
+          <div className="member-history-disclosure__content">
+            {visiblePaymentHistory.length === 0 ? (
+              <MemberEmptyState
+                variant="payments"
+                title={t("packages.noPayments")}
+                body={t("member.empty.payments.body")}
+                align="start"
+                tone="ivory"
+              />
+            ) : (
+              <div className="divide-y hairline">
+                {visiblePaymentHistory.map((p: any) => {
+                  const receipt = Array.isArray(p.receipt) ? p.receipt[0] : p.receipt;
+                  return (
+                    <div
+                      key={p.id}
+                      className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-navy truncate">
+                          {p.plan ? getPlanDisplay(p.plan, lang).name : t("receipt.studioPayment")}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs font-medium text-slate">
+                          {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)} ·{" "}
+                          {labelForMethod(p.method)} · {labelForStatus(p.status)}
+                        </p>
+                      </div>
+                      <div className="text-start shrink-0">
+                        <p className="font-display text-xl text-navy">
+                          <LtrInline>{formatPaymentAmount(p.amount, p.currency)}</LtrInline>
+                        </p>
+                        {receipt && (
+                          <Link
+                            to="/receipts/$id"
+                            params={{ id: receipt.id }}
+                            className="member-receipt-link"
+                          >
+                            <FileText className="h-3 w-3" /> {receipt.receipt_number}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }
@@ -463,7 +476,6 @@ function PackagePricingCard({
   pending: boolean;
   blockedByActivePackage: boolean;
 }) {
-  const isUnlimited = plan.credits >= 999 || /unlim/i.test(plan.name);
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
   const marketing = getPackageMarketing(plan, lang);
@@ -475,67 +487,53 @@ function PackagePricingCard({
       className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
       data-plan-kind={marketing.kind}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-display text-2xl text-navy leading-tight">{display.name}</p>
-            {marketing.badge && <span className="package-plan-badge">{marketing.badge}</span>}
-            {marketing.secondaryBadge && (
-              <span className="package-plan-badge is-secondary">{marketing.secondaryBadge}</span>
-            )}
-            {isRecurringMonthly && (
-              <span className="package-plan-badge is-secondary">
-                {t("packages.subscriptionRecurringBadge")}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate mt-1.5">{marketing.subtitle || display.description}</p>
-          {isRecurringMonthly && (
-            <p className="package-recurring-disclosure">
-              <RefreshCw className="h-3.5 w-3.5" />
-              {t("packages.recurringDisclosure")}
-            </p>
-          )}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-display text-2xl leading-tight text-navy">{display.name}</h3>
+          {marketing.badge || marketing.secondaryBadge ? (
+            <span className="package-plan-badge">
+              {marketing.badge || marketing.secondaryBadge}
+            </span>
+          ) : null}
         </div>
-        <span className="package-plan-icon" aria-hidden="true">
-          <Sparkles className="h-4 w-4" />
-        </span>
+        {marketing.subtitle ? (
+          <p className="mt-1.5 text-sm text-slate">{marketing.subtitle}</p>
+        ) : null}
       </div>
       <div>
         <p className="numeric-display font-display text-4xl text-navy">{price}</p>
-        <p className="mt-2 text-sm font-semibold text-navy">{marketing.priceNote}</p>
-        {marketing.savings && (
-          <p className="mt-1 text-xs font-semibold text-gold-dark">{marketing.savings}</p>
-        )}
       </div>
-      <div className="space-y-2 text-sm">
-        {(marketing.features.length
-          ? marketing.features
-          : [
-              isUnlimited ? t("packages.unlimited") : creditsLine,
-              plan.duration_days
-                ? t("packages.validDays", { days: plan.duration_days })
-                : t("packages.noExpiry"),
-              t("packages.allPrograms"),
-            ]
-        ).map((feature) => (
-          <p key={feature} className="flex items-center gap-2 text-navy">
-            <Check className="h-3.5 w-3.5 text-gold" /> {feature}
-          </p>
-        ))}
+      <div className="package-plan-details">
+        <p>
+          <Check className="h-4 w-4" /> {creditsLine}
+        </p>
+        <p>
+          <Check className="h-4 w-4" />
+          {plan.duration_days
+            ? t("packages.validDays", { days: plan.duration_days })
+            : t("packages.noExpiry")}
+        </p>
       </div>
-      <div className="mt-auto flex items-end justify-between gap-3 pt-3 border-t hairline">
-        <p className="text-xs font-medium text-slate">{t("packages.choosePackage")}</p>
+      {marketing.savings || marketing.priceNote ? (
+        <p className="package-plan-recommendation">{marketing.savings || marketing.priceNote}</p>
+      ) : null}
+      {isRecurringMonthly ? (
+        <p className="package-recurring-disclosure">
+          <RefreshCw className="h-3.5 w-3.5" />
+          {t("packages.recurringDisclosure")}
+        </p>
+      ) : null}
+      <div className="package-plan-action">
         {payment ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
+          <span className="package-plan-state" role="status">
             <Wallet className="h-3 w-3 text-gold" /> {t("packages.pendingPayment")}
           </span>
         ) : blockedByActivePackage ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
+          <span className="package-plan-state">
             <Wallet className="h-3 w-3 text-gold" /> {t("packages.activePackageBadge")}
           </span>
         ) : request && request.status !== "cancelled" ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
+          <span className="package-plan-state" role="status">
             <MessageCircle className="h-3 w-3 text-gold" />{" "}
             {request.status === "paid" ? t("packages.activated") : t("packages.requested")}
           </span>
@@ -545,8 +543,8 @@ function PackagePricingCard({
             disabled={pending}
             className={
               isRecommended
-                ? "btn-navy hover:btn-navy-hover disabled:opacity-50"
-                : "btn-outline hover:btn-ghost-hover disabled:opacity-50"
+                ? "btn-navy min-h-11 w-full hover:btn-navy-hover disabled:opacity-50"
+                : "btn-outline min-h-11 w-full hover:btn-ghost-hover disabled:opacity-50"
             }
           >
             <Send className="h-3 w-3" /> {marketing.cta}
@@ -891,7 +889,7 @@ function PaymentMethodSheet({
           <button
             type="button"
             onClick={onClose}
-            className="btn-ghost h-9 w-9 p-0 hover:btn-ghost-hover"
+            className="btn-ghost h-11 w-11 p-0 hover:btn-ghost-hover"
             aria-label={t("common.close")}
           >
             <X className="h-4 w-4" />
@@ -982,7 +980,7 @@ function PaymentMethodSheet({
             </div>
             {isOnline && (
               <div className="rounded-xl border border-gold/25 bg-ivory/70 p-4">
-                <label className="flex items-start gap-2 text-sm leading-6 text-slate">
+                <label className="flex min-h-11 items-start gap-2 text-sm leading-6 text-slate">
                   <input
                     required
                     type="checkbox"
