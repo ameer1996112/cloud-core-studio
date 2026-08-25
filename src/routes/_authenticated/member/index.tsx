@@ -50,6 +50,9 @@ function MemberHome() {
     queryFn: () => fetchSettings(),
   });
   const [openClass, setOpenClass] = useState<string | null>(null);
+  const hasHomeData = data != null;
+  const isInitialLoading = isLoading && !hasHomeData;
+  const fatalError = isError && !hasHomeData;
 
   const greetingName = data?.member?.name?.trim().split(/\s+/)[0] ?? t("member.friend");
   const hour = new Date().getHours();
@@ -86,7 +89,9 @@ function MemberHome() {
       <MemberPageIntro
         eyebrow={greeting}
         title={
-          lang === "en" ? (
+          !hasHomeData ? (
+            <span dir={dir}>{t("nav.home")}</span>
+          ) : lang === "en" ? (
             <span dir="ltr">
               {t("member.welcomeBackName")}{" "}
               <AutoInline>
@@ -105,10 +110,14 @@ function MemberHome() {
         body={settings?.welcome_text ?? t("member.welcomeBackStudio")}
         action={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
         aside={
-          <PackageMini
-            activePlan={data?.activePlan}
-            credits={data?.member?.remaining_credits ?? 0}
-          />
+          hasHomeData ? (
+            <PackageMini
+              activePlan={data.activePlan}
+              credits={data.member?.remaining_credits ?? 0}
+            />
+          ) : (
+            <div className="member-home-package-placeholder skeleton-brand" aria-hidden="true" />
+          )
         }
       />
 
@@ -122,12 +131,12 @@ function MemberHome() {
         </div>
       )}
 
-      {isError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
-
-      {!isError &&
-        (isLoading ? (
-          <MemberRouteSkeleton route="home" />
-        ) : nextBooking ? (
+      {fatalError ? (
+        <MemberRouteError onRetry={() => void refetch()} />
+      ) : isInitialLoading ? (
+        <MemberRouteSkeleton route="home" />
+      ) : hasHomeData ? (
+        nextBooking ? (
           <MemberSection
             id="next-booking"
             eyebrow={t("member.bookNext")}
@@ -177,9 +186,10 @@ function MemberHome() {
             body={t("member.home.emptyBody")}
             primaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
           />
-        ))}
+        )
+      ) : null}
 
-      {!isError && !isLoading ? (
+      {hasHomeData ? (
         <>
           {concierge && concierge.state !== "quiet" && (
             <section className="member-card member-panel-sand relative overflow-hidden p-5 sm:p-7">
@@ -214,22 +224,16 @@ function MemberHome() {
 
           <WeeklyPromoBanner />
 
-          <div className="space-y-4">
-            <div className="member-section-heading">
-              <h2 className="member-section-title">{t("member.forYou")}</h2>
-              <DirectionalMemberLink to="/member/schedule">
-                {t("member.allSessions")}
-              </DirectionalMemberLink>
-            </div>
-            {recommendedList.length === 0 ? (
-              <MemberEmptyState
-                variant="schedule"
-                align="center"
-                title={t("member.empty.schedule.title")}
-                body={t("member.empty.schedule.body")}
-                primaryAction={{ label: t("member.browseSchedule"), to: "/member/schedule" }}
-              />
-            ) : (
+          {recommendedList.length > 0 ? (
+            <MemberSection
+              id="for-you"
+              title={t("member.forYou")}
+              action={
+                <DirectionalMemberLink to="/member/schedule">
+                  {t("member.allSessions")}
+                </DirectionalMemberLink>
+              }
+            >
               <div className="space-y-2.5">
                 {recommendedList.slice(0, 3).map((c: any, index: number, list: any[]) => (
                   <VisualClassCard
@@ -249,8 +253,8 @@ function MemberHome() {
                   />
                 ))}
               </div>
-            )}
-          </div>
+            </MemberSection>
+          ) : null}
 
           {upcomingBookings.length > 1 && (
             <div className="space-y-3">

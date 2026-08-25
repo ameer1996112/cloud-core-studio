@@ -8384,6 +8384,11 @@ select.input:focus {
   min-width: 0;
 }
 
+.member-home-package-placeholder {
+  width: 100%;
+  min-height: 5.75rem;
+}
+
 .member-home-package-mini {
   width: 100%;
   padding: 0.9rem 1rem;
@@ -8428,6 +8433,13 @@ select.input:focus {
 
 .member-home-contact-link:hover {
   color: var(--color-gold, #d4af6a);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-home-package-placeholder {
+    animation: none !important;
+    background-position: 50% 0;
+  }
 }
 
 .member-page,
