@@ -1,0 +1,185 @@
+{
+  "version": 2,
+  "measurements": "All coordinates are absolute pixels measured from the matched full-resolution approved Hebrew masters. References are never scaled.",
+  "iphone-6.5": {
+    "referenceCanvas": { "width": 1242, "height": 2688 },
+    "outputCanvas": { "width": 1242, "height": 2688 },
+    "referenceDirectory": "app-store-assets/references/hebrew-approved",
+    "marketingTextMasks": {
+      "01-home": { "x": 50, "y": 400, "width": 1142, "height": 220 },
+      "02-schedule": { "x": 50, "y": 500, "width": 1142, "height": 210 },
+      "03-bookings": { "x": 50, "y": 400, "width": 1142, "height": 380 },
+      "04-packages": { "x": 50, "y": 380, "width": 1142, "height": 200 },
+      "05-profile": { "x": 50, "y": 400, "width": 1142, "height": 200 }
+    },
+    "marketingText": {
+      "01-home": { "singleLineTop": 430, "twoLineTop": 400, "subtitleTop": 568 },
+      "02-schedule": { "singleLineTop": 527, "twoLineTop": 497, "subtitleTop": 665 },
+      "03-bookings": { "singleLineTop": 455, "twoLineTop": 422, "subtitleTop": 726 },
+      "04-packages": { "singleLineTop": 408, "twoLineTop": 350, "subtitleTop": 530 },
+      "05-profile": { "singleLineTop": 438, "twoLineTop": 408, "subtitleTop": 552 }
+    },
+    "headline": {
+      "centerX": 621,
+      "fontSize": 64,
+      "lineHeight": 70,
+      "maxWidth": 1120,
+      "weight": 700,
+      "color": "#0b2b50"
+    },
+    "subtitle": {
+      "fontSize": 36,
+      "maxWidth": 1100,
+      "weight": 500,
+      "color": "#173a61"
+    },
+    "appScreenshotMasks": {
+      "01-home": {
+        "x": 255,
+        "y": 780,
+        "width": 754,
+        "height": 1654,
+        "cornerRadius": 55,
+        "fit": "cover",
+        "position": "top"
+      },
+      "02-schedule": {
+        "x": 255,
+        "y": 875,
+        "width": 727,
+        "height": 1595,
+        "cornerRadius": 55,
+        "fit": "cover",
+        "position": "top"
+      },
+      "03-bookings": {
+        "x": 280,
+        "y": 925,
+        "width": 685,
+        "height": 1534,
+        "cornerRadius": 52,
+        "fit": "cover",
+        "position": "top"
+      },
+      "04-packages": {
+        "x": 248,
+        "y": 725,
+        "width": 748,
+        "height": 1659,
+        "cornerRadius": 55,
+        "fit": "cover",
+        "position": "top"
+      },
+      "05-profile": {
+        "x": 259,
+        "y": 765,
+        "width": 717,
+        "height": 1596,
+        "cornerRadius": 54,
+        "fit": "cover",
+        "position": "top"
+      }
+    },
+    "hardwareOverlays": {
+      "01-home": [{ "x": 519, "y": 761, "width": 227, "height": 73 }],
+      "02-schedule": [{ "x": 508, "y": 861, "width": 219, "height": 71 }],
+      "03-bookings": [{ "x": 519, "y": 912, "width": 206, "height": 68 }],
+      "04-packages": [{ "x": 508, "y": 710, "width": 229, "height": 73 }],
+      "05-profile": [{ "x": 509, "y": 749, "width": 217, "height": 70 }]
+    },
+    "capture": {
+      "cssWidth": 390,
+      "cssHeight": 844,
+      "deviceScaleFactor": 3,
+      "expectedWidth": 1170,
+      "expectedHeight": 2532
+    }
+  },
+  "ipad-13": {
+    "referenceCanvas": { "width": 2048, "height": 2732 },
+    "outputCanvas": { "width": 2048, "height": 2732 },
+    "referenceDirectory": "app-store-assets/references/hebrew-approved/ipad-13",
+    "marketingTextMasks": {
+      "01-home": { "x": 100, "y": 420, "width": 1848, "height": 260 },
+      "02-schedule": { "x": 100, "y": 440, "width": 1848, "height": 260 },
+      "03-bookings": { "x": 100, "y": 410, "width": 1848, "height": 240 },
+      "04-packages": { "x": 100, "y": 350, "width": 1848, "height": 240 },
+      "05-profile": { "x": 100, "y": 460, "width": 1848, "height": 250 }
+    },
+    "marketingText": {
+      "01-home": { "singleLineTop": 446, "twoLineTop": 410, "subtitleTop": 620 },
+      "02-schedule": { "singleLineTop": 470, "twoLineTop": 430, "subtitleTop": 617 },
+      "03-bookings": { "singleLineTop": 468, "twoLineTop": 438, "subtitleTop": 595 },
+      "04-packages": { "singleLineTop": 410, "twoLineTop": 350, "subtitleTop": 535 },
+      "05-profile": { "singleLineTop": 492, "twoLineTop": 450, "subtitleTop": 650 }
+    },
+    "headline": {
+      "centerX": 1024,
+      "fontSize": 82,
+      "lineHeight": 88,
+      "maxWidth": 1700,
+      "weight": 700,
+      "color": "#0b2b50"
+    },
+    "subtitle": {
+      "fontSize": 44,
+      "maxWidth": 1640,
+      "weight": 500,
+      "color": "#173a61"
+    },
+    "appScreenshotMasks": {
+      "01-home": {
+        "x": 394,
+        "y": 825,
+        "width": 1259,
+        "height": 1721,
+        "cornerRadius": 40,
+        "fit": "cover",
+        "position": "top"
+      },
+      "02-schedule": {
+        "x": 425,
+        "y": 820,
+        "width": 1194,
+        "height": 1744,
+        "cornerRadius": 40,
+        "fit": "cover",
+        "position": "top"
+      },
+      "03-bookings": {
+        "x": 423,
+        "y": 790,
+        "width": 1197,
+        "height": 1696,
+        "cornerRadius": 40,
+        "fit": "cover",
+        "position": "top"
+      },
+      "04-packages": {
+        "x": 436,
+        "y": 740,
+        "width": 1152,
+        "height": 1798,
+        "cornerRadius": 40,
+        "fit": "cover",
+        "position": "top"
+      },
+      "05-profile": {
+        "x": 429,
+        "y": 830,
+        "width": 1197,
+        "height": 1784,
+        "cornerRadius": 40,
+        "fit": "cover",
+        "position": "top"
+      }
+    },
+    "capture": {
+      "cssWidth": 1024,
+      "cssHeight": 1366,
+      "deviceScaleFactor": 2,
+      "expectedWidth": 2048,
+      "expectedHeight": 2732
+    }
+  }
+}

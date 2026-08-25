@@ -1,0 +1,54 @@
+{
+  "en": {
+    "direction": "ltr",
+    "font": "Assistant",
+    "screens": {
+      "01-home": {
+        "headline": ["Your studio in your hand"],
+        "subtitle": "Classes, bookings, and packages in one place"
+      },
+      "02-schedule": {
+        "headline": ["A clear and flexible", "class schedule"],
+        "subtitle": "Find the class that fits your pace"
+      },
+      "03-bookings": {
+        "headline": ["Your bookings in one place"],
+        "subtitle": "Track every class and status"
+      },
+      "04-packages": {
+        "headline": ["Packages and credits,", "effortlessly"],
+        "subtitle": "Everything remaining and available is shown clearly"
+      },
+      "05-profile": {
+        "headline": ["Your profile, organized and clear"],
+        "subtitle": "Personal details and preferences in one place"
+      }
+    }
+  },
+  "ar": {
+    "direction": "rtl",
+    "font": "Noto Sans Arabic",
+    "screens": {
+      "01-home": {
+        "headline": ["الاستوديو بين إيديك"],
+        "subtitle": "حصص، حجوزات وباقات بمكان واحد"
+      },
+      "02-schedule": {
+        "headline": ["جدول حصص واضح ومرن"],
+        "subtitle": "اختاري الحصة اللي بتناسب وتيرتك"
+      },
+      "03-bookings": {
+        "headline": ["حجوزاتك بمكان واحد"],
+        "subtitle": "تابعي كل حصة وحالتها بسهولة"
+      },
+      "04-packages": {
+        "headline": ["الباقات والرصيد بدون تعب"],
+        "subtitle": "كل شي باقي ومتاح ظاهر بوضوح"
+      },
+      "05-profile": {
+        "headline": ["ملفك مرتب وواضح"],
+        "subtitle": "بياناتك وتفضيلاتك بمكان واحد"
+      }
+    }
+  }
+}

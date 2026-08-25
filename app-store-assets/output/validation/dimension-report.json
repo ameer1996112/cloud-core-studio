@@ -1,0 +1,616 @@
+{
+  "status": "pass",
+  "scope": "full-production",
+  "files": [
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/01-home-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "01-home-en.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 710.865,
+      "sha256": "6e6c2d0eddb91d6f99b4c91fe0a911913ba0b53daab036ba5e2049dd22014cfe",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/02-schedule-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "02-schedule-en.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 683.418,
+      "sha256": "11b233955820c324b6a9fa829af51d3a943149706d6e8cb4975410fcdb802f1c",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/03-bookings-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "03-bookings-en.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 805.774,
+      "sha256": "7f7f2cf3922e55ff1af70828af49b4a51f7fb735b36feff19a376718ffaf6e85",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/04-packages-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "04-packages-en.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 951.488,
+      "sha256": "b3929627d5796417233783a9a3fcb6df21f23db2a002d9ad7813f2245a211e26",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/05-profile-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "05-profile-en.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 585.497,
+      "sha256": "33c6d6ac67a4c21a03aa89bb60f8843ca22bc5753613ccfda8e47e4d7ace5bd7",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/01-home-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "01-home-ar.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 569.77,
+      "sha256": "0ac0df4669920759f7dd06eb9568c3eab91d554f003886431cbdf270b9990431",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/02-schedule-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "02-schedule-ar.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 612.194,
+      "sha256": "8afa4e04a70c3da6efbfa9ff226275f1c310d476ae6e11f5a39aec603147a72e",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/03-bookings-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "03-bookings-ar.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 657.377,
+      "sha256": "9b684cd147ef0d29b9a2895591b3462009749c15a0ceb9f4af61b4bca02a6ed6",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/04-packages-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "04-packages-ar.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 766.853,
+      "sha256": "5359de55f80455ef8687c8d0f1d1fba03bec7b17a6745865750a5d0a6b507092",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/05-profile-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "05-profile-ar.png",
+      "width": 1242,
+      "height": 2688,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 521.367,
+      "sha256": "eb40ae1de79682a1d58a94d7bfb651d21c9ddaf4b6081fef84eb4b968aa13018",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/01-home-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "01-home-en.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 583.711,
+      "sha256": "8ff4bee6384ba262984cfc426dad9da4348b4ea2ec5477007c5c92c7c347339b",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/02-schedule-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "02-schedule-en.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 424.145,
+      "sha256": "3015d5286239adddd689d9502a7f9b884558eb9065d9e3e25c498aa250d34acc",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/03-bookings-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "03-bookings-en.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 488.582,
+      "sha256": "e3357169fdcabd64161161f2da9547e7e108f1502ed822bb1c9e8eacca8ccb7b",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/04-packages-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "04-packages-en.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 1280.585,
+      "sha256": "da50d5c6faf3d3d23a534f579ff1ea80d81e73eab1764569e056d9a2dcf53255",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/05-profile-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "05-profile-en.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 451.756,
+      "sha256": "be01e742b37080a7c438de090c7f9a5d1f31f59d3bef149acfbb83df9c504988",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/01-home-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "01-home-ar.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 485.693,
+      "sha256": "090ef02e992490f5153b92090a915a01ca330cc0b9e77fdc1f74d9aa934effff",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/02-schedule-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "02-schedule-ar.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 392.268,
+      "sha256": "536539068c441b6dd08df4005bd54e3344745c62afe5ed84d008b73328df98ab",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/03-bookings-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "03-bookings-ar.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 388.781,
+      "sha256": "ade9470194e17845bde59acf0ee1951249b5c56243941739e28abf5c68538d04",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/04-packages-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "04-packages-ar.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 1129.496,
+      "sha256": "2aba11f8ad3ca9b7b40c710a54924c7f0f2504fbdb31b1914b47837f6ddb6cb8",
+      "deterministicCompositeMatches": true
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/05-profile-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "05-profile-ar.png",
+      "width": 2048,
+      "height": 2732,
+      "colorSpace": "srgb",
+      "channels": 3,
+      "hasAlpha": false,
+      "opaque": true,
+      "sharpnessLaplacianVariance": 437.434,
+      "sha256": "e35143e8ec3245bd34c91bd5c12448986046f0974ed96c5b32576c85e472230a",
+      "deterministicCompositeMatches": true
+    }
+  ],
+  "responsiveCaptureChecks": [
+    {
+      "locale": "en",
+      "screen": "01-home",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 14.862514,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "en",
+      "screen": "02-schedule",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 4.87658,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "en",
+      "screen": "03-bookings",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 22.087146,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "en",
+      "screen": "04-packages",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 6.670372,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "en",
+      "screen": "05-profile",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 9.017787,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "ar",
+      "screen": "01-home",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 15.165211,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "ar",
+      "screen": "02-schedule",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 5.262443,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "ar",
+      "screen": "03-bookings",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 21.585088,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "ar",
+      "screen": "04-packages",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 6.388379,
+      "reusedOrStretched": false
+    },
+    {
+      "locale": "ar",
+      "screen": "05-profile",
+      "iphoneDimensions": [
+        1170,
+        2532
+      ],
+      "ipadDimensions": [
+        2048,
+        2732
+      ],
+      "iphoneHasAlpha": false,
+      "ipadHasAlpha": false,
+      "stretchedIphoneVsIpadMeanAbsolutePercent": 9.22863,
+      "reusedOrStretched": false
+    }
+  ],
+  "captureProvenance": {
+    "captureSourceRevision": "85b833a58a01311d12481b47bc21a96cb7fcc946",
+    "account": "app-store-demo@cloud-core.local",
+    "memberState": "no member detail row; localized generic-name empty state",
+    "fixedTime": "2026-08-25T14:30:00+03:00",
+    "timezone": "Asia/Jerusalem",
+    "globalFixtureHash": "a0ba3447869dfbe8ee2529e5adfa046a55e3ed48c3766f1592e28b8d5200b5ab",
+    "globalPlanNames": [
+      "Single Class",
+      "Cloud Monthly 1x Week",
+      "Cloud Monthly 2x Week",
+      "Cloud 10 Entry Card"
+    ],
+    "scheduledClassCount": 0,
+    "browserVersion": "Google Chrome 151.0.7922.174",
+    "devices": [
+      "iphone-6.5",
+      "ipad-13"
+    ],
+    "locales": [
+      "he",
+      "en",
+      "ar"
+    ],
+    "captureFiles": [
+      {
+        "path": "iphone-6.5/he/01-home-he.png",
+        "sha256": "e3ee6278a8e3f626a2bccec6cc6e950c9a85f66a3e684c04cc4c82b9b455376b"
+      },
+      {
+        "path": "iphone-6.5/he/02-schedule-he.png",
+        "sha256": "8a44f35bde0e20381208c80cc915cfd94072028fb2982cd7d22e4d17871b959f"
+      },
+      {
+        "path": "iphone-6.5/he/03-bookings-he.png",
+        "sha256": "5dc2c81d2926a6ef160c69cc267b184d004a6bed3b490e1e558be8243dcbdc09"
+      },
+      {
+        "path": "iphone-6.5/he/04-packages-he.png",
+        "sha256": "70dadaefaba6d03f754ec16d0486b2ba7918d8f59a99564c0d6f01d70aa5b04a"
+      },
+      {
+        "path": "iphone-6.5/he/05-profile-he.png",
+        "sha256": "4f26af8dda06882ab0b60b0dcf28e21cae96e2bf5df503bc67c95647af7864c9"
+      },
+      {
+        "path": "iphone-6.5/en/01-home-en.png",
+        "sha256": "1aa08e379b3ef16499c1121a644cbda3bb7af91653038101d4b494c2e9724cf1"
+      },
+      {
+        "path": "iphone-6.5/en/02-schedule-en.png",
+        "sha256": "a52e325b151cfaa4ed1eb1b4dfa9f01998e80372a97ad3be35bcb88afebd9a29"
+      },
+      {
+        "path": "iphone-6.5/en/03-bookings-en.png",
+        "sha256": "b64c4ef8cf3fbf048f1b74c25810c9dd5b19812893936959b715a2e20cf1ea0a"
+      },
+      {
+        "path": "iphone-6.5/en/04-packages-en.png",
+        "sha256": "893575f2cca52b7c2e6524cfe2a80a03963fd8d245ad031452cce1d32f89e204"
+      },
+      {
+        "path": "iphone-6.5/en/05-profile-en.png",
+        "sha256": "4834d229b3ef17e422c25bb63c1c5511a2b07eb48ff0dd832465e13605e76097"
+      },
+      {
+        "path": "iphone-6.5/ar/01-home-ar.png",
+        "sha256": "5304387829a0efd48fc7fae9e24c0d90e831b90d585640359b62d9d395c0e0e4"
+      },
+      {
+        "path": "iphone-6.5/ar/02-schedule-ar.png",
+        "sha256": "2fe98ebe0eb1bebecd742555f3742db48f40f37fdda4e61ecff0a1b50895120e"
+      },
+      {
+        "path": "iphone-6.5/ar/03-bookings-ar.png",
+        "sha256": "8db29b205910225c5e33b4255b0ee5400e46ee40159da68f2876fcf77b028986"
+      },
+      {
+        "path": "iphone-6.5/ar/04-packages-ar.png",
+        "sha256": "8224e9b6c5eed81f38781a6b2a48b88c4b3f31c86bf90dd6833f22a2463a42a6"
+      },
+      {
+        "path": "iphone-6.5/ar/05-profile-ar.png",
+        "sha256": "362f0c29c06de47def41d59b627ea5ed3138d1f2994f52476de4998584962c7b"
+      },
+      {
+        "path": "ipad-13/he/01-home-he.png",
+        "sha256": "55f421fe0e61fd96d5876e7e5ebd15b38e6ce60ec8229f4b8dafd9ac1fdd7c15"
+      },
+      {
+        "path": "ipad-13/he/02-schedule-he.png",
+        "sha256": "b9a3bfe128823895891be4f7e88e9a4109521c83c465adf9f70dbe5a715d9ea2"
+      },
+      {
+        "path": "ipad-13/he/03-bookings-he.png",
+        "sha256": "ad41da21aceff0d07c8c13bbc944caf8e415c31537e6e89094afc2115ef49b72"
+      },
+      {
+        "path": "ipad-13/he/04-packages-he.png",
+        "sha256": "02a86bb0f9486ecb88cb681f56b3d1ac9bd376a06bb3ef441aacd10ba63fb3d1"
+      },
+      {
+        "path": "ipad-13/he/05-profile-he.png",
+        "sha256": "bd89c8e28654c1cd2ecfad819426cd7f4ce613974dcf0999df09b6a949c3ca88"
+      },
+      {
+        "path": "ipad-13/en/01-home-en.png",
+        "sha256": "81411d52a15a7fd180aa9a57b94b4eb2cc3d22f1345e4270b7848b0d0fb55397"
+      },
+      {
+        "path": "ipad-13/en/02-schedule-en.png",
+        "sha256": "fca1bf1ba26d5e7b9a5e8ce1c7d4c9cb334c251fff8c73b10788e4ad09fbaee1"
+      },
+      {
+        "path": "ipad-13/en/03-bookings-en.png",
+        "sha256": "efa62759164b2fa78e7605949462bf8ca07e7ff3525568498cf00f01cbb75771"
+      },
+      {
+        "path": "ipad-13/en/04-packages-en.png",
+        "sha256": "a5c4bd19584e3b4585d77b65f72594ccc2c2ec240ba87aab8b64201aeb3855d2"
+      },
+      {
+        "path": "ipad-13/en/05-profile-en.png",
+        "sha256": "2297de2551c55a62df847f0b1f01c68d6f3b28dba074098d889158c3717e1f6d"
+      },
+      {
+        "path": "ipad-13/ar/01-home-ar.png",
+        "sha256": "f522b9686b237e8dafe42f705919f9d3e900809a35cf1148c51fd3df6a5799f9"
+      },
+      {
+        "path": "ipad-13/ar/02-schedule-ar.png",
+        "sha256": "310abf04c154aef49219b6cf537f3833152a962982013deffd143a77e3042d81"
+      },
+      {
+        "path": "ipad-13/ar/03-bookings-ar.png",
+        "sha256": "cba1733dbccba63f24dda68bc841f0749e17a2bcbfcae17833dab600578c453c"
+      },
+      {
+        "path": "ipad-13/ar/04-packages-ar.png",
+        "sha256": "0f35075bf9d3de34dfea322825d7d570a94da2306bc8ae82532059dd6e63e124"
+      },
+      {
+        "path": "ipad-13/ar/05-profile-ar.png",
+        "sha256": "5e46adc6232a83ce19f4fcfe6cf204bbd63fa16b7360d7f6e8f096f336a34b35"
+      }
+    ]
+  },
+  "failures": []
+}
