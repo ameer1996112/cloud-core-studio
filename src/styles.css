@@ -159,6 +159,11 @@
   padding-block-end: max(1.25rem, env(safe-area-inset-bottom));
 }
 
+.member-schedule-filter-sheet > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .member-schedule-filter-sheet__header {
   padding-inline-end: 2.75rem;
   text-align: start;

@@ -21,7 +21,6 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getMemberScheduleQueryKey, getViewerCacheKey } from "@/lib/memberQueryKeys";
 import {
   localizedClassTitle,
-  localizedFilterLabel,
   localizedInstructorName,
   localizedRoomName,
   localizedToneName,
@@ -34,6 +33,7 @@ import {
   syncGuestScheduleAuthIntent,
 } from "@/lib/guest-auth-intent";
 import { getScheduleEmptyStateKind } from "@/lib/member-ui";
+import { getLocalizedIntensity } from "@/lib/lesson-card-variants";
 
 export const Route = createFileRoute("/member/schedule")({
   component: MemberSchedulePublic,
@@ -498,7 +498,7 @@ export function MemberScheduleContent({
           label: t("member.filter.level"),
           options: levels,
           value: filter.level,
-          formatOption: (value) => localizedFilterLabel(value, lang),
+          formatOption: (value) => getLocalizedIntensity(value, lang),
         },
         {
           key: "energy",
