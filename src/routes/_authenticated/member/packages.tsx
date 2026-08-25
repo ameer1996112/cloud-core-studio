@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Check,
   ClipboardCheck,
@@ -12,7 +12,6 @@ import {
   Send,
   Smartphone,
   Wallet,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getMyPackages } from "@/lib/member.functions";
@@ -29,6 +28,13 @@ import { LtrInline } from "@/components/ui/bidi";
 import type { CheckoutConsent } from "@/lib/checkoutConsent";
 import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
 import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const BIT_PAYMENT_PHONE = "0523318478";
 type OnlinePaymentMethod = "bit" | "card";
@@ -63,6 +69,8 @@ function MemberPackages() {
   const cancelSubscription = useServerFn(cancelMySubscription);
   const qc = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const purchaseOpenerRef = useRef<HTMLButtonElement | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["member-packages"],
@@ -82,7 +90,7 @@ function MemberPackages() {
       createManualPayment({ data: v }),
     onSuccess: () => {
       toast.success(t("packages.requestReceived"));
-      setSelectedPlan(null);
+      setPaymentSheetOpen(false);
       qc.invalidateQueries({ queryKey: ["member-packages"] });
     },
     onError: () => toast.error(t("packages.manualPaymentError")),
@@ -247,7 +255,11 @@ function MemberPackages() {
                 lang={lang}
                 request={requestsByPlan[plan.id]}
                 payment={pendingPayments.find((payment: any) => payment.plan?.id === plan.id)}
-                onRequest={() => setSelectedPlan(plan)}
+                onRequest={(opener) => {
+                  purchaseOpenerRef.current = opener;
+                  setSelectedPlan(plan);
+                  setPaymentSheetOpen(true);
+                }}
                 pending={
                   manualPayment.isPending ||
                   checkoutPayment.isPending ||
@@ -263,11 +275,14 @@ function MemberPackages() {
 
       {selectedPlan && (
         <PaymentMethodSheet
+          open={paymentSheetOpen}
           plan={selectedPlan}
           lang={lang}
           settings={settings}
           pending={manualPayment.isPending || checkoutPayment.isPending}
-          onClose={() => setSelectedPlan(null)}
+          restoreFocusRef={purchaseOpenerRef}
+          onOpenChange={setPaymentSheetOpen}
+          onClosed={() => setSelectedPlan(null)}
           onSubmit={(method, recurring, checkout) =>
             submitPayment(selectedPlan, method, recurring, checkout)
           }
@@ -472,7 +487,7 @@ function PackagePricingCard({
   lang: Lang;
   request?: any;
   payment?: any;
-  onRequest: () => void;
+  onRequest: (opener: HTMLButtonElement) => void;
   pending: boolean;
   blockedByActivePackage: boolean;
 }) {
@@ -539,7 +554,7 @@ function PackagePricingCard({
           </span>
         ) : (
           <button
-            onClick={onRequest}
+            onClick={(event) => onRequest(event.currentTarget)}
             disabled={pending}
             className={
               isRecommended
@@ -801,19 +816,56 @@ function formatCreditReason(reason: string | null | undefined, amountDelta: numb
   return reason?.trim() || t("packages.creditReasonGrant");
 }
 
-function PaymentMethodSheet({
+type PaymentSheetFocusRef = { current: HTMLButtonElement | null };
+
+function createPaymentSheetFocusHandlers({
+  initialFocusRef,
+  restoreFocusRef,
+  onClosed,
+}: {
+  initialFocusRef: PaymentSheetFocusRef;
+  restoreFocusRef: PaymentSheetFocusRef;
+  onClosed: () => void;
+}) {
+  return {
+    onOpenAutoFocus(event: { preventDefault: () => void }) {
+      const initialTarget = initialFocusRef.current;
+      if (!initialTarget) return;
+      event.preventDefault();
+      initialTarget.focus();
+    },
+    onCloseAutoFocus(event: { preventDefault: () => void }) {
+      const opener = restoreFocusRef.current;
+      if (opener?.isConnected) {
+        event.preventDefault();
+        opener.focus();
+      }
+      onClosed();
+    },
+  };
+}
+
+export function PaymentMethodSheet({
+  open,
   plan,
   lang,
   settings,
   pending,
-  onClose,
+  initialFocusRef: providedInitialFocusRef,
+  restoreFocusRef,
+  onOpenChange,
+  onClosed,
   onSubmit,
 }: {
+  open: boolean;
   plan: any;
   lang: Lang;
   settings: any;
   pending: boolean;
-  onClose: () => void;
+  initialFocusRef?: PaymentSheetFocusRef;
+  restoreFocusRef: PaymentSheetFocusRef;
+  onOpenChange: (open: boolean) => void;
+  onClosed: () => void;
   onSubmit: (
     method: "cash" | "bit" | "card",
     recurring?: boolean,
@@ -825,6 +877,8 @@ function PaymentMethodSheet({
   const [checkout, setCheckout] = useState<CheckoutConsent>({
     termsAccepted: false,
   });
+  const defaultInitialFocusRef = useRef<HTMLButtonElement | null>(null);
+  const initialFocusRef = providedInitialFocusRef ?? defaultInitialFocusRef;
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
   const price = formatPlanPrice(plan);
@@ -855,6 +909,11 @@ function PaymentMethodSheet({
             consent: "I have read and agree to the",
             terms: "terms and purchase conditions",
           };
+  const focusHandlers = createPaymentSheetFocusHandlers({
+    initialFocusRef,
+    restoreFocusRef,
+    onClosed,
+  });
 
   async function copyBitPhone() {
     try {
@@ -876,25 +935,25 @@ function PaymentMethodSheet({
   }
 
   return (
-    <div
-      dir={dir}
-      className="fixed inset-0 z-50 bg-navy/45 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-5"
-    >
-      <div className="member-card member-sheet-content w-full sm:max-w-xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-[0_30px_60px_-28px_rgba(11,29,58,0.38)]">
-        <header className="flex items-start justify-between gap-4 border-b hairline pb-4">
-          <div>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        dir={dir}
+        onOpenAutoFocus={focusHandlers.onOpenAutoFocus}
+        onCloseAutoFocus={focusHandlers.onCloseAutoFocus}
+        className="member-sheet-content max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-ivory p-5 shadow-[0_30px_60px_-28px_rgba(11,29,58,0.38)] sm:bottom-5 sm:mx-auto sm:max-w-xl sm:rounded-2xl sm:p-6"
+      >
+        <SheetHeader className="border-b hairline pe-12 pb-4 text-start">
+          <div className="text-start">
             <p className="member-eyebrow">{t("packages.paymentMethod")}</p>
-            <h3 className="font-display text-3xl text-navy mt-1">{t("packages.paymentTitle")}</h3>
+            <SheetTitle className="mt-1 font-display text-3xl text-navy">
+              {t("packages.paymentTitle")}
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-sm text-slate">
+              {display.memberLine}
+            </SheetDescription>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-ghost h-11 w-11 p-0 hover:btn-ghost-hover"
-            aria-label={t("common.close")}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
+        </SheetHeader>
 
         <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
           <div className="flex items-start justify-between gap-4">
@@ -915,6 +974,7 @@ function PaymentMethodSheet({
         {!confirming ? (
           <div className="mt-5 space-y-3">
             <PaymentOption
+              buttonRef={initialFocusRef}
               active={method === "cash"}
               icon={<Wallet className="h-4 w-4" />}
               label={t("packages.cashLabel")}
@@ -980,30 +1040,13 @@ function PaymentMethodSheet({
             </div>
             {isOnline && (
               <div className="rounded-xl border border-gold/25 bg-ivory/70 p-4">
-                <label className="flex min-h-11 items-start gap-2 text-sm leading-6 text-slate">
-                  <input
-                    required
-                    type="checkbox"
-                    checked={checkout.termsAccepted}
-                    onChange={(event) =>
-                      setCheckout((current) => ({
-                        ...current,
-                        termsAccepted: event.target.checked,
-                      }))
-                    }
-                    className="mt-1 h-4 w-4 accent-navy"
-                  />
-                  <span>
-                    {checkoutCopy.consent}{" "}
-                    <Link
-                      to="/terms"
-                      target="_blank"
-                      className="font-semibold text-navy underline underline-offset-2"
-                    >
-                      {checkoutCopy.terms}
-                    </Link>
-                  </span>
-                </label>
+                <CheckoutTermsConsent
+                  checkout={checkout}
+                  copy={checkoutCopy}
+                  onChange={(termsAccepted) =>
+                    setCheckout((current) => ({ ...current, termsAccepted }))
+                  }
+                />
               </div>
             )}
             {method === "bit" && !hypEnabled && (
@@ -1047,7 +1090,7 @@ function PaymentMethodSheet({
         )}
 
         <div className="mt-6 flex flex-col-reverse sm:flex-row sm:items-center gap-3 border-t hairline pt-4">
-          <button type="button" onClick={onClose} className="btn-outline flex-1">
+          <button type="button" onClick={() => onOpenChange(false)} className="btn-outline flex-1">
             {t("common.cancel")}
           </button>
           {!confirming ? (
@@ -1088,12 +1131,45 @@ function PaymentMethodSheet({
             </button>
           )}
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+export function CheckoutTermsConsent({
+  checkout,
+  copy,
+  onChange,
+}: {
+  checkout: CheckoutConsent;
+  copy: { consent: string; terms: string };
+  onChange: (accepted: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-11 items-start gap-2 text-sm leading-6 text-slate">
+      <input
+        required
+        type="checkbox"
+        checked={checkout.termsAccepted}
+        onChange={(event) => onChange(event.target.checked)}
+        className="mt-1 h-4 w-4 accent-navy"
+      />
+      <span>
+        {copy.consent}{" "}
+        <Link
+          to="/terms"
+          target="_blank"
+          className="inline-flex min-h-11 min-w-11 items-center rounded-sm font-semibold text-navy underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+        >
+          {copy.terms}
+        </Link>
+      </span>
+    </label>
   );
 }
 
 function PaymentOption({
+  buttonRef,
   active,
   disabled,
   icon,
@@ -1101,6 +1177,7 @@ function PaymentOption({
   description,
   onClick,
 }: {
+  buttonRef?: React.Ref<HTMLButtonElement>;
   active?: boolean;
   disabled?: boolean;
   icon: React.ReactNode;
@@ -1110,10 +1187,11 @@ function PaymentOption({
 }) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`w-full rounded-xl border p-4 text-start transition ${
+      className={`w-full rounded-xl border p-4 text-start transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
         active
           ? "border-gold bg-gold/10 shadow-[0_18px_36px_-30px_rgba(11,29,58,0.38)]"
           : disabled
