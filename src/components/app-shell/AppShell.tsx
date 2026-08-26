@@ -21,6 +21,11 @@ import { MemberWhatsappOnboarding } from "@/components/member/MemberWhatsappOnbo
 import { MemberRouteSkeleton, type MemberRoute } from "@/components/member/MemberRouteSkeleton";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
+import {
+  isPlainPrimaryNavigationClick,
+  queueLatestDocumentNavigation,
+  shouldClearPendingMobileNavigation,
+} from "./memberNavigation";
 
 type Props = {
   role: AppRole;
@@ -39,6 +44,7 @@ type MemberMobileBottomNavigationProps = {
   tabs: NavItem[];
   pathname: string;
   isRtl: boolean;
+  onNavigate?: (pathname: string) => void;
 };
 
 export function MemberDesktopHeader({
@@ -98,7 +104,17 @@ export function MemberMobileBottomNavigation({
   tabs,
   pathname,
   isRtl,
+  onNavigate,
 }: MemberMobileBottomNavigationProps) {
+  const documentNavigationSequence = useRef(0);
+
+  useEffect(
+    () => () => {
+      documentNavigationSequence.current += 1;
+    },
+    [],
+  );
+
   return (
     <nav
       aria-label={t("shell.practice")}
@@ -111,11 +127,30 @@ export function MemberMobileBottomNavigation({
         {tabs.map((item) => {
           const { to, icon: Icon, label } = item;
           const active = isActive(pathname, item);
+          const isDocumentNavigation = pathname === "/member/schedule" && to !== pathname;
           return (
             <Link
               key={to}
               to={to}
-              reloadDocument={pathname === "/member/schedule" && to !== pathname}
+              reloadDocument={isDocumentNavigation}
+              onClick={
+                active || !onNavigate
+                  ? undefined
+                  : (event) => {
+                      if (!isPlainPrimaryNavigationClick(event)) return;
+
+                      onNavigate(to);
+                      if (!isDocumentNavigation) return;
+
+                      event.preventDefault();
+                      queueLatestDocumentNavigation(
+                        to,
+                        documentNavigationSequence,
+                        window.requestAnimationFrame.bind(window),
+                        window.location.assign.bind(window.location),
+                      );
+                    }
+              }
               aria-label={label}
               aria-current={active ? "page" : undefined}
               className={`member-bottom-nav-link relative flex-1 flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1 text-[13px] leading-tight transition-colors ${
@@ -205,6 +240,8 @@ export function AppShell({ role, children }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [pendingMobilePathname, setPendingMobilePathname] = useState<string | null>(null);
+  const mobileNavigationStartedRef = useRef(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -223,11 +260,38 @@ export function AppShell({ role, children }: Props) {
   // Shell separation: members use bottom nav (no drawer);
   // admin/instructor use sidebar+drawer (no bottom nav).
   const useBottomNav = usesMemberShell(role);
-  const isPendingMemberPathChange = useBottomNav && isRouteLoading && pathname !== resolvedPathname;
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
   const mobileDrawerSideStyle = { insetInlineStart: 0 as const };
+
+  useEffect(() => {
+    if (!pendingMobilePathname) return;
+
+    if (isRouteLoading) {
+      mobileNavigationStartedRef.current = true;
+      return;
+    }
+
+    if (
+      shouldClearPendingMobileNavigation({
+        destination: pendingMobilePathname,
+        isLoading: isRouteLoading,
+        resolvedPathname,
+        navigationStarted: mobileNavigationStartedRef.current,
+      })
+    ) {
+      mobileNavigationStartedRef.current = false;
+      setPendingMobilePathname(null);
+      return;
+    }
+
+    const fallback = window.setTimeout(() => {
+      mobileNavigationStartedRef.current = false;
+      setPendingMobilePathname(null);
+    }, 1_500);
+    return () => window.clearTimeout(fallback);
+  }, [isRouteLoading, pendingMobilePathname, resolvedPathname]);
 
   useEffect(() => {
     if (!useDrawer || !mobileOpen) return;
@@ -422,8 +486,8 @@ export function AppShell({ role, children }: Props) {
           <div className={contentFrameClass}>
             {useBottomNav ? (
               <MemberRouteContent
-                pathname={pathname}
-                isPendingPathChange={isPendingMemberPathChange}
+                pathname={pendingMobilePathname ?? pathname}
+                isPendingPathChange={pendingMobilePathname !== null}
               >
                 {children}
               </MemberRouteContent>
@@ -435,7 +499,15 @@ export function AppShell({ role, children }: Props) {
 
         {/* Bottom tabs — member only, mobile only */}
         {useBottomNav && (
-          <MemberMobileBottomNavigation tabs={bottomTabs} pathname={pathname} isRtl={isRtl} />
+          <MemberMobileBottomNavigation
+            tabs={bottomTabs}
+            pathname={pathname}
+            isRtl={isRtl}
+            onNavigate={(to) => {
+              mobileNavigationStartedRef.current = false;
+              flushSync(() => setPendingMobilePathname(to));
+            }}
+          />
         )}
       </main>
     </div>

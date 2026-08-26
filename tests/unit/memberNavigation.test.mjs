@@ -11,12 +11,13 @@ import {
 
 mock.module("@tanstack/react-router", () => ({
   ...TanStackRouter,
-  Link: ({ to, children, reloadDocument, ...props }) =>
+  Link: ({ to, children, reloadDocument, onClick, ...props }) =>
     React.createElement(
       "a",
       {
         href: to,
         "data-reload-document": reloadDocument ? "true" : undefined,
+        "data-click-handler": typeof onClick === "function" ? "true" : undefined,
         ...props,
       },
       children,
@@ -25,6 +26,11 @@ mock.module("@tanstack/react-router", () => ({
 
 const { MemberDesktopHeader, MemberMobileBottomNavigation, MemberRouteContent } =
   await import("../../src/components/app-shell/AppShell.tsx");
+const {
+  isPlainPrimaryNavigationClick,
+  queueLatestDocumentNavigation,
+  shouldClearPendingMobileNavigation,
+} = await import("../../src/components/app-shell/memberNavigation.ts");
 
 afterEach(() => applyLang("he"));
 
@@ -120,10 +126,12 @@ describe("member navigation", () => {
         tabs: bottomTabsForRole("member"),
         pathname: "/member/schedule",
         isRtl: false,
+        onNavigate: () => {},
       }),
     );
 
     expect(markup.match(/data-reload-document="true"/g)).toHaveLength(4);
+    expect(markup.match(/data-click-handler="true"/g)).toHaveLength(4);
   });
 
   test("uses document navigation when desktop users leave the public Schedule boundary", () => {
@@ -157,6 +165,85 @@ describe("member navigation", () => {
     expect(markup).toContain('aria-busy="true"');
     expect(markup).toContain("member-route-skeleton--packages");
     expect(markup).not.toContain("Old bookings content");
+  });
+
+  test("does not add mobile transition handlers to desktop member navigation", () => {
+    applyLang("en");
+    const markup = renderToStaticMarkup(
+      React.createElement(MemberDesktopHeader, {
+        tabs: bottomTabsForRole("member"),
+        pathname: "/member/bookings",
+        isRtl: false,
+        notificationControl: React.createElement("button", null, "Notifications"),
+        signOutControl: React.createElement("button", null, "Sign out"),
+      }),
+    );
+
+    expect(markup).not.toContain('data-click-handler="true"');
+  });
+
+  test("ignores modified, middle-button, and already-handled mobile navigation clicks", () => {
+    const plainClick = {
+      button: 0,
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      defaultPrevented: false,
+    };
+
+    expect(isPlainPrimaryNavigationClick(plainClick)).toBe(true);
+    expect(isPlainPrimaryNavigationClick({ ...plainClick, metaKey: true })).toBe(false);
+    expect(isPlainPrimaryNavigationClick({ ...plainClick, ctrlKey: true })).toBe(false);
+    expect(isPlainPrimaryNavigationClick({ ...plainClick, button: 1 })).toBe(false);
+    expect(isPlainPrimaryNavigationClick({ ...plainClick, defaultPrevented: true })).toBe(false);
+  });
+
+  test("only runs the latest queued Schedule-boundary document navigation", () => {
+    const frames = [];
+    const assignments = [];
+    const sequence = { current: 0 };
+    const requestFrame = (callback) => {
+      frames.push(callback);
+      return frames.length;
+    };
+
+    queueLatestDocumentNavigation("/member/bookings", sequence, requestFrame, (to) =>
+      assignments.push(to),
+    );
+    queueLatestDocumentNavigation("/member/packages", sequence, requestFrame, (to) =>
+      assignments.push(to),
+    );
+
+    while (frames.length > 0) frames.shift()();
+    expect(assignments).toEqual(["/member/packages"]);
+  });
+
+  test("clears pending mobile feedback after success, redirect, or a settled transition", () => {
+    expect(
+      shouldClearPendingMobileNavigation({
+        destination: "/member/packages",
+        isLoading: false,
+        resolvedPathname: "/member/packages",
+        navigationStarted: false,
+      }),
+    ).toBe(true);
+    expect(
+      shouldClearPendingMobileNavigation({
+        destination: "/member/packages",
+        isLoading: false,
+        resolvedPathname: "/auth",
+        navigationStarted: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldClearPendingMobileNavigation({
+        destination: "/member/packages",
+        isLoading: true,
+        resolvedPathname: "/member/bookings",
+        navigationStarted: true,
+      }),
+    ).toBe(false);
   });
 
   test("selects the member shell only for members", () => {
