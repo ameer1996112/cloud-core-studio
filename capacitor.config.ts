@@ -1,7 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-const TESTFLIGHT_PREVIEW_SERVER_URL =
-  "https://member-ui-b10---cloud-core-studio-6uthbm2yyq-zf.a.run.app";
+const PRODUCTION_SERVER_URL = "https://cloud-core-studio-6uthbm2yyq-zf.a.run.app";
 
 const config: CapacitorConfig = {
   appId: "com.cloudandcore.studio",
@@ -10,7 +9,7 @@ const config: CapacitorConfig = {
   bundledWebRuntime: false,
   appendUserAgent: "CloudCoreNative/1",
   server: {
-    url: TESTFLIGHT_PREVIEW_SERVER_URL,
+    url: PRODUCTION_SERVER_URL,
     cleartext: false,
   },
   plugins: {
