@@ -345,7 +345,17 @@ const CLASS_IMAGE_NORMALIZE: Array<[RegExp, ClassImageKey]> = [
   [/pilates|פילאטיס/i, "pilatesSculpt"],
 ];
 
-export const DEFAULT_CLASS_IMAGE: ImageAsset = classImages.coreBalance;
+export const DEFAULT_CLASS_IMAGE: ImageAsset = {
+  src: "/images/studio/studio-interior.webp",
+  alt: {
+    he: "חלל הסטודיו של Cloud & Core",
+    en: "Cloud & Core studio space",
+    ar: "مساحة استوديو Cloud & Core",
+  },
+  tone: "studio",
+  fit: "cover",
+  position: "center 48%",
+};
 
 /** Pick a class photo asset by title / program-type name. Null only when no candidates given. */
 export function classImageFor(input?: string | string[] | null): ImageAsset | null {
@@ -379,7 +389,7 @@ export function variantSrc(
  *   3. program_type[image_<variant>_url]
  *   4. program_type.image_url / cover_image_url
  *   5. mapped boutique photo (by program name / title) — uses variant crop
- *   6. DEFAULT_CLASS_IMAGE         — variant crop
+ *   6. DEFAULT_CLASS_IMAGE         — real Cloud & Core studio photo
  */
 export function resolveClassImageSrc(
   cls: ClassImageSource | null | undefined,
