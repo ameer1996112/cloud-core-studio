@@ -8698,6 +8698,33 @@ select.input:focus {
   font-size: 1.6rem;
 }
 
+.member-home-package-mini--empty {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.member-home-package-mini__empty-title {
+  margin-top: 0.2rem;
+  color: var(--color-navy, #0b1d3a);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.member-home-package-mini__empty-action {
+  display: inline-flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-navy, #0b1d3a);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 .member-home-contact-link {
   display: flex;
   min-height: 44px;

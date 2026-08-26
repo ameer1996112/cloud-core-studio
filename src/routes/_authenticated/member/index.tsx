@@ -453,6 +453,7 @@ function NextBookingCard({
 
 function PackageMini({ activePlan, credits }: { activePlan: any; credits: number }) {
   const { lang, locale } = useI18n();
+  const hasNoPackage = !activePlan && credits <= 0;
   const planName = activePlan?.plan ? getPlanDisplay(activePlan.plan, lang).name : null;
   const summary = planName
     ? t("member.planWithCredits", { plan: planName, count: credits })
@@ -462,34 +463,53 @@ function PackageMini({ activePlan, credits }: { activePlan: any; credits: number
   return (
     <Link
       to="/member/packages"
-      className="member-home-package-mini block member-card relative overflow-hidden"
+      className={`member-home-package-mini member-card relative overflow-hidden ${
+        hasNoPackage ? "member-home-package-mini--empty" : "block"
+      }`}
     >
       <span aria-hidden className="absolute inset-y-0 start-0 w-[3px] bg-gold/80" />
-      <p className="member-eyebrow">{t("member.activePackage")}</p>
-      <p className="member-home-package-mini__summary font-display text-xl text-navy mt-1.5 leading-tight truncate">
-        {summary}
-      </p>
-      <div className="member-home-package-mini__balance mt-3 flex items-baseline justify-between gap-3">
-        <div className="min-w-0">
-          <p className="member-home-package-mini__credits numeric-display text-3xl font-display text-navy">
-            {credits}
+      {hasNoPackage ? (
+        <>
+          <span className="min-w-0">
+            <span className="member-eyebrow block">{t("member.activePackage")}</span>
+            <span className="member-home-package-mini__empty-title block truncate">
+              {t("member.noActivePackage")}
+            </span>
+          </span>
+          <span className="member-home-package-mini__empty-action">
+            {t("member.buyPackage")}
+            <ArrowRight className="directional-icon-forward h-3.5 w-3.5" aria-hidden />
+          </span>
+        </>
+      ) : (
+        <>
+          <p className="member-eyebrow">{t("member.activePackage")}</p>
+          <p className="member-home-package-mini__summary font-display text-xl text-navy mt-1.5 leading-tight truncate">
+            {summary}
           </p>
-          <p className="mt-0.5 text-xs text-slate">{t("member.creditsRemaining")}</p>
-        </div>
-        {activePlan?.expires_at && (
-          <p className="shrink-0 text-end text-xs text-slate">
-            {t("member.expires")}
-            <br />
-            <LtrInline className="text-navy">
-              {new Date(activePlan.expires_at).toLocaleDateString(locale, {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </LtrInline>
-          </p>
-        )}
-      </div>
+          <div className="member-home-package-mini__balance mt-3 flex items-baseline justify-between gap-3">
+            <div className="min-w-0">
+              <p className="member-home-package-mini__credits numeric-display text-3xl font-display text-navy">
+                {credits}
+              </p>
+              <p className="mt-0.5 text-xs text-slate">{t("member.creditsRemaining")}</p>
+            </div>
+            {activePlan?.expires_at && (
+              <p className="shrink-0 text-end text-xs text-slate">
+                {t("member.expires")}
+                <br />
+                <LtrInline className="text-navy">
+                  {new Date(activePlan.expires_at).toLocaleDateString(locale, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </LtrInline>
+              </p>
+            )}
+          </div>
+        </>
+      )}
     </Link>
   );
 }
