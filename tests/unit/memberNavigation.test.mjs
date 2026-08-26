@@ -11,13 +11,14 @@ import {
 
 mock.module("@tanstack/react-router", () => ({
   ...TanStackRouter,
-  Link: ({ to, children, reloadDocument, onClick, ...props }) =>
+  Link: ({ to, children, reloadDocument, onClick, preload, ...props }) =>
     React.createElement(
       "a",
       {
         href: to,
         "data-reload-document": reloadDocument ? "true" : undefined,
         "data-click-handler": typeof onClick === "function" ? "true" : undefined,
+        "data-preload": preload,
         ...props,
       },
       children,
@@ -117,6 +118,7 @@ describe("member navigation", () => {
       "/member/packages",
       "/member/account",
     ]);
+    expect(markup.match(/data-preload="render"/g)).toHaveLength(5);
   });
 
   test("uses document navigation when mobile users leave the public Schedule boundary", () => {

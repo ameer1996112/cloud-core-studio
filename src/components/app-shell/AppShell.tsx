@@ -132,6 +132,7 @@ export function MemberMobileBottomNavigation({
             <Link
               key={to}
               to={to}
+              preload="render"
               reloadDocument={isDocumentNavigation}
               onClick={
                 active || !onNavigate
