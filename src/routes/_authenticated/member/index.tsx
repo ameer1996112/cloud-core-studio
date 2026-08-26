@@ -122,13 +122,10 @@ function MemberHome() {
       />
 
       {announcement && (
-        <div className="member-announcement-card flex gap-3 items-start">
-          <Megaphone className="h-4 w-4 text-gold shrink-0 mt-1" />
-          <div className="member-announcement-copy space-y-1.5">
-            <p className="text-sm font-semibold text-navy leading-snug">{announcement.title}</p>
-            <p className="text-sm text-slate leading-relaxed">{announcement.body}</p>
-          </div>
-        </div>
+        <aside className="member-announcement-bar" aria-label={t("member.studioMessage")}>
+          <Megaphone className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+          <p className="member-announcement-bar__body">{announcement.body}</p>
+        </aside>
       )}
 
       {fatalError ? (
@@ -308,7 +305,6 @@ function localizeAnnouncement(value: string | null | undefined) {
   const text = value?.trim();
   if (!text) return null;
   return {
-    title: t("member.studioMessage"),
     body: text,
   };
 }
