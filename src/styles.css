@@ -6286,7 +6286,7 @@ select.input:focus {
 .member-sheet-content,
 .member-page,
 .member-home {
-  padding-bottom: max(var(--member-bottom-nav-offset), calc(130px + env(safe-area-inset-bottom)));
+  padding-bottom: max(var(--member-bottom-nav-offset), calc(108px + env(safe-area-inset-bottom)));
 }
 
 @media (min-width: 768px) {
@@ -8358,7 +8358,7 @@ select.input:focus {
 
 @media (max-width: 760px) {
   :root {
-    --member-bottom-nav-height: 84px;
+    --member-bottom-nav-height: 72px;
   }
 
   .member-bookings-page .member-page-intro__aside,
@@ -8642,7 +8642,7 @@ select.input:focus {
 }
 
 .member-home-primary {
-  padding-bottom: max(var(--member-bottom-nav-offset), calc(130px + env(safe-area-inset-bottom)));
+  padding-bottom: max(var(--member-bottom-nav-offset), calc(108px + env(safe-area-inset-bottom)));
 }
 
 .member-home-page > .member-page-intro {

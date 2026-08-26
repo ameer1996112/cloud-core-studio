@@ -119,7 +119,7 @@ export function MemberMobileBottomNavigation({
               aria-label={label}
               aria-current={active ? "page" : undefined}
               className={`member-bottom-nav-link relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[13px] leading-tight transition-colors ${
-                active ? "bg-white/72 text-navy" : "text-slate hover:text-navy"
+                active ? "font-semibold text-navy" : "text-slate hover:text-navy"
               }`}
             >
               <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
