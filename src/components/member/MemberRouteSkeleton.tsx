@@ -1,6 +1,6 @@
 import { t } from "@/lib/i18n";
 
-type MemberRoute = "home" | "schedule" | "bookings" | "packages" | "account";
+export type MemberRoute = "home" | "schedule" | "bookings" | "packages" | "account";
 
 const rowCount: Record<MemberRoute, number> = {
   home: 2,

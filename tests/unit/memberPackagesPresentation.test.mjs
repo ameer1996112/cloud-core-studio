@@ -201,6 +201,8 @@ describe("member packages presentation", () => {
     expect(creditHistory).toBeGreaterThan(explanation);
     expect(html).toContain("min-h-11 w-full");
     expect(html).toContain("member-history-disclosure");
+    expect(html).toContain("lucide-circle-check");
+    expect(html).not.toContain("lucide-send");
     expect(html).not.toContain("cloud_monthly_1x_week");
     expect(html).toMatch(/<article[^>]*data-package-plan-card="true"[^>]*tabindex="-1"/);
     expect(html).toContain('aria-labelledby="package-plan-plan-1-title"');

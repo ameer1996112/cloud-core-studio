@@ -18,7 +18,7 @@ import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
 import { MemberPushOnboarding } from "@/components/member/MemberPushOnboarding";
 import { MemberWhatsappOnboarding } from "@/components/member/MemberWhatsappOnboarding";
-import { MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
+import { MemberRouteSkeleton, type MemberRoute } from "@/components/member/MemberRouteSkeleton";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
 
@@ -102,11 +102,11 @@ export function MemberMobileBottomNavigation({
   return (
     <nav
       aria-label={t("shell.practice")}
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.45rem)] pt-1.5 pointer-events-none"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1 pointer-events-none"
     >
       <div
         dir={isRtl ? "rtl" : "ltr"}
-        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[calc(var(--radius-lg)+2px)] border border-gold/30 bg-ivory/96 px-1.5 py-1 shadow-[0_-10px_34px_-28px_rgba(28,43,69,0.28)] backdrop-blur pointer-events-auto"
+        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[var(--radius-lg)] border border-gold/30 bg-ivory/96 px-1.5 py-0.5 shadow-[0_-8px_28px_-24px_rgba(28,43,69,0.24)] backdrop-blur pointer-events-auto"
       >
         {tabs.map((item) => {
           const { to, icon: Icon, label } = item;
@@ -118,7 +118,7 @@ export function MemberMobileBottomNavigation({
               reloadDocument={pathname === "/member/schedule" && to !== pathname}
               aria-label={label}
               aria-current={active ? "page" : undefined}
-              className={`member-bottom-nav-link relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[13px] leading-tight transition-colors ${
+              className={`member-bottom-nav-link relative flex-1 flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1 text-[13px] leading-tight transition-colors ${
                 active ? "font-semibold text-navy" : "text-slate hover:text-navy"
               }`}
             >
@@ -132,6 +132,46 @@ export function MemberMobileBottomNavigation({
         })}
       </div>
     </nav>
+  );
+}
+
+function memberRouteForPath(pathname: string): MemberRoute {
+  if (pathname === "/member/schedule" || pathname.startsWith("/member/schedule/")) {
+    return "schedule";
+  }
+  if (pathname === "/member/bookings" || pathname.startsWith("/member/bookings/")) {
+    return "bookings";
+  }
+  if (pathname === "/member/packages" || pathname.startsWith("/member/packages/")) {
+    return "packages";
+  }
+  if (pathname === "/member/account" || pathname.startsWith("/member/account/")) {
+    return "account";
+  }
+  return "home";
+}
+
+export function MemberRouteContent({
+  pathname,
+  isPendingPathChange,
+  children,
+}: {
+  pathname: string;
+  isPendingPathChange: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      key={`${pathname}:${isPendingPathChange ? "pending" : "ready"}`}
+      className="member-route-transition"
+      aria-busy={isPendingPathChange || undefined}
+    >
+      {isPendingPathChange ? (
+        <MemberRouteSkeleton route={memberRouteForPath(pathname)} />
+      ) : (
+        children
+      )}
+    </div>
   );
 }
 
@@ -152,7 +192,13 @@ const getCurrentMemberPushInstallationId = createClientOnlyFn(async () => {
 
 export function AppShell({ role, children }: Props) {
   const { lang } = useI18n();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname, resolvedPathname, isRouteLoading } = useRouterState({
+    select: (state) => ({
+      pathname: state.location.pathname,
+      resolvedPathname: state.resolvedLocation?.pathname ?? state.location.pathname,
+      isRouteLoading: state.isLoading,
+    }),
+  });
   const navigate = useNavigate();
   const qc = useQueryClient();
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
@@ -177,6 +223,7 @@ export function AppShell({ role, children }: Props) {
   // Shell separation: members use bottom nav (no drawer);
   // admin/instructor use sidebar+drawer (no bottom nav).
   const useBottomNav = usesMemberShell(role);
+  const isPendingMemberPathChange = useBottomNav && isRouteLoading && pathname !== resolvedPathname;
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
@@ -374,9 +421,12 @@ export function AppShell({ role, children }: Props) {
         <div className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
           <div className={contentFrameClass}>
             {useBottomNav ? (
-              <div key={pathname} className="member-route-transition">
+              <MemberRouteContent
+                pathname={pathname}
+                isPendingPathChange={isPendingMemberPathChange}
+              >
                 {children}
-              </div>
+              </MemberRouteContent>
             ) : (
               children
             )}

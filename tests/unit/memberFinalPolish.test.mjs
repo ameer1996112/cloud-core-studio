@@ -39,6 +39,23 @@ describe("member experience final polish", () => {
     expect(markup).not.toContain("text-[11px]");
   });
 
+  test("keeps the mobile navigation compact while preserving a 44px-plus touch target", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(MemberMobileBottomNavigation, {
+        tabs: [
+          { to: "/member", label: "Home", icon: () => React.createElement("svg") },
+          { to: "/member/schedule", label: "Schedule", icon: () => React.createElement("svg") },
+        ],
+        pathname: "/member",
+        isRtl: false,
+      }),
+    );
+    const css = read("src/styles.css");
+
+    expect(markup).toContain("min-h-[48px]");
+    expect(css).toMatch(/--member-bottom-nav-height:\s*68px;/);
+  });
+
   test("renders an RTL-safe, non-interactive mobile overflow cue around booking tabs", () => {
     const markup = renderToStaticMarkup(
       React.createElement(MemberSegmentedControl, {

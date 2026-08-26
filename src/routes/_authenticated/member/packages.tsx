@@ -4,12 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import {
   Check,
+  CircleCheck,
   ClipboardCheck,
   CreditCard,
   FileText,
   MessageCircle,
   RefreshCw,
-  Send,
   Smartphone,
   Wallet,
 } from "lucide-react";
@@ -587,7 +587,7 @@ function PackagePricingCard({
                 : "btn-outline min-h-11 w-full hover:btn-ghost-hover disabled:opacity-50"
             }
           >
-            <Send className="h-3 w-3" /> {marketing.cta}
+            <CircleCheck className="h-3.5 w-3.5" /> {marketing.cta}
           </button>
         )}
       </div>

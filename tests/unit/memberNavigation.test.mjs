@@ -23,7 +23,7 @@ mock.module("@tanstack/react-router", () => ({
     ),
 }));
 
-const { MemberDesktopHeader, MemberMobileBottomNavigation } =
+const { MemberDesktopHeader, MemberMobileBottomNavigation, MemberRouteContent } =
   await import("../../src/components/app-shell/AppShell.tsx");
 
 afterEach(() => applyLang("he"));
@@ -139,6 +139,24 @@ describe("member navigation", () => {
     );
 
     expect(markup.match(/data-reload-document="true"/g)).toHaveLength(5);
+  });
+
+  test("replaces stale member content with the destination skeleton during path changes", () => {
+    applyLang("en");
+    const markup = renderToStaticMarkup(
+      React.createElement(
+        MemberRouteContent,
+        {
+          pathname: "/member/packages",
+          isPendingPathChange: true,
+        },
+        React.createElement("p", null, "Old bookings content"),
+      ),
+    );
+
+    expect(markup).toContain('aria-busy="true"');
+    expect(markup).toContain("member-route-skeleton--packages");
+    expect(markup).not.toContain("Old bookings content");
   });
 
   test("selects the member shell only for members", () => {
