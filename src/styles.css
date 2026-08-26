@@ -8842,13 +8842,9 @@ select.input:focus {
 }
 
 .member-announcement-bar__body {
-  display: -webkit-box;
   min-width: 0;
   flex: 1 1 auto;
-  overflow: hidden;
   text-align: inherit;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 [dir="rtl"] .member-announcement-bar {
@@ -8887,10 +8883,6 @@ select.input:focus {
     line-height: 1.45;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
-  }
-
-  .member-announcement-bar__body {
-    -webkit-line-clamp: 1;
   }
 
   .member-home-page .member-page-intro__action {
