@@ -11,7 +11,16 @@ import {
 
 mock.module("@tanstack/react-router", () => ({
   ...TanStackRouter,
-  Link: ({ to, children, ...props }) => React.createElement("a", { href: to, ...props }, children),
+  Link: ({ to, children, reloadDocument, ...props }) =>
+    React.createElement(
+      "a",
+      {
+        href: to,
+        "data-reload-document": reloadDocument ? "true" : undefined,
+        ...props,
+      },
+      children,
+    ),
 }));
 
 const { MemberDesktopHeader, MemberMobileBottomNavigation } =
@@ -36,6 +45,16 @@ describe("member navigation", () => {
     expect(bottomTabsForRole("member")[2].label).toBe("הזמנות");
     applyLang("ar");
     expect(bottomTabsForRole("member")[2].label).toBe("الحجوزات");
+  });
+
+  test("uses concise Schedule and Profile labels that fit the mobile RTL navigation", () => {
+    applyLang("he");
+    expect(bottomTabsForRole("member")[1].label).toBe("שיעורים");
+    expect(bottomTabsForRole("member")[4].label).toBe("פרופיל");
+
+    applyLang("ar");
+    expect(bottomTabsForRole("member")[1].label).toBe("الحصص");
+    expect(bottomTabsForRole("member")[4].label).toBe("ملفي");
   });
 
   test("marks only the exact home route active", () => {
@@ -92,6 +111,34 @@ describe("member navigation", () => {
       "/member/packages",
       "/member/account",
     ]);
+  });
+
+  test("uses document navigation when mobile users leave the public Schedule boundary", () => {
+    applyLang("en");
+    const markup = renderToStaticMarkup(
+      React.createElement(MemberMobileBottomNavigation, {
+        tabs: bottomTabsForRole("member"),
+        pathname: "/member/schedule",
+        isRtl: false,
+      }),
+    );
+
+    expect(markup.match(/data-reload-document="true"/g)).toHaveLength(4);
+  });
+
+  test("uses document navigation when desktop users leave the public Schedule boundary", () => {
+    applyLang("en");
+    const markup = renderToStaticMarkup(
+      React.createElement(MemberDesktopHeader, {
+        tabs: bottomTabsForRole("member"),
+        pathname: "/member/schedule",
+        isRtl: false,
+        notificationControl: React.createElement("button", null, "Notifications"),
+        signOutControl: React.createElement("button", null, "Sign out"),
+      }),
+    );
+
+    expect(markup.match(/data-reload-document="true"/g)).toHaveLength(5);
   });
 
   test("selects the member shell only for members", () => {

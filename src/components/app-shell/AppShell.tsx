@@ -51,7 +51,12 @@ export function MemberDesktopHeader({
   return (
     <header className="member-desktop-header hidden md:block">
       <div className="member-content-frame member-desktop-header__row">
-        <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
+        <Link
+          to="/member"
+          reloadDocument={pathname === "/member/schedule"}
+          aria-label="Cloud & Core"
+          className="member-desktop-header__brand"
+        >
           <BrandHeaderWordmark />
         </Link>
         <nav
@@ -66,6 +71,7 @@ export function MemberDesktopHeader({
               <Link
                 key={to}
                 to={to}
+                reloadDocument={pathname === "/member/schedule" && to !== pathname}
                 aria-current={active ? "page" : undefined}
                 className={
                   active
@@ -109,6 +115,7 @@ export function MemberMobileBottomNavigation({
             <Link
               key={to}
               to={to}
+              reloadDocument={pathname === "/member/schedule" && to !== pathname}
               aria-label={label}
               aria-current={active ? "page" : undefined}
               className={`member-bottom-nav-link relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[13px] leading-tight transition-colors ${

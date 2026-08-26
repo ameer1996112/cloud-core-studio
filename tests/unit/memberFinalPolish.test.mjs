@@ -10,7 +10,8 @@ const read = (relativePath) =>
 
 mock.module("@tanstack/react-router", () => ({
   ...TanStackRouter,
-  Link: ({ to, children, ...props }) => React.createElement("a", { href: to, ...props }, children),
+  Link: ({ to, children, reloadDocument: _reloadDocument, ...props }) =>
+    React.createElement("a", { href: to, ...props }, children),
 }));
 
 const { MemberMobileBottomNavigation } =

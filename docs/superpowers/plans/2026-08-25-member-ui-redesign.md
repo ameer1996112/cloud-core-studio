@@ -1048,19 +1048,23 @@ bun run build
 
 Expected: both commands exit 0.
 
-- [ ] **Step 5: Perform authenticated browser QA in all languages**
+- [x] **Step 5: Perform authenticated browser QA in all languages**
 
 Verify Home, Schedule, Bookings, Packages, and Profile at 320, 390, 768, 1024, and 1440 CSS pixels. For Hebrew and Arabic verify RTL alignment, tab reveal, date arrows, sheet placement, chips, and safe areas. For English verify LTR alignment. Confirm no horizontal page overflow and no primary action is hidden by bottom navigation.
 
-- [ ] **Step 6: Perform keyboard and reduced-motion QA**
+Result: verified all 75 route/language/breakpoint combinations in an authenticated browser session. Hebrew and Arabic render RTL, English renders LTR, and all five routes have no material horizontal page overflow. The 320 px Bookings control revealed its off-screen Cancelled tab when focused. QA found and fixed the public Schedule-to-authenticated member navigation boundary by using document navigation when leaving `/member/schedule`; the final browser transition passed. QA also replaced truncated Hebrew and Arabic Schedule/Profile navigation labels with concise localized labels.
+
+- [x] **Step 6: Perform keyboard and reduced-motion QA**
 
 Verify navigation, booking tabs, schedule filter sheet, profile fields, dialogs, and actions by keyboard. Confirm visible focus, Escape close, focus restoration, sheet focus trapping, live status behavior, and `prefers-reduced-motion` suppression.
 
-- [ ] **Step 7: Capture final QA screenshots**
+Result: booking tabs passed arrow-key selection, roving `tabIndex`, and focus-driven reveal at 320 px. The Schedule filter sheet and package checkout dialog moved focus inside when opened, closed with Escape, and restored focus to their triggers. Profile controls have associated labels, visible status regions, and 44 px-or-larger targets. Reduced-motion emulation reported `animation: none` and zero transition/animation durations. Existing focused dialog/navigation regressions also pass.
+
+- [x] **Step 7: Capture final QA screenshots**
 
 Capture mobile 390 by 844 and desktop 1440 by 1000 screenshots for all five routes in Hebrew, plus representative Arabic and English screenshots for direction validation. Store them in a new dated directory adjacent to the approved audit baseline and include the absolute directory path in the handoff.
 
-Blocked: all available disposable member credentials are invalid, and the archived browser sessions have expired (refresh returns 400). No safe authenticated fixture is available, so Steps 5–7 remain intentionally incomplete.
+Result: captured fully loaded, top-of-route PNG screenshots at the exact required dimensions in `docs/screenshots/member-ui-redesign-qa-20260826/`: ten Hebrew route/viewport baselines plus representative Arabic Schedule/Bookings and English Home/Profile direction baselines.
 
 - [x] **Step 8: Run code review and apply verified fixes**
 

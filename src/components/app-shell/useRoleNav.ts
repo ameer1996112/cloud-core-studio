@@ -106,9 +106,9 @@ export function bottomTabsForRole(role: AppRole): NavItem[] {
   }
   return [
     { to: "/member", label: t("nav.home"), icon: Home, exact: true },
-    { to: "/member/schedule", label: t("nav.schedule"), icon: Calendar },
+    { to: "/member/schedule", label: t("nav.memberSchedule"), icon: Calendar },
     { to: "/member/bookings", label: t("nav.memberBookings"), icon: BookOpen },
     { to: "/member/packages", label: t("nav.plans"), icon: CreditCard },
-    { to: "/member/account", label: t("nav.profile"), icon: Users },
+    { to: "/member/account", label: t("nav.memberProfile"), icon: Users },
   ];
 }
