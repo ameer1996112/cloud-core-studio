@@ -11,7 +11,12 @@ import {
 
 const localizedContent = {
   he: { eyebrow: "הטבה חדשה", title: "שיעור מתנה", body: "בואי להכיר את לינה", cta: "לקבלת ההטבה" },
-  ar: { eyebrow: "عرض جديد", title: "حصة هدية", body: "تعالي للتعرف على لينا", cta: "احصلي على العرض" },
+  ar: {
+    eyebrow: "عرض جديد",
+    title: "حصة هدية",
+    body: "تعالي للتعرف على لينا",
+    cta: "احصلي على العرض",
+  },
   en: { eyebrow: "New offer", title: "A class on us", body: "Come meet Lina", cta: "Claim offer" },
 };
 
@@ -87,9 +92,16 @@ describe("reusable promotion campaign contract", () => {
 
   test("derives scheduled, active, ended, paused, and archived lifecycle states", () => {
     const now = new Date("2026-08-28T09:00:00.000Z");
-    expect(promotionLifecycle({ ...activeCampaign, status: "scheduled", startsAt: "2026-08-29T08:00:00.000Z" }, now)).toBe("scheduled");
+    expect(
+      promotionLifecycle(
+        { ...activeCampaign, status: "scheduled", startsAt: "2026-08-29T08:00:00.000Z" },
+        now,
+      ),
+    ).toBe("scheduled");
     expect(promotionLifecycle(activeCampaign, now)).toBe("active");
-    expect(promotionLifecycle({ ...activeCampaign, endsAt: "2026-08-28T08:30:00.000Z" }, now)).toBe("ended");
+    expect(promotionLifecycle({ ...activeCampaign, endsAt: "2026-08-28T08:30:00.000Z" }, now)).toBe(
+      "ended",
+    );
     expect(promotionLifecycle({ ...activeCampaign, status: "paused" }, now)).toBe("paused");
     expect(promotionLifecycle({ ...activeCampaign, status: "archived" }, now)).toBe("archived");
   });
@@ -144,7 +156,10 @@ describe("reusable promotion campaign contract", () => {
         promotionalContactsThisWeek: 0,
         whatsappTemplateApproved: true,
       }),
-    ).toEqual({ deliver: ["in_app"], suppressed: { push: "marketing_consent", whatsapp: "marketing_consent" } });
+    ).toEqual({
+      deliver: ["in_app"],
+      suppressed: { push: "marketing_consent", whatsapp: "marketing_consent" },
+    });
 
     expect(
       resolvePromotionDeliveryChannels({

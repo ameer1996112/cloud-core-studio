@@ -9,7 +9,6 @@ import { LANGUAGES } from "@/lib/messageTemplate";
 import { friendlyErrorMessage } from "@/lib/error-messages";
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { YogaPromotionAdmin } from "@/components/admin/YogaPromotionAdmin";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: Page,
@@ -210,7 +209,6 @@ function Page() {
         title={t("settings.studioConfig")}
         description={t("settings.headerBody")}
       />
-      <YogaPromotionAdmin />
       <form
         className="space-y-5 sm:space-y-6"
         onSubmit={(e) => {

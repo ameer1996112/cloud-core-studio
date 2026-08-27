@@ -55,7 +55,12 @@ export const promotionAudienceSchema = z.discriminatedUnion("kind", [
 ]);
 
 export const promotionCampaignDraftSchema = z.object({
-  slug: z.string().trim().min(2).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   name: z.string().trim().min(1).max(120),
   promotionType: z.enum(["announcement", "free_class_credit"]),
   localizedContent: z.object({
@@ -137,10 +142,7 @@ type LifecycleCampaign = {
   endsAt: string;
 };
 
-export function promotionLifecycle(
-  campaign: LifecycleCampaign,
-  now = new Date(),
-): PromotionStatus {
+export function promotionLifecycle(campaign: LifecycleCampaign, now = new Date()): PromotionStatus {
   if (["draft", "paused", "archived"].includes(campaign.status)) return campaign.status;
   const at = now.getTime();
   if (at < new Date(campaign.startsAt).getTime()) return "scheduled";
@@ -167,8 +169,7 @@ export function selectPromotionAudience<T extends PromotionAudienceMember>(input
 }) {
   const now = input.now ?? new Date();
   const inactiveCutoff = now.getTime() - 14 * 86_400_000;
-  const selectedIds =
-    input.audience.kind === "specific" ? new Set(input.audience.memberIds) : null;
+  const selectedIds = input.audience.kind === "specific" ? new Set(input.audience.memberIds) : null;
 
   return input.members.filter((member) => {
     if (member.status !== "active") return false;
@@ -274,7 +275,12 @@ export function resolvePromotionDeliveryChannels(input: PromotionDeliveryInput) 
   return { deliver, suppressed };
 }
 
-const safeUtmValue = z.string().trim().min(1).max(200).regex(/^[\p{L}\p{N} _.-]+$/u);
+const safeUtmValue = z
+  .string()
+  .trim()
+  .min(1)
+  .max(200)
+  .regex(/^[\p{L}\p{N} _.-]+$/u);
 
 export const promotionEngagementSchema = z.object({
   campaignId: z.string().uuid(),

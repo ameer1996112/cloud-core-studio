@@ -80,7 +80,6 @@ function getIdempotencyKey() {
 
 export async function claimYogaPromo(): Promise<YogaPromoClaimResult> {
   const token = getYogaPromoAttributionToken();
-  if (!token) return { status: "ineligible", reason: "missing_campaign_attribution" };
   const { data, error } = await supabase.rpc("claim_promotion", {
     p_slug: YOGA_PROMO_SLUG,
     p_attribution_token: token,

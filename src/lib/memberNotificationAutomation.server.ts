@@ -16,6 +16,7 @@ import {
   dispatchDueNotificationCampaigns,
   reconcileSendingNotificationCampaigns,
 } from "@/lib/adminNotificationCampaigns.functions";
+import { dispatchDuePromotions } from "@/lib/promotionBroadcast.server";
 
 type BookingCandidate = {
   id: string;
@@ -220,7 +221,15 @@ export async function runMemberNotificationAutomation(input?: { now?: Date; limi
     runPaymentReminderSweep(now, limit),
   ]);
   const campaigns = await dispatchDueNotificationCampaigns({ now, limit: Math.min(limit, 10) });
+  const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });
   const queuedDelivery = await deliverQueuedMemberNotifications({ now, limit });
   const campaignReconciliation = await reconcileSendingNotificationCampaigns(now);
-  return { lessonReminders, paymentReminders, campaigns, queuedDelivery, campaignReconciliation };
+  return {
+    lessonReminders,
+    paymentReminders,
+    campaigns,
+    promotions,
+    queuedDelivery,
+    campaignReconciliation,
+  };
 }

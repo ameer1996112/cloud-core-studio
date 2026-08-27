@@ -15,6 +15,7 @@ type RelatedIds = {
   paymentId?: string | null;
   memberPlanId?: string | null;
   campaignId?: string | null;
+  promotionId?: string | null;
 };
 
 export type EnqueueMemberNotificationInput = {
@@ -295,6 +296,7 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
       action_url: safeNotificationActionUrl(input.actionUrl),
       sound: decision.pushSound,
       campaign_id: input.relatedIds?.campaignId ?? null,
+      promotion_id: input.relatedIds?.promotionId ?? null,
       related_booking_id: input.relatedIds?.bookingId ?? null,
       related_class_id: input.relatedIds?.classId ?? null,
       related_payment_id: input.relatedIds?.paymentId ?? null,

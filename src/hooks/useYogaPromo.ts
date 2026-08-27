@@ -1,17 +1,11 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  claimYogaPromo,
-  fetchYogaPromoStatus,
-  getYogaPromoAttributionToken,
-  trackYogaPromo,
-} from "@/lib/yogaPromo";
+import { claimYogaPromo, fetchYogaPromoStatus, trackYogaPromo } from "@/lib/yogaPromo";
 
 export const YOGA_PROMO_QUERY_KEY = ["promotion", "yoga-lina-launch"] as const;
 
-export function useYogaPromo(options: { autoClaim?: boolean } = {}) {
+export function useYogaPromo() {
   const queryClient = useQueryClient();
-  const autoClaimAttempted = useRef(false);
   const query = useQuery({
     queryKey: YOGA_PROMO_QUERY_KEY,
     queryFn: fetchYogaPromoStatus,
@@ -32,21 +26,7 @@ export function useYogaPromo(options: { autoClaim?: boolean } = {}) {
     },
   });
 
-  useEffect(() => {
-    if (
-      !options.autoClaim ||
-      autoClaimAttempted.current ||
-      !getYogaPromoAttributionToken() ||
-      !query.data?.active ||
-      query.data.claimedByCurrentUser ||
-      query.data.soldOut
-    ) {
-      return;
-    }
-    autoClaimAttempted.current = true;
-    claim.mutate();
-  }, [claim, options.autoClaim, query.data]);
-
   const refresh = useCallback(() => query.refetch(), [query]);
-  return { ...query, claim, refresh };
+  const claimPromotion = useCallback(() => claim.mutate(), [claim]);
+  return { ...query, claim, claimPromotion, refresh };
 }

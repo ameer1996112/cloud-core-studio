@@ -6,6 +6,18 @@ CREATE TABLE public.promotion_campaigns (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text NOT NULL UNIQUE,
   name text NOT NULL,
+  promotion_type text NOT NULL DEFAULT 'announcement'
+    CHECK (promotion_type IN ('announcement','free_class_credit')),
+  status text NOT NULL DEFAULT 'draft'
+    CHECK (status IN ('draft','scheduled','active','paused','ended','archived')),
+  localized_content jsonb NOT NULL DEFAULT '{}'::jsonb,
+  audience jsonb NOT NULL DEFAULT '{"kind":"all_marketing"}'::jsonb,
+  channels text[] NOT NULL DEFAULT ARRAY['in_app']::text[],
+  whatsapp_templates jsonb NOT NULL DEFAULT '{}'::jsonb,
+  action_url text NOT NULL DEFAULT '/member/schedule',
+  is_public boolean NOT NULL DEFAULT false,
+  is_featured boolean NOT NULL DEFAULT false,
+  priority integer NOT NULL DEFAULT 0 CHECK (priority BETWEEN 0 AND 100),
   enabled boolean NOT NULL DEFAULT false,
   starts_at timestamptz,
   ends_at timestamptz,
@@ -15,6 +27,15 @@ CREATE TABLE public.promotion_campaigns (
   credit_quantity integer NOT NULL DEFAULT 1 CHECK (credit_quantity = 1),
   credit_expires_at timestamptz,
   admin_timezone text NOT NULL DEFAULT 'Asia/Jerusalem',
+  audience_previewed_at timestamptz,
+  audience_preview_count integer,
+  test_sent_at timestamptz,
+  test_sent_to uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  activated_at timestamptz,
+  paused_at timestamptz,
+  archived_at timestamptz,
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  updated_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CHECK (claimed_count <= claim_limit),
@@ -47,7 +68,7 @@ CREATE TABLE public.promotion_claims (
   attribution_token uuid REFERENCES public.promotion_attributions(token) ON DELETE RESTRICT,
   claimed_at timestamptz NOT NULL DEFAULT now(),
   status text NOT NULL DEFAULT 'claimed' CHECK (status IN ('claimed','revoked')),
-  source text NOT NULL DEFAULT 'campaign_link',
+  source text NOT NULL DEFAULT 'in_app' CHECK (source IN ('in_app','campaign_link')),
   utm_source text,
   utm_medium text,
   utm_campaign text,
@@ -84,6 +105,57 @@ CREATE TABLE public.promotion_entitlement_audit (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE public.promotion_campaign_audit (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  promotion_id uuid NOT NULL REFERENCES public.promotion_campaigns(id) ON DELETE RESTRICT,
+  actor_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  action text NOT NULL,
+  previous_status text,
+  next_status text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.promotion_engagement_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  promotion_id uuid NOT NULL REFERENCES public.promotion_campaigns(id) ON DELETE RESTRICT,
+  member_id uuid REFERENCES public.members(id) ON DELETE SET NULL,
+  event_type text NOT NULL CHECK (event_type IN (
+    'impression','cta_clicked','dismissed','claim_started','claim_succeeded','booking_completed'
+  )),
+  channel text NOT NULL DEFAULT 'in_app' CHECK (channel IN ('in_app','push','whatsapp','public_link')),
+  attribution_token uuid REFERENCES public.promotion_attributions(token) ON DELETE SET NULL,
+  idempotency_key text NOT NULL,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.promotion_deliveries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  promotion_id uuid NOT NULL REFERENCES public.promotion_campaigns(id) ON DELETE RESTRICT,
+  member_id uuid NOT NULL REFERENCES public.members(id) ON DELETE RESTRICT,
+  channel text NOT NULL CHECK (channel IN ('in_app','push','whatsapp')),
+  status text NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','sent','delivered','read','failed','skipped')),
+  provider_message_id text,
+  error_message text,
+  sent_at timestamptz,
+  delivered_at timestamptz,
+  read_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (promotion_id, member_id, channel)
+);
+
+CREATE OR REPLACE FUNCTION public.prevent_promotion_campaign_audit_mutation()
+RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
+BEGIN
+  RAISE EXCEPTION 'promotion campaign audit is append-only';
+END; $$;
+
+CREATE TRIGGER promotion_campaign_audit_append_only
+  BEFORE UPDATE OR DELETE ON public.promotion_campaign_audit
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_promotion_campaign_audit_mutation();
+
 CREATE TABLE public.promotion_claim_rate_limits (
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   promotion_id uuid NOT NULL REFERENCES public.promotion_campaigns(id) ON DELETE CASCADE,
@@ -94,6 +166,22 @@ CREATE TABLE public.promotion_claim_rate_limits (
 
 ALTER TABLE public.bookings
   ADD COLUMN promotion_entitlement_id uuid REFERENCES public.promotion_entitlements(id) ON DELETE RESTRICT;
+ALTER TABLE public.member_notifications
+  ADD COLUMN promotion_id uuid REFERENCES public.promotion_campaigns(id) ON DELETE SET NULL;
+
+CREATE OR REPLACE FUNCTION public.sync_promotion_inbox_read_receipt()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+  IF NEW.promotion_id IS NOT NULL AND NEW.read_at IS NOT NULL AND OLD.read_at IS NULL THEN
+    UPDATE public.promotion_deliveries SET status='read',read_at=NEW.read_at,updated_at=now()
+    WHERE promotion_id=NEW.promotion_id AND member_id=NEW.member_id AND channel='in_app';
+  END IF;
+  RETURN NEW;
+END; $$;
+
+CREATE TRIGGER member_notification_promotion_read_receipt
+  AFTER UPDATE OF read_at ON public.member_notifications
+  FOR EACH ROW EXECUTE FUNCTION public.sync_promotion_inbox_read_receipt();
 
 CREATE UNIQUE INDEX promotion_entitlement_one_booking_idx
   ON public.bookings(promotion_entitlement_id)
@@ -102,6 +190,10 @@ CREATE INDEX promotion_claims_campaign_idx ON public.promotion_claims(promotion_
 CREATE INDEX promotion_entitlements_member_idx ON public.promotion_entitlements(member_id, status, expires_at);
 CREATE INDEX promotion_attributions_user_idx ON public.promotion_attributions(user_id, promotion_id);
 CREATE INDEX promotion_audit_entitlement_idx ON public.promotion_entitlement_audit(entitlement_id, created_at DESC);
+CREATE INDEX promotion_campaign_audit_idx ON public.promotion_campaign_audit(promotion_id, created_at DESC);
+CREATE UNIQUE INDEX promotion_engagement_idempotency_idx
+  ON public.promotion_engagement_events(promotion_id, idempotency_key);
+CREATE INDEX promotion_deliveries_status_idx ON public.promotion_deliveries(promotion_id, channel, status);
 
 ALTER TABLE public.promotion_campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promotion_eligible_class_types ENABLE ROW LEVEL SECURITY;
@@ -109,6 +201,9 @@ ALTER TABLE public.promotion_attributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promotion_claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promotion_entitlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promotion_entitlement_audit ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promotion_campaign_audit ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promotion_engagement_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promotion_deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promotion_claim_rate_limits ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "members read own promotion claims" ON public.promotion_claims
@@ -129,18 +224,43 @@ CREATE POLICY "admins read promotion entitlements" ON public.promotion_entitleme
   FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "admins read promotion audit" ON public.promotion_entitlement_audit
   FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "admins read promotion campaign audit" ON public.promotion_campaign_audit
+  FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "members read own promotion engagement" ON public.promotion_engagement_events
+  FOR SELECT TO authenticated USING (member_id = auth.uid());
+CREATE POLICY "admins read promotion engagement" ON public.promotion_engagement_events
+  FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "members read own promotion deliveries" ON public.promotion_deliveries
+  FOR SELECT TO authenticated USING (member_id = auth.uid());
+CREATE POLICY "admins read promotion deliveries" ON public.promotion_deliveries
+  FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
-GRANT SELECT ON public.promotion_claims, public.promotion_entitlements, public.promotion_entitlement_audit TO authenticated;
+GRANT SELECT ON public.promotion_claims, public.promotion_entitlements, public.promotion_entitlement_audit,
+  public.promotion_campaign_audit, public.promotion_engagement_events, public.promotion_deliveries TO authenticated;
 GRANT SELECT ON public.promotion_campaigns, public.promotion_eligible_class_types TO authenticated;
 GRANT ALL ON public.promotion_campaigns, public.promotion_eligible_class_types,
   public.promotion_attributions, public.promotion_claims, public.promotion_entitlements,
-  public.promotion_entitlement_audit, public.promotion_claim_rate_limits TO service_role;
+  public.promotion_entitlement_audit, public.promotion_campaign_audit,
+  public.promotion_engagement_events, public.promotion_deliveries,
+  public.promotion_claim_rate_limits TO service_role;
 
 INSERT INTO public.promotion_campaigns (
-  slug, name, enabled, claim_limit, credit_quantity, new_accounts_only, admin_timezone
+  slug, name, promotion_type, status, localized_content, audience, channels, action_url,
+  is_public, is_featured, priority, enabled, claim_limit, credit_quantity,
+  new_accounts_only, admin_timezone, starts_at, ends_at, credit_expires_at
 ) VALUES (
-  'yoga-lina-launch', 'Yoga with Lina Launch', false, 10, 1, true, 'Asia/Jerusalem'
+  'yoga-lina-launch', 'Yoga with Lina Launch', 'free_class_credit', 'draft',
+  jsonb_build_object(
+    'he', jsonb_build_object('eyebrow','Cloud & Core','title','יוגה עם לינה','body','שיעור יוגה אחד במתנה לעשר הראשונות.','cta','לקבלת השיעור'),
+    'ar', jsonb_build_object('eyebrow','Cloud & Core','title','يوغا مع لينا','body','حصة يوغا مجانية لأول عشر مشتركات.','cta','احصلي على الحصة'),
+    'en', jsonb_build_object('eyebrow','Cloud & Core','title','Yoga with Lina','body','One complimentary Yoga class for the first ten eligible members.','cta','Claim your class')
+  ),
+  jsonb_build_object('kind', 'not_attended_program'),
+  ARRAY['in_app','push','whatsapp']::text[], '/member/schedule?program=yoga',
+  true, true, 50, false, 10, 1, false, 'Asia/Jerusalem',
+  now(), now()+interval '7 days', now()+interval '21 days'
 ) ON CONFLICT (slug) DO NOTHING;
+-- Yoga is open to existing and new members: new_accounts_only, false.
 
 CREATE OR REPLACE FUNCTION public.begin_promotion_attribution(
   p_slug text,
@@ -152,17 +272,32 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$
 DECLARE v_promotion_id uuid; v_token uuid;
 BEGIN
-  SELECT id INTO v_promotion_id FROM public.promotion_campaigns WHERE slug = p_slug;
+  SELECT id INTO v_promotion_id FROM public.promotion_campaigns WHERE slug = p_slug AND is_public=true;
   IF v_promotion_id IS NULL THEN RETURN NULL; END IF;
-  IF p_slug = 'yoga-lina-launch' AND NOT (
-    p_utm_source = 'instagram' AND p_utm_medium = 'dm' AND p_utm_campaign = 'yoga_lina_launch'
-  ) THEN RETURN NULL; END IF;
   INSERT INTO public.promotion_attributions (
     promotion_id, utm_source, utm_medium, utm_campaign
   ) VALUES (v_promotion_id, left(p_utm_source, 100), left(p_utm_medium, 100), left(p_utm_campaign, 150))
   RETURNING token INTO v_token;
   RETURN v_token;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.member_has_attended_promotion_program(
+  p_member_id uuid,
+  p_promotion_id uuid
+) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.attendance_records attendance
+    JOIN public.classes class ON class.id = attendance.class_id
+    JOIN public.promotion_eligible_class_types eligible
+      ON eligible.program_type_id = class.program_type_id
+    WHERE attendance.member_id = p_member_id
+      AND eligible.promotion_id = p_promotion_id
+      AND attendance.status IN ('checked_in','attended')
+  );
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_promotion_status(
@@ -203,17 +338,16 @@ BEGIN
       WHERE p.id = v_user AND p.role = 'member' AND m.status = 'active'
         AND NOT (m.tags && ARRAY['test','staff','service','blocked','deleted','duplicate']::text[])
         AND (NOT v_campaign.new_accounts_only OR (v_campaign.starts_at IS NOT NULL AND u.created_at >= v_campaign.starts_at))
-        AND EXISTS (
-          SELECT 1 FROM public.promotion_attributions a
-          WHERE a.token = p_attribution_token AND a.promotion_id = v_campaign.id
-            AND (a.user_id IS NULL OR a.user_id = v_user)
-            AND v_campaign.starts_at IS NOT NULL AND a.created_at >= v_campaign.starts_at
+        AND NOT (
+          v_campaign.audience->>'kind' = 'not_attended_program'
+          AND public.member_has_attended_promotion_program(v_user, v_campaign.id)
         )
     ) INTO v_eligible;
   END IF;
 
   RETURN jsonb_build_object(
-    'active', v_campaign.enabled AND v_campaign.starts_at IS NOT NULL AND v_now >= v_campaign.starts_at
+    'active', v_campaign.enabled AND v_campaign.status IN ('scheduled','active')
+      AND v_campaign.starts_at IS NOT NULL AND v_now >= v_campaign.starts_at
       AND (v_campaign.ends_at IS NULL OR v_now < v_campaign.ends_at),
     'remaining', GREATEST(v_campaign.claim_limit - v_campaign.claimed_count, 0),
     'claimLimit', v_campaign.claim_limit,
@@ -248,6 +382,7 @@ DECLARE
   v_user_created_at timestamptz;
   v_entitlement_id uuid;
   v_rate public.promotion_claim_rate_limits%ROWTYPE;
+  v_claim_source text := 'in_app';
 BEGIN
   IF v_user IS NULL THEN RETURN jsonb_build_object('status','error','message','not_authenticated'); END IF;
   IF p_idempotency_key IS NULL OR length(trim(p_idempotency_key)) < 8 THEN
@@ -283,10 +418,12 @@ BEGIN
     RETURN jsonb_build_object('status','ineligible','reason','class_type_not_configured');
   END IF;
 
-  SELECT * INTO v_attr FROM public.promotion_attributions WHERE token = p_attribution_token FOR UPDATE;
-  IF NOT FOUND OR v_attr.promotion_id <> v_campaign.id OR v_attr.created_at < v_campaign.starts_at
-    OR (v_attr.user_id IS NOT NULL AND v_attr.user_id <> v_user) THEN
-    RETURN jsonb_build_object('status','ineligible','reason','missing_campaign_attribution');
+  IF p_attribution_token IS NOT NULL THEN
+    SELECT * INTO v_attr FROM public.promotion_attributions WHERE token = p_attribution_token FOR UPDATE;
+    IF NOT FOUND OR v_attr.promotion_id <> v_campaign.id OR v_attr.created_at < v_campaign.starts_at
+      OR (v_attr.user_id IS NOT NULL AND v_attr.user_id <> v_user) THEN
+      RETURN jsonb_build_object('status','ineligible','reason','invalid_campaign_attribution');
+    END IF;
   END IF;
 
   SELECT * INTO v_member FROM public.members WHERE id=v_user FOR UPDATE;
@@ -299,13 +436,20 @@ BEGIN
   IF v_campaign.new_accounts_only AND v_user_created_at < v_campaign.starts_at THEN
     RETURN jsonb_build_object('status','ineligible','reason','existing_account');
   END IF;
+  IF v_campaign.audience->>'kind' = 'not_attended_program'
+    AND public.member_has_attended_promotion_program(v_user, v_campaign.id) THEN
+    RETURN jsonb_build_object('status','ineligible','reason','already_attended_program');
+  END IF;
   IF v_campaign.claimed_count >= v_campaign.claim_limit THEN RETURN jsonb_build_object('status','sold_out','remaining',0); END IF;
 
-  UPDATE public.promotion_attributions SET user_id=v_user, bound_at=COALESCE(bound_at,now()), consumed_at=now() WHERE token=p_attribution_token;
+  IF p_attribution_token IS NOT NULL THEN
+    UPDATE public.promotion_attributions SET user_id=v_user, bound_at=COALESCE(bound_at,now()), consumed_at=now() WHERE token=p_attribution_token;
+    v_claim_source := COALESCE(v_attr.source, 'in_app');
+  END IF;
   INSERT INTO public.promotion_claims (
     promotion_id,user_id,attribution_token,source,utm_source,utm_medium,utm_campaign,idempotency_key
   ) VALUES (
-    v_campaign.id,v_user,p_attribution_token,v_attr.source,v_attr.utm_source,v_attr.utm_medium,v_attr.utm_campaign,left(p_idempotency_key,200)
+    v_campaign.id,v_user,p_attribution_token,v_claim_source,v_attr.utm_source,v_attr.utm_medium,v_attr.utm_campaign,left(p_idempotency_key,200)
   ) RETURNING * INTO v_claim;
   INSERT INTO public.promotion_entitlements (
     promotion_claim_id,promotion_id,member_id,quantity,expires_at
@@ -386,6 +530,9 @@ BEGIN
   IF v_ent.id IS NOT NULL THEN
     UPDATE public.promotion_entitlements SET status='consumed',consumed_booking_id=v_booking_id,consumed_at=now(),updated_at=now() WHERE id=v_ent.id;
     INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,v_user,'consumed',v_booking_id,'confirmed booking');
+    INSERT INTO public.promotion_engagement_events(promotion_id,member_id,event_type,channel,idempotency_key,metadata)
+    VALUES(v_ent.promotion_id,v_user,'booking_completed','in_app','booking:'||v_booking_id::text,jsonb_build_object('booking_id',v_booking_id))
+    ON CONFLICT (promotion_id,idempotency_key) DO NOTHING;
   ELSE
     UPDATE public.members SET remaining_credits=remaining_credits-v_class.credit_cost WHERE id=v_user;
     INSERT INTO public.credit_transactions(member_id,amount_delta,reason,related_booking_id,created_by) VALUES(v_user,-v_class.credit_cost,'booking',v_booking_id,v_user);
@@ -479,6 +626,9 @@ BEGIN
   IF v_ent.id IS NOT NULL THEN
     UPDATE public.promotion_entitlements SET status='consumed',consumed_booking_id=v_booking_id,consumed_at=now(),updated_at=now() WHERE id=v_ent.id;
     INSERT INTO public.promotion_entitlement_audit(entitlement_id,actor_id,action,booking_id,reason) VALUES(v_ent.id,p_actor_id,'consumed',v_booking_id,'waitlist or admin confirmed booking');
+    INSERT INTO public.promotion_engagement_events(promotion_id,member_id,event_type,channel,idempotency_key,metadata)
+    VALUES(v_ent.promotion_id,p_member_id,'booking_completed','in_app','booking:'||v_booking_id::text,jsonb_build_object('booking_id',v_booking_id,'booked_by_admin',true))
+    ON CONFLICT (promotion_id,idempotency_key) DO NOTHING;
   ELSIF v_member.remaining_credits>=v_class.credit_cost THEN
     UPDATE public.members SET remaining_credits=remaining_credits-v_class.credit_cost WHERE id=p_member_id;
     INSERT INTO public.credit_transactions(member_id,amount_delta,reason,related_booking_id,created_by) VALUES(p_member_id,-v_class.credit_cost,'admin booking',v_booking_id,p_actor_id);
@@ -511,6 +661,204 @@ BEGIN
   RETURN jsonb_build_object('status','cancelled');
 END; $$;
 
+CREATE OR REPLACE FUNCTION public.promotion_activation_requirements(p_promotion_id uuid)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
+DECLARE v_campaign public.promotion_campaigns%ROWTYPE; v_errors text[] := ARRAY[]::text[]; v_language text;
+BEGIN
+  SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE id=p_promotion_id;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'errors',ARRAY['campaign_not_found']); END IF;
+  IF v_campaign.starts_at IS NULL OR v_campaign.ends_at IS NULL OR v_campaign.ends_at<=v_campaign.starts_at THEN
+    v_errors:=array_append(v_errors,'campaign_window_invalid');
+  END IF;
+  FOREACH v_language IN ARRAY ARRAY['he','ar','en']::text[] LOOP
+    IF COALESCE(v_campaign.localized_content->v_language->>'title','')='' OR
+       COALESCE(v_campaign.localized_content->v_language->>'body','')='' OR
+       COALESCE(v_campaign.localized_content->v_language->>'cta','')='' THEN
+      v_errors:=array_append(v_errors,'localized_content_'||v_language||'_required');
+    END IF;
+  END LOOP;
+  IF v_campaign.promotion_type='free_class_credit' AND NOT EXISTS (
+    SELECT 1 FROM public.promotion_eligible_class_types WHERE promotion_id=v_campaign.id
+  ) THEN v_errors:=array_append(v_errors,'eligible_program_required'); END IF;
+  IF v_campaign.promotion_type='free_class_credit' AND
+     (v_campaign.credit_expires_at IS NULL OR v_campaign.credit_expires_at<=v_campaign.ends_at) THEN
+    v_errors:=array_append(v_errors,'credit_expiry_must_follow_campaign');
+  END IF;
+  IF v_campaign.audience_previewed_at IS NULL THEN v_errors:=array_append(v_errors,'audience_preview_required'); END IF;
+  IF v_campaign.test_sent_at IS NULL THEN v_errors:=array_append(v_errors,'test_send_required'); END IF;
+  IF 'whatsapp'=ANY(v_campaign.channels) AND EXISTS (
+    SELECT 1 FROM unnest(ARRAY['he','ar','en']::text[]) language
+    WHERE COALESCE(v_campaign.whatsapp_templates->language->>'status','')<>'approved'
+  ) THEN v_errors:=array_append(v_errors,'whatsapp_template_not_approved'); END IF;
+  RETURN jsonb_build_object('ok',cardinality(v_errors)=0,'errors',to_jsonb(v_errors));
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.admin_preview_promotion_audience(p_actor_id uuid,p_promotion_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE v_campaign public.promotion_campaigns%ROWTYPE; v_count integer;
+BEGIN
+  IF auth.uid() IS DISTINCT FROM p_actor_id OR NOT public.has_role(p_actor_id,'admin') THEN
+    RETURN jsonb_build_object('status','error','message','forbidden');
+  END IF;
+  SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE id=p_promotion_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','campaign_not_found'); END IF;
+  IF v_campaign.status=p_next_status THEN RETURN jsonb_build_object('status','ok','nextStatus',p_next_status,'unchanged',true); END IF;
+  IF p_next_status='active' AND v_campaign.starts_at>now() THEN
+    RETURN jsonb_build_object('status','error','message','future_campaign_must_be_scheduled');
+  END IF;
+  SELECT count(*) INTO v_count FROM public.members member
+  WHERE member.status='active'
+    AND NOT (member.tags && ARRAY['test','staff','service','blocked','deleted','duplicate']::text[])
+    AND CASE v_campaign.audience->>'kind'
+      WHEN 'never_booked' THEN NOT EXISTS (SELECT 1 FROM public.bookings WHERE member_id=member.id AND status<>'cancelled')
+      WHEN 'no_upcoming' THEN NOT EXISTS (
+        SELECT 1 FROM public.bookings booking JOIN public.classes class ON class.id=booking.class_id
+        WHERE booking.member_id=member.id AND booking.status='booked' AND class.starts_at>now()
+      )
+      WHEN 'inactive_14d' THEN member.last_visit_at IS NULL OR member.last_visit_at<=now()-interval '14 days'
+      WHEN 'low_credits' THEN member.remaining_credits<=2
+      WHEN 'expiring_7d' THEN EXISTS (
+        SELECT 1 FROM public.member_plans plan WHERE plan.member_id=member.id AND plan.status='active'
+        AND plan.expires_at BETWEEN now() AND now()+interval '7 days'
+      )
+      WHEN 'not_attended_program' THEN NOT public.member_has_attended_promotion_program(member.id,v_campaign.id)
+      WHEN 'specific' THEN v_campaign.audience->'memberIds' ? member.id::text
+      ELSE true
+    END;
+  UPDATE public.promotion_campaigns SET audience_previewed_at=now(),audience_preview_count=v_count,updated_by=p_actor_id,updated_at=now()
+  WHERE id=v_campaign.id;
+  INSERT INTO public.promotion_campaign_audit(promotion_id,actor_id,action,metadata)
+  VALUES(v_campaign.id,p_actor_id,'audience_previewed',jsonb_build_object('eligible_count',v_count));
+  RETURN jsonb_build_object('status','ok','eligibleCount',v_count);
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.admin_mark_promotion_test_sent(p_actor_id uuid,p_promotion_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+  IF auth.uid() IS DISTINCT FROM p_actor_id OR NOT public.has_role(p_actor_id,'admin') THEN
+    RETURN jsonb_build_object('status','error','message','forbidden');
+  END IF;
+  UPDATE public.promotion_campaigns SET test_sent_at=now(),test_sent_to=p_actor_id,updated_by=p_actor_id,updated_at=now()
+  WHERE id=p_promotion_id;
+  IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','campaign_not_found'); END IF;
+  INSERT INTO public.promotion_campaign_audit(promotion_id,actor_id,action) VALUES(p_promotion_id,p_actor_id,'test_sent');
+  RETURN jsonb_build_object('status','ok');
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.admin_transition_promotion(p_actor_id uuid,p_promotion_id uuid,p_next_status text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE v_campaign public.promotion_campaigns%ROWTYPE; v_requirements jsonb;
+BEGIN
+  IF auth.uid() IS DISTINCT FROM p_actor_id OR NOT public.has_role(p_actor_id,'admin') THEN
+    RETURN jsonb_build_object('status','error','message','forbidden');
+  END IF;
+  IF p_next_status NOT IN ('scheduled','active','paused','archived') THEN
+    RETURN jsonb_build_object('status','error','message','invalid_transition');
+  END IF;
+  SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE id=p_promotion_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','campaign_not_found'); END IF;
+  IF p_next_status IN ('scheduled','active') THEN
+    v_requirements:=public.promotion_activation_requirements(p_promotion_id);
+    IF NOT COALESCE((v_requirements->>'ok')::boolean,false) THEN
+      RETURN jsonb_build_object('status','error','message','activation_requirements_failed','requirements',v_requirements);
+    END IF;
+  END IF;
+  UPDATE public.promotion_campaigns SET
+    status=p_next_status,
+    enabled=p_next_status IN ('scheduled','active'),
+    activated_at=CASE WHEN p_next_status IN ('scheduled','active') THEN COALESCE(activated_at,now()) ELSE activated_at END,
+    paused_at=CASE WHEN p_next_status='paused' THEN now() ELSE paused_at END,
+    archived_at=CASE WHEN p_next_status='archived' THEN now() ELSE archived_at END,
+    updated_by=p_actor_id,updated_at=now()
+  WHERE id=p_promotion_id;
+  INSERT INTO public.promotion_campaign_audit(promotion_id,actor_id,action,previous_status,next_status)
+  VALUES(p_promotion_id,p_actor_id,'status_changed',v_campaign.status,p_next_status);
+  RETURN jsonb_build_object('status','ok','nextStatus',p_next_status);
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.track_promotion_engagement(
+  p_slug text,p_event_type text,p_channel text,p_idempotency_key text,p_metadata jsonb DEFAULT '{}'::jsonb
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE v_campaign_id uuid; v_event_id uuid;
+BEGIN
+  SELECT id INTO v_campaign_id FROM public.promotion_campaigns WHERE slug=p_slug;
+  IF v_campaign_id IS NULL THEN RETURN jsonb_build_object('status','ignored'); END IF;
+  INSERT INTO public.promotion_engagement_events(promotion_id,member_id,event_type,channel,idempotency_key,metadata)
+  VALUES(v_campaign_id,auth.uid(),p_event_type,p_channel,left(p_idempotency_key,200),COALESCE(p_metadata,'{}'::jsonb))
+  ON CONFLICT (promotion_id,idempotency_key) DO UPDATE SET metadata=public.promotion_engagement_events.metadata
+  RETURNING id INTO v_event_id;
+  RETURN jsonb_build_object('status','ok','eventId',v_event_id);
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.get_member_promotions()
+RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+  SELECT COALESCE(jsonb_agg(jsonb_build_object(
+    'id',campaign.id,
+    'slug',campaign.slug,
+    'promotionType',campaign.promotion_type,
+    'localizedContent',campaign.localized_content,
+    'actionUrl',campaign.action_url,
+    'priority',campaign.priority,
+    'remaining',GREATEST(campaign.claim_limit-campaign.claimed_count,0),
+    'claimLimit',campaign.claim_limit,
+    'soldOut',campaign.claimed_count>=campaign.claim_limit,
+    'claimedByCurrentUser',claim.id IS NOT NULL,
+    'entitlementStatus',entitlement.status,
+    'creditAvailable',entitlement.status='active' AND entitlement.expires_at>now(),
+    'startsAt',campaign.starts_at,
+    'endsAt',campaign.ends_at,
+    'creditExpiresAt',campaign.credit_expires_at
+  ) ORDER BY campaign.priority DESC,campaign.starts_at DESC),'[]'::jsonb)
+  FROM public.promotion_campaigns campaign
+  JOIN public.members member ON member.id=auth.uid()
+  LEFT JOIN public.promotion_claims claim ON claim.promotion_id=campaign.id
+    AND claim.user_id=auth.uid() AND claim.status='claimed'
+  LEFT JOIN public.promotion_entitlements entitlement ON entitlement.promotion_id=campaign.id
+    AND entitlement.member_id=auth.uid()
+  WHERE campaign.enabled=true
+    AND campaign.status IN ('scheduled','active')
+    AND campaign.is_featured=true
+    AND campaign.starts_at<=now()
+    AND (campaign.ends_at IS NULL OR campaign.ends_at>now())
+    AND member.status='active'
+    AND NOT (member.tags && ARRAY['test','staff','service','blocked','deleted','duplicate']::text[])
+    AND CASE campaign.audience->>'kind'
+      WHEN 'never_booked' THEN NOT EXISTS (SELECT 1 FROM public.bookings WHERE member_id=member.id AND status<>'cancelled')
+      WHEN 'no_upcoming' THEN NOT EXISTS (
+        SELECT 1 FROM public.bookings booking JOIN public.classes class ON class.id=booking.class_id
+        WHERE booking.member_id=member.id AND booking.status='booked' AND class.starts_at>now()
+      )
+      WHEN 'inactive_14d' THEN member.last_visit_at IS NULL OR member.last_visit_at<=now()-interval '14 days'
+      WHEN 'low_credits' THEN member.remaining_credits<=2
+      WHEN 'expiring_7d' THEN EXISTS (
+        SELECT 1 FROM public.member_plans plan WHERE plan.member_id=member.id AND plan.status='active'
+        AND plan.expires_at BETWEEN now() AND now()+interval '7 days'
+      )
+      WHEN 'not_attended_program' THEN NOT public.member_has_attended_promotion_program(member.id,campaign.id)
+      WHEN 'specific' THEN campaign.audience->'memberIds' ? member.id::text
+      ELSE true
+    END
+    AND NOT EXISTS (
+      SELECT 1 FROM public.promotion_engagement_events event
+      WHERE event.promotion_id=campaign.id AND event.member_id=auth.uid() AND event.event_type='dismissed'
+    );
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_public_promotion(p_slug text)
+RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+  SELECT COALESCE((
+    SELECT jsonb_build_object(
+      'id',id,'slug',slug,'promotionType',promotion_type,'localizedContent',localized_content,
+      'actionUrl',action_url,'remaining',GREATEST(claim_limit-claimed_count,0),
+      'claimLimit',claim_limit,'soldOut',claimed_count>=claim_limit,
+      'startsAt',starts_at,'endsAt',ends_at,'creditExpiresAt',credit_expires_at
+    )
+    FROM public.promotion_campaigns
+    WHERE slug=p_slug AND is_public=true AND enabled=true AND status IN ('scheduled','active')
+      AND starts_at<=now() AND (ends_at IS NULL OR ends_at>now())
+  ),'null'::jsonb);
+$$;
+
 CREATE OR REPLACE FUNCTION public.admin_update_promotion(
   p_actor_id uuid,p_slug text,p_enabled boolean,p_starts_at timestamptz,p_ends_at timestamptz,
   p_claim_limit integer,p_credit_expires_at timestamptz,p_program_type_ids uuid[]
@@ -518,6 +866,7 @@ CREATE OR REPLACE FUNCTION public.admin_update_promotion(
 DECLARE v_campaign public.promotion_campaigns%ROWTYPE;
 BEGIN
   IF auth.uid() IS DISTINCT FROM p_actor_id OR NOT public.has_role(p_actor_id,'admin') THEN RETURN jsonb_build_object('status','error','message','forbidden'); END IF;
+  IF p_enabled THEN RETURN jsonb_build_object('status','error','message','use_promotions_manager_activation_flow'); END IF;
   SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE slug=p_slug FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('status','error','message','campaign_not_found'); END IF;
   IF p_claim_limit<v_campaign.claimed_count THEN RETURN jsonb_build_object('status','error','message','limit_below_claimed_count'); END IF;
@@ -560,6 +909,14 @@ REVOKE ALL ON FUNCTION public.book_class_v2(uuid,uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public._restore_promotion_entitlement(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.admin_update_promotion(uuid,text,boolean,timestamptz,timestamptz,integer,timestamptz,uuid[]) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.admin_adjust_promotion_entitlement(uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.member_has_attended_promotion_program(uuid,uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.promotion_activation_requirements(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_preview_promotion_audience(uuid,uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_mark_promotion_test_sent(uuid,uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_transition_promotion(uuid,uuid,text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.track_promotion_engagement(text,text,text,text,jsonb) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_member_promotions() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_public_promotion(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.begin_promotion_attribution(text,text,text,text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_promotion_status(text,uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.claim_promotion(text,uuid,text) TO authenticated;
@@ -570,6 +927,14 @@ GRANT EXECUTE ON FUNCTION public.admin_create_booking(uuid,uuid,uuid,boolean) TO
 GRANT EXECUTE ON FUNCTION public.admin_cancel_booking(uuid,uuid,boolean) TO service_role;
 GRANT EXECUTE ON FUNCTION public.admin_update_promotion(uuid,text,boolean,timestamptz,timestamptz,integer,timestamptz,uuid[]) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_adjust_promotion_entitlement(uuid,uuid,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.member_has_attended_promotion_program(uuid,uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.promotion_activation_requirements(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.admin_preview_promotion_audience(uuid,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_mark_promotion_test_sent(uuid,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_transition_promotion(uuid,uuid,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.track_promotion_engagement(text,text,text,text,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_member_promotions() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_promotion(text) TO anon, authenticated;
 
 COMMENT ON TABLE public.promotion_entitlements IS 'Restricted, non-cash promotional credits; never included in members.remaining_credits.';
 COMMENT ON FUNCTION public.claim_promotion(text,uuid,text) IS 'Atomic, idempotent, authenticated promotion claim with row-locked capacity.';

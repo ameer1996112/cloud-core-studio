@@ -393,6 +393,23 @@ function buildOfficialWhatsappWebhookDeps(): OfficialWhatsappWebhookDeps {
         .eq("provider_message_id", input.messageId);
 
       if (error) throw error;
+      const promotionStatus = input.status === "failed" ? "failed" : input.status;
+      if (["sent", "delivered", "read", "failed"].includes(promotionStatus)) {
+        const at = timestampToIso(input.timestamp);
+        const { error: promotionError } = await (supabaseAdmin as any)
+          .from("promotion_deliveries")
+          .update({
+            status: promotionStatus,
+            sent_at: ["sent", "delivered", "read"].includes(promotionStatus) ? at : undefined,
+            delivered_at: ["delivered", "read"].includes(promotionStatus) ? at : undefined,
+            read_at: promotionStatus === "read" ? at : undefined,
+            error_message: promotionStatus === "failed" ? input.error : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("channel", "whatsapp")
+          .eq("provider_message_id", input.messageId);
+        if (promotionError && promotionError.code !== "42P01") throw promotionError;
+      }
     },
   };
 }

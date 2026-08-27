@@ -14,7 +14,7 @@ function YogaLinaPromoPage() {
   const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
   const [attributionReady, setAttributionReady] = useState(false);
-  const promo = useYogaPromo({ autoClaim: authenticated && attributionReady });
+  const promo = useYogaPromo();
   const refetchPromo = promo.refetch;
   useDocumentTitle("page.home.title");
 

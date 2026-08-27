@@ -11,7 +11,10 @@ const migration = readFileSync(
 
 describe("Yoga with Lina promotion database contract", () => {
   test("ships disabled with a ten-claim cap", () => {
-    expect(migration).toContain("'yoga-lina-launch', 'Yoga with Lina Launch', false, 10");
+    expect(migration).toContain(
+      "'yoga-lina-launch', 'Yoga with Lina Launch', 'free_class_credit', 'draft'",
+    );
+    expect(migration).toContain("true, true, 50, false, 10, 1, false");
     expect(migration).toContain("CHECK (claimed_count <= claim_limit)");
   });
 

@@ -156,13 +156,6 @@ function MemberPackages() {
   useEffect(() => {
     if (promoEntitlements.length > 0) trackYogaPromo("yoga_promo_credit_viewed");
   }, [promoEntitlements.length]);
-  const promoEntitlements = (data?.promotionEntitlements ?? []).filter(
-    (entitlement: any) => entitlement.status === "active",
-  );
-
-  useEffect(() => {
-    if (promoEntitlements.length > 0) trackYogaPromo("yoga_promo_credit_viewed");
-  }, [promoEntitlements.length]);
 
   function submitPayment(
     plan: any,

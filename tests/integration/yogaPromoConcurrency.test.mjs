@@ -42,6 +42,9 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
       .insert({
         slug,
         name: "Concurrency test",
+        promotion_type: "free_class_credit",
+        status: "active",
+        is_public: true,
         enabled: true,
         starts_at: startsAt,
         ends_at: endsAt,
@@ -73,6 +76,9 @@ describe.skipIf(!enabled)("Yoga promotion real database concurrency", () => {
         await admin.from("promotion_entitlement_audit").delete().in("entitlement_id", ids);
       await admin.from("promotion_entitlements").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_claims").delete().eq("promotion_id", campaignId);
+      await admin.from("promotion_engagement_events").delete().eq("promotion_id", campaignId);
+      await admin.from("promotion_deliveries").delete().eq("promotion_id", campaignId);
+      await admin.from("promotion_campaign_audit").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_claim_rate_limits").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_attributions").delete().eq("promotion_id", campaignId);
       await admin.from("promotion_eligible_class_types").delete().eq("promotion_id", campaignId);

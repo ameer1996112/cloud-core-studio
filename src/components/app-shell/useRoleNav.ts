@@ -14,6 +14,7 @@ import {
   DoorOpen,
   Activity,
   Sparkles,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 import type { AppRole } from "@/lib/auth-redirect";
@@ -55,6 +56,7 @@ export function navForRole(role: AppRole): NavGroup[] {
         items: [
           { to: "/admin/reports", label: t("nav.reports"), icon: BarChart3 },
           { to: "/admin/messages", label: t("nav.messages"), icon: MessageCircle },
+          { to: "/admin/promotions", label: t("nav.promotions"), icon: Megaphone },
           { to: "/admin/settings", label: t("nav.settings"), icon: Settings },
         ],
       },
