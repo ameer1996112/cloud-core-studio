@@ -43,6 +43,18 @@ const renderedCardOpeners = [];
 const renderedCardStates = [];
 const invalidateCalls = [];
 const mutationConfigs = [];
+const emptyBookingsData = {
+  bookings: [],
+  attendanceByBooking: {},
+  waitlist: [],
+};
+let bookingsQueryResult = {
+  data: emptyBookingsData,
+  isLoading: false,
+  isError: false,
+  refetch: () => Promise.resolve(),
+};
+let conciergeQueryResult = { data: null, isLoading: false };
 
 const scheduleDataByScope = {
   guest: {
@@ -133,18 +145,15 @@ mock.module("@tanstack/react-query", () => ({
     }
 
     if (queryKey[0] === "my-bookings-all") {
-      return {
-        data: {
-          bookings: [],
-          attendanceByBooking: {},
-          waitlist: [],
-        },
-        isLoading: false,
-      };
+      return bookingsQueryResult;
     }
 
     if (queryKey[0] === "public-studio-settings") {
       return { data: null, isLoading: false };
+    }
+
+    if (queryKey[0] === "personal-concierge") {
+      return conciergeQueryResult;
     }
 
     return { data: null, isLoading: false };
@@ -414,7 +423,16 @@ describe("guest schedule handoff", () => {
     invalidateCalls.length = 0;
     mutationConfigs.length = 0;
 
-    renderToStaticMarkup(React.createElement(bookingsModule.Route.options.component));
+    const bookingsHtml = renderToStaticMarkup(
+      React.createElement(bookingsModule.Route.options.component),
+    );
+
+    expect(bookingsHtml).toContain('role="tablist"');
+    expect(bookingsHtml).toContain('role="tabpanel"');
+    expect(bookingsHtml).toContain('id="member-bookings-panel-upcoming"');
+    expect(bookingsHtml).toContain('aria-labelledby="member-bookings-tab-upcoming"');
+    expect(bookingsHtml).toContain('member-booking-counts"');
+    expect(bookingsHtml).toContain('aria-label="0"');
 
     expect(mutationConfigs.length).toBeGreaterThan(0);
 
@@ -440,5 +458,131 @@ describe("guest schedule handoff", () => {
       scheduleInvalidation.predicate({ queryKey: ["member-schedule", "member:member-1"] }),
     ).toBe(true);
     expect(scheduleInvalidation.predicate({ queryKey: ["member-schedule", "guest"] })).toBe(false);
+  });
+
+  test("member bookings separates initial loading, fatal errors, and cached refetch errors", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+    const renderBookings = () =>
+      renderToStaticMarkup(React.createElement(bookingsModule.Route.options.component));
+    const cachedClass = {
+      ...openClass,
+      id: "future-class",
+      starts_at: "2099-07-03T09:00:00.000Z",
+    };
+
+    try {
+      bookingsQueryResult = {
+        data: undefined,
+        isLoading: true,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+      const loadingHtml = renderBookings();
+      expect(loadingHtml).toContain('role="status"');
+      expect(loadingHtml).toContain("member-booking-counts-placeholder");
+      expect(loadingHtml).not.toContain('member-booking-counts"');
+      expect(loadingHtml).not.toContain('aria-label="0"');
+      expect(loadingHtml).not.toContain('data-testid="empty-state"');
+
+      bookingsQueryResult = {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        refetch: () => Promise.resolve(),
+      };
+      const errorHtml = renderBookings();
+      expect(errorHtml).toContain('role="alert"');
+      expect(errorHtml).toContain("member-booking-counts-placeholder");
+      expect(errorHtml).not.toContain('member-booking-counts"');
+      expect(errorHtml).not.toContain('aria-label="0"');
+      expect(errorHtml).not.toContain('data-testid="empty-state"');
+      expect(errorHtml).not.toContain(">reservation<");
+
+      bookingsQueryResult = {
+        data: {
+          bookings: [
+            {
+              id: "booking-future",
+              status: "booked",
+              class: cachedClass,
+            },
+          ],
+          attendanceByBooking: {},
+          waitlist: [],
+        },
+        isLoading: false,
+        isError: true,
+        refetch: () => Promise.resolve(),
+      };
+      const cachedErrorHtml = renderBookings();
+      expect(cachedErrorHtml).not.toContain('role="alert"');
+      expect(cachedErrorHtml).toContain('member-booking-counts"');
+      expect(cachedErrorHtml).toContain(">reservation<");
+    } finally {
+      bookingsQueryResult = {
+        data: emptyBookingsData,
+        isLoading: false,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+    }
+  });
+
+  test("member bookings sorts only upcoming bookings by nearest class start", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+    const bookings = [
+      { id: "later", class: { starts_at: "2099-08-03T09:00:00.000Z" } },
+      { id: "nearest", class: { starts_at: "2099-07-03T09:00:00.000Z" } },
+      { id: "middle", class: { starts_at: "2099-07-10T09:00:00.000Z" } },
+    ];
+
+    expect(bookingsModule.sortUpcomingBookingsByStart(bookings).map(({ id }) => id)).toEqual([
+      "nearest",
+      "middle",
+      "later",
+    ]);
+    expect(bookings.map(({ id }) => id)).toEqual(["later", "nearest", "middle"]);
+  });
+
+  test("member concierge defer action exposes a 44px touch target", async () => {
+    const bookingsModule = await import("../../src/routes/_authenticated/member/bookings.tsx");
+    const upcomingClass = {
+      ...openClass,
+      id: "future-concierge-class",
+      starts_at: "2099-07-03T09:00:00.000Z",
+    };
+
+    try {
+      bookingsQueryResult = {
+        data: {
+          bookings: [{ id: "future-booking", status: "booked", class: upcomingClass }],
+          attendanceByBooking: {},
+          waitlist: [],
+          hasAttended: false,
+        },
+        isLoading: false,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+      conciergeQueryResult = {
+        data: { available: true, preferences: [] },
+        isLoading: false,
+      };
+
+      const html = renderToStaticMarkup(
+        React.createElement(bookingsModule.Route.options.component),
+      );
+      expect(html).toMatch(
+        /<button[^>]*class="[^"]*member-concierge-defer-action[^"]*min-h-11[^"]*"[^>]*>Maybe later<\/button>/,
+      );
+    } finally {
+      bookingsQueryResult = {
+        data: emptyBookingsData,
+        isLoading: false,
+        isError: false,
+        refetch: () => Promise.resolve(),
+      };
+      conciergeQueryResult = { data: null, isLoading: false };
+    }
   });
 });

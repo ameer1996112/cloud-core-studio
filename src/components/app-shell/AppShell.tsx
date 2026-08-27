@@ -5,19 +5,211 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createClientOnlyFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRoleNav";
+import {
+  navForRole,
+  bottomTabsForRole,
+  isActive,
+  usesMemberShell,
+  type NavGroup,
+  type NavItem,
+} from "./useRoleNav";
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
 import { MemberPushOnboarding } from "@/components/member/MemberPushOnboarding";
 import { MemberWhatsappOnboarding } from "@/components/member/MemberWhatsappOnboarding";
+import { MemberRouteSkeleton, type MemberRoute } from "@/components/member/MemberRouteSkeleton";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
+import {
+  isPlainPrimaryNavigationClick,
+  queueLatestDocumentNavigation,
+  shouldClearPendingMobileNavigation,
+} from "./memberNavigation";
 
 type Props = {
   role: AppRole;
   children: ReactNode;
 };
+
+type MemberDesktopHeaderProps = {
+  tabs: NavItem[];
+  pathname: string;
+  isRtl: boolean;
+  notificationControl: ReactNode;
+  signOutControl: ReactNode;
+};
+
+type MemberMobileBottomNavigationProps = {
+  tabs: NavItem[];
+  pathname: string;
+  isRtl: boolean;
+  onNavigate?: (pathname: string) => void;
+};
+
+export function MemberDesktopHeader({
+  tabs,
+  pathname,
+  isRtl,
+  notificationControl,
+  signOutControl,
+}: MemberDesktopHeaderProps) {
+  return (
+    <header className="member-desktop-header hidden md:block">
+      <div className="member-content-frame member-desktop-header__row">
+        <Link
+          to="/member"
+          reloadDocument={pathname === "/member/schedule"}
+          aria-label="Cloud & Core"
+          className="member-desktop-header__brand"
+        >
+          <BrandHeaderWordmark />
+        </Link>
+        <nav
+          aria-label={t("shell.practice")}
+          className="member-desktop-header__nav"
+          dir={isRtl ? "rtl" : "ltr"}
+        >
+          {tabs.map((item) => {
+            const { to, icon: Icon, label } = item;
+            const active = isActive(pathname, item);
+            return (
+              <Link
+                key={to}
+                to={to}
+                reloadDocument={pathname === "/member/schedule" && to !== pathname}
+                aria-current={active ? "page" : undefined}
+                className={
+                  active
+                    ? "member-desktop-nav__link member-desktop-nav__link--active"
+                    : "member-desktop-nav__link"
+                }
+              >
+                <Icon aria-hidden="true" className="h-4 w-4" />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="member-desktop-header__actions">
+          {notificationControl}
+          {signOutControl}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function MemberMobileBottomNavigation({
+  tabs,
+  pathname,
+  isRtl,
+  onNavigate,
+}: MemberMobileBottomNavigationProps) {
+  const documentNavigationSequence = useRef(0);
+
+  useEffect(
+    () => () => {
+      documentNavigationSequence.current += 1;
+    },
+    [],
+  );
+
+  return (
+    <nav
+      aria-label={t("shell.practice")}
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1 pointer-events-none"
+    >
+      <div
+        dir={isRtl ? "rtl" : "ltr"}
+        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[var(--radius-lg)] border border-gold/30 bg-ivory/96 px-1.5 py-0.5 shadow-[0_-8px_28px_-24px_rgba(28,43,69,0.24)] backdrop-blur pointer-events-auto"
+      >
+        {tabs.map((item) => {
+          const { to, icon: Icon, label } = item;
+          const active = isActive(pathname, item);
+          const isDocumentNavigation = pathname === "/member/schedule" && to !== pathname;
+          return (
+            <Link
+              key={to}
+              to={to}
+              preload="render"
+              reloadDocument={isDocumentNavigation}
+              onClick={
+                active || !onNavigate
+                  ? undefined
+                  : (event) => {
+                      if (!isPlainPrimaryNavigationClick(event)) return;
+
+                      onNavigate(to);
+                      if (!isDocumentNavigation) return;
+
+                      event.preventDefault();
+                      queueLatestDocumentNavigation(
+                        to,
+                        documentNavigationSequence,
+                        window.requestAnimationFrame.bind(window),
+                        window.location.assign.bind(window.location),
+                      );
+                    }
+              }
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              className={`member-bottom-nav-link relative flex-1 flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1 text-[13px] leading-tight transition-colors ${
+                active ? "font-semibold text-navy" : "text-slate hover:text-navy"
+              }`}
+            >
+              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
+              <span className="max-w-full truncate text-center leading-tight">{label}</span>
+              {active && (
+                <span aria-hidden className="absolute bottom-1 h-[2px] w-5 rounded-full bg-gold" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function memberRouteForPath(pathname: string): MemberRoute {
+  if (pathname === "/member/schedule" || pathname.startsWith("/member/schedule/")) {
+    return "schedule";
+  }
+  if (pathname === "/member/bookings" || pathname.startsWith("/member/bookings/")) {
+    return "bookings";
+  }
+  if (pathname === "/member/packages" || pathname.startsWith("/member/packages/")) {
+    return "packages";
+  }
+  if (pathname === "/member/account" || pathname.startsWith("/member/account/")) {
+    return "account";
+  }
+  return "home";
+}
+
+export function MemberRouteContent({
+  pathname,
+  isPendingPathChange,
+  children,
+}: {
+  pathname: string;
+  isPendingPathChange: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      key={`${pathname}:${isPendingPathChange ? "pending" : "ready"}`}
+      className="member-route-transition"
+      aria-busy={isPendingPathChange || undefined}
+    >
+      {isPendingPathChange ? (
+        <MemberRouteSkeleton route={memberRouteForPath(pathname)} />
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
 
 const disconnectMemberPushSession = createClientOnlyFn(async () => {
   const memberPush = await import("@/lib/memberPush.client");
@@ -36,13 +228,21 @@ const getCurrentMemberPushInstallationId = createClientOnlyFn(async () => {
 
 export function AppShell({ role, children }: Props) {
   const { lang } = useI18n();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname, resolvedPathname, isRouteLoading } = useRouterState({
+    select: (state) => ({
+      pathname: state.location.pathname,
+      resolvedPathname: state.resolvedLocation?.pathname ?? state.location.pathname,
+      isRouteLoading: state.isLoading,
+    }),
+  });
   const navigate = useNavigate();
   const qc = useQueryClient();
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [pendingMobilePathname, setPendingMobilePathname] = useState<string | null>(null);
+  const mobileNavigationStartedRef = useRef(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -60,11 +260,39 @@ export function AppShell({ role, children }: Props) {
 
   // Shell separation: members use bottom nav (no drawer);
   // admin/instructor use sidebar+drawer (no bottom nav).
-  const useBottomNav = role === "member";
+  const useBottomNav = usesMemberShell(role);
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
   const mobileDrawerSideStyle = { insetInlineStart: 0 as const };
+
+  useEffect(() => {
+    if (!pendingMobilePathname) return;
+
+    if (isRouteLoading) {
+      mobileNavigationStartedRef.current = true;
+      return;
+    }
+
+    if (
+      shouldClearPendingMobileNavigation({
+        destination: pendingMobilePathname,
+        isLoading: isRouteLoading,
+        resolvedPathname,
+        navigationStarted: mobileNavigationStartedRef.current,
+      })
+    ) {
+      mobileNavigationStartedRef.current = false;
+      setPendingMobilePathname(null);
+      return;
+    }
+
+    const fallback = window.setTimeout(() => {
+      mobileNavigationStartedRef.current = false;
+      setPendingMobilePathname(null);
+    }, 1_500);
+    return () => window.clearTimeout(fallback);
+  }, [isRouteLoading, pendingMobilePathname, resolvedPathname]);
 
   useEffect(() => {
     if (!useDrawer || !mobileOpen) return;
@@ -101,18 +329,18 @@ export function AppShell({ role, children }: Props) {
     <button
       onClick={() => setMobileOpen(true)}
       aria-label={t("shell.openMenu")}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
     >
       <StandardMenuIcon />
     </button>
   ) : (
-    <MemberNotificationCenter viewport="mobile" />
+    <MemberNotificationCenter viewport="mobile" className="member-shell-action" />
   );
   const signOutControl = (
     <button
       onClick={signOut}
       aria-label={t("shell.signOut")}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] bg-transparent text-[var(--color-text-muted)] transition-[background-color,color] duration-200 hover:bg-gold/10 hover:text-[var(--color-text-primary)]"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-transparent text-[var(--color-text-muted)] transition-[background-color,color] duration-200 hover:bg-gold/10 hover:text-[var(--color-text-primary)]"
     >
       <LogOut className="h-[18px] w-[18px]" />
     </button>
@@ -155,21 +383,9 @@ export function AppShell({ role, children }: Props) {
 
   if (role === "member" && !isHydrated) {
     return (
-      <div className="fixed inset-0 bg-ivory text-foreground">
-        <div className="mx-auto flex min-h-full w-full max-w-[28rem] items-center justify-center px-6">
-          <div className="member-card w-full max-w-sm p-8 text-center shadow-[var(--shadow-elevated)]">
-            <img
-              src="/brand/cloud-core-logo-full.png"
-              alt="Cloud & Core Studio"
-              className="mx-auto h-auto w-[12.5rem]"
-            />
-            <div className="mx-auto mt-5 h-px w-12 bg-gold/70" />
-            <div className="mt-6 space-y-3">
-              <div className="skeleton-brand h-4 rounded-full" />
-              <div className="skeleton-brand mx-auto h-4 w-3/4 rounded-full" />
-              <div className="skeleton-brand mx-auto h-11 w-full rounded-[16px]" />
-            </div>
-          </div>
+      <div className="fixed inset-0 bg-ivory text-foreground" dir={isRtl ? "rtl" : "ltr"}>
+        <div className="member-content-frame px-4 pt-[calc(env(safe-area-inset-top)+4rem)]">
+          <MemberRouteSkeleton route="home" />
         </div>
       </div>
     );
@@ -239,106 +455,60 @@ export function AppShell({ role, children }: Props) {
           </div>
         </div>
 
-        {/* Page header */}
-        <header
-          className={`${useBottomNav ? "hidden md:block" : "block"} px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6`}
-        >
-          <div
-            className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
-          >
-            <div className="min-w-0">
-              <p className="eyebrow">{eyebrowFor(role)}</p>
-              <h1 className="cc-page-title mt-2 truncate">
-                {currentSectionLabel(pathname, groups)}
-              </h1>
-            </div>
-            <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
-              {useBottomNav ? (
-                <>
-                  <MemberNotificationCenter viewport="desktop" />
-                  <BrandHeaderWordmark className="scale-[0.95]" />
-                </>
-              ) : null}
-            </div>
-          </div>
-        </header>
-
-        {/* Member desktop/tablet top nav — replaces the missing sidebar */}
+        {/* Compact desktop navigation — member only */}
         {useBottomNav && (
-          <nav
-            aria-label={t("shell.practice")}
-            className="hidden md:block px-[clamp(1rem,4vw,3rem)] pb-3"
-          >
-            <div
-              className={`${contentFrameClass} flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gold/30 pb-2`}
-              dir={isRtl ? "rtl" : "ltr"}
-            >
-              {bottomTabs.map(({ to, icon: Icon, label, exact }) => {
-                const active = exact
-                  ? pathname === to
-                  : pathname === to || pathname.startsWith(to + "/");
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={`relative inline-flex min-h-11 items-center gap-2 text-sm transition-colors pb-2 ${
-                      active ? "text-navy font-medium" : "text-slate hover:text-navy"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 opacity-80" />
-                    <span>{label}</span>
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 -bottom-[1px] h-[2px] rounded-full bg-gold"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
+          <MemberDesktopHeader
+            tabs={bottomTabs}
+            pathname={pathname}
+            isRtl={isRtl}
+            notificationControl={
+              <MemberNotificationCenter viewport="desktop" className="member-shell-action" />
+            }
+            signOutControl={signOutControl}
+          />
+        )}
+
+        {/* Page header — admin/instructor only */}
+        {!useBottomNav && (
+          <header className="block px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6">
+            <div className={contentFrameClass}>
+              <div className="min-w-0">
+                <p className="eyebrow">{eyebrowFor(role)}</p>
+                <h1 className="cc-page-title mt-2 truncate">
+                  {currentSectionLabel(pathname, groups)}
+                </h1>
+              </div>
             </div>
-          </nav>
+          </header>
         )}
 
         {/* Content */}
         <div className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
-          <div className={contentFrameClass}>{children}</div>
+          <div className={contentFrameClass}>
+            {useBottomNav ? (
+              <MemberRouteContent
+                pathname={pendingMobilePathname ?? pathname}
+                isPendingPathChange={pendingMobilePathname !== null}
+              >
+                {children}
+              </MemberRouteContent>
+            ) : (
+              children
+            )}
+          </div>
         </div>
 
         {/* Bottom tabs — member only, mobile only */}
         {useBottomNav && (
-          <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.45rem)] pt-1.5 pointer-events-none">
-            <div
-              dir={isRtl ? "rtl" : "ltr"}
-              className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[calc(var(--radius-lg)+2px)] border border-gold/30 bg-ivory/96 px-1.5 py-1 shadow-[0_-10px_34px_-28px_rgba(28,43,69,0.28)] backdrop-blur pointer-events-auto"
-            >
-              {bottomTabs.map(({ to, icon: Icon, label, exact }) => {
-                const active = exact
-                  ? pathname === to
-                  : pathname === to || pathname.startsWith(to + "/");
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    aria-label={label}
-                    aria-current={active ? "page" : undefined}
-                    className={`relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[11px] leading-tight transition-colors ${
-                      active ? "bg-white/72 text-navy" : "text-slate hover:text-navy"
-                    }`}
-                  >
-                    <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
-                    <span className="max-w-full truncate text-center leading-tight">{label}</span>
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute bottom-1 h-[2px] w-5 rounded-full bg-gold"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
+          <MemberMobileBottomNavigation
+            tabs={bottomTabs}
+            pathname={pathname}
+            isRtl={isRtl}
+            onNavigate={(to) => {
+              mobileNavigationStartedRef.current = false;
+              flushSync(() => setPendingMobilePathname(to));
+            }}
+          />
         )}
       </main>
     </div>

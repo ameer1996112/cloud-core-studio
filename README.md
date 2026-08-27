@@ -92,7 +92,8 @@ bun run mobile:open:android
 - `.env` is intentionally ignored and must not be committed.
 - The app uses TanStack Start, Vite, React, Tailwind CSS, Supabase, and Bun.
 - Production builds emit `dist/client` and `dist/server`.
-- The public app marketing page is available at `/app`; use `?lang=he`, `?lang=ar`, or `?lang=en` for an explicit language.
+- The public app marketing pages are server-rendered at `/app/he`, `/app/ar`, and `/app/en`; `/app` resolves ordinary browser visitors to a localized page.
+- Web releases update the UI loaded by installed native shells. Native assets and metadata, including the app icon and build number, still require a new TestFlight/App Store binary.
 - Native build architecture is documented in `docs/mobile-release-architecture.md`.
 
 ## Google Cloud Run

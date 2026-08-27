@@ -22,6 +22,10 @@ import { t } from "@/lib/i18n";
 export type NavItem = { to: string; label: string; icon: LucideIcon; exact?: boolean };
 export type NavGroup = { label: string; items: NavItem[] };
 
+export function usesMemberShell(role: AppRole) {
+  return role === "member";
+}
+
 export function navForRole(role: AppRole): NavGroup[] {
   if (role === "admin") {
     return [
@@ -73,7 +77,7 @@ export function navForRole(role: AppRole): NavGroup[] {
       items: [
         { to: "/member", label: t("nav.home"), icon: Home, exact: true },
         { to: "/member/schedule", label: t("nav.schedule"), icon: Calendar },
-        { to: "/member/bookings", label: t("nav.myBookings"), icon: BookOpen },
+        { to: "/member/bookings", label: t("nav.memberBookings"), icon: BookOpen },
         { to: "/member/packages", label: t("nav.plans"), icon: CreditCard },
         { to: "/member/account", label: t("nav.profile"), icon: Users },
       ],
@@ -102,9 +106,9 @@ export function bottomTabsForRole(role: AppRole): NavItem[] {
   }
   return [
     { to: "/member", label: t("nav.home"), icon: Home, exact: true },
-    { to: "/member/schedule", label: t("nav.schedule"), icon: Calendar },
-    { to: "/member/bookings", label: t("nav.myBookings"), icon: BookOpen },
+    { to: "/member/schedule", label: t("nav.memberSchedule"), icon: Calendar },
+    { to: "/member/bookings", label: t("nav.memberBookings"), icon: BookOpen },
     { to: "/member/packages", label: t("nav.plans"), icon: CreditCard },
-    { to: "/member/account", label: t("nav.profile"), icon: Users },
+    { to: "/member/account", label: t("nav.memberProfile"), icon: Users },
   ];
 }

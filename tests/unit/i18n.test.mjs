@@ -9,7 +9,14 @@ const {
   getStoredLang,
   readLangCookieHeader,
   t,
+  tForLang,
 } = await import("../../src/lib/i18n.ts?test-real-catalog=1");
+assert.equal(tForLang("en", "nav.memberBookings"), "Bookings");
+assert.equal(tForLang("he", "nav.memberBookings"), "הזמנות");
+assert.equal(tForLang("ar", "nav.memberBookings"), "الحجوزات");
+assert.equal(tForLang("en", "member.schedule.filter.open"), "Filters");
+assert.equal(tForLang("he", "member.schedule.empty.filtered.title"), "אין שיעורים בסינון הזה");
+assert.equal(tForLang("ar", "member.schedule.empty.inventory.title"), "لا توجد حصص في هذا اليوم");
 assert.equal(DEFAULT_LOCALE, "he");
 assert.equal(getDirection("he"), "rtl");
 assert.equal(getDirection("ar"), "rtl");

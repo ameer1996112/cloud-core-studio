@@ -28,6 +28,10 @@ __pycache__/
 supabase/.temp/
 supabase/backups/
 
+# Local Xcode release artifacts
+tmp/ios-archive/*.xcarchive/
+tmp/ios-export/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
