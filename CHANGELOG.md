@@ -2,6 +2,29 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.2.0.0] - 2026-08-27
+
+### Added
+
+- Introduce a premium, task-first member experience across Home, Schedule, Bookings, Packages, and Profile in English, Hebrew, and Arabic.
+- Add shared accessible member-page, segmented-control, form-field, route-skeleton, filter-state, and profile-state presentation primitives.
+- Add responsive mobile and desktop QA evidence plus focused regression coverage for member navigation, loading, filtering, announcements, packages, profile forms, accessibility, and the iOS app icon.
+- Add Google Search Console ownership verification for the production site.
+
+### Changed
+
+- Replace the member drawer experience with compact desktop navigation and a five-destination mobile tab bar with RTL-safe layout, safe-area handling, 44 px controls, and route-aware loading feedback.
+- Reorder member pages around their primary actions, use truthful loading and empty states, improve purchase and checkout focus behavior, and simplify repetitive or negative copy.
+- Use real Cloud & Core studio photography as the member fallback instead of generic or AI-looking imagery.
+- Update the premium Cloud & Core iOS icon and prepare iOS version 1.0.8 build 10 for TestFlight testing.
+
+### Fixed
+
+- Preload member route bundles so the first tap on Bookings and the other mobile tabs responds immediately instead of appearing stuck while a route chunk downloads.
+- Keep only the latest rapid mobile navigation request, preserve modified-click behavior, and recover safely from interrupted route transitions.
+- Allow the full studio announcement to wrap on mobile instead of clipping the message.
+- Improve dialog, sheet, schedule, bookings, packages, and profile accessibility with associated labels, focus restoration, semantic states, and reduced-motion behavior.
+
 ## [0.1.0.0] - 2026-08-24
 
 ### Added
