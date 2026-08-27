@@ -23,6 +23,15 @@ type PromotionForm = ReturnType<typeof blankForm>;
 const LANGUAGE_LABEL: Record<Language, string> = { he: "עברית", ar: "العربية", en: "English" };
 const CHANNEL_LABEL = { in_app: "In-app", push: "iPhone push", whatsapp: "WhatsApp" };
 
+function promotionShareUrl(slug: string, language: Language) {
+  const url = new URL(`/promo/${slug}`, "https://cloudandcorestudio.com");
+  url.searchParams.set("lang", language);
+  url.searchParams.set("utm_source", "studio_share");
+  url.searchParams.set("utm_medium", "promotion_link");
+  url.searchParams.set("utm_campaign", slug);
+  return url.toString();
+}
+
 function blankCopy() {
   return { eyebrow: "Cloud & Core", title: "", body: "", cta: "" };
 }
@@ -123,12 +132,18 @@ function Page() {
     if (campaign) setForm(formFromCampaign(campaign));
   }, [data?.campaigns, selectedId]);
 
-  useEffect(() => {
-    if (selectedId !== "new" || !data?.campaigns?.length) return;
-    setSelectedId(data.campaigns[0].id);
-  }, [data?.campaigns, selectedId]);
-
   const selected = data?.campaigns?.find((item: any) => item.id === form.promotionId);
+  const publishedLocked = Boolean(
+    selected?.broadcast_dispatch_started_at ||
+    selected?.broadcast_dispatched_at ||
+    selected?.hasDeliveries,
+  );
+  const filteredScheduleUrl = `/member/schedule?program=${encodeURIComponent(
+    (data?.programTypes ?? [])
+      .filter((program: any) => form.eligibleProgramTypeIds.includes(program.id))
+      .map((program: any) => program.slug)
+      .join(","),
+  )}`;
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "promotions"] });
   const save = useMutation({
     mutationFn: () =>
@@ -245,7 +260,11 @@ function Page() {
           <section className="settings-card">
             <header className="settings-card-header">
               <h2 className="settings-card-title">1. Campaign draft</h2>
-              <p className="settings-card-helper">Saving never activates or broadcasts.</p>
+              <p className="settings-card-helper">
+                {publishedLocked
+                  ? "Published campaigns are immutable. Use New promotion to create the next campaign."
+                  : "Saving never activates or broadcasts."}
+              </p>
             </header>
             <div className="settings-card-body space-y-5">
               <div className="grid gap-3 md:grid-cols-2">
@@ -362,11 +381,20 @@ function Page() {
                 ) : null}
               </div>
 
-              <Field
-                label="CTA destination"
-                value={form.actionUrl}
-                onChange={(actionUrl) => setForm({ ...form, actionUrl })}
-              />
+              {form.promotionType === "free_class_credit" ? (
+                <div className="settings-field">
+                  <span className="settings-label">Filtered schedule destination</span>
+                  <code className="settings-input block overflow-hidden text-ellipsis whitespace-nowrap text-xs">
+                    {filteredScheduleUrl}
+                  </code>
+                </div>
+              ) : (
+                <Field
+                  label="CTA destination"
+                  value={form.actionUrl}
+                  onChange={(actionUrl) => setForm({ ...form, actionUrl })}
+                />
+              )}
               <div>
                 <p className="settings-label">Channels</p>
                 <div className="mt-2 flex flex-wrap gap-3">
@@ -396,7 +424,8 @@ function Page() {
                 <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4">
                   <p className="font-semibold text-navy">Approved Meta marketing templates</p>
                   <p className="mt-1 text-sm text-slate">
-                    Activation stays blocked until all three are marked approved.
+                    Status is verified from the production Meta deployment registry when you save.
+                    Activation stays blocked until all three are approved.
                   </p>
                   <div className="mt-3 grid gap-3 md:grid-cols-3">
                     {PROMOTION_LANGUAGES.map((language) => (
@@ -409,32 +438,18 @@ function Page() {
                               ...form,
                               whatsappTemplates: {
                                 ...form.whatsappTemplates,
-                                [language]: { ...form.whatsappTemplates[language], name },
-                              },
-                            })
-                          }
-                        />
-                        <SelectField
-                          label="Meta status"
-                          value={form.whatsappTemplates[language].status}
-                          onChange={(status) =>
-                            setForm({
-                              ...form,
-                              whatsappTemplates: {
-                                ...form.whatsappTemplates,
                                 [language]: {
                                   ...form.whatsappTemplates[language],
-                                  status: status as any,
+                                  name,
+                                  status: "pending",
                                 },
                               },
                             })
                           }
-                          options={[
-                            ["pending", "Pending"],
-                            ["approved", "Approved"],
-                            ["rejected", "Rejected"],
-                          ]}
                         />
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate">
+                          Meta status: {form.whatsappTemplates[language].status}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -481,7 +496,7 @@ function Page() {
                 <button
                   className="settings-save-button"
                   type="button"
-                  disabled={save.isPending}
+                  disabled={save.isPending || publishedLocked}
                   onClick={() => save.mutate()}
                 >
                   <Save className="h-4 w-4" /> Save draft
@@ -507,6 +522,42 @@ function Page() {
                   </span>
                 </label>
               </div>
+              {form.public && form.slug ? (
+                <div className="rounded-2xl border border-gold/20 bg-ivory/45 p-4">
+                  <p className="settings-label">Localized public share links</p>
+                  <p className="mt-1 text-xs text-slate">
+                    Each link includes locale and campaign UTM attribution.
+                  </p>
+                  <div className="mt-3 grid gap-2">
+                    {PROMOTION_LANGUAGES.map((language) => {
+                      const shareUrl = promotionShareUrl(form.slug, language);
+                      return (
+                        <div
+                          key={language}
+                          className="flex flex-col gap-2 rounded-xl border border-gold/15 bg-white p-3 sm:flex-row sm:items-center"
+                        >
+                          <span className="min-w-20 text-sm font-semibold text-navy">
+                            {LANGUAGE_LABEL[language]}
+                          </span>
+                          <code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-slate">
+                            {shareUrl}
+                          </code>
+                          <button
+                            type="button"
+                            className="btn-outline"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(shareUrl);
+                              toast.success(`${LANGUAGE_LABEL[language]} link copied`);
+                            }}
+                          >
+                            Copy link
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </section>
 

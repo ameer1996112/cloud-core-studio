@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useSyncExternalStore } from "react";
 import { RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { listAvailableClasses } from "@/lib/member.functions";
@@ -36,8 +36,49 @@ import { getScheduleEmptyStateKind } from "@/lib/member-ui";
 import { getLocalizedIntensity } from "@/lib/lesson-card-variants";
 
 export const Route = createFileRoute("/member/schedule")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    program: typeof search.program === "string" ? search.program : undefined,
+  }),
   component: MemberSchedulePublic,
 });
+
+const LOCATION_CHANGE_EVENT = "cc:locationchange";
+
+function subscribeToLocationChange(listener: () => void) {
+  if (typeof window === "undefined") return () => undefined;
+  const pushState = window.history.pushState;
+  const replaceState = window.history.replaceState;
+  const notify = () => listener();
+  const wrap =
+    (method: typeof window.history.pushState) =>
+    (...args: Parameters<typeof window.history.pushState>) => {
+      method.apply(window.history, args);
+      window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT));
+    };
+  const wrappedPushState = wrap(pushState);
+  const wrappedReplaceState = wrap(replaceState);
+  window.history.pushState = wrappedPushState;
+  window.history.replaceState = wrappedReplaceState;
+  window.addEventListener("popstate", notify);
+  window.addEventListener(LOCATION_CHANGE_EVENT, notify);
+  return () => {
+    window.removeEventListener("popstate", notify);
+    window.removeEventListener(LOCATION_CHANGE_EVENT, notify);
+    if (window.history.pushState === wrappedPushState) window.history.pushState = pushState;
+    if (window.history.replaceState === wrappedReplaceState)
+      window.history.replaceState = replaceState;
+  };
+}
+
+function readPromotionProgram() {
+  return typeof window === "undefined"
+    ? undefined
+    : (new URL(window.location.href).searchParams.get("program") ?? undefined);
+}
+
+function usePromotionProgramSearch() {
+  return useSyncExternalStore(subscribeToLocationChange, readPromotionProgram, () => undefined);
+}
 
 const GUEST_SCHEDULE_WINDOW_DAYS = 14;
 
@@ -132,12 +173,14 @@ type MemberSchedulePublicProps = {
   authSnapshot?: AuthSnapshot;
   selectedClassId?: string | null;
   onSelectedClassChange?: (classId: string | null) => void;
+  promotionProgram?: string;
 };
 type MemberScheduleContentProps = {
   session: any;
   selectedClassId?: string | null;
   onSelectedClassChange?: (classId: string | null) => void;
   viewerCacheKey?: string;
+  promotionProgram?: string;
 };
 
 function startOfDay(d: Date) {
@@ -158,8 +201,11 @@ function MemberSchedulePublic({
   authSnapshot,
   selectedClassId,
   onSelectedClassChange,
+  promotionProgram,
 }: MemberSchedulePublicProps = {}) {
   const { lang, dir } = useI18n();
+  const routePromotionProgram = usePromotionProgramSearch();
+  const resolvedPromotionProgram = promotionProgram ?? routePromotionProgram;
   const isAuthSnapshotInitialized = authSnapshot?.initialized === true;
   const [session, setSession] = useState<any>(authSnapshot?.session ?? null);
   const [checkingSession, setCheckingSession] = useState(!isAuthSnapshotInitialized);
@@ -224,6 +270,7 @@ function MemberSchedulePublic({
           selectedClassId={selectedClassId}
           onSelectedClassChange={onSelectedClassChange}
           viewerCacheKey={getViewerCacheKey(session)}
+          promotionProgram={resolvedPromotionProgram}
         />
       </AppShell>
     );
@@ -310,6 +357,7 @@ function MemberSchedulePublic({
           selectedClassId={selectedClassId}
           onSelectedClassChange={onSelectedClassChange}
           viewerCacheKey="guest"
+          promotionProgram={resolvedPromotionProgram}
         />
       </main>
     </div>
@@ -321,8 +369,17 @@ export function MemberScheduleContent({
   selectedClassId,
   onSelectedClassChange,
   viewerCacheKey,
+  promotionProgram,
 }: MemberScheduleContentProps) {
   const { lang, dir } = useI18n();
+  const programs = useMemo(
+    () =>
+      (promotionProgram ?? "")
+        .split(",")
+        .map((program) => program.trim())
+        .filter(Boolean),
+    [promotionProgram],
+  );
   useDocumentTitle("page.schedule.title");
   const fetchSchedule = useServerFn(listAvailableClasses);
   const resolvedViewerCacheKey = viewerCacheKey ?? getViewerCacheKey(session);
@@ -347,6 +404,11 @@ export function MemberScheduleContent({
     setSearch("");
     setDateScope("all");
     setFilter({});
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("program");
+      window.history.replaceState(window.history.state, "", url);
+    }
   };
   const [uncontrolledOpenClass, setUncontrolledOpenClass] = useState<string | null>(
     initialSelectedClassId,
@@ -418,6 +480,7 @@ export function MemberScheduleContent({
         if (d < tomorrow || d >= t2) return false;
       }
       if (dateScope === "week" && (d < now || d >= weekEnd)) return false;
+      if (programs.length && !programs.includes(c.program_type?.slug)) return false;
       if (filter.level && c.program_type?.level !== filter.level) return false;
       if (filter.energy && c.energy !== filter.energy) return false;
       if (filter.instructor && c.instructor?.name !== filter.instructor) return false;
@@ -426,7 +489,7 @@ export function MemberScheduleContent({
         return false;
       return true;
     });
-  }, [classes, dateScope, filter, search]);
+  }, [classes, dateScope, filter, programs, search]);
   const guestOpenClassesCount = session ? 0 : getGuestOpenClassesCount(filtered);
 
   const groups = new Map<string, any[]>();
@@ -437,7 +500,10 @@ export function MemberScheduleContent({
   }
 
   const hasNoClasses = classes.length === 0;
-  const contentFilterCount = (search.trim() ? 1 : 0) + Object.values(filter).filter(Boolean).length;
+  const contentFilterCount =
+    (search.trim() ? 1 : 0) +
+    Object.values(filter).filter(Boolean).length +
+    (programs.length ? 1 : 0);
   const emptyStateKind = getScheduleEmptyStateKind(
     classes.length,
     filtered.length,

@@ -25,6 +25,11 @@ describe("admin promotions manager", () => {
     expect(page).toContain("Send test");
     expect(page).toContain("Activate campaign");
     expect(page).toContain("Save draft");
+    expect(functions).toContain("Published promotions are immutable");
+    expect(functions).toContain("broadcast_dispatched_at");
+    expect(functions).toContain("broadcast_dispatch_started_at");
+    expect(page).toContain("publishedLocked");
+    expect(page).toContain("Use New promotion to create the next campaign");
     expect(page).not.toContain("Campaign enabled");
   });
 
@@ -35,5 +40,30 @@ describe("admin promotions manager", () => {
     expect(page).toContain('push: "iPhone push"');
     expect(page).toContain('whatsapp: "WhatsApp"');
     expect(page).toContain("whatsappTemplates");
+    expect(functions).toContain("whatsapp_template_deployments");
+    expect(functions).toContain('approval_status === "APPROVED"');
+    expect(page).not.toContain('["approved", "Approved"]');
+  });
+
+  test("shows the complete campaign funnel and localized attributed share links", () => {
+    for (const metric of [
+      "audience",
+      "sent",
+      "delivered",
+      "read",
+      "impressions",
+      "clicks",
+      "claims",
+      "bookings",
+      "conversion",
+      "remaining",
+    ]) {
+      expect(functions).toContain(metric);
+    }
+    expect(page).toContain("promotionShareUrl");
+    expect(page).toContain('url.searchParams.set("lang", language)');
+    expect(page).toContain('url.searchParams.set("utm_campaign", slug)');
+    expect(functions).toContain("actionUrl = `/member/schedule?program=");
+    expect(page).toContain("Filtered schedule destination");
   });
 });

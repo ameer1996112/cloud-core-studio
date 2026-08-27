@@ -55,25 +55,42 @@ export const getPromotionManager = createServerFn({ method: "GET" })
     return {
       campaigns: (campaigns.data ?? []).map((campaign: any) => ({
         ...campaign,
+        hasDeliveries: (deliveries.data ?? []).some((row: any) => row.promotion_id === campaign.id),
         eligibleProgramTypeIds: (eligible ?? [])
           .filter((row: any) => row.promotion_id === campaign.id)
           .map((row: any) => row.program_type_id),
-        metrics: {
-          claims: campaign.claimed_count,
-          remaining: Math.max(campaign.claim_limit - campaign.claimed_count, 0),
-          impressions: (engagement.data ?? []).filter(
-            (row: any) => row.promotion_id === campaign.id && row.event_type === "impression",
-          ).length,
-          clicks: (engagement.data ?? []).filter(
-            (row: any) => row.promotion_id === campaign.id && row.event_type === "cta_clicked",
-          ).length,
-          bookings: (entitlements.data ?? []).filter(
-            (row: any) => row.promotion_id === campaign.id && row.status === "consumed",
-          ).length,
-          sent: (deliveries.data ?? []).filter(
-            (row: any) => row.promotion_id === campaign.id && row.status === "sent",
-          ).length,
-        },
+        metrics: (() => {
+          const campaignEntitlements = (entitlements.data ?? []).filter(
+            (row: any) => row.promotion_id === campaign.id,
+          );
+          const campaignDeliveries = (deliveries.data ?? []).filter(
+            (row: any) => row.promotion_id === campaign.id,
+          );
+          const claims = Number(campaign.claimed_count ?? 0);
+          const bookings = campaignEntitlements.filter(
+            (row: any) => row.status === "consumed",
+          ).length;
+          return {
+            audience: campaign.audience_preview_count ?? 0,
+            claims,
+            remaining: Math.max(campaign.claim_limit - campaign.claimed_count, 0),
+            impressions: (engagement.data ?? []).filter(
+              (row: any) => row.promotion_id === campaign.id && row.event_type === "impression",
+            ).length,
+            clicks: (engagement.data ?? []).filter(
+              (row: any) => row.promotion_id === campaign.id && row.event_type === "cta_clicked",
+            ).length,
+            bookings,
+            conversion: claims > 0 ? Math.round((bookings / claims) * 1000) / 10 : 0,
+            sent: campaignDeliveries.filter((row: any) =>
+              ["sent", "delivered", "read"].includes(row.status),
+            ).length,
+            delivered: campaignDeliveries.filter((row: any) =>
+              ["delivered", "read"].includes(row.status),
+            ).length,
+            read: campaignDeliveries.filter((row: any) => row.status === "read").length,
+          };
+        })(),
       })),
       programTypes: programTypes.data ?? [],
       audit: audit.data ?? [],
@@ -85,6 +102,55 @@ export const savePromotionDraft = createServerFn({ method: "POST" })
   .inputValidator((data) => saveSchema.parse(data))
   .handler(async ({ data, context }) => {
     const db = await requireAdmin(context.userId);
+    let actionUrl = data.actionUrl;
+    if (data.promotionType === "free_class_credit" && data.eligibleProgramTypeIds.length) {
+      const programs = await db
+        .from("program_types")
+        .select("id,slug")
+        .in("id", data.eligibleProgramTypeIds);
+      if (programs.error) throw programs.error;
+      const slugById = new Map(
+        (programs.data ?? []).map((program: any) => [program.id, program.slug] as const),
+      );
+      const programSlugs = data.eligibleProgramTypeIds
+        .map((id) => slugById.get(id))
+        .filter(Boolean);
+      if (programSlugs.length !== data.eligibleProgramTypeIds.length) {
+        throw new Error("Every eligible program must have a valid schedule slug");
+      }
+      actionUrl = `/member/schedule?program=${encodeURIComponent(programSlugs.join(","))}`;
+    }
+    let verifiedWhatsappTemplates: typeof data.whatsappTemplates = null;
+    if (data.channels.includes("whatsapp") && data.whatsappTemplates) {
+      const templateNames = PROMOTION_LANGUAGES.map((language) =>
+        data.whatsappTemplates?.[language]?.name?.trim(),
+      ).filter(Boolean) as string[];
+      const wabaId = process.env.META_WABA_ID?.trim() ?? "";
+      const deployments = templateNames.length
+        ? await db
+            .from("whatsapp_template_deployments")
+            .select("template_name,language,approval_status")
+            .eq("waba_id", wabaId)
+            .in("template_name", templateNames)
+        : { data: [], error: null };
+      if (deployments.error) throw deployments.error;
+      verifiedWhatsappTemplates = Object.fromEntries(
+        PROMOTION_LANGUAGES.map((language) => {
+          const name = data.whatsappTemplates?.[language]?.name?.trim() ?? "";
+          const languageCodes = language === "en" ? ["en", "en_US"] : [language];
+          const deployment = (deployments.data ?? []).find(
+            (row: any) => row.template_name === name && languageCodes.includes(row.language),
+          );
+          return [
+            language,
+            {
+              name,
+              status: deployment?.approval_status === "APPROVED" ? "approved" : "pending",
+            },
+          ];
+        }),
+      ) as typeof data.whatsappTemplates;
+    }
     const row = {
       slug: data.slug,
       name: data.name,
@@ -94,8 +160,8 @@ export const savePromotionDraft = createServerFn({ method: "POST" })
       localized_content: data.localizedContent,
       audience: data.audience,
       channels: data.channels,
-      whatsapp_templates: data.whatsappTemplates ?? {},
-      action_url: data.actionUrl,
+      whatsapp_templates: verifiedWhatsappTemplates ?? {},
+      action_url: actionUrl,
       is_public: data.public,
       is_featured: data.featured,
       priority: data.priority,
@@ -113,9 +179,27 @@ export const savePromotionDraft = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     };
     const existing = data.promotionId
-      ? await db.from("promotion_campaigns").select("id,status").eq("id", data.promotionId).single()
+      ? await db
+          .from("promotion_campaigns")
+          .select("id,status,broadcast_dispatch_started_at,broadcast_dispatched_at")
+          .eq("id", data.promotionId)
+          .single()
       : null;
     if (existing?.error) throw existing.error;
+    const priorDeliveries = data.promotionId
+      ? await db
+          .from("promotion_deliveries")
+          .select("id", { count: "exact", head: true })
+          .eq("promotion_id", data.promotionId)
+      : null;
+    if (priorDeliveries?.error) throw priorDeliveries.error;
+    if (
+      existing?.data?.broadcast_dispatch_started_at ||
+      existing?.data?.broadcast_dispatched_at ||
+      (priorDeliveries?.count ?? 0) > 0
+    ) {
+      throw new Error("Published promotions are immutable; create a new promotion instead");
+    }
     if (existing?.data && !["draft", "paused"].includes(existing.data.status)) {
       throw new Error("Pause an active or scheduled promotion before editing it");
     }

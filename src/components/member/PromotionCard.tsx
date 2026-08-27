@@ -18,6 +18,31 @@ export function PromotionCard({
   const viewed = useRef(false);
   const copy = promotion.localizedContent[lang] ?? promotion.localizedContent.he;
   const claimed = promotion.claimedByCurrentUser;
+  const confirmationCopy =
+    lang === "he"
+      ? {
+          ...copy,
+          eyebrow: "ההטבה מוכנה",
+          title: "הקרדיט נוסף לארנק שלך",
+          body: "בחרי עכשיו שיעור מהלו״ז המסונן וההטבה תחול אוטומטית בהזמנה.",
+          cta: "לבחירת שיעור",
+        }
+      : lang === "ar"
+        ? {
+            ...copy,
+            eyebrow: "العرض جاهز",
+            title: "تمت إضافة الرصيد إلى محفظتك",
+            body: "اختاري حصة من الجدول المصفّى وسيُطبّق العرض تلقائياً عند الحجز.",
+            cta: "اختيار حصة",
+          }
+        : {
+            ...copy,
+            eyebrow: "Benefit ready",
+            title: "The credit is in your wallet",
+            body: "Choose a class from the filtered schedule and the benefit will apply automatically.",
+            cta: "Choose a class",
+          };
+  const displayCopy = claimed ? confirmationCopy : copy;
   const canClaim =
     promotion.promotionType === "free_class_credit" && !claimed && !promotion.soldOut;
 
@@ -49,14 +74,14 @@ export function PromotionCard({
           <div className="mb-3 flex items-center gap-2 text-[#e8bd66]">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
             <span className="text-[0.68rem] font-semibold uppercase tracking-[0.18em]">
-              {copy.eyebrow}
+              {displayCopy.eyebrow}
             </span>
           </div>
           <h2 className="font-display text-2xl leading-tight !text-[#fff8e9] sm:text-3xl">
-            {copy.title}
+            {displayCopy.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#fff8e9]/82 sm:text-base">
-            {copy.body}
+            {displayCopy.body}
           </p>
           {promotion.promotionType === "free_class_credit" && !claimed ? (
             <p className="mt-3 text-sm font-bold text-[#efc36b]">
@@ -74,7 +99,7 @@ export function PromotionCard({
             }}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b] bg-[#efc36b] px-5 text-sm font-bold text-[#071a32] transition hover:bg-[#f8d88f] disabled:cursor-wait disabled:opacity-65"
           >
-            {copy.cta}
+            {displayCopy.cta}
             <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" aria-hidden="true" />
           </button>
         ) : (
@@ -85,7 +110,7 @@ export function PromotionCard({
             }
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b]/65 px-5 text-sm font-bold text-[#fff8e9] transition hover:bg-white/10"
           >
-            {copy.cta}
+            {displayCopy.cta}
             <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" aria-hidden="true" />
           </a>
         )}

@@ -78,7 +78,7 @@ export const optionalSupabaseAuth = createMiddleware({ type: "function" }).serve
 );
 
 const classSelect =
-  "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,member_visible,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
+  "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,member_visible,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,slug,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
 
 async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
   if (!rows.length) return;
@@ -323,34 +323,61 @@ export const getClassDetail = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw error;
 
-    const [bookingRes, waitlistRes, memberRes, activePlansRes] = await Promise.all([
-      userId
-        ? supabase
-            .from("bookings")
-            .select("id,status,credit_cost")
-            .eq("class_id", data.classId)
-            .eq("member_id", userId)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      userId
-        ? supabase
-            .from("waitlist_entries")
-            .select("id,status,created_at")
-            .eq("class_id", data.classId)
-            .eq("member_id", userId)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      userId
-        ? supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle()
-        : Promise.resolve({ data: null }),
-      userId
-        ? supabase
-            .from("member_plans")
-            .select("expires_at")
-            .eq("member_id", userId)
-            .eq("status", "active")
-        : Promise.resolve({ data: [] as any[] }),
-    ]);
+    const [bookingRes, waitlistRes, memberRes, activePlansRes, promotionEntitlementsRes] =
+      await Promise.all([
+        userId
+          ? supabase
+              .from("bookings")
+              .select("id,status,credit_cost")
+              .eq("class_id", data.classId)
+              .eq("member_id", userId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        userId
+          ? supabase
+              .from("waitlist_entries")
+              .select("id,status,created_at")
+              .eq("class_id", data.classId)
+              .eq("member_id", userId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        userId
+          ? supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle()
+          : Promise.resolve({ data: null }),
+        userId
+          ? supabase
+              .from("member_plans")
+              .select("expires_at")
+              .eq("member_id", userId)
+              .eq("status", "active")
+          : Promise.resolve({ data: [] as any[] }),
+        userId
+          ? supabase
+              .from("promotion_entitlements")
+              .select(
+                "id,promotion_id,status,quantity,expires_at,promotion:promotion_campaigns(name,localized_content)",
+              )
+              .eq("member_id", userId)
+              .eq("status", "active")
+              .gt("expires_at", new Date().toISOString())
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+    const entitlementPromotionIds = (promotionEntitlementsRes.data ?? []).map(
+      (entitlement: any) => entitlement.promotion_id,
+    );
+    const { data: eligiblePromotionRows } = entitlementPromotionIds.length
+      ? await supabase
+          .from("promotion_eligible_class_types")
+          .select("promotion_id,program_type_id")
+          .in("promotion_id", entitlementPromotionIds)
+      : { data: [] as any[] };
+    const applicablePromotion = (promotionEntitlementsRes.data ?? []).find((entitlement: any) =>
+      (eligiblePromotionRows ?? []).some(
+        (row: any) =>
+          row.promotion_id === entitlement.promotion_id &&
+          row.program_type_id === (cls as any)?.program_type?.id,
+      ),
+    );
     return {
       cls,
       myBooking: bookingRes.data,
@@ -359,6 +386,7 @@ export const getClassDetail = createServerFn({ method: "GET" })
       hasActivePackage: hasUsableActivePackage(
         activePlansRes.data as Array<{ expires_at?: string | null }> | null,
       ),
+      applicablePromotion: applicablePromotion ?? null,
     };
   });
 
@@ -567,7 +595,9 @@ export const getMyPackages = createServerFn({ method: "GET" })
         .limit(10),
       (supabase as any)
         .from("promotion_entitlements")
-        .select("id,status,quantity,issued_at,expires_at,consumed_at,promotion_id")
+        .select(
+          "id,status,quantity,issued_at,expires_at,consumed_at,promotion_id,promotion:promotion_campaigns(slug,name,localized_content)",
+        )
         .eq("member_id", userId)
         .order("issued_at", { ascending: false }),
     ]);

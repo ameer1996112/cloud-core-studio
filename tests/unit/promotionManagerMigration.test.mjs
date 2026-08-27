@@ -23,6 +23,8 @@ describe("reusable promotions manager database contract", () => {
       "priority integer NOT NULL DEFAULT 0",
       "audience_previewed_at timestamptz",
       "test_sent_at timestamptz",
+      "broadcast_dispatch_started_at timestamptz",
+      "broadcast_dispatched_at timestamptz",
     ]) {
       expect(migration).toContain(contract);
     }
@@ -63,6 +65,11 @@ describe("reusable promotions manager database contract", () => {
     );
     expect(migration).toContain("audience->>'kind' = 'not_attended_program'");
     expect(migration).toContain("already_attended_program");
+    expect(migration).toContain(
+      "CREATE OR REPLACE FUNCTION public.member_matches_promotion_audience",
+    );
+    expect(migration).toContain("public.member_matches_promotion_audience(v_user, v_campaign.id)");
+    expect(migration).toContain("audience_not_eligible");
   });
 
   test("keeps every new campaign disabled until preview, test-send, and activation", () => {
@@ -70,5 +77,32 @@ describe("reusable promotions manager database contract", () => {
     expect(migration).toContain("audience_preview_required");
     expect(migration).toContain("test_send_required");
     expect(migration).toContain("whatsapp_template_not_approved");
+    expect(migration).toContain("prevent_published_promotion_content_mutation");
+    expect(migration).toContain("promotion_campaign_content_immutable_after_delivery");
+    expect(migration).toContain("published_promotions_are_immutable");
+  });
+
+  test("previews the audience without depending on a lifecycle transition argument", () => {
+    const preview = migration.slice(
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.admin_preview_promotion_audience"),
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.admin_mark_promotion_test_sent"),
+    );
+    expect(preview).toContain("audience_previewed_at=now()");
+    expect(preview).not.toContain("p_next_status");
+  });
+
+  test("hides campaign inbox cards while paused and restores them without resending push", () => {
+    expect(migration).toContain(
+      "delivery_status='suppressed',suppression_reason='campaign_inactive'",
+    );
+    expect(migration).toContain("delivery_status='inbox',suppression_reason=NULL");
+    expect(migration).toContain("promotion_id=p_promotion_id");
+    expect(migration).toContain(
+      "delivery_status IN ('inbox','queued','sending','sent','delivered','failed')",
+    );
+    expect(migration).toContain("suppress_inactive_promotion_notification");
+    expect(migration).toContain("restore_promotion_notifications_on_activation");
+    expect(migration).toContain("promotion_notification_activation_restore");
+    expect(migration).toContain("NEW.enabled=true AND NEW.status='active'");
   });
 });
