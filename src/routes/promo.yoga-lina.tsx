@@ -6,32 +6,20 @@ import { useYogaPromo } from "@/hooks/useYogaPromo";
 import { captureYogaPromoAttribution, trackYogaPromo, YOGA_PROMO_PATH } from "@/lib/yogaPromo";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
-const YOGA_PROMO_CANONICAL_URL = "https://cloudandcorestudio.com/promo/yoga-lina";
 const YOGA_PROMO_TITLE = "יוגה עם לינה | Cloud & Core Studio";
 const YOGA_PROMO_DESCRIPTION =
   "שיעור יוגה עם לינה ב-Cloud & Core Studio, כולל פרטי המבצע והצטרפות מאובטחת.";
 
 export const Route = createFileRoute("/promo/yoga-lina")({
-  head: () => ({
-    meta: [
-      { title: YOGA_PROMO_TITLE },
-      { name: "description", content: YOGA_PROMO_DESCRIPTION },
-      { name: "robots", content: "noindex, follow" },
-      { property: "og:title", content: YOGA_PROMO_TITLE },
-      { property: "og:description", content: YOGA_PROMO_DESCRIPTION },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: YOGA_PROMO_CANONICAL_URL },
-      {
-        property: "og:image",
-        content: "https://cloudandcorestudio.com/images/classes/aerial-yoga-flow.webp",
-      },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: YOGA_PROMO_TITLE },
-      { name: "twitter:description", content: YOGA_PROMO_DESCRIPTION },
-    ],
-    links: [{ rel: "canonical", href: YOGA_PROMO_CANONICAL_URL }],
-  }),
+  head: () =>
+    buildPublicPageHead({
+      title: YOGA_PROMO_TITLE,
+      description: YOGA_PROMO_DESCRIPTION,
+      path: "/promo/yoga-lina",
+      robots: "noindex, follow",
+    }),
   component: YogaLinaPromoPage,
 });
 

@@ -1,5 +1,5 @@
 import { Apple, ArrowUpLeft, ArrowUpRight, Sparkles } from "lucide-react";
-import type { Lang } from "@/lib/i18n";
+import type { Lang } from "@/lib/locale";
 
 type RequiredAppUpdateProps = {
   lang: Lang;

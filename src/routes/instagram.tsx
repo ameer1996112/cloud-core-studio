@@ -9,6 +9,7 @@ import {
   type InstagramLandingData,
 } from "@/lib/instagramLanding.functions";
 import { VERIFIED_STUDIO_WHATSAPP, buildWhatsappHref } from "@/lib/instagramLanding";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
 type InstagramRouteData = Pick<
   InstagramLandingData,
@@ -21,27 +22,15 @@ const KIDS_WHATSAPP_MESSAGE =
   "مرحباً، وصلت من إنستغرام ومهتمة بحصة تجريبية لليوغا الهوائية للأطفال. عمر طفلي/طفلتي هو ___.";
 
 export const Route = createFileRoute("/instagram")({
-  head: () => ({
-    meta: [
-      { title: "Cloud & Core | Aerial Yoga & Pilates" },
-      {
-        name: "description",
-        content:
-          "Boutique aerial yoga and Pilates for women, plus small aerial-yoga groups for children in Hurfeish.",
-      },
-      { property: "og:title", content: "Cloud & Core Studio | Hurfeish" },
-      {
-        property: "og:description",
-        content: "Movement, strength and calm for women and children in Hurfeish.",
-      },
-      { property: "og:image", content: "/images/classes/aerial-yoga-flow.webp" },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cloudandcorestudio.com/instagram" },
-      { name: "robots", content: "index, follow" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/instagram" }],
-  }),
+  head: () =>
+    buildPublicPageHead({
+      title: "Cloud & Core | Aerial Yoga & Pilates",
+      description:
+        "Boutique aerial yoga and Pilates for women, plus small aerial-yoga groups for children in Hurfeish.",
+      path: "/instagram",
+      openGraphTitle: "Cloud & Core Studio | Hurfeish",
+      openGraphDescription: "Movement, strength and calm for women and children in Hurfeish.",
+    }),
   loader: async (): Promise<InstagramRouteData> => {
     try {
       const settings = await getInstagramLandingData();

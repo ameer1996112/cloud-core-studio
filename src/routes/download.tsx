@@ -7,6 +7,7 @@ import {
   getDownloadConfig,
   type DownloadConfig,
 } from "@/lib/download-config";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
 type DownloadRouteData = DownloadConfig & {
   iosHref: string;
@@ -20,31 +21,12 @@ const UPDATE_PAGE_DESCRIPTION =
   "העדכון החדש של Cloud & Core זמין עכשיו עם חיבור יציב יותר, גישה מהירה לשיעורים והתראות טובות יותר.";
 
 export const Route = createFileRoute("/download")({
-  head: () => ({
-    meta: [
-      { title: UPDATE_PAGE_TITLE },
-      {
-        name: "description",
-        content: UPDATE_PAGE_DESCRIPTION,
-      },
-      { property: "og:title", content: UPDATE_PAGE_TITLE },
-      {
-        property: "og:description",
-        content: UPDATE_PAGE_DESCRIPTION,
-      },
-      { property: "og:image", content: "/images/classes/aerial-yoga-flow.webp" },
-      { name: "twitter:title", content: UPDATE_PAGE_TITLE },
-      {
-        name: "twitter:description",
-        content: UPDATE_PAGE_DESCRIPTION,
-      },
-      { name: "twitter:image", content: "/images/classes/aerial-yoga-flow.webp" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://cloudandcorestudio.com/download" },
-      { name: "robots", content: "index, follow" },
-    ],
-    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/download" }],
-  }),
+  head: () =>
+    buildPublicPageHead({
+      title: UPDATE_PAGE_TITLE,
+      description: UPDATE_PAGE_DESCRIPTION,
+      path: "/download",
+    }),
   loader: ({ location }): DownloadRouteData => {
     const config = getDownloadConfig();
     const iosHref = appendTrackingParams(config.appStoreUrl, location.searchStr);

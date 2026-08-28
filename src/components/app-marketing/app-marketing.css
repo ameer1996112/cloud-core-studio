@@ -698,6 +698,7 @@
 .app-marketing__contact-link,
 .app-marketing__footer-nav a {
   display: inline-flex;
+  min-width: 48px;
   min-height: 48px;
   align-items: center;
   gap: 10px;

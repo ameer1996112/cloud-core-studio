@@ -21,7 +21,7 @@ import {
 import { listRooms } from "@/lib/rooms.functions";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Field, SessionForm, serializeClass } from "./new";
+import { Field, SessionForm, serializeClass } from "@/components/admin/SessionForm";
 import { Empty } from "@/components/admin-shared";
 import { Trash2, ArrowUpCircle, UserPlus, X } from "lucide-react";
 import { AdminClassDangerZone } from "@/components/admin/AdminClassDangerZone";

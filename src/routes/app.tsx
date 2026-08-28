@@ -21,8 +21,9 @@ import {
   getStoredLang,
   readLangCookieHeader,
   type Lang,
-} from "@/lib/i18n";
+} from "@/lib/locale";
 import { getInstagramLandingData } from "@/lib/instagramLanding.functions";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
 export type AppMarketingRouteData = {
   lang: Lang;
@@ -73,28 +74,21 @@ export const Route = createFileRoute("/app")({
   },
   head: ({ loaderData }) => {
     const meta = getAppMarketingMeta(loaderData?.lang ?? DEFAULT_LOCALE);
+    const baseHead = buildPublicPageHead({
+      title: meta.title,
+      description: meta.description,
+      path: "/app",
+      image: APP_MARKETING_OG_IMAGE,
+      locale: meta.locale,
+    });
     const structuredData = loaderData
       ? JSON.stringify(buildAppMarketingStructuredData(loaderData)).replace(/</g, "\\u003c")
       : undefined;
 
     return {
-      meta: [
-        { title: meta.title },
-        { name: "description", content: meta.description },
-        { name: "robots", content: "index, follow" },
-        { property: "og:title", content: meta.title },
-        { property: "og:description", content: meta.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: APP_MARKETING_CANONICAL_URL },
-        { property: "og:locale", content: meta.locale },
-        { property: "og:image", content: APP_MARKETING_OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: meta.title },
-        { name: "twitter:description", content: meta.description },
-        { name: "twitter:image", content: APP_MARKETING_OG_IMAGE },
-      ],
+      meta: baseHead.meta,
       links: [
-        { rel: "canonical", href: APP_MARKETING_CANONICAL_URL },
+        ...baseHead.links,
         { rel: "alternate", hrefLang: "he", href: `${APP_MARKETING_CANONICAL_URL}?lang=he` },
         { rel: "alternate", hrefLang: "ar", href: `${APP_MARKETING_CANONICAL_URL}?lang=ar` },
         { rel: "alternate", hrefLang: "en", href: `${APP_MARKETING_CANONICAL_URL}?lang=en` },

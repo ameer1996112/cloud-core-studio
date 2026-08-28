@@ -2,17 +2,15 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
-    meta: [
-      { title: "Terms of Use | Cloud & Core Studio" },
-      { name: "description", content: "Cloud & Core Studio member app terms." },
-      { name: "robots", content: "index, follow" },
-      { property: "og:url", content: "https://cloudandcorestudio.com/terms" },
-    ],
-    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/terms" }],
-  }),
+  head: () =>
+    buildPublicPageHead({
+      title: "Terms of Use | Cloud & Core Studio",
+      description: "Cloud & Core Studio member app terms.",
+      path: "/terms",
+    }),
   component: TermsPage,
 });
 

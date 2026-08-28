@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, type Lang } from "@/lib/i18n";
+import { DEFAULT_LOCALE, type Lang } from "@/lib/locale";
 
 export const APP_MARKETING_CANONICAL_URL = "https://cloudandcorestudio.com/app";
 export const APP_MARKETING_OG_IMAGE =

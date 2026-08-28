@@ -11,6 +11,7 @@ const pageSource = readFileSync(
   "utf8",
 );
 const protectedRoute = readFileSync(resolve(root, "src/routes/_authenticated/route.tsx"), "utf8");
+const metadataSource = readFileSync(resolve(root, "src/lib/public-metadata.ts"), "utf8");
 
 describe("public app marketing route", () => {
   test("registers /app outside authenticated routing", () => {
@@ -27,9 +28,10 @@ describe("public app marketing route", () => {
 
   test("emits canonical, robots, social, and structured-data contracts", () => {
     expect(appRoute).toContain("APP_MARKETING_CANONICAL_URL");
-    expect(appRoute).toContain('name: "robots"');
-    expect(appRoute).toContain('property: "og:title"');
-    expect(appRoute).toContain('name: "twitter:card"');
+    expect(appRoute).toContain("buildPublicPageHead");
+    expect(metadataSource).toContain('name: "robots"');
+    expect(metadataSource).toContain('property: "og:title"');
+    expect(metadataSource).toContain('name: "twitter:card"');
     expect(appRoute).toContain("scripts: structuredData");
     expect(appRoute).toContain('type: "application/ld+json"');
     expect(appRoute).toContain("children: structuredData");

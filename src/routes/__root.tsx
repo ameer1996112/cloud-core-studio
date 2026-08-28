@@ -34,18 +34,24 @@ import { Toaster } from "sonner";
 import {
   applyLang,
   DEFAULT_LOCALE,
+  getActiveLang,
   getDirection,
   getBootLangScript,
   getStoredLang,
   readLangCookieHeader,
   readSupportedLang,
   setActiveLang,
-  t,
-  useI18n,
-} from "@/lib/i18n";
+  useActiveLang,
+} from "@/lib/locale";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
 import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
+
+const ROOT_COPY = {
+  en: { retry: "Try again", skipToContent: "Skip to content" },
+  he: { retry: "נסו שוב", skipToContent: "דילוג לתוכן" },
+  ar: { retry: "حاولي مرة أخرى", skipToContent: "تخطي إلى المحتوى" },
+} as const;
 
 function NotFoundComponent() {
   return (
@@ -94,7 +100,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
           >
-            {t("common.retry")}
+            {ROOT_COPY[getActiveLang()].retry}
           </button>
         </div>
       </div>
@@ -198,12 +204,23 @@ const checkRequiredIosAppUpdate = createClientOnlyFn(() =>
   ),
 );
 
+function isNativeRuntime() {
+  if (typeof window === "undefined") return false;
+  const capacitor = (
+    window as typeof window & {
+      Capacitor?: { isNativePlatform?: () => boolean };
+    }
+  ).Capacitor;
+  return capacitor?.isNativePlatform?.() === true;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
-  const { t: translate } = useI18n();
+  const activeLang = useActiveLang();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
   useEffect(() => {
+    if (!isNativeRuntime()) return;
     let active = true;
     const stop = startNativeAppLinkHandling(() =>
       installNativeAppLinkHandling((route) => {
@@ -255,8 +272,10 @@ function RootComponent() {
     if (typeof window !== "undefined") {
       applyLang(getStoredLang());
     }
-    void getFreshSupabaseSession().then(() => registerAdminPushNotifications());
-    if (typeof window !== "undefined") {
+    void getFreshSupabaseSession().then((session) => {
+      if (session && isNativeRuntime()) registerAdminPushNotifications();
+    });
+    if (isNativeRuntime()) {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())
         .catch(() => undefined);
@@ -279,25 +298,27 @@ function RootComponent() {
 
     let nativeAppStateListener: { remove: () => Promise<void> } | undefined;
     let effectActive = true;
-    void Promise.all([import("@capacitor/core"), import("@capacitor/app")])
-      .then(async ([{ Capacitor }, { App }]) => {
-        if (!effectActive || !Capacitor.isNativePlatform()) return;
-        nativeAppStateListener = await App.addListener("appStateChange", ({ isActive }) => {
-          if (isActive) {
-            supabase.auth.startAutoRefresh();
-            syncCurrentSession();
-          } else {
-            supabase.auth.stopAutoRefresh();
+    if (isNativeRuntime()) {
+      void Promise.all([import("@capacitor/core"), import("@capacitor/app")])
+        .then(async ([{ Capacitor }, { App }]) => {
+          if (!effectActive || !Capacitor.isNativePlatform()) return;
+          nativeAppStateListener = await App.addListener("appStateChange", ({ isActive }) => {
+            if (isActive) {
+              supabase.auth.startAutoRefresh();
+              syncCurrentSession();
+            } else {
+              supabase.auth.stopAutoRefresh();
+            }
+          });
+          if (!effectActive) {
+            await nativeAppStateListener.remove();
+            nativeAppStateListener = undefined;
+            return;
           }
-        });
-        if (!effectActive) {
-          await nativeAppStateListener.remove();
-          nativeAppStateListener = undefined;
-          return;
-        }
-        supabase.auth.startAutoRefresh();
-      })
-      .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
+          supabase.auth.startAutoRefresh();
+        })
+        .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
+    }
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (
@@ -315,7 +336,7 @@ function RootComponent() {
         return;
       }
       syncSupabaseAccessTokenCookie(session);
-      registerAdminPushNotifications();
+      if (isNativeRuntime()) registerAdminPushNotifications();
       if (event === "SIGNED_IN") return;
       router.invalidate();
       void queryClient.invalidateQueries();
@@ -343,7 +364,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <a className="global-skip-link" href="#main-content">
-        {translate("common.skipToContent")}
+        {ROOT_COPY[activeLang].skipToContent}
       </a>
       <Outlet />
       <Toaster

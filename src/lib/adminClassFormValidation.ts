@@ -11,8 +11,17 @@ export type AdminClassFormValidationInput = {
   activeRooms: unknown[];
   activePrograms: unknown[];
   activeInstructors: unknown[];
-  t: (key: string) => string;
+  t: (key: AdminClassValidationKey) => string;
 };
+
+type AdminClassValidationKey =
+  | "admin.classes.needLessonDateTime"
+  | "admin.classes.needDateTime"
+  | "admin.classes.needRoomSelection"
+  | "admin.classes.needMainStudio"
+  | "admin.classes.needProgram"
+  | "admin.classes.needInstructor"
+  | "admin.classes.needInstructorSelection";
 
 export function getClassFormDisabledReason({
   mode,

@@ -20,7 +20,7 @@ import {
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
 import { authImages } from "@/lib/auth-assets";
-import { applyLang, LANG_META, type Lang } from "@/lib/i18n";
+import { applyLang, LANG_META, type Lang } from "@/lib/locale";
 import { buildWhatsappHref } from "@/lib/instagramLanding";
 
 import "./app-marketing.css";

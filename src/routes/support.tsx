@@ -3,17 +3,15 @@ import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
 import { Mail, Phone } from "lucide-react";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
 export const Route = createFileRoute("/support")({
-  head: () => ({
-    meta: [
-      { title: "Support | Cloud & Core Studio" },
-      { name: "description", content: "Cloud & Core Studio support and account help." },
-      { name: "robots", content: "index, follow" },
-      { property: "og:url", content: "https://cloudandcorestudio.com/support" },
-    ],
-    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/support" }],
-  }),
+  head: () =>
+    buildPublicPageHead({
+      title: "Support | Cloud & Core Studio",
+      description: "Cloud & Core Studio support and account help.",
+      path: "/support",
+    }),
   component: SupportPage,
 });
 

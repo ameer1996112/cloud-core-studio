@@ -1,0 +1,518 @@
+/* =====================================================================
+   Shared premium primitives — used across admin + member surfaces.
+===================================================================== */
+
+/* Calm warn tone — replaces harsh red/amber. Uses gold + navy. */
+@utility chip-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: rgba(212, 175, 106, 0.1);
+  color: var(--color-navy, #0b1d3a);
+  border: 1px solid rgba(212, 175, 106, 0.5);
+  border-radius: var(--cc-radius-chip);
+  padding: 0.25rem 0.55rem;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Minimum touch target for icon buttons on mobile-critical surfaces. */
+@utility touch-tap {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* =====================================================================
+   UI consistency layer — keeps old page-level classes visually aligned.
+   Scoped to interactive elements and known shell/form primitives only.
+===================================================================== */
+.cc-button,
+.btn-navy,
+.btn-ghost,
+.btn-outline,
+.cta-navy,
+.session-button,
+.settings-save-button,
+button[class*="bg-navy"][class*="text-ivory"],
+a[class*="bg-navy"][class*="text-ivory"],
+button[class*="border-gold"],
+a[class*="border-gold"],
+button[class*="rounded-[2px]"],
+a[class*="rounded-[2px]"],
+button[class*="rounded-[4px]"],
+a[class*="rounded-[4px]"],
+button[class*="rounded-[6px]"],
+a[class*="rounded-[6px]"] {
+  border-radius: var(--cc-radius-button) !important;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cc-button,
+.btn-navy,
+.btn-ghost,
+.btn-outline,
+.cta-navy,
+.session-button,
+.settings-save-button,
+button[class*="bg-navy"][class*="text-ivory"],
+a[class*="bg-navy"][class*="text-ivory"],
+button[class*="border-gold"],
+a[class*="border-gold"] {
+  min-height: var(--cc-control-height);
+}
+
+.cc-button-primary {
+  display: inline-flex;
+  min-height: var(--cc-control-height);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-navy, #0b1d3a);
+  border-radius: var(--cc-radius-button);
+  background: var(--color-navy, #0b1d3a);
+  color: var(--color-ivory, #faf7f2);
+  padding: 0.7rem 1.35rem;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.cc-button-secondary {
+  display: inline-flex;
+  min-height: var(--cc-control-height);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(212, 175, 106, 0.42);
+  border-radius: var(--cc-radius-button);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-navy, #0b1d3a);
+  padding: 0.68rem 1.25rem;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.cc-button-ghost {
+  display: inline-flex;
+  min-height: var(--cc-control-height-sm);
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--cc-radius-button);
+  background: transparent;
+  color: var(--color-slate, #6f7a8c);
+  padding: 0.55rem 1rem;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.cc-button-destructive {
+  display: inline-flex;
+  min-height: var(--cc-control-height);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(120, 38, 38, 0.28);
+  border-radius: var(--cc-radius-button);
+  background: rgba(120, 38, 38, 0.08);
+  color: var(--color-danger);
+  padding: 0.68rem 1.25rem;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.cc-button-destructive:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--color-danger) 42%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+}
+
+.cc-icon-button,
+button[class*="h-9"][class*="w-9"],
+button[class*="h-10"][class*="w-10"],
+a[class*="h-9"][class*="w-9"],
+a[class*="h-10"][class*="w-10"] {
+  border-radius: var(--cc-radius-button) !important;
+}
+
+.cc-icon-button {
+  min-width: var(--cc-control-height-sm);
+  min-height: var(--cc-control-height-sm);
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 34%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+  color: var(--color-navy, #0b1d3a);
+}
+
+.cc-icon-button:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--color-gold, #d4af6a) 58%, transparent);
+  background: color-mix(in srgb, var(--color-sand) 62%, var(--color-surface));
+}
+
+.cc-icon-button[data-tone="destructive"],
+.cc-icon-button-destructive {
+  border-color: color-mix(in srgb, var(--color-danger) 26%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 7%, var(--color-surface));
+  color: var(--color-danger);
+}
+
+.cc-icon-button[data-tone="destructive"]:not(:disabled):hover,
+.cc-icon-button-destructive:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 11%, var(--color-surface));
+}
+
+.cc-button-group,
+.cc-card-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cc-card-action-row {
+  margin-block-start: auto;
+  border-block-start: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 20%, transparent);
+  padding-block-start: 0.75rem;
+}
+
+:root[dir="rtl"] .cc-card-action-row {
+  justify-content: flex-start;
+}
+
+:root[dir="ltr"] .cc-card-action-row {
+  justify-content: flex-start;
+}
+
+.cc-card,
+.editorial-card,
+.member-card,
+.settings-card,
+.auth-card,
+.auth-form-card {
+  border-radius: var(--cc-radius-card);
+}
+
+.cc-input,
+.editorial-input,
+.settings-input,
+.session-input,
+input[class*="border-gold"],
+textarea[class*="border-gold"],
+select[class*="border-gold"],
+textarea[class*="rounded-[2px]"],
+select[class*="rounded-[2px]"] {
+  border-radius: var(--cc-radius-input) !important;
+}
+
+.cc-chip,
+.member-chip,
+.settings-status-pill,
+span[class*="rounded-[2px]"][class*="text-[10px]"],
+span[class*="rounded-[2px]"][class*="text-[11px]"] {
+  border-radius: var(--cc-radius-chip) !important;
+}
+
+.cc-sticky-action-bar,
+.settings-save-bar,
+.session-actions {
+  border-top: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 22%, transparent);
+  background: color-mix(in srgb, var(--color-surface-warm) 95%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.btn-navy:focus-visible,
+.btn-ghost:focus-visible,
+.btn-outline:focus-visible,
+.cta-navy:focus-visible,
+.session-button:focus-visible,
+.settings-save-button:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--cc-focus-ring);
+}
+
+.btn-navy:disabled,
+.btn-ghost:disabled,
+.btn-outline:disabled,
+.cta-navy:disabled,
+.session-button:disabled,
+.settings-save-button:disabled,
+button:disabled {
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+button[class*="bg-navy"][class*="text-ivory"]:not(:disabled):hover,
+a[class*="bg-navy"][class*="text-ivory"]:hover {
+  border-color: var(--color-navy-strong);
+  background-color: var(--color-navy-strong);
+  color: var(--color-ivory, #faf7f2);
+}
+
+button[class*="border-gold"]:not([class*="bg-navy"]):not(:disabled):hover,
+a[class*="border-gold"]:not([class*="bg-navy"]):hover {
+  background-color: rgba(232, 223, 209, 0.5);
+  color: var(--color-navy, #0b1d3a);
+}
+
+/* =====================================================================
+   Hebrew & Arabic typography safety.
+   English uppercase + wide tracking destroys readability in RTL scripts.
+   When the document is RTL, strip uppercase and reset tracking on any
+   element that opted into them. Numeric displays keep their tracking.
+===================================================================== */
+:root[dir="rtl"] .btn-navy,
+:root[dir="rtl"] .btn-ghost,
+:root[dir="rtl"] .cta-navy,
+:root[dir="rtl"] .pill-toggle,
+:root[dir="rtl"] .member-date-pill,
+:root[dir="rtl"] .member-filter-pill,
+:root[dir="rtl"] .member-filter-label,
+:root[dir="rtl"] .member-eyebrow,
+:root[dir="rtl"] .member-chip,
+:root[dir="rtl"] .eyebrow {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+:root[dir="rtl"] .btn-navy,
+:root[dir="rtl"] .btn-ghost,
+:root[dir="rtl"] .cta-navy {
+  font-size: 13px;
+}
+:root[dir="rtl"] .member-eyebrow,
+:root[dir="rtl"] .eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Global direction alignment guard.
+   Content labels must follow the selected app language. Keep explicit
+   technical-value classes such as .member-ltr-value as the only LTR exception. */
+:root[dir="rtl"]
+  :where(
+    .eyebrow,
+    .member-eyebrow,
+    .member-page-copy,
+    .member-page-panel,
+    .member-card,
+    .member-section-heading,
+    .member-section-title,
+    .member-page-title,
+    .member-page-body,
+    .member-control-panel,
+    .class-card-copy,
+    .class-card-main,
+    .lesson-card-title,
+    .lesson-card-instructor,
+    .settings-card,
+    .settings-label,
+    .settings-helper,
+    .settings-kicker,
+    .editorial-card,
+    .editorial-panel,
+    .auth-card,
+    .auth-form-card,
+    .auth-field,
+    .field-label,
+    label,
+    .member-announcement-copy,
+    .member-tab-button,
+    .session-panel-header,
+    .session-field,
+    .session-readonly-chip
+  ):not(.member-ltr-value):not([dir="ltr"]) {
+  text-align: right;
+}
+
+:root[dir="ltr"]
+  :where(
+    .eyebrow,
+    .member-eyebrow,
+    .member-page-copy,
+    .member-page-panel,
+    .member-card,
+    .member-section-heading,
+    .member-section-title,
+    .member-page-title,
+    .member-page-body,
+    .member-control-panel,
+    .class-card-copy,
+    .class-card-main,
+    .lesson-card-title,
+    .lesson-card-instructor,
+    .settings-card,
+    .settings-label,
+    .settings-helper,
+    .settings-kicker,
+    .editorial-card,
+    .editorial-panel,
+    .auth-card,
+    .auth-form-card,
+    .auth-field,
+    .field-label,
+    label,
+    .member-announcement-copy,
+    .member-tab-button,
+    .session-panel-header,
+    .session-field,
+    .session-readonly-chip
+  ):not(.member-ltr-value):not([dir="ltr"]) {
+  text-align: start;
+}
+
+/* Settings has stricter product requirements than the broad guard above. */
+.settings-page[dir="rtl"]
+  :where(
+    .settings-label,
+    .settings-card-title,
+    .settings-card-helper,
+    .settings-field-helper,
+    .settings-field-error,
+    .settings-toggle-label,
+    .settings-toggle-hint,
+    .settings-payment-title,
+    .settings-payment-copy,
+    .settings-save-note
+  ):not([dir="ltr"]) {
+  text-align: right !important;
+}
+
+.settings-page[dir="ltr"]
+  :where(
+    .settings-label,
+    .settings-card-title,
+    .settings-card-helper,
+    .settings-field-helper,
+    .settings-field-error,
+    .settings-toggle-label,
+    .settings-toggle-hint,
+    .settings-payment-title,
+    .settings-payment-copy,
+    .settings-save-note
+  ):not([dir="rtl"]) {
+  text-align: left !important;
+}
+
+:root[dir="rtl"] :where(.class-card-main, .lesson-chip-row) {
+  justify-content: flex-end;
+}
+
+:root[dir="ltr"] :where(.class-card-main, .lesson-chip-row) {
+  justify-content: flex-start;
+}
+
+.premium-lesson-card[dir="rtl"] .lesson-chip-row,
+.lesson-detail[dir="rtl"] .lesson-chip-row {
+  direction: rtl;
+  justify-content: flex-start !important;
+  align-self: stretch;
+  text-align: right;
+}
+
+.premium-lesson-card[dir="ltr"] .lesson-chip-row,
+.lesson-detail[dir="ltr"] .lesson-chip-row {
+  direction: ltr;
+  justify-content: flex-start !important;
+  align-self: stretch;
+  text-align: left;
+}
+
+.premium-lesson-card[dir="rtl"] .member-class-meta-chip,
+.lesson-detail[dir="rtl"] .member-class-meta-chip {
+  text-align: right;
+}
+
+/* Global RTL safety net: any element that opted into uppercase + wide
+   tracking gets normalized in Hebrew/Arabic. Catches inline utility classes
+   (e.g. filter pills, tabs) that don't go through the named component classes
+   above. Allowlist: keep tracking on tabular-nums and digit displays. */
+:root[dir="rtl"] .uppercase {
+  text-transform: none;
+}
+:root[dir="rtl"] [class*="tracking-"]:not(.tabular-nums):not(.numeric-display) {
+  letter-spacing: 0 !important;
+}
+:root[dir="rtl"] .font-display,
+:root[dir="rtl"] .italic {
+  font-style: normal !important;
+}
+
+:root .font-display.italic,
+:root .italic:not(.brand-wordmark) {
+  font-style: normal !important;
+}
+
+/* =====================================================================
+   Mobile microcopy floor.
+   A lot of older surfaces still use 9px-11px utility text for chips,
+   helper copy, and status labels. Raise the floor centrally while the
+   route-level cleanup is still in progress.
+===================================================================== */
+@media (max-width: 767px) {
+  .eyebrow,
+  .member-eyebrow,
+  .member-chip {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  :where(p, span, a, button, summary, label, li, div, td, th)[class*="text-\\[9px\\]"] {
+    font-size: 12px !important;
+    line-height: 1.4;
+  }
+
+  :where(p, span, a, button, summary, label, li, div, td, th)[class*="text-\\[10px\\]"] {
+    font-size: 12px !important;
+    line-height: 1.4;
+  }
+
+  :where(p, span, a, button, summary, label, li, div, td, th)[class*="text-\\[11px\\]"] {
+    font-size: 13px !important;
+    line-height: 1.45;
+  }
+}
+
+/* Photo-led class card — gradient overlay direction is per text-flow.
+   In RTL the dark side sits on the right (inline-end). In LTR it flips. */
+.visual-class-card {
+  --ovr-dir: to right;
+}
+[dir="ltr"] .visual-class-card {
+  --ovr-dir: to left;
+}

@@ -2,20 +2,15 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { buildPublicPageHead } from "@/lib/public-metadata";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Privacy Policy | Cloud & Core Studio" },
-      {
-        name: "description",
-        content: "Cloud & Core Studio privacy policy for members and app users.",
-      },
-      { name: "robots", content: "index, follow" },
-      { property: "og:url", content: "https://cloudandcorestudio.com/privacy" },
-    ],
-    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/privacy" }],
-  }),
+  head: () =>
+    buildPublicPageHead({
+      title: "Privacy Policy | Cloud & Core Studio",
+      description: "Cloud & Core Studio privacy policy for members and app users.",
+      path: "/privacy",
+    }),
   component: PrivacyPage,
 });
 

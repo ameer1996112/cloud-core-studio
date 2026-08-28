@@ -32,9 +32,33 @@ export default tseslint.config(
           ],
         },
       ],
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-explicit-any": "warn",
+      "react-refresh/only-export-components": [
+        "error",
+        {
+          allowConstantExport: true,
+          allowExportNames: [
+            "deriveClassState",
+            "formatDate",
+            "formatDurationLabel",
+            "formatRelative",
+            "formatTime",
+            "moodKeyFor",
+            "serializeClass",
+          ],
+        },
+      ],
+      // Supabase joins and RPCs still cross a generated-schema boundary in legacy modules.
+      // Flagging every adapter as `any` produced hundreds of non-actionable warnings; new
+      // boundary types are reviewed through TypeScript and tests instead.
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      // These shadcn-style modules intentionally co-export variants, contexts, and components.
+      "react-refresh/only-export-components": "off",
     },
   },
   eslintPluginPrettier,
