@@ -2,6 +2,25 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.0.0] - 2026-08-28
+
+### Added
+
+- Add a reusable promotions manager for localized in-app, push, WhatsApp, and public-link campaigns with audience previews, test sends, scheduling, lifecycle controls, and funnel reporting.
+- Add the disabled-by-default Yoga with Lina launch campaign, a public promotion page, member-home promotion cards, restricted promotional credits, and filtered schedule handoff.
+- Add durable promotion attribution, engagement, delivery, entitlement, audit, and campaign-safety database contracts with focused unit and concurrency coverage.
+
+### Changed
+
+- Integrate promotion delivery with the existing notification automation while preserving member consent, channel availability, frequency limits, approved WhatsApp templates, and campaign leases.
+- Surface promotion entitlements in member packages and apply eligible credits atomically during booking without changing the member's general credit balance.
+
+### Fixed
+
+- Prevent promotion retries from overwriting successful delivery history when a channel later becomes suppressed.
+- Restrict activation-readiness details to administrators and the service role, and align the campaign credit-quantity API with the database constraint.
+- Localize promotion-card accessibility labels and keep analytics failures from interrupting the member experience.
+
 ## [0.2.0.0] - 2026-08-27
 
 ### Added

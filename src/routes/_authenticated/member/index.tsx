@@ -29,6 +29,8 @@ import { getPlanDisplay } from "@/lib/planDisplay";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { AutoInline, LtrInline } from "@/components/ui/bidi";
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
+import { PromotionCard } from "@/components/member/PromotionCard";
+import { usePromotions } from "@/hooks/usePromotions";
 import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
 import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
 
@@ -38,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/member/")({
 
 function MemberHome() {
   const { lang, dir } = useI18n();
+  const promotions = usePromotions();
   useDocumentTitle("page.home.title");
   const fetchHome = useServerFn(getMemberHome);
   const fetchSettings = useServerFn(getPublicStudioSettings);
@@ -127,6 +130,15 @@ function MemberHome() {
           <p className="member-announcement-bar__body">{announcement.body}</p>
         </aside>
       )}
+
+      {promotions.featured ? (
+        <PromotionCard
+          promotion={promotions.featured}
+          claimPending={promotions.claim.isPending}
+          onClaim={() => promotions.claim.mutate(promotions.featured!)}
+          onDismiss={() => promotions.dismiss.mutate(promotions.featured!)}
+        />
+      ) : null}
 
       {fatalError ? (
         <MemberRouteError onRetry={() => void refetch()} />
