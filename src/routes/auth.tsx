@@ -30,6 +30,12 @@ import { getYogaPromoAttributionToken, trackYogaPromo } from "@/lib/yogaPromo";
 import { authImages, authLogo } from "@/lib/auth-assets";
 
 export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "כניסה | Cloud & Core Studio" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AuthPage,
 });
 
@@ -286,6 +292,7 @@ function AuthPage() {
 
   return (
     <main
+      id="main-content"
       dir={dir}
       className="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col"
     >
@@ -297,6 +304,9 @@ function AuthPage() {
           className="h-full w-full object-cover opacity-[0.48] contrast-[1.08] saturate-[0.94] md:opacity-[0.66]"
           loading="eager"
           decoding="async"
+          fetchPriority="high"
+          width={853}
+          height={1280}
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(246,238,226,0.28)_0%,rgba(246,238,226,0.58)_36%,rgba(246,238,226,0.92)_100%)] md:bg-[linear-gradient(90deg,rgba(246,238,226,0.94)_0%,rgba(246,238,226,0.74)_46%,rgba(246,238,226,0.18)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.38),transparent_30%),linear-gradient(180deg,rgba(11,29,58,0.08),transparent_42%,rgba(11,29,58,0.07))]" />
@@ -558,13 +568,13 @@ function AuthPage() {
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <Link
                         to="/member/schedule"
-                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
+                        className="inline-flex min-h-12 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
                       >
                         {browseScheduleLabel}
                       </Link>
                       <Link
                         to="/support"
-                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/12 bg-transparent px-5 text-sm font-medium text-slate transition-colors hover:border-gold/35 hover:text-navy"
+                        className="inline-flex min-h-12 items-center justify-center rounded-full border border-navy/12 bg-transparent px-5 text-sm font-medium text-slate transition-colors hover:border-gold/35 hover:text-navy"
                       >
                         {guestSupportLabel}
                       </Link>

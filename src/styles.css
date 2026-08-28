@@ -956,6 +956,9 @@
 }
 
 .download-browser-note a {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
   color: var(--color-navy, #0b1d3a);
   font-weight: 750;
   text-decoration-color: rgba(212, 175, 106, 0.72);
@@ -7297,7 +7300,7 @@ select.input:focus {
 .member-schedule-segment {
   display: inline-flex;
   min-width: 0;
-  min-height: 42px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
@@ -7879,12 +7882,12 @@ select.input:focus {
   }
 
   .member-schedule-search-field {
-    min-height: 46px;
+    min-height: 48px;
     border-radius: 13px;
   }
 
   .member-schedule-search-field__input {
-    height: 46px;
+    height: 48px;
     font-size: 16px;
     padding-inline: 0.82rem;
   }
@@ -7900,7 +7903,7 @@ select.input:focus {
   }
 
   .member-schedule-segment {
-    min-height: 38px;
+    min-height: 48px;
     border-radius: 10px;
     font-size: 12px;
     padding-inline: 0.3rem;
@@ -9420,7 +9423,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .auth-language-switcher button {
   min-width: 0;
-  min-height: 44px;
+  min-height: 48px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -9782,13 +9785,13 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .auth-secondary-action {
-  min-height: 44px;
+  min-height: 48px;
   font-size: 13px;
   font-weight: 650;
 }
 
 .auth-switch-action {
-  min-height: 44px;
+  min-height: 48px;
   font-size: 13px;
   font-weight: 700;
 }
@@ -9801,12 +9804,36 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .auth-legal-link {
   display: inline-flex;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   font-size: 13px;
   font-weight: 650;
+}
+
+.global-skip-link {
+  position: fixed;
+  z-index: 10000;
+  inset-block-start: 8px;
+  inset-inline-start: 12px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 16px;
+  border: 2px solid var(--color-gold, #d4af6a);
+  border-radius: 16px;
+  background: var(--color-navy, #0b1d3a);
+  color: var(--color-ivory, #faf7f2);
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: none;
+  transform: translateY(-180%);
+  transition: transform 160ms ease;
+}
+
+.global-skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 .public-safe-page {
@@ -10746,7 +10773,8 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   --ig-ink: #0b1d3a;
   --ig-paper: #f7f2ea;
   --ig-cream: #fffdf9;
-  --ig-gold: #b99350;
+  --ig-gold: #d4af6a;
+  --ig-accent-text: var(--ig-ink);
   min-height: 100svh;
   padding: 0 max(22px, calc((100vw - 1180px) / 2));
   overflow: hidden;
@@ -10767,6 +10795,8 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .ig-editorial__logo {
   display: inline-flex;
+  min-height: 48px;
+  align-items: center;
 }
 
 .ig-editorial__logo img {
@@ -10789,12 +10819,12 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: rgba(11, 29, 58, 0.58);
+  color: rgba(11, 29, 58, 0.64);
 }
 
 .ig-editorial__place svg {
   width: 14px;
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
 }
 
 .ig-editorial__hero {
@@ -10818,9 +10848,14 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   border: 1px solid var(--ig-gold);
 }
 
+.ig-editorial__portrait picture,
 .ig-editorial__portrait img {
+  display: block;
   width: 100%;
   height: 100%;
+}
+
+.ig-editorial__portrait img {
   object-fit: cover;
   object-position: center;
   filter: saturate(0.78) contrast(1.03);
@@ -10830,7 +10865,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
   position: absolute;
   inset-inline-end: -1px;
   bottom: -54px;
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
   font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
   font-size: 92px;
   font-weight: 500;
@@ -10843,7 +10878,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .ig-editorial__overline {
   margin: 0 0 32px;
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
 }
 
 .ig-editorial__intro h1 {
@@ -10858,7 +10893,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .ig-editorial__intro h1 em {
   display: block;
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
   font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
   font-style: italic;
   font-weight: 600;
@@ -10867,7 +10902,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 .ig-editorial__intro-he {
   max-width: 480px;
   margin: 32px 0 0;
-  color: rgba(11, 29, 58, 0.58);
+  color: rgba(11, 29, 58, 0.64);
   font-family: var(--font-ui-he, "Assistant", sans-serif);
   font-size: 17px;
   line-height: 1.7;
@@ -10911,7 +10946,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-editorial__routes-head > span {
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
 }
 
 .ig-editorial__routes-head h2,
@@ -10947,7 +10982,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-route__number {
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
   font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
   font-size: 56px;
   line-height: 1;
@@ -10955,7 +10990,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .ig-route__copy p {
   margin: 0 0 7px;
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
   font-size: 11px;
   font-weight: 800;
 }
@@ -10972,7 +11007,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 .ig-route__copy > span {
   display: block;
   margin-top: 12px;
-  color: rgba(11, 29, 58, 0.56);
+  color: rgba(11, 29, 58, 0.64);
   font-size: 12px;
 }
 
@@ -11018,14 +11053,14 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-route__button small {
-  opacity: 0.58;
+  opacity: 0.72;
   font-family: var(--font-ui-he, "Assistant", sans-serif);
   font-size: 10px;
   font-weight: 600;
 }
 
 .ig-route__pending {
-  color: rgba(11, 29, 58, 0.56);
+  color: rgba(11, 29, 58, 0.64);
   font-family: var(--font-ui-latin, "Assistant", sans-serif);
   font-size: 11px;
   text-transform: uppercase;
@@ -11039,7 +11074,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-editorial__note > span {
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
 }
 
 .ig-editorial__note p {
@@ -11050,7 +11085,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-editorial__note strong {
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
 }
 
 .ig-editorial__studio {
@@ -11079,12 +11114,12 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 
 .ig-editorial__studio > div > span {
   margin-bottom: 30px;
-  color: var(--ig-gold);
+  color: var(--ig-accent-text);
 }
 
 .ig-editorial__studio p {
   margin: 28px 0 0;
-  color: rgba(11, 29, 58, 0.58);
+  color: rgba(11, 29, 58, 0.64);
   font-family: var(--font-ui-he, "Assistant", sans-serif);
   line-height: 1.7;
 }
@@ -11120,7 +11155,7 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-editorial__footer span {
-  color: rgba(11, 29, 58, 0.56);
+  color: rgba(11, 29, 58, 0.64);
   font-size: 10px;
 }
 
@@ -11131,6 +11166,11 @@ a[class*="border-gold"]:not([class*="bg-navy"]):hover {
 }
 
 .ig-editorial__footer-links a {
+  min-width: 48px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--ig-ink);
   font-family: var(--font-ui-latin, "Assistant", sans-serif);
   font-size: 10px;

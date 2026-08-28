@@ -86,12 +86,12 @@ describe("public support route", () => {
     const hebrewHtml = renderSupportRoute("he");
     const arabicHtml = renderSupportRoute("ar");
 
-    expect(hebrewHtml).toContain('<main dir="rtl"');
+    expect(hebrewHtml).toContain('<main id="main-content" dir="rtl"');
     expect(hebrewHtml).toContain("יצירת קשר ישירה");
     expect(hebrewHtml).toContain("עיון בלוח השיעורים");
     expect(hebrewHtml).toContain("כניסה או עזרה בחשבון");
 
-    expect(arabicHtml).toContain('<main dir="rtl"');
+    expect(arabicHtml).toContain('<main id="main-content" dir="rtl"');
     expect(arabicHtml).toContain("دعم مباشر");
     expect(arabicHtml).toContain("تصفحوا الجدول");
     expect(arabicHtml).toContain("تسجيل الدخول أو المساعدة بالحساب");

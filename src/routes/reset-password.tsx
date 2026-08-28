@@ -91,6 +91,7 @@ function ResetPasswordPage() {
 
   return (
     <main
+      id="main-content"
       dir={dir}
       className="auth-page min-h-[100dvh] member-shell flex items-center justify-center px-6 py-10"
     >

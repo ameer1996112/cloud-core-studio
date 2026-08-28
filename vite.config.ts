@@ -34,7 +34,7 @@ export default defineConfig({
       importProtection: {
         behavior: "error",
         client: {
-          files: ["**/server/**"],
+          files: ["**/*.server.*", "**/server/**"],
           specifiers: ["server-only"],
         },
       },

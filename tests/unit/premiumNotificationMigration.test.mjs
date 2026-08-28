@@ -7,6 +7,12 @@ const migrationUrl = new URL(
 );
 const messagingServerUrl = new URL("../../src/lib/unifiedMessaging.server.ts", import.meta.url);
 const adminPushUrl = new URL("../../src/lib/adminPush.functions.ts", import.meta.url);
+const adminPushSignupServerUrl = new URL(
+  "../../src/lib/adminPushSignup.server.ts",
+  import.meta.url,
+);
+const apnsServerUrl = new URL("../../src/lib/apns.server.ts", import.meta.url);
+const viteConfigUrl = new URL("../../vite.config.ts", import.meta.url);
 
 describe("premium notification foundation migration", () => {
   test("adds granular preferences, private installations, per-device targets, and engagement", async () => {
@@ -83,13 +89,19 @@ describe("premium notification foundation migration", () => {
     expect(sql).toContain("delivery_unknown");
     expect(sql).toContain("NEW.status = 'checked_in'");
     expect(sql).not.toContain("NEW.status IN ('checked_in', 'attended')");
-    const [server, adminPush] = await Promise.all([
+    const [server, adminPush, adminPushSignupServer, apnsServer, viteConfig] = await Promise.all([
       readFile(messagingServerUrl, "utf8"),
       readFile(adminPushUrl, "utf8"),
+      readFile(adminPushSignupServerUrl, "utf8"),
+      readFile(apnsServerUrl, "utf8"),
+      readFile(viteConfigUrl, "utf8"),
     ]);
     expect(server).toContain('.eq("profiles.role", "admin")');
-    expect(adminPush).toContain('.eq("profiles.role", "admin")');
+    expect(adminPushSignupServer).toContain('.eq("profiles.role", "admin")');
     expect(adminPush).toContain("apns_environment: data.environment");
+    expect(adminPush).not.toContain("@/lib/apns.server");
+    expect(apnsServer).toContain("@tanstack/react-start/server-only");
+    expect(viteConfig).toContain('files: ["**/*.server.*", "**/server/**"]');
   });
 
   test("queues one durable follow-up for an unresolved subscription failure", async () => {

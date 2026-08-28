@@ -117,7 +117,11 @@ function PublicCheckoutPage() {
   useDocumentTitle("page.packages.title");
 
   return (
-    <main dir={dir} className="public-safe-page min-h-screen bg-ivory px-5 py-8 text-navy sm:px-8">
+    <main
+      id="main-content"
+      dir={dir}
+      className="public-safe-page min-h-screen bg-ivory px-5 py-8 text-navy sm:px-8"
+    >
       <div className="mx-auto max-w-3xl">
         <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
           <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">

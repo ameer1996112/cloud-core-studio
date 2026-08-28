@@ -76,9 +76,9 @@
     "@supabase/supabase-js": "^2.108.2",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.83.0",
-    "@tanstack/react-router": "^1.168.25",
-    "@tanstack/react-start": "^1.167.50",
-    "@tanstack/router-plugin": "^1.167.28",
+    "@tanstack/react-router": "^1.170.32",
+    "@tanstack/react-start": "^1.168.49",
+    "@tanstack/router-plugin": "^1.168.35",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -101,15 +101,16 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.4.1",
+    "@capacitor/cli": "^8.5.0",
     "@eslint/js": "^9.32.0",
     "@fontsource/assistant": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/noto-sans-arabic": "^5.3.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
-    "eslint": "^9.32.0",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -120,6 +121,13 @@
     "sharp": "^0.35.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^8.2.2"
+  },
+  "overrides": {
+    "@babel/core": "^7.29.7",
+    "brace-expansion": "^2.0.2",
+    "js-yaml": "^5.4.1",
+    "tar": "^7.5.22",
+    "uuid": "^14.0.2"
   }
 }

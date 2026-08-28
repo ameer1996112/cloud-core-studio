@@ -49,23 +49,6 @@
   font: inherit;
 }
 
-.app-marketing__skip-link {
-  position: fixed;
-  z-index: 100;
-  inset-block-start: 10px;
-  inset-inline-start: 12px;
-  padding: 10px 16px;
-  color: var(--app-ivory);
-  background: var(--app-navy);
-  border: 1px solid var(--app-gold);
-  transform: translateY(-160%);
-  transition: transform 160ms ease;
-}
-
-.app-marketing__skip-link:focus {
-  transform: translateY(0);
-}
-
 .app-marketing__header {
   position: relative;
   z-index: 10;
@@ -114,8 +97,8 @@
 
 .app-marketing__language {
   display: inline-flex;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   padding-inline: 7px;
   align-items: center;
   justify-content: center;
@@ -160,8 +143,8 @@
 }
 
 .app-marketing__header-cta {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   padding-inline: 11px;
 }
 
@@ -274,7 +257,7 @@
 
 .app-marketing__store-link {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
 }
@@ -636,7 +619,7 @@
 
 .app-marketing__final-support {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   gap: 9px;
@@ -715,7 +698,7 @@
 .app-marketing__contact-link,
 .app-marketing__footer-nav a {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   gap: 10px;
   color: #d7dde5;

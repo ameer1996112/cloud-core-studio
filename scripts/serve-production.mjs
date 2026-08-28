@@ -4,6 +4,8 @@ import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 import { Readable } from "node:stream";
 
+import { addSecurityHeaders } from "./security-headers.mjs";
+
 const root = resolve(process.cwd());
 const clientDir = join(root, "dist/client");
 const serverEntry = await import(join(root, "dist/server/server.js"));
@@ -71,13 +73,16 @@ async function serveStatic(pathname, method, res) {
     const file = await stat(filePath);
     if (!file.isFile()) return false;
     const ext = extname(filePath);
-    res.writeHead(200, {
-      "content-length": file.size,
-      "content-type": mimeTypes.get(ext) ?? "application/octet-stream",
-      "cache-control": decoded.startsWith("/assets/")
-        ? "public, max-age=31536000, immutable"
-        : "public, max-age=3600",
-    });
+    res.writeHead(
+      200,
+      addSecurityHeaders({
+        "content-length": file.size,
+        "content-type": mimeTypes.get(ext) ?? "application/octet-stream",
+        "cache-control": decoded.startsWith("/assets/")
+          ? "public, max-age=31536000, immutable"
+          : "public, max-age=3600",
+      }),
+    );
     if (method === "HEAD") {
       res.end();
       return true;
@@ -105,7 +110,7 @@ createServer(async (req, res) => {
     const request = new Request(url, requestInit);
 
     const response = await handler.fetch(request, process.env, {});
-    res.writeHead(response.status, toNodeHeaders(response.headers));
+    res.writeHead(response.status, addSecurityHeaders(toNodeHeaders(response.headers)));
     if (response.body && req.method !== "HEAD") {
       Readable.fromWeb(response.body).pipe(res);
     } else {
@@ -113,7 +118,7 @@ createServer(async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+    res.writeHead(500, addSecurityHeaders({ "content-type": "text/plain; charset=utf-8" }));
     res.end("Internal Server Error");
   }
 }).listen(port, "0.0.0.0", () => {

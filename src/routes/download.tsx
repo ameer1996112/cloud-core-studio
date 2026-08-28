@@ -40,7 +40,10 @@ export const Route = createFileRoute("/download")({
       },
       { name: "twitter:image", content: "/images/classes/aerial-yoga-flow.webp" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/download" },
+      { name: "robots", content: "index, follow" },
     ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/download" }],
   }),
   loader: ({ location }): DownloadRouteData => {
     const config = getDownloadConfig();
@@ -61,7 +64,7 @@ function DownloadPage() {
   const { iosHref, iosNativeHref, androidHref } = Route.useLoaderData();
 
   return (
-    <main className="download-page" dir="rtl">
+    <main id="main-content" className="download-page" dir="rtl">
       <section className="download-shell" aria-labelledby="download-title">
         <div className="download-visual" aria-hidden="true">
           <span className="download-version-orbit">{CURRENT_APP_VERSION}</span>
@@ -85,6 +88,8 @@ function DownloadPage() {
             className="download-wordmark"
             src="/brand/cloud-core-wordmark.svg"
             alt="Cloud & Core"
+            width={300}
+            height={69}
           />
           <p className="download-kicker">העדכון החדש · גרסה {CURRENT_APP_VERSION}</p>
           <h1 id="download-title">העדכון החדש זמין עכשיו</h1>

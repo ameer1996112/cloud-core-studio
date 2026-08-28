@@ -3,11 +3,12 @@ import { DEFAULT_LOCALE, type Lang } from "@/lib/i18n";
 export const APP_MARKETING_CANONICAL_URL = "https://cloudandcorestudio.com/app";
 export const APP_MARKETING_OG_IMAGE =
   "https://cloudandcorestudio.com/images/auth/cloud-core-auth-hero.webp";
-export const APP_STORE_BADGE_PATHS: Record<Lang, string> = {
-  he: "/brand/app-store-badges/he.svg",
-  ar: "/brand/app-store-badges/ar.svg",
-  en: "/brand/app-store-badges/en.svg",
-};
+export const APP_STORE_BADGE_ASSETS: Record<Lang, { src: string; width: number; height: number }> =
+  {
+    he: { src: "/brand/app-store-badges/he.svg", width: 122, height: 42 },
+    ar: { src: "/brand/app-store-badges/ar.svg", width: 120, height: 40 },
+    en: { src: "/brand/app-store-badges/en.svg", width: 120, height: 40 },
+  };
 
 export type AppMarketingSearch = { lang?: Lang };
 

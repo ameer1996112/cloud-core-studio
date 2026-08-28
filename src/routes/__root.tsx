@@ -11,6 +11,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { createClientOnlyFn, createIsomorphicFn } from "@tanstack/react-start";
 import { getStartContext } from "@tanstack/start-storage-context";
 
+import "@fontsource/assistant/hebrew-400.css";
+import "@fontsource/assistant/hebrew-600.css";
+import "@fontsource/assistant/hebrew-700.css";
+import "@fontsource/assistant/latin-400.css";
+import "@fontsource/assistant/latin-600.css";
+import "@fontsource/assistant/latin-700.css";
+import "@fontsource/cormorant-garamond/latin-600.css";
+import "@fontsource/cormorant-garamond/latin-600-italic.css";
+import "@fontsource/noto-sans-arabic/arabic-400.css";
+import "@fontsource/noto-sans-arabic/arabic-600.css";
+import "@fontsource/noto-sans-arabic/arabic-700.css";
 import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +41,7 @@ import {
   readSupportedLang,
   setActiveLang,
   t,
+  useI18n,
 } from "@/lib/i18n";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
@@ -37,7 +49,10 @@ import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <main
+      id="main-content"
+      className="flex min-h-screen items-center justify-center bg-background px-6"
+    >
       <div className="max-w-md text-center">
         <h1 className="font-display text-6xl text-foreground">הדף לא נמצא</h1>
         <p className="mt-3 text-sm text-muted-foreground">העמוד הזה לא נשמר.</p>
@@ -50,7 +65,7 @@ function NotFoundComponent() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -62,7 +77,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <main
+      id="main-content"
+      className="flex min-h-screen items-center justify-center bg-background px-6"
+    >
       <div className="max-w-md text-center">
         <h1 className="font-display text-3xl text-foreground">רגע שקט</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -80,7 +98,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -115,12 +133,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap",
-      },
     ],
   }),
   shellComponent: RootShell,
@@ -189,6 +201,7 @@ const checkRequiredIosAppUpdate = createClientOnlyFn(() =>
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const { t: translate } = useI18n();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
   useEffect(() => {
     let active = true;
@@ -329,6 +342,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <a className="global-skip-link" href="#main-content">
+        {translate("common.skipToContent")}
+      </a>
       <Outlet />
       <Toaster
         className="app-toaster"

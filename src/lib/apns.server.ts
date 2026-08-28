@@ -1,3 +1,5 @@
+import "@tanstack/react-start/server-only";
+
 import { createSign } from "node:crypto";
 import http2 from "node:http2";
 

@@ -173,10 +173,10 @@ describe("auth public entry", () => {
     const hebrewHtml = renderAuthRoute("he");
     const arabicHtml = renderAuthRoute("ar");
 
-    expect(hebrewHtml).toContain('<main dir="rtl"');
+    expect(hebrewHtml).toContain('<main id="main-content" dir="rtl"');
     expect(hebrewHtml).toContain("בודקים את החיבור שלך");
 
-    expect(arabicHtml).toContain('<main dir="rtl"');
+    expect(arabicHtml).toContain('<main id="main-content" dir="rtl"');
     expect(arabicHtml).toContain("نتحقق من اتصالك");
   });
 });

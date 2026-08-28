@@ -56,7 +56,7 @@ describe("public app marketing route", () => {
   test("uses the official logo, real studio image, and Apple badge", () => {
     expect(pageSource).toContain("/brand/cloud-core-logo-full.webp");
     expect(pageSource).toContain("/images/auth/cloud-core-auth-hero.webp");
-    expect(pageSource).toContain("/brand/app-store-badges/");
+    expect(pageSource).toContain("APP_STORE_BADGE_ASSETS[lang]");
     expect(pageSource).toContain("Apple and the Apple logo are trademarks of Apple Inc.");
   });
 

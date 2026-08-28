@@ -34,6 +34,16 @@ import {
 } from "@/lib/guest-auth-intent";
 
 export const Route = createFileRoute("/member/schedule")({
+  head: () => ({
+    meta: [
+      { title: "Class Schedule | Cloud & Core Studio" },
+      {
+        name: "description",
+        content: "Browse the upcoming Cloud & Core Studio class schedule.",
+      },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: MemberSchedulePublic,
 });
 
@@ -180,6 +190,7 @@ function MemberSchedulePublic({
   if (checkingSession && !session) {
     return (
       <section
+        id="main-content"
         dir={dir}
         className="member-page w-full space-y-6 bg-ivory px-4 py-6 sm:px-6 lg:px-8"
       >
@@ -230,19 +241,23 @@ function MemberSchedulePublic({
       />
       <header className="public-safe-header sticky top-0 z-40 w-full border-b border-navy/8 bg-ivory/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link to="/auth" className="brand-wordmark text-xl text-navy" dir="ltr">
+          <Link
+            to="/auth"
+            className="brand-wordmark inline-flex min-h-12 items-center text-xl text-navy"
+            dir="ltr"
+          >
             Cloud &amp; Core
           </Link>
           <div className="flex items-center gap-3">
             <Link
               to="/support"
-              className="text-sm font-medium text-slate transition-colors hover:text-navy"
+              className="inline-flex min-h-12 items-center px-2 text-sm font-medium text-slate transition-colors hover:text-navy"
             >
               {t("legal.support")}
             </Link>
             <Link
               to={authHref}
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-gold/40 bg-white px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors hover:bg-gold/8"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-gold/40 bg-white px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors hover:bg-gold/8"
             >
               {guestCopy.primaryCta}
             </Link>
@@ -250,17 +265,26 @@ function MemberSchedulePublic({
         </div>
       </header>
 
-      <main className="public-safe-main relative mx-auto flex max-w-7xl flex-col gap-6 px-4 pb-6 sm:px-6 lg:px-8">
+      <main
+        id="main-content"
+        className="public-safe-main relative mx-auto flex max-w-7xl flex-col gap-6 px-4 pb-6 sm:px-6 lg:px-8"
+      >
         <section className="member-page-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
           <div className="member-page-copy p-5 sm:p-8 md:p-10">
             <p className="member-eyebrow">{guestCopy.eyebrow}</p>
             <h1 className="member-page-title mt-3">{guestCopy.title}</h1>
             <p className="member-page-body mt-3 max-w-2xl">{guestCopy.body}</p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link to={authHref} className="btn-primary hover:btn-primary-hover justify-center">
+              <Link
+                to={authHref}
+                className="btn-primary min-h-12 justify-center px-5 hover:btn-primary-hover"
+              >
                 {guestCopy.primaryCta}
               </Link>
-              <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
+              <Link
+                to="/support"
+                className="btn-outline min-h-12 justify-center px-5 hover:btn-outline-hover"
+              >
                 {guestCopy.secondaryCta}
               </Link>
             </div>

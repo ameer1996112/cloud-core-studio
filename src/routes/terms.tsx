@@ -5,7 +5,13 @@ import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher"
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
-    meta: [{ name: "description", content: "Cloud & Core Studio member app terms." }],
+    meta: [
+      { title: "Terms of Use | Cloud & Core Studio" },
+      { name: "description", content: "Cloud & Core Studio member app terms." },
+      { name: "robots", content: "index, follow" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/terms" },
+    ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/terms" }],
   }),
   component: TermsPage,
 });
@@ -71,10 +77,18 @@ function TermsPage() {
   const dir = LANG_META[lang].dir;
 
   return (
-    <main dir={dir} className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
+    <main
+      id="main-content"
+      dir={dir}
+      className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8"
+    >
       <div className="mx-auto max-w-3xl">
         <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
-          <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">
+          <Link
+            to="/auth"
+            className="brand-wordmark inline-flex min-h-12 items-center text-2xl text-navy"
+            dir="ltr"
+          >
             Cloud &amp; Core
           </Link>
           <LegalLanguageSwitcher lang={lang} />
@@ -89,13 +103,22 @@ function TermsPage() {
             ))}
           </div>
           <div className="mt-8 flex flex-wrap gap-3 border-t hairline pt-5 text-xs uppercase tracking-[0.18em]">
-            <Link to="/privacy" className="text-slate hover:text-gold transition-colors">
+            <Link
+              to="/privacy"
+              className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+            >
               {t("legal.privacy")}
             </Link>
-            <Link to="/support" className="text-slate hover:text-gold transition-colors">
+            <Link
+              to="/support"
+              className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+            >
               {t("legal.support")}
             </Link>
-            <Link to="/checkout" className="text-slate hover:text-gold transition-colors">
+            <Link
+              to="/checkout"
+              className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+            >
               {t("legal.checkout")}
             </Link>
           </div>

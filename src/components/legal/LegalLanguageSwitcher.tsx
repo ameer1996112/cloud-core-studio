@@ -15,7 +15,7 @@ export function LegalLanguageSwitcher({ lang }: { lang: Lang }) {
           aria-pressed={lang === code}
           lang={code}
           dir={LANG_META[code].dir}
-          className={`min-h-11 px-3 py-1.5 ${
+          className={`min-h-12 min-w-12 px-3 py-1.5 ${
             lang === code ? "bg-navy text-ivory" : "text-slate hover:text-navy"
           }`}
         >

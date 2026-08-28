@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Instagram, MapPin, MessageCircle, Smartphone } from "lucide-react";
 
 import aerialImage from "@/assets/classes/aerial-yoga-flow-hero.webp";
+import aerialThumbImage from "@/assets/classes/aerial-yoga-flow-thumb.webp";
 import studioImage from "@/assets/studio-interior.webp";
 import {
   getInstagramLandingData,
@@ -35,8 +36,11 @@ export const Route = createFileRoute("/instagram")({
       },
       { property: "og:image", content: "/images/classes/aerial-yoga-flow.webp" },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/instagram" },
+      { name: "robots", content: "index, follow" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/instagram" }],
   }),
   loader: async (): Promise<InstagramRouteData> => {
     try {
@@ -63,10 +67,10 @@ function InstagramLandingPage() {
   const { address, contactEmail, whatsappHref } = Route.useLoaderData();
 
   return (
-    <main className="ig-editorial" dir="rtl">
+    <main id="main-content" className="ig-editorial" dir="rtl">
       <header className="ig-editorial__nav">
         <Link to="/auth" className="ig-editorial__logo" aria-label="Cloud & Core home">
-          <img src="/brand/cloud-core-wordmark.svg" alt="Cloud & Core" />
+          <img src="/brand/cloud-core-wordmark.svg" alt="Cloud & Core" width={300} height={69} />
         </Link>
         <span className="ig-editorial__place">
           <MapPin aria-hidden="true" />
@@ -76,7 +80,17 @@ function InstagramLandingPage() {
 
       <section className="ig-editorial__hero" aria-labelledby="ig-editorial-title">
         <div className="ig-editorial__portrait">
-          <img src={aerialImage} alt="Aerial yoga at Cloud & Core Studio" />
+          <picture>
+            <source media="(max-width: 800px)" srcSet={aerialThumbImage} />
+            <img
+              src={aerialImage}
+              alt="Aerial yoga at Cloud & Core Studio"
+              width={1680}
+              height={720}
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
           <span>01</span>
         </div>
 
@@ -164,7 +178,14 @@ function InstagramLandingPage() {
       </section>
 
       <section className="ig-editorial__studio">
-        <img src={studioImage} alt="Cloud & Core boutique studio in Hurfeish" />
+        <img
+          src={studioImage}
+          alt="Cloud & Core boutique studio in Hurfeish"
+          width={512}
+          height={357}
+          loading="lazy"
+          decoding="async"
+        />
         <div>
           <span>THE STUDIO</span>
           <h2>
@@ -178,7 +199,13 @@ function InstagramLandingPage() {
 
       <footer className="ig-editorial__footer">
         <div>
-          <img src="/brand/cloud-core-mark.svg" alt="" aria-hidden="true" />
+          <img
+            src="/brand/cloud-core-mark.svg"
+            alt=""
+            aria-hidden="true"
+            width={214}
+            height={150}
+          />
           <p>
             <strong>Cloud &amp; Core Studio</strong>
             <span>{address || "Hurfeish · حرفيش · חורפיש"}</span>

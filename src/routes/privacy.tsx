@@ -6,11 +6,15 @@ import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher"
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
+      { title: "Privacy Policy | Cloud & Core Studio" },
       {
         name: "description",
         content: "Cloud & Core Studio privacy policy for members and app users.",
       },
+      { name: "robots", content: "index, follow" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/privacy" }],
   }),
   component: PrivacyPage,
 });
@@ -74,10 +78,18 @@ function LegalPage({ kind, lang, data }: { kind: string; lang: Lang; data: (type
   const dir = LANG_META[lang].dir;
 
   return (
-    <main dir={dir} className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
+    <main
+      id="main-content"
+      dir={dir}
+      className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8"
+    >
       <div className="mx-auto max-w-3xl">
         <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
-          <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">
+          <Link
+            to="/auth"
+            className="brand-wordmark inline-flex min-h-12 items-center text-2xl text-navy"
+            dir="ltr"
+          >
             Cloud &amp; Core
           </Link>
           <LegalLanguageSwitcher lang={lang} />
@@ -95,7 +107,9 @@ function LegalPage({ kind, lang, data }: { kind: string; lang: Lang; data: (type
             <Link
               to="/terms"
               className={
-                kind === "terms" ? "text-navy" : "text-slate hover:text-gold transition-colors"
+                kind === "terms"
+                  ? "inline-flex min-h-12 items-center px-2 text-navy"
+                  : "inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
               }
             >
               {t("legal.terms")}
@@ -103,7 +117,9 @@ function LegalPage({ kind, lang, data }: { kind: string; lang: Lang; data: (type
             <Link
               to="/support"
               className={
-                kind === "support" ? "text-navy" : "text-slate hover:text-gold transition-colors"
+                kind === "support"
+                  ? "inline-flex min-h-12 items-center px-2 text-navy"
+                  : "inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
               }
             >
               {t("legal.support")}

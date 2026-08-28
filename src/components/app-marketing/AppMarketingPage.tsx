@@ -15,6 +15,7 @@ import {
 
 import {
   APP_MARKETING_COPY,
+  APP_STORE_BADGE_ASSETS,
   getAppMarketingScreenshots,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
@@ -31,33 +32,28 @@ export type AppMarketingPageProps = {
 };
 
 const LANGUAGE_ORDER: Lang[] = ["he", "ar", "en"];
-const BADGE_ROOT = "/brand/app-store-badges/";
 const APPLE_CREDIT =
   "Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries and regions. App Store is a service mark of Apple Inc.";
 
 const PAGE_LABELS: Record<
   Lang,
   {
-    skip: string;
     language: string;
     contact: string;
     footerNavigation: string;
   }
 > = {
   he: {
-    skip: "דילוג לתוכן",
     language: "בחירת שפה",
     contact: "יצירת קשר",
     footerNavigation: "קישורים שימושיים",
   },
   ar: {
-    skip: "تخطّي إلى المحتوى",
     language: "اختيار اللغة",
     contact: "التواصل",
     footerNavigation: "روابط مفيدة",
   },
   en: {
-    skip: "Skip to content",
     language: "Choose language",
     contact: "Contact",
     footerNavigation: "Useful links",
@@ -107,6 +103,7 @@ function AppStoreBadge({
   href: string;
   label: string;
 }): JSX.Element {
+  const badge = APP_STORE_BADGE_ASSETS[lang];
   return (
     <a
       className="app-marketing__store-link"
@@ -118,9 +115,10 @@ function AppStoreBadge({
     >
       <img
         className="app-marketing__store-badge"
-        src={`${BADGE_ROOT}${lang}.svg`}
+        src={badge.src}
         alt={label}
-        height={40}
+        width={badge.width}
+        height={badge.height}
       />
     </a>
   );
@@ -207,10 +205,6 @@ export function AppMarketingPage({
 
   return (
     <div className="app-marketing" lang={lang} dir={LANG_META[lang].dir}>
-      <a className="app-marketing__skip-link" href="#main-content">
-        {labels.skip}
-      </a>
-
       <header className="app-marketing__header">
         <div className="app-marketing__header-inner">
           <Link

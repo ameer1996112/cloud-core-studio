@@ -95,6 +95,7 @@ function PaymentResultPage() {
 
   return (
     <main
+      id="main-content"
       dir="rtl"
       className="relative min-h-screen overflow-hidden bg-[#f7f1e8] px-5 py-[max(2.5rem,env(safe-area-inset-top))] text-navy"
     >

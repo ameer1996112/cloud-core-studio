@@ -7,7 +7,33 @@ import { captureYogaPromoAttribution, trackYogaPromo, YOGA_PROMO_PATH } from "@/
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
-export const Route = createFileRoute("/promo/yoga-lina")({ component: YogaLinaPromoPage });
+const YOGA_PROMO_CANONICAL_URL = "https://cloudandcorestudio.com/promo/yoga-lina";
+const YOGA_PROMO_TITLE = "יוגה עם לינה | Cloud & Core Studio";
+const YOGA_PROMO_DESCRIPTION =
+  "שיעור יוגה עם לינה ב-Cloud & Core Studio, כולל פרטי המבצע והצטרפות מאובטחת.";
+
+export const Route = createFileRoute("/promo/yoga-lina")({
+  head: () => ({
+    meta: [
+      { title: YOGA_PROMO_TITLE },
+      { name: "description", content: YOGA_PROMO_DESCRIPTION },
+      { name: "robots", content: "noindex, follow" },
+      { property: "og:title", content: YOGA_PROMO_TITLE },
+      { property: "og:description", content: YOGA_PROMO_DESCRIPTION },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: YOGA_PROMO_CANONICAL_URL },
+      {
+        property: "og:image",
+        content: "https://cloudandcorestudio.com/images/classes/aerial-yoga-flow.webp",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: YOGA_PROMO_TITLE },
+      { name: "twitter:description", content: YOGA_PROMO_DESCRIPTION },
+    ],
+    links: [{ rel: "canonical", href: YOGA_PROMO_CANONICAL_URL }],
+  }),
+  component: YogaLinaPromoPage,
+});
 
 function YogaLinaPromoPage() {
   const { dir } = useI18n();
@@ -16,7 +42,7 @@ function YogaLinaPromoPage() {
   const [attributionReady, setAttributionReady] = useState(false);
   const promo = useYogaPromo({ autoClaim: authenticated && attributionReady });
   const refetchPromo = promo.refetch;
-  useDocumentTitle("page.home.title");
+  useDocumentTitle("page.promoYoga.title");
 
   useEffect(() => {
     trackYogaPromo("yoga_promo_landing_viewed");
@@ -47,7 +73,11 @@ function YogaLinaPromoPage() {
   }
 
   return (
-    <main dir={dir} className="min-h-[100dvh] bg-[#f5eddf] px-4 py-8 sm:px-6 sm:py-12">
+    <main
+      id="main-content"
+      dir={dir}
+      className="min-h-[100dvh] bg-[#f5eddf] px-4 py-8 sm:px-6 sm:py-12"
+    >
       <div className="mx-auto max-w-5xl">
         <header className="mb-7 text-center sm:mb-10">
           <p className="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-[#9a6d22]">
