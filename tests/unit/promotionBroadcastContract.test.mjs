@@ -98,7 +98,7 @@ describe("promotion broadcast contract", () => {
       server.indexOf("const { error: auditError }"),
     );
     expect(suppressionLoop).toContain(
-      'if (alreadyDelivered.has(`${member.id}:${channel}`)) continue;',
+      "if (alreadyDelivered.has(`${member.id}:${channel}`)) continue;",
     );
     expect(suppressionLoop.indexOf("alreadyDelivered.has")).toBeLessThan(
       suppressionLoop.indexOf("await recordDelivery"),

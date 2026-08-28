@@ -96,11 +96,9 @@ export function PromotionCard({
             type="button"
             disabled={claimPending}
             onClick={() => {
-              void trackPromotionEngagement(
-                promotion.slug,
-                "cta_clicked",
-                promotion.id,
-              ).catch(() => null);
+              void trackPromotionEngagement(promotion.slug, "cta_clicked", promotion.id).catch(
+                () => null,
+              );
               onClaim();
             }}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b] bg-[#efc36b] px-5 text-sm font-bold text-[#071a32] transition hover:bg-[#f8d88f] disabled:cursor-wait disabled:opacity-65"
@@ -112,11 +110,9 @@ export function PromotionCard({
           <a
             href={promotion.actionUrl}
             onClick={() => {
-              void trackPromotionEngagement(
-                promotion.slug,
-                "cta_clicked",
-                promotion.id,
-              ).catch(() => null);
+              void trackPromotionEngagement(promotion.slug, "cta_clicked", promotion.id).catch(
+                () => null,
+              );
             }}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b]/65 px-5 text-sm font-bold text-[#fff8e9] transition hover:bg-white/10"
           >
