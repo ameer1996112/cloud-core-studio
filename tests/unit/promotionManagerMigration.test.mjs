@@ -8,8 +8,30 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const repairMigration = readFileSync(
+  new URL(
+    "../../supabase/migrations/20260828133000_promotions_manager_schema_repair.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 describe("reusable promotions manager database contract", () => {
+  test("repairs a recorded legacy schema without dropping production promotion data", () => {
+    expect(repairMigration).toContain("ADD COLUMN IF NOT EXISTS status");
+    expect(repairMigration).toContain("CREATE TABLE IF NOT EXISTS public.promotion_deliveries");
+    expect(repairMigration).toContain("CREATE OR REPLACE FUNCTION public.get_member_promotions()");
+    expect(repairMigration).toContain(
+      "CREATE OR REPLACE FUNCTION public.admin_transition_promotion",
+    );
+    expect(repairMigration).toContain("enabled=false");
+    expect(repairMigration).toContain("ends_at IS NOT NULL AND ends_at<=now() THEN 'ended'");
+    expect(repairMigration).toContain("Preserve the live booking RPCs");
+    expect(repairMigration).not.toMatch(
+      /DROP\s+TABLE|TRUNCATE|DELETE\s+FROM\s+public\.promotion_campaigns/i,
+    );
+  });
+
   test("stores reusable lifecycle, content, targeting, channels, and publishing evidence", () => {
     for (const contract of [
       "promotion_type text NOT NULL",
