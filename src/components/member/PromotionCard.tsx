@@ -17,6 +17,8 @@ export function PromotionCard({
   const { lang, dir } = useI18n();
   const viewed = useRef(false);
   const copy = promotion.localizedContent[lang] ?? promotion.localizedContent.he;
+  const dismissLabel =
+    lang === "he" ? "סגירת המבצע" : lang === "ar" ? "إغلاق العرض" : "Dismiss promotion";
   const claimed = promotion.claimedByCurrentUser;
   const confirmationCopy =
     lang === "he"
@@ -51,7 +53,7 @@ export function PromotionCard({
     viewed.current = true;
     void trackPromotionEngagement(promotion.slug, "impression", promotion.id, {
       remaining: promotion.remaining,
-    });
+    }).catch(() => null);
   }, [promotion.id, promotion.remaining, promotion.slug]);
 
   return (
@@ -62,7 +64,7 @@ export function PromotionCard({
     >
       <button
         type="button"
-        aria-label="Dismiss promotion"
+        aria-label={dismissLabel}
         className="absolute end-3 top-3 z-20 rounded-full p-2 text-ivory/70 hover:bg-white/10 hover:text-ivory"
         onClick={onDismiss}
       >
@@ -77,7 +79,7 @@ export function PromotionCard({
               {displayCopy.eyebrow}
             </span>
           </div>
-          <h2 className="font-display text-2xl leading-tight !text-[#fff8e9] sm:text-3xl">
+          <h2 className="font-display text-2xl leading-tight text-[#fff8e9] sm:text-3xl">
             {displayCopy.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#fff8e9]/82 sm:text-base">
@@ -94,7 +96,11 @@ export function PromotionCard({
             type="button"
             disabled={claimPending}
             onClick={() => {
-              void trackPromotionEngagement(promotion.slug, "cta_clicked", promotion.id);
+              void trackPromotionEngagement(
+                promotion.slug,
+                "cta_clicked",
+                promotion.id,
+              ).catch(() => null);
               onClaim();
             }}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b] bg-[#efc36b] px-5 text-sm font-bold text-[#071a32] transition hover:bg-[#f8d88f] disabled:cursor-wait disabled:opacity-65"
@@ -105,9 +111,13 @@ export function PromotionCard({
         ) : (
           <a
             href={promotion.actionUrl}
-            onClick={() =>
-              void trackPromotionEngagement(promotion.slug, "cta_clicked", promotion.id)
-            }
+            onClick={() => {
+              void trackPromotionEngagement(
+                promotion.slug,
+                "cta_clicked",
+                promotion.id,
+              ).catch(() => null);
+            }}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#efc36b]/65 px-5 text-sm font-bold text-[#fff8e9] transition hover:bg-white/10"
           >
             {displayCopy.cta}

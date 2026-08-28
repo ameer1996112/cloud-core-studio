@@ -22,6 +22,10 @@ const classDetail = readFileSync(
   new URL("../../src/components/member/ClassDetailSheet.tsx", import.meta.url),
   "utf8",
 );
+const promotionCard = readFileSync(
+  new URL("../../src/components/member/PromotionCard.tsx", import.meta.url),
+  "utf8",
+);
 
 describe("member promotion experience", () => {
   test("never claims a promotion automatically", () => {
@@ -47,5 +51,13 @@ describe("member promotion experience", () => {
     expect(schedule).toContain("!programs.includes(c.program_type?.slug)");
     expect(schedule).toContain('.split(",")');
     expect(publicPromotion).toContain("applyLang(requestedLang)");
+  });
+
+  test("keeps the promotion card localized and resilient to analytics failures", () => {
+    expect(promotionCard).toContain('lang === "he" ? "סגירת המבצע"');
+    expect(promotionCard).toContain('lang === "ar" ? "إغلاق العرض"');
+    expect(promotionCard).toContain("aria-label={dismissLabel}");
+    expect(promotionCard.match(/\.catch\(\(\) => null\)/g)).toHaveLength(3);
+    expect(promotionCard).not.toContain("!text-[#fff8e9]");
   });
 });
