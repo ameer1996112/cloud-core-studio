@@ -91,4 +91,17 @@ describe("promotion broadcast contract", () => {
     );
     expect(delivery.match(/\.eq\("delivery_status", "sending"\)/g)).toHaveLength(2);
   });
+
+  test("does not overwrite a successful delivery when a retry now suppresses that channel", () => {
+    const suppressionLoop = server.slice(
+      server.indexOf("for (const [channel, reason] of Object.entries(channels.suppressed))"),
+      server.indexOf("const { error: auditError }"),
+    );
+    expect(suppressionLoop).toContain(
+      'if (alreadyDelivered.has(`${member.id}:${channel}`)) continue;',
+    );
+    expect(suppressionLoop.indexOf("alreadyDelivered.has")).toBeLessThan(
+      suppressionLoop.indexOf("await recordDelivery"),
+    );
+  });
 });

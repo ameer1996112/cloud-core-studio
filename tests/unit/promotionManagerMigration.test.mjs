@@ -82,6 +82,16 @@ describe("reusable promotions manager database contract", () => {
     expect(migration).toContain("published_promotions_are_immutable");
   });
 
+  test("restricts activation readiness details to administrators and the service role", () => {
+    const requirements = migration.slice(
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.promotion_activation_requirements"),
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.admin_preview_promotion_audience"),
+    );
+    expect(requirements).toContain("COALESCE(auth.role(),'') <> 'service_role'");
+    expect(requirements).toContain("NOT public.has_role(auth.uid(),'admin')");
+    expect(requirements).toContain("ARRAY['forbidden']");
+  });
+
   test("previews the audience without depending on a lifecycle transition argument", () => {
     const preview = migration.slice(
       migration.indexOf("CREATE OR REPLACE FUNCTION public.admin_preview_promotion_audience"),

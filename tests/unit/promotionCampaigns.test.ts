@@ -55,6 +55,7 @@ describe("reusable promotion campaign contract", () => {
     };
 
     expect(promotionCampaignDraftSchema.parse(draft)).toEqual(draft);
+    expect(() => promotionCampaignDraftSchema.parse({ ...draft, creditQuantity: 2 })).toThrow();
     expect(() =>
       promotionCampaignDraftSchema.parse({ ...draft, actionUrl: "https://evil.example/promo" }),
     ).toThrow();

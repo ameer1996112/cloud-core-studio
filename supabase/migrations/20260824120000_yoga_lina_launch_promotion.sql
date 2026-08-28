@@ -754,6 +754,9 @@ CREATE OR REPLACE FUNCTION public.promotion_activation_requirements(p_promotion_
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
 DECLARE v_campaign public.promotion_campaigns%ROWTYPE; v_errors text[] := ARRAY[]::text[]; v_language text;
 BEGIN
+  IF COALESCE(auth.role(),'') <> 'service_role' AND NOT public.has_role(auth.uid(),'admin') THEN
+    RETURN jsonb_build_object('ok',false,'errors',ARRAY['forbidden']);
+  END IF;
   SELECT * INTO v_campaign FROM public.promotion_campaigns WHERE id=p_promotion_id;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'errors',ARRAY['campaign_not_found']); END IF;
   IF v_campaign.starts_at IS NULL OR v_campaign.ends_at IS NULL OR v_campaign.ends_at<=v_campaign.starts_at THEN

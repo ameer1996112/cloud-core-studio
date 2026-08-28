@@ -75,7 +75,7 @@ export const promotionCampaignDraftSchema = z.object({
   featured: z.boolean(),
   priority: z.number().int().min(0).max(100),
   claimLimit: z.number().int().positive().max(100_000).nullable().optional(),
-  creditQuantity: z.number().int().min(1).max(10).nullable().optional(),
+  creditQuantity: z.literal(1).nullable().optional(),
   eligibleProgramTypeIds: z.array(z.string().uuid()).max(100),
   startsAt: z.string().datetime({ offset: true }),
   endsAt: z.string().datetime({ offset: true }),

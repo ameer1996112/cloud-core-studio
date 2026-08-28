@@ -324,6 +324,7 @@ async function dispatchClaimedPromotion(db: any, campaign: any, now: Date, lease
     }
 
     for (const [channel, reason] of Object.entries(channels.suppressed)) {
+      if (alreadyDelivered.has(`${member.id}:${channel}`)) continue;
       await recordDelivery(db, {
         promotion_id: campaign.id,
         member_id: member.id,
