@@ -93,6 +93,7 @@ bun run mobile:open:android
 - The app uses TanStack Start, Vite, React, Tailwind CSS, Supabase, and Bun.
 - Production builds emit `dist/client` and `dist/server`.
 - The public app marketing pages are server-rendered at `/app/he`, `/app/ar`, and `/app/en`; `/app` resolves ordinary browser visitors to a localized page.
+- Admins can prepare localized promotion campaigns at `/admin/promotions`; new campaigns stay disabled until audience preview, test send, and explicit activation are complete.
 - Web releases update the UI loaded by installed native shells. Native assets and metadata, including the app icon and build number, still require a new TestFlight/App Store binary.
 - Native build architecture is documented in `docs/mobile-release-architecture.md`.
 

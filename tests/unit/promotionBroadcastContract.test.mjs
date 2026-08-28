@@ -9,6 +9,10 @@ const automation = readFileSync(
   new URL("../../src/lib/memberNotificationAutomation.server.ts", import.meta.url),
   "utf8",
 );
+const canonicalSweep = readFileSync(
+  new URL("../../src/lib/unifiedMessaging.server.ts", import.meta.url),
+  "utf8",
+);
 const queuedDelivery = readFileSync(
   new URL("../../src/lib/memberNotificationDelivery.server.ts", import.meta.url),
   "utf8",
@@ -37,6 +41,10 @@ describe("promotion broadcast contract", () => {
   test("dispatches scheduled promotions from the existing automation sweep", () => {
     expect(server).toContain("dispatchDuePromotions");
     expect(automation).toContain("dispatchDuePromotions");
+    expect(canonicalSweep).toContain(
+      "const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });",
+    );
+    expect(canonicalSweep).toContain("promotions,");
   });
 
   test("retries active campaigns until durable broadcast completion is recorded", () => {

@@ -65,6 +65,14 @@ missing, so CI cannot report migration, concurrency, or RLS coverage as passing 
 
 ## Event and channel behavior
 
+Localized promotion campaigns are managed separately at `/admin/promotions`, but due campaigns are
+claimed by the same canonical one-minute sweep. A campaign remains disabled until an administrator
+previews its audience, records a test send, completes all three language variants, and explicitly
+activates or schedules it. Promotion delivery preserves member marketing consent, per-channel
+preferences, active-device/phone availability, approved WhatsApp templates, and the shared
+one-per-day, three-per-week promotional contact limits. Pausing or archiving a campaign suppresses
+its queued member notifications, and a dispatch lease prevents duplicate broadcast work.
+
 The channel matrix is encoded in `src/lib/messagingPolicy.ts`. Only class cancellation, material class-time change, and payment failure bypass later email/WhatsApp opt-outs. Other external deliveries require the relevant preference. In-app and push are separate deliveries.
 
 At registration, essential service email is enabled independently of promotional consent.
