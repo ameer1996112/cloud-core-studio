@@ -15,6 +15,7 @@ type RelatedIds = {
   paymentId?: string | null;
   memberPlanId?: string | null;
   campaignId?: string | null;
+  promotionId?: string | null;
 };
 
 export type EnqueueMemberNotificationInput = {
@@ -112,7 +113,8 @@ async function deliverNotification(row: any, tokens: Array<{ id: string; token: 
     await db
       .from("member_notifications")
       .update({ delivery_status: "failed", suppression_reason: "missing_apns_config" })
-      .eq("id", row.id);
+      .eq("id", row.id)
+      .eq("delivery_status", "sending");
     return {
       sent: 0,
       failed: tokens.length,
@@ -178,7 +180,8 @@ async function deliverNotification(row: any, tokens: Array<{ id: string; token: 
       scheduled_for: retryAt?.toISOString() ?? row.scheduled_for,
       next_attempt_at: retryAt?.toISOString() ?? null,
     })
-    .eq("id", row.id);
+    .eq("id", row.id)
+    .eq("delivery_status", "sending");
 
   return {
     sent: successes.length,
@@ -295,6 +298,7 @@ export async function enqueueMemberNotification(input: EnqueueMemberNotification
       action_url: safeNotificationActionUrl(input.actionUrl),
       sound: decision.pushSound,
       campaign_id: input.relatedIds?.campaignId ?? null,
+      promotion_id: input.relatedIds?.promotionId ?? null,
       related_booking_id: input.relatedIds?.bookingId ?? null,
       related_class_id: input.relatedIds?.classId ?? null,
       related_payment_id: input.relatedIds?.paymentId ?? null,
@@ -342,6 +346,34 @@ async function reevaluateQueuedNotification(
       .eq("id", row.id)
       .eq("delivery_status", "queued");
     return null;
+  }
+
+  if (row.promotion_id) {
+    const { data: campaign, error: campaignError } = await db
+      .from("promotion_campaigns")
+      .select("enabled,status")
+      .eq("id", row.promotion_id)
+      .maybeSingle();
+    if (campaignError) throw campaignError;
+    if (!campaign?.enabled || campaign.status !== "active") {
+      await db
+        .from("member_notifications")
+        .update({ delivery_status: "suppressed", suppression_reason: "campaign_inactive" })
+        .eq("id", row.id)
+        .eq("delivery_status", "queued");
+      await db
+        .from("promotion_deliveries")
+        .update({
+          status: "skipped",
+          error_message: "campaign_inactive",
+          updated_at: now.toISOString(),
+        })
+        .eq("promotion_id", row.promotion_id)
+        .eq("member_id", row.member_id)
+        .eq("channel", "push")
+        .eq("status", "queued");
+      return null;
+    }
   }
 
   const isMarketing = MARKETING_CATEGORIES.includes(row.category);

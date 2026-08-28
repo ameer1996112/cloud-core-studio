@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import {
+  Sparkles,
   Check,
   CircleCheck,
   ClipboardCheck,
@@ -147,6 +148,9 @@ function MemberPackages() {
   const visiblePlans = (data?.plans ?? [])
     .filter((p: any) => !hasTestPlanRecord(p))
     .sort(comparePricingPlans);
+  const promoEntitlements = (data?.promotionEntitlements ?? []).filter(
+    (entitlement: any) => entitlement.status === "active",
+  );
 
   function submitPayment(
     plan: any,
@@ -283,6 +287,37 @@ function MemberPackages() {
           )}
         </MemberSection>
       </div>
+
+      {promoEntitlements.map((entitlement: any) => (
+        <div
+          key={entitlement.id}
+          className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_rgba(11,29,58,.16)] sm:p-6"
+          data-testid="promotion-wallet-credit"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="member-eyebrow text-gold">Cloud &amp; Core</p>
+              <h2 className="mt-2 font-display text-2xl text-ivory">
+                {promotionWalletCopy(entitlement, lang).title}
+              </h2>
+              <p className="mt-3 text-sm font-semibold text-ivory/90">
+                {promotionWalletCopy(entitlement, lang).quantity}
+              </p>
+              <p className="mt-1 text-sm text-ivory/75">
+                {promotionWalletCopy(entitlement, lang).restriction}
+              </p>
+              {entitlement.expires_at ? (
+                <p className="mt-1 text-sm text-ivory/75">
+                  {t("promo.yoga.validUntil", {
+                    date: new Date(entitlement.expires_at).toLocaleDateString(locale),
+                  })}
+                </p>
+              ) : null}
+            </div>
+            <Sparkles className="h-6 w-6 shrink-0 text-gold" aria-hidden="true" />
+          </div>
+        </div>
+      ))}
 
       {selectedPlan && (
         <PaymentMethodSheet
@@ -842,6 +877,37 @@ function formatCreditReason(reason: string | null | undefined, amountDelta: numb
 }
 
 type PaymentSheetFocusRef<T extends HTMLElement = HTMLElement> = { current: T | null };
+
+function promotionWalletCopy(entitlement: any, lang: Lang) {
+  const promotion = Array.isArray(entitlement.promotion)
+    ? entitlement.promotion[0]
+    : entitlement.promotion;
+  const campaignTitle =
+    promotion?.localized_content?.[lang]?.title ??
+    promotion?.localized_content?.he?.title ??
+    promotion?.name ??
+    "Cloud & Core";
+  const quantity = entitlement.quantity ?? 1;
+  if (lang === "he") {
+    return {
+      title: `קרדיט הטבה — ${campaignTitle}`,
+      quantity: `כמות: ${quantity}`,
+      restriction: "תקף לשיעורים המשתתפים במבצע בלבד",
+    };
+  }
+  if (lang === "ar") {
+    return {
+      title: `رصيد العرض — ${campaignTitle}`,
+      quantity: `الكمية: ${quantity}`,
+      restriction: "صالح فقط للحصص المشمولة في العرض",
+    };
+  }
+  return {
+    title: `Promotion credit — ${campaignTitle}`,
+    quantity: `Quantity: ${quantity}`,
+    restriction: "Valid only for classes included in this promotion",
+  };
+}
 
 function createPaymentSheetFocusHandlers({
   initialFocusRef,

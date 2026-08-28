@@ -120,6 +120,7 @@ export const bookClass = createServerFn({ method: "POST" })
       status: BookingStatus;
       booking_id?: string;
       remaining_credits?: number;
+      promotion_entitlement_id?: string | null;
       message?: string;
     };
     const bookingId = (typedResult as any)?.booking_id;

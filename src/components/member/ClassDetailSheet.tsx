@@ -47,7 +47,12 @@ import {
 } from "@/lib/memberQueryKeys";
 
 type BookClassResult =
-  | { status: "booked"; booking_id: string; remaining_credits?: number | null }
+  | {
+      status: "booked";
+      booking_id: string;
+      remaining_credits?: number | null;
+      promotion_entitlement_id?: string | null;
+    }
   | {
       status: "already_booked" | "full" | "insufficient_credits" | "no_active_package" | string;
       booking_id?: string | null;
@@ -302,6 +307,7 @@ export function ClassDetailSheet({
   });
 
   const cls = data?.cls;
+  const canUsePromotion = Boolean(!isGuestView && data?.applicablePromotion);
   const title = cls ? localizedClassTitle(cls) : "";
   const titleParts = cls ? localizedClassTitleParts(cls, lang) : null;
   const instructor = cls ? localizedOptionalInstructorName(cls.instructor?.name) : null;
@@ -333,8 +339,10 @@ export function ClassDetailSheet({
       : deriveClassState(cls, {
           booked: data?.myBooking?.status === "booked",
           waiting: data?.myWaitlist?.status === "waiting" || data?.myWaitlist?.status === "ready",
-          remainingCredits: data?.member?.remaining_credits ?? 0,
-          hasActivePackage: data?.hasActivePackage,
+          remainingCredits: canUsePromotion
+            ? Math.max(data?.member?.remaining_credits ?? 0, cls.credit_cost)
+            : (data?.member?.remaining_credits ?? 0),
+          hasActivePackage: canUsePromotion || data?.hasActivePackage,
         })
     : null;
   const guestDetailCta = isGuestView && state ? getGuestDetailCtaModel(state, lang) : null;
@@ -511,6 +519,17 @@ export function ClassDetailSheet({
                 </p>
                 <p>{t("booking.bring")}</p>
               </div>
+
+              {canUsePromotion ? (
+                <div className="rounded-2xl border border-gold/45 bg-gold/10 px-4 py-3 text-sm font-semibold leading-6 text-navy">
+                  <Sparkles className="me-2 inline h-4 w-4 text-gold" aria-hidden="true" />
+                  {lang === "he"
+                    ? "קרדיט ההטבה שלך יחול אוטומטית על ההזמנה הזאת."
+                    : lang === "ar"
+                      ? "سيُستخدم رصيد العرض تلقائياً لهذا الحجز."
+                      : "Your promotion credit will be applied automatically to this booking."}
+                </div>
+              ) : null}
 
               <div className="lesson-detail__cta">
                 {guestDetailCta ? (

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { dispatchDuePromotions } from "@/lib/promotionBroadcast.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   ADMIN_BOOKING_ALERT_EVENT,
@@ -2868,6 +2869,7 @@ export async function runUnifiedMessagingSweep(input?: {
     },
     now,
   );
+  const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });
   const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
@@ -2928,6 +2930,7 @@ export async function runUnifiedMessagingSweep(input?: {
     expiredOutbox,
     staleOutbox,
     staleDeliveries,
+    promotions,
     scheduled,
     outboxClaimed: outboxClaim.data?.length ?? 0,
     materialized,

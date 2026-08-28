@@ -24,6 +24,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PromoYogaLinaRouteImport } from './routes/promo.yoga-lina'
+import { Route as PromoSlugRouteImport } from './routes/promo.$slug'
 import { Route as MemberScheduleRouteImport } from './routes/member.schedule'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AppHeRouteImport } from './routes/app.he'
@@ -50,6 +52,7 @@ import { Route as AuthenticatedAdminScheduleRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminRoomsRouteImport } from './routes/_authenticated/admin/rooms'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminPulseRouteImport } from './routes/_authenticated/admin/pulse'
+import { Route as AuthenticatedAdminPromotionsRouteImport } from './routes/_authenticated/admin/promotions'
 import { Route as AuthenticatedAdminProgramsRouteImport } from './routes/_authenticated/admin/programs'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin/plans'
 import { Route as AuthenticatedAdminPlannerRouteImport } from './routes/_authenticated/admin/planner'
@@ -155,6 +158,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromoYogaLinaRoute = PromoYogaLinaRouteImport.update({
+  id: '/promo/yoga-lina',
+  path: '/promo/yoga-lina',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromoSlugRoute = PromoSlugRouteImport.update({
+  id: '/promo/$slug',
+  path: '/promo/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MemberScheduleRoute = MemberScheduleRouteImport.update({
@@ -299,6 +312,12 @@ const AuthenticatedAdminPulseRoute = AuthenticatedAdminPulseRouteImport.update({
   path: '/pulse',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminPromotionsRoute =
+  AuthenticatedAdminPromotionsRouteImport.update({
+    id: '/promotions',
+    path: '/promotions',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminProgramsRoute =
   AuthenticatedAdminProgramsRouteImport.update({
     id: '/programs',
@@ -513,6 +532,8 @@ export interface FileRoutesByFullPath {
   '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
+  '/promo/$slug': typeof PromoSlugRoute
+  '/promo/yoga-lina': typeof PromoYogaLinaRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -526,6 +547,7 @@ export interface FileRoutesByFullPath {
   '/admin/planner': typeof AuthenticatedAdminPlannerRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/programs': typeof AuthenticatedAdminProgramsRoute
+  '/admin/promotions': typeof AuthenticatedAdminPromotionsRoute
   '/admin/pulse': typeof AuthenticatedAdminPulseRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/rooms': typeof AuthenticatedAdminRoomsRoute
@@ -584,6 +606,8 @@ export interface FileRoutesByTo {
   '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
+  '/promo/$slug': typeof PromoSlugRoute
+  '/promo/yoga-lina': typeof PromoYogaLinaRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -597,6 +621,7 @@ export interface FileRoutesByTo {
   '/admin/planner': typeof AuthenticatedAdminPlannerRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/programs': typeof AuthenticatedAdminProgramsRoute
+  '/admin/promotions': typeof AuthenticatedAdminPromotionsRoute
   '/admin/pulse': typeof AuthenticatedAdminPulseRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/rooms': typeof AuthenticatedAdminRoomsRoute
@@ -660,6 +685,8 @@ export interface FileRoutesById {
   '/app/he': typeof AppHeRoute
   '/auth_/reset': typeof AuthResetRoute
   '/member/schedule': typeof MemberScheduleRoute
+  '/promo/$slug': typeof PromoSlugRoute
+  '/promo/yoga-lina': typeof PromoYogaLinaRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -673,6 +700,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/planner': typeof AuthenticatedAdminPlannerRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/programs': typeof AuthenticatedAdminProgramsRoute
+  '/_authenticated/admin/promotions': typeof AuthenticatedAdminPromotionsRoute
   '/_authenticated/admin/pulse': typeof AuthenticatedAdminPulseRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/rooms': typeof AuthenticatedAdminRoomsRoute
@@ -736,6 +764,8 @@ export interface FileRouteTypes {
     | '/app/he'
     | '/auth/reset'
     | '/member/schedule'
+    | '/promo/$slug'
+    | '/promo/yoga-lina'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/automations'
@@ -749,6 +779,7 @@ export interface FileRouteTypes {
     | '/admin/planner'
     | '/admin/plans'
     | '/admin/programs'
+    | '/admin/promotions'
     | '/admin/pulse'
     | '/admin/reports'
     | '/admin/rooms'
@@ -807,6 +838,8 @@ export interface FileRouteTypes {
     | '/app/he'
     | '/auth/reset'
     | '/member/schedule'
+    | '/promo/$slug'
+    | '/promo/yoga-lina'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/automations'
@@ -820,6 +853,7 @@ export interface FileRouteTypes {
     | '/admin/planner'
     | '/admin/plans'
     | '/admin/programs'
+    | '/admin/promotions'
     | '/admin/pulse'
     | '/admin/reports'
     | '/admin/rooms'
@@ -882,6 +916,8 @@ export interface FileRouteTypes {
     | '/app/he'
     | '/auth_/reset'
     | '/member/schedule'
+    | '/promo/$slug'
+    | '/promo/yoga-lina'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/automations'
@@ -895,6 +931,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/planner'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/programs'
+    | '/_authenticated/admin/promotions'
     | '/_authenticated/admin/pulse'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/rooms'
@@ -949,6 +986,8 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
+  PromoSlugRoute: typeof PromoSlugRoute
+  PromoYogaLinaRoute: typeof PromoYogaLinaRoute
   ApiInternalConciergeDispatchRoute: typeof ApiInternalConciergeDispatchRoute
   ApiInternalConciergeRunRoute: typeof ApiInternalConciergeRunRoute
   ApiInternalMessagesSweepRoute: typeof ApiInternalMessagesSweepRoute
@@ -1070,6 +1109,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promo/yoga-lina': {
+      id: '/promo/yoga-lina'
+      path: '/promo/yoga-lina'
+      fullPath: '/promo/yoga-lina'
+      preLoaderRoute: typeof PromoYogaLinaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promo/$slug': {
+      id: '/promo/$slug'
+      path: '/promo/$slug'
+      fullPath: '/promo/$slug'
+      preLoaderRoute: typeof PromoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/member/schedule': {
@@ -1252,6 +1305,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/admin/pulse'
       preLoaderRoute: typeof AuthenticatedAdminPulseRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/promotions': {
+      id: '/_authenticated/admin/promotions'
+      path: '/promotions'
+      fullPath: '/admin/promotions'
+      preLoaderRoute: typeof AuthenticatedAdminPromotionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/programs': {
@@ -1495,6 +1555,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminPlannerRoute: typeof AuthenticatedAdminPlannerRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
   AuthenticatedAdminProgramsRoute: typeof AuthenticatedAdminProgramsRoute
+  AuthenticatedAdminPromotionsRoute: typeof AuthenticatedAdminPromotionsRoute
   AuthenticatedAdminPulseRoute: typeof AuthenticatedAdminPulseRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminRoomsRoute: typeof AuthenticatedAdminRoomsRoute
@@ -1524,6 +1585,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminPlannerRoute: AuthenticatedAdminPlannerRoute,
     AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
     AuthenticatedAdminProgramsRoute: AuthenticatedAdminProgramsRoute,
+    AuthenticatedAdminPromotionsRoute: AuthenticatedAdminPromotionsRoute,
     AuthenticatedAdminPulseRoute: AuthenticatedAdminPulseRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
     AuthenticatedAdminRoomsRoute: AuthenticatedAdminRoomsRoute,
@@ -1637,6 +1699,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
+  PromoSlugRoute: PromoSlugRoute,
+  PromoYogaLinaRoute: PromoYogaLinaRoute,
   ApiInternalConciergeDispatchRoute: ApiInternalConciergeDispatchRoute,
   ApiInternalConciergeRunRoute: ApiInternalConciergeRunRoute,
   ApiInternalMessagesSweepRoute: ApiInternalMessagesSweepRoute,

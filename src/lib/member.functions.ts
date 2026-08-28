@@ -78,7 +78,7 @@ export const optionalSupabaseAuth = createMiddleware({ type: "function" }).serve
 );
 
 const classSelect =
-  "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,member_visible,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
+  "id,title,starts_at,duration_minutes,capacity,booked_count,waitlist_count,room,energy,credit_cost,cancellation_window_hours,status,member_visible,image_url,image_card_url,image_hero_url,image_thumb_url,room_id,instructor:instructors(id,name,bio_short,avatar_url),program_type:program_types(id,slug,name_en,name_he,name_ar,color_tag,level,description_en,description_he,description_ar,image_url,image_card_url,image_hero_url,image_thumb_url,cover_image_url),room_ref:rooms(id,name,image_url,capacity)";
 
 async function insertNotificationDraftRows(_supabase: any, rows: any[]) {
   if (!rows.length) return;
@@ -323,34 +323,61 @@ export const getClassDetail = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw error;
 
-    const [bookingRes, waitlistRes, memberRes, activePlansRes] = await Promise.all([
-      userId
-        ? supabase
-            .from("bookings")
-            .select("id,status,credit_cost")
-            .eq("class_id", data.classId)
-            .eq("member_id", userId)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      userId
-        ? supabase
-            .from("waitlist_entries")
-            .select("id,status,created_at")
-            .eq("class_id", data.classId)
-            .eq("member_id", userId)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      userId
-        ? supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle()
-        : Promise.resolve({ data: null }),
-      userId
-        ? supabase
-            .from("member_plans")
-            .select("expires_at")
-            .eq("member_id", userId)
-            .eq("status", "active")
-        : Promise.resolve({ data: [] as any[] }),
-    ]);
+    const [bookingRes, waitlistRes, memberRes, activePlansRes, promotionEntitlementsRes] =
+      await Promise.all([
+        userId
+          ? supabase
+              .from("bookings")
+              .select("id,status,credit_cost")
+              .eq("class_id", data.classId)
+              .eq("member_id", userId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        userId
+          ? supabase
+              .from("waitlist_entries")
+              .select("id,status,created_at")
+              .eq("class_id", data.classId)
+              .eq("member_id", userId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        userId
+          ? supabase.from("members").select("remaining_credits,name").eq("id", userId).maybeSingle()
+          : Promise.resolve({ data: null }),
+        userId
+          ? supabase
+              .from("member_plans")
+              .select("expires_at")
+              .eq("member_id", userId)
+              .eq("status", "active")
+          : Promise.resolve({ data: [] as any[] }),
+        userId
+          ? supabase
+              .from("promotion_entitlements")
+              .select(
+                "id,promotion_id,status,quantity,expires_at,promotion:promotion_campaigns(name,localized_content)",
+              )
+              .eq("member_id", userId)
+              .eq("status", "active")
+              .gt("expires_at", new Date().toISOString())
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+    const entitlementPromotionIds = (promotionEntitlementsRes.data ?? []).map(
+      (entitlement: any) => entitlement.promotion_id,
+    );
+    const { data: eligiblePromotionRows } = entitlementPromotionIds.length
+      ? await supabase
+          .from("promotion_eligible_class_types")
+          .select("promotion_id,program_type_id")
+          .in("promotion_id", entitlementPromotionIds)
+      : { data: [] as any[] };
+    const applicablePromotion = (promotionEntitlementsRes.data ?? []).find((entitlement: any) =>
+      (eligiblePromotionRows ?? []).some(
+        (row: any) =>
+          row.promotion_id === entitlement.promotion_id &&
+          row.program_type_id === (cls as any)?.program_type?.id,
+      ),
+    );
     return {
       cls,
       myBooking: bookingRes.data,
@@ -359,6 +386,7 @@ export const getClassDetail = createServerFn({ method: "GET" })
       hasActivePackage: hasUsableActivePackage(
         activePlansRes.data as Array<{ expires_at?: string | null }> | null,
       ),
+      applicablePromotion: applicablePromotion ?? null,
     };
   });
 
@@ -515,50 +543,64 @@ export const getMyPackages = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     await supabase.rpc("sweep_member_credits", { p_member_id: userId });
-    const [memberRes, mineRes, plansRes, ledgerRes, paymentsRes, subscriptionsRes] =
-      await Promise.all([
-        supabase
-          .from("members")
-          .select(
-            "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference,created_at",
-          )
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase
-          .from("member_plans")
-          .select(
-            "id,credits_granted,starts_at,expires_at,status,notes,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
-          )
-          .eq("member_id", userId)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("plans")
-          .select("*")
-          .eq("active", true)
-          .order("price_cents", { ascending: true }),
-        supabase
-          .from("credit_transactions")
-          .select("id,amount_delta,reason,created_at,related_booking_id")
-          .eq("member_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("payments")
-          .select(
-            "id,amount,currency,method,status,provider,paid_at,created_at,notes,subscription_id,plan:plans(id,name,description,credits,duration_days,price_cents,currency),receipt:receipts(id,receipt_number)",
-          )
-          .eq("member_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(50),
-        (supabase as any)
-          .from("member_subscriptions")
-          .select(
-            "id,status,amount,currency,next_charge_at,current_period_end,card_mask,cancelled_at,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
-          )
-          .eq("member_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(10),
-      ]);
+    const [
+      memberRes,
+      mineRes,
+      plansRes,
+      ledgerRes,
+      paymentsRes,
+      subscriptionsRes,
+      promotionEntitlementsRes,
+    ] = await Promise.all([
+      supabase
+        .from("members")
+        .select(
+          "remaining_credits,name,email,phone,status,preferred_language,emergency_contact,energy_preference,created_at",
+        )
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("member_plans")
+        .select(
+          "id,credits_granted,starts_at,expires_at,status,notes,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
+        )
+        .eq("member_id", userId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("plans")
+        .select("*")
+        .eq("active", true)
+        .order("price_cents", { ascending: true }),
+      supabase
+        .from("credit_transactions")
+        .select("id,amount_delta,reason,created_at,related_booking_id")
+        .eq("member_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("payments")
+        .select(
+          "id,amount,currency,method,status,provider,paid_at,created_at,notes,subscription_id,plan:plans(id,name,description,credits,duration_days,price_cents,currency),receipt:receipts(id,receipt_number)",
+        )
+        .eq("member_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      (supabase as any)
+        .from("member_subscriptions")
+        .select(
+          "id,status,amount,currency,next_charge_at,current_period_end,card_mask,cancelled_at,created_at,plan:plans(id,name,description,credits,duration_days,price_cents,currency)",
+        )
+        .eq("member_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      (supabase as any)
+        .from("promotion_entitlements")
+        .select(
+          "id,status,quantity,issued_at,expires_at,consumed_at,promotion_id,promotion:promotion_campaigns(slug,name,localized_content)",
+        )
+        .eq("member_id", userId)
+        .order("issued_at", { ascending: false }),
+    ]);
     return {
       member: memberRes.data,
       mine: (mineRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
@@ -566,6 +608,7 @@ export const getMyPackages = createServerFn({ method: "GET" })
       ledger: (ledgerRes.data ?? []).filter((row: any) => !isTestRecord(row.reason)),
       payments: (paymentsRes.data ?? []).filter((p: any) => !hasTestPlanRecord(p)),
       subscriptions: (subscriptionsRes.data ?? []).filter((s: any) => !hasTestPlanRecord(s)),
+      promotionEntitlements: promotionEntitlementsRes.data ?? [],
     };
   });
 
