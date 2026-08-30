@@ -161,6 +161,11 @@ process.stdout.write(renderToStaticMarkup(React.createElement(routeModule.Route.
 }
 
 describe("auth public entry", () => {
+  test("keeps the localized form direction available after session restoration", () => {
+    expect(authRouteSource).toContain("const { lang, dir } = useI18n();");
+    expect(authRouteSource).toContain("dir={dir}");
+  });
+
   test("opens the signup form for the marketing create-account destination", () => {
     expect(authRouteSource).toContain('requestedMode === "forgot" || requestedMode === "signup"');
     expect(authRouteSource).toContain("setMode(requestedMode)");
