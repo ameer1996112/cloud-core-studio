@@ -290,6 +290,7 @@ function bodyHtml(body: string) {
     .filter(Boolean)
     .map(
       (paragraph) =>
+        /* style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties. */
         `<p style="Margin:0 0 18px 0;color:#26364D;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:17px;line-height:29px;">${escapeHtml(paragraph).replaceAll("\n", "<br>")}</p>`,
     )
     .join("");
@@ -309,13 +310,16 @@ function factRows(
   if (!present.length) return "";
   const rows = present
     .map(
-      ({ definition, value }, index) => `<tr>
+      (
+        { definition, value },
+        index,
+      ) => /* style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties. */ `<tr>
         <td style="padding:${index === 0 ? "0" : "13px"} 0 0;color:#6F7A8C;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:13px;line-height:20px;vertical-align:top;text-align:${align};">${escapeHtml(definition.labels[language])}</td>
         <td style="padding:${index === 0 ? "0" : "13px"} 18px 0 0;color:#0B1D3A;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:22px;vertical-align:top;text-align:${align};"${definition.ltr ? ' dir="ltr"' : ""}>${escapeHtml(value)}</td>
       </tr>`,
     )
     .join("");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="Margin:8px 0 28px;background:#FAF7F2;border:1px solid #E8DFD1;border-radius:12px;">
+  return /* style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties. */ `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="Margin:8px 0 28px;background:#FAF7F2;border:1px solid #E8DFD1;border-radius:12px;">
     <tr><td style="padding:20px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>
   </table>`;
 }
@@ -327,13 +331,16 @@ function presentationFactRows(
   if (!facts.length) return "";
   const rows = facts
     .map(
-      (fact, index) => `<tr>
+      (
+        fact,
+        index,
+      ) => /* style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties. */ `<tr>
         <td style="padding:${index === 0 ? "0" : "13px"} 0 0;color:#6F7A8C;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:13px;line-height:20px;vertical-align:top;text-align:${align};">${escapeHtml(fact.label)}</td>
         <td style="padding:${index === 0 ? "0" : "13px"} 18px 0 0;color:#0B1D3A;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:22px;vertical-align:top;text-align:${align};"${fact.ltr ? ' dir="ltr"' : ""}>${escapeHtml(fact.value)}</td>
       </tr>`,
     )
     .join("");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="Margin:8px 0 28px;background:#FAF7F2;border:1px solid #E8DFD1;border-radius:12px;">
+  return /* style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties. */ `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="Margin:8px 0 28px;background:#FAF7F2;border:1px solid #E8DFD1;border-radius:12px;">
     <tr><td style="padding:20px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>
   </table>`;
 }
@@ -387,20 +394,24 @@ export function renderTransactionalEmail(
     : factRows(input.eventType, input.variables, input.language, align);
   const preheader = `${input.subject} — ${input.body.replace(/\s+/g, " ").trim()}`.slice(0, 150);
   const logoUrl = new URL("/brand/cloud-core-logo-full.png", input.publicBaseUrl).toString();
+  // style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties.
   const brandedHeader =
     input.headerVariant === "wordmark"
       ? `<div dir="ltr" style="color:#0B1D3A;font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:600;line-height:34px;">Cloud &amp; Core</div>
               <div dir="ltr" style="padding-top:7px;color:#7D6841;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;line-height:15px;">AERIAL · STRENGTH · BALANCE</div>`
       : `<img src="${escapeHtml(logoUrl)}" width="190" alt="Cloud &amp; Core — Aerial · Strength · Balance" style="display:block;width:190px;max-width:100%;height:auto;Margin:0 auto;border:0;outline:none;text-decoration:none;color:#0B1D3A;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:24px;">`;
   const supportEmail = input.replyTo?.trim() || null;
+  // style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties.
   const support = supportEmail
     ? `<a href="mailto:${escapeHtml(supportEmail)}" style="color:#0B1D3A;text-decoration:underline;">${escapeHtml(copy.support)}</a>`
     : escapeHtml(copy.support);
+  // style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties.
   const action = actionUrl
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="Margin:6px auto 28px;"><tr><td align="center" bgcolor="#0B1D3A" style="border-radius:10px;"><a href="${escapedUrl}" style="display:inline-block;padding:15px 28px;color:#FFFFFF;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:16px;font-weight:700;line-height:20px;text-decoration:none;border-radius:10px;">${escapeHtml(copy.cta)}</a></td></tr></table>
       <p style="Margin:0 0 26px;color:#6F7A8C;font-family:Arial,Tahoma,Helvetica,sans-serif;font-size:12px;line-height:19px;text-align:${align};">${escapeHtml(copy.openInBrowser)}<br><a href="${escapedUrl}" dir="ltr" style="color:#53627A;text-decoration:underline;word-break:break-all;">${escapedUrl}</a></p>`
     : "";
 
+  // style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties.
   const html = `<!doctype html>
 <html lang="${input.language}" dir="${dir}">
 <head>

@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { PublicShell } from "@/components/public/PublicShell";
 
 import {
   APP_MARKETING_LANGS,
@@ -71,7 +72,10 @@ function AppMarketingLocaleBridge({ search }: { search: string }) {
   const marketingUtm = new URLSearchParams(sanitizeMarketingUtm(search));
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+    <PublicShell
+      headerMode="compact"
+      mainClassName="flex min-h-screen items-center justify-center bg-background px-6"
+    >
       <section className="max-w-sm text-center" lang="en" dir="ltr">
         <h1 className="font-display text-3xl text-foreground">Opening Cloud &amp; Core</h1>
         <p className="mt-3 text-sm text-muted-foreground" role="status" aria-live="polite">
@@ -97,6 +101,6 @@ function AppMarketingLocaleBridge({ search }: { search: string }) {
           </p>
         </noscript>
       </section>
-    </main>
+    </PublicShell>
   );
 }

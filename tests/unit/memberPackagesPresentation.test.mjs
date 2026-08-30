@@ -3,7 +3,19 @@ import { readFileSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as actualRouter from "@tanstack/react-router";
+import * as actualReactStart from "@tanstack/react-start";
+import * as actualReactQuery from "@tanstack/react-query";
+import * as actualSonner from "sonner";
 import * as actualI18n from "../../src/lib/i18n.ts";
+import * as actualMemberFunctions from "../../src/lib/member.functions.ts";
+import * as actualStudioSettings from "../../src/lib/studioSettings.functions.ts";
+import * as actualMemberRequests from "../../src/lib/memberRequests.functions.ts";
+import * as actualReceipts from "../../src/lib/receipts.functions.ts";
+import * as actualSubscriptions from "../../src/lib/subscriptions.functions.ts";
+import * as actualTestRecords from "../../src/lib/test-records.ts";
+import * as actualBidi from "../../src/components/ui/bidi.tsx";
+import * as actualSheet from "../../src/components/ui/sheet.tsx";
+import * as actualPremiumClassCard from "../../src/components/member/PremiumClassCard.tsx";
 import { getPlanDisplay } from "../../src/lib/planDisplay.ts";
 
 const emptyPackageData = {
@@ -35,6 +47,7 @@ let packageQueryResult = {
 let capturedSheetContentProps = null;
 
 mock.module("@/components/ui/sheet", () => ({
+  ...actualSheet,
   Sheet: ({ open, onOpenChange, children }) =>
     React.createElement(
       "div",
@@ -70,10 +83,12 @@ mock.module("@tanstack/react-router", () => ({
 }));
 
 mock.module("@tanstack/react-start", () => ({
+  ...actualReactStart,
   useServerFn: () => () => Promise.resolve(null),
 }));
 
 mock.module("@tanstack/react-query", () => ({
+  ...actualReactQuery,
   useQuery: ({ queryKey }) => {
     if (queryKey[0] === "member-packages") return packageQueryResult;
     if (queryKey[0] === "my-package-requests") return { data: [], isLoading: false };
@@ -83,14 +98,27 @@ mock.module("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries() {} }),
 }));
 
-mock.module("@/lib/member.functions", () => ({ getMyPackages: {} }));
-mock.module("@/lib/studioSettings.functions", () => ({ getPublicStudioSettings: {} }));
+mock.module("@/lib/member.functions", () => ({
+  ...actualMemberFunctions,
+  getMyPackages: {},
+}));
+mock.module("@/lib/studioSettings.functions", () => ({
+  ...actualStudioSettings,
+  getPublicStudioSettings: {},
+}));
 mock.module("@/lib/memberRequests.functions", () => ({
+  ...actualMemberRequests,
   createManualPackagePayment: {},
   getMyPackageRequests: {},
 }));
-mock.module("@/lib/receipts.functions", () => ({ createCheckoutSession: {} }));
-mock.module("@/lib/subscriptions.functions", () => ({ cancelMySubscription: {} }));
+mock.module("@/lib/receipts.functions", () => ({
+  ...actualReceipts,
+  createCheckoutSession: {},
+}));
+mock.module("@/lib/subscriptions.functions", () => ({
+  ...actualSubscriptions,
+  cancelMySubscription: {},
+}));
 
 mock.module("@/lib/i18n", () => ({
   ...actualI18n,
@@ -134,6 +162,7 @@ mock.module("@/lib/i18n", () => ({
 }));
 
 mock.module("@/components/member/PremiumClassCard", () => ({
+  ...actualPremiumClassCard,
   formatTime: (iso) =>
     new Date(iso).toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -170,12 +199,17 @@ mock.module("@/components/member/PremiumClassCard", () => ({
     React.createElement("div", { "data-testid": "empty-state" }, `${title} ${body}`),
 }));
 
-mock.module("@/lib/test-records", () => ({ hasTestPlanRecord: () => false }));
+mock.module("@/lib/test-records", () => ({
+  ...actualTestRecords,
+  hasTestPlanRecord: () => false,
+}));
 mock.module("@/hooks/useDocumentTitle", () => ({ useDocumentTitle: () => {} }));
 mock.module("@/components/ui/bidi", () => ({
+  ...actualBidi,
   LtrInline: ({ children, ...props }) => React.createElement("span", props, children),
 }));
 mock.module("sonner", () => ({
+  ...actualSonner,
   toast: Object.assign(() => {}, { success() {}, error() {} }),
 }));
 

@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { flushSync } from "react-dom";
 import { applyLang, labelForStatus, LANG_META, t, useI18n, getLocale, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { LtrInline } from "@/components/ui/bidi";
+import { BidiValue } from "@/components/ui/bidi";
+import { bidiDirectionFor } from "@/lib/bidi-format";
 import { MemberField, MemberProfileSaveStatus } from "@/components/member/MemberField";
 import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
 import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
@@ -235,7 +236,9 @@ function MemberAccount() {
             title={me.name?.trim() || t("nav.profile")}
             body={
               me.email ? (
-                <LtrInline className="inline-block">{me.email}</LtrInline>
+                <BidiValue kind="email" className="inline-block">
+                  {me.email}
+                </BidiValue>
               ) : (
                 t("member.account.body")
               )
@@ -257,12 +260,12 @@ function MemberAccount() {
               me.created_at ? (
                 <span className="member-account-since">
                   {t("profile.memberSince")}{" "}
-                  <strong>
+                  <BidiValue kind="localized-date" className="font-semibold">
                     {new Date(me.created_at).toLocaleDateString(
                       getLocale() === "he" ? "he-IL" : "en-GB",
                       { year: "numeric", month: "long" },
                     )}
-                  </strong>
+                  </BidiValue>
                 </span>
               ) : undefined
             }
@@ -279,6 +282,7 @@ function MemberAccount() {
               <MemberField id="profile-phone" label={t("profile.phone")}>
                 <input
                   className="editorial-input"
+                  dir={bidiDirectionFor("phone")}
                   inputMode="tel"
                   autoComplete="tel"
                   value={val("phone") ?? ""}

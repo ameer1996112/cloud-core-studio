@@ -1,0 +1,205 @@
+{
+  "scans": 288,
+  "violationCount": 18,
+  "seriousOrCriticalCount": 0,
+  "results": [
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "viewport": "1024x768",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "viewport": "1440x900",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "viewport": "360x800",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "viewport": "390x844",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "viewport": "430x932",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "viewport": "768x1024",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "viewport": "1024x768",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "viewport": "1440x900",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "viewport": "360x800",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "viewport": "390x844",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "viewport": "430x932",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "viewport": "768x1024",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "viewport": "1024x768",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "viewport": "1440x900",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "viewport": "360x800",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "viewport": "390x844",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "viewport": "430x932",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "viewport": "768x1024",
+      "ruleId": "landmark-unique",
+      "impact": "moderate",
+      "selector": [
+        ".app-marketing__screens-section"
+      ],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/landmark-unique?application=playwright"
+    }
+  ]
+}

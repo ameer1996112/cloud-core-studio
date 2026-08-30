@@ -9,6 +9,7 @@ type SignupNotificationChoicesProps = {
   phone: string;
   whatsapp: boolean;
   marketing: boolean;
+  disabled?: boolean;
   onWhatsappChange: (checked: boolean) => void;
   onMarketingChange: (checked: boolean) => void;
 };
@@ -18,6 +19,7 @@ export function SignupNotificationChoices({
   phone,
   whatsapp,
   marketing,
+  disabled = false,
   onWhatsappChange,
   onMarketingChange,
 }: SignupNotificationChoicesProps) {
@@ -45,7 +47,7 @@ export function SignupNotificationChoices({
         <ConsentChoice
           checked={hasValidPhone && whatsapp}
           descriptionId={!hasValidPhone ? WHATSAPP_PHONE_HELP_ID : undefined}
-          disabled={!hasValidPhone}
+          disabled={disabled || !hasValidPhone}
           icon={<MessageCircle className="h-5 w-5" aria-hidden="true" />}
           label={copy("auth.notificationConsentWhatsapp")}
           onChange={onWhatsappChange}
@@ -57,6 +59,7 @@ export function SignupNotificationChoices({
         ) : null}
         <ConsentChoice
           checked={marketing}
+          disabled={disabled}
           icon={<Sparkles className="h-5 w-5" aria-hidden="true" />}
           label={copy("auth.notificationConsentMarketing")}
           onChange={onMarketingChange}

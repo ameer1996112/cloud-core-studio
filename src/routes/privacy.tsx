@@ -1,21 +1,28 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
+import { tForLang, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
+      { title: "Privacy Policy | Cloud & Core Studio" },
       {
         name: "description",
         content: "Cloud & Core Studio privacy policy for members and app users.",
       },
+      { name: "robots", content: "index, follow" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/privacy" }],
   }),
   component: PrivacyPage,
 });
 
-const copy: Record<Lang, { title: string; kicker: string; updated: string; sections: string[] }> = {
+export const privacyCopy: Record<
+  Lang,
+  { title: string; kicker: string; updated: string; sections: string[] }
+> = {
   en: {
     kicker: "Cloud & Core Studio",
     title: "Privacy Policy",
@@ -66,51 +73,42 @@ const copy: Record<Lang, { title: string; kicker: string; updated: string; secti
 function PrivacyPage() {
   const { lang } = useI18n();
   useDocumentTitle("page.privacy.title");
-  return <LegalPage kind="privacy" lang={lang} data={copy[lang]} />;
+  return (
+    <PublicShell mainClassName="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
+      <PrivacyPresentation lang={lang} />
+    </PublicShell>
+  );
 }
 
-function LegalPage({ kind, lang, data }: { kind: string; lang: Lang; data: (typeof copy)[Lang] }) {
-  const { t } = useI18n();
-  const dir = LANG_META[lang].dir;
+export function PrivacyPresentation({ lang }: { lang: Lang }) {
+  const data = privacyCopy[lang];
 
   return (
-    <main dir={dir} className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
-      <div className="mx-auto max-w-3xl">
-        <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
-          <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">
-            Cloud &amp; Core
+    <div className="mx-auto max-w-3xl" data-product-view="privacy-default">
+      <article className="member-card p-6 sm:p-8">
+        <p className="member-eyebrow">{data.kicker}</p>
+        <h1 className="member-page-title mt-3">{data.title}</h1>
+        <p className="mt-3 text-sm text-slate">{data.updated}</p>
+        <div className="mt-8 space-y-5 text-sm leading-7 text-slate">
+          {data.sections.map((section) => (
+            <p key={section}>{section}</p>
+          ))}
+        </div>
+        <div className="mt-8 flex flex-wrap gap-3 border-t hairline pt-5 text-xs uppercase tracking-[0.18em]">
+          <Link
+            to="/terms"
+            className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+          >
+            {tForLang(lang, "legal.terms")}
           </Link>
-          <LegalLanguageSwitcher lang={lang} />
-        </header>
-        <article className="member-card p-6 sm:p-8" dir={dir}>
-          <p className="member-eyebrow">{data.kicker}</p>
-          <h1 className="member-page-title mt-3">{data.title}</h1>
-          <p className="mt-3 text-sm text-slate">{data.updated}</p>
-          <div className="mt-8 space-y-5 text-sm leading-7 text-slate">
-            {data.sections.map((section) => (
-              <p key={section}>{section}</p>
-            ))}
-          </div>
-          <div className="mt-8 flex flex-wrap gap-3 border-t hairline pt-5 text-xs uppercase tracking-[0.18em]">
-            <Link
-              to="/terms"
-              className={
-                kind === "terms" ? "text-navy" : "text-slate hover:text-gold transition-colors"
-              }
-            >
-              {t("legal.terms")}
-            </Link>
-            <Link
-              to="/support"
-              className={
-                kind === "support" ? "text-navy" : "text-slate hover:text-gold transition-colors"
-              }
-            >
-              {t("legal.support")}
-            </Link>
-          </div>
-        </article>
-      </div>
-    </main>
+          <Link
+            to="/support"
+            className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+          >
+            {tForLang(lang, "legal.support")}
+          </Link>
+        </div>
+      </article>
+    </div>
   );
 }

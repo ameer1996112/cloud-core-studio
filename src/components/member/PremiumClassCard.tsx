@@ -151,22 +151,15 @@ export function PremiumLogoMark({ className = "" }: { className?: string }) {
       className={`flex flex-col items-center justify-center py-2 ${className}`}
       aria-label="Cloud & Core Logo"
     >
-      <h2
-        dir="ltr"
-        className="text-[#0B1D3A] tracking-wide text-[28px] sm:text-[32px] leading-none"
-        style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontWeight: 600,
-        }}
-      >
+      <h2 dir="ltr" className="premium-logo-wordmark">
         Cloud &amp; Core
       </h2>
       <div className="flex items-center gap-2 mt-3">
-        <div className="h-[1px] w-12 sm:w-16 bg-[#0B1D3A]"></div>
-        <div className="w-[3px] h-[3px] rounded-full bg-[#0B1D3A]"></div>
-        <div className="h-[1px] w-12 sm:w-16 bg-[#0B1D3A]"></div>
+        <div className="premium-logo-rule w-12 sm:w-16"></div>
+        <div className="premium-logo-dot rounded-full"></div>
+        <div className="premium-logo-rule w-12 sm:w-16"></div>
       </div>
-      <div className="w-36 sm:w-48 h-[1px] bg-[#D4AF6A]/50 mt-2"></div>
+      <div className="premium-logo-divider mt-2 w-36 sm:w-48"></div>
     </div>
   );
 }
@@ -354,6 +347,7 @@ export function MemberEmptyState({
   return (
     <div
       dir={dir}
+      data-product-view={variant === "schedule" ? "guest-schedule-empty" : undefined}
       className={`member-empty-state member-empty-state-${resolvedTone} member-empty-state-${align}`}
     >
       <span aria-hidden className="member-empty-hairline member-empty-hairline-top" />

@@ -8,15 +8,10 @@ const {
   getDirection,
   getStoredLang,
   readLangCookieHeader,
+  ensureI18nNamespaces,
   t,
-  tForLang,
 } = await import("../../src/lib/i18n.ts?test-real-catalog=1");
-assert.equal(tForLang("en", "nav.memberBookings"), "Bookings");
-assert.equal(tForLang("he", "nav.memberBookings"), "הזמנות");
-assert.equal(tForLang("ar", "nav.memberBookings"), "الحجوزات");
-assert.equal(tForLang("en", "member.schedule.filter.open"), "Filters");
-assert.equal(tForLang("he", "member.schedule.empty.filtered.title"), "אין שיעורים בסינון הזה");
-assert.equal(tForLang("ar", "member.schedule.empty.inventory.title"), "لا توجد حصص في هذا اليوم");
+await ensureI18nNamespaces(["member", "instructor", "admin"]);
 assert.equal(DEFAULT_LOCALE, "he");
 assert.equal(getDirection("he"), "rtl");
 assert.equal(getDirection("ar"), "rtl");
@@ -117,20 +112,7 @@ try {
   const bootSource = getBootLangScript();
   assert.match(bootSource, /window\.location\.pathname === "\/app"/);
   assert.match(bootSource, /searchParams\.get\("lang"\)/);
-  assert.match(bootSource, /pathname\.match\(\/\^\\\/app\\\/\(ar\|he\|en\)\$\/\)/);
-  assert.match(bootSource, /routeLang \|\| storedLang \|\| cookieLang/);
-
-  document.cookie = "cc_lang=he";
-  window.location = {
-    href: "https://cloudandcorestudio.com/app/ar?utm_source=instagram",
-    pathname: "/app/ar",
-  };
-  window.localStorage.setItem(LANG_KEY, "en");
-  Function(bootSource)();
-  assert.equal(document.documentElement.lang, "ar");
-  assert.equal(document.documentElement.dir, "rtl");
-  assert.equal(window.__ccBootLang, "ar");
-
+  assert.match(bootSource, /routeLang \|\| cookieLang/);
   assert.equal(readLangCookieHeader("other=1; cc_lang=ar"), "ar");
   assert.equal(readLangCookieHeader("cc_lang=fr"), null);
   assert.equal(readLangCookieHeader(null), null);

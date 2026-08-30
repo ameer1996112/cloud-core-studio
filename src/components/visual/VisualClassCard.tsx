@@ -4,6 +4,8 @@ import { getLocale, t, useI18n, type Lang } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { initialsFor, resolveClassImagePosition, resolveClassImageSrc } from "@/lib/image-assets";
 import { type ClassState } from "@/components/member/PremiumClassCard";
+import { BookingActionPanel } from "@/components/member/BookingActionPanel";
+import { bookingAvailabilityForClassState, deriveBookingViewState } from "@/lib/booking-view-state";
 import {
   localizedClassMetadataChips,
   localizedClassTitle,
@@ -64,6 +66,8 @@ type VisualClassCardClass = {
   duration_minutes: number;
   capacity?: number | null;
   booked_count?: number | null;
+  credit_cost?: number | null;
+  cancellation_window_hours?: number | null;
   instructor?: { name?: string | null } | null;
   program_type?: Record<string, unknown> | null;
   [key: string]: unknown;
@@ -121,14 +125,17 @@ export function ClassArtTile({
 }
 
 function fadeColorForCard(cardClass: string) {
-  if (cardClass.includes("bg-navy")) return "#0B1D3A";
-  if (cardClass.includes("bg-ivory")) return "#FAF7F2";
-  if (cardClass.includes("bg-[#F1EBE1]")) return "#F1EBE1";
-  if (cardClass.includes("bg-[#EDE5D8]")) return "#EDE5D8";
-  if (cardClass.includes("bg-[#F5F0E9]")) return "#F5F0E9";
-  if (cardClass.includes("bg-sand")) return "#E8DFD1";
-  if (cardClass.includes("bg-powder")) return "#B7CCE6";
-  return "#FAF7F2";
+  if (cardClass.includes("bg-navy")) return "var(--color-navy)";
+  if (cardClass.includes("bg-ivory")) return "var(--color-ivory)";
+  if (cardClass.includes("bg-[var(--cc-lesson-waitlist-surface)]"))
+    return "var(--cc-lesson-waitlist-surface)";
+  if (cardClass.includes("bg-[var(--cc-lesson-low-credit-surface)]"))
+    return "var(--cc-lesson-low-credit-surface)";
+  if (cardClass.includes("bg-[var(--cc-lesson-cancelled-surface)]"))
+    return "var(--cc-lesson-cancelled-surface)";
+  if (cardClass.includes("bg-sand")) return "var(--color-sand)";
+  if (cardClass.includes("bg-powder")) return "var(--cc-palette-powder-350)";
+  return "var(--color-ivory)";
 }
 
 function PhotoPanel({
@@ -226,7 +233,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     waitlist_available: {
-      card: "bg-[#F1EBE1]",
+      card: "bg-[var(--cc-lesson-waitlist-surface)]",
       rail: "bg-powder",
       chip: "bg-powder text-navy",
       text: "text-navy",
@@ -234,7 +241,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     full: {
-      card: "bg-[#F1EBE1]",
+      card: "bg-[var(--cc-lesson-waitlist-surface)]",
       rail: "bg-slate/60",
       chip: "bg-navy/85 text-ivory",
       text: "text-navy",
@@ -243,7 +250,7 @@ function toneFor(state: ClassState): {
       desaturate: true,
     },
     low_credits: {
-      card: "bg-[#EDE5D8]",
+      card: "bg-[var(--cc-lesson-low-credit-surface)]",
       rail: "bg-gold",
       chip: "bg-gold/80 text-navy",
       text: "text-navy",
@@ -251,7 +258,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     package_required: {
-      card: "bg-[#EDE5D8]",
+      card: "bg-[var(--cc-lesson-low-credit-surface)]",
       rail: "bg-gold",
       chip: "bg-sand text-navy border border-gold/50",
       text: "text-navy",
@@ -259,7 +266,7 @@ function toneFor(state: ClassState): {
       cta: "bg-navy text-ivory hover:bg-navy/90",
     },
     cancelled: {
-      card: "bg-[#F5F0E9]",
+      card: "bg-[var(--cc-lesson-cancelled-surface)]",
       rail: "bg-slate/50",
       chip: "bg-navy/10 text-slate",
       text: "text-slate",
@@ -576,6 +583,7 @@ function classCardOpenLabel({
 export function PremiumLessonReservationCard({
   cls,
   state,
+  bookingPresentationAudience,
   onOpen,
   participants = [],
   compact = false,
@@ -588,6 +596,7 @@ export function PremiumLessonReservationCard({
 }: {
   cls: VisualClassCardClass;
   state: ClassState;
+  bookingPresentationAudience: "guest" | "member";
   onOpen: () => void;
   participants?: string[];
   compact?: boolean;
@@ -617,6 +626,44 @@ export function PremiumLessonReservationCard({
     : getFriendlyStudioLocation(lang);
   const descriptor = instructorDescriptor(instructor, lang);
   const stateCopy = supportTextFor(state, chipLabel, lang);
+  const bookingViewState =
+    bookingPresentationAudience === "member"
+      ? (() => {
+          const cancellationDeadline = new Date(
+            new Date(cls.starts_at).getTime() -
+              (cls.cancellation_window_hours ?? 4) * 60 * 60 * 1000,
+          );
+          return deriveBookingViewState({
+            availability: bookingAvailabilityForClassState(state.kind),
+            lang,
+            seats: { remaining: spotsLeft, capacity: totalCapacity },
+            cost:
+              typeof cls.credit_cost === "number"
+                ? { kind: "credits", count: cls.credit_cost }
+                : null,
+            recovery:
+              state.kind === "package_required" || state.kind === "low_credits"
+                ? {
+                    reason: stateCopy,
+                    label: cta?.label ?? t("class.cta.choosePackage"),
+                    href: "/member/packages",
+                  }
+                : undefined,
+            unavailableReason: stateCopy || chipLabel,
+            manageLabel: cta?.label,
+            cancellationDeadline:
+              state.kind === "booked"
+                ? t("booking.view.cancelBy", {
+                    deadline: `${new Date(cancellationDeadline).toLocaleDateString(getLocale(), {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })} · ${formatTime(cancellationDeadline.toISOString())}`,
+                  })
+                : undefined,
+          });
+        })()
+      : null;
   const fade = fadeColorForCard(tone.card);
   const imageUrl = resolveClassImageSrc(cls, "card");
   const imagePosition = resolveClassImagePosition(cls);
@@ -631,6 +678,7 @@ export function PremiumLessonReservationCard({
   return (
     <div
       role="button"
+      data-product-view="guest-schedule-default"
       tabIndex={0}
       aria-label={openLabel}
       aria-haspopup="dialog"
@@ -721,7 +769,15 @@ export function PremiumLessonReservationCard({
             />
 
             <div className="premium-lesson-card__actions lesson-card__footer">
-              {stateCopy ? (
+              {bookingViewState ? (
+                <BookingActionPanel
+                  state={bookingViewState}
+                  showAction={false}
+                  bare
+                  seatClassName={`lesson-card__state-copy ${tone.soft}`}
+                  summaryClassName={`lesson-card__state-copy ${tone.soft}`}
+                />
+              ) : stateCopy ? (
                 <div className={`lesson-card__state-copy ${tone.soft}`}>
                   <span dir="auto">
                     <bdi>{stateCopy}</bdi>

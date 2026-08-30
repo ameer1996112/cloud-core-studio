@@ -81,21 +81,36 @@ const RULES: Array<{ test: (msg: string, code?: string) => boolean; friendly: st
   },
 ];
 
+const TECHNICAL_ERROR_PATTERN =
+  /postgrest|supabase|postgres|relation\s+["']|schema|rpc[_\s-]|jwt|access[_\s-]?token|sqlstate|stack\s*trace|service[_\s-]?role|private\./i;
+
+function errorDetails(err: unknown) {
+  const anyErr = err as { message?: string; code?: string; error_description?: string };
+  return {
+    message: (anyErr.message ?? anyErr.error_description ?? String(err)).toString(),
+    code: anyErr.code,
+  };
+}
+
+function mappedFriendlyMessage(message: string, code?: string): string | null {
+  for (const rule of RULES) {
+    try {
+      if (rule.test(message, code)) return rule.friendly;
+    } catch {
+      /* ignore malformed provider errors */
+    }
+  }
+  return null;
+}
+
 export function friendlyErrorMessage(
   err: unknown,
   fallback = "Something didn't quite land. Please try again.",
 ): string {
   if (!err) return fallback;
-  const anyErr = err as { message?: string; code?: string; error_description?: string };
-  const msg = (anyErr.message ?? anyErr.error_description ?? String(err)).toString();
-  const code = anyErr.code;
-  for (const r of RULES) {
-    try {
-      if (r.test(msg, code)) return r.friendly;
-    } catch {
-      /* ignore */
-    }
-  }
+  const { message: msg, code } = errorDetails(err);
+  const mapped = mappedFriendlyMessage(msg, code);
+  if (mapped) return mapped;
   // Strip SQL-y prefixes
   const clean = msg
     .replace(/^.*violates.*?:\s*/i, "")
@@ -103,6 +118,20 @@ export function friendlyErrorMessage(
     .trim();
   if (!clean || clean.length > 180) return fallback;
   return clean;
+}
+
+/**
+ * Use for persistent UI where provider, database, auth, or RPC diagnostics must never be echoed.
+ * Known errors retain the project's friendly mapping; everything else uses caller-owned copy.
+ */
+export function safeErrorMessage(
+  err: unknown,
+  fallback = "Something didn't quite land. Please try again.",
+): string {
+  if (!err) return fallback;
+  const { message, code } = errorDetails(err);
+  if (TECHNICAL_ERROR_PATTERN.test(message)) return fallback;
+  return mappedFriendlyMessage(message, code) ?? fallback;
 }
 
 export function showApiError(err: unknown, fallback?: string) {

@@ -12,24 +12,46 @@ const SelectGroup = SelectPrimitive.Group;
 
 const SelectValue = SelectPrimitive.Value;
 
+type SelectTriggerProps = React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
+  readOnly?: boolean;
+};
+
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex min-h-[var(--cc-control-height)] w-full items-center justify-between whitespace-nowrap rounded-[var(--cc-radius-input)] border border-input bg-[var(--color-surface)] px-4 py-2 text-start text-base text-foreground shadow-[var(--shadow-card)] ring-offset-background cursor-pointer data-[placeholder]:text-[var(--color-text-muted)] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-start",
+  SelectTriggerProps
+>(
+  (
+    {
       className,
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
+      children,
+      "aria-invalid": ariaInvalid,
+      "aria-describedby": ariaDescribedBy,
+      disabled,
+      readOnly,
+      ...props
+    },
+    ref,
+  ) => (
+    <SelectPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "flex min-h-[var(--cc-target-min)] w-full items-center justify-between whitespace-nowrap rounded-[var(--cc-radius-input)] border border-input bg-[var(--color-surface)] px-4 py-2 text-start text-base text-foreground shadow-[var(--shadow-card)] cursor-pointer data-[placeholder]:text-[var(--color-text-muted)] focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)] disabled:cursor-not-allowed disabled:opacity-50 data-[readonly]:cursor-default data-[readonly]:bg-[var(--cc-surface-subtle)] [&>span]:line-clamp-1 [&>span]:text-start",
+        className,
+      )}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedBy}
+      disabled={disabled}
+      aria-readonly={readOnly || undefined}
+      data-readonly={readOnly || undefined}
+      {...props}
+    >
+      {children}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  ),
+);
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<
@@ -114,7 +136,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-[var(--radius-sm)] py-2 ps-3 pe-8 text-start text-[length:var(--text-base)] outline-none focus:bg-gold/10 focus:text-navy data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex min-h-[var(--cc-target-min)] w-full cursor-default select-none items-center rounded-[var(--radius-sm)] py-2 ps-3 pe-8 text-start text-[length:var(--text-base)] focus:bg-gold/10 focus:text-navy focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)] data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[state=checked]:bg-sand/35",
       className,
     )}
     {...props}

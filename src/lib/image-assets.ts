@@ -93,7 +93,10 @@ export type ClassMoodKey =
   | "workshop"
   | "default";
 
-/** Brand palette (do not extend). */
+/**
+ * Brand palette embedded into generated image/SVG gradients, which render outside document CSS.
+ * style-contract-allow-color: generated image data cannot resolve app CSS custom properties.
+ */
 export const PALETTE = {
   navy: "#0B1D3A",
   ivory: "#FAF7F2",
@@ -103,6 +106,7 @@ export const PALETTE = {
   slate: "#6F7A8C",
 } as const;
 
+// style-contract-allow-color: generated image gradients cannot resolve app CSS custom properties.
 export const classMoods: Record<
   ClassMoodKey,
   {

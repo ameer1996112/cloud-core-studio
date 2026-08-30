@@ -8,8 +8,15 @@ import { friendlyErrorMessage } from "@/lib/error-messages";
 import { ArrowLeft, Printer } from "lucide-react";
 import { getLocale, labelForMethod, labelForStatus, t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { LtrInline } from "@/components/ui/bidi";
-import { MemberEmptyState } from "@/components/member/PremiumClassCard";
+import { BidiValue } from "@/components/ui/bidi";
+import { formatBidiValue } from "@/lib/bidi-format";
+import { AsyncState } from "@/components/ui/async-state";
+import { MemberOutcomePanel } from "@/components/member/MemberOutcomePanel";
+import {
+  deriveMemberOutcome,
+  isExpiredMemberSession,
+  memberRecoveryKind,
+} from "@/lib/member-account-view-state";
 
 type ReceiptPlan = {
   name?: string | null;
@@ -44,25 +51,33 @@ type ReceiptDetail = {
 
 export const Route = createFileRoute("/_authenticated/receipts/$id")({
   component: ReceiptPage,
-  errorComponent: ({ error }) => (
-    <div className="member-page max-w-xl mx-auto p-6">
-      <MemberEmptyState
-        variant="payments"
-        title={t("receipt.unavailable")}
-        body={friendlyErrorMessage(error, t("receipt.unavailableBody"))}
-      />
-    </div>
-  ),
-  notFoundComponent: () => (
-    <div className="member-page max-w-xl mx-auto p-6">
-      <MemberEmptyState
-        variant="payments"
-        title={t("receipt.notFound")}
-        body={t("receipt.notFoundBody")}
-      />
-    </div>
-  ),
+  errorComponent: ReceiptRouteError,
+  notFoundComponent: ReceiptNotFound,
 });
+
+function ReceiptRouteError({ error }: { error: Error }) {
+  const { lang, dir } = useI18n();
+  return (
+    <div dir={dir} className="member-page max-w-xl mx-auto p-6">
+      <MemberOutcomePanel
+        outcome={deriveMemberOutcome({
+          kind: "receipt-unavailable",
+          lang,
+          body: friendlyErrorMessage(error, t("receipt.unavailableBody")),
+        })}
+      />
+    </div>
+  );
+}
+
+function ReceiptNotFound() {
+  const { lang, dir } = useI18n();
+  return (
+    <div dir={dir} className="member-page max-w-xl mx-auto p-6">
+      <MemberOutcomePanel outcome={deriveMemberOutcome({ kind: "missing-receipt", lang })} />
+    </div>
+  );
+}
 
 function ReceiptPage() {
   const { lang, dir } = useI18n();
@@ -71,7 +86,7 @@ function ReceiptPage() {
   const router = useRouter();
   const fetcher = useServerFn(getReceiptById);
   const settingsFn = useServerFn(getPublicStudioSettings);
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["receipt", id],
     queryFn: () => fetcher({ data: { id } }),
     retry: false,
@@ -83,32 +98,42 @@ function ReceiptPage() {
 
   if (isLoading) {
     return (
-      <div dir={dir} className="member-page member-card mx-auto max-w-xl p-8 text-slate">
-        {t("receipt.loading")}
+      <div dir={dir} className="member-page mx-auto max-w-xl p-6">
+        <AsyncState
+          state={{ status: "loading", label: t("receipt.loading") }}
+          className="member-card"
+        />
+      </div>
+    );
+  }
+  if (error) {
+    const recoveryKind = memberRecoveryKind({
+      online: typeof navigator === "undefined" || navigator.onLine,
+      sessionExpired: isExpiredMemberSession(error),
+    });
+    const kind = recoveryKind === "account-failed" ? "receipt-unavailable" : recoveryKind;
+    return (
+      <div dir={dir} className="member-page max-w-xl mx-auto p-6">
+        <MemberOutcomePanel
+          outcome={deriveMemberOutcome({
+            kind,
+            lang,
+            body:
+              kind === "receipt-unavailable"
+                ? friendlyErrorMessage(error, t("receipt.unavailableBody"))
+                : undefined,
+            nextAction:
+              kind === "receipt-unavailable" ? { label: t("common.retry"), href: "." } : undefined,
+          })}
+          onAction={kind === "expired-session" ? undefined : () => void refetch()}
+        />
       </div>
     );
   }
   if (!data) {
     return (
       <div dir={dir} className="member-page max-w-xl mx-auto p-6">
-        <MemberEmptyState
-          variant="payments"
-          title={t("receipt.notFound")}
-          body={t("receipt.notFoundBody")}
-          primaryAction={{ label: t("common.back"), onClick: () => router.history.back() }}
-        />
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div dir={dir} className="member-page max-w-xl mx-auto p-6">
-        <MemberEmptyState
-          variant="payments"
-          title={t("receipt.unavailable")}
-          body={friendlyErrorMessage(error, t("receipt.unavailableBody"))}
-          primaryAction={{ label: t("common.back"), onClick: () => router.history.back() }}
-        />
+        <MemberOutcomePanel outcome={deriveMemberOutcome({ kind: "missing-receipt", lang })} />
       </div>
     );
   }
@@ -157,7 +182,7 @@ function ReceiptPage() {
       <style>{`
         @media print {
           @page { margin: 14mm; }
-          body { background: #fff !important; }
+          body { background: var(--cc-surface-raised) !important; }
           .print\\:hidden { display: none !important; }
         }
       `}</style>
@@ -171,7 +196,7 @@ function ReceiptPage() {
         </button>
       </div>
 
-      <article className="member-card relative overflow-hidden bg-[#fffdf8] p-0 shadow-[0_28px_70px_-42px_rgba(11,29,58,0.45)] print:border-0 print:p-0 print:shadow-none">
+      <article className="member-card relative overflow-hidden bg-[var(--cc-surface-canvas)] p-0 shadow-[0_28px_70px_-42px_var(--cc-alpha-navy-45)] print:border-0 print:p-0 print:shadow-none">
         <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-gold/25 via-navy to-gold/35" />
 
         <header className="px-5 pb-6 pt-7 sm:px-8 md:px-10">
@@ -193,30 +218,34 @@ function ReceiptPage() {
                 <p className="font-semibold text-navy break-words">{studioName}</p>
                 {settings?.address && <p className="break-words">{settings.address}</p>}
                 {(settings?.public_phone || settings?.whatsapp_number) && (
-                  <p dir="ltr" className="member-ltr-value break-words">
-                    {settings.public_phone ?? settings.whatsapp_number}
+                  <p className="break-words">
+                    <BidiValue kind="phone" className="member-ltr-value">
+                      {settings.public_phone ?? settings.whatsapp_number}
+                    </BidiValue>
                   </p>
                 )}
                 {settings?.contact_email && (
-                  <p dir="ltr" className="member-ltr-value break-all">
-                    {settings.contact_email}
+                  <p className="break-all">
+                    <BidiValue kind="email" className="member-ltr-value">
+                      {settings.contact_email}
+                    </BidiValue>
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="min-w-0 rounded-2xl border border-gold/25 bg-ivory/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:w-56 sm:shrink-0">
+            <div className="min-w-0 rounded-2xl border border-gold/25 bg-ivory/80 p-4 shadow-[inset_0_1px_0_var(--cc-alpha-white-80)] sm:w-56 sm:shrink-0">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold text-slate">{t("receipt.number")}</p>
                 <span className="rounded-full border border-navy/10 bg-navy/5 px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
                   {labelForStatus(status)}
                 </span>
               </div>
-              <p dir="ltr" className="mt-3 font-display text-2xl leading-tight text-navy break-all">
-                {r.receipt_number}
+              <p className="mt-3 font-display text-2xl leading-tight text-navy break-all">
+                <BidiValue kind="identifier">{r.receipt_number}</BidiValue>
               </p>
               <p className="mt-2 text-xs font-medium text-slate">
-                <LtrInline>{formatDate(issuedAt)}</LtrInline>
+                <BidiValue kind="localized-date">{formatDate(issuedAt)}</BidiValue>
               </p>
             </div>
           </div>
@@ -239,7 +268,9 @@ function ReceiptPage() {
             )}
             {paidAt && !sameDay && (
               <p className="mt-1 text-xs text-slate">
-                {t("receipt.paidOn", { date: formatDate(paidAt) })}
+                {t("receipt.paidOn", {
+                  date: formatBidiValue(formatDate(paidAt), "localized-date", dir),
+                })}
               </p>
             )}
           </div>
@@ -255,22 +286,24 @@ function ReceiptPage() {
                 </p>
                 {creditLine && <p className="mt-1 text-xs text-slate">{creditLine}</p>}
                 {r.payment?.reference && (
-                  <p dir="ltr" className="mt-1 text-xs text-slate break-all">
-                    {t("receipt.ref", { ref: r.payment.reference })}
+                  <p className="mt-1 text-xs text-slate break-all">
+                    {t("receipt.ref", {
+                      ref: formatBidiValue(r.payment.reference, "identifier", dir),
+                    })}
                   </p>
                 )}
               </div>
               <p className="numeric-display font-display text-4xl leading-none text-navy sm:text-end">
-                {formatAmount(Number(r.amount))}
+                <BidiValue kind="currency">{formatAmount(Number(r.amount))}</BidiValue>
               </p>
             </div>
           </div>
         </section>
 
-        <section className="mx-5 mb-5 flex items-end justify-between gap-4 rounded-[24px] border border-navy/10 bg-white/75 px-5 py-5 shadow-[0_18px_46px_-34px_rgba(11,29,58,0.45)] sm:mx-8 sm:px-6 md:mx-10">
+        <section className="mx-5 mb-5 flex items-end justify-between gap-4 rounded-[24px] border border-navy/10 bg-white/75 px-5 py-5 shadow-[0_18px_46px_-34px_var(--cc-alpha-navy-45)] sm:mx-8 sm:px-6 md:mx-10">
           <p className="text-xs font-semibold text-slate">{t("receipt.totalPaid")}</p>
           <p className="numeric-display font-display text-4xl leading-none text-navy whitespace-nowrap">
-            {formatAmount(Number(r.amount))}
+            <BidiValue kind="currency">{formatAmount(Number(r.amount))}</BidiValue>
           </p>
         </section>
 

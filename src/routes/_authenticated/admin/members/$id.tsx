@@ -31,6 +31,8 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPlanDisplay } from "@/lib/planDisplay";
+import { BidiDateTime, BidiValue } from "@/components/ui/bidi";
+import { bidiDirectionFor, formatBidiValue } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/members/$id")({
   component: Page,
@@ -155,7 +157,7 @@ function Page() {
   const sendReset = useMutation({
     mutationFn: () =>
       resetFn({ data: { memberId: id, redirectTo: `${window.location.origin}/reset-password` } }),
-    onSuccess: (r: any) => toast.success(`Reset link sent to ${r.email}`),
+    onSuccess: (r: any) => toast.success(`Reset link sent to ${formatBidiValue(r.email, "email")}`),
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
   const setPw = useMutation({
@@ -203,13 +205,13 @@ function Page() {
               {m.phone && (
                 <span className="inline-flex items-center gap-1.5">
                   <Phone className="h-3.5 w-3.5" />
-                  {m.phone}
+                  <BidiValue kind="phone">{m.phone}</BidiValue>
                 </span>
               )}
               {m.email && (
                 <span className="inline-flex items-center gap-1.5">
                   <Mail className="h-3.5 w-3.5" />
-                  {m.email}
+                  <BidiValue kind="email">{m.email}</BidiValue>
                 </span>
               )}
             </div>
@@ -249,18 +251,28 @@ function Page() {
         </div>
 
         <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gold/20">
-          <Stat label="Credits" value={m.remaining_credits} />
+          <Stat
+            label="Credits"
+            value={<BidiValue kind="identifier">{m.remaining_credits}</BidiValue>}
+          />
           <Stat label="Visits" value={m.attendance_count} />
-          <Stat label="Spent" value={`₪${Math.round(data.total_spend)}`} />
+          <Stat
+            label="Spent"
+            value={<BidiValue kind="currency">₪{Math.round(data.total_spend)}</BidiValue>}
+          />
           <Stat
             label="Last"
             value={
-              m.last_visit_at
-                ? new Date(m.last_visit_at).toLocaleDateString(undefined, {
+              m.last_visit_at ? (
+                <BidiValue kind="localized-date">
+                  {new Date(m.last_visit_at).toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",
-                  })
-                : "—"
+                  })}
+                </BidiValue>
+              ) : (
+                "—"
+              )
             }
           />
         </div>
@@ -321,6 +333,8 @@ function Page() {
             </Field>
             <Field label="Phone">
               <input
+                type="tel"
+                dir={bidiDirectionFor("phone")}
                 className="editorial-input"
                 value={profileForm.phone}
                 onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
@@ -329,6 +343,7 @@ function Page() {
             <Field label="Email">
               <input
                 type="email"
+                dir={bidiDirectionFor("email")}
                 className="editorial-input"
                 value={profileForm.email}
                 onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
@@ -420,9 +435,16 @@ function Page() {
               </p>
               <p className="mt-1 text-xs font-medium text-slate">
                 {activePlan.credits_granted} credits granted ·{" "}
-                {activePlan.expires_at
-                  ? `expires ${new Date(activePlan.expires_at).toLocaleDateString()}`
-                  : "no expiry"}
+                {activePlan.expires_at ? (
+                  <>
+                    expires{" "}
+                    <BidiValue kind="localized-date">
+                      {new Date(activePlan.expires_at).toLocaleDateString()}
+                    </BidiValue>
+                  </>
+                ) : (
+                  "no expiry"
+                )}
               </p>
             </div>
             <Link
@@ -483,7 +505,7 @@ function Page() {
                 </button>
               </div>
               <p className="mt-2 text-xs font-medium text-slate">
-                {new Date(n.created_at).toLocaleString()}
+                <BidiDateTime value={n.created_at} />
                 {n.important && " · important"}
               </p>
             </div>
@@ -529,7 +551,11 @@ function Page() {
           <Row
             key={b.id}
             primary={b.class?.title ?? "—"}
-            meta={`${b.class?.starts_at ? new Date(b.class.starts_at).toLocaleString() : ""} · ${b.status}`}
+            meta={
+              <>
+                {b.class?.starts_at ? <BidiDateTime value={b.class.starts_at} /> : ""} · {b.status}
+              </>
+            }
             right={`${b.credit_cost} credit${b.credit_cost === 1 ? "" : "s"}`}
           />
         ))}
@@ -543,7 +569,7 @@ function Page() {
           <Row
             key={a.id}
             primary={a.class?.title ?? "—"}
-            meta={a.class?.starts_at ? new Date(a.class.starts_at).toLocaleString() : ""}
+            meta={a.class?.starts_at ? <BidiDateTime value={a.class.starts_at} /> : ""}
             right={a.status}
           />
         ))}
@@ -557,8 +583,14 @@ function Page() {
           <Row
             key={p.id}
             primary={p.plan ? getPlanDisplay(p.plan, lang).name : (p.notes ?? p.method)}
-            meta={`${new Date(p.paid_at).toLocaleDateString()} · ${p.method} · ${p.status}`}
-            right={`${p.currency === "ILS" ? "₪" : p.currency + " "}${Number(p.amount).toFixed(2)}${Number(p.refunded_amount) > 0 ? ` (-${Number(p.refunded_amount).toFixed(2)})` : ""}`}
+            meta={`${formatBidiValue(
+              new Date(p.paid_at).toLocaleDateString(),
+              "localized-date",
+            )} · ${p.method} · ${p.status}`}
+            right={formatBidiValue(
+              `${p.currency === "ILS" ? "₪" : p.currency + " "}${Number(p.amount).toFixed(2)}${Number(p.refunded_amount) > 0 ? ` (-${Number(p.refunded_amount).toFixed(2)})` : ""}`,
+              "currency",
+            )}
           />
         ))}
       </ListSection>
@@ -568,7 +600,7 @@ function Page() {
           <Row
             key={l.id}
             primary={l.reason}
-            meta={new Date(l.created_at).toLocaleString()}
+            meta={<BidiDateTime value={l.created_at} />}
             right={
               <span className={l.amount_delta < 0 ? "text-slate" : "text-gold"}>
                 {l.amount_delta > 0 ? "+" : ""}
@@ -631,9 +663,10 @@ function Page() {
             </p>
           </div>
         </div>
-        <Field label={`Type ${m.email || m.name} to confirm`}>
+        <Field label={`Type ${m.email ? formatBidiValue(m.email, "email") : m.name} to confirm`}>
           <input
             className="editorial-input border-red-200 bg-white"
+            dir={m.email ? bidiDirectionFor("email") : "auto"}
             value={deleteConfirm}
             onChange={(e) => setDeleteConfirm(e.target.value)}
             placeholder={m.email || m.name}
@@ -656,7 +689,7 @@ function Page() {
         <div className="space-y-1.5">
           {(audit ?? []).slice(0, 10).map((a: any) => (
             <div key={a.id} className="editorial-card px-3 py-2 text-xs font-medium text-slate">
-              {a.action} · {new Date(a.created_at).toLocaleString()}
+              {a.action} · <BidiDateTime value={a.created_at} />
             </div>
           ))}
         </div>

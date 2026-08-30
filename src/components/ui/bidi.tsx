@@ -1,24 +1,74 @@
-import type { ElementType, ReactNode } from "react";
+import { Fragment, type ElementType, type ReactNode } from "react";
 
+import {
+  bidiDateTimeSegments,
+  bidiDirectionFor,
+  embeddedBidiSegments,
+  type BidiKind,
+} from "@/lib/bidi-format";
 import { cn } from "@/lib/utils";
+
+export function BidiValue({
+  kind,
+  children,
+  className,
+}: {
+  kind: BidiKind;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <bdi dir={bidiDirectionFor(kind)} className={className}>
+      {children}
+    </bdi>
+  );
+}
+
+export function BidiDateTime({
+  value,
+  locales,
+  options,
+}: {
+  value: Date | string | number;
+  locales?: Intl.LocalesArgument;
+  options?: Intl.DateTimeFormatOptions;
+}) {
+  return bidiDateTimeSegments(value, locales, options).map((segment, index) =>
+    segment.kind ? (
+      <BidiValue key={index} kind={segment.kind}>
+        {segment.value}
+      </BidiValue>
+    ) : (
+      <Fragment key={index}>{segment.value}</Fragment>
+    ),
+  );
+}
+
+export function EmbeddedContactText({ text }: { text: string }) {
+  return embeddedBidiSegments(text).map((segment, index) =>
+    segment.kind ? (
+      <BidiValue key={index} kind={segment.kind}>
+        {segment.value}
+      </BidiValue>
+    ) : (
+      <Fragment key={index}>{segment.value}</Fragment>
+    ),
+  );
+}
 
 export function LtrInline({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <span
-      dir="ltr"
-      className={cn("member-ltr-value", className)}
-      style={{ unicodeBidi: "isolate" }}
-    >
+    <BidiValue kind="identifier" className={cn("member-ltr-value", className)}>
       {children}
-    </span>
+    </BidiValue>
   );
 }
 
 export function AutoInline({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <span dir="auto" className={className} style={{ unicodeBidi: "isolate" }}>
+    <BidiValue kind="currency" className={className}>
       {children}
-    </span>
+    </BidiValue>
   );
 }
 

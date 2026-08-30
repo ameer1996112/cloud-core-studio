@@ -252,6 +252,15 @@ mock.module("@/components/app-shell/AppShell", () => ({
   AppShell: ({ children }) => React.createElement("div", {}, children),
 }));
 
+mock.module("@/components/public/PublicShell", () => ({
+  PublicShell: ({ children }) => React.createElement("main", { id: "main-content" }, children),
+}));
+
+mock.module("@/components/member/WeeklyPromoBanner", () => ({
+  WeeklyPromoBanner: () =>
+    React.createElement("aside", { "data-testid": "weekly-promo" }, "Weekly promotion"),
+}));
+
 mock.module("@/components/member/MemberScheduleFilterPanel", () => ({
   MemberScheduleFilterPanel: () => React.createElement("div", { "data-testid": "filters" }),
 }));
@@ -415,6 +424,27 @@ describe("guest schedule handoff", () => {
     expect(memberHtml).toContain(">7<");
     expect(memberHtml).toContain("View my bookings");
     expect(memberHtml).not.toContain("Sign in to book");
+  });
+
+  test("renders guest discovery and sign-in handoff before weekly promotional content", async () => {
+    const routeModule = await import("../../src/routes/member.schedule.tsx");
+    const html = renderPublicRoute(routeModule, {
+      session: guestSession,
+      selectedClassId: null,
+      onSelectedClassChange: () => {},
+    });
+    const markers = [
+      'data-guest-flow-step="heading"',
+      'data-guest-flow-step="date-controls"',
+      'data-guest-flow-step="class-list"',
+      'data-guest-flow-step="trust"',
+      'data-guest-flow-step="sign-in-handoff"',
+      'data-testid="weekly-promo"',
+    ];
+    const positions = markers.map((marker) => html.indexOf(marker));
+
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 
   test("member booking cancellation invalidates scoped member schedule queries", async () => {

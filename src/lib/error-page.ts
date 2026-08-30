@@ -1,5 +1,5 @@
 export function renderErrorPage(): string {
-  return `<!doctype html>
+  return /* style-contract-allow-color: standalone fatal-error HTML cannot resolve application CSS custom properties. */ `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />

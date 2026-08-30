@@ -2,28 +2,32 @@
   "version": 1,
   "status": "approved",
   "reviewer": "Codex",
-  "reviewedAt": "2026-08-24",
+  "reviewedAt": "2026-08-30",
   "scope": "All 15 localized phone captures and 3 localized social cards inspected after the recorded capture.",
   "result": "No real identity, contact data, payment data, or contradictory session time is visible.",
   "assets": {
     "ar": {
       "schedule": {
-        "sha256": "7087c94ffb716ffc861647e64a9bd727048c81d59a172a7d09517c010572b93f",
+        "sha256": "1a833810fe3c32c7b8942ad32d1f94853bb4eb6ffe0e295236f900c425d8f32e",
         "state": {
           "availableClassCount": 3,
           "bookingAction": true,
-          "openSpots": [5, 3, 6]
+          "openSpots": [
+            5,
+            3,
+            6
+          ]
         }
       },
       "booking": {
-        "sha256": "250c437661505ccebe683e1ac04302e4eb5a4b116a484763df604807e3944cf2",
+        "sha256": "854def27179b939c9cf144670a7da0e73c6986826552e0f1884d35a29ccebe25",
         "state": {
           "bookingAction": true,
           "openSpots": 5
         }
       },
       "bookings": {
-        "sha256": "3224a87c654931a4a002350dcf98d3b445526cd561656359474a2313e9f9d8e8",
+        "sha256": "325530938590b1dde2701ddbddab690e72a161a74c5af0640fde5c745aaa715f",
         "state": {
           "confirmed": true
         }
@@ -50,22 +54,26 @@
     },
     "he": {
       "schedule": {
-        "sha256": "7c32b01363723f6be44a83c8bb6da031dd2923142ff1d56f4bd5314985911247",
+        "sha256": "0269d98ddc84b6aef878d0bc255ff1a34a7d74b8217857cbbfd53c0ab4c96cae",
         "state": {
           "availableClassCount": 3,
           "bookingAction": true,
-          "openSpots": [5, 3, 6]
+          "openSpots": [
+            5,
+            3,
+            6
+          ]
         }
       },
       "booking": {
-        "sha256": "c351e957f76bc16f8f7af2d0c400e11a1c9a3063775eff8c17c357fcc0cc9cde",
+        "sha256": "6df97df2d60076f36590093d846787d64b8e1a5cdbaf686942b208baea823a5d",
         "state": {
           "bookingAction": true,
           "openSpots": 5
         }
       },
       "bookings": {
-        "sha256": "50199988277ad679064fde83b17a5ad201e7c5f431ed7ca894cb05d726454a7e",
+        "sha256": "63fd736f325f943bb27daef1eebed5c3e1853ac589173781bbb52c0a40787612",
         "state": {
           "confirmed": true
         }
@@ -92,22 +100,26 @@
     },
     "en": {
       "schedule": {
-        "sha256": "c043807cfc467ef83979efda480c12a2cafff24ca785a7ef8b4988faf4949147",
+        "sha256": "d2d70ca8341254be2f35d771d182457e97c680800f87c2e3aa7bb1c43a0fe434",
         "state": {
           "availableClassCount": 3,
           "bookingAction": true,
-          "openSpots": [5, 3, 6]
+          "openSpots": [
+            5,
+            3,
+            6
+          ]
         }
       },
       "booking": {
-        "sha256": "d29ef8a82407a6ba1def5f4d5e412e88e080b291c3884db0929d6b6b7e7fc4c3",
+        "sha256": "43891e3456cc009bdb4c81db348ec9bb4b850343ac44ba157698fab4571f202c",
         "state": {
           "bookingAction": true,
           "openSpots": 5
         }
       },
       "bookings": {
-        "sha256": "66c31ea51766b1762fe8d92cd9dd8b3a351c0228d3643a408d3c6c9c6131379a",
+        "sha256": "4355969ca9724a161076ee1dd251110497988f4c0b6ad298d86c063b9d6026e5",
         "state": {
           "confirmed": true
         }

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "../..");
-const styles = readFileSync(resolve(root, "src/styles.css"), "utf8");
+const styles = readFileSync(resolve(root, "src/styles/member.css"), "utf8");
 
 describe("member home studio announcement", () => {
   test("lets the complete message wrap instead of clipping it at a fixed line count", () => {

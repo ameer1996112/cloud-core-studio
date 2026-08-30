@@ -1,0 +1,2674 @@
+/* =====================================================================
+   Cloud & Core Studio — Brand Design System
+   Palette is the official brand sheet (no substitutions).
+   Navy      var(--color-navy) — headlines, primary text, CTA bars
+   Ivory     var(--color-ivory) — main background
+   Gold      var(--color-gold) — accents, borders, icon highlights
+   Warm Sand var(--color-sand) — secondary neutral surfaces
+   Slate     var(--cc-palette-slate-500) — supporting copy and utility UI
+===================================================================== */
+
+.download-page {
+  min-height: 100svh;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-ivory) 96%, transparent),
+      color-mix(in srgb, var(--cc-palette-powder-100) 88%, transparent)
+    ),
+    url("/images/classes/aerial-yoga-flow.webp") center / cover fixed;
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+}
+
+.download-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: min(100%, 1040px);
+  min-height: min(720px, calc(100svh - 48px));
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 6vw, 72px);
+  padding: clamp(24px, 5vw, 56px);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--color-ivory) 86%, transparent);
+  box-shadow: 0 28px 90px color-mix(in srgb, var(--color-navy) 18%, transparent);
+  backdrop-filter: blur(20px);
+}
+
+.download-shell::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: auto -140px -190px auto;
+  width: 420px;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 20%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 42px color-mix(in srgb, var(--color-gold) 5.5%, transparent),
+    0 0 0 86px color-mix(in srgb, var(--color-navy) 2.5%, transparent);
+}
+
+.download-content {
+  position: relative;
+  z-index: 1;
+  max-width: 570px;
+}
+
+.download-wordmark {
+  width: min(100%, 230px);
+  height: auto;
+  margin-bottom: 24px;
+}
+
+.download-kicker {
+  width: fit-content;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 30%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-surface-raised) 46%, transparent);
+  color: var(--color-gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.download-content h1 {
+  margin-top: 14px;
+  max-width: 11ch;
+  font-size: clamp(44px, 6.4vw, 72px);
+  font-weight: 700;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.download-arabic {
+  margin-top: 10px;
+  color: color-mix(in srgb, var(--color-navy) 72%, transparent);
+  font-family: var(--font-ui-ar);
+  font-size: clamp(26px, 4vw, 42px);
+  font-weight: 650;
+}
+
+.download-copy {
+  max-width: 440px;
+  margin-top: 22px;
+  color: var(--color-slate, var(--cc-palette-slate-500));
+  font-size: clamp(17px, 2.2vw, 20px);
+  line-height: 1.75;
+}
+
+.download-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.download-store-button,
+.download-secondary-button,
+.download-android-note {
+  width: min(100%, 360px);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 18px;
+  text-decoration: none;
+}
+
+.download-store-button {
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 82%, transparent);
+  background: var(--color-navy);
+  color: var(--cc-palette-cream-25);
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--color-ivory) 7%, transparent),
+    0 16px 34px color-mix(in srgb, var(--color-navy) 24%, transparent);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.download-store-button:hover {
+  transform: translateY(-2px);
+  background: var(--cc-palette-navy-900);
+  box-shadow: 0 20px 42px color-mix(in srgb, var(--color-navy) 28%, transparent);
+}
+
+/* =====================================================================
+   Instagram bio hub — editorial, light, and locally rooted
+===================================================================== */
+
+.instagram-hub {
+  --instagram-ivory: var(--color-ivory);
+  --instagram-navy: var(--color-navy);
+  --instagram-gold: var(--color-gold);
+  --instagram-sand: var(--color-sand);
+  --instagram-slate: var(--cc-palette-slate-500);
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 88% 2%,
+      color-mix(in srgb, var(--color-gold) 20%, transparent),
+      transparent 24rem
+    ),
+    linear-gradient(
+      180deg,
+      var(--cc-palette-paper-25) 0%,
+      var(--instagram-ivory) 55%,
+      var(--cc-palette-sand-100) 100%
+    );
+  color: var(--instagram-navy);
+  font-family: var(--font-ui-ar, "Noto Sans Arabic", system-ui, sans-serif);
+}
+
+.instagram-hub__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.17;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.13'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+.instagram-hub > :not(.instagram-hub__grain) {
+  position: relative;
+  z-index: 1;
+}
+
+.instagram-hub__header,
+.instagram-hub__hero,
+.instagram-hub__chooser,
+.instagram-hub__classes,
+.instagram-hub__offer,
+.instagram-hub__faq,
+.instagram-hub__footer {
+  width: min(1180px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.instagram-hub__header {
+  min-height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.instagram-hub__brand {
+  display: inline-flex;
+}
+
+.instagram-hub__brand img {
+  width: clamp(156px, 18vw, 220px);
+  height: auto;
+}
+
+.instagram-hub__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--instagram-slate);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.instagram-hub__location svg {
+  width: 17px;
+  color: var(--instagram-gold);
+}
+
+.instagram-hub__hero {
+  min-height: 690px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(340px, 1.12fr);
+  align-items: center;
+  gap: clamp(42px, 8vw, 110px);
+  padding: 46px 0 96px;
+}
+
+.instagram-hub__hero-copy {
+  animation: instagram-rise 720ms ease-out both;
+}
+
+.instagram-hub__eyebrow,
+.instagram-hub__section-heading > p {
+  margin: 0 0 16px;
+  color: var(--cc-palette-gold-700);
+  font-family: var(--font-ui-latin, "Assistant", sans-serif);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.instagram-hub__hero h1 {
+  max-width: 590px;
+  margin: 0;
+  font-size: clamp(54px, 7.2vw, 104px);
+  font-weight: 620;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+}
+
+.instagram-hub__hero h1 span {
+  display: block;
+  margin-top: 12px;
+  color: var(--cc-palette-gold-700);
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-weight: 650;
+}
+
+.instagram-hub__hero-he {
+  max-width: 500px;
+  margin: 30px 0 0;
+  color: var(--instagram-slate);
+  font-family: var(--font-ui-he, "Assistant", sans-serif);
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.65;
+}
+
+.instagram-hub__hero-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.instagram-hub__hero-proof span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 34%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-surface-raised) 60%, transparent);
+  color: var(--instagram-navy);
+  font-size: 13px;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
+.instagram-hub__hero-proof svg {
+  width: 16px;
+  height: 16px;
+  color: var(--cc-palette-gold-700);
+}
+
+.instagram-hub__hero-visual {
+  position: relative;
+  min-height: 560px;
+  animation: instagram-rise 800ms 90ms ease-out both;
+}
+
+.instagram-hub__hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: 28px -24px -30px 44px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);
+  border-radius: 48% 48% 28px 28px;
+}
+
+.instagram-hub__hero-visual img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50% 50% 30px 30px;
+  box-shadow: 0 36px 80px color-mix(in srgb, var(--color-navy) 20%, transparent);
+}
+
+.instagram-hub__trial-seal {
+  position: absolute;
+  inset-inline-start: -52px;
+  bottom: 54px;
+  width: 144px;
+  height: 144px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 54%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-ivory) 94%, transparent);
+  box-shadow: 0 18px 44px color-mix(in srgb, var(--color-navy) 18%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.instagram-hub__trial-seal strong {
+  color: var(--instagram-navy);
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 38px;
+  line-height: 1;
+}
+
+.instagram-hub__trial-seal small {
+  color: var(--instagram-slate);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.instagram-hub__chooser {
+  padding: 108px 0 124px;
+}
+
+.instagram-hub__section-heading {
+  max-width: 720px;
+  margin-bottom: 42px;
+}
+
+.instagram-hub__section-heading h2,
+.instagram-hub__classes h2,
+.instagram-hub__offer h2 {
+  margin: 0;
+  font-size: clamp(38px, 5vw, 66px);
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.instagram-hub__section-heading > span {
+  display: block;
+  margin-top: 12px;
+  color: var(--instagram-slate);
+  font-family: var(--font-ui-he, "Assistant", sans-serif);
+}
+
+.instagram-hub__paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.instagram-path {
+  min-height: 620px;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(30px, 5vw, 58px);
+  border-radius: 32px;
+  box-shadow: 0 28px 74px color-mix(in srgb, var(--color-navy) 11%, transparent);
+}
+
+.instagram-path--women {
+  color: var(--cc-palette-cream-25);
+  background:
+    radial-gradient(
+      circle at 15% 5%,
+      color-mix(in srgb, var(--color-gold) 22%, transparent),
+      transparent 40%
+    ),
+    var(--instagram-navy);
+}
+
+.instagram-path--women h3 {
+  color: var(--cc-palette-cream-25);
+}
+
+.instagram-path--kids {
+  border: 1px solid color-mix(in srgb, var(--color-gold) 35%, transparent);
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      color-mix(in srgb, var(--color-gold) 28%, transparent),
+      transparent 35%
+    ),
+    color-mix(in srgb, var(--cc-palette-paper-25) 92%, transparent);
+}
+
+.instagram-path__icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 40px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-gold) 15%, transparent);
+  color: var(--instagram-gold);
+}
+
+.instagram-path--kids .instagram-path__icon {
+  background: var(--instagram-navy);
+}
+
+.instagram-path__kicker {
+  margin: 0 0 8px;
+  color: var(--instagram-gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.instagram-path h3 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.instagram-path > p:not(.instagram-path__kicker) {
+  max-width: 510px;
+  margin: 22px 0 0;
+  color: color-mix(in srgb, var(--color-ivory) 72%, transparent);
+  line-height: 1.85;
+}
+
+.instagram-path--kids > p:not(.instagram-path__kicker) {
+  color: var(--instagram-slate);
+}
+
+.instagram-path ul {
+  display: grid;
+  gap: 13px;
+  margin: 32px 0 40px;
+  padding: 0;
+  list-style: none;
+}
+
+.instagram-path li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.instagram-path li svg {
+  width: 17px;
+  color: var(--instagram-gold);
+}
+
+.instagram-path__action {
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 24px 1fr 20px;
+  align-items: center;
+  gap: 14px;
+  margin-top: auto;
+  padding: 12px 18px;
+  border-radius: 18px;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.instagram-path__action:hover {
+  transform: translateY(-3px);
+}
+
+.instagram-path__action--light {
+  background: var(--instagram-ivory);
+  color: var(--instagram-navy);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--cc-palette-black) 20%, transparent);
+}
+
+.instagram-path__action--navy {
+  background: var(--instagram-navy);
+  color: var(--cc-palette-cream-25);
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--color-navy) 22%, transparent);
+}
+
+.instagram-path__action span {
+  display: grid;
+  font-weight: 800;
+}
+
+.instagram-path__action small {
+  opacity: 0.62;
+  font-family: var(--font-ui-he, "Assistant", sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.instagram-path__contact-note {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 16px;
+  border: 1px dashed color-mix(in srgb, var(--color-navy) 25%, transparent);
+  border-radius: 18px;
+  color: var(--instagram-slate);
+  font-size: 13px;
+}
+
+.instagram-hub__classes {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+  align-items: center;
+  gap: clamp(42px, 8vw, 110px);
+  padding: 92px 0 128px;
+}
+
+.instagram-hub__classes-photo {
+  position: relative;
+  min-height: 530px;
+}
+
+.instagram-hub__classes-photo::after {
+  content: "";
+  position: absolute;
+  inset: 24px 26px -22px -24px;
+  z-index: -1;
+  border-radius: 26px 26px 45% 26px;
+  background: var(--instagram-sand);
+}
+
+.instagram-hub__classes-photo img {
+  width: 100%;
+  height: 530px;
+  object-fit: cover;
+  border-radius: 26px 26px 45% 26px;
+  box-shadow: 0 26px 70px color-mix(in srgb, var(--color-navy) 14%, transparent);
+}
+
+.instagram-hub__classes-copy > p:not(.instagram-hub__eyebrow) {
+  max-width: 600px;
+  margin: 24px 0 0;
+  color: var(--instagram-slate);
+  font-size: 18px;
+  line-height: 1.9;
+}
+
+.instagram-hub__class-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.instagram-hub__class-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 38%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-surface-raised) 64%, transparent);
+  font-family: var(--font-ui-latin, "Assistant", sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.instagram-hub__class-list svg {
+  width: 16px;
+  color: var(--cc-palette-gold-700);
+}
+
+.instagram-hub__offer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(34px, 6vw, 72px);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+  border-radius: 34px;
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      color-mix(in srgb, var(--color-gold) 22%, transparent),
+      transparent 35%
+    ),
+    var(--cc-palette-paper-25);
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--color-navy) 10%, transparent);
+}
+
+.instagram-hub__offer > div > svg {
+  width: 30px;
+  height: 30px;
+  color: var(--instagram-gold);
+}
+
+.instagram-hub__offer p {
+  margin: 20px 0 8px;
+  color: var(--cc-palette-gold-700);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.instagram-hub__offer span {
+  display: block;
+  margin-top: 14px;
+  color: var(--instagram-slate);
+}
+
+.instagram-hub__offer-link {
+  min-width: 230px;
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--instagram-navy);
+  color: var(--cc-palette-cream-25);
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--color-navy) 20%, transparent);
+  transition: transform 180ms ease;
+}
+
+.instagram-hub__offer-link:hover {
+  transform: translateY(-3px);
+}
+
+.instagram-hub__offer-link svg {
+  width: 18px;
+}
+
+.instagram-hub__faq {
+  padding: 126px 0;
+}
+
+.instagram-hub__faq-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.instagram-hub__faq-grid article {
+  min-height: 220px;
+  padding: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--cc-surface-raised) 62%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.instagram-hub__faq-grid svg {
+  width: 24px;
+  color: var(--cc-palette-gold-700);
+}
+
+.instagram-hub__faq-grid h3 {
+  margin: 26px 0 9px;
+  font-size: 20px;
+}
+
+.instagram-hub__faq-grid p {
+  margin: 0;
+  color: var(--instagram-slate);
+  line-height: 1.75;
+}
+
+.instagram-hub__footer {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 34px 0 54px;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 30%, transparent);
+}
+
+.instagram-hub__footer img {
+  width: 50px;
+  height: 50px;
+}
+
+.instagram-hub__footer div {
+  display: grid;
+}
+
+.instagram-hub__footer strong {
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 22px;
+}
+
+.instagram-hub__footer span,
+.instagram-hub__footer a {
+  color: var(--instagram-slate);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+@keyframes instagram-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 860px) {
+  .instagram-hub__header,
+  .instagram-hub__hero,
+  .instagram-hub__chooser,
+  .instagram-hub__classes,
+  .instagram-hub__offer,
+  .instagram-hub__faq,
+  .instagram-hub__footer {
+    width: min(100% - 28px, 680px);
+  }
+
+  .instagram-hub__header {
+    min-height: 92px;
+  }
+
+  .instagram-hub__hero {
+    grid-template-columns: 1fr;
+    gap: 44px;
+    padding: 30px 0 86px;
+  }
+
+  .instagram-hub__hero-copy {
+    order: 1;
+  }
+
+  .instagram-hub__hero-visual {
+    min-height: min(118vw, 570px);
+  }
+
+  .instagram-hub__hero-visual::before {
+    inset: 18px -8px -14px 24px;
+  }
+
+  .instagram-hub__trial-seal {
+    inset-inline-start: 16px;
+    bottom: 20px;
+    width: 126px;
+    height: 126px;
+  }
+
+  .instagram-hub__chooser {
+    padding: 84px 0 96px;
+  }
+
+  .instagram-hub__paths,
+  .instagram-hub__classes,
+  .instagram-hub__faq-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .instagram-path {
+    min-height: auto;
+  }
+
+  .instagram-hub__classes {
+    gap: 62px;
+    padding: 70px 0 104px;
+  }
+
+  .instagram-hub__classes-photo,
+  .instagram-hub__classes-photo img {
+    min-height: 430px;
+    height: 430px;
+  }
+
+  .instagram-hub__offer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .instagram-hub__offer-link {
+    width: 100%;
+  }
+
+  .instagram-hub__faq {
+    padding: 96px 0;
+  }
+
+  .instagram-hub__footer {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .instagram-hub__footer > a {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .instagram-hub__location {
+    max-width: 120px;
+    justify-content: flex-end;
+    text-align: end;
+  }
+
+  .instagram-hub__hero h1 {
+    font-size: clamp(48px, 15vw, 72px);
+  }
+
+  .instagram-hub__hero-he {
+    font-size: 15px;
+  }
+
+  .instagram-hub__hero-proof {
+    display: grid;
+  }
+
+  .instagram-hub__hero-proof span {
+    justify-content: center;
+  }
+
+  .instagram-path {
+    padding: 30px 24px;
+    border-radius: 26px;
+  }
+
+  .instagram-path__icon {
+    margin-bottom: 30px;
+  }
+
+  .instagram-path__action {
+    min-height: 66px;
+    margin-top: 2px;
+  }
+
+  .instagram-hub__classes-photo,
+  .instagram-hub__classes-photo img {
+    min-height: 340px;
+    height: 340px;
+  }
+
+  .instagram-hub__offer {
+    border-radius: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .instagram-hub__hero-copy,
+  .instagram-hub__hero-visual {
+    animation: none;
+  }
+
+  .instagram-path__action,
+  .instagram-hub__offer-link {
+    transition: none;
+  }
+}
+
+.download-store-button svg:first-child,
+.download-secondary-button svg,
+.download-android-note svg {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+.download-store-button svg:last-child {
+  margin-inline-start: auto;
+  width: 20px;
+  height: 20px;
+}
+
+.download-store-button span {
+  display: grid;
+  gap: 2px;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: start;
+}
+
+.download-store-button small {
+  color: color-mix(in srgb, var(--cc-palette-cream-25) 76%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.download-secondary-button,
+.download-android-note {
+  padding: 0 16px;
+  border: 1px solid color-mix(in srgb, var(--color-navy) 12%, transparent);
+  background: color-mix(in srgb, var(--cc-surface-raised) 58%, transparent);
+  color: var(--color-navy);
+  font-weight: 700;
+}
+
+.download-android-note {
+  color: color-mix(in srgb, var(--color-navy) 66%, transparent);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.download-proof {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 26px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 24%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cc-surface-raised) 52%, transparent);
+  color: color-mix(in srgb, var(--color-navy) 68%, transparent);
+  font-size: 14px;
+}
+
+.download-browser-note {
+  width: min(100%, 380px);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  color: color-mix(in srgb, var(--color-navy) 58%, transparent);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.download-browser-note svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--color-gold);
+}
+
+.download-browser-note a {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  color: var(--color-navy);
+  font-weight: 750;
+  text-decoration-color: color-mix(in srgb, var(--color-gold) 72%, transparent);
+  text-underline-offset: 3px;
+}
+
+.download-proof svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-gold);
+}
+
+.download-visual {
+  position: relative;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-version-orbit {
+  position: absolute;
+  z-index: 2;
+  inset: 36px auto auto 2px;
+  width: 76px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 54%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-ivory) 90%, transparent);
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--color-navy) 14%, transparent);
+  color: var(--color-navy);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.download-phone {
+  position: relative;
+  width: min(76vw, 300px);
+  aspect-ratio: 0.52;
+  padding: 26px 18px;
+  border: 1px solid color-mix(in srgb, var(--cc-surface-raised) 64%, transparent);
+  border-radius: 38px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cc-surface-raised) 90%, transparent),
+      color-mix(in srgb, var(--color-ivory) 76%, transparent)
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-gold) 20%, transparent),
+      color-mix(in srgb, var(--cc-palette-powder-300) 24%, transparent)
+    );
+  box-shadow:
+    inset 0 0 0 8px color-mix(in srgb, var(--color-navy) 4%, transparent),
+    0 30px 68px color-mix(in srgb, var(--color-navy) 22%, transparent);
+}
+
+.download-phone::before {
+  content: "";
+  position: absolute;
+  inset: 13px 50% auto auto;
+  width: 74px;
+  height: 6px;
+  transform: translateX(50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-navy) 16%, transparent);
+}
+
+.download-phone-bar {
+  height: 44%;
+  border-radius: 28px;
+  background: url("/images/classes/aerial-yoga-flow.webp") center / cover;
+  box-shadow: inset 0 -80px 70px color-mix(in srgb, var(--color-navy) 36%, transparent);
+}
+
+.download-phone-card {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--cc-surface-raised) 78%, transparent);
+  color: var(--color-navy);
+}
+
+.download-phone-card span,
+.download-phone-card small {
+  display: block;
+  color: color-mix(in srgb, var(--color-navy) 56%, transparent);
+  font-size: 12px;
+}
+
+.download-phone-card strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.download-phone-card-soft {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  background: color-mix(in srgb, var(--cc-palette-powder-100) 78%, transparent);
+}
+
+.download-phone-card-soft strong {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  color: var(--color-gold);
+}
+
+@media (max-width: 760px) {
+  .download-page {
+    align-items: stretch;
+    padding: 0;
+    overflow-x: hidden;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-ivory) 94%, transparent),
+        color-mix(in srgb, var(--cc-palette-powder-100) 90%, transparent)
+      ),
+      url("/images/classes/aerial-yoga-flow.webp") center / cover;
+  }
+
+  .download-shell {
+    min-height: 100svh;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: max(24px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .download-shell::after {
+    inset: auto -180px -180px auto;
+  }
+
+  .download-visual {
+    min-height: 168px;
+    order: -1;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+    border-radius: 26px;
+    background:
+      radial-gradient(
+        circle at 20% 30%,
+        color-mix(in srgb, var(--color-gold) 20%, transparent),
+        transparent 42%
+      ),
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--cc-surface-raised) 58%, transparent),
+        color-mix(in srgb, var(--cc-palette-powder-100) 50%, transparent)
+      );
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 70%, transparent);
+  }
+
+  .download-version-orbit {
+    inset: 14px auto auto 14px;
+    width: 56px;
+    font-size: 11px;
+  }
+
+  .download-phone {
+    width: 132px;
+    height: 198px;
+    min-height: 0;
+    padding: 15px 10px;
+    border-radius: 24px;
+    transform: rotate(-3deg);
+  }
+
+  .download-phone::before {
+    top: 8px;
+    width: 42px;
+    height: 4px;
+  }
+
+  .download-phone-bar {
+    height: 78px;
+    border-radius: 16px;
+  }
+
+  .download-phone-card {
+    margin-top: 7px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .download-phone-card span,
+  .download-phone-card small {
+    font-size: 8px;
+  }
+
+  .download-phone-card strong {
+    margin-top: 3px;
+    font-size: 19px;
+  }
+
+  .download-content {
+    max-width: none;
+    text-align: center;
+  }
+
+  .download-content h1 {
+    max-width: 13ch;
+    margin-inline: auto;
+    font-size: clamp(39px, 11.5vw, 54px);
+    line-height: 1.05;
+  }
+
+  .download-wordmark {
+    width: 172px;
+    margin-bottom: 16px;
+  }
+
+  .download-kicker {
+    margin-inline: auto;
+    font-size: 11px;
+  }
+
+  .download-arabic {
+    font-size: clamp(23px, 7.2vw, 32px);
+  }
+
+  .download-copy {
+    max-width: 32ch;
+    margin-inline: auto;
+    margin-top: 16px;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .download-actions {
+    margin-top: 22px;
+  }
+
+  .download-store-button,
+  .download-secondary-button,
+  .download-android-note {
+    width: 100%;
+  }
+
+  .download-store-button,
+  .download-secondary-button,
+  .download-android-note {
+    min-height: 58px;
+    justify-content: center;
+  }
+
+  .download-store-button span {
+    font-size: 18px;
+  }
+
+  .download-browser-note,
+  .download-proof {
+    margin-inline: auto;
+    text-align: start;
+  }
+
+  .download-browser-note {
+    width: min(100%, 340px);
+    font-size: 14px;
+  }
+
+  .download-proof {
+    width: 100%;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================================
+   /auth — direction-aware two-column layout
+   ============================================================ */
+.auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 1rem
+    max(1rem, env(safe-area-inset-left));
+  gap: 1rem;
+}
+
+.auth-lang-switch {
+  display: inline-flex;
+  border: 1px solid color-mix(in srgb, var(--color-navy) 18%, transparent);
+  border-radius: 9999px;
+  background: var(--color-card);
+  overflow: hidden;
+}
+.auth-lang-btn {
+  padding: 0.4rem 0.85rem;
+  min-height: 44px;
+  min-width: 72px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.auth-lang-btn:hover {
+  color: var(--color-navy);
+}
+.auth-lang-btn.is-active {
+  background: var(--color-navy);
+  color: var(--color-ivory);
+}
+[dir="rtl"] .auth-lang-btn {
+  letter-spacing: 0;
+}
+
+/* Full-bleed background image */
+.auth-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow-x: hidden;
+}
+.auth-bg-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 30%,
+      color-mix(in srgb, var(--color-gold) 12%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-navy) 55%, transparent) 0%,
+      color-mix(in srgb, var(--color-navy) 78%, transparent) 100%
+    );
+}
+
+/* Top bar variant when sitting on the image */
+.auth-topbar-on-image {
+  color: var(--color-ivory);
+}
+.auth-lang-switch-on-image {
+  background: color-mix(in srgb, var(--color-ivory) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-ivory) 30%, transparent);
+  backdrop-filter: blur(8px);
+}
+.auth-lang-switch-on-image .auth-lang-btn {
+  color: color-mix(in srgb, var(--color-ivory) 80%, transparent);
+}
+.auth-lang-switch-on-image .auth-lang-btn:hover {
+  color: var(--color-ivory);
+}
+.auth-lang-switch-on-image .auth-lang-btn.is-active {
+  background: var(--color-ivory);
+  color: var(--color-navy);
+}
+
+/* Glass login card centered over the image */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-ivory);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 35%, transparent);
+  border-radius: var(--cc-radius-card);
+  padding: 2rem;
+  box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--color-navy) 30%, transparent);
+}
+.auth-card-glass {
+  background: color-mix(in oklab, var(--color-ivory) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid color-mix(in srgb, var(--color-ivory) 55%, transparent);
+  box-shadow:
+    0 30px 80px -20px color-mix(in srgb, var(--cc-palette-black) 55%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 20%, transparent) inset;
+}
+.auth-form-error {
+  border: 1px solid color-mix(in srgb, var(--cc-palette-danger-700) 22%, transparent);
+  background: color-mix(in srgb, var(--cc-palette-danger-700) 8%, transparent);
+  color: var(--color-danger);
+  border-radius: var(--cc-radius-input);
+  padding: 0.75rem 0.85rem;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: start;
+}
+
+.auth-form-success {
+  border: 1px solid color-mix(in srgb, var(--cc-palette-success-600) 24%, transparent);
+  background: color-mix(in srgb, var(--cc-palette-success-600) 8%, transparent);
+  color: var(--color-success);
+  border-radius: var(--cc-radius-input);
+  padding: 0.75rem 0.85rem;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: start;
+}
+
+/* Compact mobile auth polish. Scoped to the auth route so shared shells stay untouched. */
+.auth-page {
+  min-height: 100dvh;
+  padding-top: max(calc(env(safe-area-inset-top) + 0.35rem), 1rem);
+  padding-bottom: max(env(safe-area-inset-bottom), 18px);
+  background:
+    radial-gradient(
+      circle at 50% -8%,
+      color-mix(in srgb, var(--cc-surface-raised) 86%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      var(--cc-palette-sand-125) 0%,
+      var(--cc-palette-sand-25) 44%,
+      var(--cc-palette-sand-60) 100%
+    );
+}
+
+.auth-page::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-navy) 8%, transparent),
+      transparent 24%,
+      transparent 72%,
+      color-mix(in srgb, var(--color-navy) 10%, transparent)
+    ),
+    radial-gradient(
+      circle at 50% 18%,
+      color-mix(in srgb, var(--color-gold) 20%, transparent),
+      transparent 28%
+    );
+  z-index: 1;
+}
+
+.auth-mobile-topbar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 0.45rem) max(1rem, env(safe-area-inset-right)) 0.35rem
+    max(1rem, env(safe-area-inset-left));
+}
+
+.auth-language-switcher {
+  display: grid;
+  width: min(16.75rem, calc(100vw - 2rem));
+  min-height: 52px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--cc-surface-raised) 76%, transparent);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--cc-palette-paper-25) 94%, transparent),
+    color-mix(in srgb, var(--cc-palette-sand-55) 82%, transparent)
+  );
+  box-shadow:
+    0 20px 44px -30px color-mix(in srgb, var(--color-navy) 84%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 22%, transparent),
+    0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 92%, transparent) inset;
+  backdrop-filter: blur(20px) saturate(146%);
+  -webkit-backdrop-filter: blur(20px) saturate(146%);
+}
+
+.auth-language-switcher button {
+  min-width: 0;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-navy) 68%, transparent);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.auth-language-switcher button[data-active="true"] {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cc-palette-navy-900) 98%, transparent),
+      color-mix(in srgb, var(--cc-palette-navy-925) 98%, transparent)
+    ),
+    var(--color-navy);
+  color: var(--color-ivory);
+  box-shadow:
+    0 12px 24px -16px color-mix(in srgb, var(--color-navy) 92%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 28%, transparent) inset,
+    0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 16%, transparent) inset;
+}
+
+:root[lang="ar"] .auth-language-switcher button {
+  font-family: var(--font-arabic);
+}
+
+.auth-mobile-stage {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(100dvh - 2.75rem);
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0.85rem max(1rem, env(safe-area-inset-right)) max(1.1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+}
+
+.auth-mobile-panel {
+  width: min(25rem, calc(100vw - 2rem));
+  max-width: min(25rem, 100%);
+  min-width: 0;
+}
+
+.auth-brand-lockup {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 1.15rem;
+}
+
+.auth-brand-logo {
+  width: clamp(10.25rem, 42vw, 13rem);
+  height: auto;
+  filter: drop-shadow(0 18px 24px color-mix(in srgb, var(--color-navy) 12%, transparent))
+    drop-shadow(0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 42%, transparent));
+}
+
+.auth-form-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--cc-surface-raised) 84%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cc-surface-raised) 96%, transparent),
+      color-mix(in srgb, var(--cc-palette-paper-25) 90%, transparent)
+    ),
+    color-mix(in srgb, var(--cc-surface-raised) 90%, transparent);
+  padding: clamp(1.15rem, 4.8vw, 1.45rem);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 16%, transparent),
+    0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 90%, transparent) inset,
+    0 30px 80px -46px color-mix(in srgb, var(--color-navy) 68%, transparent),
+    0 18px 46px -34px color-mix(in srgb, var(--color-gold) 38%, transparent);
+  backdrop-filter: blur(22px) saturate(152%);
+  -webkit-backdrop-filter: blur(22px) saturate(152%);
+}
+
+.auth-form-card::before {
+  position: absolute;
+  inset-inline: 1.25rem;
+  top: 0;
+  height: 1px;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 90%, transparent),
+    transparent
+  );
+}
+
+.auth-form-card .member-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.auth-form-title {
+  font-size: clamp(1.5rem, 6.4vw, 1.8rem);
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.auth-form {
+  display: grid;
+  gap: clamp(0.72rem, 3vw, 0.9rem);
+}
+
+.auth-field-label {
+  margin-bottom: 0.35rem;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.auth-form-card .editorial-input {
+  min-height: 48px;
+  border-color: color-mix(in srgb, var(--color-navy) 16%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--color-navy) 24%, transparent);
+  border-radius: var(--cc-radius-input);
+  background: color-mix(in srgb, var(--cc-palette-paper-25) 98%, transparent);
+  font-size: 16px;
+  padding-block: 0.7rem;
+  padding-inline: 0.95rem;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 90%, transparent) inset;
+}
+
+.auth-form-card .auth-text-input {
+  text-align: start;
+}
+
+.auth-form-card .auth-ltr-input {
+  direction: ltr;
+  text-align: start;
+  unicode-bidi: plaintext;
+}
+
+.auth-form-helper {
+  line-height: 1.65;
+}
+
+.auth-field-error {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.auth-check-email-panel {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 30%, transparent);
+  border-radius: var(--cc-radius-card);
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--cc-surface-raised) 94%, transparent),
+      transparent 56%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cc-palette-paper-25) 94%, transparent),
+      color-mix(in srgb, var(--cc-palette-cream-100) 82%, transparent)
+    ),
+    color-mix(in srgb, var(--cc-surface-raised) 76%, transparent);
+  color: var(--color-navy);
+  line-height: 1.65;
+  padding: 1.2rem 0.95rem;
+  text-align: center;
+  box-shadow:
+    0 18px 42px -34px color-mix(in srgb, var(--color-navy) 58%, transparent),
+    0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 94%, transparent) inset;
+}
+
+.auth-restoring-orbit {
+  position: relative;
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cc-surface-raised) 94%, transparent),
+      color-mix(in srgb, var(--color-ivory) 84%, transparent)
+    ),
+    color-mix(in srgb, var(--cc-surface-raised) 86%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 24%, transparent),
+    0 14px 36px -24px color-mix(in srgb, var(--color-navy) 62%, transparent);
+}
+
+.auth-restoring-orbit::before {
+  position: absolute;
+  inset: -0.32rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+  border-top-color: color-mix(in srgb, var(--color-navy) 58%, transparent);
+  border-radius: inherit;
+  content: "";
+  animation: auth-orbit 1.05s linear infinite;
+}
+
+.auth-restoring-orbit span {
+  display: block;
+  width: 0.68rem;
+  height: 0.68rem;
+  border-radius: inherit;
+  background: var(--color-gold);
+  box-shadow: 0 0 0 0.42rem color-mix(in srgb, var(--color-gold) 13%, transparent);
+}
+
+.auth-restoring-text {
+  max-width: 16rem;
+  color: color-mix(in srgb, var(--color-navy) 82%, transparent);
+  font-size: 0.95rem;
+  font-weight: 750;
+  line-height: 1.7;
+}
+
+@keyframes auth-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-form-card .auth-password-input {
+  padding-inline-end: 3.75rem;
+  padding-inline-start: 0.95rem;
+}
+
+.auth-password-toggle {
+  inset-inline-end: 0.65rem;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cc-radius-button);
+  color: var(--color-text-secondary);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.auth-password-toggle:hover {
+  background: color-mix(in srgb, var(--color-sand) 48%, transparent);
+}
+
+.auth-form-card .editorial-input:focus {
+  border-color: color-mix(in srgb, var(--color-gold) 78%, transparent);
+  background: var(--color-surface);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-gold) 12%, transparent),
+    0 1px 0 color-mix(in srgb, var(--cc-surface-raised) 92%, transparent) inset;
+}
+
+.auth-form-card .cta-navy {
+  min-height: 50px;
+  border-radius: var(--cc-radius-button);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.auth-password-strength {
+  margin-top: 0.58rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 18%, transparent);
+  border-radius: var(--cc-radius-card);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-ivory) 70%, transparent),
+      color-mix(in srgb, var(--cc-surface-raised) 72%, transparent)
+    ),
+    color-mix(in srgb, var(--cc-surface-raised) 66%, transparent);
+  padding: 0.62rem;
+}
+
+.auth-strength-meter {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.28rem;
+  margin-bottom: 0.48rem;
+}
+
+.auth-strength-meter > div {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-navy) 10%, transparent);
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.auth-strength-meter > div[data-active="true"] {
+  background: var(--color-gold);
+}
+
+.auth-strength-weak .auth-strength-meter > div[data-active="true"] {
+  background: var(--color-danger);
+}
+
+.auth-strength-medium .auth-strength-meter > div[data-active="true"] {
+  background: var(--color-gold);
+}
+
+.auth-strength-strong .auth-strength-meter > div[data-active="true"] {
+  background: var(--color-success);
+}
+
+.auth-strength-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--color-slate, var(--cc-palette-slate-500));
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.auth-strength-header strong {
+  color: var(--color-navy);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.auth-strength-checks {
+  display: grid;
+  gap: 0.28rem;
+  margin-top: 0.48rem;
+}
+
+.auth-strength-checks li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.auth-strength-checks li[data-ok="true"] {
+  color: var(--color-navy);
+}
+
+.auth-strength-checks li span {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.auth-strength-checks li[data-ok="true"] span {
+  color: var(--color-gold);
+}
+
+.auth-secondary-action,
+.auth-switch-action,
+.auth-legal-link {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.auth-secondary-action {
+  min-height: 48px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.auth-switch-action {
+  min-height: 48px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-legal-links {
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+.auth-legal-link {
+  display: inline-flex;
+  min-width: 48px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.global-skip-link {
+  position: fixed;
+  z-index: 10000;
+  inset-block-start: 8px;
+  inset-inline-start: 12px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 16px;
+  border: 2px solid var(--color-gold);
+  border-radius: 16px;
+  background: var(--color-navy);
+  color: var(--color-ivory);
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: none;
+  transform: translateY(-180%);
+  transition: transform 160ms ease;
+}
+
+.global-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.public-safe-page {
+  min-height: 100dvh;
+  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+.public-safe-header {
+  padding: calc(env(safe-area-inset-top) + 0.75rem) max(1rem, env(safe-area-inset-right)) 0.95rem
+    max(1rem, env(safe-area-inset-left));
+}
+
+.public-safe-main {
+  padding-top: 1rem;
+}
+
+.public-legal-header {
+  padding-top: calc(env(safe-area-inset-top) + 0.55rem);
+}
+
+@media (min-width: 768px) {
+  .auth-mobile-stage {
+    min-height: calc(100dvh - 56px);
+    align-items: center;
+    padding-block: 2rem 3rem;
+  }
+
+  .auth-brand-logo {
+    width: 14rem;
+  }
+
+  .auth-form-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .auth-language-switcher {
+    width: min(16rem, calc(100vw - 1.5rem));
+  }
+
+  .auth-language-switcher button {
+    font-size: 11.5px;
+  }
+
+  .auth-form-card {
+    padding: 0.9rem;
+  }
+
+  .auth-form-title {
+    font-size: clamp(1.42rem, 6vw, 1.7rem);
+  }
+
+  .auth-password-strength {
+    padding: 0.58rem;
+  }
+
+  .auth-strength-checks {
+    gap: 0.3rem;
+  }
+
+  .public-safe-header {
+    padding-top: calc(env(safe-area-inset-top) + 0.6rem);
+    padding-bottom: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding-top: max(calc(env(safe-area-inset-top) + 1.25rem), 3.2rem);
+  }
+
+  .auth-mobile-topbar {
+    min-height: 3rem;
+    padding-top: 0;
+    padding-bottom: 0.65rem;
+  }
+
+  .auth-mobile-stage {
+    padding-top: 1rem;
+  }
+
+  .public-safe-header {
+    padding-top: max(calc(env(safe-area-inset-top) + 0.85rem), 3rem);
+    padding-bottom: 0.9rem;
+  }
+
+  .public-safe-main {
+    padding-top: 1.15rem;
+  }
+
+  .public-legal-header {
+    padding-top: max(calc(env(safe-area-inset-top) + 0.7rem), 2.75rem);
+  }
+}
+
+@media (max-height: 700px) {
+  .auth-brand-lockup {
+    margin-bottom: 0.45rem;
+  }
+
+  .auth-brand-logo {
+    width: min(10rem, 44vw);
+  }
+
+  .auth-form-card {
+    padding: 0.95rem;
+  }
+
+  .auth-form-card h1 {
+    font-size: clamp(1.55rem, 6.8vw, 1.85rem);
+  }
+
+  .auth-form {
+    gap: 0.72rem;
+  }
+
+  .auth-form-card .editorial-input {
+    min-height: 48px;
+  }
+
+  .auth-form-card .cta-navy {
+    min-height: 50px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .auth-card {
+    padding: 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-bg,
+  .auth-shell {
+    min-height: 100svh;
+  }
+
+  .auth-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top) + 0.7rem);
+    padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+    gap: 0.85rem;
+  }
+
+  .auth-topbar .font-display {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: clamp(1.55rem, 8vw, 2.2rem);
+    line-height: 1;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .auth-lang-switch {
+    width: min(100%, 21rem);
+    max-width: 100%;
+    align-self: center;
+    border-radius: 9999px;
+  }
+
+  .auth-lang-btn {
+    min-width: 0;
+    min-height: 38px;
+    flex: 1 1 0;
+    padding: 0.35rem 0.45rem;
+    font-size: 10px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .auth-stage {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0.7rem max(0.75rem, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 9rem)
+      max(0.75rem, env(safe-area-inset-right));
+  }
+
+  .auth-card {
+    max-width: 100%;
+    border-radius: 18px;
+    padding: 1.45rem;
+  }
+
+  .auth-card h1 {
+    font-size: clamp(2rem, 12vw, 3.15rem);
+    line-height: 0.98;
+  }
+}
+
+/* =====================================================================
+   Instagram editorial hub v2 — concise, monochrome, boutique
+===================================================================== */
+
+.ig-editorial {
+  --ig-ink: var(--color-navy);
+  --ig-paper: var(--cc-palette-sand-50);
+  --ig-cream: var(--cc-palette-paper-25);
+  --ig-gold: var(--color-gold);
+  --ig-accent-text: var(--ig-ink);
+  min-height: 100svh;
+  padding: 0 max(22px, calc((100vw - 1180px) / 2));
+  overflow: hidden;
+  background:
+    linear-gradient(color-mix(in srgb, var(--color-navy) 3.2%, transparent) 1px, transparent 1px) 0
+      0 / 100% 96px,
+    var(--ig-paper);
+  color: var(--ig-ink);
+  font-family: var(--font-ui-ar, "Noto Sans Arabic", sans-serif);
+}
+
+.ig-editorial__nav {
+  min-height: 94px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-navy) 16%, transparent);
+}
+
+.ig-editorial__logo {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+}
+
+.ig-editorial__logo img {
+  width: 168px;
+  height: auto;
+}
+
+.ig-editorial__place,
+.ig-editorial__overline,
+.ig-editorial__routes-head > span,
+.ig-editorial__studio > div > span,
+.ig-editorial__note > span {
+  font-family: var(--font-ui-latin, "Assistant", sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.ig-editorial__place {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: color-mix(in srgb, var(--color-navy) 64%, transparent);
+}
+
+.ig-editorial__place svg {
+  width: 14px;
+  color: var(--ig-accent-text);
+}
+
+.ig-editorial__hero {
+  min-height: 660px;
+  display: grid;
+  grid-template-columns: minmax(360px, 0.94fr) minmax(0, 1.06fr);
+  align-items: center;
+  gap: clamp(54px, 8vw, 128px);
+  padding: 74px 0 90px;
+}
+
+.ig-editorial__portrait {
+  position: relative;
+  height: 560px;
+}
+
+.ig-editorial__portrait::before {
+  content: "";
+  position: absolute;
+  inset: 18px -18px -18px 18px;
+  border: 1px solid var(--ig-gold);
+}
+
+.ig-editorial__portrait picture,
+.ig-editorial__portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ig-editorial__portrait img {
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(0.78) contrast(1.03);
+}
+
+.ig-editorial__portrait > span {
+  position: absolute;
+  inset-inline-end: -1px;
+  bottom: -54px;
+  color: var(--ig-accent-text);
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 92px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.ig-editorial__intro {
+  max-width: 580px;
+}
+
+.ig-editorial__overline {
+  margin: 0 0 32px;
+  color: var(--ig-accent-text);
+}
+
+.ig-editorial__intro h1 {
+  margin: 0;
+  color: var(--ig-ink);
+  font-family: var(--font-ui-ar, "Noto Sans Arabic", sans-serif);
+  font-size: clamp(52px, 6vw, 88px);
+  font-weight: 580;
+  line-height: 1.06;
+  letter-spacing: -0.05em;
+}
+
+.ig-editorial__intro h1 em {
+  display: block;
+  color: var(--ig-accent-text);
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-style: italic;
+  font-weight: 600;
+}
+
+.ig-editorial__intro-he {
+  max-width: 480px;
+  margin: 32px 0 0;
+  color: color-mix(in srgb, var(--color-navy) 64%, transparent);
+  font-family: var(--font-ui-he, "Assistant", sans-serif);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.ig-editorial__trial {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-top: 52px;
+  padding: 20px 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-navy) 20%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-navy) 20%, transparent);
+}
+
+.ig-editorial__trial span {
+  color: color-mix(in srgb, var(--color-navy) 68%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ig-editorial__trial strong {
+  color: var(--ig-ink);
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 50px;
+  line-height: 0.8;
+}
+
+.ig-editorial__routes {
+  padding: 118px 0 102px;
+  border-top: 1px solid color-mix(in srgb, var(--color-navy) 16%, transparent);
+}
+
+.ig-editorial__routes-head {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.35fr) 1fr;
+  align-items: end;
+  gap: 30px;
+  margin-bottom: 48px;
+}
+
+.ig-editorial__routes-head > span {
+  color: var(--ig-accent-text);
+}
+
+.ig-editorial__routes-head h2,
+.ig-editorial__studio h2 {
+  margin: 0;
+  color: var(--ig-ink);
+  font-size: clamp(38px, 5vw, 64px);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.ig-route {
+  min-height: 188px;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr) minmax(250px, 0.46fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 54px);
+  padding: 32px 38px;
+  border-top: 1px solid color-mix(in srgb, var(--color-navy) 20%, transparent);
+}
+
+.ig-route:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-navy) 20%, transparent);
+}
+
+.ig-route--women {
+  background: var(--ig-ink);
+  color: var(--ig-cream);
+}
+
+.ig-route--kids {
+  background: color-mix(in srgb, var(--cc-palette-paper-25) 58%, transparent);
+}
+
+.ig-route__number {
+  color: var(--ig-accent-text);
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 56px;
+  line-height: 1;
+}
+
+.ig-route__copy p {
+  margin: 0 0 7px;
+  color: var(--ig-accent-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ig-route__copy h3 {
+  margin: 0;
+  color: inherit;
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(29px, 4vw, 46px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ig-route__copy > span {
+  display: block;
+  margin-top: 12px;
+  color: color-mix(in srgb, var(--color-navy) 64%, transparent);
+  font-size: 12px;
+}
+
+.ig-route--women .ig-route__copy > span {
+  color: color-mix(in srgb, var(--cc-palette-paper-25) 58%, transparent);
+}
+
+.ig-route__button {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 22px 1fr 18px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border: 1px solid color-mix(in srgb, var(--color-navy) 24%, transparent);
+  color: var(--ig-ink);
+  text-decoration: none;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.ig-route--women .ig-route__button {
+  border-color: color-mix(in srgb, var(--cc-palette-paper-25) 46%, transparent);
+  color: var(--ig-cream);
+}
+
+.ig-route__button:hover {
+  background: var(--ig-gold);
+  color: var(--ig-ink);
+  transform: translateX(-4px);
+}
+
+.ig-route__button > svg {
+  width: 19px;
+}
+
+.ig-route__button > span {
+  display: grid;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ig-route__button small {
+  opacity: 0.72;
+  font-family: var(--font-ui-he, "Assistant", sans-serif);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ig-route__pending {
+  color: color-mix(in srgb, var(--color-navy) 64%, transparent);
+  font-family: var(--font-ui-latin, "Assistant", sans-serif);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.ig-editorial__note {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.35fr) 1fr;
+  gap: 30px;
+  padding: 30px 0 104px;
+}
+
+.ig-editorial__note > span {
+  color: var(--ig-accent-text);
+}
+
+.ig-editorial__note p {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(19px, 2.4vw, 29px);
+  line-height: 1.65;
+}
+
+.ig-editorial__note strong {
+  color: var(--ig-accent-text);
+}
+
+.ig-editorial__studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(340px, 0.94fr);
+  align-items: stretch;
+  min-height: 520px;
+  margin-bottom: 112px;
+  background: var(--cc-palette-sand-300);
+}
+
+.ig-editorial__studio > img {
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  object-fit: cover;
+  filter: saturate(0.62) contrast(1.04);
+}
+
+.ig-editorial__studio > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(36px, 6vw, 78px);
+}
+
+.ig-editorial__studio > div > span {
+  margin-bottom: 30px;
+  color: var(--ig-accent-text);
+}
+
+.ig-editorial__studio p {
+  margin: 28px 0 0;
+  color: color-mix(in srgb, var(--color-navy) 64%, transparent);
+  font-family: var(--font-ui-he, "Assistant", sans-serif);
+  line-height: 1.7;
+}
+
+.ig-editorial__footer {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid color-mix(in srgb, var(--color-navy) 20%, transparent);
+}
+
+.ig-editorial__footer > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.ig-editorial__footer img {
+  width: 42px;
+  height: 42px;
+}
+
+.ig-editorial__footer p {
+  display: grid;
+  margin: 0;
+}
+
+.ig-editorial__footer strong {
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 20px;
+}
+
+.ig-editorial__footer span {
+  color: color-mix(in srgb, var(--color-navy) 64%, transparent);
+  font-size: 10px;
+}
+
+.ig-editorial__footer-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ig-editorial__footer-links a {
+  min-width: 48px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ig-ink);
+  font-family: var(--font-ui-latin, "Assistant", sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+
+.ig-editorial__footer-links svg {
+  width: 19px;
+}
+
+@media (max-width: 1100px) {
+  .ig-editorial__hero {
+    grid-template-columns: 1fr;
+    gap: 66px;
+  }
+
+  .ig-editorial__portrait {
+    height: min(70vw, 560px);
+  }
+
+  .ig-editorial__intro {
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 800px) {
+  .ig-editorial {
+    padding-inline: 18px;
+    background:
+      linear-gradient(color-mix(in srgb, var(--color-navy) 2.8%, transparent) 1px, transparent 1px)
+        0 0 / 100% 72px,
+      var(--ig-paper);
+  }
+
+  .ig-editorial__nav {
+    min-height: 78px;
+  }
+
+  .ig-editorial__logo img {
+    width: 140px;
+  }
+
+  .ig-editorial__place {
+    font-size: 8px;
+  }
+
+  .ig-editorial__hero {
+    grid-template-columns: 1fr;
+    gap: 66px;
+    padding: 28px 0 82px;
+  }
+
+  .ig-editorial__portrait {
+    height: min(115vw, 520px);
+  }
+
+  .ig-editorial__portrait::before {
+    inset: 11px -8px -10px 10px;
+  }
+
+  .ig-editorial__portrait > span {
+    bottom: -40px;
+    font-size: 72px;
+  }
+
+  .ig-editorial__overline {
+    margin-bottom: 22px;
+    font-size: 8px;
+  }
+
+  .ig-editorial__intro h1 {
+    font-size: clamp(48px, 14vw, 72px);
+  }
+
+  .ig-editorial__intro-he {
+    margin-top: 24px;
+    font-size: 14px;
+  }
+
+  .ig-editorial__trial {
+    margin-top: 34px;
+  }
+
+  .ig-editorial__routes {
+    padding: 76px 0 64px;
+  }
+
+  .ig-editorial__routes-head,
+  .ig-editorial__note {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ig-editorial__routes-head {
+    margin-bottom: 32px;
+  }
+
+  .ig-editorial__routes-head h2 {
+    font-size: 42px;
+  }
+
+  .ig-route {
+    grid-template-columns: 52px 1fr;
+    gap: 18px;
+    padding: 28px 22px;
+  }
+
+  .ig-route__number {
+    align-self: start;
+    font-size: 44px;
+  }
+
+  .ig-route__copy h3 {
+    font-size: 32px;
+  }
+
+  .ig-route__button,
+  .ig-route__pending {
+    grid-column: 1 / -1;
+  }
+
+  .ig-route__button {
+    margin-top: 7px;
+  }
+
+  .ig-editorial__note {
+    padding-bottom: 78px;
+  }
+
+  .ig-editorial__studio {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    margin-bottom: 74px;
+  }
+
+  .ig-editorial__studio > img {
+    min-height: 390px;
+    height: 390px;
+  }
+
+  .ig-editorial__studio > div {
+    padding: 42px 28px 50px;
+  }
+
+  .ig-editorial__studio h2 {
+    font-size: 43px;
+  }
+
+  .ig-editorial__footer {
+    min-height: 148px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-route__button {
+    transition: none;
+  }
+}
+
+/* Preserve the legacy RTL typography winner after the public loading boundary. */
+[dir="rtl"] .instagram-hub__hero h1,
+[dir="rtl"] .instagram-hub__section-heading h2,
+[dir="rtl"] .instagram-hub__classes h2,
+[dir="rtl"] .instagram-hub__offer h2 {
+  letter-spacing: 0;
+}

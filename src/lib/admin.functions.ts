@@ -1640,35 +1640,33 @@ export const listProgramTypes = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const programTypeInput = z.object({
+  id: z.string().uuid().optional(),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/, "lowercase letters, numbers and dashes only"),
+  name_en: z.string().min(1),
+  name_he: z.string().min(1),
+  name_ar: z.string().min(1),
+  description_en: z.string().nullable().optional(),
+  description_he: z.string().nullable().optional(),
+  description_ar: z.string().nullable().optional(),
+  age_groups: z.array(z.string()).default([]),
+  level: z.string().nullable().optional(),
+  default_duration_minutes: z.number().int().positive().default(60),
+  default_capacity: z.number().int().positive().default(12),
+  default_credit_cost: z.number().int().min(0).default(1),
+  equipment: z.array(z.string()).default([]),
+  color_tag: z.string().default("#D4AF6A"),
+  cover_image_url: z.string().nullable().optional(),
+  sort_order: z.number().int().default(0),
+  active: z.boolean().default(true),
+});
+
 export const upsertProgramType = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z
-      .object({
-        id: z.string().uuid().optional(),
-        slug: z
-          .string()
-          .min(1)
-          .regex(/^[a-z0-9-]+$/, "lowercase letters, numbers and dashes only"),
-        name_en: z.string().min(1),
-        name_he: z.string().min(1),
-        name_ar: z.string().min(1),
-        description_en: z.string().nullable().optional(),
-        description_he: z.string().nullable().optional(),
-        description_ar: z.string().nullable().optional(),
-        age_groups: z.array(z.string()).default([]),
-        level: z.string().nullable().optional(),
-        default_duration_minutes: z.number().int().positive().default(60),
-        default_capacity: z.number().int().positive().default(12),
-        default_credit_cost: z.number().int().min(0).default(1),
-        equipment: z.array(z.string()).default([]),
-        color_tag: z.string().default("#D4AF6A"),
-        cover_image_url: z.string().nullable().optional(),
-        sort_order: z.number().int().default(0),
-        active: z.boolean().default(true),
-      })
-      .parse(d),
-  )
+  .inputValidator((d) => programTypeInput.parse(d))
   .handler(async ({ data, context }) => {
     await ensureStaff(context.supabase, context.userId, "admin");
     if (data.id) {

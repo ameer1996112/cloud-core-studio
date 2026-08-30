@@ -127,6 +127,10 @@ mock.module("@/hooks/useDocumentTitle", () => ({
   useDocumentTitle() {},
 }));
 
+mock.module("@/components/public/PublicShell", () => ({
+  PublicShell: ({ children }) => React.createElement("main", { id: "main-content" }, children),
+}));
+
 mock.module("@/lib/password-reset-flow", () => ({
   getPasswordResetRedirectUrl: () => "https://cloudandcorestudio.com/reset-password",
 }));
@@ -169,6 +173,7 @@ describe("auth public entry", () => {
     const html = renderAuthRoute("en");
 
     expect(html).toContain("Enter the studio");
+    expect(countOccurrences(html, '<main id="main-content"')).toBe(1);
     expect(html).toContain("Checking your session");
     expect(html).toContain('href="/support"');
     expect(html).toContain(">Support</a>");
@@ -176,14 +181,16 @@ describe("auth public entry", () => {
     expect(countOccurrences(html, 'href="/support"')).toBe(1);
   });
 
-  test("renders hebrew and arabic session recovery copy with rtl direction", () => {
+  test("renders hebrew and arabic session recovery copy with document-owned direction", () => {
     const hebrewHtml = renderAuthRoute("he");
     const arabicHtml = renderAuthRoute("ar");
 
-    expect(hebrewHtml).toContain('<main dir="rtl"');
+    expect(hebrewHtml).toContain('<main id="main-content"');
+    expect(hebrewHtml).not.toContain('<main id="main-content" dir=');
     expect(hebrewHtml).toContain("בודקים את החיבור שלך");
 
-    expect(arabicHtml).toContain('<main dir="rtl"');
+    expect(arabicHtml).toContain('<main id="main-content"');
+    expect(arabicHtml).not.toContain('<main id="main-content" dir=');
     expect(arabicHtml).toContain("نتحقق من اتصالك");
   });
 });

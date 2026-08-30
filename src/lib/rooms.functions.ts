@@ -16,7 +16,7 @@ export const listRooms = createServerFn({ method: "GET" })
     return (data ?? []).filter((r: any) => !isTestRecord(r.name));
   });
 
-const roomInput = z.object({
+export const roomInput = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(1).max(80),
   description: z.string().nullable().optional(),

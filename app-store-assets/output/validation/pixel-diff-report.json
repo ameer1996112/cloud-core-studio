@@ -1,0 +1,346 @@
+{
+  "status": "pass",
+  "tolerance": {
+    "permittedMasks": [
+      "marketing headline/subtitle/optional brand label",
+      "app screenshot area"
+    ],
+    "maximumOutsideMaskChangedPixelPercent": 1
+  },
+  "files": [
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/01-home-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "01-home-en.png",
+      "overallMeanAbsolutePercent": 4.46549,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/02-schedule-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "02-schedule-en.png",
+      "overallMeanAbsolutePercent": 3.364387,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/03-bookings-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "03-bookings-en.png",
+      "overallMeanAbsolutePercent": 6.005027,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/04-packages-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "04-packages-en.png",
+      "overallMeanAbsolutePercent": 3.529852,
+      "outsideMaskMeanAbsolutePercent": 0.037945,
+      "outsideMaskChangedPixelPercent": 0.060027
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/05-profile-en.png",
+      "device": "iphone-6.5",
+      "locale": "en",
+      "filename": "05-profile-en.png",
+      "overallMeanAbsolutePercent": 4.06131,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/01-home-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "01-home-ar.png",
+      "overallMeanAbsolutePercent": 5.165049,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/02-schedule-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "02-schedule-ar.png",
+      "overallMeanAbsolutePercent": 3.154844,
+      "outsideMaskMeanAbsolutePercent": 0.000529,
+      "outsideMaskChangedPixelPercent": 0.001186
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/03-bookings-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "03-bookings-ar.png",
+      "overallMeanAbsolutePercent": 5.396247,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/04-packages-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "04-packages-ar.png",
+      "overallMeanAbsolutePercent": 3.162925,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/05-profile-ar.png",
+      "device": "iphone-6.5",
+      "locale": "ar",
+      "filename": "05-profile-ar.png",
+      "overallMeanAbsolutePercent": 3.381324,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/01-home-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "01-home-en.png",
+      "overallMeanAbsolutePercent": 7.905006,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/02-schedule-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "02-schedule-en.png",
+      "overallMeanAbsolutePercent": 3.062305,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/03-bookings-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "03-bookings-en.png",
+      "overallMeanAbsolutePercent": 9.509708,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/04-packages-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "04-packages-en.png",
+      "overallMeanAbsolutePercent": 3.899721,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/05-profile-en.png",
+      "device": "ipad-13",
+      "locale": "en",
+      "filename": "05-profile-en.png",
+      "overallMeanAbsolutePercent": 5.081174,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/01-home-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "01-home-ar.png",
+      "overallMeanAbsolutePercent": 7.864914,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/02-schedule-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "02-schedule-ar.png",
+      "overallMeanAbsolutePercent": 2.918888,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/03-bookings-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "03-bookings-ar.png",
+      "overallMeanAbsolutePercent": 9.506108,
+      "outsideMaskMeanAbsolutePercent": 0.000488,
+      "outsideMaskChangedPixelPercent": 0.001025
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/04-packages-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "04-packages-ar.png",
+      "overallMeanAbsolutePercent": 3.675072,
+      "outsideMaskMeanAbsolutePercent": 0.000989,
+      "outsideMaskChangedPixelPercent": 0.00211
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/05-profile-ar.png",
+      "device": "ipad-13",
+      "locale": "ar",
+      "filename": "05-profile-ar.png",
+      "overallMeanAbsolutePercent": 5.034858,
+      "outsideMaskMeanAbsolutePercent": 0,
+      "outsideMaskChangedPixelPercent": 0
+    }
+  ],
+  "logoValidation": "The official logo asset hash is fixed. Logo silhouettes in every approved master and localized output are normalized and compared directly to that official asset; output logos are also outside all permitted masks.",
+  "logoChecks": [
+    {
+      "path": "app-store-assets/references/hebrew-approved/01-home-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.700692
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/01-home-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.700692
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/01-home-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.700692
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/02-schedule-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.739911
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/02-schedule-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.739911
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/02-schedule-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.739911
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/03-bookings-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.71556
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/03-bookings-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.71556
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/03-bookings-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.71556
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/04-packages-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.755691
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/04-packages-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.755691
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/04-packages-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.755691
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/05-profile-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.698913
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/en/05-profile-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.698913
+    },
+    {
+      "path": "app-store-assets/output/iphone-6.5/ar/05-profile-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.698913
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/ipad-13/01-home-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.695487
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/01-home-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.695487
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/01-home-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.695487
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/ipad-13/02-schedule-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.77318
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/02-schedule-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.77318
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/02-schedule-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.77318
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/ipad-13/03-bookings-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.706102
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/03-bookings-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.706102
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/03-bookings-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.706102
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/ipad-13/04-packages-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.731911
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/04-packages-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.731911
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/04-packages-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.731911
+    },
+    {
+      "path": "app-store-assets/references/hebrew-approved/ipad-13/05-profile-he.png",
+      "kind": "approved-reference",
+      "officialLogoShapeCosine": 0.7386
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/en/05-profile-en.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.7386
+    },
+    {
+      "path": "app-store-assets/output/ipad-13/ar/05-profile-ar.png",
+      "kind": "localized-output",
+      "officialLogoShapeCosine": 0.7386
+    }
+  ],
+  "failures": []
+}

@@ -2,15 +2,41 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Bot, CheckCircle2, RefreshCw, ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
-import { AdminSection } from "@/components/admin-shared";
+import {
+  AdminSection,
+  AsyncState,
+  PersistentAnnouncement,
+  ResponsiveDataList,
+} from "@/components/admin-shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getConciergeCenter, simulateConciergeDecision } from "@/lib/conciergeAdmin.functions";
+import { safeErrorMessage } from "@/lib/error-messages";
 import type { Lang } from "@/lib/i18n";
 
 type JourneyStatus = "inactive" | "partial" | "live";
+
+type ConciergeCenterView = {
+  shadowSummary: {
+    suppressions: Record<string, number>;
+    evaluated: number;
+  };
+  productionJourneys: Array<{
+    journeyType: string;
+    status: JourneyStatus;
+    liveEvents: number;
+    totalEvents: number;
+    channels: string[];
+  }>;
+  queueHealth: {
+    pending: number;
+    deadLettered: number;
+    oldestPendingAt?: string | null;
+  };
+  attention: Array<{ id: string; title: string; item_type: string; severity: string }>;
+  channels: Array<{ channel: string; status: JourneyStatus }>;
+};
 
 const COPY = {
   en: {
@@ -34,6 +60,10 @@ const COPY = {
     enable: "Enable",
     disable: "Disable",
     journeys: "Automated journeys",
+    journey: "Journey",
+    status: "Status",
+    events: "Live events",
+    notMigrated: "Not migrated to Unified Messaging",
     journeyHint:
       "Production status comes from the single Unified Messaging engine. The parallel Concierge dispatcher remains safely disabled.",
     simulator: "Decision simulator",
@@ -93,6 +123,10 @@ const COPY = {
     enable: "הפעלה",
     disable: "כיבוי",
     journeys: "מסעות אוטומטיים",
+    journey: "מסע",
+    status: "סטטוס",
+    events: "אירועים פעילים",
+    notMigrated: "עדיין לא הועבר ל-Unified Messaging",
     journeyHint:
       "מצב הייצור מגיע ממנוע Unified Messaging היחיד. מנוע הקונסיירז׳ המקביל נשאר כבוי בבטחה.",
     simulator: "סימולטור החלטות",
@@ -151,6 +185,10 @@ const COPY = {
     enable: "تفعيل",
     disable: "إيقاف",
     journeys: "الرحلات الآلية",
+    journey: "الرحلة",
+    status: "الحالة",
+    events: "الأحداث المباشرة",
+    notMigrated: "لم تُنقل بعد إلى Unified Messaging",
     journeyHint:
       "تعرض الحالة من محرك Unified Messaging الوحيد. يبقى محرك الكونسيرج الموازي متوقفاً بأمان.",
     simulator: "محاكي القرارات",
@@ -196,6 +234,11 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   const simulate = useServerFn(simulateConciergeDecision);
   const [recipientId, setRecipientId] = useState("preview-recipient");
   const [simulation, setSimulation] = useState<Record<string, unknown> | null>(null);
+  const [outcome, setOutcome] = useState<{
+    tone: "success" | "error";
+    title: string;
+    body?: string;
+  } | null>(null);
   const center = useQuery({
     queryKey: ["concierge-center"],
     queryFn: () => getCenter(),
@@ -213,32 +256,42 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
           simulatedAt: new Date().toISOString(),
         },
       }),
-    onSuccess: (result) => setSimulation(result as Record<string, unknown>),
-    onError: (error) => toast.error(error instanceof Error ? error.message : copy.simulationError),
+    onSuccess: (result) => {
+      setSimulation(result as Record<string, unknown>);
+      setOutcome({ tone: "success", title: copy.simulate });
+    },
+    onError: (simulationError) =>
+      setOutcome({
+        tone: "error",
+        title: copy.simulationError,
+        body: safeErrorMessage(simulationError, copy.simulationError),
+      }),
   });
 
   if (center.isLoading) {
-    return <div className="editorial-panel p-6 text-sm text-slate">{copy.loading}</div>;
+    return <AsyncState state={{ status: "loading", label: copy.loading }} />;
   }
   if (center.isError) {
     return (
-      <div className="editorial-panel flex items-center justify-between gap-4 p-6">
-        <p className="text-sm text-destructive">{copy.loadError}</p>
-        <Button variant="outline" onClick={() => center.refetch()}>
-          {copy.retry}
-        </Button>
-      </div>
+      <AsyncState
+        state={{
+          status: "error",
+          title: copy.loadError,
+          body: safeErrorMessage(center.error, copy.loadError),
+          retry: () => void center.refetch(),
+        }}
+      />
     );
   }
 
-  const suppressionCount = Object.values(center.data?.shadowSummary.suppressions ?? {}).reduce(
-    (total, value) => total + Number(value),
-    0,
-  );
-  const liveCount = (center.data?.productionJourneys ?? []).filter(
+  const centerData = center.data as unknown as ConciergeCenterView | undefined;
+  const suppressionCount = Object.values(
+    (centerData?.shadowSummary.suppressions ?? {}) as Record<string, number>,
+  ).reduce((total: number, value) => total + Number(value), 0);
+  const liveCount = (centerData?.productionJourneys ?? []).filter(
     (journey: { status: string }) => journey.status === "live",
   ).length;
-  const unhealthy = (center.data?.queueHealth.deadLettered ?? 0) > 0;
+  const unhealthy = (centerData?.queueHealth.deadLettered ?? 0) > 0;
 
   return (
     <div className="space-y-7">
@@ -277,10 +330,16 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
         </div>
       </section>
 
+      {outcome ? (
+        <PersistentAnnouncement tone={outcome.tone} title={outcome.title}>
+          {outcome.body ? <p>{outcome.body}</p> : null}
+        </PersistentAnnouncement>
+      ) : null}
+
       <>
         <AdminSection title={copy.attention} eyebrow="Concierge">
           <div className="space-y-2">
-            {(center.data?.attention ?? []).map(
+            {(centerData?.attention ?? []).map(
               (item: { id: string; title: string; item_type: string; severity: string }) => (
                 <div
                   className="editorial-panel flex items-center justify-between gap-4 p-4"
@@ -296,7 +355,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
                 </div>
               ),
             )}
-            {center.data?.attention.length === 0 && (
+            {centerData?.attention.length === 0 && (
               <div className="editorial-panel flex items-center gap-3 p-5 text-slate">
                 <CheckCircle2 className="h-5 w-5 text-emerald-700" />
                 {copy.noAttention}
@@ -307,16 +366,16 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
 
         <AdminSection title={copy.health} eyebrow={copy.outbox}>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Metric label={copy.pending} value={center.data?.queueHealth.pending ?? 0} />
-            <Metric label={copy.dead} value={center.data?.queueHealth.deadLettered ?? 0} alert />
-            <Metric label={copy.shadow} value={center.data?.shadowSummary.evaluated ?? 0} />
+            <Metric label={copy.pending} value={centerData?.queueHealth.pending ?? 0} />
+            <Metric label={copy.dead} value={centerData?.queueHealth.deadLettered ?? 0} alert />
+            <Metric label={copy.shadow} value={centerData?.shadowSummary.evaluated ?? 0} />
             <Metric label={copy.suppressed} value={suppressionCount} />
           </div>
-          {center.data?.queueHealth.oldestPendingAt && (
+          {centerData?.queueHealth.oldestPendingAt && (
             <p className="text-xs text-slate">
               {copy.oldest}:{" "}
               <span dir="ltr">
-                {new Date(center.data.queueHealth.oldestPendingAt).toLocaleString()}
+                {new Date(centerData.queueHealth.oldestPendingAt).toLocaleString()}
               </span>
             </p>
           )}
@@ -325,7 +384,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
         <AdminSection title={copy.channels} eyebrow={copy.switches}>
           <p className="mb-4 text-sm text-slate">{copy.channelsHint}</p>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {(center.data?.channels ?? []).map(
+            {(centerData?.channels ?? []).map(
               (channel: { channel: string; status: JourneyStatus }) => (
                 <div
                   className="editorial-panel flex items-center justify-between gap-3 p-4"
@@ -348,43 +407,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
 
         <AdminSection title={copy.journeys} eyebrow={copy.rollout}>
           <p className="mb-4 text-sm text-slate">{copy.journeyHint}</p>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {(center.data?.productionJourneys ?? []).map(
-              (journey: {
-                journeyType: string;
-                status: JourneyStatus;
-                liveEvents: number;
-                totalEvents: number;
-                channels: string[];
-              }) => (
-                <article className="editorial-panel space-y-4 p-5" key={journey.journeyType}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-serif text-xl capitalize text-navy">
-                        {journey.journeyType.replaceAll("_", " ")}
-                      </h3>
-                      <p className="text-xs text-slate">
-                        {journey.liveEvents}/{journey.totalEvents} {copy.live}
-                      </p>
-                    </div>
-                    <Badge variant={journey.status === "live" ? "default" : "secondary"}>
-                      {journey.status}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {journey.channels.map((channel) => (
-                      <Badge key={channel} variant="outline">
-                        {channel.replace("_", " ")}
-                      </Badge>
-                    ))}
-                    {journey.channels.length === 0 && (
-                      <span className="text-xs text-slate">Not migrated to Unified Messaging</span>
-                    )}
-                  </div>
-                </article>
-              ),
-            )}
-          </div>
+          <ConciergeJourneyList lang={lang} journeys={centerData?.productionJourneys ?? []} />
         </AdminSection>
 
         <AdminSection title={copy.simulator} eyebrow={copy.preview}>
@@ -413,6 +436,68 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
         </AdminSection>
       </>
     </div>
+  );
+}
+
+export function ConciergeJourneyList({
+  journeys,
+  lang,
+}: {
+  journeys: ConciergeCenterView["productionJourneys"];
+  lang: Lang;
+}) {
+  const copy = COPY[lang] ?? COPY.en;
+  return (
+    <ResponsiveDataList
+      caption={copy.journeys}
+      columns={[
+        {
+          id: "journey",
+          label: copy.journey,
+          cell: (journey) => (
+            <span className="font-serif text-lg capitalize text-navy">
+              {journey.journeyType.replaceAll("_", " ")}
+            </span>
+          ),
+        },
+        {
+          id: "status",
+          label: copy.status,
+          cell: (journey) => (
+            <Badge variant={journey.status === "live" ? "default" : "secondary"}>
+              {journey.status}
+            </Badge>
+          ),
+        },
+        {
+          id: "events",
+          label: copy.events,
+          cell: (journey) => (
+            <span className="text-sm text-slate">
+              {journey.liveEvents}/{journey.totalEvents}
+            </span>
+          ),
+        },
+        {
+          id: "channels",
+          label: copy.channels,
+          cell: (journey) => (
+            <div className="flex flex-wrap gap-2">
+              {journey.channels.map((channel) => (
+                <Badge key={channel} variant="outline">
+                  {channel.replace("_", " ")}
+                </Badge>
+              ))}
+              {journey.channels.length === 0 ? (
+                <span className="text-xs text-slate">{copy.notMigrated}</span>
+              ) : null}
+            </div>
+          ),
+        },
+      ]}
+      data={journeys}
+      getRowKey={(journey) => journey.journeyType}
+    />
   );
 }
 

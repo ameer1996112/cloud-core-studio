@@ -3,9 +3,13 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import { clientModuleMetadata } from "./tools/ui-audit/client-module-metadata.ts";
+
+const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   css: { transformer: "lightningcss" },
+  build: { manifest: true },
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     dedupe: [
@@ -28,13 +32,14 @@ export default defineConfig({
     ignoreOutdatedRequests: true,
   },
   plugins: [
+    clientModuleMetadata(projectRoot),
     tailwindcss(),
     tanstackStart({
       server: { entry: "server" },
       importProtection: {
         behavior: "error",
         client: {
-          files: ["**/server/**"],
+          files: ["**/*.server.*", "**/server/**"],
           specifiers: ["server-only"],
         },
       },

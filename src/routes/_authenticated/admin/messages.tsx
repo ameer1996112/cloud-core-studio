@@ -70,6 +70,8 @@ import {
   Workflow,
   BellRing,
 } from "lucide-react";
+import { BidiDateTime, BidiValue } from "@/components/ui/bidi";
+import { formatBidiValue } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/messages")({
   component: Page,
@@ -86,6 +88,13 @@ type Tab =
   | "composer"
   | "logs"
   | "requests";
+
+type ToolTab = {
+  k: Exclude<Tab, "concierge" | "inbox" | "composer" | "logs">;
+  l: string;
+  help: string;
+  icon: typeof Activity;
+};
 
 type LogStatusSummary = {
   status?: string | null;
@@ -405,12 +414,12 @@ function Page() {
     { k: "inbox" as const, l: copy.inbox },
     { k: "composer" as const, l: copy.send },
   ];
-  const toolGroups = [
+  const toolGroups: { label: string; items: ToolTab[] }[] = [
     {
       label: copy.toolsOperations,
       items: [
         {
-          k: "deliveries" as const,
+          k: "deliveries",
           l: copy.deliveries,
           help: copy.deliveriesHelp,
           icon: Activity,
@@ -420,16 +429,16 @@ function Page() {
     {
       label: copy.toolsContent,
       items: [
-        { k: "templates" as const, l: copy.templates, help: copy.templatesHelp, icon: Pencil },
-        { k: "push" as const, l: copy.push, help: copy.pushHelp, icon: BellRing },
-        { k: "requests" as const, l: copy.requests, help: copy.requestsHelp, icon: Users },
+        { k: "templates", l: copy.templates, help: copy.templatesHelp, icon: Pencil },
+        { k: "push", l: copy.push, help: copy.pushHelp, icon: BellRing },
+        { k: "requests", l: copy.requests, help: copy.requestsHelp, icon: Users },
       ],
     },
     {
       label: copy.toolsAdvanced,
       items: [
-        { k: "events" as const, l: copy.events, help: copy.eventsHelp, icon: Power },
-        { k: "journeys" as const, l: copy.journeys, help: copy.journeysHelp, icon: Workflow },
+        { k: "events", l: copy.events, help: copy.eventsHelp, icon: Power },
+        { k: "journeys", l: copy.journeys, help: copy.journeysHelp, icon: Workflow },
       ],
     },
   ];
@@ -477,7 +486,7 @@ function Page() {
             <ChevronDown className={`h-3.5 w-3.5 transition ${toolsOpen ? "rotate-180" : ""}`} />
           </button>
           {toolsOpen && (
-            <div className="absolute right-0 top-full z-30 mt-2 w-[min(82vw,420px)] overflow-hidden rounded-2xl border border-gold/25 bg-ivory shadow-[0_24px_70px_rgba(8,31,61,0.18)]">
+            <div className="absolute right-0 top-full z-30 mt-2 w-[min(82vw,420px)] overflow-hidden rounded-2xl border border-gold/25 bg-ivory shadow-[0_24px_70px_var(--cc-alpha-admin-message-shadow)]">
               <div className="border-b border-gold/20 bg-navy px-5 py-5 text-ivory">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -648,9 +657,11 @@ function CanonicalInboxTab() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate">
-                {conversation.last_inbound_at
-                  ? new Date(conversation.last_inbound_at).toLocaleString()
-                  : "No inbound timestamp"}
+                {conversation.last_inbound_at ? (
+                  <BidiDateTime value={conversation.last_inbound_at} />
+                ) : (
+                  "No inbound timestamp"
+                )}
               </p>
             </button>
           );
@@ -713,7 +724,7 @@ function CanonicalInboxTab() {
                     {message.body || `[${message.content?.message_type ?? "message"}]`}
                   </p>
                   <p className="mt-1 text-[10px] opacity-60">
-                    {new Date(message.created_at).toLocaleString()}
+                    <BidiDateTime value={message.created_at} />
                   </p>
                 </div>
               ))}
@@ -983,7 +994,13 @@ function PremiumJourneyLabTab() {
                   >
                     <span className="font-medium text-navy">{member.name}</span>
                     <span className="ms-2 text-xs text-slate">
-                      {member.phone ?? member.email ?? "No contact"}
+                      {member.phone ? (
+                        <BidiValue kind="phone">{member.phone}</BidiValue>
+                      ) : member.email ? (
+                        <BidiValue kind="email">{member.email}</BidiValue>
+                      ) : (
+                        "No contact"
+                      )}
                     </span>
                   </button>
                 ))}
@@ -1746,11 +1763,14 @@ function ComposerTab() {
               <option value="">{copy.chooseClass}</option>
               {(classes ?? []).map((c: any) => (
                 <option key={c.id} value={c.id}>
-                  {new Date(c.starts_at).toLocaleDateString()}{" "}
-                  {new Date(c.starts_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
+                  {formatBidiValue(new Date(c.starts_at).toLocaleDateString(), "localized-date")}{" "}
+                  {formatBidiValue(
+                    new Date(c.starts_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                    "time-range",
+                  )}{" "}
                   · {c.title}
                 </option>
               ))}
@@ -1791,7 +1811,13 @@ function ComposerTab() {
                     >
                       <span className="block text-sm text-navy">{member.name}</span>
                       <span className="block text-xs text-slate">
-                        {member.phone ?? member.email ?? copy.noContact}
+                        {member.phone ? (
+                          <BidiValue kind="phone">{member.phone}</BidiValue>
+                        ) : member.email ? (
+                          <BidiValue kind="email">{member.email}</BidiValue>
+                        ) : (
+                          copy.noContact
+                        )}
                       </span>
                     </button>
                   ))}
@@ -1839,7 +1865,7 @@ function ComposerTab() {
         <VariableHelp />
       </aside>
 
-      <main className="space-y-4">
+      <section className="space-y-4" aria-label={copy.messagesReady}>
         {!canBuild && (
           <Empty>{isSpecificAudience ? copy.chooseMember : copy.chooseClassEmpty}</Empty>
         )}
@@ -1905,7 +1931,7 @@ function ComposerTab() {
               }
             />
           ))}
-      </main>
+      </section>
     </div>
   );
 }
@@ -2082,7 +2108,7 @@ function PreviewRow({
             {member.phone && (
               <span className="inline-flex items-center gap-1">
                 <Phone className="h-3 w-3" />
-                {member.phone}
+                <BidiValue kind="phone">{member.phone}</BidiValue>
               </span>
             )}
             {!member.phone && channel === "whatsapp" && (
@@ -2555,7 +2581,7 @@ function LogsTab() {
                 <div className="min-w-0">
                   <p className="font-display text-base text-navy">{l.member?.name ?? "—"}</p>
                   <p className="mt-0.5 text-xs font-medium text-slate">
-                    {new Date(l.created_at).toLocaleString()} · {l.channel} ·{" "}
+                    <BidiDateTime value={l.created_at} /> · {l.channel} ·{" "}
                     {l.trigger_type ?? l.template_key ?? "manual"}
                   </p>
                 </div>
@@ -2569,8 +2595,17 @@ function LogsTab() {
                 {l.subject ? <p>Subject: {l.subject}</p> : null}
                 {l.language ? <p>Language: {l.language}</p> : null}
                 {l.staff_visibility ? <p>Visibility: {l.staff_visibility}</p> : null}
-                {l.idempotency_key ? <p>Idempotency: {l.idempotency_key}</p> : null}
-                {l.provider_message_id ? <p>OpenWA accepted id: {l.provider_message_id}</p> : null}
+                {l.idempotency_key ? (
+                  <p>
+                    Idempotency: <BidiValue kind="identifier">{l.idempotency_key}</BidiValue>
+                  </p>
+                ) : null}
+                {l.provider_message_id ? (
+                  <p>
+                    OpenWA accepted id:{" "}
+                    <BidiValue kind="identifier">{l.provider_message_id}</BidiValue>
+                  </p>
+                ) : null}
                 {l.error_message ? <p>Error: {l.error_message}</p> : null}
               </div>
               {l.generated_text && (
@@ -2656,7 +2691,8 @@ function RequestCard({ r, settings, update }: { r: any; settings: any; update: a
           <span className="text-slate text-sm">· {r.plan?.name ?? "Package"}</span>
         </p>
         <p className="mt-0.5 text-xs font-medium text-slate">
-          {new Date(r.created_at).toLocaleString()} · {r.member?.phone ?? "no phone"}
+          <BidiDateTime value={r.created_at} /> ·{" "}
+          {r.member?.phone ? <BidiValue kind="phone">{r.member.phone}</BidiValue> : "no phone"}
         </p>
         {r.message_text && <p className="text-sm text-navy mt-2 italic">"{r.message_text}"</p>}
         <textarea

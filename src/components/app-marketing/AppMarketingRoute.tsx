@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { createIsomorphicFn } from "@tanstack/react-start";
 
 import { AppMarketingPage } from "@/components/app-marketing/AppMarketingPage";
+import { PublicShell } from "@/components/public/PublicShell";
 import {
   APP_MARKETING_INSTALL_URL,
   APP_MARKETING_LANGS,
@@ -106,12 +107,14 @@ export function AppMarketingRoutePage({ data }: { data: AppMarketingRouteData })
   }, [data.lang]);
 
   return (
-    <AppMarketingPage
-      lang={data.lang}
-      appStoreUrl={data.appStoreUrl}
-      marketingUtm={data.marketingUtm}
-      profile={data.profile}
-      trialPrice={data.trialPrice}
-    />
+    <PublicShell headerMode="compact" mainClassName="app-marketing-shell-main">
+      <AppMarketingPage
+        lang={data.lang}
+        appStoreUrl={data.appStoreUrl}
+        marketingUtm={data.marketingUtm}
+        profile={data.profile}
+        trialPrice={data.trialPrice}
+      />
+    </PublicShell>
   );
 }

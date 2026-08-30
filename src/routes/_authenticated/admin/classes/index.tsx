@@ -2,16 +2,26 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listClasses, setClassStatus } from "@/lib/admin.functions";
-import { Plus, Archive, XCircle, CheckCircle } from "lucide-react";
-import { Empty, SectionTitle } from "@/components/admin-shared";
-import { toast } from "sonner";
+import { Plus, Archive, CheckCircle } from "lucide-react";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AsyncState,
+  PersistentAnnouncement,
+  ResponsiveDataList,
+  type ResponsiveDataListColumn,
+} from "@/components/admin-shared";
+import { AdminDestructiveAction } from "@/components/admin/AdminDestructiveAction";
+import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { safeErrorMessage } from "@/lib/error-messages";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   localizedClassTitle,
   localizedInstructorName,
   localizedRoomName,
 } from "@/lib/localized-content";
+import { BidiDateTime } from "@/components/ui/bidi";
 
 export const Route = createFileRoute("/_authenticated/admin/classes/")({
   component: Page,
@@ -23,124 +33,185 @@ function Page() {
   const fn = useServerFn(listClasses);
   const setStatusFn = useServerFn(setClassStatus);
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({ queryKey: ["admin-classes"], queryFn: () => fn() });
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["admin-classes"],
+    queryFn: () => fn(),
+  });
+  const [outcome, setOutcome] = useState<{ tone: "success" | "error"; body: string } | null>(null);
   const mut = useMutation({
     mutationFn: (v: { id: string; status: "scheduled" | "cancelled" | "archived" }) =>
       setStatusFn({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-classes"] });
-      toast.success(t("admin.classes.updated"));
+      setOutcome({ tone: "success", body: t("admin.classes.updated") });
     },
-    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
+    onError: (statusError: unknown) =>
+      setOutcome({
+        tone: "error",
+        body: safeErrorMessage(statusError, t("admin.classes.failed")),
+      }),
   });
 
+  const columns: ResponsiveDataListColumn<NonNullable<typeof data>[number]>[] = [
+    {
+      id: "class",
+      label: t("admin.classes.all"),
+      cell: (c) => (
+        <Link to="/admin/classes/$id" params={{ id: c.id }} className="block min-w-0">
+          <p className="font-display text-lg leading-tight">
+            <bdi>{localizedClassTitle(c, lang)}</bdi>
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <StatusChip s={c.status} label={statusLabel(c.status, t)} />
+            {c.member_visible === false ? (
+              <StatusChip s="staff_only" label={t("admin.classes.staffOnly")} />
+            ) : null}
+          </div>
+        </Link>
+      ),
+    },
+    {
+      id: "schedule",
+      label: t("common.when"),
+      cell: (c) => {
+        const date = new Date(c.starts_at);
+        return (
+          <span className="text-xs font-medium text-slate">
+            <BidiDateTime
+              value={date}
+              options={{
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              }}
+            />
+          </span>
+        );
+      },
+    },
+    {
+      id: "location",
+      label: t("common.where"),
+      cell: (c) => (
+        <span className="text-xs font-medium text-slate">
+          {localizedRoomName(c.room_ref?.name ?? c.room, lang)} ·{" "}
+          {c.instructor?.name
+            ? localizedInstructorName(c.instructor.name, lang)
+            : t("admin.classes.unassigned")}
+        </span>
+      ),
+    },
+    {
+      id: "capacity",
+      label: t("common.capacity"),
+      cell: (c) => {
+        const left = c.capacity - c.booked_count;
+        return (
+          <span className="text-xs text-slate">
+            {t("admin.classes.booked", { count: c.booked_count })}/{c.capacity} ·{" "}
+            {left > 0 ? t("admin.classes.open", { count: left }) : t("common.full")} ·{" "}
+            {t("admin.classes.waiting", { count: c.waitlist_count })}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      label: t("common.status"),
+      cell: (c) => (
+        <div className="flex min-w-0 flex-wrap gap-2">
+          {c.status === "scheduled" ? (
+            <AdminDestructiveAction
+              objectName={localizedClassTitle(c, lang)}
+              consequence={t("admin.classes.cancelConsequence")}
+              confirmLabel={t("common.cancel")}
+              pendingLabel={t("common.saving")}
+              failureMessage={t("admin.classes.failed")}
+              onConfirm={() =>
+                mut.mutateAsync({ id: c.id, status: "cancelled" }).then(() => undefined)
+              }
+              triggerClassName="btn-outline inline-flex min-h-11 items-center gap-2 px-3 text-xs text-destructive"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => mut.mutate({ id: c.id, status: "scheduled" })}
+              disabled={mut.isPending}
+              className="btn-outline inline-flex min-h-11 items-center gap-2 px-3 text-xs"
+            >
+              <CheckCircle className="h-4 w-4" aria-hidden="true" />
+              {t("common.open")}
+            </button>
+          )}
+          {c.status !== "archived" ? (
+            <AdminDestructiveAction
+              objectName={localizedClassTitle(c, lang)}
+              consequence={t("admin.classes.archiveConsequence")}
+              confirmLabel={t("admin.programs.archive")}
+              pendingLabel={t("common.saving")}
+              failureMessage={t("admin.classes.failed")}
+              onConfirm={() =>
+                mut.mutateAsync({ id: c.id, status: "archived" }).then(() => undefined)
+              }
+              triggerClassName="btn-ghost inline-flex min-h-11 items-center gap-2 px-3 text-xs"
+            >
+              <Archive className="h-4 w-4" aria-hidden="true" />
+            </AdminDestructiveAction>
+          ) : null}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <SectionTitle
+    <AdminPageShell>
+      <AdminPageHeader
+        title={t("admin.classes.all")}
         action={
           <Link to="/admin/classes/new" className="btn-navy hover:btn-navy-hover">
             <Plus className="h-3.5 w-3.5" /> {t("admin.classes.new")}
           </Link>
         }
+      />
+
+      {outcome ? (
+        <PersistentAnnouncement tone={outcome.tone} title={outcome.body}>
+          {outcome.body}
+        </PersistentAnnouncement>
+      ) : null}
+
+      <AsyncState
+        state={
+          isLoading
+            ? { status: "loading", label: t("common.loading") }
+            : isError
+              ? {
+                  status: "error",
+                  title: t("admin.classes.failed"),
+                  body: safeErrorMessage(error, t("admin.classes.failed")),
+                  retry: () => void refetch(),
+                }
+              : (data?.length ?? 0) === 0
+                ? {
+                    status: "empty",
+                    title: t("admin.noClasses"),
+                    body: t("admin.noClasses"),
+                  }
+                : { status: "ready", data: data ?? [] }
+        }
       >
-        {t("admin.classes.all")}
-      </SectionTitle>
-
-      {isLoading && <div className="editorial-card h-40 skeleton-brand" />}
-      {data && data.length === 0 && <Empty>{t("admin.noClasses")}</Empty>}
-
-      <div className="space-y-2">
-        {data?.map((c: any) => {
-          const d = new Date(c.starts_at);
-          const left = c.capacity - c.booked_count;
-          return (
-            <div key={c.id} className="editorial-card p-5 hover:editorial-card-hover">
-              <div className="flex items-start justify-between gap-3">
-                <Link to="/admin/classes/$id" params={{ id: c.id }} className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <p className="font-display text-lg leading-tight">
-                      {localizedClassTitle(c, lang)}
-                    </p>
-                    <StatusChip s={c.status} label={statusLabel(c.status, t)} />
-                    {c.member_visible === false && (
-                      <StatusChip s="staff_only" label={t("admin.classes.staffOnly")} />
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs font-medium text-slate">
-                    {d.toLocaleString(undefined, {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                    {" · "}
-                    {localizedRoomName(c.room_ref?.name ?? c.room, lang)} ·{" "}
-                    {c.instructor?.name
-                      ? localizedInstructorName(c.instructor.name, lang)
-                      : t("admin.classes.unassigned")}
-                  </p>
-                  <p className="text-xs text-slate mt-1">
-                    {t("admin.classes.booked", { count: c.booked_count })}/{c.capacity} ·{" "}
-                    {left > 0 ? t("admin.classes.open", { count: left }) : t("common.full")} ·{" "}
-                    {t("admin.classes.waiting", { count: c.waitlist_count })}
-                  </p>
-                </Link>
-                <div className="flex gap-1 shrink-0">
-                  {c.status === "scheduled" && (
-                    <IconAction
-                      onClick={() => {
-                        if (confirm(t("admin.classes.cancelConfirm")))
-                          mut.mutate({ id: c.id, status: "cancelled" });
-                      }}
-                      label={t("common.cancel")}
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </IconAction>
-                  )}
-                  {c.status !== "scheduled" && (
-                    <IconAction
-                      onClick={() => mut.mutate({ id: c.id, status: "scheduled" })}
-                      label={t("common.open")}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                    </IconAction>
-                  )}
-                  {c.status !== "archived" && (
-                    <IconAction
-                      onClick={() => mut.mutate({ id: c.id, status: "archived" })}
-                      label={t("admin.programs.archived")}
-                    >
-                      <Archive className="h-4 w-4" />
-                    </IconAction>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function IconAction({
-  children,
-  onClick,
-  label,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
-    >
-      {children}
-    </button>
+        {(classes) => (
+          <ResponsiveDataList
+            caption={t("admin.classes.all")}
+            columns={columns}
+            data={classes}
+            getRowKey={(c) => c.id}
+          />
+        )}
+      </AsyncState>
+    </AdminPageShell>
   );
 }
 

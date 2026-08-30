@@ -11,7 +11,8 @@ import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
 import { formatDate, formatTime, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
 import { LessonReservationCard } from "@/components/visual/VisualClassCard";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { BidiValue } from "@/components/ui/bidi";
+import { MemberCancellationDialog } from "@/components/member/MemberCancellationDialog";
 import { MemberPageIntro } from "@/components/member/MemberPage";
 import {
   MemberSegmentedControl,
@@ -34,6 +35,7 @@ import {
   resolvePersonalConciergeOnboarding,
   type PersonalConciergeOnboardingChoice,
 } from "@/lib/personalConciergeOnboarding";
+import { deriveBookingViewState } from "@/lib/booking-view-state";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
   component: MyBookings,
@@ -431,8 +433,11 @@ function MyBookings() {
             {localizedClassTitle(firstVisitBooking.class)}
           </p>
           <p className="mt-1 text-sm text-slate">
-            {formatDate(firstVisitBooking.class.starts_at)} ·{" "}
-            {formatTime(firstVisitBooking.class.starts_at)}
+            <BidiValue kind="localized-date">
+              {formatDate(firstVisitBooking.class.starts_at)}
+            </BidiValue>{" "}
+            ·{" "}
+            <BidiValue kind="time-range">{formatTime(firstVisitBooking.class.starts_at)}</BidiValue>
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {[firstVisitCopy.arrival, firstVisitCopy.clothing, firstVisitCopy.expectation].map(
@@ -463,49 +468,29 @@ function MyBookings() {
         </section>
       )}
 
-      <Dialog open={!!confirmCancel} onOpenChange={(v) => !v && setConfirmCancel(null)}>
-        <DialogContent dir={dir} className="max-w-md bg-ivory border-gold/30">
-          <DialogTitle className="font-display text-2xl text-navy">
-            {t("bookings.cancelTitle")}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {t("bookings.creditReturned", { count: confirmCancel?.credit_cost ?? 0 })}
-          </DialogDescription>
-          {confirmCancel && (
-            <div className="space-y-4">
-              <div className="member-card p-4">
-                <p className="font-display text-lg text-navy">
-                  {localizedClassTitle(confirmCancel.class)}
-                </p>
-                <p className="text-xs text-slate mt-1">
-                  {formatDate(confirmCancel.class.starts_at)} ·{" "}
-                  {formatTime(confirmCancel.class.starts_at)}
-                </p>
-              </div>
-              <p className="text-sm text-slate">
-                {t("bookings.creditReturned", { count: confirmCancel.credit_cost })}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmCancel(null)}
-                  className="btn-ghost min-h-11 flex-1 hover:btn-ghost-hover"
-                >
-                  {t("bookings.keep")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => cancel.mutate(confirmCancel.id)}
-                  disabled={cancel.isPending}
-                  className="btn-navy min-h-11 flex-1 hover:btn-navy-hover"
-                >
-                  {cancel.isPending ? "…" : t("bookings.cancelBooking")}
-                </button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {confirmCancel ? (
+        <MemberCancellationDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setConfirmCancel(null);
+          }}
+          dir={dir}
+          title={t("bookings.cancelTitle")}
+          description={t("bookings.creditReturned", { count: confirmCancel.credit_cost })}
+          classTitle={localizedClassTitle(confirmCancel.class)}
+          formattedDate={formatDate(confirmCancel.class.starts_at)}
+          formattedTime={formatTime(confirmCancel.class.starts_at)}
+          state={deriveBookingViewState({
+            availability: "booked",
+            lang,
+            manageLabel: t("bookings.keep"),
+          })}
+          keepLabel={t("bookings.keep")}
+          confirmLabel={cancel.isPending ? "…" : t("bookings.cancelBooking")}
+          pending={cancel.isPending}
+          onConfirm={() => cancel.mutate(confirmCancel.id)}
+        />
+      ) : null}
 
       <ClassDetailSheet
         classId={openClass}
