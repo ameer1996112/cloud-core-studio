@@ -183,34 +183,64 @@ export const voiceOverJourneyCopy = {
   },
   "global-navigation": {
     he: {
-      heading: "כל השיעורים, ההזמנות והמנוי שלך במקום אחד.",
+      heading: "יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה",
       controls: [
         { role: "group", name: "בחירת שפה" },
-        { role: "link", name: "פתיחת האפליקציה" },
-        { role: "link", name: "הורדה מ־App Store" },
+        { role: "link", name: "צפייה בלוח והרשמה" },
+        { role: "link", name: "הורדת Cloud & Core מה־App Store" },
       ],
       imageAlt: "סטודיו Cloud & Core עם ערסלי יוגה אווירית",
     },
     ar: {
-      heading: "كل الحصص، الحجوزات والاشتراك بمكان واحد.",
+      heading: "يوغا هوائية وبيلاتس بحرفيش — الحجز بسهولة من التطبيق",
       controls: [
         { role: "group", name: "اختيار اللغة" },
-        { role: "link", name: "افتحي التطبيق" },
-        { role: "link", name: "حمّلي من App Store" },
+        { role: "link", name: "شوفي الجدول واحجزي" },
+        { role: "link", name: "حمّلي تطبيق Cloud & Core من App Store" },
       ],
       imageAlt: "استوديو Cloud & Core لليوغا الهوائية",
     },
     en: {
-      heading: "Classes, bookings and membership in one place.",
+      heading: "Aerial Yoga and Pilates in Hurfeish — Easy Booking Through the App",
       controls: [
         { role: "group", name: "Choose language" },
-        { role: "link", name: "Open the app" },
-        { role: "link", name: "Download on the App Store" },
+        { role: "link", name: "View Schedule and Book" },
+        { role: "link", name: "Download Cloud & Core on the App Store" },
       ],
       imageAlt: "Cloud & Core aerial yoga studio",
     },
   },
 } as const satisfies Record<VoiceOverJourney, Record<AuditLanguage, VoiceOverJourneyCopy>>;
+
+const manualGlobalNavigationCopy = {
+  he: {
+    heading: "כל השיעורים, ההזמנות והמנוי שלך במקום אחד.",
+    controls: [
+      { role: "group", name: "בחירת שפה" },
+      { role: "link", name: "פתיחת האפליקציה" },
+      { role: "link", name: "הורדה מ־App Store" },
+    ],
+    imageAlt: "סטודיו Cloud & Core עם ערסלי יוגה אווירית",
+  },
+  ar: {
+    heading: "كل الحصص، الحجوزات والاشتراك بمكان واحد.",
+    controls: [
+      { role: "group", name: "اختيار اللغة" },
+      { role: "link", name: "افتحي التطبيق" },
+      { role: "link", name: "حمّلي من App Store" },
+    ],
+    imageAlt: "استوديو Cloud & Core لليوغا الهوائية",
+  },
+  en: {
+    heading: "Classes, bookings and membership in one place.",
+    controls: [
+      { role: "group", name: "Choose language" },
+      { role: "link", name: "Open the app" },
+      { role: "link", name: "Download on the App Store" },
+    ],
+    imageAlt: "Cloud & Core aerial yoga studio",
+  },
+} as const satisfies Record<AuditLanguage, VoiceOverJourneyCopy>;
 
 type VoiceOverJourneyTarget = {
   scenarioId: string;
@@ -309,7 +339,10 @@ export function expectedVoiceOverManualObservations(
   journey: VoiceOverJourney,
   language: AuditLanguage,
 ): string[] {
-  const expected = voiceOverJourneyCopy[journey][language];
+  const expected =
+    journey === "global-navigation"
+      ? manualGlobalNavigationCopy[language]
+      : voiceOverJourneyCopy[journey][language];
   const direction = language === "en" ? "ltr" : "rtl";
   const observations = [`document:${language}/${direction}`, `heading:${expected.heading}`];
   if (journey === "auth") {

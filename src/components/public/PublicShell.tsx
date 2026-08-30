@@ -47,16 +47,21 @@ function PublicHeader({
   const { t } = useI18n();
 
   return (
-    <header className="border-b border-[color:var(--color-border)] bg-[var(--cc-surface-raised)]">
-      <div className="mx-auto flex min-h-[var(--cc-target-min)] max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
+    <header
+      className={`public-shell-header public-shell-header--${headerMode ?? "full"} border-b border-[color:var(--color-border)] bg-[var(--cc-surface-raised)]`}
+    >
+      <div className="public-shell-header__inner mx-auto flex min-h-[var(--cc-target-min)] max-w-6xl items-center gap-3">
         <Link
           to="/"
-          className="font-display text-xl font-semibold text-[var(--cc-text-primary)] focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
+          className="public-shell-header__brand font-display text-xl font-semibold text-[var(--cc-text-primary)] focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
         >
           {t("public.brand")}
         </Link>
         {headerMode === "full" && (showSchedule || showAccount) ? (
-          <nav className="ms-auto flex items-center gap-2" aria-label={t("public.navigation")}>
+          <nav
+            className="public-shell-header__nav ms-auto flex items-center gap-2"
+            aria-label={t("public.navigation")}
+          >
             {showSchedule ? (
               <Link
                 to="/schedule"
@@ -75,9 +80,9 @@ function PublicHeader({
             ) : null}
           </nav>
         ) : (
-          <div className="ms-auto" />
+          <div className="public-shell-header__spacer ms-auto" />
         )}
-        <PublicLanguageSwitcher />
+        <PublicLanguageSwitcher className="public-shell-header__languages" />
       </div>
     </header>
   );

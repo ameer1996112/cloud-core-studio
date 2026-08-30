@@ -114,6 +114,7 @@ const interactionSourceRoots = [
 const focusableSelector = [
   "a[href]",
   "button:not([disabled])",
+  "summary",
   "input:not([disabled])",
   "select:not([disabled])",
   "textarea:not([disabled])",
@@ -124,6 +125,7 @@ type ActivationAdapter =
   | "app-language"
   | "auth-submit"
   | "checkbox-toggle"
+  | "details-toggle"
   | "editable-field"
   | "native-navigation"
   | "schedule-details"
@@ -132,7 +134,7 @@ type ActivationAdapter =
 export const visualScenarioActivationAdapters: Readonly<
   Record<string, readonly ActivationAdapter[]>
 > = {
-  "guest-app-default": ["native-navigation", "app-language", "scroll-region"],
+  "guest-app-default": ["native-navigation", "app-language", "details-toggle", "scroll-region"],
   "guest-auth-default": ["editable-field", "auth-submit"],
   "guest-auth-mode-forgot-default": ["editable-field", "auth-submit"],
   "guest-auth-mode-signup-default": ["editable-field", "checkbox-toggle", "auth-submit"],
@@ -158,10 +160,24 @@ const exactLinkTargetByControl: Readonly<Record<string, string>> = Object.fromEn
         "a:Open the app",
         "a:פתיחת האפליקציה",
         "a:افتحي التطبيق",
+        "a:Sign In",
+        "a:Already a member? Sign in",
+        "a:כניסה לחשבון",
+        "a:כבר חברה? כניסה לחשבון",
+        "a:سجّلي دخولك",
+        "a:عضوة بالاستوديو؟ سجّلي دخولك",
         "a:Cloud & Core home",
         "a:Sign in or get account helpUse the account scree",
         "a:כניסה או עזרה בחשבוןמסך הכניסה מוביל להזמנות, חב",
         "a:تسجيل الدخول أو المساعدة بالحساباستخدموا شاشة ال",
+      ],
+    ],
+    [
+      "local:/auth?mode=signup",
+      [
+        "a:New here? Create a member account",
+        "a:חדשים כאן? יצירת חשבון",
+        "a:جديد هنا؟ أنشئ حساباً",
       ],
     ],
     ["local:/auth?mode=forgot", ["a:Send a new link", "a:שליחת קישור חדש", "a:إرسال رابط جديد"]],
@@ -173,6 +189,9 @@ const exactLinkTargetByControl: Readonly<Record<string, string>> = Object.fromEn
     [
       "local:/member/schedule",
       [
+        "a:View Schedule and Book",
+        "a:צפייה בלוח והרשמה",
+        "a:شوفي الجدول واحجزي",
         "a:Browse scheduleReturn to the public class schedu",
         "a:עיון בלוח השיעוריםחזרו ללוח השיעורים הציבורי והמ",
         "a:تصفحوا الجدولعودوا إلى جدول الحصص العام واستمروا",
@@ -188,11 +207,21 @@ const exactLinkTargetByControl: Readonly<Record<string, string>> = Object.fromEn
       "https://apps.apple.com/app/id6744870732",
       [
         "a:Download on the App Store",
+        "a:Download Cloud & Core on the App Store",
         "a:הורדה מ־App Store",
+        "a:הורדת Cloud & Core מה־App Store",
         "a:حمّلي من App Store",
+        "a:حمّلي تطبيق Cloud & Core من App Store",
         "a:פתחי את עמוד Apple",
       ],
     ],
+    [
+      "https://www.google.com/maps/search/?api=1&query=33.016109,35.349285",
+      ["a:Open in Maps", "a:פתיחה במפות", "a:الفتح في الخرائط"],
+    ],
+    ["local:/app/en", ["a:English"]],
+    ["local:/app/ar", ["a:العربية"]],
+    ["local:/app/he", ["a:עברית"]],
     ["itms-apps://apps.apple.com/app/id6744870732", ["a:פתיחת Cloud & Core ב-App Store"]],
     ["https://www.instagram.com/cloudandcorestudio/", ["a:Instagram"]],
     ["https://wa.me/972559398438?text=", ["a:WhatsApp"]],
@@ -238,7 +267,7 @@ function canonicalNavigationIntentTarget(assertion: string | undefined): string 
 }
 
 function expectedLinkTarget(control: string, language: AuditLanguage): string | null {
-  if (control === "a:Cloud & Core Studio") return `local:/app?lang=${language}`;
+  if (control === "a:Cloud & Core Studio") return `local:/app/${language}`;
   return exactLinkTargetByControl[control] ?? null;
 }
 
@@ -815,28 +844,30 @@ export function validateInteractionEvidence(evidence: InteractionEvidence): stri
         const expectedAssertion =
           activation.kind === "checkbox"
             ? "Enter:native-checkbox-no-toggle,Space:checked-toggle"
-            : row.scenarioId.startsWith("guest-auth")
-              ? (["Enter", "Space"] as const)
-                  .map(
-                    (pressed) =>
-                      `${pressed}:auth-submit-live-status:${task15AuthSubmitOutcomes[row.language][authMode]}`,
-                  )
-                  .join(",")
-              : row.scenarioId === "guest-member-schedule-default"
+            : row.scenarioId === "guest-app-default" && activation.control.startsWith("summary:")
+              ? "Enter:details-open-toggle,Space:details-open-toggle"
+              : row.scenarioId.startsWith("guest-auth")
                 ? (["Enter", "Space"] as const)
                     .map(
                       (pressed) =>
-                        `${pressed}:schedule-details-state-opened:${task15ScheduleDetailsOutcomes[row.language]}`,
+                        `${pressed}:auth-submit-live-status:${task15AuthSubmitOutcomes[row.language][authMode]}`,
                     )
                     .join(",")
-                : row.scenarioId === "guest-app-default" && appLanguage
+                : row.scenarioId === "guest-member-schedule-default"
                   ? (["Enter", "Space"] as const)
                       .map(
                         (pressed) =>
-                          `${pressed}:app-language-state:${appLanguage}/${appLanguage === "en" ? "ltr" : "rtl"}`,
+                          `${pressed}:schedule-details-state-opened:${task15ScheduleDetailsOutcomes[row.language]}`,
                       )
                       .join(",")
-                  : null;
+                  : row.scenarioId === "guest-app-default" && appLanguage
+                    ? (["Enter", "Space"] as const)
+                        .map(
+                          (pressed) =>
+                            `${pressed}:app-language-state:${appLanguage}/${appLanguage === "en" ? "ltr" : "rtl"}`,
+                        )
+                        .join(",")
+                    : null;
         if (!expectedAssertion || activation.assertion !== expectedAssertion)
           errors.push(
             `${key} ${activation.control} activation outcome contract does not match adapter`,
@@ -1032,6 +1063,11 @@ async function navigateScenario(
   const query = new URLSearchParams({ scenario: scenario.id, language, evidence: "1" });
   await page.goto(`${url}/?${query}`, { waitUntil: "load", timeout: 15_000 });
   await assertEvidencePage(page, scenario, language);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolveFrame) => requestAnimationFrame(() => resolveFrame()));
+    await new Promise<void>((resolveFrame) => requestAnimationFrame(() => resolveFrame()));
+  });
 }
 
 async function checkHorizontalOverflow(page: Page, width: number): Promise<boolean> {
@@ -1294,6 +1330,40 @@ async function inspectKeyboardAndFocus(
         status: before !== after && after === value ? "pass" : "fail",
         keys: ["Typing"],
         assertion: "editable-value-change",
+      });
+      continue;
+    }
+    if (metadata.tag === "summary") {
+      if (!expectedAdapters.includes("details-toggle")) {
+        activationEvidence.push({
+          control: entry.token,
+          kind: "button",
+          status: "fail",
+          keys: [],
+        });
+        continue;
+      }
+      const assertions: string[] = [];
+      let failed = false;
+      for (const key of ["Enter", "Space"] as const) {
+        control = await resetControl(entry);
+        await control.focus();
+        const before = await control.evaluate(
+          (element) => element.closest("details")?.hasAttribute("open") ?? false,
+        );
+        await page.keyboard.press(key);
+        const after = await control.evaluate(
+          (element) => element.closest("details")?.hasAttribute("open") ?? false,
+        );
+        if (after === before) failed = true;
+        assertions.push(`${key}:details-open-toggle`);
+      }
+      activationEvidence.push({
+        control: entry.token,
+        kind: "button",
+        status: failed ? "fail" : "pass",
+        keys: ["Enter", "Space"],
+        assertion: assertions.join(","),
       });
       continue;
     }

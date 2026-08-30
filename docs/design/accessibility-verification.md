@@ -6,21 +6,21 @@
 
 **Automated artifact:** `docs/design/evidence/task-15-interaction-results.json`
 
-**Artifact generatedAt:** `2026-08-30T09:13:27.660Z`
+**Artifact generatedAt:** `2026-08-30T16:26:14.275Z`
 
-**Artifact SHA-256:** `acef4d57e8ee280dcb89c7436d95067800d652e66cd3b2835e37b7f7da6db4c3`
+**Artifact SHA-256:** `298b10efc8634d82952c627dae2bb7d8ed706412ad644a48b2cea38ac0c6d399`
 
-**Forced-colors targets:** `900/900`
+**Forced-colors targets:** `1033/1033`
 
-**Forced-colors focus deltas:** `156/156`
+**Forced-colors focus deltas:** `198/198`
 
-**Representative latency (ms):** `dialog=15.5; schedule=6.3; table=7.3`
+**Representative latency (ms):** `dialog=16.7; schedule=7.9; table=5.7`
 
 **VoiceOver transcript SHA-256:** `65f58e170262196b92f08cd34101eb6af43b0df672e3d1373c00655c1938522e`
 
 ## Result
 
-Playwright recorded 48/48 tier-A scenario/locale rows without failures. It traversed all 156 enabled tabbables in computed focus order, recorded an activation result or typed not-applicable reason for each, and checked visible focus for every reached control. The run inspected transition, animation, scroll, `::before`, and `::after` styles across 2,496 elements plus 4,992 pseudos. Forced-color target and focus-delta totals are reported only in the mechanically checked metadata above; coverage includes ordinary headings and body text. The 200% and 400% equivalent reflow checks ran against every production presentation registered by Task 13. Escape, focus trapping, and focus return were exercised on the production `AdminDestructiveAction` dialog in the same isolated fixture.
+Playwright recorded 48/48 tier-A scenario/locale rows without failures. It traversed all 198 enabled tabbables in computed focus order, recorded an activation result or typed not-applicable reason for each, and checked visible focus for every reached control. The run inspected transition, animation, scroll, `::before`, and `::after` styles across 2,833 elements plus 5,666 pseudos. Forced-color target and focus-delta totals are reported only in the mechanically checked metadata above; coverage includes ordinary headings and body text. The 200% and 400% equivalent reflow checks ran against every production presentation registered by Task 13. Escape, focus trapping, and focus return were exercised on the production `AdminDestructiveAction` dialog in the same isolated fixture.
 
 Representative-flow measurements are reported only in the mechanically checked latency metadata above. All are below the 200 ms budget. The schedule result is rendered by the same `filterScheduleClasses` function used by the production member schedule over deterministic class records, rather than a synthetic counter.
 

@@ -415,9 +415,7 @@ describe("Task 15 accessibility evidence", () => {
     expect(errors).toContain(
       "guest-app-default/en keyboard pass requires nonempty complete focus-order evidence",
     );
-    expect(errors).toContain(
-      "guest-app-default/en a:Open the app activation has invalid status waived",
-    );
+    expect(errors).toContain("guest-app-default/en a:Sign In activation has invalid status waived");
     expect(errors).toContain(
       "guest-app-default/en activation aggregate does not reconcile with nested evidence",
     );
