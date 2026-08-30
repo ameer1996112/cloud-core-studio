@@ -38,7 +38,7 @@ const representativeContent = new Map<string, string>([
   ["guest-member-schedule-empty", "The schedule will be updated soon"],
   ["guest-payment-result-status-success-success", "Payment received"],
   ["guest-support-default", "cloudandcorestudio@gmail.com"],
-  ["guest-app-default", "Classes, bookings and membership in one place."],
+  ["guest-app-default", "Aerial Yoga and Pilates in Hurfeish — Easy Booking Through the App"],
 ]);
 
 export async function assertEvidencePage(

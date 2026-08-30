@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-30T09:13:27.660Z",
-  "sourceSha256": "c5641b516e6882efea7e499fc80402b8951f7ea7b949b25e3dc14e32a6fb8121",
+  "generatedAt": "2026-08-30T16:26:14.275Z",
+  "sourceSha256": "5f5409cc038a1a7029b028f1e6cb8525c751e64d12da8ce773c6920de687fcdb",
   "errors": [],
   "scenarioLocales": [
     {
@@ -47,7 +47,21 @@
           "task15-16",
           "task15-17",
           "task15-18",
-          "task15-19"
+          "task15-19",
+          "task15-20",
+          "task15-21",
+          "task15-22",
+          "task15-23",
+          "task15-24",
+          "task15-25",
+          "task15-26",
+          "task15-27",
+          "task15-28",
+          "task15-29",
+          "task15-30",
+          "task15-31",
+          "task15-32",
+          "task15-33"
         ],
         "observedOrder": [
           "task15-0",
@@ -69,12 +83,26 @@
           "task15-16",
           "task15-17",
           "task15-18",
-          "task15-19"
+          "task15-19",
+          "task15-20",
+          "task15-21",
+          "task15-22",
+          "task15-23",
+          "task15-24",
+          "task15-25",
+          "task15-26",
+          "task15-27",
+          "task15-28",
+          "task15-29",
+          "task15-30",
+          "task15-31",
+          "task15-32",
+          "task15-33"
         ]
       },
       "activationEvidence": [
         {
-          "control": "a:افتحي التطبيق",
+          "control": "a:سجّلي دخولك",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -155,6 +183,69 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
         },
         {
+          "control": "a:سجّلي دخولك",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:حمّلي تطبيق Cloud & Core من App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:شوفي الجدول واحجزي",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:WhatsApp",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438?text="
+        },
+        {
+          "control": "a:055-939-8438",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:tel:055-939-8438"
+        },
+        {
+          "control": "a:cloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
           "control": "a:الدعم",
           "kind": "link",
           "status": "pass",
@@ -164,22 +255,73 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
         },
         {
-          "control": "a:حمّلي من App Store",
+          "control": "a:الفتح في الخرائط",
           "kind": "link",
           "status": "pass",
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+          "assertion": "native-navigation-intent:https://www.google.com/maps/search/?api=1&query=33.016109,35.349285"
         },
         {
-          "control": "a:افتحي التطبيق",
-          "kind": "link",
+          "control": "summary:وين موجود الاستوديو؟",
+          "kind": "button",
           "status": "pass",
           "keys": [
-            "Enter"
+            "Enter",
+            "Space"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:كيف بحجز حصة تجريبية؟",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:من أي عمر اليوغا الهوائية للأطفال؟",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:شو لازم ألبس للحصة؟",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:هل لازم أكون مرنة؟",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:هل اليوغا الهوائية مناسبة للمبتدئات؟",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
         },
         {
           "control": "div:كل اللي تحتاجيه، واضح وقريب",
@@ -189,7 +331,25 @@
           "notApplicableReason": "scroll-region-uses-arrow-and-scroll-navigation-not-activation"
         },
         {
-          "control": "a:حمّلي من App Store",
+          "control": "a:عضوة بالاستوديو؟ سجّلي دخولك",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:جديد هنا؟ أنشئ حساباً",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth?mode=signup"
+        },
+        {
+          "control": "a:حمّلي تطبيق Cloud & Core من App Store",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -198,7 +358,16 @@
           "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
         },
         {
-          "control": "a:افتحي التطبيق",
+          "control": "a:شوفي الجدول واحجزي",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:سجّلي دخولك",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -207,43 +376,31 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
         },
         {
-          "control": "a:افتحي التطبيق",
+          "control": "a:English",
           "kind": "link",
           "status": "pass",
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/en"
         },
         {
-          "control": "button:English",
-          "kind": "button",
+          "control": "a:العربية",
+          "kind": "link",
           "status": "pass",
           "keys": [
-            "Enter",
-            "Space"
+            "Enter"
           ],
-          "assertion": "Enter:app-language-state:en/ltr,Space:app-language-state:en/ltr"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/ar"
         },
         {
-          "control": "button:العربية",
-          "kind": "button",
+          "control": "a:עברית",
+          "kind": "link",
           "status": "pass",
           "keys": [
-            "Enter",
-            "Space"
+            "Enter"
           ],
-          "assertion": "Enter:app-language-state:ar/rtl,Space:app-language-state:ar/rtl"
-        },
-        {
-          "control": "button:עברית",
-          "kind": "button",
-          "status": "pass",
-          "keys": [
-            "Enter",
-            "Space"
-          ],
-          "assertion": "Enter:app-language-state:he/rtl,Space:app-language-state:he/rtl"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/he"
         },
         {
           "control": "a:Cloud & Core Studio",
@@ -252,26 +409,26 @@
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app?lang=ar"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/ar"
         }
       ],
       "focusEvidence": {
-        "checked": 20,
-        "total": 20
+        "checked": 34,
+        "total": 34
       },
       "reducedMotionEvidence": {
-        "elements": 207,
-        "pseudos": 414,
+        "elements": 320,
+        "pseudos": 640,
         "failures": []
       },
       "forcedColorsEvidence": {
-        "checked": 89,
-        "total": 89,
-        "focusables": 20,
-        "controls": 19,
-        "text": 72,
+        "checked": 134,
+        "total": 134,
+        "focusables": 34,
+        "controls": 27,
+        "text": 117,
         "images": 12,
-        "focusDeltas": 20,
+        "focusDeltas": 34,
         "failures": []
       }
     },
@@ -318,7 +475,21 @@
           "task15-16",
           "task15-17",
           "task15-18",
-          "task15-19"
+          "task15-19",
+          "task15-20",
+          "task15-21",
+          "task15-22",
+          "task15-23",
+          "task15-24",
+          "task15-25",
+          "task15-26",
+          "task15-27",
+          "task15-28",
+          "task15-29",
+          "task15-30",
+          "task15-31",
+          "task15-32",
+          "task15-33"
         ],
         "observedOrder": [
           "task15-0",
@@ -340,12 +511,26 @@
           "task15-16",
           "task15-17",
           "task15-18",
-          "task15-19"
+          "task15-19",
+          "task15-20",
+          "task15-21",
+          "task15-22",
+          "task15-23",
+          "task15-24",
+          "task15-25",
+          "task15-26",
+          "task15-27",
+          "task15-28",
+          "task15-29",
+          "task15-30",
+          "task15-31",
+          "task15-32",
+          "task15-33"
         ]
       },
       "activationEvidence": [
         {
-          "control": "a:Open the app",
+          "control": "a:Sign In",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -426,6 +611,69 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
         },
         {
+          "control": "a:Sign In",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:Download Cloud & Core on the App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:View Schedule and Book",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:WhatsApp",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438?text="
+        },
+        {
+          "control": "a:055-939-8438",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:tel:055-939-8438"
+        },
+        {
+          "control": "a:cloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
           "control": "a:Support",
           "kind": "link",
           "status": "pass",
@@ -435,22 +683,73 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
         },
         {
-          "control": "a:Download on the App Store",
+          "control": "a:Open in Maps",
           "kind": "link",
           "status": "pass",
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+          "assertion": "native-navigation-intent:https://www.google.com/maps/search/?api=1&query=33.016109,35.349285"
         },
         {
-          "control": "a:Open the app",
-          "kind": "link",
+          "control": "summary:Where is the studio located?",
+          "kind": "button",
           "status": "pass",
           "keys": [
-            "Enter"
+            "Enter",
+            "Space"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:How do I book a trial class?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:What age can children join aerial yoga?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:What should I wear?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:Do I need to be flexible?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:Is aerial yoga suitable for beginners?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
         },
         {
           "control": "div:Everything you need, clear and close",
@@ -460,7 +759,25 @@
           "notApplicableReason": "scroll-region-uses-arrow-and-scroll-navigation-not-activation"
         },
         {
-          "control": "a:Download on the App Store",
+          "control": "a:Already a member? Sign in",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:New here? Create a member account",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth?mode=signup"
+        },
+        {
+          "control": "a:Download Cloud & Core on the App Store",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -469,7 +786,16 @@
           "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
         },
         {
-          "control": "a:Open the app",
+          "control": "a:View Schedule and Book",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:Sign In",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -478,43 +804,31 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
         },
         {
-          "control": "a:Open the app",
+          "control": "a:English",
           "kind": "link",
           "status": "pass",
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/en"
         },
         {
-          "control": "button:English",
-          "kind": "button",
+          "control": "a:العربية",
+          "kind": "link",
           "status": "pass",
           "keys": [
-            "Enter",
-            "Space"
+            "Enter"
           ],
-          "assertion": "Enter:app-language-state:en/ltr,Space:app-language-state:en/ltr"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/ar"
         },
         {
-          "control": "button:العربية",
-          "kind": "button",
+          "control": "a:עברית",
+          "kind": "link",
           "status": "pass",
           "keys": [
-            "Enter",
-            "Space"
+            "Enter"
           ],
-          "assertion": "Enter:app-language-state:ar/rtl,Space:app-language-state:ar/rtl"
-        },
-        {
-          "control": "button:עברית",
-          "kind": "button",
-          "status": "pass",
-          "keys": [
-            "Enter",
-            "Space"
-          ],
-          "assertion": "Enter:app-language-state:he/rtl,Space:app-language-state:he/rtl"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/he"
         },
         {
           "control": "a:Cloud & Core Studio",
@@ -523,26 +837,26 @@
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app?lang=en"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/en"
         }
       ],
       "focusEvidence": {
-        "checked": 20,
-        "total": 20
+        "checked": 34,
+        "total": 34
       },
       "reducedMotionEvidence": {
-        "elements": 207,
-        "pseudos": 414,
+        "elements": 318,
+        "pseudos": 636,
         "failures": []
       },
       "forcedColorsEvidence": {
-        "checked": 89,
-        "total": 89,
-        "focusables": 20,
-        "controls": 19,
-        "text": 72,
+        "checked": 132,
+        "total": 132,
+        "focusables": 34,
+        "controls": 27,
+        "text": 115,
         "images": 12,
-        "focusDeltas": 20,
+        "focusDeltas": 34,
         "failures": []
       }
     },
@@ -589,7 +903,21 @@
           "task15-16",
           "task15-17",
           "task15-18",
-          "task15-19"
+          "task15-19",
+          "task15-20",
+          "task15-21",
+          "task15-22",
+          "task15-23",
+          "task15-24",
+          "task15-25",
+          "task15-26",
+          "task15-27",
+          "task15-28",
+          "task15-29",
+          "task15-30",
+          "task15-31",
+          "task15-32",
+          "task15-33"
         ],
         "observedOrder": [
           "task15-0",
@@ -611,12 +939,26 @@
           "task15-16",
           "task15-17",
           "task15-18",
-          "task15-19"
+          "task15-19",
+          "task15-20",
+          "task15-21",
+          "task15-22",
+          "task15-23",
+          "task15-24",
+          "task15-25",
+          "task15-26",
+          "task15-27",
+          "task15-28",
+          "task15-29",
+          "task15-30",
+          "task15-31",
+          "task15-32",
+          "task15-33"
         ]
       },
       "activationEvidence": [
         {
-          "control": "a:פתיחת האפליקציה",
+          "control": "a:כניסה לחשבון",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -697,6 +1039,69 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
         },
         {
+          "control": "a:כניסה לחשבון",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:הורדת Cloud & Core מה־App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:צפייה בלוח והרשמה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:WhatsApp",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438?text="
+        },
+        {
+          "control": "a:055-939-8438",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:tel:055-939-8438"
+        },
+        {
+          "control": "a:cloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
           "control": "a:תמיכה",
           "kind": "link",
           "status": "pass",
@@ -706,22 +1111,73 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
         },
         {
-          "control": "a:הורדה מ־App Store",
+          "control": "a:פתיחה במפות",
           "kind": "link",
           "status": "pass",
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+          "assertion": "native-navigation-intent:https://www.google.com/maps/search/?api=1&query=33.016109,35.349285"
         },
         {
-          "control": "a:פתיחת האפליקציה",
-          "kind": "link",
+          "control": "summary:איפה נמצא הסטודיו?",
+          "kind": "button",
           "status": "pass",
           "keys": [
-            "Enter"
+            "Enter",
+            "Space"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:איך מזמינים שיעור ניסיון?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:מאיזה גיל אפשר להצטרף ליוגה אווירית לילדים?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:מה צריך ללבוש לשיעור?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:האם צריך להיות גמישה?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
+        },
+        {
+          "control": "summary:האם יוגה אווירית מתאימה למתחילות?",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:details-open-toggle,Space:details-open-toggle"
         },
         {
           "control": "div:כל מה שצריך, ברור ונגיש",
@@ -731,7 +1187,25 @@
           "notApplicableReason": "scroll-region-uses-arrow-and-scroll-navigation-not-activation"
         },
         {
-          "control": "a:הורדה מ־App Store",
+          "control": "a:כבר חברה? כניסה לחשבון",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:חדשים כאן? יצירת חשבון",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth?mode=signup"
+        },
+        {
+          "control": "a:הורדת Cloud & Core מה־App Store",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -740,7 +1214,16 @@
           "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
         },
         {
-          "control": "a:פתיחת האפליקציה",
+          "control": "a:צפייה בלוח והרשמה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:כניסה לחשבון",
           "kind": "link",
           "status": "pass",
           "keys": [
@@ -749,43 +1232,31 @@
           "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
         },
         {
-          "control": "a:פתיחת האפליקציה",
+          "control": "a:English",
           "kind": "link",
           "status": "pass",
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/en"
         },
         {
-          "control": "button:English",
-          "kind": "button",
+          "control": "a:العربية",
+          "kind": "link",
           "status": "pass",
           "keys": [
-            "Enter",
-            "Space"
+            "Enter"
           ],
-          "assertion": "Enter:app-language-state:en/ltr,Space:app-language-state:en/ltr"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/ar"
         },
         {
-          "control": "button:العربية",
-          "kind": "button",
+          "control": "a:עברית",
+          "kind": "link",
           "status": "pass",
           "keys": [
-            "Enter",
-            "Space"
+            "Enter"
           ],
-          "assertion": "Enter:app-language-state:ar/rtl,Space:app-language-state:ar/rtl"
-        },
-        {
-          "control": "button:עברית",
-          "kind": "button",
-          "status": "pass",
-          "keys": [
-            "Enter",
-            "Space"
-          ],
-          "assertion": "Enter:app-language-state:he/rtl,Space:app-language-state:he/rtl"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/he"
         },
         {
           "control": "a:Cloud & Core Studio",
@@ -794,26 +1265,26 @@
           "keys": [
             "Enter"
           ],
-          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app?lang=he"
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app/he"
         }
       ],
       "focusEvidence": {
-        "checked": 20,
-        "total": 20
+        "checked": 34,
+        "total": 34
       },
       "reducedMotionEvidence": {
-        "elements": 207,
-        "pseudos": 414,
+        "elements": 320,
+        "pseudos": 640,
         "failures": []
       },
       "forcedColorsEvidence": {
-        "checked": 89,
-        "total": 89,
-        "focusables": 20,
-        "controls": 19,
-        "text": 72,
+        "checked": 134,
+        "total": 134,
+        "focusables": 34,
+        "controls": 27,
+        "text": 117,
         "images": 12,
-        "focusDeltas": 20,
+        "focusDeltas": 34,
         "failures": []
       }
     },
@@ -4088,7 +4559,7 @@
     },
     "image": {
       "status": "pass",
-      "contrastRatio": 5.6,
+      "contrastRatio": 16.52,
       "outlineWidth": 3,
       "source": "guest-app-default .app-marketing__brand-link over /images/textures/ivory-paper.svg",
       "backing": "opaque 6px rgb(255, 253, 249) halo isolates the outline from url(\"http://127.0.0.1:4179/images/textures/ivory-paper.svg\")"
@@ -4097,18 +4568,18 @@
   "representativeFlows": {
     "dialog": {
       "status": "pass",
-      "latencyMs": 15.5,
+      "latencyMs": 16.7,
       "notes": [
         "Enter and Space open; Escape closes; Tab/Shift+Tab remain trapped; focus returns."
       ]
     },
     "scheduleFilter": {
       "status": "pass",
-      "latencyMs": 6.3
+      "latencyMs": 7.9
     },
     "tableFilter": {
       "status": "pass",
-      "latencyMs": 7.3
+      "latencyMs": 5.7
     }
   },
   "assistiveTechnologyFixtureSemantics": [
@@ -4407,10 +4878,10 @@
       "target": "/?scenario=guest-app-default&language=he&evidence=1",
       "checks": [
         "document:he/rtl",
-        "heading:כל השיעורים, ההזמנות והמנוי שלך במקום אחד.",
+        "heading:יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה",
         "group:בחירת שפה",
-        "link:פתיחת האפליקציה",
-        "link:הורדה מ־App Store",
+        "link:צפייה בלוח והרשמה",
+        "link:הורדת Cloud & Core מה־App Store",
         "image:סטודיו Cloud & Core עם ערסלי יוגה אווירית",
         "locale-policy:complete-visible-accessible-strings"
       ]
@@ -4422,10 +4893,10 @@
       "target": "/?scenario=guest-app-default&language=ar&evidence=1",
       "checks": [
         "document:ar/rtl",
-        "heading:كل الحصص، الحجوزات والاشتراك بمكان واحد.",
+        "heading:يوغا هوائية وبيلاتس بحرفيش — الحجز بسهولة من التطبيق",
         "group:اختيار اللغة",
-        "link:افتحي التطبيق",
-        "link:حمّلي من App Store",
+        "link:شوفي الجدول واحجزي",
+        "link:حمّلي تطبيق Cloud & Core من App Store",
         "image:استوديو Cloud & Core لليوغا الهوائية",
         "locale-policy:complete-visible-accessible-strings"
       ]
@@ -4437,10 +4908,10 @@
       "target": "/?scenario=guest-app-default&language=en&evidence=1",
       "checks": [
         "document:en/ltr",
-        "heading:Classes, bookings and membership in one place.",
+        "heading:Aerial Yoga and Pilates in Hurfeish — Easy Booking Through the App",
         "group:Choose language",
-        "link:Open the app",
-        "link:Download on the App Store",
+        "link:View Schedule and Book",
+        "link:Download Cloud & Core on the App Store",
         "image:Cloud & Core aerial yoga studio",
         "locale-policy:complete-visible-accessible-strings"
       ]

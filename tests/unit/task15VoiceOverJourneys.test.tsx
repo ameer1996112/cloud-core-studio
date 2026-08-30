@@ -183,9 +183,9 @@ describe("Task 15 VoiceOver journey surfaces", () => {
         en: ["Admin confirmation journey", "Open cancellation confirmation"],
       },
       "global-navigation": {
-        he: ["כל השיעורים, ההזמנות והמנוי שלך במקום אחד", "בחירת שפה"],
-        ar: ["كل الحصص، الحجوزات والاشتراك بمكان واحد", "اختيار اللغة"],
-        en: ["Classes, bookings and membership in one place", "Choose language"],
+        he: ["יוגה אווירית ופילאטיס בחורפיש", "בחירת שפה"],
+        ar: ["يوغا هوائية وبيلاتس بحرفيش", "اختيار اللغة"],
+        en: ["Aerial Yoga and Pilates in Hurfeish", "Choose language"],
       },
     } as const;
     for (const journey of VOICEOVER_JOURNEYS) {

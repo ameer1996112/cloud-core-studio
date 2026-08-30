@@ -11,6 +11,22 @@ const artifact = JSON.parse(artifactDocument) as InteractionEvidence & { generat
 const rows = new Map(
   artifact.scenarioLocales.map((row) => [`${row.scenarioId}/${row.language}`, row]),
 );
+const forcedColorsChecked = artifact.scenarioLocales.reduce(
+  (total, row) => total + row.forcedColorsEvidence.checked,
+  0,
+);
+const forcedColorsTotal = artifact.scenarioLocales.reduce(
+  (total, row) => total + row.forcedColorsEvidence.total,
+  0,
+);
+const forcedColorsFocusDeltas = artifact.scenarioLocales.reduce(
+  (total, row) => total + row.forcedColorsEvidence.focusDeltas,
+  0,
+);
+const forcedColorsFocusables = artifact.scenarioLocales.reduce(
+  (total, row) => total + row.forcedColorsEvidence.focusables,
+  0,
+);
 
 let document = readFileSync(documentPath, "utf8")
   .replace(
@@ -24,6 +40,14 @@ let document = readFileSync(documentPath, "utf8")
   .replace(
     /\*\*Representative latency \(ms\):\*\* `[^`]*`/,
     `**Representative latency (ms):** \`dialog=${artifact.representativeFlows.dialog.latencyMs}; schedule=${artifact.representativeFlows.scheduleFilter.latencyMs}; table=${artifact.representativeFlows.tableFilter.latencyMs}\``,
+  )
+  .replace(
+    /\*\*Forced-colors targets:\*\* `[^`]*`/,
+    `**Forced-colors targets:** \`${forcedColorsChecked}/${forcedColorsTotal}\``,
+  )
+  .replace(
+    /\*\*Forced-colors focus deltas:\*\* `[^`]*`/,
+    `**Forced-colors focus deltas:** \`${forcedColorsFocusDeltas}/${forcedColorsFocusables}\``,
   );
 
 document = document
