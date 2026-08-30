@@ -2,6 +2,13 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.1.0] - 2026-08-30
+
+### Fixed
+
+- Keep authenticated member tab changes inside the app instead of refreshing the entire page when leaving Schedule on mobile or desktop.
+- Preserve immediate destination loading feedback and normal modified-click behavior while switching between member pages.
+
 ## [0.3.0.0] - 2026-08-28
 
 ### Added
