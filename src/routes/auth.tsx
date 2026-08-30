@@ -14,7 +14,7 @@ import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
 import { notifyAdminMemberSignup } from "@/lib/signupNotification.functions";
 import { SignupNotificationChoices } from "@/components/auth/SignupNotificationChoices";
-import { PublicShell } from "@/components/public/PublicShell";
+import { AuthShell } from "@/components/auth/AuthShell";
 import {
   DEFAULT_SIGNUP_NOTIFICATION_CHOICES,
   buildSignupNotificationMetadata,
@@ -39,7 +39,7 @@ const AUTH_VALIDATION_MESSAGE_KEYS: Record<AuthValidationIssue, Parameters<typeo
 };
 
 function AuthPage() {
-  const { lang, dir } = useI18n();
+  const { lang } = useI18n();
   useDocumentTitle("page.auth.title");
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "check-email">("signin");
@@ -282,10 +282,7 @@ function AuthPage() {
   };
 
   return (
-    <PublicShell
-      headerMode="compact"
-      mainClassName="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col"
-    >
+    <AuthShell mainClassName="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <img
           src={authImages.hero.src}
@@ -593,7 +590,7 @@ function AuthPage() {
           </div>
         </div>
       </div>
-    </PublicShell>
+    </AuthShell>
   );
 }
 

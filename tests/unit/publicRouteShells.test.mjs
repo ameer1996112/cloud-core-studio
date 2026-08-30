@@ -4,7 +4,6 @@ import { describe, expect, test } from "bun:test";
 
 const root = resolve(import.meta.dir, "../..");
 const routeFiles = [
-  "src/routes/auth.tsx",
   "src/routes/auth_.reset.tsx",
   "src/routes/reset-password.tsx",
   "src/routes/member.schedule.tsx",
@@ -24,6 +23,18 @@ function source(file) {
 }
 
 describe("public route shell ownership", () => {
+  test("the full-screen auth route uses its chrome-free shell without owning main", () => {
+    const routeSource = source("src/routes/auth.tsx");
+    const shellSource = source("src/components/auth/AuthShell.tsx");
+
+    expect(routeSource).toContain('from "@/components/auth/AuthShell"');
+    expect(routeSource).toContain("<AuthShell");
+    expect(routeSource).not.toMatch(/<main\b/);
+    expect(shellSource.match(/<main\b/g)).toHaveLength(1);
+    expect(shellSource).toContain('id="main-content"');
+    expect(shellSource).not.toMatch(/<header\b|<footer\b/);
+  });
+
   test.each(routeFiles)("%s composes PublicShell without owning main or hardcoding RTL", (file) => {
     const routeSource = source(file);
 
