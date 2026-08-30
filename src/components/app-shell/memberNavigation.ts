@@ -16,20 +16,6 @@ export function isPlainPrimaryNavigationClick(event: NavigationClick) {
   );
 }
 
-export function queueLatestDocumentNavigation(
-  destination: string,
-  sequence: { current: number },
-  requestFrame: (callback: FrameRequestCallback) => number,
-  assign: (destination: string) => void,
-) {
-  const navigationSequence = ++sequence.current;
-  requestFrame(() => {
-    requestFrame(() => {
-      if (sequence.current === navigationSequence) assign(destination);
-    });
-  });
-}
-
 export function shouldClearPendingMobileNavigation({
   destination,
   isLoading,

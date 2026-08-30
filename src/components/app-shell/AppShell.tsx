@@ -23,7 +23,6 @@ import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions"
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
 import {
   isPlainPrimaryNavigationClick,
-  queueLatestDocumentNavigation,
   shouldClearPendingMobileNavigation,
 } from "./memberNavigation";
 
@@ -57,12 +56,7 @@ export function MemberDesktopHeader({
   return (
     <header className="member-desktop-header hidden md:block">
       <div className="member-content-frame member-desktop-header__row">
-        <Link
-          to="/member"
-          reloadDocument={pathname === "/member/schedule"}
-          aria-label="Cloud & Core"
-          className="member-desktop-header__brand"
-        >
+        <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
           <BrandHeaderWordmark />
         </Link>
         <nav
@@ -77,7 +71,6 @@ export function MemberDesktopHeader({
               <Link
                 key={to}
                 to={to}
-                reloadDocument={pathname === "/member/schedule" && to !== pathname}
                 aria-current={active ? "page" : undefined}
                 className={
                   active
@@ -106,15 +99,6 @@ export function MemberMobileBottomNavigation({
   isRtl,
   onNavigate,
 }: MemberMobileBottomNavigationProps) {
-  const documentNavigationSequence = useRef(0);
-
-  useEffect(
-    () => () => {
-      documentNavigationSequence.current += 1;
-    },
-    [],
-  );
-
   return (
     <nav
       aria-label={t("shell.practice")}
@@ -127,13 +111,11 @@ export function MemberMobileBottomNavigation({
         {tabs.map((item) => {
           const { to, icon: Icon, label } = item;
           const active = isActive(pathname, item);
-          const isDocumentNavigation = pathname === "/member/schedule" && to !== pathname;
           return (
             <Link
               key={to}
               to={to}
               preload="render"
-              reloadDocument={isDocumentNavigation}
               onClick={
                 active || !onNavigate
                   ? undefined
@@ -141,15 +123,6 @@ export function MemberMobileBottomNavigation({
                       if (!isPlainPrimaryNavigationClick(event)) return;
 
                       onNavigate(to);
-                      if (!isDocumentNavigation) return;
-
-                      event.preventDefault();
-                      queueLatestDocumentNavigation(
-                        to,
-                        documentNavigationSequence,
-                        window.requestAnimationFrame.bind(window),
-                        window.location.assign.bind(window.location),
-                      );
                     }
               }
               aria-label={label}
