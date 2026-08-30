@@ -39,7 +39,7 @@ const AUTH_VALIDATION_MESSAGE_KEYS: Record<AuthValidationIssue, Parameters<typeo
 };
 
 function AuthPage() {
-  const { lang } = useI18n();
+  const { lang, dir } = useI18n();
   useDocumentTitle("page.auth.title");
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "check-email">("signin");
