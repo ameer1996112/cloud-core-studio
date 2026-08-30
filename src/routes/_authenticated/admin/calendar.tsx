@@ -22,6 +22,7 @@ import { ClassRosterDrawer } from "@/components/admin/ClassRosterDrawer";
 import { getLocale, t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { localizedClassTitle, localizedInstructorName } from "@/lib/localized-content";
+import { formatBidiValue } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/calendar")({
   component: CalendarPage,
@@ -40,11 +41,14 @@ function sameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString();
 }
 function fmtTime(d: Date) {
-  return d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit", hour12: false });
+  return formatBidiValue(
+    d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit", hour12: false }),
+    "time-range",
+  );
 }
 
 function fmtDate(d: Date, opts: Intl.DateTimeFormatOptions) {
-  return d.toLocaleDateString(getLocale(), opts);
+  return formatBidiValue(d.toLocaleDateString(getLocale(), opts), "localized-date");
 }
 
 function classCountLabel(count: number) {
@@ -418,7 +422,7 @@ function DayTimeline({
         ))}
 
         {/* Hour rail */}
-        <div className="relative bg-[rgba(232,223,209,0.18)]">
+        <div className="relative bg-[var(--cc-alpha-sand-18)]">
           {Array.from({ length: totalHours }).map((_, i) => (
             <div
               key={i}
@@ -458,9 +462,9 @@ function DayTimeline({
                 <button
                   key={c.id}
                   onClick={() => onOpen(c.id)}
-                  className={`absolute inset-x-1.5 rounded-lg px-3 py-2 text-start overflow-hidden bg-white border transition-all duration-200 hover:shadow-[0_6px_18px_rgba(11,29,58,0.08)] ${
+                  className={`absolute inset-x-1.5 rounded-lg px-3 py-2 text-start overflow-hidden bg-white border transition-all duration-200 hover:shadow-[0_6px_18px_var(--cc-alpha-navy-08)] ${
                     openClassId === c.id
-                      ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_rgba(212,175,106,0.15)]"
+                      ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_var(--cc-alpha-gold-15)]"
                       : "border-gold/20 hover:border-gold"
                   }`}
                   style={{ top, height, borderInlineStart: `3.5px solid ${r.color}` }}
@@ -567,14 +571,14 @@ function AgendaCard({
   isOpen: boolean;
 }) {
   const start = new Date(cls.starts_at);
-  const color = room?.color ?? cls.program?.color ?? "#D4AF6A";
+  const color = room?.color ?? cls.program?.color ?? "var(--color-gold)";
   const meta = classMeta(cls, getLocale() as Lang, room);
   return (
     <button
       onClick={onOpen}
-      className={`flex w-full items-center gap-4 rounded-xl border bg-white p-4 text-start transition-all duration-200 hover:shadow-[0_8px_22px_rgba(11,29,58,0.06)] hover:-translate-y-0.5 ${
+      className={`flex w-full items-center gap-4 rounded-xl border bg-white p-4 text-start transition-all duration-200 hover:shadow-[0_8px_22px_var(--cc-alpha-navy-06)] hover:-translate-y-0.5 ${
         isOpen
-          ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_rgba(212,175,106,0.15)]"
+          ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_var(--cc-alpha-gold-15)]"
           : "border-gold/20 hover:border-gold/60"
       }`}
       style={{ borderInlineStart: `4px solid ${color}` }}
@@ -675,7 +679,7 @@ function WeekDesktop({
           return (
             <div key={+d} className="border-s border-gold/15 first:border-s-0 min-h-[24rem]">
               <div
-                className={`px-3 py-3 border-b border-gold/25 ${isToday ? "bg-[rgba(212,175,106,0.10)]" : ""}`}
+                className={`px-3 py-3 border-b border-gold/25 ${isToday ? "bg-[var(--cc-alpha-gold-10)]" : ""}`}
               >
                 <div className="flex items-baseline justify-between">
                   <div>
@@ -727,14 +731,14 @@ function WeekDesktop({
 
 function WeekBlock({ cls, onOpen, isOpen }: { cls: any; onOpen: () => void; isOpen: boolean }) {
   const start = new Date(cls.starts_at);
-  const color = cls.program?.color ?? "#D4AF6A";
+  const color = cls.program?.color ?? "var(--color-gold)";
   const meta = classMeta(cls, getLocale() as Lang);
   return (
     <button
       onClick={onOpen}
-      className={`w-full text-start bg-white border rounded-lg px-2.5 py-2 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(11,29,58,0.06)] hover:-translate-y-0.5 ${
+      className={`w-full text-start bg-white border rounded-lg px-2.5 py-2 transition-all duration-200 hover:shadow-[0_6px_20px_var(--cc-alpha-navy-06)] hover:-translate-y-0.5 ${
         isOpen
-          ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_rgba(212,175,106,0.15)]"
+          ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_var(--cc-alpha-gold-15)]"
           : "border-gold/20 hover:border-gold/60"
       }`}
       style={{ borderInlineStart: `3.5px solid ${color}` }}

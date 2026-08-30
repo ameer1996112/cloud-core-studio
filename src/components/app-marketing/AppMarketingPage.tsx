@@ -301,11 +301,7 @@ export function AppMarketingPage({
   };
 
   return (
-    <div className="app-marketing" lang={lang} dir={LANG_META[lang].dir}>
-      <a className="app-marketing__skip-link" href="#main-content">
-        {labels.skip}
-      </a>
-
+    <div className="app-marketing" lang={lang} data-product-view="app-marketing-default">
       <header className="app-marketing__header">
         <div className="app-marketing__header-inner">
           <a
@@ -340,7 +336,7 @@ export function AppMarketingPage({
         </div>
       </header>
 
-      <main id="main-content" className="app-marketing__main">
+      <div className="app-marketing__main">
         <section className="app-marketing__hero" aria-labelledby="app-marketing-title">
           <div className="app-marketing__hero-copy">
             <p className="app-marketing__eyebrow">{copy.hero.eyebrow}</p>
@@ -603,7 +599,7 @@ export function AppMarketingPage({
             </a>
           </div>
         </section>
-      </main>
+      </div>
 
       <footer className="app-marketing__footer">
         <div className="app-marketing__footer-primary">

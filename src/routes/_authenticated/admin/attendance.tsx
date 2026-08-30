@@ -3,8 +3,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { todaysClasses, markAttendance } from "@/lib/admin.functions";
 import { getClassRoster } from "@/lib/members.functions";
-import { useMemo, useState } from "react";
-import { AdminPageShell, AdminPageHeader, Empty } from "@/components/admin-shared";
+import { useRef, useState } from "react";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AsyncState,
+  Empty,
+  PersistentAnnouncement,
+} from "@/components/admin-shared";
+import { AttendanceRosterList } from "@/components/admin/AttendanceRosterList";
 import {
   CheckCircle2,
   Clock,
@@ -17,14 +24,22 @@ import {
   Plus,
   CalendarDays,
 } from "lucide-react";
-import { labelForStatus, t, useI18n } from "@/lib/i18n";
+import { t, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPlanDisplay } from "@/lib/planDisplay";
+import { BidiValue } from "@/components/ui/bidi";
 import {
   localizedClassTitle,
   localizedInstructorName,
   localizedRoomName,
 } from "@/lib/localized-content";
+import {
+  deriveAttendanceRosterState,
+  deriveAttendanceSaveState,
+  getAttendanceStatusPresentation,
+  type AttendanceSaveStatus,
+  type AttendanceSourceStatus,
+} from "@/lib/attendance-view-state";
 
 export const Route = createFileRoute("/_authenticated/admin/attendance")({
   component: Page,
@@ -100,7 +115,9 @@ function ClassCard({
     >
       <div className="text-center pe-5 border-e border-gold/25 shrink-0">
         <p className="numeric-display text-2xl leading-none text-navy">
-          {d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
+          <BidiValue kind="time-range">
+            {d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
+          </BidiValue>
         </p>
         <p className="mt-1.5 text-xs font-medium text-slate">{c.duration_minutes}m</p>
       </div>
@@ -144,7 +161,13 @@ function CheckInScreen({
   const qc = useQueryClient();
   const rosterFn = useServerFn(getClassRoster);
   const markFn = useServerFn(markAttendance);
+  const attendancePendingRef = useRef(false);
   const [query, setQuery] = useState("");
+  const [lastAttempt, setLastAttempt] = useState<AttendanceAttempt | null>(null);
+  const [saveOutcome, setSaveOutcome] = useState<{
+    status: Exclude<AttendanceSaveStatus, "idle" | "pending">;
+    memberName?: string;
+  } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["kiosk-roster", classId],
@@ -152,24 +175,58 @@ function CheckInScreen({
   });
 
   const mark = useMutation({
-    mutationFn: (v: { bookingId: string; status: any }) => markFn({ data: v }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["kiosk-roster", classId] }),
+    mutationFn: ({ bookingId, status }: AttendanceAttempt) =>
+      markFn({ data: { bookingId, status } }),
+    onSuccess: async (_, attempt) => {
+      setSaveOutcome({ status: "saved", memberName: attempt.memberName });
+      await qc.invalidateQueries({ queryKey: ["kiosk-roster", classId] });
+    },
+    onError: (_error: Error, attempt) => {
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      setSaveOutcome({
+        status: offline ? "offline-retry" : "save-failed",
+        memberName: attempt.memberName,
+      });
+    },
+    onSettled: () => {
+      attendancePendingRef.current = false;
+    },
   });
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return data?.bookings ?? [];
-    return (data?.bookings ?? []).filter(
-      (b: any) =>
-        (b.member?.name ?? "").toLowerCase().includes(q) ||
-        (b.member?.phone ?? "").toLowerCase().includes(q),
-    );
-  }, [data, query]);
+  const pendingBookingId = mark.isPending ? (mark.variables?.bookingId ?? null) : null;
+  const currentSaveState = deriveAttendanceSaveState({
+    status: mark.isPending ? "pending" : (saveOutcome?.status ?? "idle"),
+    lang,
+    memberName: mark.isPending ? mark.variables?.memberName : saveOutcome?.memberName,
+  });
 
-  if (isLoading || !data?.class) return <div className="h-40 editorial-panel animate-pulse" />;
+  if (isLoading || !data?.class) {
+    return (
+      <AdminPageShell>
+        <AsyncState
+          state={
+            isLoading
+              ? deriveAttendanceRosterState({ isLoading: true, roster: [], lang })
+              : {
+                  status: "error" as const,
+                  title: t("admin.classes.failed"),
+                  body: t("common.retry"),
+                }
+          }
+        />
+      </AdminPageShell>
+    );
+  }
   const c = data.class as any;
   const start = new Date(c.starts_at);
   const totalBooked = data.bookings.filter((b: any) => b.status === "booked").length;
+  const saveAttendance = (attempt: AttendanceAttempt) => {
+    if (attendancePendingRef.current) return;
+    attendancePendingRef.current = true;
+    setLastAttempt(attempt);
+    setSaveOutcome(null);
+    mark.mutate(attempt);
+  };
 
   return (
     <AdminPageShell>
@@ -186,8 +243,10 @@ function CheckInScreen({
           <bdi>{localizedClassTitle(c, lang)}</bdi>
         </h2>
         <p className="text-sm text-slate mt-1">
-          {start.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })} ·{" "}
-          {localizedRoomName(c.room_obj?.name ?? c.room, lang)} ·{" "}
+          <BidiValue kind="time-range">
+            {start.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
+          </BidiValue>{" "}
+          · {localizedRoomName(c.room_obj?.name ?? c.room, lang)} ·{" "}
           {c.instructor?.name
             ? localizedInstructorName(c.instructor.name, lang)
             : t("common.unassigned")}
@@ -210,18 +269,70 @@ function CheckInScreen({
         />
       </div>
 
-      {filtered.length === 0 && <Empty>{t("attendance.noMatch")}</Empty>}
+      {currentSaveState.status === "pending" ? (
+        <div role="status" aria-live="polite" className="text-sm text-slate">
+          {currentSaveState.label}
+        </div>
+      ) : null}
 
-      <div className="space-y-2">
-        {filtered.map((b: any) => (
-          <KioskRow
-            key={b.id}
-            b={b}
-            lang={lang}
-            onMark={(s) => mark.mutate({ bookingId: b.id, status: s })}
-          />
-        ))}
-      </div>
+      {currentSaveState.outcome ? (
+        <PersistentAnnouncement
+          tone={currentSaveState.outcome.tone}
+          title={currentSaveState.outcome.title}
+        >
+          <p>{currentSaveState.outcome.body}</p>
+          {currentSaveState.outcome.retry && lastAttempt ? (
+            <button
+              type="button"
+              onClick={() => saveAttendance(lastAttempt)}
+              className="btn-outline mt-3"
+            >
+              {t("common.retry")}
+            </button>
+          ) : null}
+        </PersistentAnnouncement>
+      ) : null}
+
+      <AttendanceRosterList
+        roster={data.bookings}
+        query={query}
+        lang={lang}
+        caption={t("attendance.checkIn")}
+        getRowKey={(booking: any) => booking.id}
+        empty={<Empty>{t("attendance.noMatch")}</Empty>}
+        columns={[
+          {
+            id: "member",
+            label: t("nav.members"),
+            cell: (booking: any) => <RosterMemberDetails booking={booking} lang={lang} />,
+          },
+          {
+            id: "status",
+            label: t("common.status"),
+            cell: (booking: any) => (
+              <AttendanceStatusBadge status={booking.attendance_state} lang={lang} />
+            ),
+          },
+          {
+            id: "actions",
+            label: t("attendance.checkIn"),
+            cell: (booking: any) => (
+              <AttendanceActions
+                booking={booking}
+                pendingBookingId={pendingBookingId}
+                lang={lang}
+                onMark={(status) =>
+                  saveAttendance({
+                    bookingId: booking.id,
+                    status,
+                    memberName: booking.member?.name,
+                  })
+                }
+              />
+            ),
+          },
+        ]}
+      />
     </AdminPageShell>
   );
 }
@@ -235,66 +346,102 @@ function KStat({ label, value }: { label: string; value: any }) {
   );
 }
 
-function KioskRow({
-  b,
+type AttendanceAttempt = {
+  bookingId: string;
+  status: "checked_in" | "attended" | "no_show";
+  memberName?: string;
+};
+
+function RosterMemberDetails({ booking, lang }: { booking: any; lang: Lang }) {
+  const member = booking.member ?? {};
+  return (
+    <div className="min-w-0">
+      <p className="cc-card-title truncate">
+        <bdi>{member.name}</bdi>
+      </p>
+      <div className="mt-1.5 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-slate">
+          {member.remaining_credits ?? 0} {t("common.credits")}
+        </span>
+        {member.phone ? (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate">
+            <Phone className="h-3 w-3" />
+            <BidiValue kind="phone">{member.phone}</BidiValue>
+          </span>
+        ) : null}
+        {member.is_first_timer ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 px-2 py-1 text-xs font-medium text-gold">
+            <Sparkles className="h-2.5 w-2.5" /> {t("roster.first")}
+          </span>
+        ) : null}
+        {member.active_plan ? (
+          <span className="rounded-full border border-gold/30 px-2 py-1 text-xs font-medium text-slate">
+            {getPlanDisplay(member.active_plan, lang).name}
+          </span>
+        ) : null}
+        {member.has_care_notes ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-gold/50 bg-gold/10 px-2 py-1 text-xs font-medium text-navy">
+            <AlertTriangle className="h-2.5 w-2.5" /> {t("roster.care")}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function AttendanceStatusBadge({ status, lang }: { status: AttendanceSourceStatus; lang: Lang }) {
+  const presentation = getAttendanceStatusPresentation(status, lang);
+  return (
+    <span
+      className={`inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${presentation.className}`}
+    >
+      {presentation.label}
+    </span>
+  );
+}
+
+function AttendanceActions({
+  booking,
+  pendingBookingId,
   lang,
   onMark,
 }: {
-  b: any;
-  lang: "en" | "he" | "ar";
-  onMark: (s: string) => void;
+  booking: any;
+  pendingBookingId: string | null;
+  lang: Lang;
+  onMark: (status: AttendanceAttempt["status"]) => void;
 }) {
-  const m = b.member ?? {};
-  const st = b.attendance_state;
-  const checked = st === "checked_in" || st === "attended";
+  const status = booking.attendance_state;
+  const saveState = deriveAttendanceSaveState({
+    status: pendingBookingId ? "pending" : "idle",
+    lang,
+    memberName: pendingBookingId === booking.id ? booking.member?.name : undefined,
+  });
+
   return (
-    <div className={`editorial-card p-4 ${checked ? "bg-gold/5" : ""}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="cc-card-title truncate">
-            <bdi>{m.name}</bdi>
-          </p>
-          <div className="flex flex-wrap items-center gap-2 mt-1.5">
-            <span className="text-xs font-medium text-slate">
-              {m.remaining_credits ?? 0} {t("common.credits")}
-            </span>
-            {m.phone && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate">
-                <Phone className="h-3 w-3" />
-                <span dir="ltr" className="inline-block">
-                  {m.phone}
-                </span>
-              </span>
-            )}
-            {m.is_first_timer && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 px-2 py-1 text-xs font-medium text-gold">
-                <Sparkles className="h-2.5 w-2.5" /> {t("roster.first")}
-              </span>
-            )}
-            {m.active_plan && (
-              <span className="rounded-full border border-gold/30 px-2 py-1 text-xs font-medium text-slate">
-                {getPlanDisplay(m.active_plan, lang).name}
-              </span>
-            )}
-            {m.has_care_notes && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-gold/50 bg-gold/10 px-2 py-1 text-xs font-medium text-navy">
-                <AlertTriangle className="h-2.5 w-2.5" /> {t("roster.care")}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 mt-4">
-        <KioskBtn active={st === "checked_in"} primary onClick={() => onMark("checked_in")}>
-          <Clock className="h-4 w-4" /> {t("attendance.present")}
-        </KioskBtn>
-        <KioskBtn active={st === "attended"} onClick={() => onMark("attended")}>
-          <CheckCircle2 className="h-4 w-4" /> {t("attendance.attended")}
-        </KioskBtn>
-        <KioskBtn active={st === "no_show"} onClick={() => onMark("no_show")}>
-          <XCircle className="h-4 w-4" /> {t("attendance.noShow")}
-        </KioskBtn>
-      </div>
+    <div className="grid min-w-[17rem] grid-cols-3 gap-2">
+      <KioskBtn
+        active={status === "checked_in"}
+        primary
+        disabled={saveState.actionLocked}
+        onClick={() => onMark("checked_in")}
+      >
+        <Clock className="h-4 w-4" /> {t("attendance.present")}
+      </KioskBtn>
+      <KioskBtn
+        active={status === "attended"}
+        disabled={saveState.actionLocked}
+        onClick={() => onMark("attended")}
+      >
+        <CheckCircle2 className="h-4 w-4" /> {t("attendance.attended")}
+      </KioskBtn>
+      <KioskBtn
+        active={status === "no_show"}
+        disabled={saveState.actionLocked}
+        onClick={() => onMark("no_show")}
+      >
+        <XCircle className="h-4 w-4" /> {t("attendance.noShow")}
+      </KioskBtn>
     </div>
   );
 }
@@ -302,11 +449,13 @@ function KioskRow({
 function KioskBtn({
   active,
   primary,
+  disabled,
   onClick,
   children,
 }: {
   active?: boolean;
   primary?: boolean;
+  disabled?: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -318,7 +467,12 @@ function KioskBtn({
       ? "border-gold text-navy bg-gold/10 hover:bg-gold/20"
       : "border-gold/25 text-slate hover:border-gold hover:text-navy";
   return (
-    <button onClick={onClick} className={`${base} ${cls}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`${base} ${cls} disabled:cursor-not-allowed disabled:opacity-50`}
+    >
       {children}
     </button>
   );

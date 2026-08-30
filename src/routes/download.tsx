@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Apple, CalendarDays, ChevronLeft, ShieldCheck, Smartphone } from "lucide-react";
+import { PublicShell } from "@/components/public/PublicShell";
 
 import {
   appendTrackingParams,
@@ -40,7 +41,10 @@ export const Route = createFileRoute("/download")({
       },
       { name: "twitter:image", content: "/images/classes/aerial-yoga-flow.webp" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/download" },
+      { name: "robots", content: "index, follow" },
     ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/download" }],
   }),
   loader: ({ location }): DownloadRouteData => {
     const config = getDownloadConfig();
@@ -61,84 +65,104 @@ function DownloadPage() {
   const { iosHref, iosNativeHref, androidHref } = Route.useLoaderData();
 
   return (
-    <main className="download-page" dir="rtl">
-      <section className="download-shell" aria-labelledby="download-title">
-        <div className="download-visual" aria-hidden="true">
-          <span className="download-version-orbit">{CURRENT_APP_VERSION}</span>
-          <div className="download-phone">
-            <div className="download-phone-bar" />
-            <div className="download-phone-card">
-              <span>Cloud &amp; Core</span>
-              <strong>18:30</strong>
-              <small>Aerial Flow</small>
-            </div>
-            <div className="download-phone-card download-phone-card-soft">
-              <span>מקום שמור</span>
-              <strong>6</strong>
-              <small>שיעורים זמינים</small>
-            </div>
+    <PublicShell headerMode="compact" mainClassName="download-page">
+      <DownloadPresentation
+        iosHref={iosHref}
+        iosNativeHref={iosNativeHref}
+        androidHref={androidHref}
+      />
+    </PublicShell>
+  );
+}
+
+export function DownloadPresentation({
+  iosHref,
+  iosNativeHref,
+  androidHref,
+}: Pick<DownloadRouteData, "iosHref" | "iosNativeHref" | "androidHref">) {
+  return (
+    <section
+      className="download-shell"
+      aria-labelledby="download-title"
+      data-product-view="download-default"
+    >
+      <div className="download-visual" aria-hidden="true">
+        <span className="download-version-orbit">{CURRENT_APP_VERSION}</span>
+        <div className="download-phone">
+          <div className="download-phone-bar" />
+          <div className="download-phone-card">
+            <span>Cloud &amp; Core</span>
+            <strong>18:30</strong>
+            <small>Aerial Flow</small>
+          </div>
+          <div className="download-phone-card download-phone-card-soft">
+            <span>מקום שמור</span>
+            <strong>6</strong>
+            <small>שיעורים זמינים</small>
           </div>
         </div>
+      </div>
 
-        <div className="download-content">
-          <img
-            className="download-wordmark"
-            src="/brand/cloud-core-wordmark.svg"
-            alt="Cloud & Core"
-          />
-          <p className="download-kicker">העדכון החדש · גרסה {CURRENT_APP_VERSION}</p>
-          <h1 id="download-title">העדכון החדש זמין עכשיו</h1>
-          <p className="download-arabic" lang="ar">
-            التحديث الجديد متوفر الآن
-          </p>
-          <p className="download-copy">
-            עדכני עכשיו לחיבור יציב יותר, גישה מהירה לשיעורים והתראות טובות יותר.
-          </p>
+      <div className="download-content">
+        <img
+          className="download-wordmark"
+          src="/brand/cloud-core-wordmark.svg"
+          alt="Cloud & Core"
+          width={300}
+          height={69}
+        />
+        <p className="download-kicker">העדכון החדש · גרסה {CURRENT_APP_VERSION}</p>
+        <h1 id="download-title">העדכון החדש זמין עכשיו</h1>
+        <p className="download-arabic" lang="ar">
+          التحديث الجديد متوفر الآن
+        </p>
+        <p className="download-copy">
+          עדכני עכשיו לחיבור יציב יותר, גישה מהירה לשיעורים והתראות טובות יותר.
+        </p>
 
-          <div className="download-actions" aria-label="App download links">
-            <a
-              className="download-store-button"
-              href={iosNativeHref}
-              aria-label="פתיחת Cloud & Core ב-App Store"
-            >
-              <Apple aria-hidden="true" />
-              <span>
-                <small>לחצי כאן לפתיחה</small>
-                עדכון ב-App Store
-              </span>
-              <ChevronLeft aria-hidden="true" />
-            </a>
-
-            {androidHref ? (
-              <a className="download-secondary-button" href={androidHref} rel="noopener noreferrer">
-                <Smartphone aria-hidden="true" />
-                <span>Google Play</span>
-              </a>
-            ) : (
-              <div className="download-android-note" role="note">
-                <Smartphone aria-hidden="true" />
-                <span>גרסת Android תעלה בקרוב · نسخة Android قريبًا</span>
-              </div>
-            )}
-          </div>
-
-          <p className="download-browser-note">
-            <ShieldCheck aria-hidden="true" />
+        <div className="download-actions" aria-label="App download links">
+          <a
+            className="download-store-button"
+            href={iosNativeHref}
+            aria-label="פתיחת Cloud & Core ב-App Store"
+          >
+            <Apple aria-hidden="true" />
             <span>
-              אם ה-App Store לא נפתח, לחצי על ⋯ ובחרי ״פתיחה בדפדפן״, או{" "}
-              <a href={iosHref} target="_blank" rel="noopener noreferrer">
-                פתחי את עמוד Apple
-              </a>
-              .
+              <small>לחצי כאן לפתיחה</small>
+              עדכון ב-App Store
             </span>
-          </p>
+            <ChevronLeft aria-hidden="true" />
+          </a>
 
-          <div className="download-proof">
-            <CalendarDays aria-hidden="true" />
-            <span>העדכון הרשמי והמאובטח של Cloud &amp; Core.</span>
-          </div>
+          {androidHref ? (
+            <a className="download-secondary-button" href={androidHref} rel="noopener noreferrer">
+              <Smartphone aria-hidden="true" />
+              <span>Google Play</span>
+            </a>
+          ) : (
+            <div className="download-android-note" role="note">
+              <Smartphone aria-hidden="true" />
+              <span>גרסת Android תעלה בקרוב · نسخة Android قريبًا</span>
+            </div>
+          )}
         </div>
-      </section>
-    </main>
+
+        <p className="download-browser-note">
+          <ShieldCheck aria-hidden="true" />
+          <span>
+            אם ה-App Store לא נפתח, לחצי על ⋯ ובחרי ״פתיחה בדפדפן״, או{" "}
+            <a href={iosHref} target="_blank" rel="noopener noreferrer">
+              פתחי את עמוד Apple
+            </a>
+            .
+          </span>
+        </p>
+
+        <div className="download-proof">
+          <CalendarDays aria-hidden="true" />
+          <span>העדכון הרשמי והמאובטח של Cloud &amp; Core.</span>
+        </div>
+      </div>
+    </section>
   );
 }

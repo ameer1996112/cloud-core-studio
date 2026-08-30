@@ -9,6 +9,7 @@ import {
   claimPublicPromotion,
   fetchPublicPromotion,
 } from "@/lib/promotions";
+import { formatBidiValue } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/promo/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -27,7 +28,7 @@ function PublicPromotionPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [attributionReady, setAttributionReady] = useState(false);
   const promotion = useQuery({
-    queryKey: ["public-promotion", slug],
+    queryKey: ["public-promotion", formatBidiValue(slug, "identifier")],
     queryFn: () => fetchPublicPromotion(slug),
   });
   const claim = useMutation({ mutationFn: claimPublicPromotion });
@@ -104,9 +105,9 @@ function PublicPromotionPage() {
   const displayCopy = claimed ? confirmation : copy;
 
   return (
-    <main dir={LANG_META[lang].dir} className="min-h-dvh bg-[#f5eddf] px-4 py-10 sm:px-6 sm:py-16">
+    <main dir={LANG_META[lang].dir} className="min-h-dvh bg-sand px-4 py-10 sm:px-6 sm:py-16">
       <article className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-gold/35 bg-navy px-6 py-10 text-ivory shadow-2xl sm:px-12 sm:py-16">
-        <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_12%_15%,rgba(217,174,88,.24),transparent_28%),radial-gradient(circle_at_88%_82%,rgba(255,248,233,.11),transparent_32%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_12%_15%,var(--cc-alpha-gold-22),transparent_28%),radial-gradient(circle_at_88%_82%,var(--cc-alpha-white-38),transparent_32%)]" />
         <div className="relative max-w-2xl">
           <div className="flex items-center gap-2 text-gold">
             <Sparkles className="h-4 w-4" />
@@ -117,7 +118,7 @@ function PublicPromotionPage() {
           </h1>
           <p className="mt-5 text-base leading-8 text-ivory/80 sm:text-lg">{displayCopy.body}</p>
           {promotion.data.promotionType === "free_class_credit" && !claimed ? (
-            <p className="mt-4 font-semibold text-gold">
+            <p className="mt-4 font-semibold text-ivory">
               {promotion.data.remaining} / {promotion.data.claimLimit}
             </p>
           ) : null}

@@ -3,7 +3,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listMembers } from "@/lib/members.functions";
 import { useState } from "react";
-import { Empty, SectionTitle, CardSkeleton } from "@/components/admin-shared";
+import {
+  AsyncState,
+  ResponsiveDataList,
+  SectionTitle,
+  type ResponsiveDataListColumn,
+} from "@/components/admin-shared";
 import {
   Search,
   Sparkles,
@@ -15,6 +20,8 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPlanDisplay } from "@/lib/planDisplay";
+import { safeErrorMessage } from "@/lib/error-messages";
+import { BidiValue } from "@/components/ui/bidi";
 
 export const Route = createFileRoute("/_authenticated/admin/members/")({
   component: Page,
@@ -45,50 +52,129 @@ function Page() {
   const fn = useServerFn(listMembers);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-members", search, filter],
     queryFn: () => fn({ data: { search, filter } }),
   });
+  const columns: ResponsiveDataListColumn<NonNullable<typeof data>[number]>[] = [
+    {
+      id: "member",
+      label: t("common.member"),
+      cell: (member) => <MemberCard m={member} lang={lang} />,
+    },
+    {
+      id: "status",
+      label: t("common.status"),
+      cell: (member) => (member.status === "inactive" ? t("status.inactive") : t("status.active")),
+    },
+    {
+      id: "plan",
+      label: t("common.plan"),
+      cell: (member) => (member.active_plan ? getPlanDisplay(member.active_plan, lang).name : "—"),
+    },
+    {
+      id: "credits",
+      label: t("common.credits"),
+      cell: (member) => member.remaining_credits ?? 0,
+    },
+    {
+      id: "last-visit",
+      label: t("admin.members.lastVisit"),
+      cell: (member) =>
+        member.last_visit_at ? (
+          <BidiValue kind="localized-date">
+            {new Date(member.last_visit_at).toLocaleDateString()}
+          </BidiValue>
+        ) : (
+          "—"
+        ),
+    },
+    {
+      id: "next-booking",
+      label: t("admin.members.next"),
+      cell: (member) =>
+        member.next_booking?.starts_at ? (
+          <BidiValue kind="localized-date">
+            {new Date(member.next_booking.starts_at).toLocaleDateString()}
+          </BidiValue>
+        ) : (
+          "—"
+        ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
       <SectionTitle>{t("admin.membersTitle")}</SectionTitle>
 
       <div className="space-y-3">
-        <div className="relative max-w-xl">
-          <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate" />
-          <input
-            className="editorial-input ps-11"
-            placeholder={t("admin.members.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+        <label htmlFor="admin-member-search" className="block max-w-xl">
+          <span className="field-label">{t("admin.members.search")}</span>
+          <span className="relative block">
+            <Search
+              className="absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate"
+              aria-hidden="true"
+            />
+            <input
+              id="admin-member-search"
+              className="editorial-input ps-11"
+              placeholder={t("admin.members.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </span>
+        </label>
+        <fieldset>
+          <legend className="field-label">{t("common.status")}</legend>
+          <div className="flex flex-wrap gap-2">
+            {FILTERS.map((f) => (
+              <button
+                type="button"
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                aria-pressed={filter === f.key}
+                className={`min-h-11 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
+                  filter === f.key
+                    ? "bg-navy border-navy text-ivory"
+                    : "border-gold/30 text-slate hover:border-gold hover:text-navy"
+                }`}
+              >
+                {t(f.labelKey)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
+      <AsyncState
+        state={
+          isLoading
+            ? { status: "loading", label: t("common.loading") }
+            : isError
+              ? {
+                  status: "error",
+                  title: t("admin.noMembersFilter"),
+                  body: safeErrorMessage(error, t("admin.noMembersFilter")),
+                  retry: () => void refetch(),
+                }
+              : (data?.length ?? 0) === 0
+                ? {
+                    status: "empty",
+                    title: t("admin.noMembersFilter"),
+                    body: t("admin.noMembersFilter"),
+                  }
+                : { status: "ready", data: data ?? [] }
+        }
+      >
+        {(members) => (
+          <ResponsiveDataList
+            caption={t("admin.membersTitle")}
+            columns={columns}
+            data={members}
+            getRowKey={(member) => member.id}
           />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
-                filter === f.key
-                  ? "bg-navy border-navy text-ivory"
-                  : "border-gold/30 text-slate hover:border-gold hover:text-navy"
-              }`}
-            >
-              {t(f.labelKey)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {isLoading && <CardSkeleton rows={4} />}
-      {!isLoading && (data?.length ?? 0) === 0 && <Empty>{t("admin.noMembersFilter")}</Empty>}
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {data?.map((m: any) => (
-          <MemberCard key={m.id} m={m} lang={lang} />
-        ))}
-      </div>
+        )}
+      </AsyncState>
     </div>
   );
 }
@@ -116,13 +202,13 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
             {m.phone && (
               <span className="inline-flex items-center gap-1">
                 <Phone className="h-3 w-3" />
-                {m.phone}
+                <BidiValue kind="phone">{m.phone}</BidiValue>
               </span>
             )}
             {m.email && (
               <span className="inline-flex items-center gap-1 truncate">
                 <Mail className="h-3 w-3" />
-                {m.email}
+                <BidiValue kind="email">{m.email}</BidiValue>
               </span>
             )}
           </div>
@@ -161,9 +247,13 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
         <div>
           <p className="text-xs font-medium">{t("admin.members.lastVisit")}</p>
           <p className="text-navy mt-0.5">
-            {lastVisit
-              ? lastVisit.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-              : "—"}
+            {lastVisit ? (
+              <BidiValue kind="localized-date">
+                {lastVisit.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              </BidiValue>
+            ) : (
+              "—"
+            )}
           </p>
         </div>
         <div>
@@ -172,7 +262,9 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
             {next ? (
               <span className="inline-flex items-center gap-1">
                 <CalendarIcon className="h-3 w-3" />
-                {next.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                <BidiValue kind="localized-date">
+                  {next.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                </BidiValue>
               </span>
             ) : (
               "—"
@@ -185,7 +277,9 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
         </div>
         <div>
           <p className="text-xs font-medium">{t("admin.members.spent")}</p>
-          <p className="text-navy mt-0.5">₪{Math.round(m.total_spend ?? 0)}</p>
+          <p className="text-navy mt-0.5">
+            <BidiValue kind="currency">₪{Math.round(m.total_spend ?? 0)}</BidiValue>
+          </p>
         </div>
       </div>
     </Link>

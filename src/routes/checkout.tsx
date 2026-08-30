@@ -1,11 +1,13 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { CreditCard, ShieldCheck } from "lucide-react";
-import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { PublicShell } from "@/components/public/PublicShell";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getCheckoutPlanDisplay } from "@/lib/checkoutPlanDisplay";
 import { getInstagramLandingData, type InstagramAdultPlan } from "@/lib/instagramLanding.functions";
-import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n";
+import { BidiValue } from "@/components/ui/bidi";
+import { bidiDirectionFor } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/checkout")({
       return { plans: [] };
     }
   },
-  component: PublicCheckoutPage,
+  component: CheckoutPresentation,
 });
 
 const copy: Record<
@@ -105,27 +107,22 @@ const copy: Record<
   },
 };
 
-function PublicCheckoutPage() {
+export function CheckoutPresentation() {
   const { lang } = useI18n();
   const navigate = useNavigate();
   const { plans } = Route.useLoaderData();
   const checkoutCopy = copy[lang];
-  const dir = LANG_META[lang].dir;
   const [accepted, setAccepted] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
 
   useDocumentTitle("page.packages.title");
 
   return (
-    <main dir={dir} className="public-safe-page min-h-screen bg-ivory px-5 py-8 text-navy sm:px-8">
+    <PublicShell
+      headerMode="compact"
+      mainClassName="public-safe-page min-h-screen bg-ivory px-5 py-8 text-navy sm:px-8"
+    >
       <div className="mx-auto max-w-3xl">
-        <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
-          <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">
-            Cloud &amp; Core
-          </Link>
-          <LegalLanguageSwitcher lang={lang} />
-        </header>
-
         <article className="member-card overflow-hidden">
           <div className="border-b hairline bg-sand/20 p-6 sm:p-8">
             <p className="member-eyebrow">{checkoutCopy.kicker}</p>
@@ -185,7 +182,7 @@ function PublicCheckoutPage() {
                       </span>
                       <span className="flex items-center gap-3">
                         <strong className="numeric-display text-lg text-navy">
-                          ₪{plan.priceIls}
+                          <BidiValue kind="currency">₪{plan.priceIls}</BidiValue>
                         </strong>
                         <input
                           required
@@ -221,6 +218,13 @@ function PublicCheckoutPage() {
                     name={id}
                     required
                     type={type}
+                    dir={
+                      id === "phone"
+                        ? bidiDirectionFor("phone")
+                        : id === "email"
+                          ? bidiDirectionFor("email")
+                          : undefined
+                    }
                     inputMode={id === "phone" ? "tel" : undefined}
                     pattern={id === "phone" ? "0[0-9]{8,9}" : undefined}
                     autoComplete={autoComplete}
@@ -262,6 +266,6 @@ function PublicCheckoutPage() {
           </form>
         </article>
       </div>
-    </main>
+    </PublicShell>
   );
 }

@@ -3,11 +3,21 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listProgramTypes, upsertProgramType, archiveProgramType } from "@/lib/admin.functions";
 import { useState } from "react";
-import { Plus, Pencil, Archive, RotateCcw, X } from "lucide-react";
-import { toast } from "sonner";
-import { AdminPageShell, AdminPageHeader, Empty, Field } from "@/components/admin-shared";
+import { Plus, Pencil, RotateCcw, X } from "lucide-react";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AsyncState,
+  Field,
+  PersistentAnnouncement,
+  ResponsiveDataList,
+  type ResponsiveDataListColumn,
+} from "@/components/admin-shared";
+import { AdminDestructiveAction } from "@/components/admin/AdminDestructiveAction";
 import { useI18n } from "@/lib/i18n";
+import { safeErrorMessage } from "@/lib/error-messages";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { bidiDirectionFor } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/programs")({
   component: Page,
@@ -48,11 +58,16 @@ const emptyForm: Omit<ProgramType, "id"> & { id?: string } = {
   default_capacity: 12,
   default_credit_cost: 1,
   equipment: [],
-  color_tag: "#D4AF6A",
+  color_tag: "",
   cover_image_url: "",
   sort_order: 0,
   active: true,
 };
+
+function defaultProgramColor() {
+  if (typeof document === "undefined") return "";
+  return getComputedStyle(document.documentElement).getPropertyValue("--color-gold").trim();
+}
 
 function Page() {
   const { lang, t } = useI18n();
@@ -62,30 +77,88 @@ function Page() {
   const archiveFn = useServerFn(archiveProgramType);
   const qc = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-program-types"],
     queryFn: () => listFn(),
   });
   const [editing, setEditing] = useState<ProgramType | "new" | null>(null);
+  const [outcome, setOutcome] = useState<{
+    tone: "success" | "error";
+    title: string;
+    body?: string;
+  } | null>(null);
 
   const saveMut = useMutation({
     mutationFn: (v: any) => saveFn({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-program-types"] });
-      toast.success(t("common.saved"));
+      setOutcome({ tone: "success", title: t("common.saved") });
       setEditing(null);
     },
-    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
+    onError: (saveError: unknown) =>
+      setOutcome({
+        tone: "error",
+        title: t("admin.classes.failed"),
+        body: safeErrorMessage(saveError, t("admin.classes.failed")),
+      }),
   });
 
   const archiveMut = useMutation({
     mutationFn: (v: { id: string; active: boolean }) => archiveFn({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-program-types"] });
-      toast.success(t("admin.classes.updated"));
+      setOutcome({ tone: "success", title: t("admin.classes.updated") });
     },
-    onError: (e: any) => toast.error(e.message ?? t("admin.classes.failed")),
+    onError: (archiveError: unknown) =>
+      setOutcome({
+        tone: "error",
+        title: t("admin.classes.failed"),
+        body: safeErrorMessage(archiveError, t("admin.classes.failed")),
+      }),
   });
+
+  const columns: ResponsiveDataListColumn<ProgramType>[] = [
+    {
+      id: "program",
+      label: t("admin.programs.title"),
+      cell: (program) => (
+        <ProgramCard
+          program={program}
+          lang={lang}
+          onEdit={() => {
+            setOutcome(null);
+            setEditing(program);
+          }}
+          onToggle={() =>
+            archiveMut
+              .mutateAsync({ id: program.id, active: !program.active })
+              .then(() => undefined)
+          }
+        />
+      ),
+    },
+    {
+      id: "status",
+      label: t("common.status"),
+      cell: (program) =>
+        program.active ? t("admin.programs.active") : t("admin.programs.inactive"),
+    },
+    {
+      id: "duration",
+      label: t("admin.programs.duration"),
+      cell: (program) => `${program.default_duration_minutes} ${t("common.minutes")}`,
+    },
+    {
+      id: "capacity",
+      label: t("admin.programs.capacity"),
+      cell: (program) => program.default_capacity,
+    },
+    {
+      id: "credits",
+      label: t("admin.programs.creditCost"),
+      cell: (program) => program.default_credit_cost,
+    },
+  ];
 
   return (
     <AdminPageShell>
@@ -94,93 +167,54 @@ function Page() {
         title={t("admin.programs.title")}
         description={t("admin.programs.description")}
         action={
-          <button onClick={() => setEditing("new")} className="btn-navy hover:btn-navy-hover">
+          <button
+            type="button"
+            onClick={() => {
+              setOutcome(null);
+              setEditing("new");
+            }}
+            className="btn-navy hover:btn-navy-hover"
+          >
             <Plus className="h-3.5 w-3.5" /> {t("admin.programs.add")}
           </button>
         }
       />
 
-      {isLoading && <div className="editorial-card h-32 skeleton-brand" />}
-      {data && data.length === 0 && <Empty>{t("admin.noPrograms")}</Empty>}
+      {outcome && !editing ? (
+        <PersistentAnnouncement tone={outcome.tone} title={outcome.title}>
+          {outcome.body ? <p>{outcome.body}</p> : null}
+        </PersistentAnnouncement>
+      ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {data?.map((p: ProgramType) => {
-          const display = getProgramDisplay(p, lang);
-          const category = displayCategory(p.level, lang);
-          return (
-            <article
-              key={p.id}
-              className="group relative flex flex-col overflow-hidden editorial-card transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_24px_50px_-34px_rgba(11,29,58,0.55)]"
-            >
-              <div className="h-1 bg-gold/50" />
-              <div className="flex flex-1 flex-col p-5 sm:p-6">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-gold/25 bg-ivory px-3 py-1 text-xs font-medium text-slate">
-                        {category}
-                      </span>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          p.active
-                            ? "border border-gold/40 bg-gold/10 text-navy"
-                            : "border border-slate/20 bg-sand/40 text-slate"
-                        }`}
-                      >
-                        {p.active ? t("admin.programs.active") : t("admin.programs.inactive")}
-                      </span>
-                    </div>
-                    <h2 className="font-display text-2xl leading-tight text-navy">
-                      {display.name}
-                    </h2>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <button
-                      onClick={() => setEditing(p)}
-                      aria-label={t("admin.programs.edit")}
-                      title={t("admin.programs.edit")}
-                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => archiveMut.mutate({ id: p.id, active: !p.active })}
-                      aria-label={
-                        p.active ? t("admin.programs.archive") : t("admin.programs.reactivate")
-                      }
-                      title={
-                        p.active ? t("admin.programs.archive") : t("admin.programs.reactivate")
-                      }
-                      className="btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-ghost-hover"
-                    >
-                      {p.active ? (
-                        <Archive className="h-4 w-4" />
-                      ) : (
-                        <RotateCcw className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <p className="mt-5 min-h-[72px] text-sm leading-7 text-slate">
-                  {display.description || t("admin.programs.noDescription")}
-                </p>
-
-                <div className="mt-auto grid grid-cols-2 gap-3 pt-6">
-                  <ProgramMetric
-                    label={t("admin.programs.duration")}
-                    value={`${p.default_duration_minutes} ${t("common.minutes")}`}
-                  />
-                  <ProgramMetric
-                    label={t("admin.programs.credits")}
-                    value={formatCredits(p.default_credit_cost, lang, t)}
-                  />
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+      <AsyncState
+        state={
+          isLoading
+            ? { status: "loading", label: t("common.loading") }
+            : isError
+              ? {
+                  status: "error",
+                  title: t("admin.classes.failed"),
+                  body: safeErrorMessage(error, t("admin.classes.failed")),
+                  retry: () => void refetch(),
+                }
+              : (data?.length ?? 0) === 0
+                ? {
+                    status: "empty",
+                    title: t("admin.noPrograms"),
+                    body: t("admin.noPrograms"),
+                  }
+                : { status: "ready", data: (data ?? []) as ProgramType[] }
+        }
+      >
+        {(programs) => (
+          <ResponsiveDataList
+            caption={t("admin.programs.catalog")}
+            columns={columns}
+            data={programs}
+            getRowKey={(program) => program.id}
+          />
+        )}
+      </AsyncState>
 
       {editing && (
         <ProgramModal
@@ -188,9 +222,102 @@ function Page() {
           onClose={() => setEditing(null)}
           onSave={(v) => saveMut.mutate(v)}
           saving={saveMut.isPending}
+          outcome={outcome}
         />
       )}
     </AdminPageShell>
+  );
+}
+
+function ProgramCard({
+  program,
+  lang,
+  onEdit,
+  onToggle,
+}: {
+  program: ProgramType;
+  lang: "en" | "he" | "ar";
+  onEdit: () => void;
+  onToggle: () => Promise<void>;
+}) {
+  const { t } = useI18n();
+  const display = getProgramDisplay(program, lang);
+  const category = displayCategory(program.level, lang);
+
+  return (
+    <article className="group relative flex min-w-0 flex-col overflow-hidden editorial-card transition-all duration-200 hover:border-gold/40">
+      <div className="h-1 bg-gold/50" />
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-gold/25 bg-ivory px-3 py-1 text-xs font-medium text-slate">
+                {category}
+              </span>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  program.active
+                    ? "border border-gold/40 bg-gold/10 text-navy"
+                    : "border border-slate/20 bg-sand/40 text-slate"
+                }`}
+              >
+                {program.active ? t("admin.programs.active") : t("admin.programs.inactive")}
+              </span>
+            </div>
+            <h2 className="font-display text-2xl leading-tight text-navy">
+              <bdi>{display.name}</bdi>
+            </h2>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label={t("admin.programs.edit")}
+              title={t("admin.programs.edit")}
+              className="btn-ghost inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-ghost-hover"
+            >
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+            </button>
+            {program.active ? (
+              <AdminDestructiveAction
+                objectName={display.name}
+                consequence={t("admin.programs.archiveConsequence")}
+                confirmLabel={t("admin.programs.archive")}
+                pendingLabel={t("common.saving")}
+                failureMessage={t("admin.classes.failed")}
+                onConfirm={onToggle}
+                triggerClassName="btn-ghost min-h-11 px-3 text-xs"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => void onToggle().catch(() => undefined)}
+                aria-label={t("admin.programs.reactivate")}
+                title={t("admin.programs.reactivate")}
+                className="btn-ghost inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-ghost-hover"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p className="mt-5 text-sm leading-7 text-slate">
+          {display.description || t("admin.programs.noDescription")}
+        </p>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ProgramMetric
+            label={t("admin.programs.duration")}
+            value={`${program.default_duration_minutes} ${t("common.minutes")}`}
+          />
+          <ProgramMetric
+            label={t("admin.programs.credits")}
+            value={formatCredits(program.default_credit_cost, lang, t)}
+          />
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -199,16 +326,19 @@ function ProgramModal({
   onClose,
   onSave,
   saving,
+  outcome,
 }: {
   initial: ProgramType | null;
   onClose: () => void;
   onSave: (v: any) => void;
   saving: boolean;
+  outcome: { tone: "success" | "error"; title: string; body?: string } | null;
 }) {
   const { t } = useI18n();
   const [f, setF] = useState<typeof emptyForm>(() => ({
     ...emptyForm,
     ...(initial ?? {}),
+    color_tag: initial?.color_tag ?? defaultProgramColor(),
     description_en: initial?.description_en ?? "",
     description_he: initial?.description_he ?? "",
     description_ar: initial?.description_ar ?? "",
@@ -219,14 +349,16 @@ function ProgramModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_rgba(11,29,58,0.3)] space-y-6">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_var(--cc-alpha-navy-30)] space-y-6">
         <div className="flex items-center justify-between border-b border-gold/30 pb-4">
           <h3 className="font-display text-xl">
             {initial ? t("admin.programs.edit") : t("admin.programs.add")}
           </h3>
           <button
+            type="button"
             onClick={onClose}
-            className="btn-ghost inline-flex h-8 w-8 items-center justify-center p-0 hover:btn-ghost-hover"
+            aria-label={t("common.close")}
+            className="btn-ghost inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-ghost-hover"
           >
             <X className="h-4 w-4" />
           </button>
@@ -235,6 +367,7 @@ function ProgramModal({
         <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
           <Field label={t("admin.programs.slug")}>
             <input
+              dir={bidiDirectionFor("identifier")}
               className="editorial-input"
               value={f.slug}
               onChange={(e) =>
@@ -379,6 +512,7 @@ function ProgramModal({
           </Field>
           <Field label={t("admin.programs.coverImage")}>
             <input
+              dir={bidiDirectionFor("url")}
               className="editorial-input"
               value={f.cover_image_url ?? ""}
               onChange={(e) => set({ cover_image_url: e.target.value })}
@@ -395,6 +529,12 @@ function ProgramModal({
           />
           {t("admin.programs.activeVisible")}
         </label>
+
+        {outcome ? (
+          <PersistentAnnouncement tone={outcome.tone} title={outcome.title}>
+            {outcome.body ? <p>{outcome.body}</p> : null}
+          </PersistentAnnouncement>
+        ) : null}
 
         <div className="flex justify-end gap-3 pt-2 border-t border-gold/25">
           <button onClick={onClose} className="btn-ghost hover:btn-ghost-hover">

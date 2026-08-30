@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "compatibilityEntry": {
+    "file": "src/styles.css",
+    "onlyImport": "./styles/base.css"
+  },
+  "owners": {
+    "base": "src/routes/__root.tsx",
+    "public": "src/components/public/PublicShell.tsx",
+    "member": "src/routes/_authenticated/member/route.tsx",
+    "admin": "src/routes/_authenticated/admin/route.tsx",
+    "instructor": "src/routes/_authenticated/instructor/route.tsx"
+  },
+  "transitionContract": "Route stylesheets may remain retained after client navigation, so every route-owned selector must remain behaviorally isolated and the root/compatibility entries must not eagerly load route CSS."
+}

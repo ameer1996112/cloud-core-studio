@@ -258,7 +258,7 @@ export function MemberPushOnboarding() {
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && dismiss()}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[27rem] gap-0 overflow-hidden rounded-[28px] border-gold/25 bg-ivory p-0 shadow-[0_28px_90px_rgba(11,29,58,0.28)] [&>button:last-child]:text-white/75 [&>button:last-child:hover]:bg-white/10 [&>button:last-child:hover]:text-white">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[27rem] gap-0 overflow-hidden rounded-[28px] border-gold/25 bg-ivory p-0 shadow-[0_28px_90px_var(--cc-alpha-navy-28)] [&>button:last-child]:text-white/75 [&>button:last-child:hover]:bg-white/10 [&>button:last-child:hover]:text-white">
         <div className="relative overflow-hidden bg-navy px-7 pb-10 pt-9 text-center text-white">
           <span
             aria-hidden
@@ -269,7 +269,7 @@ export function MemberPushOnboarding() {
             className="absolute -end-12 top-16 h-40 w-40 rounded-full bg-gold/8 blur-2xl"
           />
           {view === "success" ? (
-            <span className="relative mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[20px] bg-white text-navy shadow-[0_14px_40px_rgba(0,0,0,0.24)]">
+            <span className="relative mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[20px] bg-white text-navy shadow-[0_14px_40px_var(--cc-alpha-black-24)]">
               <CheckCircle2 className="h-8 w-8" />
             </span>
           ) : (
@@ -277,7 +277,7 @@ export function MemberPushOnboarding() {
               src="/brand/cloud-core-app-icon.svg"
               alt=""
               aria-hidden="true"
-              className="relative mx-auto h-[4.5rem] w-[4.5rem] rounded-[20px] shadow-[0_14px_40px_rgba(0,0,0,0.24)]"
+              className="relative mx-auto h-[4.5rem] w-[4.5rem] rounded-[20px] shadow-[0_14px_40px_var(--cc-alpha-black-24)]"
             />
           )}
           <p className="relative mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
@@ -293,7 +293,7 @@ export function MemberPushOnboarding() {
 
         <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
           {view === "success" ? (
-            <div className="-mt-5 flex min-h-24 items-center justify-center rounded-[20px] border border-gold/20 bg-white px-5 text-center shadow-[0_12px_34px_rgba(11,29,58,0.11)]">
+            <div className="-mt-5 flex min-h-24 items-center justify-center rounded-[20px] border border-gold/20 bg-white px-5 text-center shadow-[0_12px_34px_var(--cc-alpha-navy-11)]">
               <span className="flex items-center gap-2 text-sm font-semibold text-navy">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                 {copy.successTitle}
@@ -301,7 +301,7 @@ export function MemberPushOnboarding() {
             </div>
           ) : (
             <>
-              <div className="-mt-5 flex items-start gap-3 rounded-[20px] border border-gold/20 bg-white p-4 text-start shadow-[0_12px_34px_rgba(11,29,58,0.11)]">
+              <div className="-mt-5 flex items-start gap-3 rounded-[20px] border border-gold/20 bg-white p-4 text-start shadow-[0_12px_34px_var(--cc-alpha-navy-11)]">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-navy text-white">
                   <BellRing className="h-5 w-5" />
                 </span>
@@ -341,7 +341,7 @@ export function MemberPushOnboarding() {
                 onClick={view === "denied" ? openMemberPushSettings : enablePush}
                 disabled={isEnabling}
                 aria-busy={isEnabling}
-                className="cta-navy mt-5 flex min-h-12 w-full items-center justify-center gap-2 px-5 py-3 text-sm shadow-[0_12px_26px_rgba(11,29,58,0.18)] disabled:cursor-wait disabled:opacity-60"
+                className="cta-navy mt-5 flex min-h-12 w-full items-center justify-center gap-2 px-5 py-3 text-sm shadow-[0_12px_26px_var(--cc-alpha-navy-18)] disabled:cursor-wait disabled:opacity-60"
               >
                 {isEnabling && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />}
                 {view === "denied" ? copy.openSettings : copy.enable}

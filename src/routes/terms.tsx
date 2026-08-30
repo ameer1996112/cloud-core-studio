@@ -1,16 +1,28 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
+import { tForLang, useI18n, type Lang } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { PublicShell } from "@/components/public/PublicShell";
+import { EmbeddedContactText } from "@/components/ui/bidi";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
-    meta: [{ name: "description", content: "Cloud & Core Studio member app terms." }],
+    meta: [
+      { title: "Terms of Use | Cloud & Core Studio" },
+      { name: "description", content: "Cloud & Core Studio member app terms." },
+      { name: "robots", content: "index, follow" },
+      { property: "og:url", content: "https://cloudandcorestudio.com/terms" },
+    ],
+    links: [{ rel: "canonical", href: "https://cloudandcorestudio.com/terms" }],
   }),
   component: TermsPage,
 });
 
-const copy: Record<Lang, { title: string; kicker: string; updated: string; sections: string[] }> = {
+// Exported so SSR tests can verify every locale's actual legal copy.
+// eslint-disable-next-line react-refresh/only-export-components
+export const termsCopy: Record<
+  Lang,
+  { title: string; kicker: string; updated: string; sections: string[] }
+> = {
   en: {
     kicker: "Cloud & Core Studio",
     title: "Terms of Use",
@@ -65,42 +77,52 @@ const copy: Record<Lang, { title: string; kicker: string; updated: string; secti
 };
 
 function TermsPage() {
-  const { lang, t } = useI18n();
+  const { lang } = useI18n();
   useDocumentTitle("page.terms.title");
-  const data = copy[lang];
-  const dir = LANG_META[lang].dir;
 
   return (
-    <main dir={dir} className="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
-      <div className="mx-auto max-w-3xl">
-        <header className="public-legal-header mb-8 flex flex-wrap items-center justify-between gap-4">
-          <Link to="/auth" className="brand-wordmark text-2xl text-navy" dir="ltr">
-            Cloud &amp; Core
+    <PublicShell mainClassName="public-safe-page bg-ivory px-5 py-8 text-navy sm:px-8">
+      <TermsPresentation lang={lang} />
+    </PublicShell>
+  );
+}
+
+export function TermsPresentation({ lang }: { lang: Lang }) {
+  const data = termsCopy[lang];
+  return (
+    <div className="mx-auto max-w-3xl" data-product-view="terms-default">
+      <article className="member-card p-6 sm:p-8">
+        <p className="member-eyebrow">{data.kicker}</p>
+        <h1 className="member-page-title mt-3">{data.title}</h1>
+        <p className="mt-3 text-sm text-slate">{data.updated}</p>
+        <div className="mt-8 space-y-5 text-sm leading-7 text-slate">
+          {data.sections.map((section) => (
+            <p key={section}>
+              <EmbeddedContactText text={section} />
+            </p>
+          ))}
+        </div>
+        <div className="mt-8 flex flex-wrap gap-3 border-t hairline pt-5 text-xs uppercase tracking-[0.18em]">
+          <Link
+            to="/privacy"
+            className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+          >
+            {tForLang(lang, "legal.privacy")}
           </Link>
-          <LegalLanguageSwitcher lang={lang} />
-        </header>
-        <article className="member-card p-6 sm:p-8" dir={dir}>
-          <p className="member-eyebrow">{data.kicker}</p>
-          <h1 className="member-page-title mt-3">{data.title}</h1>
-          <p className="mt-3 text-sm text-slate">{data.updated}</p>
-          <div className="mt-8 space-y-5 text-sm leading-7 text-slate">
-            {data.sections.map((section) => (
-              <p key={section}>{section}</p>
-            ))}
-          </div>
-          <div className="mt-8 flex flex-wrap gap-3 border-t hairline pt-5 text-xs uppercase tracking-[0.18em]">
-            <Link to="/privacy" className="text-slate hover:text-gold transition-colors">
-              {t("legal.privacy")}
-            </Link>
-            <Link to="/support" className="text-slate hover:text-gold transition-colors">
-              {t("legal.support")}
-            </Link>
-            <Link to="/checkout" className="text-slate hover:text-gold transition-colors">
-              {t("legal.checkout")}
-            </Link>
-          </div>
-        </article>
-      </div>
-    </main>
+          <Link
+            to="/support"
+            className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+          >
+            {tForLang(lang, "legal.support")}
+          </Link>
+          <Link
+            to="/checkout"
+            className="inline-flex min-h-12 items-center px-2 text-slate transition-colors hover:text-gold"
+          >
+            {tForLang(lang, "legal.checkout")}
+          </Link>
+        </div>
+      </article>
+    </div>
   );
 }

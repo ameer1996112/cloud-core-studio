@@ -1,0 +1,39 @@
+{
+  "sourceRevision": "fe455d4a1937cab5d472e58d1a157f5ede22dc83",
+  "generatedAt": "2026-08-29T17:00:47.369Z",
+  "support": {
+    "he": {
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "overflow": 0,
+      "screenshot": "support-he-320x900.png"
+    },
+    "ar": {
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "overflow": 0,
+      "screenshot": "support-ar-320x900.png"
+    },
+    "en": {
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "overflow": 0,
+      "screenshot": "support-en-320x900.png"
+    }
+  },
+  "appFocus": {
+    "active": true,
+    "outlineColor": "rgb(11, 99, 206)",
+    "outlineWidth": "3px",
+    "boxShadow": "rgb(255, 253, 249) 0px 0px 0px 6px",
+    "contrastAgainstOpaqueHalo": 5.6,
+    "image": "url(\"http://127.0.0.1:4191/images/textures/ivory-paper.svg\")",
+    "screenshot": "app-focus-en-1440x900.png"
+  },
+  "sha256": {
+    "app-focus-en-1440x900.png": "a732640c301e0e8235172e635401e15f27e75e07dc13eb557b67847bb2e29d6a",
+    "support-he-320x900.png": "44ba56f84179203a5823760737fbd3798e7834d5ef4ebcc6333e3632b83f419c",
+    "support-ar-320x900.png": "ba0dba19774a73e88326ab8d0279960132b77261cace1c9fe1ed281dcc6e025e",
+    "support-en-320x900.png": "001b13bbbb75253de258830768cbb911d9fb8a92f4a90096d099d47675adaf77"
+  }
+}

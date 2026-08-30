@@ -122,7 +122,7 @@ export function MemberMobileBottomNavigation({
     >
       <div
         dir={isRtl ? "rtl" : "ltr"}
-        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[var(--radius-lg)] border border-gold/30 bg-ivory/96 px-1.5 py-0.5 shadow-[0_-8px_28px_-24px_rgba(28,43,69,0.24)] backdrop-blur pointer-events-auto"
+        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[var(--radius-lg)] border border-gold/30 bg-ivory/96 px-1.5 py-0.5 shadow-[0_-8px_28px_-24px_var(--cc-alpha-member-nav-shadow)] backdrop-blur pointer-events-auto"
       >
         {tabs.map((item) => {
           const { to, icon: Icon, label } = item;
@@ -238,6 +238,7 @@ export function AppShell({ role, children }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -299,8 +300,6 @@ export function AppShell({ role, children }: Props) {
 
     const previousOverflow = document.body.style.overflow;
     const previousPaddingInlineEnd = document.body.style.paddingInlineEnd;
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const scrollbarCompensation = window.innerWidth - document.documentElement.clientWidth;
 
     document.body.style.overflow = "hidden";
@@ -318,15 +317,18 @@ export function AppShell({ role, children }: Props) {
 
     window.addEventListener("keydown", handleKeyDown);
 
+    const onCloseAutoFocus = () => menuTriggerRef.current?.focus();
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
       document.body.style.paddingInlineEnd = previousPaddingInlineEnd;
-      previouslyFocused?.focus?.();
+      onCloseAutoFocus();
     };
   }, [mobileOpen, useDrawer]);
   const menuControl = useDrawer ? (
     <button
+      ref={menuTriggerRef}
       onClick={() => setMobileOpen(true)}
       aria-label={t("shell.openMenu")}
       className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
@@ -371,7 +373,10 @@ export function AppShell({ role, children }: Props) {
 
   if (isSigningOut) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-ivory text-foreground">
+      <div
+        role="main"
+        className="fixed inset-0 flex items-center justify-center bg-ivory text-foreground"
+      >
         <div className="text-center">
           <p className="eyebrow">Cloud &amp; Core</p>
           <h1 className="cc-page-title mt-3">{t("shell.signingOut")}</h1>
@@ -383,7 +388,11 @@ export function AppShell({ role, children }: Props) {
 
   if (role === "member" && !isHydrated) {
     return (
-      <div className="fixed inset-0 bg-ivory text-foreground" dir={isRtl ? "rtl" : "ltr"}>
+      <div
+        role="main"
+        className="fixed inset-0 bg-ivory text-foreground"
+        dir={isRtl ? "rtl" : "ltr"}
+      >
         <div className="member-content-frame px-4 pt-[calc(env(safe-area-inset-top)+4rem)]">
           <MemberRouteSkeleton route="home" />
         </div>
@@ -483,7 +492,13 @@ export function AppShell({ role, children }: Props) {
         )}
 
         {/* Content */}
-        <div className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
+        <div
+          className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${
+            useBottomNav
+              ? "pb-[calc(var(--member-bottom-nav-height)+env(safe-area-inset-bottom)+1rem)] md:pb-16"
+              : "pb-12"
+          }`}
+        >
           <div className={contentFrameClass}>
             {useBottomNav ? (
               <MemberRouteContent
@@ -743,9 +758,9 @@ function BrandMark({
   className?: string;
   tone?: "gold" | "navy";
 }) {
-  const strokeColor = tone === "gold" ? "#C59B4E" : "var(--color-navy)";
-  const goldColor = "#C59B4E";
-  const fillColor = tone === "gold" ? "rgba(197, 155, 78, 0.08)" : "rgba(11, 29, 58, 0.03)";
+  const strokeColor = tone === "gold" ? "var(--color-gold)" : "var(--color-navy)";
+  const goldColor = "var(--color-gold)";
+  const fillColor = tone === "gold" ? "var(--cc-alpha-gold-10)" : "var(--cc-alpha-navy-03)";
 
   return (
     <svg

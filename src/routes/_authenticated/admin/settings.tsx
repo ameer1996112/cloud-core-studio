@@ -2,13 +2,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClientOnlyFn, useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStudioSettingsFull, updateStudioSettings } from "@/lib/studioSettings.functions";
-import { useState, useEffect, useMemo } from "react";
-import { toast } from "sonner";
-import { AdminPageShell, AdminPageHeader, CardSkeleton } from "@/components/admin-shared";
+import { cloneElement, isValidElement, useEffect, useId, useMemo, useState } from "react";
+import {
+  AdminPageShell,
+  AdminPageHeader,
+  AsyncState,
+  PersistentAnnouncement,
+} from "@/components/admin-shared";
+import {
+  settingsPushRegistrationFailure,
+  settingsQueryViewState,
+} from "@/components/admin/settings-query-state";
+import { FieldMessage } from "@/components/ui/field-message";
 import { LANGUAGES } from "@/lib/messageTemplate";
-import { friendlyErrorMessage } from "@/lib/error-messages";
+import { safeErrorMessage } from "@/lib/error-messages";
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { YogaPromotionAdmin } from "@/components/admin/YogaPromotionAdmin";
+import { BidiValue } from "@/components/ui/bidi";
+import { bidiDirectionFor, type BidiKind } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: Page,
@@ -23,7 +35,6 @@ const registerAdminPushFromSettings = createClientOnlyFn(() =>
 );
 
 const technicalTextProps = {
-  dir: "ltr" as const,
   autoCapitalize: "none" as const,
   autoCorrect: "off" as const,
   spellCheck: false,
@@ -106,10 +117,18 @@ function Page() {
   const getFn = useServerFn(getStudioSettingsFull);
   const upFn = useServerFn(updateStudioSettings);
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["studio-settings-full"], queryFn: () => getFn() });
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["studio-settings-full"],
+    queryFn: () => getFn(),
+  });
   const [f, setF] = useState<FormState>(null);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushStatus, setPushStatus] = useState("");
+  const [outcome, setOutcome] = useState<{
+    tone: "success" | "error";
+    title: string;
+    body?: string;
+  } | null>(null);
   const originalPayload = useMemo(
     () => (data ? payloadFromForm(formFromSettings(data)) : null),
     [data],
@@ -146,14 +165,47 @@ function Page() {
   const save = useMutation({
     mutationFn: () => upFn({ data: currentPayload }),
     onSuccess: () => {
-      toast.success(t("settings.saved"));
+      setOutcome({ tone: "success", title: t("settings.saved") });
       qc.invalidateQueries({ queryKey: ["studio-settings-full"] });
       qc.invalidateQueries({ queryKey: ["public-studio-settings"] });
     },
-    onError: (e: any) => toast.error(friendlyErrorMessage(e, t("settings.saveError"))),
+    onError: (saveError: unknown) =>
+      setOutcome({
+        tone: "error",
+        title: t("settings.saveError"),
+        body: safeErrorMessage(saveError, t("settings.saveError")),
+      }),
   });
 
-  if (!f) return <CardSkeleton rows={4} />;
+  const queryState = settingsQueryViewState({
+    data,
+    isLoading,
+    isError,
+    error,
+    retry: () => void refetch(),
+    loadingLabel: t("settings.loading"),
+    errorTitle: t("settings.loadError"),
+    errorBody: t("settings.loadErrorBody"),
+  });
+
+  if (queryState.status !== "ready" || !f) {
+    return (
+      <AdminPageShell className="settings-page" dir={dir}>
+        <AdminPageHeader
+          eyebrow={t("settings.eyebrow")}
+          title={t("settings.studioConfig")}
+          description={t("settings.headerBody")}
+        />
+        <AsyncState
+          state={
+            queryState.status === "ready"
+              ? { status: "loading", label: t("settings.loading") }
+              : queryState
+          }
+        />
+      </AdminPageShell>
+    );
+  }
 
   const set = (patch: Partial<FormState>) => setF({ ...f, ...patch });
 
@@ -169,13 +221,13 @@ function Page() {
       if (!result) {
         const message = "Open the installed iPhone app, not Safari or the browser.";
         setPushStatus(message);
-        toast.error(message);
+        setOutcome({ tone: "error", title: message });
         return;
       }
       if (result.ok) {
         const message = "iPhone notification registration started. If iOS asks, tap Allow.";
         setPushStatus(message);
-        toast.success(message);
+        setOutcome({ tone: "success", title: message });
         return;
       }
 
@@ -192,11 +244,11 @@ function Page() {
                   ? "Registration already started. Close and reopen the app if no prompt appears."
                   : `Notifications were not granted (${result.permission ?? "unknown"}).`;
       setPushStatus(message);
-      toast.error(message);
+      setOutcome({ tone: "error", title: message });
     } catch (error) {
-      const message = friendlyErrorMessage(error, "Could not start iPhone notifications.");
+      const message = settingsPushRegistrationFailure(error, t("settings.pushRegistrationError"));
       setPushStatus(message);
-      toast.error(message);
+      setOutcome({ tone: "error", title: message });
     } finally {
       setPushBusy(false);
     }
@@ -209,6 +261,12 @@ function Page() {
         title={t("settings.studioConfig")}
         description={t("settings.headerBody")}
       />
+      <YogaPromotionAdmin />
+      {outcome ? (
+        <PersistentAnnouncement tone={outcome.tone} title={outcome.title}>
+          {outcome.body ? <p>{outcome.body}</p> : null}
+        </PersistentAnnouncement>
+      ) : null}
       <form
         className="space-y-5 sm:space-y-6"
         onSubmit={(e) => {
@@ -614,10 +672,9 @@ function Page() {
                   href={waLink}
                   target="_blank"
                   rel="noreferrer"
-                  dir="ltr"
                   className="block text-start text-navy underline decoration-gold/60 underline-offset-4 break-all text-sm"
                 >
-                  {waLink}
+                  <BidiValue kind="url">{waLink}</BidiValue>
                 </a>
               ) : (
                 <span className="text-slate text-sm">{t("settings.preview.noWhatsapp")}</span>
@@ -703,17 +760,27 @@ function FieldRow({
   required?: boolean;
   children: React.ReactNode;
 }) {
+  const messageId = useId();
+  const control = isValidElement(children)
+    ? cloneElement(children as React.ReactElement<{ "aria-describedby"?: string }>, {
+        "aria-describedby": error || hint ? messageId : undefined,
+      })
+    : children;
   return (
     <label className={`settings-field ${full ? "md:col-span-2" : ""}`}>
       <span className="settings-label">
         {label}
         {required ? " *" : ""}
       </span>
-      {children}
+      {control}
       {error ? (
-        <span className="settings-field-error">{error}</span>
+        <FieldMessage id={messageId} tone="error" className="settings-field-error">
+          {error}
+        </FieldMessage>
       ) : hint ? (
-        <span className="settings-field-helper">{hint}</span>
+        <FieldMessage id={messageId} className="settings-field-helper">
+          {hint}
+        </FieldMessage>
       ) : null}
     </label>
   );
@@ -734,9 +801,18 @@ function TechnicalInput({
   placeholder?: string;
   maxLength?: number;
 }) {
+  const bidiKind: BidiKind =
+    inputMode === "email"
+      ? "email"
+      : inputMode === "tel"
+        ? "phone"
+        : inputMode === "url"
+          ? "url"
+          : "identifier";
   return (
     <input
       {...technicalTextProps}
+      dir={bidiDirectionFor(bidiKind)}
       type={type}
       inputMode={inputMode}
       maxLength={maxLength}
@@ -814,7 +890,7 @@ function Toggle({
 
 function PreviewCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="min-h-[6rem] rounded-xl border border-gold/18 bg-ivory/70 p-4 shadow-[0_18px_40px_-34px_rgba(11,29,58,0.45)] space-y-2">
+    <div className="min-h-[6rem] rounded-xl border border-gold/18 bg-ivory/70 p-4 shadow-[0_18px_40px_-34px_var(--cc-alpha-navy-45)] space-y-2">
       <p className="settings-label settings-preview-label">{label}</p>
       <div>{children}</div>
     </div>

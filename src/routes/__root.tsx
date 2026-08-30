@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -11,7 +12,18 @@ import { useEffect, useState, type ReactNode } from "react";
 import { createClientOnlyFn, createIsomorphicFn } from "@tanstack/react-start";
 import { getStartContext } from "@tanstack/start-storage-context";
 
-import appCss from "../styles.css?url";
+import "@fontsource/assistant/hebrew-400.css";
+import "@fontsource/assistant/hebrew-600.css";
+import "@fontsource/assistant/hebrew-700.css";
+import "@fontsource/assistant/latin-400.css";
+import "@fontsource/assistant/latin-600.css";
+import "@fontsource/assistant/latin-700.css";
+import "@fontsource/cormorant-garamond/latin-600.css";
+import "@fontsource/cormorant-garamond/latin-600-italic.css";
+import "@fontsource/noto-sans-arabic/arabic-400.css";
+import "@fontsource/noto-sans-arabic/arabic-600.css";
+import "@fontsource/noto-sans-arabic/arabic-700.css";
+import appCss from "../styles/base.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { Toaster } from "sonner";
 import {
@@ -23,8 +35,8 @@ import {
   readLangCookieHeader,
   readSupportedLang,
   setActiveLang,
-  t,
   type Lang,
+  useI18n,
 } from "@/lib/i18n";
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
 import {
@@ -33,53 +45,90 @@ import {
   isPublicAppMarketingPathname,
 } from "@/lib/app-marketing";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
+import { shouldShowRootSkipLink } from "@/lib/public-shell-paths";
+import webAppManifest from "../../public/manifest.json";
 
 function NotFoundComponent() {
+  const { dir, t } = useI18n();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <main
+      id="main-content"
+      dir={dir}
+      className="flex min-h-screen items-center justify-center bg-background px-6"
+    >
       <div className="max-w-md text-center">
-        <h1 className="font-display text-6xl text-foreground">הדף לא נמצא</h1>
-        <p className="mt-3 text-sm text-muted-foreground">העמוד הזה לא נשמר.</p>
-        <div className="mt-6">
+        <h1 className="font-display text-6xl text-foreground">{t("recovery.notFound.title")}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">{t("recovery.notFound.body")}</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Link
             to="/"
-            className="inline-flex rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
+            className="inline-flex min-h-[var(--cc-target-min)] items-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
           >
-            חזרה לבית
+            {t("recovery.action.home")}
+          </Link>
+          <Link
+            to="/support"
+            className="inline-flex min-h-[var(--cc-target-min)] items-center rounded-full border border-border px-6 py-3 text-sm font-medium text-foreground focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
+          >
+            {t("recovery.action.support")}
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const { dir, t } = useI18n();
   useEffect(() => {
     reportAppError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <main
+      id="main-content"
+      dir={dir}
+      className="flex min-h-screen items-center justify-center bg-background px-6"
+    >
       <div className="max-w-md text-center">
-        <h1 className="font-display text-3xl text-foreground">רגע שקט</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          משהו נעצר אצלנו. אפשר לנסות שוב בעוד רגע.
-        </p>
-        <div className="mt-6 flex justify-center gap-2">
+        <h1 className="font-display text-3xl text-foreground">{t("recovery.error.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("recovery.error.body")}</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+            className="min-h-[var(--cc-target-min)] rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
           >
             {t("common.retry")}
           </button>
+          <Link
+            to="/"
+            className="inline-flex min-h-[var(--cc-target-min)] items-center rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
+          >
+            {t("recovery.action.home")}
+          </Link>
+          <Link
+            to="/support"
+            className="inline-flex min-h-[var(--cc-target-min)] items-center rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
+          >
+            {t("recovery.action.support")}
+          </Link>
         </div>
+        {import.meta.env.DEV ? (
+          <details className="mt-6 text-start text-xs text-muted-foreground">
+            <summary className="cursor-pointer">{t("recovery.error.details")}</summary>
+            <pre className="mt-2 overflow-auto rounded-md bg-muted p-3 text-start whitespace-pre-wrap">
+              {error.message}
+            </pre>
+          </details>
+        ) : null}
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -88,7 +137,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0B1D3A" },
+      { name: "theme-color", content: webAppManifest.theme_color },
       { name: "facebook-domain-verification", content: "k7ee0g6u6wldkv9oqr22yeh7oxbgcg" },
       { title: "Cloud & Core Studio" },
       { name: "description", content: "Boutique aerial yoga & mat pilates — Cloud & Core Studio." },
@@ -114,12 +163,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap",
-      },
     ],
   }),
   shellComponent: RootShell,
@@ -226,6 +269,9 @@ const startRootSessionLifecycle = createClientOnlyFn((handlers: RootSessionLifec
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { t: translate } = useI18n();
+  const showRootSkipLink = shouldShowRootSkipLink(pathname);
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
   useEffect(() => {
     if (isPublicAppMarketingPathname(window.location.pathname)) return;
@@ -342,6 +388,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {showRootSkipLink ? (
+        <a className="global-skip-link" href="#main-content">
+          {translate("common.skipToContent")}
+        </a>
+      ) : null}
       <Outlet />
       <Toaster
         className="app-toaster"

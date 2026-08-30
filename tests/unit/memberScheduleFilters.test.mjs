@@ -72,7 +72,7 @@ describe("member schedule filters", () => {
   });
 
   test("gives the automatic schedule sheet close button a 44px touch target", () => {
-    const css = readFileSync(new URL("../../src/styles.css", import.meta.url), "utf8");
+    const css = readFileSync(new URL("../../src/styles/member.css", import.meta.url), "utf8");
 
     expect(css).toMatch(
       /\.member-schedule-filter-sheet\s*>\s*button\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s,

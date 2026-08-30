@@ -66,8 +66,8 @@ export function RequiredAppUpdate({
         className="absolute -bottom-28 -start-20 h-80 w-80 rounded-full bg-navy/8 blur-3xl"
       />
 
-      <section className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-gold/25 bg-white/80 p-7 text-center shadow-[0_28px_80px_rgba(11,29,58,0.16)] backdrop-blur-xl sm:p-9">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold/35 bg-navy text-ivory shadow-[0_12px_32px_rgba(11,29,58,0.24)]">
+      <section className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-gold/25 bg-white/80 p-7 text-center shadow-[0_28px_80px_var(--cc-alpha-navy-16)] backdrop-blur-xl sm:p-9">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold/35 bg-navy text-ivory shadow-[0_12px_32px_var(--cc-alpha-navy-24)]">
           <Sparkles className="h-6 w-6 text-gold" aria-hidden="true" />
         </div>
 
@@ -87,7 +87,7 @@ export function RequiredAppUpdate({
         <a
           href={appStoreUrl}
           rel="external noopener"
-          className="mt-7 inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-navy px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(11,29,58,0.22)] transition-transform active:scale-[0.98]"
+          className="mt-7 inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-navy px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_32px_var(--cc-alpha-navy-22)] transition-transform active:scale-[0.98]"
         >
           <Apple className="h-5 w-5" aria-hidden="true" />
           <span>{copy.action}</span>

@@ -186,6 +186,7 @@ async function sendBusinessPaymentEmail(data: PaymentNotificationData) {
   if (!claim) return;
 
   const paymentId = escapeHtml(data.payment.id);
+  // style-contract-allow-color: transactional email HTML cannot resolve app CSS custom properties.
   const html = `
     <div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.7;color:#102443;max-width:560px">
       <h2 style="margin:0 0 18px">התקבל תשלום חדש</h2>

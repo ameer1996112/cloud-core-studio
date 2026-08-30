@@ -25,7 +25,8 @@ import { MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
 import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { LtrInline } from "@/components/ui/bidi";
+import { BidiValue, LtrInline } from "@/components/ui/bidi";
+import { formatBidiValue } from "@/lib/bidi-format";
 import type { CheckoutConsent } from "@/lib/checkoutConsent";
 import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
 import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
@@ -168,7 +169,7 @@ function MemberPackages() {
       return;
     }
     const planDisplay = getPlanDisplay(plan, lang);
-    const amount = formatPlanPrice(plan);
+    const amount = formatBidiValue(formatPlanPrice(plan), "currency");
     const text =
       method === "bit"
         ? t("member.packageBitConfirmationMessage", {
@@ -217,13 +218,13 @@ function MemberPackages() {
               {active?.expires_at ? (
                 <p className="member-package-status__expiry">
                   {t("member.expires")}{" "}
-                  <LtrInline className="text-navy">
+                  <BidiValue kind="localized-date" className="text-navy">
                     {new Date(active.expires_at).toLocaleDateString(locale, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}
-                  </LtrInline>
+                  </BidiValue>
                 </p>
               ) : null}
               <div className="member-package-status__counts">
@@ -291,7 +292,7 @@ function MemberPackages() {
       {promoEntitlements.map((entitlement: any) => (
         <div
           key={entitlement.id}
-          className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_rgba(11,29,58,.16)] sm:p-6"
+          className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_var(--cc-alpha-navy-16)] sm:p-6"
           data-testid="promotion-wallet-credit"
         >
           <div className="flex items-start justify-between gap-4">
@@ -309,7 +310,10 @@ function MemberPackages() {
               {entitlement.expires_at ? (
                 <p className="mt-1 text-sm text-ivory/75">
                   {t("promo.yoga.validUntil", {
-                    date: new Date(entitlement.expires_at).toLocaleDateString(locale),
+                    date: formatBidiValue(
+                      new Date(entitlement.expires_at).toLocaleDateString(locale),
+                      "localized-date",
+                    ),
                   })}
                 </p>
               ) : null}
@@ -348,11 +352,14 @@ function MemberPackages() {
             </p>
             <p className="mt-1 text-sm text-slate">
               {t("packages.subscriptionRenews", {
-                date: new Date(
-                  activeSubscription.next_charge_at ??
-                    activeSubscription.current_period_end ??
-                    Date.now(),
-                ).toLocaleDateString(locale),
+                date: formatBidiValue(
+                  new Date(
+                    activeSubscription.next_charge_at ??
+                      activeSubscription.current_period_end ??
+                      Date.now(),
+                  ).toLocaleDateString(locale),
+                  "localized-date",
+                ),
               })}
             </p>
             {activeSubscription.card_mask ? (
@@ -406,7 +413,9 @@ function MemberPackages() {
                     {request.plan ? getPlanDisplay(request.plan, lang).name : t("nav.plans")}
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-slate">
-                    {new Date(request.created_at).toLocaleDateString(locale)}
+                    <BidiValue kind="localized-date">
+                      {new Date(request.created_at).toLocaleDateString(locale)}
+                    </BidiValue>
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full border border-gold/35 bg-gold/10 px-2.5 py-1 text-xs font-medium text-navy">
@@ -440,7 +449,9 @@ function MemberPackages() {
                         {formatCreditReason(t.reason, t.amount_delta)}
                       </p>
                       <p className="mt-0.5 text-xs font-medium text-slate">
-                        {new Date(t.created_at).toLocaleDateString(locale)}
+                        <BidiValue kind="localized-date">
+                          {new Date(t.created_at).toLocaleDateString(locale)}
+                        </BidiValue>
                       </p>
                     </div>
                     <span
@@ -483,13 +494,17 @@ function MemberPackages() {
                           {p.plan ? getPlanDisplay(p.plan, lang).name : t("receipt.studioPayment")}
                         </p>
                         <p className="mt-0.5 truncate text-xs font-medium text-slate">
-                          {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)} ·{" "}
-                          {labelForMethod(p.method)} · {labelForStatus(p.status)}
+                          <BidiValue kind="localized-date">
+                            {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)}
+                          </BidiValue>{" "}
+                          · {labelForMethod(p.method)} · {labelForStatus(p.status)}
                         </p>
                       </div>
                       <div className="text-start shrink-0">
                         <p className="font-display text-xl text-navy">
-                          <LtrInline>{formatPaymentAmount(p.amount, p.currency)}</LtrInline>
+                          <BidiValue kind="currency">
+                            {formatPaymentAmount(p.amount, p.currency)}
+                          </BidiValue>
                         </p>
                         {receipt && (
                           <Link
@@ -497,7 +512,8 @@ function MemberPackages() {
                             params={{ id: receipt.id }}
                             className="member-receipt-link"
                           >
-                            <FileText className="h-3 w-3" /> {receipt.receipt_number}
+                            <FileText className="h-3 w-3" />{" "}
+                            <BidiValue kind="identifier">{receipt.receipt_number}</BidiValue>
                           </Link>
                         )}
                       </div>
@@ -540,7 +556,6 @@ function PackagePricingCard({
   blockedByActivePackage: boolean;
 }) {
   const display = getPlanDisplay(plan, lang);
-  const price = formatPlanPrice(plan);
   const marketing = getPackageMarketing(plan, lang);
   const isRecommended = marketing.kind === "recommended";
   const isRecurringMonthly = isRecurringCardPlan(plan);
@@ -571,7 +586,9 @@ function PackagePricingCard({
         ) : null}
       </div>
       <div>
-        <p className="numeric-display font-display text-4xl text-navy">{price}</p>
+        <p className="numeric-display font-display text-4xl text-navy">
+          <BidiValue kind="currency">{formatPlanPrice(plan)}</BidiValue>
+        </p>
       </div>
       <div className="package-plan-details">
         <p>
@@ -982,7 +999,6 @@ export function PaymentMethodSheet({
   const initialFocusRef = providedInitialFocusRef ?? defaultInitialFocusRef;
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
-  const price = formatPlanPrice(plan);
   const recurringCard = isRecurringCardPlan(plan);
   const bitCopy = getBitPaymentCopy(lang);
   const cardEnabled = Boolean(settings?.payments_enabled && settings?.payments_provider === "hyp");
@@ -991,7 +1007,7 @@ export function PaymentMethodSheet({
     studio: settings?.studio_name ?? "Cloud & Core",
     member: t("member.friend"),
     plan: display.name,
-    amount: price,
+    amount: formatBidiValue(formatPlanPrice(plan), "currency"),
   });
   const isOnline = method === "card" || method === "bit";
   const checkoutComplete = checkout.termsAccepted;
@@ -1031,7 +1047,7 @@ export function PaymentMethodSheet({
     void navigator.clipboard?.writeText(BIT_PAYMENT_PHONE).catch(() => undefined);
     const bitUrl = buildBitDeepLink({
       phone: BIT_PAYMENT_PHONE,
-      amount: price,
+      amount: formatBidiValue(formatPlanPrice(plan), "currency"),
       note: bitMessage,
     });
     window.location.href = bitUrl;
@@ -1044,7 +1060,7 @@ export function PaymentMethodSheet({
         dir={dir}
         onOpenAutoFocus={focusHandlers.onOpenAutoFocus}
         onCloseAutoFocus={focusHandlers.onCloseAutoFocus}
-        className="member-sheet-content max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-ivory p-5 shadow-[0_30px_60px_-28px_rgba(11,29,58,0.38)] sm:bottom-5 sm:mx-auto sm:max-w-xl sm:rounded-2xl sm:p-6"
+        className="member-sheet-content max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-ivory p-5 shadow-[0_30px_60px_-28px_var(--cc-alpha-navy-38)] sm:bottom-5 sm:mx-auto sm:max-w-xl sm:rounded-2xl sm:p-6"
       >
         <SheetHeader className="border-b hairline pe-12 pb-4 text-start">
           <div className="text-start">
@@ -1058,7 +1074,7 @@ export function PaymentMethodSheet({
           </div>
         </SheetHeader>
 
-        <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_var(--cc-alpha-white-72)]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="font-display text-2xl leading-tight text-navy">{display.name}</p>
@@ -1070,7 +1086,9 @@ export function PaymentMethodSheet({
                 </p>
               )}
             </div>
-            <p className="numeric-display text-3xl text-navy">{price}</p>
+            <p className="numeric-display text-3xl text-navy">
+              <BidiValue kind="currency">{formatPlanPrice(plan)}</BidiValue>
+            </p>
           </div>
         </div>
 
@@ -1153,7 +1171,7 @@ export function PaymentMethodSheet({
               </div>
             )}
             {method === "bit" && !hypEnabled && (
-              <div className="overflow-hidden rounded-xl border border-gold/35 bg-ivory shadow-[0_18px_44px_-34px_rgba(11,29,58,0.45)]">
+              <div className="overflow-hidden rounded-xl border border-gold/35 bg-ivory shadow-[0_18px_44px_-34px_var(--cc-alpha-navy-45)]">
                 <div className="flex items-start gap-3 border-b border-gold/20 bg-white/55 p-4">
                   <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-navy">
                     <Smartphone className="h-4 w-4" />
@@ -1296,7 +1314,7 @@ function PaymentOption({
       onClick={onClick}
       className={`w-full rounded-xl border p-4 text-start transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
         active
-          ? "border-gold bg-gold/10 shadow-[0_18px_36px_-30px_rgba(11,29,58,0.38)]"
+          ? "border-gold bg-gold/10 shadow-[0_18px_36px_-30px_var(--cc-alpha-navy-38)]"
           : disabled
             ? "border-sand bg-sand/20 opacity-60 cursor-not-allowed"
             : "border-gold/25 bg-ivory hover:border-gold/70 hover:bg-gold/5"

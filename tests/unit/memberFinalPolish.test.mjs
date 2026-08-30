@@ -50,10 +50,10 @@ describe("member experience final polish", () => {
         isRtl: false,
       }),
     );
-    const css = read("src/styles.css");
+    const css = read("src/styles/base.css");
 
     expect(markup).toContain("min-h-[48px]");
-    expect(css).toMatch(/--member-bottom-nav-height:\s*68px;/);
+    expect(css).toMatch(/--member-bottom-nav-height:\s*76px;/);
   });
 
   test("renders an RTL-safe, non-interactive mobile overflow cue around booking tabs", () => {
@@ -72,7 +72,7 @@ describe("member experience final polish", () => {
         dir: "rtl",
       }),
     );
-    const css = read("src/styles.css");
+    const css = read("src/styles/member.css");
 
     expect(markup).toContain('class="member-segmented-control-frame"');
     expect(markup).toContain('dir="rtl"');
@@ -96,7 +96,7 @@ describe("member experience final polish", () => {
   });
 
   test("keeps one authoritative compact Schedule override block after legacy styles", () => {
-    const css = read("src/styles.css");
+    const css = read("src/styles/member.css");
     const marker = "/* Schedule overrides live after legacy member filters";
     const markerIndex = css.indexOf(marker);
 

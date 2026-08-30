@@ -4,14 +4,16 @@ import { resolve } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemberField, MemberProfileSaveStatus } from "../../src/components/member/MemberField.tsx";
-import { t } from "../../src/lib/i18n.ts";
+import { ensureI18nNamespaces, t } from "../../src/lib/i18n.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const accountSource = readFileSync(
   resolve(root, "src/routes/_authenticated/member/account.tsx"),
   "utf8",
 );
-const stylesSource = readFileSync(resolve(root, "src/styles.css"), "utf8");
+const stylesSource = readFileSync(resolve(root, "src/styles/member.css"), "utf8");
+
+await ensureI18nNamespaces(["member"]);
 
 describe("member profile fields", () => {
   test("associates a field label with its control", () => {

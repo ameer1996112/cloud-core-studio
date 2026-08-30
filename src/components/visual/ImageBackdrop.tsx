@@ -7,7 +7,7 @@ import { studioImages, type ImageAsset } from "@/lib/image-assets";
  */
 export function ImageBackdrop({
   asset = studioImages.ivoryPaper,
-  overlay = "linear-gradient(180deg, rgba(250,247,242,0.85), rgba(250,247,242,0.95))",
+  overlay = "linear-gradient(180deg, var(--cc-alpha-ivory-85), var(--cc-alpha-ivory-95))",
   className = "",
   children,
 }: {

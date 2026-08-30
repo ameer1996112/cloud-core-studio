@@ -1,5 +1,11 @@
 import * as React from "react";
 
+export { AsyncState } from "@/components/ui/async-state";
+export { PersistentAnnouncement } from "@/components/ui/sonner";
+export { ResponsiveDataList } from "@/components/ui/responsive-data-list";
+export type { AsyncViewState } from "@/components/ui/async-state";
+export type { ResponsiveDataListColumn } from "@/components/ui/responsive-data-list";
+
 /** Consistent page container for all admin routes. Enforces max-width, padding, and vertical spacing. */
 export function AdminPageShell({
   children,
@@ -173,18 +179,24 @@ function AttendanceEmptyIllustration() {
     >
       <defs>
         <filter id="attendanceSoftShadow" x="-16%" y="-24%" width="132%" height="152%">
-          <feDropShadow dx="0" dy="14" stdDeviation="13" floodColor="#0B1D3A" floodOpacity="0.08" />
+          <feDropShadow
+            dx="0"
+            dy="14"
+            stdDeviation="13"
+            floodColor="var(--color-navy)"
+            floodOpacity="0.08"
+          />
         </filter>
         <linearGradient id="attendanceGold" x1="248" y1="142" x2="304" y2="198">
-          <stop offset="0" stopColor="#DAB86F" />
-          <stop offset="1" stopColor="#B88B3D" />
+          <stop offset="0" stopColor="var(--cc-admin-illustration-gold-start)" />
+          <stop offset="1" stopColor="var(--cc-admin-illustration-gold-end)" />
         </linearGradient>
       </defs>
 
       <path
         d="M85 131H52c-20 0-36-15-36-34 0-17 13-31 30-33 3-28 27-49 56-49 14 0 27 5 37 13"
         fill="none"
-        stroke="var(--color-gold, #d4af6a)"
+        stroke="var(--color-gold)"
         strokeWidth="9"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -199,7 +211,7 @@ function AttendanceEmptyIllustration() {
           height="140"
           rx="24"
           fill="none"
-          stroke="var(--color-navy, #0b1d3a)"
+          stroke="var(--color-navy)"
           strokeWidth="8"
         />
         {[0, 1, 2].map((row) => {
@@ -211,20 +223,20 @@ function AttendanceEmptyIllustration() {
                 cy={y}
                 r="13"
                 fill="none"
-                stroke="var(--color-navy, #0b1d3a)"
+                stroke="var(--color-navy)"
                 strokeWidth="5"
               />
               <path
                 d={`M146 ${y - 5}h55`}
                 fill="none"
-                stroke="var(--color-navy, #0b1d3a)"
+                stroke="var(--color-navy)"
                 strokeWidth="5"
                 strokeLinecap="round"
               />
               <path
                 d={`M222 ${y - 5}h13M248 ${y - 5}h13`}
                 fill="none"
-                stroke="var(--color-navy, #0b1d3a)"
+                stroke="var(--color-navy)"
                 strokeWidth="4"
                 strokeLinecap="round"
               />
@@ -233,7 +245,7 @@ function AttendanceEmptyIllustration() {
         })}
       </g>
 
-      <circle cx="268" cy="164" r="31" fill="var(--color-surface, #fffaf3)" />
+      <circle cx="268" cy="164" r="31" fill="var(--color-surface)" />
       <circle cx="268" cy="164" r="30" fill="none" stroke="url(#attendanceGold)" strokeWidth="7" />
       <path
         d="m253 164 10 10 22-25"
@@ -262,7 +274,7 @@ function AdminDefaultEmptyIllustration() {
               dx="0"
               dy="13"
               stdDeviation="11"
-              floodColor="#0B1D3A"
+              floodColor="var(--color-navy)"
               floodOpacity="0.08"
             />
           </filter>
@@ -271,15 +283,15 @@ function AdminDefaultEmptyIllustration() {
         <g filter="url(#adminDefaultEmptyShadow)">
           <path
             d="M41 40h88c12 0 22 10 22 22v54H63c-12 0-22-10-22-22V40Z"
-            fill="var(--color-surface-warm, #fffaf3)"
-            stroke="var(--color-navy, #0b1d3a)"
+            fill="var(--color-surface-warm)"
+            stroke="var(--color-navy)"
             strokeWidth="5"
             strokeLinejoin="round"
           />
           <path
             d="M59 63h52M59 82h64M59 101h40"
             fill="none"
-            stroke="var(--color-navy, #0b1d3a)"
+            stroke="var(--color-navy)"
             strokeWidth="5"
             strokeLinecap="round"
             opacity="0.86"
@@ -288,26 +300,22 @@ function AdminDefaultEmptyIllustration() {
             cx="143"
             cy="48"
             r="23"
-            fill="var(--color-surface-warm, #fffaf3)"
-            stroke="var(--color-gold, #d4af6a)"
+            fill="var(--color-surface-warm)"
+            stroke="var(--color-gold)"
             strokeWidth="5"
           />
           <path
             d="m158 63 17 17"
             fill="none"
-            stroke="var(--color-gold, #d4af6a)"
+            stroke="var(--color-gold)"
             strokeWidth="5"
             strokeLinecap="round"
           />
-          <g
-            fill="var(--color-surface-warm, #fffaf3)"
-            stroke="var(--color-navy, #0b1d3a)"
-            strokeWidth="4"
-          >
+          <g fill="var(--color-surface-warm)" stroke="var(--color-navy)" strokeWidth="4">
             <circle cx="39" cy="62" r="12" />
             <circle cx="39" cy="99" r="12" />
           </g>
-          <g fill="none" stroke="var(--color-gold, #d4af6a)" strokeLinecap="round" strokeWidth="4">
+          <g fill="none" stroke="var(--color-gold)" strokeLinecap="round" strokeWidth="4">
             <path d="M35 62h8M39 58v8" />
             <path d="m34 98 4 4 8-10" />
           </g>
@@ -316,14 +324,14 @@ function AdminDefaultEmptyIllustration() {
               cx="16"
               cy="16"
               r="16"
-              fill="var(--color-surface-warm, #fffaf3)"
-              stroke="var(--color-gold, #d4af6a)"
+              fill="var(--color-surface-warm)"
+              stroke="var(--color-gold)"
               strokeWidth="4"
             />
             <path
               d="M9 16h14M16 9v14"
               fill="none"
-              stroke="var(--color-navy, #0b1d3a)"
+              stroke="var(--color-navy)"
               strokeWidth="4"
               strokeLinecap="round"
             />

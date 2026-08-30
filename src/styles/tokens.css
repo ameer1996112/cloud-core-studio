@@ -1,25 +1,204 @@
 :root {
-  /* Colors */
+  /* Semantic visual contract */
+  --cc-text-primary: #24303c;
+  --cc-text-secondary: #52606d;
+  --cc-text-muted: #687584;
+  --cc-surface-canvas: #fffdf8;
+  --cc-surface-raised: #ffffff;
+  --cc-surface-subtle: #f6f2ea;
+  --cc-action-primary: #173b57;
+  --cc-action-primary-foreground: #fffdf8;
+  --cc-action-destructive: #b42318;
+  --cc-action-destructive-foreground: #ffffff;
+  --cc-state-success: #2f6f4e;
+  --cc-state-warning: #8a5d00;
+  --cc-state-danger: #b42318;
+  --cc-state-info: #0b63ce;
+  --cc-focus-color: #0b63ce;
+  --cc-focus-color-dark: #8fc8ff;
+  --cc-focus-outline: 3px solid var(--cc-focus-color);
+  --cc-focus-offset: 3px;
+  --cc-focus-ring: 0 0 0 3px var(--cc-focus-color);
+
+  /* Color primitives used by semantic component recipes. */
+  --cc-palette-black: #000000;
+  --cc-palette-navy-975: #07162d;
+  --cc-palette-navy-950: #08152b;
+  --cc-palette-navy-925: #081934;
+  --cc-palette-navy-900: #10274c;
+  --cc-palette-navy-875: #122b4e;
+  --cc-palette-navy-850: #182d4e;
+  --cc-palette-navy-825: #1c2b45;
+  --cc-palette-slate-700: #475367;
+  --cc-palette-slate-675: #4b5b73;
+  --cc-palette-slate-650: #536074;
+  --cc-palette-slate-625: #556174;
+  --cc-palette-slate-600: #56657b;
+  --cc-palette-slate-575: #596477;
+  --cc-palette-slate-550: #5b6a81;
+  --cc-palette-slate-500: #6f7a8c;
+  --cc-palette-slate-350: #9ea8b7;
+  --cc-palette-slate-200: #c9d1dc;
+  --cc-palette-slate-175: #cbd2dc;
+  --cc-palette-slate-150: #d7dde5;
+  --cc-palette-bronze-700: #6b5c44;
+  --cc-palette-gold-700: #a37e3d;
+  --cc-palette-gold-350: #d7bf90;
+  --cc-palette-gold-250: #d4c5a9;
+  --cc-palette-gold-200: #e7c77f;
+  --cc-palette-sand-300: #ded3c3;
+  --cc-palette-sand-150: #efe5d4;
+  --cc-palette-sand-125: #efe5d8;
+  --cc-palette-sand-100: #f1e9df;
+  --cc-palette-sand-75: #f2ede4;
+  --cc-palette-sand-60: #f4ebdf;
+  --cc-palette-sand-55: #f4ece0;
+  --cc-palette-sand-50: #f7f2ea;
+  --cc-palette-sand-40: #f8f4ec;
+  --cc-palette-sand-30: #f8f4ed;
+  --cc-palette-sand-25: #faf6ef;
+  --cc-palette-sand-20: #faf8f4;
+  --cc-palette-sand-15: #fcfaf6;
+  --cc-palette-cream-100: #f6efe5;
+  --cc-palette-cream-75: #f8f2e9;
+  --cc-palette-cream-50: #fff8ec;
+  --cc-palette-cream-25: #fffaf1;
+  --cc-palette-cream-20: #fffaf3;
+  --cc-palette-paper-25: #fffdf9;
+  --cc-palette-paper-cool: #fdfeff;
+  --cc-palette-powder-100: #e7f1f6;
+  --cc-palette-powder-75: #e8f4f8;
+  --cc-palette-powder-300: #b2d7e4;
+  --cc-palette-powder-350: #b7cce6;
+  --cc-palette-success-600: #487a58;
+  --cc-palette-danger-750: #722424;
+  --cc-palette-danger-700: #782626;
+  --cc-palette-danger-500: #994040;
+  --cc-palette-coral-500: #ed7966;
+  --cc-palette-coral-600: #f25f4c;
+
+  /* Component palettes and translucent presentation primitives. */
+  --cc-admin-illustration-gold-start: #dab86f;
+  --cc-admin-illustration-gold-end: #b88b3d;
+  --cc-admin-danger-surface-end: rgba(255, 245, 243, 0.92);
+  --cc-admin-panel-surface-end: rgba(243, 237, 225, 0.78);
+  --cc-admin-form-surface-end: rgba(247, 241, 231, 0.82);
+  --cc-whatsapp-preview-canvas: #efeae2;
+  --cc-whatsapp-action: #25d366;
+  --cc-brand-mark-gold: #c59b4e;
+  --cc-brand-mark-gold-wash: rgba(197, 155, 78, 0.08);
+  --cc-yoga-promo-border: #d8ae58;
+  --cc-yoga-promo-ink: #071a32;
+  --cc-yoga-promo-copy: #fff8e9;
+  --cc-yoga-promo-gold-soft: #e8bd66;
+  --cc-yoga-promo-gold: #efc36b;
+  --cc-yoga-promo-gold-hover: #f8d88f;
+  --cc-yoga-promo-gold-wash: rgba(217, 174, 88, 0.2);
+  --cc-yoga-promo-copy-wash: rgba(255, 248, 233, 0.11);
+  --cc-lesson-waitlist-surface: #f1ebe1;
+  --cc-lesson-low-credit-surface: #ede5d8;
+  --cc-lesson-cancelled-surface: #f5f0e9;
+  --cc-payment-canvas: #f7f1e8;
+  --cc-payment-surface-end: rgba(244, 238, 228, 0.92);
+  --cc-payment-success-ring: rgba(209, 250, 229, 0.64);
+  --cc-payment-danger-ring: rgba(254, 226, 226, 0.7);
+  --cc-promo-canvas: #f5eddf;
+  --cc-promo-gold-strong: #9a6d22;
+  --cc-promo-slate: #516075;
+  --cc-promo-slate-muted: #667085;
+  --cc-auth-line: rgba(246, 238, 226, 0.28);
+  --cc-auth-line-strong: rgba(246, 238, 226, 0.58);
+  --cc-auth-surface: rgba(246, 238, 226, 0.92);
+  --cc-auth-surface-strong: rgba(246, 238, 226, 0.94);
+  --cc-auth-surface-muted: rgba(246, 238, 226, 0.74);
+  --cc-auth-surface-faint: rgba(246, 238, 226, 0.18);
+  --cc-alpha-white-98: rgba(255, 255, 255, 0.98);
+  --cc-alpha-white-96: rgba(255, 255, 255, 0.96);
+  --cc-alpha-white-92: rgba(255, 255, 255, 0.92);
+  --cc-alpha-white-80: rgba(255, 255, 255, 0.8);
+  --cc-alpha-white-72: rgba(255, 255, 255, 0.72);
+  --cc-alpha-white-38: rgba(255, 255, 255, 0.38);
+  --cc-alpha-black-24: rgba(0, 0, 0, 0.24);
+  --cc-alpha-paper-84: rgba(255, 253, 249, 0.84);
+  --cc-alpha-navy-95: rgba(11, 29, 58, 0.95);
+  --cc-alpha-navy-82: rgba(11, 29, 58, 0.82);
+  --cc-alpha-navy-75: rgba(11, 29, 58, 0.75);
+  --cc-alpha-navy-45: rgba(11, 29, 58, 0.45);
+  --cc-alpha-navy-42: rgba(11, 29, 58, 0.42);
+  --cc-alpha-navy-38: rgba(11, 29, 58, 0.38);
+  --cc-alpha-navy-35: rgba(11, 29, 58, 0.35);
+  --cc-alpha-navy-32: rgba(11, 29, 58, 0.32);
+  --cc-alpha-navy-30: rgba(11, 29, 58, 0.3);
+  --cc-alpha-navy-28: rgba(11, 29, 58, 0.28);
+  --cc-alpha-navy-24: rgba(11, 29, 58, 0.24);
+  --cc-alpha-navy-22: rgba(11, 29, 58, 0.22);
+  --cc-alpha-navy-18: rgba(11, 29, 58, 0.18);
+  --cc-alpha-navy-16: rgba(11, 29, 58, 0.16);
+  --cc-alpha-navy-13: rgba(11, 29, 58, 0.13);
+  --cc-alpha-navy-11: rgba(11, 29, 58, 0.11);
+  --cc-alpha-navy-08: rgba(11, 29, 58, 0.08);
+  --cc-alpha-navy-07: rgba(11, 29, 58, 0.07);
+  --cc-alpha-navy-06: rgba(11, 29, 58, 0.06);
+  --cc-alpha-navy-05: rgba(11, 29, 58, 0.05);
+  --cc-alpha-navy-03: rgba(11, 29, 58, 0.03);
+  --cc-alpha-navy-02: rgba(11, 29, 58, 0.02);
+  --cc-alpha-gold-40: rgba(212, 175, 106, 0.4);
+  --cc-alpha-gold-35: rgba(212, 175, 106, 0.35);
+  --cc-alpha-gold-22: rgba(212, 175, 106, 0.22);
+  --cc-alpha-gold-18: rgba(212, 175, 106, 0.18);
+  --cc-alpha-gold-15: rgba(212, 175, 106, 0.15);
+  --cc-alpha-gold-12: rgba(212, 175, 106, 0.12);
+  --cc-alpha-gold-10: rgba(212, 175, 106, 0.1);
+  --cc-alpha-ivory-96: rgba(250, 247, 242, 0.96);
+  --cc-alpha-ivory-95: rgba(250, 247, 242, 0.95);
+  --cc-alpha-ivory-85: rgba(250, 247, 242, 0.85);
+  --cc-alpha-ivory-72: rgba(250, 247, 242, 0.72);
+  --cc-alpha-sand-25: rgba(232, 223, 209, 0.25);
+  --cc-alpha-sand-18: rgba(232, 223, 209, 0.18);
+  --cc-alpha-powder-18: rgba(183, 204, 230, 0.18);
+  --cc-alpha-member-nav-shadow: rgba(28, 43, 69, 0.28);
+  --cc-alpha-admin-ink-09: rgba(17, 35, 64, 0.09);
+  --cc-alpha-admin-ink-08: rgba(17, 35, 64, 0.08);
+  --cc-alpha-admin-ink-06: rgba(17, 35, 64, 0.06);
+  --cc-alpha-admin-ink-05: rgba(17, 35, 64, 0.05);
+  --cc-alpha-admin-message-shadow: rgba(8, 31, 61, 0.18);
+  --cc-alpha-admin-delivery-gold: rgba(212, 175, 90, 0.35);
+  --cc-alpha-yoga-promo-shadow: rgba(4, 17, 34, 0.24);
+  --cc-target-min: 2.75rem;
+  --cc-motion-fast: 150ms;
+  --cc-motion-base: 250ms;
+  --cc-motion-reduced: 1ms;
+
+  /* Semantic spacing scale */
+  --cc-space-1: 4px;
+  --cc-space-2: 8px;
+  --cc-space-3: 12px;
+  --cc-space-4: 16px;
+  --cc-space-6: 24px;
+  --cc-space-8: 32px;
+  --cc-space-12: 48px;
+
+  /* Compatibility aliases */
   --color-ivory: #faf7f2;
   --color-gold: #d4af6a;
   --color-navy: #0b1d3a;
   --color-sand: #e8dfd1;
   --color-blue: #e8dfd1;
-  --color-text-primary: #0b1d3a;
-  --color-text-secondary: #5f6b7e;
-  --color-text-muted: #5f6b7e;
-  --color-surface: #ffffff;
-  --color-surface-warm: #faf7f2;
+  --color-text-primary: var(--cc-text-primary);
+  --color-text-secondary: var(--cc-text-secondary);
+  --color-text-muted: var(--cc-text-muted);
+  --color-surface: var(--cc-surface-raised);
+  --color-surface-warm: var(--cc-surface-canvas);
   --color-border: rgba(212, 175, 106, 0.34);
 
   /* Spacing */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
+  --space-1: var(--cc-space-1);
+  --space-2: var(--cc-space-2);
+  --space-3: var(--cc-space-3);
+  --space-4: var(--cc-space-4);
+  --space-6: var(--cc-space-6);
+  --space-8: var(--cc-space-8);
+  --space-12: var(--cc-space-12);
 
   /* Typography */
   --font-serif: "Cormorant Garamond", Georgia, serif;
@@ -44,18 +223,44 @@
   --shadow-elevated: 0 4px 20px rgba(11, 29, 58, 0.1);
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
+  --transition-fast: var(--cc-motion-fast) ease;
+  --transition-base: var(--cc-motion-base) ease;
 
   /* Local UI aliases */
   --font-ui-he: "Assistant", system-ui, -apple-system, sans-serif;
   --font-ui-ar: "Noto Sans Arabic", system-ui, -apple-system, sans-serif;
   --font-ui-latin: "Assistant", system-ui, -apple-system, sans-serif;
   --color-powder: var(--color-sand);
-  --color-slate: var(--color-text-secondary);
+  --color-slate: var(--cc-text-secondary);
   --color-gold-soft: color-mix(in srgb, var(--color-gold) 58%, var(--color-surface));
   --color-navy-strong: #07162d;
   --color-navy-elevated: #173057;
-  --color-success: #4f6b57;
-  --color-danger: #8d4d52;
+  --color-success: var(--cc-state-success);
+  --color-danger: var(--cc-state-danger);
+
+  /* Component presentation contracts */
+  --cc-premium-logo-ink: var(--color-navy);
+  --cc-premium-logo-divider: color-mix(in srgb, var(--color-gold) 50%, transparent);
+  --cc-premium-logo-wordmark-size: 28px;
+  --cc-premium-logo-wordmark-size-wide: 32px;
+  --cc-premium-logo-rule-thickness: 1px;
+  --cc-premium-logo-dot-size: 3px;
+  --cc-lesson-aerial-rail: var(--color-navy);
+  --cc-lesson-aerial-wash: var(--color-ivory);
+  --cc-lesson-aerial-surface: var(--color-ivory);
+  --cc-lesson-mat-rail: var(--color-gold);
+  --cc-lesson-mat-wash: var(--color-sand);
+  --cc-lesson-mat-surface: var(--cc-surface-raised);
+  --cc-lesson-hot-rail: var(--color-gold);
+  --cc-lesson-hot-wash: var(--color-ivory);
+  --cc-lesson-hot-surface: #fff8ec;
+  --cc-lesson-default-rail: var(--color-gold);
+  --cc-lesson-default-wash: var(--color-ivory);
+  --cc-lesson-default-surface: var(--cc-surface-raised);
+}
+
+.cc-dark-surface,
+.surface-navy,
+.dark {
+  --cc-focus-color: var(--cc-focus-color-dark);
 }

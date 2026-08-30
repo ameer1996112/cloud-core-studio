@@ -1,0 +1,4885 @@
+{
+  "version": 2,
+  "scenarios": [
+    {
+      "role": "admin",
+      "property": "backdrop-filter",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "blur(14px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "backdrop-filter",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "blur(14px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "backdrop-filter",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "blur(14px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "backdrop-filter",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "blur(14px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-attachment",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-attachment",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-attachment",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-attachment",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-clip",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-clip",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-clip",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-clip",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-color",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-color",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-color",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-color",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-image",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-image",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-image",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-image",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-origin",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-origin",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-origin",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-origin",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-position",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-position",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-position",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-position",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-repeat",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-repeat",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-repeat",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-repeat",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-size",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-size",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-size",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background-size",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "background",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(255,253,248,0.95)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-color",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-color",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-color",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-color",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-left-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".session-input",
+      "baseContext": "",
+      "routeSelector": ".session-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-card",
+      "baseContext": "",
+      "routeSelector": ".settings-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-input",
+      "baseContext": "",
+      "routeSelector": ".settings-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-right-radius",
+      "baseSelector": ".settings-status-pill",
+      "baseContext": "",
+      "routeSelector": ".settings-status-pill",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "999px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-style",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "solid",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-style",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "solid",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-style",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "solid",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-style",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "solid",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-width",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "1px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-width",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "1px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-width",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "1px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top-width",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "1px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "1px solid rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top",
+      "baseSelector": ".session-actions",
+      "baseContext": "",
+      "routeSelector": ".session-actions",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "1px solid rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "1px solid rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "border-top",
+      "baseSelector": ".settings-save-bar",
+      "baseContext": "",
+      "routeSelector": ".settings-save-bar",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "1px solid rgba(212,175,106,0.22)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:disabled",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:disabled",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        4,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        4,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:disabled",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:disabled",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        4,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".session-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        4,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "box-shadow",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:not(:disabled):hover",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0 4px 20px rgba(11,29,58,0.1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "cursor",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:disabled",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "not-allowed",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "cursor",
+      "baseSelector": ".session-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".session-button.primary:disabled",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "not-allowed",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "cursor",
+      "baseSelector": ".settings-save-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:disabled",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "not-allowed",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "cursor",
+      "baseSelector": ".settings-save-button:disabled",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:disabled",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "not-allowed",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-size",
+      "baseSelector": ":root[dir=\"rtl\"] .btn-ghost",
+      "baseContext": "",
+      "routeSelector": ".admin-instructor-card__actions .btn-ghost",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "13px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-size",
+      "baseSelector": ":root[dir=\"rtl\"] .eyebrow",
+      "baseContext": "",
+      "routeSelector": ".admin-instructors-hero__copy p:not(.eyebrow)",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "11px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-size",
+      "baseSelector": ".eyebrow",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".admin-instructors-hero__copy p:not(.eyebrow)",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0.95rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-size",
+      "baseSelector": ".eyebrow",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".admin-instructors-hero__copy p:not(.eyebrow)",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0.95rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-weight",
+      "baseSelector": ":root[dir=\"rtl\"] .eyebrow",
+      "baseContext": "",
+      "routeSelector": ".admin-instructors-hero__copy p:not(.eyebrow)",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "600",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-weight",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "700",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-weight",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "700",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-weight",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "700",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "font-weight",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "700",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "letter-spacing",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "letter-spacing",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "line-height",
+      "baseSelector": ".eyebrow",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".admin-instructors-hero__copy p:not(.eyebrow)",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "1.75",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "line-height",
+      "baseSelector": ".eyebrow",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".admin-instructors-hero__copy p:not(.eyebrow)",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "1.75",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".btn-ghost",
+      "baseContext": "",
+      "routeSelector": ".admin-instructor-card__actions .btn-ghost",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "2.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".btn-ghost",
+      "baseContext": "",
+      "routeSelector": ".admin-instructor-card__actions .btn-ghost",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "2.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".btn-outline",
+      "baseContext": "",
+      "routeSelector": ".admin-instructor-card__actions .btn-outline",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "2.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".btn-outline",
+      "baseContext": "",
+      "routeSelector": ".admin-instructor-card__actions .btn-outline",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "2.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".package-plan-card .btn-outline",
+      "baseContext": "@media (max-width: 520px)",
+      "routeSelector": ".admin-instructor-card__actions .btn-outline",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "2.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".package-plan-card .btn-outline",
+      "baseContext": "@media (max-width: 520px)",
+      "routeSelector": ".admin-instructor-card__actions .btn-outline",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "2.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "48px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "48px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "48px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "min-height",
+      "baseSelector": ".settings-save-button",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "48px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-color",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-color",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-offset",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "3px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-offset",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "3px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-style",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-style",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-width",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline-width",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "outline",
+      "baseSelector": ".settings-save-button:focus-visible",
+      "baseContext": "",
+      "routeSelector": ".settings-save-button:focus-visible",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "3px solid rgba(11,99,206,1)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "text-transform",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "admin",
+      "property": "text-transform",
+      "baseSelector": ".session-button",
+      "baseContext": "",
+      "routeSelector": ".session-button",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "align-items",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "start",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "align-items",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "start",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "align-items",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "start",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "align-items",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "start",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "column-gap",
+      "baseSelector": ".member-home-page",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-home-page",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "clamp(1.1rem,3vw,2rem)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "column-gap",
+      "baseSelector": ".member-home-page",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-home-page",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "clamp(1.1rem,3vw,2rem)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "column-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "column-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "column-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "column-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "font-size",
+      "baseSelector": ".member-section-title",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-title",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "clamp(22px,6vw,26px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "font-size",
+      "baseSelector": ".member-section-title",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-title",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "clamp(22px,6vw,26px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "font-size",
+      "baseSelector": ".member-section-title",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-title",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "clamp(22px,6vw,26px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "font-size",
+      "baseSelector": ".member-section-title",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-title",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "clamp(22px,6vw,26px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "font-size",
+      "baseSelector": ".member-section-title",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": "[dir=\"rtl\"] .member-section-title",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "clamp(24px,6vw,34px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "gap",
+      "baseSelector": ".member-home-page",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-home-page",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "clamp(1.1rem,3vw,2rem)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "gap",
+      "baseSelector": ".member-home-page",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-home-page",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "clamp(1.1rem,3vw,2rem)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "min-height",
+      "baseSelector": ".member-link-action",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-link-action",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "44px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "min-height",
+      "baseSelector": ".member-link-action",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-link-action",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "44px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "row-gap",
+      "baseSelector": ".member-home-page",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-home-page",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "clamp(1.1rem,3vw,2rem)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "row-gap",
+      "baseSelector": ".member-home-page",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".member-home-page",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "clamp(1.1rem,3vw,2rem)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "row-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "row-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "row-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "row-gap",
+      "baseSelector": ".member-section-heading",
+      "baseContext": "@media (max-width: 640px)",
+      "routeSelector": ".member-section-heading",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "0.75rem",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "100%",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "100%",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "@media (max-width: 767px)",
+      "direction": "ltr",
+      "expectedValue": "100%",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "@media (max-width: 767px)",
+      "direction": "rtl",
+      "expectedValue": "100%",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (min-width: 1536px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "min(100%,1180px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (min-width: 1536px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "min(100%,1180px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (min-width: 1536px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "@media (min-width: 1536px)",
+      "direction": "ltr",
+      "expectedValue": "min(100%,1180px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "member",
+      "property": "width",
+      "baseSelector": ".member-content-frame",
+      "baseContext": "@media (min-width: 1536px)",
+      "routeSelector": ".member-content-frame",
+      "routeContext": "@media (min-width: 1536px)",
+      "direction": "rtl",
+      "expectedValue": "min(100%,1180px)",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-left-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-bottom-right-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-left-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "16px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".auth-card",
+      "baseContext": "",
+      "routeSelector": ".auth-card",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "18px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "border-top-right-radius",
+      "baseSelector": ".editorial-input",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .editorial-input",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "10px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ":root[dir=\"rtl\"] .cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "13px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ":root[dir=\"rtl\"] .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "11px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ".member-eyebrow",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "12px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ".member-eyebrow",
+      "baseContext": "@media (max-width: 767px)",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "12px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "12px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "12px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "12px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-size",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "12px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-weight",
+      "baseSelector": ":root[dir=\"rtl\"] .cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "500",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-weight",
+      "baseSelector": ":root[dir=\"rtl\"] .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "600",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-weight",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "700",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "font-weight",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "700",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ":lang(ar) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "normal",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ":lang(ar) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "normal",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ":lang(he) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "normal",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ":lang(he) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "normal",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ":root[dir=\"rtl\"] .cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ":root[dir=\"rtl\"] .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "letter-spacing",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "0",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "line-height",
+      "baseSelector": ".font-display",
+      "baseContext": "@layer base",
+      "routeSelector": ".auth-topbar .font-display",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "ltr",
+      "expectedValue": "1",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "line-height",
+      "baseSelector": ".font-display",
+      "baseContext": "@layer base",
+      "routeSelector": ".auth-topbar .font-display",
+      "routeContext": "@media (max-width: 640px)",
+      "direction": "rtl",
+      "expectedValue": "1",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "min-height",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "50px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "min-height",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "50px",
+      "expectedImportant": true,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "min-height",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "@media (max-height: 700px)",
+      "direction": "ltr",
+      "expectedValue": "50px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "min-height",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "@media (max-height: 700px)",
+      "direction": "rtl",
+      "expectedValue": "50px",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ":lang(ar) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ":lang(ar) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ":lang(he) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ":lang(he) .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ":root[dir=\"rtl\"] .cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ":root[dir=\"rtl\"] .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "ltr",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    },
+    {
+      "role": "public",
+      "property": "text-transform",
+      "baseSelector": ".member-stat-cell .member-eyebrow",
+      "baseContext": "@media (max-width: 760px)",
+      "routeSelector": ".auth-form-card .member-eyebrow",
+      "routeContext": "",
+      "direction": "rtl",
+      "expectedValue": "none",
+      "expectedImportant": false,
+      "expectedSpecificity": [
+        0,
+        2,
+        0
+      ]
+    }
+  ],
+  "participantDigests": {
+    "public": {
+      "count": 21971,
+      "sha256": "585697a411fec52952069f5bb97917bcdd2a9f94985c107939789ee8a8ee2a9c"
+    },
+    "member": {
+      "count": 15383,
+      "sha256": "9100468ea936520629928c4729676b304ecb2cc8ad4bcb1df04f001ee4d524dc"
+    },
+    "admin": {
+      "count": 21432,
+      "sha256": "105b9f6b77e2fda4899c4d3ba486b523a8c5a1a28a167d4070070d3fa78fd459"
+    },
+    "instructor": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "approvedLegacyDifferences": [
+    {
+      "role": "public",
+      "property": "min-height",
+      "baseSelector": ".cta-navy",
+      "baseContext": "",
+      "routeSelector": ".auth-form-card .cta-navy",
+      "routeContext": "",
+      "currentValue": "50px",
+      "currentImportant": false,
+      "currentSpecificity": [
+        0,
+        2,
+        0
+      ],
+      "reason": "Task 12 intentionally removes the route-owned !important while preserving the 50px winner via route specificity.",
+      "direction": "both"
+    }
+  ],
+  "legacyProvenance": {
+    "commit": "0292a3a",
+    "file": "src/styles.css",
+    "sourceSha256": "42335d9a95dd3a377b1cd1894756a5a328c9b3e312ebd12eaafc2fda36fc30cf",
+    "resultSha256": "3ad33b7c955dc7823d7b56dbed1badd252c4524dfc639720f0224f8664ac0402",
+    "relevantScenarioCount": 302,
+    "identityAuthorityCommit": "4810a61",
+    "identityAuthorityFile": "tools/ui-audit/style-cascade-baseline.json",
+    "identityAuthoritySourceSha256": "4db34d593b704fe3f6cd87a6061b45b0b003998105e62c1bd80a7118c08d73c5",
+    "identitySha256": "589eb1ed14d58d1e4c9ffae7a7152ec5e08031dc9034eba1491b5cdb34099192"
+  }
+}

@@ -357,14 +357,14 @@ export function ClassDetailSheet({
     >
       <DialogContent
         dir={dir}
-        className="lesson-detail w-[calc(100vw-1rem)] max-w-3xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[0_34px_90px_-42px_rgba(11,29,58,0.95),0_0_0_1px_rgba(212,175,106,0.18)]"
+        className="lesson-detail w-[calc(100vw-1rem)] max-w-3xl max-h-[calc(100dvh-1rem)] p-0 overflow-hidden gap-0 bg-ivory border-gold/30 shadow-[var(--shadow-elevated)]"
       >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
         <DialogDescription className="sr-only">{t("booking.bring")}</DialogDescription>
         <button
           onClick={() => onOpenChange(false)}
           aria-label={t("common.close")}
-          className="absolute top-4 end-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gold/35 bg-ivory/95 shadow-[0_18px_34px_-24px_rgba(11,29,58,0.75)] transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white"
+          className="absolute top-4 end-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gold/35 bg-ivory/95 shadow-[var(--shadow-card)] transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white"
         >
           <X className="h-4 w-4 text-navy" />
         </button>
@@ -445,7 +445,7 @@ export function ClassDetailSheet({
                       className="pointer-events-none absolute inset-0 z-10"
                       style={{
                         background:
-                          "linear-gradient(to top, rgba(11,29,58,0.42) 0%, transparent 42%)",
+                          "linear-gradient(to top, var(--cc-alpha-navy-42) 0%, transparent 42%)",
                       }}
                       aria-hidden
                     />
@@ -660,10 +660,10 @@ function ConfirmationView({
 
       {/* The card itself — premium, print-friendly look */}
       <div
-        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-ivory shadow-[0_1px_0_rgba(212,175,106,0.4),0_24px_60px_-30px_rgba(11,29,58,0.35)]"
+        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-ivory shadow-[var(--shadow-elevated)]"
         style={{
           backgroundImage:
-            "linear-gradient(135deg, rgba(183,204,230,0.18), rgba(232,223,209,0.25) 60%, rgba(212,175,106,0.12))",
+            "linear-gradient(135deg, var(--cc-alpha-powder-18), var(--cc-alpha-sand-25) 60%, var(--cc-alpha-gold-12))",
         }}
       >
         <div className="absolute inset-x-5 top-0 h-px bg-gold/30" />

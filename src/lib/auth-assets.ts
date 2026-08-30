@@ -12,6 +12,6 @@ export const authImages = {
 export const authLogo = {
   src: "/brand/cloud-core-logo-full.webp",
   alt: "Cloud & Core Studio",
-  width: 220,
-  height: 124,
+  width: 1095,
+  height: 669,
 } as const;

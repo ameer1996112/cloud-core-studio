@@ -1,0 +1,6 @@
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@reference "./base.css";
+@source "../routes/_authenticated/instructor";
+@source "../components/admin/StudioPulse.tsx";
+@source "../components/admin/ClassRosterDrawer.tsx";
+@source inline("max-w-[8rem]");

@@ -14,6 +14,7 @@ import {
   transitionPromotion,
 } from "@/lib/promotionManager.functions";
 import { PROMOTION_CHANNELS, PROMOTION_LANGUAGES } from "@/lib/promotionCampaigns";
+import { formatBidiValue } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/promotions")({ component: Page });
 
@@ -530,7 +531,13 @@ function Page() {
                   </p>
                   <div className="mt-3 grid gap-2">
                     {PROMOTION_LANGUAGES.map((language) => {
-                      const shareUrl = promotionShareUrl(form.slug, language);
+                      const shareUrl = formatBidiValue(
+                        promotionShareUrl(
+                          formatBidiValue(form.slug, "identifier").slice(1, -1),
+                          language,
+                        ),
+                        "url",
+                      );
                       return (
                         <div
                           key={language}
@@ -546,7 +553,7 @@ function Page() {
                             type="button"
                             className="btn-outline"
                             onClick={() => {
-                              void navigator.clipboard.writeText(shareUrl);
+                              void navigator.clipboard.writeText(shareUrl.slice(1, -1));
                               toast.success(`${LANGUAGE_LABEL[language]} link copied`);
                             }}
                           >

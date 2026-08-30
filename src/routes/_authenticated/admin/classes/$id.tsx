@@ -21,7 +21,7 @@ import {
 import { listRooms } from "@/lib/rooms.functions";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Field, SessionForm, serializeClass } from "./new";
+import { Field, SessionForm, serializeClass } from "@/components/admin/AdminSessionForm";
 import { Empty } from "@/components/admin-shared";
 import { Trash2, ArrowUpCircle, UserPlus, X } from "lucide-react";
 import { AdminClassDangerZone } from "@/components/admin/AdminClassDangerZone";
@@ -33,6 +33,7 @@ import {
   localizedRoomName,
 } from "@/lib/localized-content";
 import { formatStudioDateTimeInput } from "@/lib/studio-time";
+import { BidiDateTime } from "@/components/ui/bidi";
 
 export const Route = createFileRoute("/_authenticated/admin/classes/$id")({
   component: Page,
@@ -196,13 +197,17 @@ function Page() {
               <bdi>{title}</bdi>
             </h2>
             <p className="text-sm text-slate">
-              {d.toLocaleString(locale, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              <BidiDateTime
+                value={d}
+                locales={locale}
+                options={{
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                }}
+              />
             </p>
           </div>
 
@@ -374,7 +379,7 @@ function Page() {
               key={a.id}
               className="rounded-xl border border-gold/15 bg-white/80 px-3 py-2 text-xs text-slate"
             >
-              {a.action} · {new Date(a.created_at).toLocaleString(locale)}
+              {a.action} · <BidiDateTime value={a.created_at} locales={locale} />
             </div>
           ))}
         </div>

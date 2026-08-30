@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "buildDirectory": "dist/client",
+  "manifestPath": "dist/client/.vite/manifest.json",
+  "moduleMetadataPath": "dist/audit/client-modules.json",
+  "publicEntries": [
+    "node_modules/@tanstack/react-start/dist/plugin/default-entry/client.tsx",
+    "src/routes/auth.tsx",
+    "src/routes/member.schedule.tsx"
+  ],
+  "publicStyles": ["src/styles/base.css"],
+  "forbiddenPublicImports": [
+    "src/components/admin/",
+    "src/lib/adminClassFormValidation.ts",
+    "src/lib/adminPush.functions.ts",
+    "src/lib/i18n/catalogs/admin.ts",
+    "src/lib/i18n/catalogs/instructor.ts",
+    "src/routes/_authenticated/admin/",
+    "src/routes/_authenticated/instructor/"
+  ],
+  "roleCssMarkers": [
+    {
+      "ownerStyle": "src/styles/member.css",
+      "marker": ".md\\:grid-cols-\\[minmax\\(0\\,1fr\\)_280px\\]"
+    },
+    {
+      "ownerStyle": "src/styles/admin.css",
+      "marker": ".xl\\:grid-cols-\\[minmax\\(0\\,1\\.05fr\\)_minmax\\(360px\\,0\\.95fr\\)\\]"
+    },
+    {
+      "ownerStyle": "src/styles/admin.css",
+      "marker": ".max-w-\\[8rem\\]"
+    },
+    {
+      "ownerStyle": "src/styles/instructor.css",
+      "marker": ".max-w-\\[8rem\\]"
+    }
+  ],
+  "limits": {
+    "publicJavaScript": { "rawBytes": 1166000, "gzipBytes": 355000 },
+    "publicCss": { "rawBytes": 395000, "gzipBytes": 58000 },
+    "rootCss": { "rawBytes": 350000, "gzipBytes": 50000 },
+    "routeChunk": { "rawBytes": 415000, "gzipBytes": 110000 },
+    "totalFonts": { "rawBytes": 635000, "gzipBytes": 630000 }
+  }
+}

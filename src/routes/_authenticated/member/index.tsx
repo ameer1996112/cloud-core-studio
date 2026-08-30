@@ -27,7 +27,8 @@ import {
 import { getMemberViewerCacheKey } from "@/lib/memberQueryKeys";
 import { getPlanDisplay } from "@/lib/planDisplay";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { AutoInline, LtrInline } from "@/components/ui/bidi";
+import { AutoInline, BidiValue } from "@/components/ui/bidi";
+import { formatBidiValue } from "@/lib/bidi-format";
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
 import { PromotionCard } from "@/components/member/PromotionCard";
 import { usePromotions } from "@/hooks/usePromotions";
@@ -364,8 +365,8 @@ function NextBookingCard({
     creditCost === 1
       ? t("member.oneCredit")
       : t("admin.classes.creditValue", { count: creditCost });
-  const dateLabel = formatDate(cls.starts_at);
-  const timeLabel = formatTime(cls.starts_at);
+  const dateLabel = formatBidiValue(formatDate(cls.starts_at), "localized-date");
+  const timeLabel = formatBidiValue(formatTime(cls.starts_at), "time-range");
   const durationLabel = formatDurationLabel(cls.duration_minutes);
 
   function addToCalendar(e: React.MouseEvent) {
@@ -398,7 +399,7 @@ function NextBookingCard({
           aria-hidden
           style={{
             background:
-              "linear-gradient(0deg, rgba(11,29,58,0.82) 0%, rgba(11,29,58,0.38) 46%, rgba(11,29,58,0.08) 100%)",
+              "linear-gradient(0deg, var(--cc-alpha-navy-82) 0%, var(--cc-alpha-navy-38) 46%, var(--cc-alpha-navy-08) 100%)",
           }}
         />
         <div
@@ -411,16 +412,16 @@ function NextBookingCard({
               {t("member.cloudCardHelper")}
             </p>
           </div>
-          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-xs font-semibold tracking-normal text-ivory shadow-[0_16px_30px_-24px_rgba(11,29,58,0.95)] backdrop-blur-md">
+          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/25 bg-navy/68 px-3 py-1.5 text-xs font-semibold tracking-normal text-ivory shadow-[0_16px_30px_-24px_var(--cc-alpha-navy-95)] backdrop-blur-md">
             <Clock className="h-3.5 w-3.5 text-gold" />
-            {formatRelative(cls.starts_at)}
+            <BidiValue kind="localized-date">{formatRelative(cls.starts_at)}</BidiValue>
           </span>
         </div>
         <div dir={dir} className="absolute bottom-5 inset-x-5 z-10 text-ivory text-start">
           <p className="text-xs font-semibold opacity-90">
-            <LtrInline>{dateLabel}</LtrInline>
+            <BidiValue kind="localized-date">{dateLabel}</BidiValue>
             <span aria-hidden="true"> · </span>
-            <LtrInline>{timeLabel}</LtrInline>
+            <BidiValue kind="time-range">{timeLabel}</BidiValue>
           </p>
           <h3 className="member-cloud-card-title mt-1 text-ivory">
             <bdi>{heroTitle}</bdi>
@@ -510,13 +511,13 @@ function PackageMini({ activePlan, credits }: { activePlan: any; credits: number
               <p className="shrink-0 text-end text-xs text-slate">
                 {t("member.expires")}
                 <br />
-                <LtrInline className="text-navy">
+                <BidiValue kind="localized-date" className="text-navy">
                   {new Date(activePlan.expires_at).toLocaleDateString(locale, {
                     month: "long",
                     day: "numeric",
                     year: "numeric",
                   })}
-                </LtrInline>
+                </BidiValue>
               </p>
             )}
           </div>

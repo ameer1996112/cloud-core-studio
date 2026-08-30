@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UI evidence harness</title>
+    <style>
+      :root {
+        color: #172033;
+        background: #f5f7fb;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+      }
+      .audit-shell {
+        box-sizing: border-box;
+        display: grid;
+        gap: 1.5rem;
+        margin: 0 auto;
+        max-width: 72rem;
+        min-height: 100vh;
+        padding: 2rem;
+      }
+      .fixture-banner {
+        background: #172033;
+        border-radius: 0.5rem;
+        color: #fff;
+        margin: 0;
+        padding: 0.8rem 1rem;
+      }
+      .eyebrow {
+        color: #52617d;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin: 0 0 0.5rem;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+      }
+      .fixture-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      label {
+        display: grid;
+        font-weight: 600;
+        gap: 0.4rem;
+      }
+      select {
+        background: #fff;
+        border: 1px solid #b8c2d6;
+        border-radius: 0.35rem;
+        font: inherit;
+        padding: 0.5rem;
+      }
+      .fixture-card {
+        background: #fff;
+        border: 1px solid #dce2ee;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem rgb(23 32 51 / 8%);
+        padding: 1.5rem;
+      }
+      .fixture-card h2,
+      .fixture-card p {
+        margin: 0;
+      }
+      .fixture-card p {
+        margin-top: 0.75rem;
+      }
+      .audit-shell-evidence {
+        display: block;
+        max-width: none;
+        padding: clamp(1rem, 4vw, 3rem);
+      }
+      .audit-presentation {
+        margin: 0 auto;
+        max-width: 70rem;
+      }
+      .audit-presentation h1 {
+        font-size: clamp(2rem, 6vw, 3.75rem);
+        margin: 0.35rem 0 1rem;
+      }
+      .audit-presentation h2,
+      .audit-presentation h3,
+      .audit-presentation p {
+        margin-block: 0;
+      }
+      .audit-eyebrow {
+        color: var(--color-text-secondary, #52617d);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .audit-auth-card,
+      .audit-detail-sheet,
+      .audit-checkout,
+      .audit-payment,
+      .audit-support,
+      .audit-public-info,
+      .audit-member,
+      .audit-instructor,
+      .audit-admin,
+      .audit-guard {
+        background: color-mix(in srgb, var(--color-surface, #fff) 94%, transparent);
+        border: 1px solid var(--color-border, #dce2ee);
+        border-radius: var(--cc-radius-card, 1rem);
+        box-shadow: var(--shadow-elevated, 0 1.25rem 3rem rgb(23 32 51 / 12%));
+        margin: 0 auto;
+        max-width: 52rem;
+        padding: clamp(1.25rem, 4vw, 2.5rem);
+      }
+      .audit-auth-card {
+        max-width: 30rem;
+      }
+      .audit-form {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .audit-form fieldset {
+        border: 0;
+        display: grid;
+        gap: 0.75rem;
+        margin: 0;
+        padding: 0;
+      }
+      .audit-form legend {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .audit-check-row,
+      .audit-package-option {
+        align-items: center;
+        display: flex;
+        gap: 0.75rem;
+      }
+      .audit-package-option {
+        background: var(--color-surface, #fff);
+        border: 1px solid var(--color-border, #dce2ee);
+        border-radius: 0.75rem;
+        min-height: 3rem;
+        padding: 0.75rem 1rem;
+      }
+      .audit-alert {
+        border: 1px solid;
+        border-radius: 0.75rem;
+        margin-block: 1rem;
+        padding: 1rem;
+      }
+      .audit-alert-error {
+        background: #fff4f2;
+        border-color: #b42318;
+        color: #7a271a;
+      }
+      .audit-alert-success {
+        background: #ecfdf3;
+        border-color: #067647;
+        color: #085d3a;
+      }
+      .audit-section-heading {
+        align-items: end;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+      .audit-class-grid,
+      .audit-contact-grid,
+      .audit-feature-grid,
+      .audit-metric-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+      }
+      .audit-class-card,
+      .audit-contact-grid a,
+      .audit-feature-grid > div,
+      .audit-metric-grid > article {
+        background: var(--color-surface, #fff);
+        border: 1px solid var(--color-border, #dce2ee);
+        border-radius: 1rem;
+        color: inherit;
+        display: grid;
+        gap: 0.7rem;
+        padding: 1.25rem;
+        text-decoration: none;
+      }
+      .audit-detail-sheet,
+      .audit-payment,
+      .audit-support,
+      .audit-marketing,
+      .audit-public-info,
+      .audit-member,
+      .audit-instructor,
+      .audit-admin,
+      .audit-guard {
+        display: grid;
+        gap: 1rem;
+      }
+      .audit-facts {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .audit-facts div {
+        background: var(--color-surface-subtle, #f5f7fb);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      }
+      .audit-facts dt {
+        color: var(--color-text-secondary, #52617d);
+        font-size: 0.8rem;
+      }
+      .audit-facts dd {
+        font-weight: 700;
+        margin: 0.35rem 0 0;
+      }
+      .audit-reference {
+        font-family: ui-monospace, monospace;
+      }
+      .audit-marketing > header {
+        background: var(--color-navy, #172033);
+        border-radius: 1.5rem;
+        color: var(--color-ivory, #fff);
+        display: grid;
+        gap: 1rem;
+        min-height: 22rem;
+        padding: clamp(1.5rem, 6vw, 4rem);
+        place-content: center;
+      }
+      .audit-marketing > header h1,
+      .audit-marketing > header .audit-eyebrow {
+        color: inherit;
+      }
+      .audit-marketing > section {
+        display: grid;
+        gap: 1.5rem;
+        padding-block: 2rem;
+      }
+      .audit-metric-grid strong {
+        font-size: 2.25rem;
+      }
+      .audit-instructor table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .audit-instructor caption,
+      .audit-instructor th,
+      .audit-instructor td {
+        padding: 0.85rem;
+        text-align: start;
+      }
+      .audit-instructor th,
+      .audit-instructor td {
+        border-bottom: 1px solid var(--color-border, #dce2ee);
+      }
+      .audit-admin-table {
+        display: grid;
+        overflow-x: auto;
+      }
+      .audit-admin-table [role="row"] {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(12rem, 2fr) repeat(2, minmax(7rem, 1fr));
+        padding: 0.9rem;
+      }
+      .audit-admin-table [role="row"]:not(:last-child) {
+        border-bottom: 1px solid var(--color-border, #dce2ee);
+      }
+      @media (max-width: 639px) {
+        .audit-shell-evidence {
+          padding: 1rem;
+        }
+        .audit-section-heading {
+          align-items: start;
+          flex-direction: column;
+        }
+        .audit-facts {
+          grid-template-columns: 1fr;
+        }
+        .audit-instructor {
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,4449 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-30T09:13:27.660Z",
+  "sourceSha256": "c5641b516e6882efea7e499fc80402b8951f7ea7b949b25e3dc14e32a6fb8121",
+  "errors": [],
+  "scenarioLocales": [
+    {
+      "scenarioId": "guest-app-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "ivory",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6",
+          "task15-7",
+          "task15-8",
+          "task15-9",
+          "task15-10",
+          "task15-11",
+          "task15-12",
+          "task15-13",
+          "task15-14",
+          "task15-15",
+          "task15-16",
+          "task15-17",
+          "task15-18",
+          "task15-19"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6",
+          "task15-7",
+          "task15-8",
+          "task15-9",
+          "task15-10",
+          "task15-11",
+          "task15-12",
+          "task15-13",
+          "task15-14",
+          "task15-15",
+          "task15-16",
+          "task15-17",
+          "task15-18",
+          "task15-19"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:افتحي التطبيق",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:شروط الاستخدام",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        },
+        {
+          "control": "a:الخصوصية",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        },
+        {
+          "control": "a:الدعم",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:WhatsApp",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438?text="
+        },
+        {
+          "control": "a:055-939-8438",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:tel:055-939-8438"
+        },
+        {
+          "control": "a:cloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
+          "control": "a:الدعم",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:الدعم",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:حمّلي من App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:افتحي التطبيق",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "div:كل اللي تحتاجيه، واضح وقريب",
+          "kind": "other",
+          "status": "not-applicable",
+          "keys": [],
+          "notApplicableReason": "scroll-region-uses-arrow-and-scroll-navigation-not-activation"
+        },
+        {
+          "control": "a:حمّلي من App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:افتحي التطبيق",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:افتحي التطبيق",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "button:English",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:en/ltr,Space:app-language-state:en/ltr"
+        },
+        {
+          "control": "button:العربية",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:ar/rtl,Space:app-language-state:ar/rtl"
+        },
+        {
+          "control": "button:עברית",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:he/rtl,Space:app-language-state:he/rtl"
+        },
+        {
+          "control": "a:Cloud & Core Studio",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app?lang=ar"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 20,
+        "total": 20
+      },
+      "reducedMotionEvidence": {
+        "elements": 207,
+        "pseudos": 414,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 89,
+        "total": 89,
+        "focusables": 20,
+        "controls": 19,
+        "text": 72,
+        "images": 12,
+        "focusDeltas": 20,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "ivory",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6",
+          "task15-7",
+          "task15-8",
+          "task15-9",
+          "task15-10",
+          "task15-11",
+          "task15-12",
+          "task15-13",
+          "task15-14",
+          "task15-15",
+          "task15-16",
+          "task15-17",
+          "task15-18",
+          "task15-19"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6",
+          "task15-7",
+          "task15-8",
+          "task15-9",
+          "task15-10",
+          "task15-11",
+          "task15-12",
+          "task15-13",
+          "task15-14",
+          "task15-15",
+          "task15-16",
+          "task15-17",
+          "task15-18",
+          "task15-19"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:Open the app",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:Terms of Use",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        },
+        {
+          "control": "a:Privacy",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        },
+        {
+          "control": "a:Support",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:WhatsApp",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438?text="
+        },
+        {
+          "control": "a:055-939-8438",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:tel:055-939-8438"
+        },
+        {
+          "control": "a:cloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
+          "control": "a:Support",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Support",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Download on the App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:Open the app",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "div:Everything you need, clear and close",
+          "kind": "other",
+          "status": "not-applicable",
+          "keys": [],
+          "notApplicableReason": "scroll-region-uses-arrow-and-scroll-navigation-not-activation"
+        },
+        {
+          "control": "a:Download on the App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:Open the app",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:Open the app",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "button:English",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:en/ltr,Space:app-language-state:en/ltr"
+        },
+        {
+          "control": "button:العربية",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:ar/rtl,Space:app-language-state:ar/rtl"
+        },
+        {
+          "control": "button:עברית",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:he/rtl,Space:app-language-state:he/rtl"
+        },
+        {
+          "control": "a:Cloud & Core Studio",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app?lang=en"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 20,
+        "total": 20
+      },
+      "reducedMotionEvidence": {
+        "elements": 207,
+        "pseudos": 414,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 89,
+        "total": 89,
+        "focusables": 20,
+        "controls": 19,
+        "text": 72,
+        "images": 12,
+        "focusDeltas": 20,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-app-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "ivory",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6",
+          "task15-7",
+          "task15-8",
+          "task15-9",
+          "task15-10",
+          "task15-11",
+          "task15-12",
+          "task15-13",
+          "task15-14",
+          "task15-15",
+          "task15-16",
+          "task15-17",
+          "task15-18",
+          "task15-19"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6",
+          "task15-7",
+          "task15-8",
+          "task15-9",
+          "task15-10",
+          "task15-11",
+          "task15-12",
+          "task15-13",
+          "task15-14",
+          "task15-15",
+          "task15-16",
+          "task15-17",
+          "task15-18",
+          "task15-19"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:פתיחת האפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:תנאי שימוש",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        },
+        {
+          "control": "a:פרטיות",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        },
+        {
+          "control": "a:תמיכה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:WhatsApp",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438?text="
+        },
+        {
+          "control": "a:055-939-8438",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:tel:055-939-8438"
+        },
+        {
+          "control": "a:cloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
+          "control": "a:תמיכה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:תמיכה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:הורדה מ־App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:פתיחת האפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "div:כל מה שצריך, ברור ונגיש",
+          "kind": "other",
+          "status": "not-applicable",
+          "keys": [],
+          "notApplicableReason": "scroll-region-uses-arrow-and-scroll-navigation-not-activation"
+        },
+        {
+          "control": "a:הורדה מ־App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:פתיחת האפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:פתיחת האפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "button:English",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:en/ltr,Space:app-language-state:en/ltr"
+        },
+        {
+          "control": "button:العربية",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:ar/rtl,Space:app-language-state:ar/rtl"
+        },
+        {
+          "control": "button:עברית",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:app-language-state:he/rtl,Space:app-language-state:he/rtl"
+        },
+        {
+          "control": "a:Cloud & Core Studio",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/app?lang=he"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 20,
+        "total": 20
+      },
+      "reducedMotionEvidence": {
+        "elements": 207,
+        "pseudos": 414,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 89,
+        "total": 89,
+        "focusables": 20,
+        "controls": 19,
+        "text": 72,
+        "images": 12,
+        "focusDeltas": 20,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:دخول الاستوديو",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:تم استلام نموذج الدخول بأمان.,Space:auth-submit-live-status:تم استلام نموذج الدخول بأمان."
+        },
+        {
+          "control": "input:1",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 3,
+        "total": 3
+      },
+      "reducedMotionEvidence": {
+        "elements": 27,
+        "pseudos": 54,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 7,
+        "total": 7,
+        "focusables": 3,
+        "controls": 3,
+        "text": 7,
+        "images": 0,
+        "focusDeltas": 3,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:Enter the studio",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:Sign-in form received safely.,Space:auth-submit-live-status:Sign-in form received safely."
+        },
+        {
+          "control": "input:1",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 3,
+        "total": 3
+      },
+      "reducedMotionEvidence": {
+        "elements": 27,
+        "pseudos": 54,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 7,
+        "total": 7,
+        "focusables": 3,
+        "controls": 3,
+        "text": 7,
+        "images": 0,
+        "focusDeltas": 3,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:כניסה לסטודיו",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:טופס הכניסה נקלט בבטחה.,Space:auth-submit-live-status:טופס הכניסה נקלט בבטחה."
+        },
+        {
+          "control": "input:1",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 3,
+        "total": 3
+      },
+      "reducedMotionEvidence": {
+        "elements": 27,
+        "pseudos": 54,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 7,
+        "total": 7,
+        "focusables": 3,
+        "controls": 3,
+        "text": 7,
+        "images": 0,
+        "focusDeltas": 3,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-forgot-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:إرسال رابط إعادة الضبط",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:تم استلام طلب إعادة الضبط بأمان.,Space:auth-submit-live-status:تم استلام طلب إعادة الضبط بأمان."
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 25,
+        "pseudos": 50,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 6,
+        "total": 6,
+        "focusables": 2,
+        "controls": 2,
+        "text": 6,
+        "images": 0,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-forgot-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:Send reset link",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:Reset request received safely.,Space:auth-submit-live-status:Reset request received safely."
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 25,
+        "pseudos": 50,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 6,
+        "total": 6,
+        "focusables": 2,
+        "controls": 2,
+        "text": 6,
+        "images": 0,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-forgot-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:שליחת קישור איפוס",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:בקשת האיפוס נקלטה בבטחה.,Space:auth-submit-live-status:בקשת האיפוס נקלטה בבטחה."
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 25,
+        "pseudos": 50,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 6,
+        "total": 6,
+        "focusables": 2,
+        "controls": 2,
+        "text": 6,
+        "images": 0,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-signup-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:احجز مكانك",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:تم استلام نموذج التسجيل بأمان.,Space:auth-submit-live-status:تم استلام نموذج التسجيل بأمان."
+        },
+        {
+          "control": "input:4",
+          "kind": "checkbox",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:native-checkbox-no-toggle,Space:checked-toggle"
+        },
+        {
+          "control": "input:3",
+          "kind": "checkbox",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:native-checkbox-no-toggle,Space:checked-toggle"
+        },
+        {
+          "control": "input:2",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:1",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 6,
+        "total": 6
+      },
+      "reducedMotionEvidence": {
+        "elements": 59,
+        "pseudos": 118,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 17,
+        "total": 17,
+        "focusables": 6,
+        "controls": 6,
+        "text": 17,
+        "images": 0,
+        "focusDeltas": 6,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-signup-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:Reserve your space",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:Sign-up form received safely.,Space:auth-submit-live-status:Sign-up form received safely."
+        },
+        {
+          "control": "input:4",
+          "kind": "checkbox",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:native-checkbox-no-toggle,Space:checked-toggle"
+        },
+        {
+          "control": "input:3",
+          "kind": "checkbox",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:native-checkbox-no-toggle,Space:checked-toggle"
+        },
+        {
+          "control": "input:2",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:1",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 6,
+        "total": 6
+      },
+      "reducedMotionEvidence": {
+        "elements": 59,
+        "pseudos": 118,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 17,
+        "total": 17,
+        "focusables": 6,
+        "controls": 6,
+        "text": 17,
+        "images": 0,
+        "focusDeltas": 6,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-signup-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "button:שמירת מקום",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:auth-submit-live-status:טופס ההרשמה נקלט בבטחה.,Space:auth-submit-live-status:טופס ההרשמה נקלט בבטחה."
+        },
+        {
+          "control": "input:4",
+          "kind": "checkbox",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:native-checkbox-no-toggle,Space:checked-toggle"
+        },
+        {
+          "control": "input:3",
+          "kind": "checkbox",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:native-checkbox-no-toggle,Space:checked-toggle"
+        },
+        {
+          "control": "input:2",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:1",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        },
+        {
+          "control": "input:0",
+          "kind": "field",
+          "status": "pass",
+          "keys": [
+            "Typing"
+          ],
+          "assertion": "editable-value-change"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 6,
+        "total": 6
+      },
+      "reducedMotionEvidence": {
+        "elements": 59,
+        "pseudos": 118,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 17,
+        "total": 17,
+        "focusables": 6,
+        "controls": 6,
+        "text": 17,
+        "images": 0,
+        "focusDeltas": 6,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-signup-disabled",
+      "language": "ar",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 59,
+        "pseudos": 118,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 17,
+        "total": 17,
+        "focusables": 0,
+        "controls": 6,
+        "text": 17,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-signup-disabled",
+      "language": "en",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 59,
+        "pseudos": 118,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 17,
+        "total": 17,
+        "focusables": 0,
+        "controls": 6,
+        "text": 17,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-auth-mode-signup-disabled",
+      "language": "he",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 59,
+        "pseudos": 118,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 17,
+        "total": 17,
+        "focusables": 0,
+        "controls": 6,
+        "text": 17,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-download-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:פתחי את עמוד Apple",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:פתיחת Cloud & Core ב-App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:itms-apps://apps.apple.com/app/id6744870732"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 64,
+        "pseudos": 128,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 20,
+        "total": 20,
+        "focusables": 2,
+        "controls": 2,
+        "text": 18,
+        "images": 1,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-download-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:פתחי את עמוד Apple",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:פתיחת Cloud & Core ב-App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:itms-apps://apps.apple.com/app/id6744870732"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 64,
+        "pseudos": 128,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 20,
+        "total": 20,
+        "focusables": 2,
+        "controls": 2,
+        "text": 18,
+        "images": 1,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-download-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:פתחי את עמוד Apple",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://apps.apple.com/app/id6744870732"
+        },
+        {
+          "control": "a:פתיחת Cloud & Core ב-App Store",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:itms-apps://apps.apple.com/app/id6744870732"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 64,
+        "pseudos": 128,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 20,
+        "total": 20,
+        "focusables": 2,
+        "controls": 2,
+        "text": 18,
+        "images": 1,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-instagram-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:EMAIL",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:احجزي على WhatsAppלקביעת שיעור ניסיון",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438"
+        },
+        {
+          "control": "a:احجزي من التطبيقלהזמנה באפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/download?utm_campaign=organic_profile&utm_content=women&utm_medium=bio&utm_source=instagram"
+        },
+        {
+          "control": "a:Cloud & Core home",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 5,
+        "total": 5
+      },
+      "reducedMotionEvidence": {
+        "elements": 91,
+        "pseudos": 182,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 39,
+        "total": 39,
+        "focusables": 5,
+        "controls": 5,
+        "text": 33,
+        "images": 4,
+        "focusDeltas": 5,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-instagram-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:EMAIL",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:احجزي على WhatsAppלקביעת שיעור ניסיון",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438"
+        },
+        {
+          "control": "a:احجزي من التطبيقלהזמנה באפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/download?utm_campaign=organic_profile&utm_content=women&utm_medium=bio&utm_source=instagram"
+        },
+        {
+          "control": "a:Cloud & Core home",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 5,
+        "total": 5
+      },
+      "reducedMotionEvidence": {
+        "elements": 91,
+        "pseudos": 182,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 39,
+        "total": 39,
+        "focusables": 5,
+        "controls": 5,
+        "text": 33,
+        "images": 4,
+        "focusDeltas": 5,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-instagram-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image",
+        "navy"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:EMAIL",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        },
+        {
+          "control": "a:Instagram",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://www.instagram.com/cloudandcorestudio/"
+        },
+        {
+          "control": "a:احجزي على WhatsAppלקביעת שיעור ניסיון",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/972559398438"
+        },
+        {
+          "control": "a:احجزي من التطبيقלהזמנה באפליקציה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/download?utm_campaign=organic_profile&utm_content=women&utm_medium=bio&utm_source=instagram"
+        },
+        {
+          "control": "a:Cloud & Core home",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 5,
+        "total": 5
+      },
+      "reducedMotionEvidence": {
+        "elements": 91,
+        "pseudos": 182,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 39,
+        "total": 39,
+        "focusables": 5,
+        "controls": 5,
+        "text": 33,
+        "images": 4,
+        "focusDeltas": 5,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-member-schedule-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0"
+        ],
+        "observedOrder": [
+          "task15-0"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "div:يوغا هوائية, 09:00, التفاصيل والتسجيل",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:schedule-details-state-opened:تم فتح تفاصيل الحصة.,Space:schedule-details-state-opened:تم فتح تفاصيل الحصة."
+        }
+      ],
+      "focusEvidence": {
+        "checked": 1,
+        "total": 1
+      },
+      "reducedMotionEvidence": {
+        "elements": 68,
+        "pseudos": 136,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 22,
+        "total": 22,
+        "focusables": 1,
+        "controls": 1,
+        "text": 21,
+        "images": 1,
+        "focusDeltas": 1,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-member-schedule-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0"
+        ],
+        "observedOrder": [
+          "task15-0"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "div:Aerial Yoga, 09:00, Details & booking",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:schedule-details-state-opened:Class details opened.,Space:schedule-details-state-opened:Class details opened."
+        }
+      ],
+      "focusEvidence": {
+        "checked": 1,
+        "total": 1
+      },
+      "reducedMotionEvidence": {
+        "elements": 68,
+        "pseudos": 136,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 22,
+        "total": 22,
+        "focusables": 1,
+        "controls": 1,
+        "text": 21,
+        "images": 1,
+        "focusDeltas": 1,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-member-schedule-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0"
+        ],
+        "observedOrder": [
+          "task15-0"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "div:יוגה אווירית, 09:00, פרטים והרשמה",
+          "kind": "button",
+          "status": "pass",
+          "keys": [
+            "Enter",
+            "Space"
+          ],
+          "assertion": "Enter:schedule-details-state-opened:פרטי השיעור נפתחו.,Space:schedule-details-state-opened:פרטי השיעור נפתחו."
+        }
+      ],
+      "focusEvidence": {
+        "checked": 1,
+        "total": 1
+      },
+      "reducedMotionEvidence": {
+        "elements": 68,
+        "pseudos": 136,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 22,
+        "total": 22,
+        "focusables": 1,
+        "controls": 1,
+        "text": 21,
+        "images": 1,
+        "focusDeltas": 1,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-member-schedule-empty",
+      "language": "ar",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 22,
+        "pseudos": 44,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 4,
+        "total": 4,
+        "focusables": 0,
+        "controls": 0,
+        "text": 4,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-member-schedule-empty",
+      "language": "en",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 22,
+        "pseudos": 44,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 4,
+        "total": 4,
+        "focusables": 0,
+        "controls": 0,
+        "text": 4,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-member-schedule-empty",
+      "language": "he",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 22,
+        "pseudos": 44,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 4,
+        "total": 4,
+        "focusables": 0,
+        "controls": 0,
+        "text": 4,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-payment-result-status-failed-error",
+      "language": "ar",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 16,
+        "pseudos": 32,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 3,
+        "total": 3,
+        "focusables": 0,
+        "controls": 0,
+        "text": 2,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-payment-result-status-failed-error",
+      "language": "en",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 16,
+        "pseudos": 32,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 3,
+        "total": 3,
+        "focusables": 0,
+        "controls": 0,
+        "text": 2,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-payment-result-status-failed-error",
+      "language": "he",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 16,
+        "pseudos": 32,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 3,
+        "total": 3,
+        "focusables": 0,
+        "controls": 0,
+        "text": 2,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-payment-result-status-success-success",
+      "language": "ar",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 16,
+        "pseudos": 32,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 3,
+        "total": 3,
+        "focusables": 0,
+        "controls": 0,
+        "text": 2,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-payment-result-status-success-success",
+      "language": "en",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 16,
+        "pseudos": 32,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 3,
+        "total": 3,
+        "focusables": 0,
+        "controls": 0,
+        "text": 2,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-payment-result-status-success-success",
+      "language": "he",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 16,
+        "pseudos": 32,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 3,
+        "total": 3,
+        "focusables": 0,
+        "controls": 0,
+        "text": 2,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-privacy-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:الدعم",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:الشروط",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 29,
+        "pseudos": 58,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 13,
+        "total": 13,
+        "focusables": 2,
+        "controls": 2,
+        "text": 13,
+        "images": 0,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-privacy-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:Support",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Terms",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 29,
+        "pseudos": 58,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 13,
+        "total": 13,
+        "focusables": 2,
+        "controls": 2,
+        "text": 13,
+        "images": 0,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-privacy-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:תמיכה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:תנאים",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 2,
+        "total": 2
+      },
+      "reducedMotionEvidence": {
+        "elements": 29,
+        "pseudos": 58,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 13,
+        "total": 13,
+        "focusables": 2,
+        "controls": 2,
+        "text": 13,
+        "images": 0,
+        "focusDeltas": 2,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-promo-yoga-lina-default",
+      "language": "ar",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 28,
+        "pseudos": 56,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 5,
+        "total": 5,
+        "focusables": 0,
+        "controls": 0,
+        "text": 5,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-promo-yoga-lina-default",
+      "language": "en",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 28,
+        "pseudos": 56,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 5,
+        "total": 5,
+        "focusables": 0,
+        "controls": 0,
+        "text": 5,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-promo-yoga-lina-default",
+      "language": "he",
+      "keyboard": "not-applicable",
+      "activation": "not-applicable",
+      "escape": "not-applicable",
+      "focus": "not-applicable",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [],
+      "notes": [
+        "Presentation has no enabled interactive control."
+      ],
+      "notApplicableReasons": {
+        "keyboard": "no-enabled-tabbable-controls",
+        "activation": "no-enabled-tabbable-controls",
+        "focus": "no-enabled-tabbable-controls",
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [],
+        "observedOrder": []
+      },
+      "activationEvidence": [],
+      "focusEvidence": {
+        "checked": 0,
+        "total": 0
+      },
+      "reducedMotionEvidence": {
+        "elements": 28,
+        "pseudos": 56,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 5,
+        "total": 5,
+        "focusables": 0,
+        "controls": 0,
+        "text": 5,
+        "images": 0,
+        "focusDeltas": 0,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-reset-password-error",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0"
+        ],
+        "observedOrder": [
+          "task15-0"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:إرسال رابط جديد",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth?mode=forgot"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 1,
+        "total": 1
+      },
+      "reducedMotionEvidence": {
+        "elements": 21,
+        "pseudos": 42,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 5,
+        "total": 5,
+        "focusables": 1,
+        "controls": 1,
+        "text": 4,
+        "images": 1,
+        "focusDeltas": 1,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-reset-password-error",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0"
+        ],
+        "observedOrder": [
+          "task15-0"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:Send a new link",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth?mode=forgot"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 1,
+        "total": 1
+      },
+      "reducedMotionEvidence": {
+        "elements": 21,
+        "pseudos": 42,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 5,
+        "total": 5,
+        "focusables": 1,
+        "controls": 1,
+        "text": 4,
+        "images": 1,
+        "focusDeltas": 1,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-reset-password-error",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "image"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0"
+        ],
+        "observedOrder": [
+          "task15-0"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:שליחת קישור חדש",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth?mode=forgot"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 1,
+        "total": 1
+      },
+      "reducedMotionEvidence": {
+        "elements": 21,
+        "pseudos": 42,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 5,
+        "total": 5,
+        "focusables": 1,
+        "controls": 1,
+        "text": 4,
+        "images": 1,
+        "focusDeltas": 1,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-support-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "navy",
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:الدفع",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/checkout"
+        },
+        {
+          "control": "a:الشروط",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        },
+        {
+          "control": "a:الخصوصية",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        },
+        {
+          "control": "a:تسجيل الدخول أو المساعدة بالحساباستخدموا شاشة ال",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:تصفحوا الجدولعودوا إلى جدول الحصص العام واستمروا",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:الدعم عبر الواتساب055-939-8438 · دردشة مباشرة",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/message/S5HBZNKUMX45O1"
+        },
+        {
+          "control": "a:البريد الإلكتروني للدعمcloudandcorestudio@gmail.",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 7,
+        "total": 7
+      },
+      "reducedMotionEvidence": {
+        "elements": 64,
+        "pseudos": 128,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 30,
+        "total": 30,
+        "focusables": 7,
+        "controls": 7,
+        "text": 30,
+        "images": 0,
+        "focusDeltas": 7,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-support-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "navy",
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:Checkout",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/checkout"
+        },
+        {
+          "control": "a:Terms",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        },
+        {
+          "control": "a:Privacy",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        },
+        {
+          "control": "a:Sign in or get account helpUse the account scree",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:Browse scheduleReturn to the public class schedu",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:WhatsApp Support055-939-8438 · Direct chat",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/message/S5HBZNKUMX45O1"
+        },
+        {
+          "control": "a:Email Supportcloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 7,
+        "total": 7
+      },
+      "reducedMotionEvidence": {
+        "elements": 64,
+        "pseudos": 128,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 30,
+        "total": 30,
+        "focusables": 7,
+        "controls": 7,
+        "text": 30,
+        "images": 0,
+        "focusDeltas": 7,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-support-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "navy",
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2",
+          "task15-3",
+          "task15-4",
+          "task15-5",
+          "task15-6"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:תשלום",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/checkout"
+        },
+        {
+          "control": "a:תנאים",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/terms"
+        },
+        {
+          "control": "a:פרטיות",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        },
+        {
+          "control": "a:כניסה או עזרה בחשבוןמסך הכניסה מוביל להזמנות, חב",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/auth"
+        },
+        {
+          "control": "a:עיון בלוח השיעוריםחזרו ללוח השיעורים הציבורי והמ",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/member/schedule"
+        },
+        {
+          "control": "a:תמיכה בוואטסאפ055-939-8438 · צ'אט ישיר",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:https://wa.me/message/S5HBZNKUMX45O1"
+        },
+        {
+          "control": "a:אימייל תמיכהcloudandcorestudio@gmail.com",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:mailto:cloudandcorestudio@gmail.com"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 7,
+        "total": 7
+      },
+      "reducedMotionEvidence": {
+        "elements": 64,
+        "pseudos": 128,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 30,
+        "total": 30,
+        "focusables": 7,
+        "controls": 7,
+        "text": 30,
+        "images": 0,
+        "focusDeltas": 7,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-terms-default",
+      "language": "ar",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:الدفع",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/checkout"
+        },
+        {
+          "control": "a:الدعم",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:الخصوصية",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 3,
+        "total": 3
+      },
+      "reducedMotionEvidence": {
+        "elements": 36,
+        "pseudos": 72,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 20,
+        "total": 20,
+        "focusables": 3,
+        "controls": 3,
+        "text": 20,
+        "images": 0,
+        "focusDeltas": 3,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-terms-default",
+      "language": "en",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:Checkout",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/checkout"
+        },
+        {
+          "control": "a:Support",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:Privacy",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 3,
+        "total": 3
+      },
+      "reducedMotionEvidence": {
+        "elements": 36,
+        "pseudos": 72,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 20,
+        "total": 20,
+        "focusables": 3,
+        "controls": 3,
+        "text": 20,
+        "images": 0,
+        "focusDeltas": 3,
+        "failures": []
+      }
+    },
+    {
+      "scenarioId": "guest-terms-default",
+      "language": "he",
+      "keyboard": "pass",
+      "activation": "pass",
+      "escape": "not-applicable",
+      "focus": "pass",
+      "reflow200": "pass",
+      "reflow400": "pass",
+      "reducedMotion": "pass",
+      "forcedColors": "pass",
+      "latency": "not-applicable",
+      "focusSurfaces": [
+        "white"
+      ],
+      "notes": [],
+      "notApplicableReasons": {
+        "escape": "covered-by-production-dialog-representative-flow",
+        "latency": "covered-by-representative-production-flows"
+      },
+      "keyboardEvidence": {
+        "expectedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ],
+        "observedOrder": [
+          "task15-0",
+          "task15-1",
+          "task15-2"
+        ]
+      },
+      "activationEvidence": [
+        {
+          "control": "a:תשלום",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/checkout"
+        },
+        {
+          "control": "a:תמיכה",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/support"
+        },
+        {
+          "control": "a:פרטיות",
+          "kind": "link",
+          "status": "pass",
+          "keys": [
+            "Enter"
+          ],
+          "assertion": "native-navigation-intent:http://127.0.0.1:4179/privacy"
+        }
+      ],
+      "focusEvidence": {
+        "checked": 3,
+        "total": 3
+      },
+      "reducedMotionEvidence": {
+        "elements": 36,
+        "pseudos": 72,
+        "failures": []
+      },
+      "forcedColorsEvidence": {
+        "checked": 20,
+        "total": 20,
+        "focusables": 3,
+        "controls": 3,
+        "text": 20,
+        "images": 0,
+        "focusDeltas": 3,
+        "failures": []
+      }
+    }
+  ],
+  "surfaceFocus": {
+    "white": {
+      "status": "pass",
+      "contrastRatio": 5.69,
+      "outlineWidth": 3,
+      "source": "InteractionFixture[data-focus-surface=\"white\"]"
+    },
+    "ivory": {
+      "status": "pass",
+      "contrastRatio": 5.6,
+      "outlineWidth": 3,
+      "source": "InteractionFixture[data-focus-surface=\"ivory\"]"
+    },
+    "sand": {
+      "status": "pass",
+      "contrastRatio": 4.31,
+      "outlineWidth": 3,
+      "source": "InteractionFixture[data-focus-surface=\"sand\"]"
+    },
+    "navy": {
+      "status": "pass",
+      "contrastRatio": 9.49,
+      "outlineWidth": 3,
+      "source": "InteractionFixture[data-focus-surface=\"navy\"]"
+    },
+    "image": {
+      "status": "pass",
+      "contrastRatio": 5.6,
+      "outlineWidth": 3,
+      "source": "guest-app-default .app-marketing__brand-link over /images/textures/ivory-paper.svg",
+      "backing": "opaque 6px rgb(255, 253, 249) halo isolates the outline from url(\"http://127.0.0.1:4179/images/textures/ivory-paper.svg\")"
+    }
+  },
+  "representativeFlows": {
+    "dialog": {
+      "status": "pass",
+      "latencyMs": 15.5,
+      "notes": [
+        "Enter and Space open; Escape closes; Tab/Shift+Tab remain trapped; focus returns."
+      ]
+    },
+    "scheduleFilter": {
+      "status": "pass",
+      "latencyMs": 6.3
+    },
+    "tableFilter": {
+      "status": "pass",
+      "latencyMs": 7.3
+    }
+  },
+  "assistiveTechnologyFixtureSemantics": [
+    {
+      "journey": "auth",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-auth-default&language=he&evidence=1",
+      "checks": [
+        "document:he/rtl",
+        "heading:כניסה לסטודיו",
+        "textbox:אימייל",
+        "field:סיסמה",
+        "button:כניסה לסטודיו",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "auth",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-auth-default&language=ar&evidence=1",
+      "checks": [
+        "document:ar/rtl",
+        "heading:دخول الاستوديو",
+        "textbox:البريد الإلكتروني",
+        "field:كلمة المرور",
+        "button:دخول الاستوديو",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "auth",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-auth-default&language=en&evidence=1",
+      "checks": [
+        "document:en/ltr",
+        "heading:Enter the studio",
+        "textbox:Email",
+        "field:Password",
+        "button:Enter the studio",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "booking",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=he&evidence=1&interaction=1&journey=booking",
+      "checks": [
+        "document:he/rtl",
+        "heading:מסלול הזמנה",
+        "button:יוגה אווירית, 12:00, פרטים והרשמה",
+        "button:הזמנת שיעור",
+        "live-status:4 מתוך 8 מקומות זמינים.",
+        "focus:יוגה אווירית, 12:00, פרטים והרשמה",
+        "outcome-status:ההזמנה נקלטה",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "booking",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=ar&evidence=1&interaction=1&journey=booking",
+      "checks": [
+        "document:ar/rtl",
+        "heading:مسار الحجز",
+        "button:يوغا هوائية, 12:00, التفاصيل والتسجيل",
+        "button:حجز الحصة",
+        "live-status:4 من أصل 8 أماكن متاحة.",
+        "focus:يوغا هوائية, 12:00, التفاصيل والتسجيل",
+        "outcome-status:تم استلام الحجز",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "booking",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=en&evidence=1&interaction=1&journey=booking",
+      "checks": [
+        "document:en/ltr",
+        "heading:Booking journey",
+        "button:Aerial Yoga, 12:00, Details & booking",
+        "button:Book class",
+        "live-status:4 of 8 spots available.",
+        "focus:Aerial Yoga, 12:00, Details & booking",
+        "outcome-status:Booking received",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "cancellation",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=he&evidence=1&interaction=1&journey=cancellation",
+      "checks": [
+        "document:he/rtl",
+        "heading:מסלול ביטול",
+        "button:פתיחת ביטול הזמנה",
+        "live-status:אפשר לבטל עד שבת בשעה 05:00.",
+        "dialog:לבטל את ההזמנה?",
+        "dialog-description:קרדיט אחד יחזור ליתרה שלך.",
+        "dialog-control:להשאיר הזמנה",
+        "dialog-control:ביטול הזמנה",
+        "dialog-initial-focus:להשאיר הזמנה",
+        "outcome-status:ההזמנה בוטלה",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "cancellation",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=ar&evidence=1&interaction=1&journey=cancellation",
+      "checks": [
+        "document:ar/rtl",
+        "heading:مسار الإلغاء",
+        "button:فتح إلغاء الحجز",
+        "live-status:يمكن الإلغاء حتى السبت الساعة 05:00.",
+        "dialog:إلغاء هذا الحجز؟",
+        "dialog-description:سيعود رصيد واحد إلى رصيدك.",
+        "dialog-control:الإبقاء على الحجز",
+        "dialog-control:إلغاء الحجز",
+        "dialog-initial-focus:الإبقاء على الحجز",
+        "outcome-status:تم إلغاء الحجز",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "cancellation",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=en&evidence=1&interaction=1&journey=cancellation",
+      "checks": [
+        "document:en/ltr",
+        "heading:Cancellation journey",
+        "button:Open booking cancellation",
+        "live-status:Cancellation is available until Saturday at 05:00.",
+        "dialog:Cancel this booking?",
+        "dialog-description:One credit will be returned to your balance.",
+        "dialog-control:Keep booking",
+        "dialog-control:Cancel booking",
+        "dialog-initial-focus:Keep booking",
+        "outcome-status:Booking cancelled",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "payment-result",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-payment-result-status-success-success&language=he&evidence=1",
+      "checks": [
+        "document:he/rtl",
+        "heading:התשלום התקבל",
+        "live-status:סטטוס התשלום מאושר.",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "payment-result",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-payment-result-status-success-success&language=ar&evidence=1",
+      "checks": [
+        "document:ar/rtl",
+        "heading:تم استلام الدفع",
+        "live-status:حالة الدفع مؤكدة.",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "payment-result",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-payment-result-status-success-success&language=en&evidence=1",
+      "checks": [
+        "document:en/ltr",
+        "heading:Payment received",
+        "live-status:The payment status is confirmed.",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "instructor-attendance",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=he&evidence=1&interaction=1&journey=instructor-attendance",
+      "checks": [
+        "document:he/rtl",
+        "heading:רשימת נוכחות",
+        "textbox:סינון רשימת נוכחות",
+        "live-status:מוזמן/ת",
+        "table:רשימת נוכחות",
+        "columnheader:חבר/ה",
+        "columnheader:טלפון",
+        "columnheader:סטטוס",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "instructor-attendance",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=ar&evidence=1&interaction=1&journey=instructor-attendance",
+      "checks": [
+        "document:ar/rtl",
+        "heading:قائمة الحضور",
+        "textbox:تصفية قائمة الحضور",
+        "live-status:محجوز",
+        "table:قائمة الحضور",
+        "columnheader:العضو/ة",
+        "columnheader:الهاتف",
+        "columnheader:الحالة",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "instructor-attendance",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=en&evidence=1&interaction=1&journey=instructor-attendance",
+      "checks": [
+        "document:en/ltr",
+        "heading:Attendance roster",
+        "textbox:Filter attendance roster",
+        "live-status:Booked",
+        "table:Attendance roster",
+        "columnheader:Member",
+        "columnheader:Phone",
+        "columnheader:Status",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "admin-destructive-confirmation",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=he&evidence=1&interaction=1&journey=admin-destructive-confirmation",
+      "checks": [
+        "document:he/rtl",
+        "heading:מסלול אישור ניהולי",
+        "button:פתיחת אישור ביטול",
+        "alertdialog:לבטל את שיעור הבדיקה?",
+        "dialog-description:התרחיש בודק רק מקלדת ומיקוד. לא משתנים נתונים.",
+        "dialog-control:ביטול",
+        "dialog-control:אישור ביטול",
+        "dialog-initial-focus:ביטול",
+        "dialog-escape-close",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "admin-destructive-confirmation",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=ar&evidence=1&interaction=1&journey=admin-destructive-confirmation",
+      "checks": [
+        "document:ar/rtl",
+        "heading:مسار التأكيد الإداري",
+        "button:فتح تأكيد الإلغاء",
+        "alertdialog:إلغاء حصة الاختبار؟",
+        "dialog-description:يفحص هذا المسار لوحة المفاتيح والتركيز فقط. لا تتغير أي بيانات.",
+        "dialog-control:إلغاء",
+        "dialog-control:تأكيد الإلغاء",
+        "dialog-initial-focus:إلغاء",
+        "dialog-escape-close",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "admin-destructive-confirmation",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-member-schedule-default&language=en&evidence=1&interaction=1&journey=admin-destructive-confirmation",
+      "checks": [
+        "document:en/ltr",
+        "heading:Admin confirmation journey",
+        "button:Open cancellation confirmation",
+        "alertdialog:Cancel the test class?",
+        "dialog-description:This flow checks keyboard and focus behavior only. No data is changed.",
+        "dialog-control:Cancel",
+        "dialog-control:Confirm cancellation",
+        "dialog-initial-focus:Cancel",
+        "dialog-escape-close",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "global-navigation",
+      "language": "he",
+      "status": "pass",
+      "target": "/?scenario=guest-app-default&language=he&evidence=1",
+      "checks": [
+        "document:he/rtl",
+        "heading:כל השיעורים, ההזמנות והמנוי שלך במקום אחד.",
+        "group:בחירת שפה",
+        "link:פתיחת האפליקציה",
+        "link:הורדה מ־App Store",
+        "image:סטודיו Cloud & Core עם ערסלי יוגה אווירית",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "global-navigation",
+      "language": "ar",
+      "status": "pass",
+      "target": "/?scenario=guest-app-default&language=ar&evidence=1",
+      "checks": [
+        "document:ar/rtl",
+        "heading:كل الحصص، الحجوزات والاشتراك بمكان واحد.",
+        "group:اختيار اللغة",
+        "link:افتحي التطبيق",
+        "link:حمّلي من App Store",
+        "image:استوديو Cloud & Core لليوغا الهوائية",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    },
+    {
+      "journey": "global-navigation",
+      "language": "en",
+      "status": "pass",
+      "target": "/?scenario=guest-app-default&language=en&evidence=1",
+      "checks": [
+        "document:en/ltr",
+        "heading:Classes, bookings and membership in one place.",
+        "group:Choose language",
+        "link:Open the app",
+        "link:Download on the App Store",
+        "image:Cloud & Core aerial yoga studio",
+        "locale-policy:complete-visible-accessible-strings"
+      ]
+    }
+  ]
+}

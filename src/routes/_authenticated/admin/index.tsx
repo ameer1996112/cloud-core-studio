@@ -13,6 +13,8 @@ import {
   localizedRoomName,
 } from "@/lib/localized-content";
 import { AdminPageShell, AdminPageHeader, AdminMetricCard } from "@/components/admin-shared";
+import { BidiDateTime, BidiValue } from "@/components/ui/bidi";
+import { formatBidiDateTime } from "@/lib/bidi-format";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: OverviewPage,
@@ -73,11 +75,13 @@ function OverviewPage() {
         title={t("admin.overview.headline")}
         description={
           <>
-            {new Date().toLocaleDateString(locale, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}{" "}
+            <BidiValue kind="localized-date">
+              {new Date().toLocaleDateString(locale, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </BidiValue>{" "}
             · {t("admin.overview.classesToday", { count: d.todayClasses.length })} ·{" "}
             {t("admin.overview.waitlistSummary", { count: d.waitingCount })}
           </>
@@ -96,7 +100,7 @@ function OverviewPage() {
         />
         <AdminMetricCard
           label={t("admin.overview.monthRevenue")}
-          value={ils(d.monthRevenueIls, locale)}
+          value={<BidiValue kind="currency">{ils(d.monthRevenueIls, locale)}</BidiValue>}
         />
       </section>
 
@@ -124,10 +128,12 @@ function OverviewPage() {
                     >
                       <div className="w-16 text-center pe-3 border-e border-gold/20">
                         <p className="cc-metric-value text-xl">
-                          {startsAt.toLocaleTimeString(locale, {
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}
+                          <BidiValue kind="time-range">
+                            {startsAt.toLocaleTimeString(locale, {
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </BidiValue>
                         </p>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -208,16 +214,20 @@ function OverviewPage() {
                         <bdi>{localizedClassTitle(c, lang)}</bdi>
                       </p>
                       <p className="mt-0.5 text-xs font-medium text-slate">
-                        {startsAt.toLocaleDateString(locale, {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
+                        <BidiValue kind="localized-date">
+                          {startsAt.toLocaleDateString(locale, {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </BidiValue>{" "}
                         ·{" "}
-                        {startsAt.toLocaleTimeString(locale, {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}{" "}
+                        <BidiValue kind="time-range">
+                          {startsAt.toLocaleTimeString(locale, {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </BidiValue>{" "}
                         · {localizedRoomName(c.room_ref?.name ?? c.room, lang)}
                       </p>
                     </div>
@@ -238,7 +248,7 @@ function OverviewPage() {
             <ul className="divide-y divide-gold/15">
               {d.recentBookings.map((booking: AdminOverviewRecentBooking) => {
                 const startsAt = new Date(booking.class.starts_at);
-                const bookedAt = new Date(booking.created_at).toLocaleString(locale, {
+                const bookedAt = formatBidiDateTime(booking.created_at, locale, {
                   month: "short",
                   day: "numeric",
                   hour: "numeric",
@@ -256,16 +266,20 @@ function OverviewPage() {
                       </p>
                       <p className="mt-0.5 truncate text-xs font-medium text-slate" dir="auto">
                         <bdi>{localizedClassTitle(booking.class, lang)}</bdi> ·{" "}
-                        {startsAt.toLocaleDateString(locale, {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
+                        <BidiValue kind="localized-date">
+                          {startsAt.toLocaleDateString(locale, {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </BidiValue>{" "}
                         ·{" "}
-                        {startsAt.toLocaleTimeString(locale, {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
+                        <BidiValue kind="time-range">
+                          {startsAt.toLocaleTimeString(locale, {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </BidiValue>
                       </p>
                       <p className="mt-1 text-[0.7rem] text-slate/75">
                         {t("admin.overview.bookedAt", { date: bookedAt })}
@@ -287,7 +301,7 @@ function OverviewPage() {
                 <li key={l.id} className="py-3">
                   <p className="text-sm">{localizeActivityAction(l.action, lang)}</p>
                   <p className="mt-0.5 text-xs text-slate">
-                    {new Date(l.created_at).toLocaleString(locale)}
+                    <BidiDateTime value={l.created_at} locales={locale} />
                   </p>
                 </li>
               ))}

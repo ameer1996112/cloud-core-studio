@@ -6,13 +6,15 @@ import {
   syncSupabaseAccessTokenCookie,
 } from "@/integrations/supabase/session-cookie";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
+import { bidiDirectionFor } from "@/lib/bidi-format";
 import { toast } from "sonner";
 import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
-import { notifyAdminMemberSignup } from "@/lib/adminPush.functions";
+import { notifyAdminMemberSignup } from "@/lib/signupNotification.functions";
 import { SignupNotificationChoices } from "@/components/auth/SignupNotificationChoices";
+import { PublicShell } from "@/components/public/PublicShell";
 import {
   DEFAULT_SIGNUP_NOTIFICATION_CHOICES,
   buildSignupNotificationMetadata,
@@ -280,9 +282,9 @@ function AuthPage() {
   };
 
   return (
-    <main
-      dir={dir}
-      className="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col"
+    <PublicShell
+      headerMode="compact"
+      mainClassName="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col"
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <img
@@ -293,8 +295,8 @@ function AuthPage() {
           loading="eager"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(246,238,226,0.28)_0%,rgba(246,238,226,0.58)_36%,rgba(246,238,226,0.92)_100%)] md:bg-[linear-gradient(90deg,rgba(246,238,226,0.94)_0%,rgba(246,238,226,0.74)_46%,rgba(246,238,226,0.18)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.38),transparent_30%),linear-gradient(180deg,rgba(11,29,58,0.08),transparent_42%,rgba(11,29,58,0.07))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--cc-palette-cream-100)_28%,transparent)_0%,color-mix(in_srgb,var(--cc-palette-cream-100)_58%,transparent)_36%,color-mix(in_srgb,var(--cc-palette-cream-100)_92%,transparent)_100%)] md:bg-[linear-gradient(90deg,color-mix(in_srgb,var(--cc-palette-cream-100)_94%,transparent)_0%,color-mix(in_srgb,var(--cc-palette-cream-100)_74%,transparent)_46%,color-mix(in_srgb,var(--cc-palette-cream-100)_18%,transparent)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,var(--cc-alpha-white-38),transparent_30%),linear-gradient(180deg,var(--cc-alpha-navy-08),transparent_42%,var(--cc-alpha-navy-07))]" />
       </div>
 
       <header className="auth-mobile-topbar">
@@ -385,6 +387,7 @@ function AuthPage() {
                       <Field label={t("auth.phoneOptional")}>
                         <input
                           type="tel"
+                          dir={bidiDirectionFor("phone")}
                           name={`signup-phone-${formVersion}`}
                           value={phone}
                           onChange={(e) => {
@@ -411,6 +414,7 @@ function AuthPage() {
                     >
                       <input
                         type="email"
+                        dir={bidiDirectionFor("email")}
                         name={mode === "signin" ? "username" : "email"}
                         value={email}
                         onChange={(e) => {
@@ -553,7 +557,7 @@ function AuthPage() {
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <Link
                         to="/member/schedule"
-                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
+                        className="inline-flex min-h-11 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_var(--cc-alpha-navy-38)] transition-colors hover:bg-gold/8"
                       >
                         {browseScheduleLabel}
                       </Link>
@@ -589,7 +593,7 @@ function AuthPage() {
           </div>
         </div>
       </div>
-    </main>
+    </PublicShell>
   );
 }
 

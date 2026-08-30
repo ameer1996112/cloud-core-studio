@@ -25,6 +25,7 @@ __pycache__/
 *.local
 .openwa/
 .worktrees/
+artifacts/ui-audit/current/
 supabase/.temp/
 supabase/backups/
 

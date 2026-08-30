@@ -15,7 +15,7 @@ import {
 import { waitlistOffer, logNotification, listMessageTemplates } from "@/lib/messages.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { renderTemplate, waUrl, formatClassDate, formatClassTime } from "@/lib/messageTemplate";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { friendlyErrorMessage } from "@/lib/error-messages";
 import {
@@ -45,8 +45,15 @@ import {
   localizedRoomName,
 } from "@/lib/localized-content";
 import { formatStudioDateTimeInput, studioDateTimeInputToIso } from "@/lib/studio-time";
+import { PersistentAnnouncement } from "@/components/ui/sonner";
+import { deriveAttendanceSaveState, type AttendanceSaveStatus } from "@/lib/attendance-view-state";
 
 type Props = { classId: string | null; onClose: () => void };
+type AttendanceAttempt = {
+  bookingId: string;
+  status: "checked_in" | "attended" | "no_show";
+  memberName?: string;
+};
 
 export function ClassRosterDrawer({ classId, onClose }: Props) {
   const open = !!classId;
@@ -74,6 +81,7 @@ function RosterBody({ classId }: { classId: string }) {
   const cancelClassFn = useServerFn(adminCancelClass);
   const rescheduleFn = useServerFn(rescheduleClass);
   const markFn = useServerFn(markAttendance);
+  const attendancePendingRef = useRef(false);
   const promoteFn = useServerFn(waitlistPromote);
   const removeWaitFn = useServerFn(waitlistRemove);
   const offerFn = useServerFn(waitlistOffer);
@@ -114,6 +122,13 @@ function RosterBody({ classId }: { classId: string }) {
   const [search, setSearch] = useState("");
   const [editingTime, setEditingTime] = useState(false);
   const [nextStartsAt, setNextStartsAt] = useState("");
+  const [lastAttendanceAttempt, setLastAttendanceAttempt] = useState<AttendanceAttempt | null>(
+    null,
+  );
+  const [attendanceOutcome, setAttendanceOutcome] = useState<{
+    status: Exclude<AttendanceSaveStatus, "idle" | "pending">;
+    memberName?: string;
+  } | null>(null);
   const { data: candidates } = useQuery({
     queryKey: ["roster-search", classId, search],
     queryFn: () => searchFn({ data: { classId, query: search } }),
@@ -152,8 +167,22 @@ function RosterBody({ classId }: { classId: string }) {
   });
 
   const mark = useMutation({
-    mutationFn: (v: { bookingId: string; status: any }) => markFn({ data: v }),
-    onSuccess: () => invalidate(),
+    mutationFn: ({ bookingId, status }: AttendanceAttempt) =>
+      markFn({ data: { bookingId, status } }),
+    onSuccess: (_, attempt) => {
+      setAttendanceOutcome({ status: "saved", memberName: attempt.memberName });
+      invalidate();
+    },
+    onError: (_error: Error, attempt) => {
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      setAttendanceOutcome({
+        status: offline ? "offline-retry" : "save-failed",
+        memberName: attempt.memberName,
+      });
+    },
+    onSettled: () => {
+      attendancePendingRef.current = false;
+    },
   });
 
   const promote = useMutation({
@@ -312,6 +341,20 @@ function RosterBody({ classId }: { classId: string }) {
   const instructorName = c.instructor?.name
     ? localizedInstructorName(c.instructor.name, lang)
     : t("common.unassigned");
+  const pendingBookingId = mark.isPending ? (mark.variables?.bookingId ?? null) : null;
+  const attendanceSaveState = deriveAttendanceSaveState({
+    status: mark.isPending ? "pending" : (attendanceOutcome?.status ?? "idle"),
+    lang,
+    memberName: mark.isPending ? mark.variables?.memberName : attendanceOutcome?.memberName,
+  });
+
+  const saveAttendance = (attempt: AttendanceAttempt) => {
+    if (attendancePendingRef.current) return;
+    attendancePendingRef.current = true;
+    setLastAttendanceAttempt(attempt);
+    setAttendanceOutcome(null);
+    mark.mutate(attempt);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -566,6 +609,30 @@ function RosterBody({ classId }: { classId: string }) {
           </span>
         </div>
 
+        {attendanceSaveState.status === "pending" ? (
+          <p role="status" aria-live="polite" className="mb-4 text-sm text-slate">
+            {attendanceSaveState.label}
+          </p>
+        ) : null}
+        {attendanceSaveState.outcome ? (
+          <PersistentAnnouncement
+            tone={attendanceSaveState.outcome.tone}
+            title={attendanceSaveState.outcome.title}
+            className="mb-4"
+          >
+            <p>{attendanceSaveState.outcome.body}</p>
+            {attendanceSaveState.outcome.retry && lastAttendanceAttempt ? (
+              <button
+                type="button"
+                onClick={() => saveAttendance(lastAttendanceAttempt)}
+                className="btn-outline mt-3"
+              >
+                {t("common.retry")}
+              </button>
+            ) : null}
+          </PersistentAnnouncement>
+        ) : null}
+
         {data.bookings.length === 0 && (
           <p className="font-display text-slate text-center py-8">{t("roster.noBookings")}</p>
         )}
@@ -575,7 +642,14 @@ function RosterBody({ classId }: { classId: string }) {
               key={b.id}
               b={b}
               isAdmin={isAdmin}
-              onMark={(s) => mark.mutate({ bookingId: b.id, status: s })}
+              actionLocked={Boolean(pendingBookingId)}
+              onMark={(status) =>
+                saveAttendance({
+                  bookingId: b.id,
+                  status,
+                  memberName: b.member?.name,
+                })
+              }
               onCancel={() => cancelBooking.mutate(b.id)}
               onReminder={() => prepareReminderFor(b.member.id, b.member.name, b.member.phone)}
             />
@@ -674,13 +748,15 @@ function RosterBody({ classId }: { classId: string }) {
 function RosterRow({
   b,
   isAdmin,
+  actionLocked,
   onMark,
   onCancel,
   onReminder,
 }: {
   b: any;
   isAdmin: boolean;
-  onMark: (s: string) => void;
+  actionLocked: boolean;
+  onMark: (status: AttendanceAttempt["status"]) => void;
   onCancel: () => void;
   onReminder: () => void;
 }) {
@@ -689,7 +765,7 @@ function RosterRow({
   const st = b.attendance_state;
 
   return (
-    <div className="editorial-card p-4 hover:border-gold/30 transition-all hover:shadow-[0_4px_12px_rgba(11,29,58,0.03)] bg-white rounded-xl border border-gold/15">
+    <div className="editorial-card p-4 hover:border-gold/30 transition-all hover:shadow-[0_4px_12px_var(--cc-alpha-navy-03)] bg-white rounded-xl border border-gold/15">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Member Details */}
         <div className="min-w-0 flex-1 space-y-1.5 text-start">
@@ -751,6 +827,7 @@ function RosterRow({
           <AttBtn
             active={st === "checked_in"}
             title={t("roster.checkIn")}
+            disabled={actionLocked}
             onClick={() => onMark("checked_in")}
           >
             <Clock className="h-4 w-4" />
@@ -758,6 +835,7 @@ function RosterRow({
           <AttBtn
             active={st === "attended"}
             title={t("attendance.attended")}
+            disabled={actionLocked}
             onClick={() => onMark("attended")}
           >
             <CheckCircle2 className="h-4 w-4" />
@@ -765,6 +843,7 @@ function RosterRow({
           <AttBtn
             active={st === "no_show"}
             title={t("attendance.noShow")}
+            disabled={actionLocked}
             onClick={() => onMark("no_show")}
           >
             <XCircle className="h-4 w-4" />
@@ -811,11 +890,12 @@ function RosterRow({
   );
 }
 
-function AttBtn({ active, onClick, title, children }: any) {
+function AttBtn({ active, onClick, title, children, disabled }: any) {
   return (
     <button
       onClick={onClick}
       title={title}
+      disabled={disabled}
       className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors cursor-pointer ${
         active
           ? "bg-navy border-navy text-ivory font-semibold"

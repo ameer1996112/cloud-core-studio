@@ -102,7 +102,8 @@ describe("public app marketing route", () => {
   });
 
   test("renders the complete semantic section and destination contract", () => {
-    expect(pageSource).toContain('<main id="main-content"');
+    expect(pageSource).not.toMatch(/<main\b/);
+    expect(readFileSync(appRouteSupport, "utf8")).toContain("<PublicShell");
     expect(pageSource).toContain("aria-label={copy.features.title}");
     expect(pageSource).toContain("aria-label={copy.screenshots.title}");
     expect(pageSource).toContain("aria-label={copy.classes.title}");

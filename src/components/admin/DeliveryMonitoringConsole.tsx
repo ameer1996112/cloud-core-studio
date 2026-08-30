@@ -23,7 +23,10 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
+import { AsyncState, PersistentAnnouncement } from "@/components/admin-shared";
+import { adminKpiViewState } from "@/components/admin/admin-kpi-state";
+import { deliveryMomentCountViewState } from "@/components/admin/delivery-monitoring-view-state";
+import { safeErrorMessage } from "@/lib/error-messages";
 import {
   Sheet,
   SheetContent,
@@ -559,7 +562,7 @@ function KpiCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-3 shadow-[0_12px_36px_rgba(17,35,64,0.05)] sm:p-4 ${
+      className={`rounded-2xl border p-3 shadow-[0_12px_36px_var(--cc-alpha-admin-ink-05)] sm:p-4 ${
         attention && value > 0 ? "border-rose-200 bg-rose-50/70" : "border-gold/20 bg-white/75"
       }`}
     >
@@ -659,6 +662,11 @@ export function DeliveryMonitoringConsole() {
   const [customTo, setCustomTo] = useState(() =>
     formatStudioDateTimeInput(new Date()).slice(0, 10),
   );
+  const [outcome, setOutcome] = useState<{
+    tone: "success" | "error";
+    title: string;
+    body?: string;
+  } | null>(null);
   useEffect(() => {
     const interval = window.setInterval(() => setRangeClock(new Date()), 30_000);
     return () => window.clearInterval(interval);
@@ -708,10 +716,15 @@ export function DeliveryMonitoringConsole() {
   const retry = useMutation({
     mutationFn: (deliveryId: string) => retryFn({ data: { deliveryId } }),
     onSuccess: async () => {
-      toast.success(copy.retryQueued);
+      setOutcome({ tone: "success", title: copy.retryQueued });
       await queryClient.invalidateQueries({ queryKey: ["canonical-deliveries"] });
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Retry failed"),
+    onError: (retryError) =>
+      setOutcome({
+        tone: "error",
+        title: copy.attention,
+        body: safeErrorMessage(retryError, copy.error_default),
+      }),
   });
 
   const monitorData = deliveries.data?.pages[0];
@@ -741,12 +754,31 @@ export function DeliveryMonitoringConsole() {
     setSelectedId(null);
   };
   const summary = monitorData?.summaries?.[traffic] ?? monitorData?.summary;
-  const totalMoments = monitorData?.totalMoments ?? 0;
+  const kpiState = adminKpiViewState({
+    data: summary,
+    isLoading: deliveries.isLoading,
+    isError: deliveries.isError,
+    error: deliveries.error,
+    retry: () => void deliveries.refetch(),
+    loadingLabel: copy.loading,
+    errorTitle: copy.attention,
+    errorBody: copy.error_default,
+  });
+  const momentCountState = deliveryMomentCountViewState({
+    totalMoments: monitorData?.totalMoments,
+    isLoading: deliveries.isLoading,
+    isError: deliveries.isError,
+    error: deliveries.error,
+    retry: () => void deliveries.refetch(),
+    loadingLabel: copy.title,
+    errorTitle: copy.attention,
+    errorBody: copy.error_default,
+  });
   const queueHealth = monitorData?.queueHealth;
 
   return (
     <div className="space-y-5">
-      <section className="overflow-hidden rounded-[28px] border border-gold/25 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(243,237,225,0.78))] p-5 shadow-[0_24px_80px_rgba(17,35,64,0.08)] sm:p-7">
+      <section className="overflow-hidden rounded-[28px] border border-gold/25 bg-[linear-gradient(135deg,var(--cc-alpha-white-96),var(--cc-admin-panel-surface-end))] p-5 shadow-[0_24px_80px_var(--cc-alpha-admin-ink-08)] sm:p-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="eyebrow">{copy.eyebrow}</p>
@@ -754,7 +786,7 @@ export function DeliveryMonitoringConsole() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate">{copy.description}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-200">
+            <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-200">
               <span className="h-2 w-2 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
               {copy.live}
             </span>
@@ -762,7 +794,7 @@ export function DeliveryMonitoringConsole() {
               type="button"
               onClick={() => deliveries.refetch()}
               disabled={deliveries.isFetching}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-gold/30 bg-white px-3 text-xs font-semibold text-navy transition hover:border-gold/60 hover:bg-sand/40 disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-gold/30 bg-white px-3 text-xs font-semibold text-navy transition hover:border-gold/60 hover:bg-sand/40 disabled:opacity-60"
             >
               <RefreshCw
                 className={`h-4 w-4 ${deliveries.isFetching ? "motion-safe:animate-spin" : ""}`}
@@ -772,15 +804,11 @@ export function DeliveryMonitoringConsole() {
           </div>
         </div>
 
-        <div className="mt-6">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate">
+        <fieldset className="mt-6">
+          <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate">
             {copy.trafficScope}
-          </p>
-          <div
-            className="grid grid-cols-2 gap-1 rounded-2xl border border-gold/20 bg-white/65 p-1 sm:inline-grid sm:grid-cols-5"
-            role="group"
-            aria-label={copy.trafficScope}
-          >
+          </legend>
+          <div className="grid grid-cols-2 gap-1 rounded-2xl border border-gold/20 bg-white/65 p-1 sm:inline-grid sm:grid-cols-5">
             {TRAFFIC_OPTIONS.map((value) => (
               <button
                 key={value}
@@ -805,40 +833,50 @@ export function DeliveryMonitoringConsole() {
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <KpiCard
-            icon={Activity}
-            label={copy.deliveriesRange}
-            value={summary?.total ?? 0}
-            detail={`${summary?.inFlight ?? 0} ${copy.inFlight}`}
-          />
-          <KpiCard
-            icon={CheckCircle2}
-            label={copy.handoffs}
-            value={summary?.successfulHandoffs ?? 0}
-            detail={`${summary?.providerConfirmed ?? 0} ${copy.confirmed}`}
-          />
-          <KpiCard
-            icon={CircleAlert}
-            label={copy.attention}
-            value={summary?.needsAttention ?? 0}
-            detail={summary?.needsAttention ? copy.investigate : copy.noIncidents}
-            attention
-          />
-          <KpiCard
-            icon={Users}
-            label={copy.reached}
-            value={summary?.membersReached ?? 0}
-            detail={`${summary?.policySkipped ?? 0} ${copy.policySkipped}`}
-          />
-        </div>
+        <AsyncState state={kpiState} className="mt-6">
+          {(readySummary) => (
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <KpiCard
+                icon={Activity}
+                label={copy.deliveriesRange}
+                value={readySummary.total}
+                detail={`${readySummary.inFlight} ${copy.inFlight}`}
+              />
+              <KpiCard
+                icon={CheckCircle2}
+                label={copy.handoffs}
+                value={readySummary.successfulHandoffs}
+                detail={`${readySummary.providerConfirmed} ${copy.confirmed}`}
+              />
+              <KpiCard
+                icon={CircleAlert}
+                label={copy.attention}
+                value={readySummary.needsAttention}
+                detail={readySummary.needsAttention ? copy.investigate : copy.noIncidents}
+                attention
+              />
+              <KpiCard
+                icon={Users}
+                label={copy.reached}
+                value={readySummary.membersReached}
+                detail={`${readySummary.policySkipped} ${copy.policySkipped}`}
+              />
+            </div>
+          )}
+        </AsyncState>
       </section>
+
+      {outcome ? (
+        <PersistentAnnouncement tone={outcome.tone} title={outcome.title}>
+          {outcome.body ? <p>{outcome.body}</p> : null}
+        </PersistentAnnouncement>
+      ) : null}
 
       {queueHealth && (
         <section
-          className={`rounded-[24px] border p-4 shadow-[0_16px_50px_rgba(17,35,64,0.05)] sm:p-5 ${
+          className={`rounded-[24px] border p-4 shadow-[0_16px_50px_var(--cc-alpha-admin-ink-05)] sm:p-5 ${
             queueHealth.status === "critical"
               ? "border-rose-200 bg-rose-50/85"
               : queueHealth.status === "delayed"
@@ -903,7 +941,10 @@ export function DeliveryMonitoringConsole() {
         </section>
       )}
 
-      <section className="rounded-[24px] border border-gold/20 bg-white/75 p-4 shadow-[0_16px_50px_rgba(17,35,64,0.05)]">
+      <fieldset className="rounded-[24px] border border-gold/20 bg-white/75 p-4 shadow-[0_16px_50px_var(--cc-alpha-admin-ink-05)]">
+        <legend className="px-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate">
+          {copy.dateRange}
+        </legend>
         <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-gold/20 bg-ivory/70 p-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate">
@@ -917,7 +958,7 @@ export function DeliveryMonitoringConsole() {
                   type="button"
                   onClick={() => setDatePreset(preset)}
                   aria-pressed={datePreset === preset}
-                  className={`min-h-10 rounded-lg px-3 text-xs font-semibold transition ${
+                  className={`min-h-11 rounded-lg px-3 text-xs font-semibold transition ${
                     datePreset === preset
                       ? "bg-navy text-ivory"
                       : "text-slate hover:bg-sand/60 hover:text-navy"
@@ -960,18 +1001,20 @@ export function DeliveryMonitoringConsole() {
           )}
         </div>
         <div className="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_190px_210px_auto]">
-          <label className="relative block">
-            <span className="sr-only">{copy.search}</span>
-            <Search className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={copy.search}
-              className="min-h-12 w-full rounded-xl border border-gold/25 bg-ivory ps-11 pe-4 text-sm text-navy outline-none transition placeholder:text-slate/70 focus:border-gold focus:ring-2 focus:ring-gold/15"
-            />
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate">{copy.search}</span>
+            <span className="relative block">
+              <Search className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={copy.search}
+                className="min-h-12 w-full rounded-xl border border-gold/25 bg-ivory ps-11 pe-4 text-sm text-navy outline-none transition placeholder:text-slate/70 focus:border-gold focus:ring-2 focus:ring-gold/15"
+              />
+            </span>
           </label>
           <label>
-            <span className="sr-only">{copy.channel}</span>
+            <span className="mb-1 block text-xs font-medium text-slate">{copy.channel}</span>
             <select
               value={channel}
               onChange={(event) =>
@@ -987,7 +1030,7 @@ export function DeliveryMonitoringConsole() {
             </select>
           </label>
           <label>
-            <span className="sr-only">{copy.status}</span>
+            <span className="mb-1 block text-xs font-medium text-slate">{copy.status}</span>
             <select
               value={status}
               onChange={(event) =>
@@ -1022,14 +1065,16 @@ export function DeliveryMonitoringConsole() {
 
         <div className="mt-3 flex min-h-8 flex-wrap items-center justify-between gap-2 text-xs text-slate">
           <div className="flex flex-wrap items-center gap-2">
-            <span>
-              {totalMoments} {copy.customerMoments}
-            </span>
+            {momentCountState.status === "ready" ? (
+              <span>
+                {momentCountState.data} {copy.customerMoments}
+              </span>
+            ) : null}
             {focusedMember && (
               <button
                 type="button"
                 onClick={() => setMemberId(null)}
-                className="inline-flex items-center gap-2 rounded-full bg-navy px-3 py-1.5 font-semibold text-ivory"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-navy px-3 py-1.5 font-semibold text-ivory"
               >
                 {copy.memberFocus}: {focusedMember.name}
                 <X className="h-3.5 w-3.5" />
@@ -1040,17 +1085,21 @@ export function DeliveryMonitoringConsole() {
             {copy.updated} {formatDateTime(monitorData?.generatedAt ?? null, lang)}
           </span>
         </div>
-      </section>
+      </fieldset>
 
-      {deliveries.isError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
-          {deliveries.error instanceof Error ? deliveries.error.message : copy.error_default}
-        </div>
+      {deliveries.isLoading ? (
+        <AsyncState state={{ status: "loading", label: copy.title }} />
+      ) : deliveries.isError ? (
+        <AsyncState
+          state={{
+            status: "error",
+            title: copy.attention,
+            body: safeErrorMessage(deliveries.error, copy.error_default),
+            retry: () => void deliveries.refetch(),
+          }}
+        />
       ) : moments.length === 0 ? (
-        <div className="rounded-[24px] border border-dashed border-gold/35 bg-white/60 p-12 text-center">
-          <Search className="mx-auto h-8 w-8 text-gold" />
-          <p className="mt-3 text-sm text-slate">{copy.noResults}</p>
-        </div>
+        <AsyncState state={{ status: "empty", title: copy.noResults, body: copy.noResults }} />
       ) : (
         <>
           <section className="space-y-4">
@@ -1064,7 +1113,7 @@ export function DeliveryMonitoringConsole() {
               return (
                 <article
                   key={moment.messageId}
-                  className={`overflow-hidden rounded-[26px] border bg-white/85 shadow-[0_18px_55px_rgba(17,35,64,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(17,35,64,0.09)] ${
+                  className={`overflow-hidden rounded-[26px] border bg-white/85 shadow-[0_18px_55px_var(--cc-alpha-admin-ink-06)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_var(--cc-alpha-admin-ink-09)] ${
                     moment.needsAttention ? "border-rose-200" : "border-gold/20"
                   }`}
                 >
@@ -1074,7 +1123,7 @@ export function DeliveryMonitoringConsole() {
                         type="button"
                         onClick={() => focusMember(moment.primary)}
                         disabled={!member?.id}
-                        className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-sm font-semibold text-ivory shadow-[inset_0_0_0_1px_rgba(212,175,90,0.35)] disabled:cursor-default"
+                        className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-sm font-semibold text-ivory shadow-[inset_0_0_0_1px_var(--cc-alpha-admin-delivery-gold)] disabled:cursor-default"
                         aria-label={copy.viewMemberHistory}
                       >
                         {initials(recipientName)}
@@ -1160,7 +1209,8 @@ export function DeliveryMonitoringConsole() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-slate">
             <span>
-              {copy.showing} {moments.length} {copy.of} {totalMoments}
+              {copy.showing} {moments.length} {copy.of}{" "}
+              {momentCountState.status === "ready" ? momentCountState.data : moments.length}
             </span>
             {deliveries.hasNextPage && (
               <button
@@ -1258,14 +1308,14 @@ function DeliveryInvestigation({
                     <button
                       type="button"
                       onClick={onFocusMember}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-gold/30 px-3 text-xs font-semibold text-navy hover:bg-sand/40"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gold/30 px-3 text-xs font-semibold text-navy hover:bg-sand/40"
                     >
                       <Eye className="h-4 w-4" />
                       {copy.viewMemberHistory}
                     </button>
                     <a
                       href={`/admin/members/${member.id}`}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-gold/30 px-3 text-xs font-semibold text-navy hover:bg-sand/40"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gold/30 px-3 text-xs font-semibold text-navy hover:bg-sand/40"
                     >
                       <ExternalLink className="h-4 w-4" />
                       {copy.openProfile}
