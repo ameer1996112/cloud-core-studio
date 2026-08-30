@@ -90,6 +90,12 @@ describe("public app marketing route", () => {
     expect(source).not.toContain('<script type="application/ld+json"');
   });
 
+  test("the localized route always synchronizes the document locale", () => {
+    const source = readFileSync(appRouteSupport, "utf8");
+    expect(source).toContain("applyLang(data.lang);");
+    expect(source).not.toContain("getActiveLang");
+  });
+
   test("uses static localized paths before saved language and a studio hero for generic social cards", () => {
     expect(rootRoute).toContain("url.pathname.match(/^\\/app\\/(ar|he|en)$/)");
     expect(rootRoute).toContain("window.location.pathname.match(/^\\/app\\/(ar|he|en)$/)");

@@ -17,7 +17,7 @@ import {
   getAppMarketingPublicData,
   type AppMarketingPublicData,
 } from "@/lib/appMarketing.functions";
-import { applyLang, getActiveLang, type Lang } from "@/lib/i18n";
+import { applyLang, type Lang } from "@/lib/i18n";
 
 const APP_MARKETING_HERO_IMAGE = "/images/auth/cloud-core-auth-hero.webp";
 
@@ -103,7 +103,7 @@ export function getAppMarketingRouteHead(lang: Lang, loaderData?: AppMarketingRo
 
 export function AppMarketingRoutePage({ data }: { data: AppMarketingRouteData }) {
   useEffect(() => {
-    if (getActiveLang() !== data.lang) applyLang(data.lang);
+    applyLang(data.lang);
   }, [data.lang]);
 
   return (
