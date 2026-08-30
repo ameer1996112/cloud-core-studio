@@ -27,11 +27,8 @@ mock.module("@tanstack/react-router", () => ({
 
 const { MemberDesktopHeader, MemberMobileBottomNavigation, MemberRouteContent } =
   await import("../../src/components/app-shell/AppShell.tsx");
-const {
-  isPlainPrimaryNavigationClick,
-  queueLatestDocumentNavigation,
-  shouldClearPendingMobileNavigation,
-} = await import("../../src/components/app-shell/memberNavigation.ts");
+const { isPlainPrimaryNavigationClick, shouldClearPendingMobileNavigation } =
+  await import("../../src/components/app-shell/memberNavigation.ts");
 
 afterEach(() => applyLang("he"));
 
@@ -121,7 +118,7 @@ describe("member navigation", () => {
     expect(markup.match(/data-preload="render"/g)).toHaveLength(5);
   });
 
-  test("uses document navigation when mobile users leave the public Schedule boundary", () => {
+  test("keeps mobile tab navigation client-side when users leave Schedule", () => {
     applyLang("en");
     const markup = renderToStaticMarkup(
       React.createElement(MemberMobileBottomNavigation, {
@@ -132,11 +129,10 @@ describe("member navigation", () => {
       }),
     );
 
-    expect(markup.match(/data-reload-document="true"/g)).toHaveLength(4);
-    expect(markup.match(/data-click-handler="true"/g)).toHaveLength(4);
+    expect(markup).not.toContain('data-reload-document="true"');
   });
 
-  test("uses document navigation when desktop users leave the public Schedule boundary", () => {
+  test("keeps desktop tab navigation client-side when users leave Schedule", () => {
     applyLang("en");
     const markup = renderToStaticMarkup(
       React.createElement(MemberDesktopHeader, {
@@ -148,7 +144,7 @@ describe("member navigation", () => {
       }),
     );
 
-    expect(markup.match(/data-reload-document="true"/g)).toHaveLength(5);
+    expect(markup).not.toContain('data-reload-document="true"');
   });
 
   test("replaces stale member content with the destination skeleton during path changes", () => {
@@ -199,26 +195,6 @@ describe("member navigation", () => {
     expect(isPlainPrimaryNavigationClick({ ...plainClick, ctrlKey: true })).toBe(false);
     expect(isPlainPrimaryNavigationClick({ ...plainClick, button: 1 })).toBe(false);
     expect(isPlainPrimaryNavigationClick({ ...plainClick, defaultPrevented: true })).toBe(false);
-  });
-
-  test("only runs the latest queued Schedule-boundary document navigation", () => {
-    const frames = [];
-    const assignments = [];
-    const sequence = { current: 0 };
-    const requestFrame = (callback) => {
-      frames.push(callback);
-      return frames.length;
-    };
-
-    queueLatestDocumentNavigation("/member/bookings", sequence, requestFrame, (to) =>
-      assignments.push(to),
-    );
-    queueLatestDocumentNavigation("/member/packages", sequence, requestFrame, (to) =>
-      assignments.push(to),
-    );
-
-    while (frames.length > 0) frames.shift()();
-    expect(assignments).toEqual(["/member/packages"]);
   });
 
   test("clears pending mobile feedback after success, redirect, or a settled transition", () => {
