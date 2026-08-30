@@ -47,7 +47,8 @@
     "ui-audit:a11y": "bun tools/ui-audit/axe.ts",
     "ui-audit:validate": "bun tools/ui-audit/validate-manifest.ts",
     "ui-audit:bundle": "bun tools/ui-audit/bundle-budget.ts",
-    "ui-audit:lighthouse": "bun tools/ui-audit/lighthouse.ts"
+    "ui-audit:lighthouse": "bun tools/ui-audit/lighthouse.ts",
+    "ui-audit:member-home-layout": "UI_AUDIT_FIXTURES=true node tools/ui-audit/member-home-layout-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
