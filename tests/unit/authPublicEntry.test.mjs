@@ -110,6 +110,7 @@ mock.module("@/lib/i18n", () => ({
   useI18n: () => ({
     lang: currentLang,
     dir: currentLang === "en" ? "ltr" : "rtl",
+    t: (key) => key,
   }),
 }));
 
@@ -125,10 +126,6 @@ mock.module("@/lib/auth-redirect", () => ({
 
 mock.module("@/hooks/useDocumentTitle", () => ({
   useDocumentTitle() {},
-}));
-
-mock.module("@/components/public/PublicShell", () => ({
-  PublicShell: ({ children }) => React.createElement("main", { id: "main-content" }, children),
 }));
 
 mock.module("@/lib/password-reset-flow", () => ({
@@ -174,6 +171,10 @@ describe("auth public entry", () => {
 
     expect(html).toContain("Enter the studio");
     expect(countOccurrences(html, '<main id="main-content"')).toBe(1);
+    expect(countOccurrences(html, 'role="group" aria-label="Language"')).toBe(1);
+    expect(countOccurrences(html, ">English</button>")).toBe(1);
+    expect(countOccurrences(html, ">עברית</button>")).toBe(1);
+    expect(countOccurrences(html, ">العربية</button>")).toBe(1);
     expect(html).toContain("Checking your session");
     expect(html).toContain('href="/support"');
     expect(html).toContain(">Support</a>");
