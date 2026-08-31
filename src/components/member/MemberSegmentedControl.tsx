@@ -79,7 +79,9 @@ export function MemberSegmentedControl<Value extends string>({
             >
               <span>{item.label}</span>
               {typeof item.count === "number" ? (
-                <span aria-label={`${item.count}`}> · {item.count}</span>
+                <span className="member-segmented-control__count" aria-label={`${item.count}`}>
+                  <bdi>{item.count}</bdi>
+                </span>
               ) : null}
             </button>
           );

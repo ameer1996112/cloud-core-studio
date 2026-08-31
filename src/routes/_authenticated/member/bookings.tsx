@@ -270,7 +270,7 @@ function MyBookings() {
         body={t("member.bookings.body")}
         aside={
           hasBookingsData ? (
-            <div className="member-booking-counts">
+            <div className="member-booking-counts member-bookings-stat-strip">
               <StatCell label={t("bookings.upcoming")} value={counts.upcoming} />
               <StatCell label={t("bookings.waitlist")} value={counts.waitlist} />
             </div>
@@ -504,9 +504,11 @@ function MyBookings() {
 
 function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="member-stat-cell">
-      <p className="member-eyebrow text-slate">{label}</p>
-      <p className="numeric-display numeric-display-md mt-2">{value}</p>
+    <div className="member-booking-stat">
+      <p className="member-booking-stat__label">{label}</p>
+      <p className="member-booking-stat__value" dir="ltr">
+        {value}
+      </p>
     </div>
   );
 }

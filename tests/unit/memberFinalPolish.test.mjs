@@ -82,6 +82,50 @@ describe("member experience final polish", () => {
     expect(css).toMatch(/\.member-segmented-control-frame\[dir="rtl"\]::after\s*\{/);
   });
 
+  test("renders booking counts as isolated badges without RTL separator punctuation", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(MemberSegmentedControl, {
+        baseId: "bookings",
+        label: "Bookings",
+        value: "upcoming",
+        items: [
+          { value: "upcoming", label: "קרובות", count: 0 },
+          { value: "waitlist", label: "רשימת המתנה", count: 2 },
+        ],
+        onChange: () => {},
+        dir: "rtl",
+      }),
+    );
+    const css = read("src/styles/member.css");
+
+    expect(markup).toContain('class="member-segmented-control__count"');
+    expect(markup).toContain("<bdi>0</bdi>");
+    expect(markup).not.toContain("·");
+    expect(css).toMatch(
+      /\.member-segmented-control__count\s*\{[^}]*border-radius:\s*999px;[^}]*font-variant-numeric:\s*tabular-nums;/s,
+    );
+    expect(css).toMatch(
+      /\.member-segmented-control__tab\[aria-selected="true"\]\s+\.member-segmented-control__count\s*\{/,
+    );
+  });
+
+  test("keeps zero-value booking summary metrics in compact cards", () => {
+    const source = read("src/routes/_authenticated/member/bookings.tsx");
+    const css = read("src/styles/member.css");
+
+    expect(source).toContain('className="member-booking-stat"');
+    expect(source).toContain('className="member-booking-stat__value"');
+    expect(css).toMatch(
+      /\.member-bookings-stat-strip,\s*\.member-booking-counts-placeholder\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s,
+    );
+    expect(css).toMatch(
+      /\.member-booking-stat\s*\{[^}]*display:\s*flex;[^}]*border-radius:[^}]*text-align:\s*start;/s,
+    );
+    expect(css).toMatch(
+      /\.member-booking-stat__value\s*\{[^}]*display:\s*inline-grid;[^}]*border-radius:\s*999px;[^}]*font-variant-numeric:\s*tabular-nums;/s,
+    );
+  });
+
   test("places the primary bookings workspace before Concierge secondary content", () => {
     const source = read("src/routes/_authenticated/member/bookings.tsx");
     const workspace = source.indexOf("<MemberSegmentedControl");
