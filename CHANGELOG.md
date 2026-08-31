@@ -2,6 +2,13 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.2.0] - 2026-08-31
+
+### Fixed
+
+- Keep booking totals compact and visually grouped on the member Bookings page, including when upcoming and waitlist counts are zero.
+- Render booking-tab totals as isolated numeric badges so Hebrew and Arabic layouts no longer reorder a dot separator around the count.
+
 ## [0.3.1.0] - 2026-08-30
 
 ### Fixed
