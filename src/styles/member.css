@@ -509,6 +509,46 @@
   font-weight: 700;
 }
 
+.member-package-status,
+.member-schedule-credit-aside {
+  display: grid;
+  width: min(18rem, 100%);
+  gap: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-radius: calc(var(--cc-radius-card) - 7px);
+  background: color-mix(in srgb, var(--color-ivory) 84%, transparent);
+  padding: 0.85rem 1rem;
+  text-align: start;
+  box-shadow: 0 10px 24px -24px color-mix(in srgb, var(--color-navy) 46%, transparent);
+}
+
+.member-package-status__plan {
+  color: var(--color-navy);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.member-package-status__expiry {
+  color: var(--color-slate);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.member-package-status__counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 22%, transparent);
+  padding-top: 0.45rem;
+}
+
+.member-schedule-credit-aside .numeric-display {
+  margin-top: 0.1rem;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
 .member-home-contact-link {
   display: flex;
   min-height: 44px;
