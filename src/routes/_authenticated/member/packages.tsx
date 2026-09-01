@@ -23,6 +23,7 @@ import { createCheckoutSession } from "@/lib/receipts.functions";
 import { cancelMySubscription } from "@/lib/subscriptions.functions";
 import { LANG_META, labelForMethod, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberEmptyState } from "@/components/member/PremiumClassCard";
+import { MemberFeedbackPanel } from "@/components/member/MemberFeedbackPanel";
 import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
 import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -63,6 +64,7 @@ function MemberPackages() {
   const cancelSubscription = useServerFn(cancelMySubscription);
   const qc = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
+  const [checkoutFeedback, setCheckoutFeedback] = useState<"error" | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["member-packages"],
@@ -103,14 +105,15 @@ function MemberPackages() {
           checkout: v.checkout,
         },
       }),
+    onMutate: () => setCheckoutFeedback(null),
     onSuccess: (res: any) => {
       if (res?.status === "ready" && res.checkout_url) {
         window.location.href = res.checkout_url;
         return;
       }
-      toast.error(res?.message ?? t("packages.cardPaymentError"));
+      setCheckoutFeedback("error");
     },
-    onError: () => toast.error(t("packages.cardPaymentError")),
+    onError: () => setCheckoutFeedback("error"),
   });
   const cancelSubscriptionMutation = useMutation({
     mutationFn: () => cancelSubscription(),
@@ -159,22 +162,14 @@ function MemberPackages() {
     }
     const planDisplay = getPlanDisplay(plan, lang);
     const amount = formatPlanPrice(plan);
-    const text =
-      method === "bit"
-        ? t("member.packageBitConfirmationMessage", {
-            studio: settings?.studio_name ?? "Cloud & Core",
-            member: memberName || t("member.friend"),
-            plan: planDisplay.name,
-            amount,
-          })
-        : t("member.packageManualPaymentMessage", {
-            studio: settings?.studio_name ?? "Cloud & Core",
-            member: memberName || t("member.friend"),
-            plan: planDisplay.name,
-            method: labelForMethod(method),
-            amount,
-            credits,
-          });
+    const text = t("member.packageManualPaymentMessage", {
+      studio: settings?.studio_name ?? "Cloud & Core",
+      member: memberName || t("member.friend"),
+      plan: planDisplay.name,
+      method: labelForMethod(method),
+      amount,
+      credits,
+    });
     manualPayment.mutate({ planId: plan.id, method, messageText: text });
   }
 
@@ -374,6 +369,7 @@ function MemberPackages() {
           lang={lang}
           settings={settings}
           pending={manualPayment.isPending || checkoutPayment.isPending}
+          feedback={checkoutFeedback}
           onClose={() => setSelectedPlan(null)}
           onSubmit={(method, recurring, checkout) =>
             submitPayment(selectedPlan, method, recurring, checkout)
@@ -843,6 +839,7 @@ function PaymentMethodSheet({
   lang,
   settings,
   pending,
+  feedback,
   onClose,
   onSubmit,
 }: {
@@ -850,6 +847,7 @@ function PaymentMethodSheet({
   lang: Lang;
   settings: any;
   pending: boolean;
+  feedback: "error" | null;
   onClose: () => void;
   onSubmit: (
     method: "cash" | "bit" | "card",
@@ -934,9 +932,12 @@ function PaymentMethodSheet({
         </header>
 
         <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+          <p className="member-eyebrow text-slate">{t("packages.purchaseSummary")}</p>
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="font-display text-2xl leading-tight text-navy">{display.name}</p>
+            <div className="min-w-0">
+              <p className="font-display text-2xl leading-tight text-navy" dir="auto">
+                {display.name}
+              </p>
               <p className="mt-1 text-sm text-slate">{display.memberLine}</p>
               {recurringCard && (
                 <p className="package-recurring-disclosure mt-2">
@@ -945,9 +946,37 @@ function PaymentMethodSheet({
                 </p>
               )}
             </div>
-            <p className="numeric-display text-3xl text-navy">{price}</p>
+            <div className="shrink-0 text-end">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate">
+                {t("packages.total")}
+              </p>
+              <p className="numeric-display mt-1 text-3xl text-navy">
+                <LtrInline>{price}</LtrInline>
+              </p>
+            </div>
           </div>
         </div>
+
+        {feedback === "error" && (
+          <MemberFeedbackPanel
+            variant="error"
+            title={t("packages.cardPaymentError")}
+            live="assertive"
+            className="mt-4"
+          >
+            <p>{t("packages.cardPaymentRetry")}</p>
+            {isOnline && method && checkoutComplete ? (
+              <button
+                type="button"
+                className="btn-outline mt-3"
+                disabled={pending}
+                onClick={() => onSubmit(method, method === "card" && recurringCard, checkout)}
+              >
+                {t("common.retry")}
+              </button>
+            ) : null}
+          </MemberFeedbackPanel>
+        )}
 
         {!confirming ? (
           <div className="mt-5 space-y-3">
@@ -1121,7 +1150,13 @@ function PaymentMethodSheet({
               }
               className="btn-navy flex-1 disabled:opacity-50"
             >
-              {pending ? t("common.saving") : t("packages.submitForConfirmation")}
+              {pending
+                ? t("packages.openingSecurePayment")
+                : method === "card" || method === "bit"
+                  ? recurringCard
+                    ? t("packages.startRecurringSecurePayment")
+                    : t("packages.continueToCardPayment")
+                  : t("packages.submitForConfirmation")}
             </button>
           )}
         </div>

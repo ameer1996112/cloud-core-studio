@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
 import { buildAuthReturnToHref } from "@/lib/guest-auth-intent";
+import { t, useI18n } from "@/lib/i18n";
 
 type PaymentResultStatus = "success" | "failed" | "cancelled" | "pending" | "missing";
 
@@ -10,46 +11,64 @@ type PaymentResultSearch = {
   audience?: "member" | "kids";
 };
 
-const RESULT_COPY: Record<
-  PaymentResultStatus,
-  {
-    title: string;
-    body: string;
-    detail: string;
-    tone: "success" | "warning" | "error";
-  }
-> = {
+type PaymentCopy = {
+  title: string;
+  body: string;
+  detail: string;
+  tone: "success" | "warning" | "error";
+};
+
+const PAYMENT_RESULT_KEYS = {
   success: {
-    title: "התשלום התקבל",
-    body: "החבילה הופעלה והקרדיטים נוספו לחשבון שלך.",
-    detail: "בגלל המעבר דרך HYP ייתכן שתצטרכי להתחבר שוב כדי לראות את החבילה בחשבון.",
+    title: "paymentResult.success.title",
+    body: "paymentResult.success.body",
+    detail: "paymentResult.success.detail",
     tone: "success",
   },
   pending: {
-    title: "התשלום בבדיקה",
-    body: "קיבלנו חזרה מ-HYP, אבל האישור הסופי עדיין לא הושלם.",
-    detail: "אין צורך לשלם שוב כרגע. אם הסטטוס לא מתעדכן, פני לסטודיו.",
+    title: "paymentResult.pending.title",
+    body: "paymentResult.pending.body",
+    detail: "paymentResult.pending.detail",
     tone: "warning",
   },
   cancelled: {
-    title: "התשלום בוטל",
-    body: "העסקה לא הושלמה ולא הופעלה חבילה.",
-    detail: "אפשר לחזור לעמוד החבילות ולנסות שוב בהמשך.",
+    title: "paymentResult.cancelled.title",
+    body: "paymentResult.cancelled.body",
+    detail: "paymentResult.cancelled.detail",
     tone: "error",
   },
   failed: {
-    title: "התשלום לא הושלם",
-    body: "HYP לא אישר את העסקה ולכן לא הופעלה חבילה.",
-    detail: "אם חויבת בפועל, שמרי את פרטי העסקה ופני לסטודיו לבדיקה.",
+    title: "paymentResult.failed.title",
+    body: "paymentResult.failed.body",
+    detail: "paymentResult.failed.detail",
     tone: "error",
   },
   missing: {
-    title: "לא מצאנו פרטי תשלום",
-    body: "חזרנו מ-HYP בלי מזהה עסקה תקין.",
-    detail: "אין צורך לשלם שוב לפני בדיקה מול הסטודיו.",
+    title: "paymentResult.missing.title",
+    body: "paymentResult.missing.body",
+    detail: "paymentResult.missing.detail",
     tone: "warning",
   },
-};
+} as const;
+
+function paymentResultCopy(status: PaymentResultStatus): PaymentCopy {
+  const keys = PAYMENT_RESULT_KEYS[status];
+  return {
+    title: t(keys.title),
+    body: t(keys.body),
+    detail: t(keys.detail),
+    tone: keys.tone,
+  };
+}
+
+function kidsPaymentSuccessCopy(): PaymentCopy {
+  return {
+    title: t("paymentResult.success.title"),
+    body: t("paymentResult.kidsSuccess.body"),
+    detail: t("paymentResult.kidsSuccess.detail"),
+    tone: "success",
+  };
+}
 
 export const Route = createFileRoute("/payment-result")({
   validateSearch: (search): PaymentResultSearch => {
@@ -74,16 +93,11 @@ export const Route = createFileRoute("/payment-result")({
 
 function PaymentResultPage() {
   const { status, paymentId, audience } = Route.useSearch();
+  const { dir } = useI18n();
   const copy =
     audience === "kids" && status === "success"
-      ? {
-          title: "התשלום התקבל",
-          body: "התשלום לילדים נקלט והחבילה הופעלה בסטודיו.",
-          detail:
-            "אין צורך להתחבר לאפליקציה. הסטודיו יראה את התשלום, הקרדיטים והנוכחות בעמוד הניהול.",
-          tone: "success" as const,
-        }
-      : RESULT_COPY[status];
+      ? kidsPaymentSuccessCopy()
+      : paymentResultCopy(status);
   const Icon = copy.tone === "success" ? CheckCircle2 : copy.tone === "warning" ? Clock : XCircle;
   const isSuccess = status === "success";
   const toneClass =
@@ -96,7 +110,7 @@ function PaymentResultPage() {
   return (
     <main
       id="main-content"
-      dir="rtl"
+      dir={dir}
       className="relative min-h-screen overflow-hidden bg-[#f7f1e8] px-5 py-[max(2.5rem,env(safe-area-inset-top))] text-navy"
     >
       <img
@@ -136,16 +150,16 @@ function PaymentResultPage() {
 
           <div className="mt-6 rounded-2xl border border-gold/20 bg-ivory/70 p-4 text-start">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-bold text-slate">סטטוס</span>
+              <span className="text-xs font-bold text-slate">{t("paymentResult.status")}</span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-navy shadow-sm">
                 <ShieldCheck className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
-                מאובטח דרך HYP
+                {t("paymentResult.secure")}
               </span>
             </div>
             <p className="mt-3 text-sm leading-6 text-slate/90">{copy.detail}</p>
             {paymentId && (
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-gold/20 pt-3 text-xs font-semibold text-slate">
-                <span>אסמכתא פנימית</span>
+                <span>{t("paymentResult.reference")}</span>
                 <span dir="ltr" className="rounded-full bg-white px-3 py-1 text-navy">
                   {paymentId.slice(0, 8)}
                 </span>
@@ -165,17 +179,17 @@ function PaymentResultPage() {
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-navy px-5 py-3 text-base font-semibold text-ivory shadow-[0_18px_38px_rgba(11,29,58,0.22)] transition hover:bg-[#10274c]"
             >
               {audience === "kids"
-                ? "חזרה לאתר"
+                ? t("paymentResult.backToSite")
                 : isSuccess
-                  ? "התחברות לצפייה בחבילה"
-                  : "חזרה להתחברות"}
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  ? t("paymentResult.viewPackage")
+                  : t("paymentResult.backToSignIn")}
+              <ArrowLeft className="h-4 w-4 directional-icon-back" aria-hidden="true" />
             </Link>
             <Link
               to="/member/schedule"
               className="inline-flex min-h-14 items-center justify-center rounded-full border border-gold/35 bg-white/80 px-5 py-3 text-base font-semibold text-navy transition hover:border-gold/60 hover:bg-ivory"
             >
-              חזרה ללוח שיעורים
+              {t("paymentResult.backToSchedule")}
             </Link>
           </div>
         </div>

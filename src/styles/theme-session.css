@@ -249,9 +249,9 @@
 }
 
 .session-input:focus {
-  border-color: rgba(212, 175, 106, 0.88);
+  border-color: var(--color-focus-outer);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(212, 175, 106, 0.16);
+  box-shadow: var(--cc-focus-ring);
   outline: none;
 }
 
@@ -495,8 +495,8 @@
 }
 
 .premium-time-selects select:focus {
-  border-color: rgba(212, 175, 106, 0.88);
-  box-shadow: 0 0 0 3px rgba(212, 175, 106, 0.16);
+  border-color: var(--color-focus-outer);
+  box-shadow: var(--cc-focus-ring);
   outline: none;
 }
 
@@ -694,7 +694,7 @@
   --cc-control-height-sm: 44px;
   --cc-control-height: 48px;
   --cc-control-height-lg: 52px;
-  --cc-focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-gold, #d4af6a) 18%, transparent);
+  --cc-focus-ring: 0 0 0 2px var(--color-focus-inner), 0 0 0 4px var(--color-focus-outer);
   --cc-shadow-soft: var(--shadow-elevated);
 
   /* Brand hexes mapped into the shadcn token system */

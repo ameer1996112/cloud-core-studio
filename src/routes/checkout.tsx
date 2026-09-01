@@ -2,10 +2,12 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { CreditCard, ShieldCheck } from "lucide-react";
 import { LegalLanguageSwitcher } from "@/components/legal/LegalLanguageSwitcher";
+import { MemberFeedbackPanel } from "@/components/member/MemberFeedbackPanel";
+import { LtrInline } from "@/components/ui/bidi";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getCheckoutPlanDisplay } from "@/lib/checkoutPlanDisplay";
 import { getInstagramLandingData, type InstagramAdultPlan } from "@/lib/instagramLanding.functions";
-import { LANG_META, useI18n, type Lang } from "@/lib/i18n";
+import { LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -113,6 +115,7 @@ function PublicCheckoutPage() {
   const dir = LANG_META[lang].dir;
   const [accepted, setAccepted] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
+  const selectedPlanDetails = plans.find((plan) => plan.code === selectedPlan);
 
   useDocumentTitle("page.packages.title");
 
@@ -134,7 +137,7 @@ function PublicCheckoutPage() {
           <div className="border-b hairline bg-sand/20 p-6 sm:p-8">
             <p className="member-eyebrow">{checkoutCopy.kicker}</p>
             <h1 className="member-page-title mt-3">{checkoutCopy.title}</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate">{checkoutCopy.intro}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate">{t("checkout.intro")}</p>
           </div>
 
           <form
@@ -189,7 +192,7 @@ function PublicCheckoutPage() {
                       </span>
                       <span className="flex items-center gap-3">
                         <strong className="numeric-display text-lg text-navy">
-                          ₪{plan.priceIls}
+                          <LtrInline>₪{plan.priceIls}</LtrInline>
                         </strong>
                         <input
                           required
@@ -206,6 +209,25 @@ function PublicCheckoutPage() {
                 })}
               </div>
             </fieldset>
+
+            <MemberFeedbackPanel variant="info" title={t("checkout.purchaseSummary")} live="polite">
+              {selectedPlanDetails ? (
+                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:gap-4">
+                  <span>
+                    <span className="block font-semibold text-navy" dir="auto">
+                      {getCheckoutPlanDisplay(selectedPlanDetails, lang).name}
+                    </span>
+                    <span className="block">{t("checkout.authoritativePrice")}</span>
+                  </span>
+                  <strong className="numeric-display text-2xl text-navy">
+                    <LtrInline>₪{selectedPlanDetails.priceIls}</LtrInline>
+                  </strong>
+                </div>
+              ) : (
+                t("checkout.selectPackageForPrice")
+              )}
+              <p className="mt-3">{t("checkout.noChargeBeforeSignIn")}</p>
+            </MemberFeedbackPanel>
 
             <fieldset className="grid gap-4 sm:grid-cols-2">
               {(
@@ -260,9 +282,11 @@ function PublicCheckoutPage() {
               className="btn-navy w-full disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CreditCard className="h-4 w-4" aria-hidden="true" />
-              {checkoutCopy.continue}
+              {t("checkout.continueToSignIn")}
             </button>
-            <p className="text-center text-xs leading-5 text-slate">{checkoutCopy.note}</p>
+            <p className="text-center text-xs leading-5 text-slate">
+              {t("checkout.paymentReviewAfterSignIn")}
+            </p>
           </form>
         </article>
       </div>

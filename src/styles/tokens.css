@@ -11,6 +11,12 @@
   --color-surface: #ffffff;
   --color-surface-warm: #faf7f2;
   --color-border: rgba(212, 175, 106, 0.34);
+  --color-surface-canvas: #faf7f2;
+  --color-surface-base: #ffffff;
+  --color-surface-subtle: #f4eee5;
+  --color-action-primary: #0b1d3a;
+  --color-focus-inner: #d4af6a;
+  --color-focus-outer: #0b1d3a;
 
   /* Spacing */
   --space-1: 4px;
@@ -20,6 +26,7 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
+  --space-16: 64px;
 
   /* Typography */
   --font-serif: "Cormorant Garamond", Georgia, serif;
@@ -31,6 +38,8 @@
   --text-xl: 21px;
   --text-2xl: 28px;
   --text-3xl: 36px;
+  --text-page-title-mobile: 32px;
+  --text-page-title-desktop: 40px;
 
   /* Radii */
   --radius-sm: 6px;

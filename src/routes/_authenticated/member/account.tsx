@@ -1,7 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { friendlyErrorMessage } from "@/lib/error-messages";
 import { LogOut, Save, Trash2 } from "lucide-react";
@@ -12,6 +12,17 @@ import { applyLang, labelForStatus, t, useI18n, getLocale, type Lang } from "@/l
 import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
+import { MemberFeedbackPanel } from "@/components/member/MemberFeedbackPanel";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   getMyPersonalConcierge,
   saveMyPersonalConciergePreference,
@@ -42,6 +53,8 @@ type DeletionResult = {
   duplicate?: boolean;
 };
 
+type DeletionFeedback = "submitted" | "already-requested" | "error" | null;
+
 export const Route = createFileRoute("/_authenticated/member/account")({
   component: MemberAccount,
 });
@@ -67,6 +80,10 @@ function MemberAccount() {
 
   const [form, setForm] = useState<ProfileForm>({});
   const [deletionReason, setDeletionReason] = useState("");
+  const [deletionDialogOpen, setDeletionDialogOpen] = useState(false);
+  const [deletionFeedback, setDeletionFeedback] = useState<DeletionFeedback>(null);
+  const deletionTriggerRef = useRef<HTMLButtonElement>(null);
+  const deletionFeedbackRef = useRef<HTMLElement>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [conciergePace, setConciergePace] = useState("");
   const [conciergeIntention, setConciergeIntention] = useState("");
@@ -84,14 +101,21 @@ function MemberAccount() {
 
   const deletion = useMutation({
     mutationFn: () => deleteFn({ data: { reason: deletionReason } }),
+    onMutate: () => setDeletionFeedback(null),
     onSuccess: (result: DeletionResult) => {
       setDeletionReason("");
-      toast.success(
-        result?.duplicate ? t("profile.deleteAlreadyRequested") : t("profile.deleteRequestSent"),
-      );
+      setDeletionDialogOpen(false);
+      setDeletionFeedback(result?.duplicate ? "already-requested" : "submitted");
     },
-    onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.deleteRequestError"))),
+    onError: () => {
+      setDeletionDialogOpen(false);
+      setDeletionFeedback("error");
+    },
   });
+
+  useEffect(() => {
+    if (deletionFeedback) deletionFeedbackRef.current?.focus();
+  }, [deletionFeedback]);
 
   const saveBetweenUs = useMutation({
     mutationFn: async () => {
@@ -393,18 +417,97 @@ function MemberAccount() {
               placeholder={t("profile.deleteReasonPlaceholder")}
             />
           </Field>
+          <p className="mt-3 text-sm leading-6 text-slate">
+            {t("profile.deleteRequestExplanation")}
+          </p>
+          {deletionFeedback === "submitted" && (
+            <MemberFeedbackPanel
+              ref={deletionFeedbackRef}
+              variant="success"
+              title={t("profile.deleteRequestSubmittedTitle")}
+              live="polite"
+              className="mt-4"
+            >
+              {t("profile.deleteRequestSubmittedBody")}
+            </MemberFeedbackPanel>
+          )}
+          {deletionFeedback === "already-requested" && (
+            <MemberFeedbackPanel
+              ref={deletionFeedbackRef}
+              variant="info"
+              title={t("profile.deleteAlreadyRequested")}
+              live="polite"
+              className="mt-4"
+            >
+              {t("profile.deleteAlreadyRequestedBody")}
+            </MemberFeedbackPanel>
+          )}
+          {deletionFeedback === "error" && (
+            <MemberFeedbackPanel
+              ref={deletionFeedbackRef}
+              variant="error"
+              title={t("profile.deleteRequestError")}
+              live="assertive"
+              className="mt-4"
+            >
+              {t("profile.deleteRequestErrorBody")}{" "}
+              <Link to="/support" className="font-semibold text-navy underline underline-offset-2">
+                {t("profile.deleteRequestSupport")}
+              </Link>
+            </MemberFeedbackPanel>
+          )}
           <div className="mt-3 flex justify-start">
             <button
-              disabled={deletion.isPending}
-              onClick={() => deletion.mutate()}
+              ref={deletionTriggerRef}
+              type="button"
+              disabled={
+                deletion.isPending ||
+                deletionFeedback === "submitted" ||
+                deletionFeedback === "already-requested"
+              }
+              onClick={() => setDeletionDialogOpen(true)}
               className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-3 w-3" />
-              {deletion.isPending ? t("common.saving") : t("profile.deleteRequest")}
+              {deletion.isPending
+                ? t("profile.deleteRequestSubmitting")
+                : t("profile.deleteRequest")}
             </button>
           </div>
         </div>
       </div>
+
+      <AlertDialog
+        open={deletionDialogOpen}
+        onOpenChange={(open) => {
+          setDeletionDialogOpen(open);
+          if (!open) requestAnimationFrame(() => deletionTriggerRef.current?.focus());
+        }}
+      >
+        <AlertDialogContent dir={dir}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("profile.deleteConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("profile.deleteConfirmDescription")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletion.isPending}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletion.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                if (!deletion.isPending) deletion.mutate();
+              }}
+              className="border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletion.isPending
+                ? t("profile.deleteRequestSubmitting")
+                : t("profile.deleteConfirmAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

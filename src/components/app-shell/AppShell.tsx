@@ -1,11 +1,12 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Globe2, X, LogOut } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createClientOnlyFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRoleNav";
+import { nextLanguageMenuIndex } from "./language-menu";
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
@@ -493,22 +494,55 @@ function SidebarPanel({
 
 function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: boolean }) {
   const [open, setOpen] = useState(false);
+  const menuWrapperRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const codes = Object.keys(LANG_META) as Lang[];
   const currentLang = LANG_META[lang] ? lang : "he";
   const current = LANG_META[currentLang];
+  const menuId = `member-language-menu-${useId().replace(/:/g, "")}`;
 
   function choose(next: Lang) {
     applyLang(next);
     setOpen(false);
+    window.requestAnimationFrame(() => triggerRef.current?.focus());
+  }
+
+  function focusMenuItem(index: number) {
+    setOpen(true);
+    window.requestAnimationFrame(() => menuItemRefs.current[index]?.focus());
+  }
+
+  function handleMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const currentIndex = Math.max(0, codes.indexOf(currentLang));
+    const focusedIndex = menuItemRefs.current.findIndex((item) => item === document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
+      return;
+    }
+    const nextIndex = nextLanguageMenuIndex(event.key, focusedIndex, currentIndex, codes.length);
+    if (nextIndex !== null) {
+      event.preventDefault();
+      focusMenuItem(nextIndex);
+    }
   }
 
   return (
     <div
+      ref={menuWrapperRef}
       className="relative inline-block text-start"
-      onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+      onBlur={() => {
+        window.requestAnimationFrame(() => {
+          if (!menuWrapperRef.current?.contains(document.activeElement)) setOpen(false);
+        });
+      }}
+      onKeyDown={handleMenuKeyDown}
     >
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen((value) => !value)}
         className={`inline-flex max-w-full shrink-0 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border)] bg-white/78 text-[var(--color-text-secondary)] shadow-[var(--shadow-card)] transition-[background-color,color,border-color] duration-200 hover:bg-white ${
           compact ? "h-10 w-10 px-0" : "min-h-11 px-4 text-xs"
@@ -516,6 +550,7 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
         aria-label={compact ? current.label : undefined}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
       >
         <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-navy)] text-ivory">
           <Globe2 className="h-3.5 w-3.5" />
@@ -528,16 +563,20 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
 
       {open && (
         <div
+          id={menuId}
           role="menu"
           className="absolute bottom-full end-0 z-50 mb-2 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[var(--color-surface-warm)] p-1 shadow-[var(--shadow-elevated)] backdrop-blur-xl"
         >
           {codes.map((code) => (
             <button
               key={code}
+              ref={(node) => {
+                menuItemRefs.current[codes.indexOf(code)] = node;
+              }}
               type="button"
               role="menuitemradio"
+              tabIndex={currentLang === code ? 0 : -1}
               aria-checked={lang === code}
-              onMouseDown={(event) => event.preventDefault()}
               onClick={() => choose(code)}
               className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--radius-md)] px-3 text-sm transition-[background-color,color] duration-200 ${
                 currentLang === code

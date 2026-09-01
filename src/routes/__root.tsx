@@ -34,7 +34,6 @@ import { Toaster } from "sonner";
 import {
   applyLang,
   DEFAULT_LOCALE,
-  getActiveLang,
   getDirection,
   getBootLangScript,
   getStoredLang,
@@ -46,28 +45,25 @@ import {
 import { RequiredAppUpdate } from "@/components/app-shell/RequiredAppUpdate";
 import type { RequiredIosAppUpdate } from "@/lib/appUpdate.client";
 import { installNativeAppLinkHandling, startNativeAppLinkHandling } from "@/lib/nativeAppLinks";
-
-const ROOT_COPY = {
-  en: { retry: "Try again", skipToContent: "Skip to content" },
-  he: { retry: "נסו שוב", skipToContent: "דילוג לתוכן" },
-  ar: { retry: "حاولي مرة أخرى", skipToContent: "تخطي إلى المحتوى" },
-} as const;
+import { t, useI18n } from "@/lib/i18n";
 
 function NotFoundComponent() {
+  const { dir } = useI18n();
   return (
     <main
       id="main-content"
+      dir={dir}
       className="flex min-h-screen items-center justify-center bg-background px-6"
     >
       <div className="max-w-md text-center">
-        <h1 className="font-display text-6xl text-foreground">הדף לא נמצא</h1>
-        <p className="mt-3 text-sm text-muted-foreground">העמוד הזה לא נשמר.</p>
+        <h1 className="font-display text-6xl text-foreground">{t("page.notFound.eyebrow")}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">{t("page.notFound.title")}</p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
           >
-            חזרה לבית
+            {t("nav.home")}
           </Link>
         </div>
       </div>
@@ -78,6 +74,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const { dir } = useI18n();
   useEffect(() => {
     reportAppError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -85,13 +82,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <main
       id="main-content"
+      dir={dir}
       className="flex min-h-screen items-center justify-center bg-background px-6"
     >
       <div className="max-w-md text-center">
-        <h1 className="font-display text-3xl text-foreground">רגע שקט</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          משהו נעצר אצלנו. אפשר לנסות שוב בעוד רגע.
-        </p>
+        <h1 className="font-display text-3xl text-foreground">{t("page.error.eyebrow")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("page.error.title")}</p>
         <div className="mt-6 flex justify-center gap-2">
           <button
             onClick={() => {
@@ -100,7 +96,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
           >
-            {ROOT_COPY[getActiveLang()].retry}
+            {t("common.retry")}
           </button>
         </div>
       </div>
@@ -217,7 +213,7 @@ function isNativeRuntime() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
-  const activeLang = useActiveLang();
+  useActiveLang();
   const [requiredAppUpdate, setRequiredAppUpdate] = useState<RequiredIosAppUpdate | null>(null);
   useEffect(() => {
     if (!isNativeRuntime()) return;
@@ -364,7 +360,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <a className="global-skip-link" href="#main-content">
-        {ROOT_COPY[activeLang].skipToContent}
+        {t("common.skipToContent")}
       </a>
       <Outlet />
       <Toaster
