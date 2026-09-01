@@ -2,6 +2,25 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.4.0] - 2026-09-01
+
+### Added
+
+- Add persistent, accessible member feedback panels for package-payment failures and account-deletion request outcomes in English, Hebrew, and Arabic.
+- Add local-only member QA fixture, authentication, environment-guard, and headed-browser support without exposing fixture credentials or production test bypasses.
+
+### Changed
+
+- Make package totals and payment-provider handoff language clearer while preserving the existing HYP checkout contract and authoritative backend pricing.
+- Present account deletion as a reviewed request, with keyboard-accessible confirmation, durable status feedback, focus management, retry, and support recovery.
+- Improve the authenticated language menu with roving keyboard navigation, Escape handling, focus restoration, and RTL-safe semantics.
+
+### Fixed
+
+- Prevent duplicate package-payment and deletion-request activation while a request is pending.
+- Reject malformed deletion responses instead of showing a false submitted state, and keep authenticated recovery pages localized in every supported language.
+- Allow long package and class-location content to wrap without introducing mobile horizontal overflow.
+
 ## [0.3.3.0] - 2026-09-01
 
 ### Fixed

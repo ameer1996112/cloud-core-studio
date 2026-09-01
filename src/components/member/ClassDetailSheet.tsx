@@ -483,6 +483,7 @@ export function ClassDetailSheet({
                     icon={<MapPin className="h-3 w-3 text-gold" />}
                     label={t("common.where")}
                     value={<StudioLocationInline value={locationLabel} />}
+                    allowWrap={true}
                   />
                   <Stat
                     icon={<Users className="h-3 w-3 text-gold" />}
@@ -602,10 +603,12 @@ function Stat({
   icon,
   label,
   value,
+  allowWrap = false,
 }: {
   icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
+  allowWrap?: boolean;
 }) {
   return (
     <div className="lesson-detail__stat">
@@ -613,7 +616,11 @@ function Stat({
         {icon}
         {label}
       </p>
-      <p className="mt-1 font-display text-base text-navy truncate">{value}</p>
+      <p
+        className={`mt-1 font-display text-base text-navy ${allowWrap ? "break-words" : "truncate"}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

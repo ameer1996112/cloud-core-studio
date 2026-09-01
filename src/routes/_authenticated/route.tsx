@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, useRouter } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell/AppShell";
 import { requireAuthenticatedRoute } from "@/lib/route-guards";
-import { t } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -24,13 +24,13 @@ function AuthedLayout() {
 
 function AuthedError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const { dir, t } = useI18n();
   console.error(error);
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-6">
+    <div dir={dir} className="min-h-[60vh] flex items-center justify-center px-6">
       <div className="max-w-md text-center space-y-4">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-slate">רגע שקט</p>
-        <h1 className="font-display text-3xl text-navy">משהו נעצר אצלנו</h1>
-        <p className="text-sm text-slate">אפשר לנסות שוב בעוד רגע.</p>
+        <h1 className="font-display text-3xl text-navy">{t("recovery.error.title")}</h1>
+        <p className="text-sm text-slate">{t("recovery.error.body")}</p>
         <div className="flex justify-center gap-3 pt-2">
           <button
             onClick={() => {
@@ -54,11 +54,12 @@ function AuthedError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function AuthedNotFound() {
+  const { dir, t } = useI18n();
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-6">
+    <div dir={dir} className="min-h-[60vh] flex items-center justify-center px-6">
       <div className="max-w-md text-center space-y-4">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-slate">הדף לא נמצא</p>
-        <h1 className="font-display text-3xl text-navy">העמוד הזה לא נשמר</h1>
+        <h1 className="font-display text-3xl text-navy">{t("recovery.notFound.title")}</h1>
+        <p className="text-sm text-slate">{t("recovery.notFound.body")}</p>
         <Link to="/" className="inline-flex cta-navy hover:cta-navy-hover px-5 py-2 text-xs mt-2">
           {t("nav.home")}
         </Link>

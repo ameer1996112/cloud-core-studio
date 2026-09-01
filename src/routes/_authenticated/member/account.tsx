@@ -1,7 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { friendlyErrorMessage } from "@/lib/error-messages";
 import { LogOut, Save, Trash2 } from "lucide-react";
@@ -13,8 +13,19 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { BidiValue } from "@/components/ui/bidi";
 import { bidiDirectionFor } from "@/lib/bidi-format";
 import { MemberField, MemberProfileSaveStatus } from "@/components/member/MemberField";
+import { MemberFeedbackPanel } from "@/components/member/MemberFeedbackPanel";
 import { MemberPageIntro, MemberSection } from "@/components/member/MemberPage";
 import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   getMyPersonalConcierge,
   saveMyPersonalConciergePreference,
@@ -46,8 +57,12 @@ type MemberProfile = {
 };
 
 type DeletionResult = {
+  ok?: boolean;
+  status?: string;
   duplicate?: boolean;
 };
+
+type DeletionFeedback = "submitted" | "already-requested" | "error" | null;
 
 export const Route = createFileRoute("/_authenticated/member/account")({
   component: MemberAccount,
@@ -84,6 +99,11 @@ function MemberAccount() {
 
   const [form, setForm] = useState<ProfileForm>({});
   const [deletionReason, setDeletionReason] = useState("");
+  const [deletionDialogOpen, setDeletionDialogOpen] = useState(false);
+  const [deletionFeedback, setDeletionFeedback] = useState<DeletionFeedback>(null);
+  const deletionTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const deletionFeedbackRef = useRef<HTMLElement | null>(null);
+  const deletionRequestInFlightRef = useRef(false);
   const [signingOut, setSigningOut] = useState(false);
   const [conciergePace, setConciergePace] = useState("");
   const [conciergeIntention, setConciergeIntention] = useState("");
@@ -101,14 +121,31 @@ function MemberAccount() {
 
   const deletion = useMutation({
     mutationFn: () => deleteFn({ data: { reason: deletionReason } }),
+    onMutate: () => setDeletionFeedback(null),
     onSuccess: (result: DeletionResult) => {
+      if (result?.ok !== true || typeof result.status !== "string") {
+        setDeletionDialogOpen(false);
+        setDeletionFeedback("error");
+        return;
+      }
       setDeletionReason("");
-      toast.success(
-        result?.duplicate ? t("profile.deleteAlreadyRequested") : t("profile.deleteRequestSent"),
-      );
+      setDeletionDialogOpen(false);
+      setDeletionFeedback(result?.duplicate ? "already-requested" : "submitted");
     },
-    onError: (e) => toast.error(friendlyErrorMessage(e, t("profile.deleteRequestError"))),
+    onError: () => {
+      setDeletionDialogOpen(false);
+      setDeletionFeedback("error");
+    },
+    onSettled: () => {
+      deletionRequestInFlightRef.current = false;
+    },
   });
+
+  useEffect(() => {
+    if (!deletionFeedback) return;
+    const frame = requestAnimationFrame(() => deletionFeedbackRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [deletionFeedback]);
 
   const saveBetweenUs = useMutation({
     mutationFn: async () => {
@@ -221,6 +258,12 @@ function MemberAccount() {
     qc.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
+  }
+
+  function submitDeletionRequest() {
+    if (deletion.isPending || deletionRequestInFlightRef.current) return;
+    deletionRequestInFlightRef.current = true;
+    deletion.mutate();
   }
 
   return (
@@ -451,20 +494,108 @@ function MemberAccount() {
                   placeholder={t("profile.deleteReasonPlaceholder")}
                 />
               </MemberField>
+              <p className="text-sm leading-6 text-slate">
+                {t("profile.deleteRequestExplanation")}
+              </p>
+              {deletionFeedback === "submitted" ? (
+                <MemberFeedbackPanel
+                  ref={deletionFeedbackRef}
+                  variant="success"
+                  title={t("profile.deleteRequestSubmittedTitle")}
+                  live="polite"
+                >
+                  {t("profile.deleteRequestSubmittedBody")}
+                </MemberFeedbackPanel>
+              ) : null}
+              {deletionFeedback === "already-requested" ? (
+                <MemberFeedbackPanel
+                  ref={deletionFeedbackRef}
+                  variant="info"
+                  title={t("profile.deleteAlreadyRequested")}
+                  live="polite"
+                >
+                  {t("profile.deleteAlreadyRequestedBody")}
+                </MemberFeedbackPanel>
+              ) : null}
+              {deletionFeedback === "error" ? (
+                <MemberFeedbackPanel
+                  ref={deletionFeedbackRef}
+                  variant="error"
+                  title={t("profile.deleteRequestError")}
+                  live="assertive"
+                >
+                  <p>{t("profile.deleteRequestErrorBody")}</p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDeletionDialogOpen(true)}
+                      className="btn-outline min-h-11"
+                    >
+                      {t("common.retry")}
+                    </button>
+                    <Link
+                      to="/support"
+                      className="inline-flex min-h-11 items-center font-semibold text-navy underline underline-offset-2"
+                    >
+                      {t("profile.deleteRequestSupport")}
+                    </Link>
+                  </div>
+                </MemberFeedbackPanel>
+              ) : null}
               <button
+                ref={deletionTriggerRef}
                 id="account-delete-request"
                 type="button"
-                disabled={deletion.isPending}
-                onClick={() => deletion.mutate()}
+                disabled={
+                  deletion.isPending ||
+                  deletionFeedback === "submitted" ||
+                  deletionFeedback === "already-requested"
+                }
+                onClick={() => setDeletionDialogOpen(true)}
                 className="btn-ghost member-account-action border-destructive/30 text-destructive hover:btn-ghost-hover hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
-                {deletion.isPending ? t("common.saving") : t("profile.deleteRequest")}
+                {deletion.isPending
+                  ? t("profile.deleteRequestSubmitting")
+                  : t("profile.deleteRequest")}
               </button>
             </div>
           </MemberSection>
         </div>
       ) : null}
+
+      <AlertDialog
+        open={deletionDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && deletion.isPending) return;
+          setDeletionDialogOpen(open);
+          if (!open) requestAnimationFrame(() => deletionTriggerRef.current?.focus());
+        }}
+      >
+        <AlertDialogContent dir={dir}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("profile.deleteConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("profile.deleteConfirmDescription")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletion.isPending}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletion.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                submitDeletionRequest();
+              }}
+              className="border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletion.isPending
+                ? t("profile.deleteRequestSubmitting")
+                : t("profile.deleteConfirmAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
