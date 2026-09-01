@@ -16,13 +16,13 @@ Legend: **Pass** means inspected live or from deterministic layout source; **Sou
 
 Unperformed required variants: 360×800, 430×932, tablet landscape, browser zoom 125%/200%, authenticated content and keyboard with a screen reader. They are test-plan blockers, not claims of a pass.
 
-## Milestone 2 checkout and deletion matrix
+## Milestone 2 authenticated package-payment and deletion matrix
 
 | Flow/state                                            | 320×720 | 360×800 | 390×844 | 430×932 | 768×1024 | 1366×768 | 1440×900 | EN / HE / AR | Evidence status                                                                                              |
 | ----------------------------------------------------- | ------- | ------- | ------- | ------- | -------- | -------- | -------- | ------------ | ------------------------------------------------------------------------------------------------------------ |
-| Public checkout, no selection                         | Pass HE | Source | Pass EN/HE/AR | Source | Source  | Source  | Pass EN/HE/AR  | All required | No payment action was submitted.                                            |
-| Public checkout, selected authoritative package price | Pass EN/HE/AR | Pass EN | Pass EN/HE/AR | Pass EN | Pass EN  | Pass EN  | Pass EN/HE/AR  | All required | Screenshots captured locally; no horizontal overflow.                                      |
-| Authenticated package route                           | Source | Source | Pass EN | Source | Source | Source | Source | EN only | Real local fixture/login and 390px route screenshot; checkout-session states remain unverified. |
-| Authenticated account route                           | Source | Source | Pass EN | Source | Source | Source | Source | EN only | Real local fixture/login and 390px route screenshot; deletion dialog/result states remain unverified. |
+| Authenticated packages, loaded data                   | Source | Source | Pass EN | Source | Source | Source | Source | EN only | Real local fixture/login and 390px package screenshot; payment-sheet states remain unverified. |
+| Payment sheet summary/loading/error                   | Open | Open | Open | Open | Open | Open | Open | Open | P2-02 mutation states have not been executed. |
+| Authenticated account, loaded data                    | Source | Source | Pass EN | Source | Source | Source | Source | EN only | Real local fixture/login and 390px account screenshot; deletion dialog/result states remain unverified. |
+| Deletion dialog/loading/success/error                 | Open | Open | Open | Open | Open | Open | Open | Open | P2-03 mutation states have not been executed. |
 
-The fixture/access blocker is resolved locally, but the authenticated state matrix remains **incomplete**, not passed. No production member, payment, or deletion interaction has been used.
+The fixture/access blocker is resolved locally, but the authenticated state matrix remains **incomplete**, not passed. Public `/checkout` screenshots remain P1-01 baseline context rather than P2-02 closure evidence. No production member, payment, or deletion interaction has been used.

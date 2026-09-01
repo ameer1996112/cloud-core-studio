@@ -18,10 +18,10 @@ Result: **pass**.
 - The fake fixture authenticated through the rendered `/auth` password form; no injected React state or hidden login route was used.
 - `/member/packages` remained on its protected route.
 - `/member/account` remained on its protected route.
-- `/checkout` loaded normally after authentication.
+- Public `/checkout` loaded normally after authentication, but this is unrelated public-route smoke and not P2-02 package-payment proof.
 - Final local loaded-data probe: **pass**. After the QA-only alias adapter supplied `SUPABASE_PUBLISHABLE_KEY` before the server bundle imported, both deterministic fixture package names and the fake member profile visibly rendered. Evidence: `screenshots/after/milestone-2-authenticated-complete/`.
 - This does not establish the uncompleted intercepted mutation matrix or manual accessibility matrix.
-- Screenshots were captured at 390 × 844: `../screenshots/after/milestone-2-authenticated/`.
+- Screenshots were captured at 390 × 844: `../screenshots/after/milestone-2-authenticated-complete/`.
 
 ## Not yet executed
 

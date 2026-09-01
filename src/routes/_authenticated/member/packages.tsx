@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Sparkles,
   Check,
@@ -22,6 +22,7 @@ import { createCheckoutSession } from "@/lib/receipts.functions";
 import { cancelMySubscription } from "@/lib/subscriptions.functions";
 import { LANG_META, labelForMethod, labelForStatus, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberEmptyState } from "@/components/member/PremiumClassCard";
+import { MemberFeedbackPanel } from "@/components/member/MemberFeedbackPanel";
 import { formatPlanPrice, getPlanDisplay } from "@/lib/planDisplay";
 import { hasTestPlanRecord } from "@/lib/test-records";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -72,6 +73,8 @@ function MemberPackages() {
   const qc = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [checkoutFeedback, setCheckoutFeedback] = useState<"error" | null>(null);
+  const checkoutRequestInFlightRef = useRef(false);
   const purchaseOpenerRef = useRef<HTMLButtonElement | null>(null);
   const purchaseCardRef = useRef<HTMLElement | null>(null);
   const inventoryFallbackRef = useRef<HTMLDivElement | null>(null);
@@ -115,14 +118,19 @@ function MemberPackages() {
           checkout: v.checkout,
         },
       }),
+    onMutate: () => setCheckoutFeedback(null),
     onSuccess: (res: any) => {
       if (res?.status === "ready" && res.checkout_url) {
         window.location.href = res.checkout_url;
         return;
       }
-      toast.error(res?.message ?? t("packages.cardPaymentError"));
+      checkoutRequestInFlightRef.current = false;
+      setCheckoutFeedback("error");
     },
-    onError: () => toast.error(t("packages.cardPaymentError")),
+    onError: () => {
+      checkoutRequestInFlightRef.current = false;
+      setCheckoutFeedback("error");
+    },
   });
   const cancelSubscriptionMutation = useMutation({
     mutationFn: () => cancelSubscription(),
@@ -165,27 +173,21 @@ function MemberPackages() {
     }
     if (method === "card" || method === "bit") {
       if (!checkout) return;
+      if (checkoutRequestInFlightRef.current) return;
+      checkoutRequestInFlightRef.current = true;
       checkoutPayment.mutate({ planId: plan.id, method, recurring, checkout });
       return;
     }
     const planDisplay = getPlanDisplay(plan, lang);
     const amount = formatBidiValue(formatPlanPrice(plan), "currency");
-    const text =
-      method === "bit"
-        ? t("member.packageBitConfirmationMessage", {
-            studio: settings?.studio_name ?? "Cloud & Core",
-            member: memberName || t("member.friend"),
-            plan: planDisplay.name,
-            amount,
-          })
-        : t("member.packageManualPaymentMessage", {
-            studio: settings?.studio_name ?? "Cloud & Core",
-            member: memberName || t("member.friend"),
-            plan: planDisplay.name,
-            method: labelForMethod(method),
-            amount,
-            credits,
-          });
+    const text = t("member.packageManualPaymentMessage", {
+      studio: settings?.studio_name ?? "Cloud & Core",
+      member: memberName || t("member.friend"),
+      plan: planDisplay.name,
+      method: labelForMethod(method),
+      amount,
+      credits,
+    });
     manualPayment.mutate({ planId: plan.id, method, messageText: text });
   }
 
@@ -330,11 +332,19 @@ function MemberPackages() {
           lang={lang}
           settings={settings}
           pending={manualPayment.isPending || checkoutPayment.isPending}
+          checkoutFeedback={checkoutFeedback}
           restoreFocusRef={purchaseOpenerRef}
           restoreCardRef={purchaseCardRef}
           inventoryFallbackRef={inventoryFallbackRef}
-          onOpenChange={setPaymentSheetOpen}
-          onClosed={() => setSelectedPlan(null)}
+          onOpenChange={(open) => {
+            if (!open && checkoutPayment.isPending) return;
+            setPaymentSheetOpen(open);
+            if (!open) setCheckoutFeedback(null);
+          }}
+          onClosed={() => {
+            setCheckoutFeedback(null);
+            setSelectedPlan(null);
+          }}
           onSubmit={(method, recurring, checkout) =>
             submitPayment(selectedPlan, method, recurring, checkout)
           }
@@ -965,6 +975,7 @@ export function PaymentMethodSheet({
   lang,
   settings,
   pending,
+  checkoutFeedback,
   initialFocusRef: providedInitialFocusRef,
   restoreFocusRef,
   restoreCardRef,
@@ -978,6 +989,7 @@ export function PaymentMethodSheet({
   lang: Lang;
   settings: any;
   pending: boolean;
+  checkoutFeedback: "error" | null;
   initialFocusRef?: PaymentSheetFocusRef<HTMLButtonElement>;
   restoreFocusRef: PaymentSheetFocusRef;
   restoreCardRef: PaymentSheetFocusRef;
@@ -996,6 +1008,7 @@ export function PaymentMethodSheet({
     termsAccepted: false,
   });
   const defaultInitialFocusRef = useRef<HTMLButtonElement | null>(null);
+  const checkoutFeedbackRef = useRef<HTMLElement | null>(null);
   const initialFocusRef = providedInitialFocusRef ?? defaultInitialFocusRef;
   const dir = LANG_META[lang].dir;
   const display = getPlanDisplay(plan, lang);
@@ -1033,6 +1046,12 @@ export function PaymentMethodSheet({
     inventoryFallbackRef,
     onClosed,
   });
+
+  useEffect(() => {
+    if (checkoutFeedback !== "error") return;
+    const frame = requestAnimationFrame(() => checkoutFeedbackRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [checkoutFeedback]);
 
   async function copyBitPhone() {
     try {
@@ -1076,8 +1095,10 @@ export function PaymentMethodSheet({
 
         <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_var(--cc-alpha-white-72)]">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="font-display text-2xl leading-tight text-navy">{display.name}</p>
+            <div className="min-w-0">
+              <p className="break-words font-display text-2xl leading-tight text-navy">
+                {display.name}
+              </p>
               <p className="mt-1 text-sm text-slate">{display.memberLine}</p>
               {recurringCard && (
                 <p className="package-recurring-disclosure mt-2">
@@ -1086,11 +1107,37 @@ export function PaymentMethodSheet({
                 </p>
               )}
             </div>
-            <p className="numeric-display text-3xl text-navy">
-              <BidiValue kind="currency">{formatPlanPrice(plan)}</BidiValue>
-            </p>
+            <div className="shrink-0 text-end">
+              <p className="text-xs font-semibold text-slate">{t("packages.total")}</p>
+              <p className="numeric-display mt-1 text-3xl text-navy">
+                <BidiValue kind="currency">{formatPlanPrice(plan)}</BidiValue>
+              </p>
+            </div>
           </div>
         </div>
+
+        {checkoutFeedback === "error" ? (
+          <MemberFeedbackPanel
+            ref={checkoutFeedbackRef}
+            variant="error"
+            title={t("packages.cardPaymentError")}
+            live="assertive"
+            className="mt-5"
+          >
+            <p>{t("packages.cardPaymentRetry")}</p>
+            <button
+              type="button"
+              disabled={!isOnline || pending || !checkoutComplete}
+              onClick={() => {
+                if (!method || !isOnline || pending || !checkoutComplete) return;
+                onSubmit(method, method === "card" && recurringCard, checkout);
+              }}
+              className="btn-outline mt-3 min-h-11 disabled:opacity-50"
+            >
+              {t("common.retry")}
+            </button>
+          </MemberFeedbackPanel>
+        ) : null}
 
         {!confirming ? (
           <div className="mt-5 space-y-3">

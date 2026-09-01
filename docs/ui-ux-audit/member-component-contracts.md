@@ -12,7 +12,7 @@
 
 **Accessible behavior.** The panel is a programmatically focusable status region. An assertive error has `role="alert"`; all other states have `role="status"`. The caller is responsible for choosing an appropriate live level and moving focus only when a result needs attention.
 
-**RTL/LTR behavior.** It inherits the route `dir`, uses logical `text-start`, and contains no ordered numeric or currency formatting. Callers must use `LtrInline` for mixed-direction numbers/currency.
+**RTL/LTR behavior.** It inherits the route `dir`, uses logical `text-start`, and contains no ordered numeric or currency formatting. Callers must use a directional-isolation primitive such as `BidiValue kind="currency"` (or `LtrInline` where appropriate) for mixed-direction numbers/currency.
 
 **Mobile/disabled/loading behavior.** The panel has no controls and its text wraps at 320px. It must describe a related action’s current state; it does not own disabled/loading behavior.
 

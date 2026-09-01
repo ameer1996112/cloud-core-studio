@@ -8,14 +8,12 @@ Captured before authenticated QA on `codex/member-ui-ux-improvements`.
 - `src/components/app-shell/language-menu.ts`
 - `src/components/member/ClassDetailSheet.tsx`
 - `src/components/member/MemberFeedbackPanel.tsx`
-- `src/lib/i18n.ts`
+- `src/lib/i18n/catalogs/member.ts`
 - `src/routes/__root.tsx`
 - `src/routes/_authenticated/route.tsx`
 - `src/routes/_authenticated/member/account.tsx`
 - `src/routes/_authenticated/member/packages.tsx`
-- `src/routes/checkout.tsx`
 - `src/routes/payment-result.tsx`
-- `src/styles/theme-session.css`
 - `src/styles/tokens.css`
 
 ## QA/test files

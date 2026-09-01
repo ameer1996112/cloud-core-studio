@@ -105,6 +105,7 @@ export const memberCatalog = {
     "packages.cardLabel": "Credit card",
     "packages.cardPaymentError":
       "Could not open card payment. Please try again or contact the studio.",
+    "packages.cardPaymentRetry": "No payment was completed. Try again when you are ready.",
     "packages.cardRecurringConfirmDescription":
       "You will be redirected to HYP. First payment is today, then this renews every month until you cancel.",
     "packages.cardRecurringDescription":
@@ -149,6 +150,7 @@ export const memberCatalog = {
     "packages.selectedMethod": "Selected method",
     "packages.sendRequest": "Send request to studio",
     "packages.submitForConfirmation": "Submit for confirmation",
+    "packages.total": "Total",
     "packages.subscriptionActive": "Monthly card subscription active",
     "packages.subscriptionCancel": "Stop monthly payment",
     "packages.subscriptionCancelError": "Could not stop the monthly payment.",
@@ -165,10 +167,25 @@ export const memberCatalog = {
     "page.profile.title": "Profile",
     "payments.pending": "Pending payments",
     "profile.deleteAlreadyRequested": "A deletion request is already open.",
+    "profile.deleteAlreadyRequestedBody":
+      "No second request was submitted. Your existing request remains open with the studio.",
     "profile.deleteReason": "Deletion request note",
     "profile.deleteReasonPlaceholder": "Optional note for the studio team",
     "profile.deleteRequest": "Request account deletion",
+    "profile.deleteConfirmAction": "Submit deletion request",
+    "profile.deleteConfirmDescription":
+      "Your account will not be deleted now. The studio will review your request, including any bookings, payments, and required records.",
+    "profile.deleteConfirmTitle": "Submit account deletion request?",
     "profile.deleteRequestError": "Could not send deletion request.",
+    "profile.deleteRequestErrorBody":
+      "Your deletion request was not submitted. Try again, or contact the studio for help.",
+    "profile.deleteRequestExplanation":
+      "This submits a request to the studio; it does not delete your account immediately.",
+    "profile.deleteRequestSubmittedBody":
+      "The studio received your request. Your account remains available while the request is reviewed.",
+    "profile.deleteRequestSubmittedTitle": "Deletion request submitted",
+    "profile.deleteRequestSubmitting": "Submitting deletion request…",
+    "profile.deleteRequestSupport": "Contact support",
     "profile.deleteRequestSent": "Account deletion request sent.",
     "profile.details": "Your details",
     "profile.emergency": "Emergency contact",
@@ -293,6 +310,7 @@ export const memberCatalog = {
     "packages.cardConfirmDescription": "נעביר אותך לדף התשלום המאובטח של HYP להשלמת העסקה.",
     "packages.cardLabel": "כרטיס אשראי",
     "packages.cardPaymentError": "לא הצלחנו לפתוח תשלום באשראי. נסי שוב או פני לסטודיו.",
+    "packages.cardPaymentRetry": "לא בוצע תשלום. אפשר לנסות שוב כשתהיי מוכנה.",
     "packages.cardRecurringConfirmDescription":
       "נעביר אותך ל-HYP. החיוב הראשון היום, ולאחר מכן החבילה מתחדשת בכל חודש עד ביטול.",
     "packages.cardRecurringDescription": "תשלום חודשי חוזר באשראי עד שתבטלי.",
@@ -333,6 +351,7 @@ export const memberCatalog = {
     "packages.selectedMethod": "אמצעי שנבחר",
     "packages.sendRequest": "שליחת בקשה לסטודיו",
     "packages.submitForConfirmation": "שליחת תשלום לאישור",
+    "packages.total": "סה״כ לתשלום",
     "packages.subscriptionActive": "תשלום חודשי באשראי פעיל",
     "packages.subscriptionCancel": "עצירת תשלום חודשי",
     "packages.subscriptionCancelError": "לא הצלחנו לעצור את התשלום החודשי.",
@@ -349,10 +368,24 @@ export const memberCatalog = {
     "page.profile.title": "פרופיל",
     "payments.pending": "תשלומים ממתינים",
     "profile.deleteAlreadyRequested": "כבר קיימת בקשת מחיקה פתוחה.",
+    "profile.deleteAlreadyRequestedBody":
+      "לא נשלחה בקשה נוספת. הבקשה הקיימת נשארת פתוחה אצל הסטודיו.",
     "profile.deleteReason": "הערה לבקשת מחיקה",
     "profile.deleteReasonPlaceholder": "הערה אופציונלית לצוות הסטודיו",
     "profile.deleteRequest": "בקשת מחיקת חשבון",
+    "profile.deleteConfirmAction": "שליחת בקשת מחיקה",
+    "profile.deleteConfirmDescription":
+      "החשבון לא יימחק כעת. הסטודיו יבדוק את הבקשה, כולל הזמנות, תשלומים ורשומות נדרשות.",
+    "profile.deleteConfirmTitle": "לשלוח בקשה למחיקת חשבון?",
     "profile.deleteRequestError": "לא הצלחנו לשלוח בקשת מחיקה.",
+    "profile.deleteRequestErrorBody":
+      "בקשת המחיקה לא נשלחה. אפשר לנסות שוב או לפנות לסטודיו לעזרה.",
+    "profile.deleteRequestExplanation": "הפעולה שולחת בקשה לסטודיו; החשבון לא יימחק מיד.",
+    "profile.deleteRequestSubmittedBody":
+      "הסטודיו קיבל את הבקשה. החשבון נשאר זמין בזמן שהבקשה נבדקת.",
+    "profile.deleteRequestSubmittedTitle": "בקשת המחיקה נשלחה",
+    "profile.deleteRequestSubmitting": "שולחים בקשת מחיקה…",
+    "profile.deleteRequestSupport": "פנייה לתמיכה",
     "profile.deleteRequestSent": "בקשת מחיקת החשבון נשלחה.",
     "profile.details": "הפרטים שלך",
     "profile.emergency": "איש קשר לשעת חירום",
@@ -478,6 +511,7 @@ export const memberCatalog = {
     "packages.cardConfirmDescription": "سنحوّلك إلى صفحة الدفع الآمنة من HYP لإكمال الدفع.",
     "packages.cardLabel": "بطاقة ائتمان",
     "packages.cardPaymentError": "تعذر فتح الدفع بالبطاقة. حاولي مرة أخرى أو تواصلي مع الاستوديو.",
+    "packages.cardPaymentRetry": "لم يكتمل أي دفع. يمكنك المحاولة مجددًا عندما تكونين جاهزة.",
     "packages.cardRecurringConfirmDescription":
       "سنحوّلك إلى HYP. الدفعة الأولى اليوم، وبعدها تتجدد الباقة كل شهر حتى الإلغاء.",
     "packages.cardRecurringDescription": "دفع شهري متكرر بالبطاقة حتى تقومي بإلغائه.",
@@ -517,6 +551,7 @@ export const memberCatalog = {
     "packages.selectedMethod": "طريقة الدفع المختارة",
     "packages.sendRequest": "إرسال طلب للاستوديو",
     "packages.submitForConfirmation": "إرسال الدفع للتأكيد",
+    "packages.total": "المبلغ الإجمالي",
     "packages.subscriptionActive": "اشتراك شهري بالبطاقة فعال",
     "packages.subscriptionCancel": "إيقاف الدفع الشهري",
     "packages.subscriptionCancelError": "تعذر إيقاف الدفع الشهري.",
@@ -533,10 +568,25 @@ export const memberCatalog = {
     "page.profile.title": "الملف الشخصي",
     "payments.pending": "قيد الانتظار",
     "profile.deleteAlreadyRequested": "يوجد طلب حذف مفتوح بالفعل.",
+    "profile.deleteAlreadyRequestedBody":
+      "لم يتم إرسال طلب ثانٍ. يبقى طلبك الحالي مفتوحًا لدى الاستوديو.",
     "profile.deleteReason": "ملاحظة طلب الحذف",
     "profile.deleteReasonPlaceholder": "ملاحظة اختيارية لفريق الاستوديو",
     "profile.deleteRequest": "طلب حذف الحساب",
+    "profile.deleteConfirmAction": "إرسال طلب الحذف",
+    "profile.deleteConfirmDescription":
+      "لن يتم حذف حسابك الآن. سيراجع الاستوديو طلبك، بما في ذلك الحجوزات والدفعات والسجلات المطلوبة.",
+    "profile.deleteConfirmTitle": "إرسال طلب حذف الحساب؟",
     "profile.deleteRequestError": "تعذر إرسال طلب الحذف.",
+    "profile.deleteRequestErrorBody":
+      "لم يتم إرسال طلب الحذف. حاولي مرة أخرى أو تواصلي مع الاستوديو للحصول على المساعدة.",
+    "profile.deleteRequestExplanation":
+      "هذه العملية ترسل طلبًا إلى الاستوديو ولا تحذف حسابك فورًا.",
+    "profile.deleteRequestSubmittedBody":
+      "استلم الاستوديو طلبك. يبقى حسابك متاحًا أثناء مراجعة الطلب.",
+    "profile.deleteRequestSubmittedTitle": "تم إرسال طلب الحذف",
+    "profile.deleteRequestSubmitting": "يتم إرسال طلب الحذف…",
+    "profile.deleteRequestSupport": "التواصل مع الدعم",
     "profile.deleteRequestSent": "تم إرسال طلب حذف الحساب.",
     "profile.details": "بياناتك",
     "profile.emergency": "جهة طوارئ",

@@ -14,7 +14,7 @@ The fixture is `qa-member-ui@cloudcore.test`, has a member profile and two deter
 - Final-pass update: after the guarded QA alias repair, `/member/packages` visibly rendered both deterministic local plans and `/member/account` visibly rendered the fake member profile through normal authenticated data paths.
 - Real local password authentication through `/auth`.
 - Authenticated protected-route access to `/member/packages` and `/member/account`.
-- Authenticated `/checkout` rendering.
+- Public `/checkout` rendering was observed separately; it is not evidence for the authenticated P2-02 package-payment flow.
 - The previous missing-alias limitation is superseded by `validation/local-supabase-env-contract.md`; the remaining mutation, language, zoom, axe, and VoiceOver matrix is still incomplete.
 - 390 × 844 English screenshots for the three routes.
 - No real payment, deletion request, remote database operation, outbound notification, deployment, or payment-provider call.

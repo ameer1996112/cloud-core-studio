@@ -5,7 +5,7 @@
 **Overall member-experience score: 78/100. Mobile: 82. Desktop: 84. Arabic: 79. Hebrew: 83. English: 84.**
 
 - Member-related routes discovered: 23 (including 5 legacy redirects and record-dependent receipt route)
-- Fully audited live: 9 reachable public/guard/error routes; source-audited: 14; blocked by safe-account/record access: 7 stateful routes
+- Fully audited live: 9 reachable public/guard/error routes; source-audited: 14; authenticated loaded-data evidence is available locally for packages/account, while mutation states remain unexecuted
 - Important actions live-tested: 14 non-mutating actions; mutation actions tested: 0 by design
 - Findings: P0 0, P1 5, P2 4, P3 2, observations 5
 
@@ -13,7 +13,7 @@ The live public experience is unusually strong for an early boutique studio prod
 
 ## Milestone 2 authenticated QA update
 
-A deterministic local-only member fixture now completes the real `/auth` password flow and visibly renders fixture package and account data at 390 × 844. This establishes safe authenticated loaded-data coverage, but it does not close the checkout/deletion findings: intercepted side-effect states, EN/HE/AR responsive evidence, keyboard-dialog, 200% zoom, automated accessibility and manual screen-reader verification remain incomplete. See `milestone-2-final-closure-report.md`.
+A deterministic local-only member fixture now completes the real `/auth` password flow and visibly renders fixture package and account data at 390 × 844. This establishes safe authenticated loaded-data coverage, but it does not close the package-payment/deletion findings: intercepted side-effect states, EN/HE/AR responsive evidence, keyboard-dialog, 200% zoom, automated accessibility and manual screen-reader verification remain incomplete. See `milestone-2-final-closure-report.md`.
 
 ### Ten biggest reasons it does not yet feel fully professional
 
@@ -59,7 +59,7 @@ Recommended implementation order: accessibility and destructive-action safety �
 | P1-04 | P1 | `/member/schedule` detail | EN tested | 390 | Class detail sheet | Understand location | Location is truncated to “At Cloud & Core…” in the key facts card. | High | `public-class-detail-en-390x844.png` | `Stat` values truncate indiscriminately | Wrap/expand full location and make it an address/map link where appropriate. | Full location visible/announced at 320, 390 and RTL. | `src/components/member/ClassDetailSheet.tsx` | S | High |
 | P1-05 | P1 | errors/payment (local source) | EN/AR risk | all | Error/payment result | Failure/pending | Local source hard-codes Hebrew and `dir=rtl`; observed production EN is localized, so parity is unsafe. | High | `payment-result-en-390x844.png`; source review | User copy bypasses i18n | Route all user copy and direction through locale system; add three-language tests. | EN/HE/AR source and deployed output match for all statuses. | `src/routes/payment-result.tsx`, `src/routes/__root.tsx`, `src/routes/_authenticated/route.tsx` | M | High |
 | P2-01 | P2 | member shell | all | all | Language menu | Keyboard use | Custom menu lacks documented Escape/arrow/roving focus behavior. | Medium | AX-02 | Hand-rolled menu semantics | Use tested primitive/APG implementation. | Arrow, Escape and focus-return tests pass. | `src/components/app-shell/AppShell.tsx` | M | High |
-| P2-02 | P2 | `/checkout` | all | 390 | Plan selection | Trust/copy | Card price is immediately visible while note says full price appears after sign-in. | Medium | `checkout-en-390x844.png` | Inconsistent stage framing | Explain shown price vs final review precisely, or move selection post-auth. | Copy and visible price describe the same decision stage. | `src/routes/checkout.tsx` | S | High |
+| P2-02 | P2 | `/member/packages` | all | 390 | `PackagePricingCard` → `PaymentMethodSheet` | Package payment | The authenticated payment sheet needed clear separation of selected package, authoritative total, recurring disclosure when supplied, and the provider handoff; failure recovery was toast-only. | Medium | Source and local fixture evidence; public checkout screenshots are P1-01 context only | Inconsistent package/payment hierarchy and transient failure feedback | Keep the real server-provided amount distinct from provider handoff; make the next action and recovery accurate. | Member can identify package, authoritative total/currency, authoritative recurring disclosure when available, and provider handoff; failure feedback persists without a false payment result. | `src/routes/_authenticated/member/packages.tsx` | S | High |
 | P2-03 | P2 | `/member/account` | all | all | Deletion request | Destructive request | Request fires immediately and success is toast-only; status/next step is not persistent in UI. | Medium | Source review | No confirmation/status component | Add confirmation, explanatory review window, and durable requested state. | Member can cancel/back out before submit and see request status afterward. | `src/routes/_authenticated/member/account.tsx` | M | Medium |
 | P2-04 | P2 | member UI | all | all | CSS system | Consistency | Token, base, member and quality override layers duplicate roles and hard-code visual values. | Medium | Source review | Design system implemented in layers | Consolidate semantic tokens and component variants incrementally. | No route needs one-off color/spacing to represent shared semantic state. | `src/styles/tokens.css`, `base-components.css`, `member.css`, `quality-overrides.css` | L | High |
 | P3-01 | P3 | mobile nav | HE/AR/EN | 320 | Five-tab bar | Long translation | Five labels fit in reviewed source but leave little resilience at 320px. | Low | `AppShell.tsx`; responsive matrix | Fixed five-item allocation | Regression-test actual longest labels and use More only if needed. | All labels/targets retain clarity at 320. | `src/components/app-shell/AppShell.tsx` | M | Medium |
@@ -75,7 +75,7 @@ Recommended implementation order: accessibility and destructive-action safety �
 | Checkout | 70 | Good form semantics and visual trust cues; continuity and price-stage ambiguity materially weaken confidence. |
 | Payment result | 80 | Production pending state is excellent; local source parity/localization risk prevents a higher score. |
 | Support/legal | 87 | Direct, orderly, readable; non-English live evidence not captured. |
-| Authenticated home/bookings/packages/account | 74 (source) | Purposeful components/states, but no approved account allowed verification of real data, mutation, dialogs and responsive content. |
+| Authenticated home/bookings/packages/account | 74 (mixed source/local evidence) | Packages/account loaded deterministic local data, but mutation, dialog and complete responsive content matrices remain unexecuted. |
 
 ## Strongest parts
 
@@ -91,4 +91,4 @@ Implement backlog items 1–5 as one “safe completion” milestone, then run t
 
 ## Scope confirmation
 
-No application source code, production data, payment configuration, authentication configuration, Supabase schema/RLS, booking logic, credits, promotions, backend behavior, deployments, bookings or cancellations were changed. Only this audit documentation and its screenshots were created.
+Milestone 2 changed only member UI presentation, localization, shared feedback semantics and test/QA support. No production data, payment configuration, authentication configuration, Supabase schema/RLS, booking logic, credits, promotions, backend behavior, deployments, bookings or cancellations were changed.

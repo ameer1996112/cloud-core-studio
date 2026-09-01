@@ -58,11 +58,11 @@ describe("i18n namespaces", () => {
     }
   });
 
-  test("preserves all 1,366 translated values in every language", () => {
+  test("preserves all 1,378 translated values in every language", () => {
     const expectedHashes = {
-      en: "1989d5486cd689d839e4f8cd1d38f389c11e266a8d7984a9e393b9d36cb55597",
-      he: "884a4b120f61d45e81dae5c06f9ca786702fa3ed1d7a7cbe8f5fabcfca268f1d",
-      ar: "c8a4a76b658c6eb6061922b81c5ce26562659fa265fc54da5f0dbdbd51fda239",
+      en: "7a8f5ee123d292c7494aef0c4e691b32cfe720d56ba08405dcc32c39ad8404fa",
+      he: "ac6ffea3f7e18a53673cbba8067c1accd31ebb97f3bdf48e581c4a2c6ca94b96",
+      ar: "ec01a63e19648e15da7157c7ce6ea928a1e0365e7e2301dbead95d1269db08db",
     } as const;
 
     for (const language of ["en", "he", "ar"] as const) {
@@ -77,7 +77,7 @@ describe("i18n namespaces", () => {
         [...messages].sort(([left], [right]) => left.localeCompare(right)),
       );
 
-      expect(messages.size).toBe(1_366);
+      expect(messages.size).toBe(1_378);
       expect(createHash("sha256").update(serialized).digest("hex")).toBe(expectedHashes[language]);
     }
   });
