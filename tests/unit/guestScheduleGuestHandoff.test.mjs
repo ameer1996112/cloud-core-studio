@@ -317,6 +317,7 @@ mock.module("@/lib/localized-content", () => ({
 }));
 
 mock.module("@/components/ui/bidi", () => ({
+  BidiValue: ({ children }) => React.createElement(React.Fragment, {}, children),
   LtrInline: ({ children }) => React.createElement(React.Fragment, {}, children),
   MixedLessonTitle: ({ program, ...props }) => React.createElement("h2", props, program),
 }));
@@ -461,7 +462,7 @@ describe("guest schedule handoff", () => {
     expect(bookingsHtml).toContain('role="tabpanel"');
     expect(bookingsHtml).toContain('id="member-bookings-panel-upcoming"');
     expect(bookingsHtml).toContain('aria-labelledby="member-bookings-tab-upcoming"');
-    expect(bookingsHtml).toContain('member-booking-counts"');
+    expect(bookingsHtml).toContain('class="member-booking-counts ');
     expect(bookingsHtml).toContain('aria-label="0"');
 
     expect(mutationConfigs.length).toBeGreaterThan(0);
@@ -510,7 +511,7 @@ describe("guest schedule handoff", () => {
       const loadingHtml = renderBookings();
       expect(loadingHtml).toContain('role="status"');
       expect(loadingHtml).toContain("member-booking-counts-placeholder");
-      expect(loadingHtml).not.toContain('member-booking-counts"');
+      expect(loadingHtml).not.toContain('class="member-booking-counts ');
       expect(loadingHtml).not.toContain('aria-label="0"');
       expect(loadingHtml).not.toContain('data-testid="empty-state"');
 
@@ -523,7 +524,7 @@ describe("guest schedule handoff", () => {
       const errorHtml = renderBookings();
       expect(errorHtml).toContain('role="alert"');
       expect(errorHtml).toContain("member-booking-counts-placeholder");
-      expect(errorHtml).not.toContain('member-booking-counts"');
+      expect(errorHtml).not.toContain('class="member-booking-counts ');
       expect(errorHtml).not.toContain('aria-label="0"');
       expect(errorHtml).not.toContain('data-testid="empty-state"');
       expect(errorHtml).not.toContain(">reservation<");
@@ -546,7 +547,7 @@ describe("guest schedule handoff", () => {
       };
       const cachedErrorHtml = renderBookings();
       expect(cachedErrorHtml).not.toContain('role="alert"');
-      expect(cachedErrorHtml).toContain('member-booking-counts"');
+      expect(cachedErrorHtml).toContain('class="member-booking-counts ');
       expect(cachedErrorHtml).toContain(">reservation<");
     } finally {
       bookingsQueryResult = {
