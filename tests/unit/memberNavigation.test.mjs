@@ -11,7 +11,7 @@ import {
 
 mock.module("@tanstack/react-router", () => ({
   ...TanStackRouter,
-  Link: ({ to, children, reloadDocument, onClick, preload, ...props }) =>
+  Link: ({ to, children, reloadDocument, onClick, preload, preloadDelay, ...props }) =>
     React.createElement(
       "a",
       {
@@ -19,6 +19,7 @@ mock.module("@tanstack/react-router", () => ({
         "data-reload-document": reloadDocument ? "true" : undefined,
         "data-click-handler": typeof onClick === "function" ? "true" : undefined,
         "data-preload": preload,
+        "data-preload-delay": preloadDelay,
         ...props,
       },
       children,
@@ -93,6 +94,8 @@ describe("member navigation", () => {
     expect(markup).toContain(t("nav.schedule"));
     expect(markup).toContain("Notifications");
     expect(markup).toContain("Sign out");
+    expect(markup.match(/data-preload="intent"/g)).toHaveLength(5);
+    expect(markup.match(/data-preload-delay="50"/g)).toHaveLength(5);
     expect(markup).not.toContain("<h1");
   });
 
