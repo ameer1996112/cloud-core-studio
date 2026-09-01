@@ -19,6 +19,15 @@ describe("public shell and localized recovery contracts", () => {
     expect(publicShell).toContain('id="main-content"');
   });
 
+  test("PublicShell can suppress shared chrome for self-contained public pages", () => {
+    expect(publicShell).toContain("showHeader?: boolean");
+    expect(publicShell).toContain("showFooter?: boolean");
+    expect(publicShell).toContain("showHeader = true");
+    expect(publicShell).toContain("showFooter = true");
+    expect(publicShell).toContain("{showHeader ? (");
+    expect(publicShell).toContain("{showFooter ? <PublicFooter /> : null}");
+  });
+
   test("the root keeps its localized skip-link fallback until routes adopt PublicShell", () => {
     const rootComponent = rootRoute.slice(rootRoute.indexOf("function RootComponent"));
 

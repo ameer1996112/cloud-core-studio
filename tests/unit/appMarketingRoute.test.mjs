@@ -108,8 +108,12 @@ describe("public app marketing route", () => {
   });
 
   test("renders the complete semantic section and destination contract", () => {
+    const routeSource = readFileSync(appRouteSupport, "utf8");
     expect(pageSource).not.toMatch(/<main\b/);
-    expect(readFileSync(appRouteSupport, "utf8")).toContain("<PublicShell");
+    expect(routeSource).toContain("<PublicShell");
+    expect(routeSource).toContain("showHeader={false}");
+    expect(routeSource).toContain("showFooter={false}");
+    expect(routeSource).toContain('skipLinkClassName="app-marketing__skip-link"');
     expect(pageSource).toContain("aria-label={copy.features.title}");
     expect(pageSource).toContain("aria-label={copy.screenshots.title}");
     expect(pageSource).toContain("aria-label={copy.classes.title}");

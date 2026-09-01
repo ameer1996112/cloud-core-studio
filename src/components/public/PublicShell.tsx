@@ -8,33 +8,45 @@ import { PublicLanguageSwitcher } from "./PublicLanguageSwitcher";
 export interface PublicShellProps {
   children: ReactNode;
   headerMode?: "full" | "compact";
+  showHeader?: boolean;
+  showFooter?: boolean;
   showSchedule?: boolean;
   showAccount?: boolean;
   mainClassName?: string;
+  skipLinkClassName?: string;
 }
 
 export function PublicShell({
   children,
   headerMode = "full",
+  showHeader = true,
+  showFooter = true,
   showSchedule = true,
   showAccount = true,
   mainClassName,
+  skipLinkClassName,
 }: PublicShellProps) {
   const { t } = useI18n();
 
   return (
     <div className="min-h-dvh bg-[var(--cc-surface-canvas)] text-[var(--cc-text-primary)]">
       <a
-        className="cc-skip-link sr-only fixed start-4 top-4 z-50 rounded-md bg-[var(--cc-action-primary)] px-4 py-3 text-[var(--cc-action-primary-foreground)] focus:not-sr-only focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
+        className={`cc-skip-link sr-only fixed start-4 top-4 z-50 rounded-md bg-[var(--cc-action-primary)] px-4 py-3 text-[var(--cc-action-primary-foreground)] focus:not-sr-only focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)] ${skipLinkClassName ?? ""}`}
         href="#main-content"
       >
         {t("common.skipToContent")}
       </a>
-      <PublicHeader headerMode={headerMode} showSchedule={showSchedule} showAccount={showAccount} />
+      {showHeader ? (
+        <PublicHeader
+          headerMode={headerMode}
+          showSchedule={showSchedule}
+          showAccount={showAccount}
+        />
+      ) : null}
       <main id="main-content" className={mainClassName}>
         {children}
       </main>
-      <PublicFooter />
+      {showFooter ? <PublicFooter /> : null}
     </div>
   );
 }

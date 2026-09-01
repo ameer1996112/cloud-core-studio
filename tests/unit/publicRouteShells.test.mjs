@@ -60,11 +60,15 @@ describe("public route shell ownership", () => {
     expect(rootSource).toContain('className="global-skip-link"');
   });
 
-  test("the real reset pathname is owned by PublicShell while authenticated routes keep the fallback", async () => {
+  test("PublicShell routes own their skip link while authenticated routes keep the fallback", async () => {
     const { shouldShowRootSkipLink } = await import("../../src/lib/public-shell-paths.ts");
 
     expect(shouldShowRootSkipLink("/auth/reset")).toBe(false);
     expect(shouldShowRootSkipLink("/auth/reset/")).toBe(false);
+    expect(shouldShowRootSkipLink("/app")).toBe(false);
+    expect(shouldShowRootSkipLink("/app/ar")).toBe(false);
+    expect(shouldShowRootSkipLink("/app/he/")).toBe(false);
+    expect(shouldShowRootSkipLink("/app/en")).toBe(false);
     expect(shouldShowRootSkipLink("/member/bookings")).toBe(true);
   });
 });
