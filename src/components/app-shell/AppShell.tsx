@@ -71,6 +71,8 @@ export function MemberDesktopHeader({
               <Link
                 key={to}
                 to={to}
+                preload="intent"
+                preloadDelay={50}
                 aria-current={active ? "page" : undefined}
                 className={
                   active

@@ -146,9 +146,7 @@ describe("member experience final polish", () => {
     expect(css).toMatch(
       /@media \(min-width:\s*768px\)[\s\S]*\.member-empty-state-center\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(12rem,\s*15rem\)\s+minmax\(0,\s*1fr\)\s+auto;/,
     );
-    expect(css).toMatch(
-      /\.member-empty-state-center\s*\{[^}]*min-height:\s*14rem;[^}]*padding:/s,
-    );
+    expect(css).toMatch(/\.member-empty-state-center\s*\{[^}]*min-height:\s*14rem;[^}]*padding:/s);
     expect(css).toMatch(/@media \(max-width:\s*640px\)/);
   });
 
