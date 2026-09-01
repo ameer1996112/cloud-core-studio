@@ -140,6 +140,18 @@ describe("member experience final polish", () => {
     );
   });
 
+  test("uses a compact editorial composition for wide empty states", () => {
+    const css = read("src/styles/base.css");
+
+    expect(css).toMatch(
+      /@media \(min-width:\s*768px\)[\s\S]*\.member-empty-state-center\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(12rem,\s*15rem\)\s+minmax\(0,\s*1fr\)\s+auto;/,
+    );
+    expect(css).toMatch(
+      /\.member-empty-state-center\s*\{[^}]*min-height:\s*14rem;[^}]*padding:/s,
+    );
+    expect(css).toMatch(/@media \(max-width:\s*640px\)/);
+  });
+
   test("places the primary bookings workspace before Concierge secondary content", () => {
     const source = read("src/routes/_authenticated/member/bookings.tsx");
     const workspace = source.indexOf("<MemberSegmentedControl");

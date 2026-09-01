@@ -5688,6 +5688,39 @@ select.input:focus {
   justify-content: flex-end;
 }
 
+/* Wide member surfaces need an editorial row, not a stretched mobile stack.
+   Keep the stacked treatment for phones where it scans more naturally. */
+@media (min-width: 768px) {
+  .member-empty-state-center {
+    display: grid;
+    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: clamp(1.5rem, 4vw, 3rem);
+    row-gap: 0.75rem;
+    min-height: 14rem;
+    padding: clamp(1.5rem, 3vw, 2.25rem) clamp(2rem, 4vw, 3rem);
+    text-align: start;
+  }
+
+  .member-empty-state-center .member-empty-illustration,
+  .member-empty-state-center .member-empty-cloud-card,
+  .member-empty-state-center .member-empty-copy {
+    margin-inline: 0;
+  }
+
+  .member-empty-state-center .member-empty-copy {
+    max-width: none;
+  }
+
+  .member-empty-state-center .member-empty-actions {
+    justify-content: flex-start;
+  }
+
+  [dir="rtl"] .member-empty-state-center {
+    text-align: right;
+  }
+}
+
 .member-hero-panel {
   grid-template-columns: minmax(0, 1fr);
 }
