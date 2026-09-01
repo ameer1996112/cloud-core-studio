@@ -20,6 +20,20 @@ const { MemberSegmentedControl } =
   await import("../../src/components/member/MemberSegmentedControl.tsx");
 
 describe("member experience final polish", () => {
+  test("keeps the desktop member shell in one horizontal, styled row", () => {
+    const css = read("src/styles/member.css");
+
+    expect(css).toMatch(
+      /\.member-desktop-header__row\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*auto\s+minmax\(0,\s*1fr\)\s+auto;/s,
+    );
+    expect(css).toMatch(
+      /\.member-desktop-header__nav\s*\{[^}]*display:\s*flex;[^}]*justify-content:\s*center;/s,
+    );
+    expect(css).toMatch(
+      /\.member-desktop-nav__link--active::after\s*\{[^}]*position:\s*absolute;[^}]*background:\s*var\(--color-gold\);/s,
+    );
+  });
+
   test("keeps essential mobile navigation labels at 13px or larger", () => {
     const markup = renderToStaticMarkup(
       React.createElement(MemberMobileBottomNavigation, {
