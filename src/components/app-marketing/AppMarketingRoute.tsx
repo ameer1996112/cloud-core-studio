@@ -107,7 +107,12 @@ export function AppMarketingRoutePage({ data }: { data: AppMarketingRouteData })
   }, [data.lang]);
 
   return (
-    <PublicShell headerMode="compact" mainClassName="app-marketing-shell-main">
+    <PublicShell
+      showHeader={false}
+      showFooter={false}
+      mainClassName="app-marketing-shell-main"
+      skipLinkClassName="app-marketing__skip-link"
+    >
       <AppMarketingPage
         lang={data.lang}
         appStoreUrl={data.appStoreUrl}

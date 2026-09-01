@@ -217,6 +217,17 @@ async def assert_head(page, language):
     assert text(await page.locator("h1").text_content()) == expected["h1"]
 
 
+async def assert_single_marketing_chrome(page):
+    assert await page.locator("header").count() == 1
+    assert await page.locator(".app-marketing__header").count() == 1
+    assert await page.locator(".public-shell-header").count() == 0
+    assert await page.locator(".app-marketing__languages").count() == 1
+    assert await page.locator("footer").count() == 1
+    assert await page.locator("main").count() == 1
+    assert await page.locator("#main-content").count() == 1
+    assert await page.locator('a[href="#main-content"]').count() == 1
+
+
 async def assert_ssr_and_schema(context, page, language):
     response, initial = await get(context, f"/app/{language}?{UTM}&{PRIVATE}")
     assert response.status == 200
@@ -228,8 +239,10 @@ async def assert_ssr_and_schema(context, page, language):
     ssr_data = ssr_head.structured_data
     await page.goto(f"{BASE}/app/{language}?{UTM}&{PRIVATE}", wait_until="networkidle")
     await assert_head(page, language)
+    await assert_single_marketing_chrome(page)
     await page.reload(wait_until="networkidle")
     await assert_head(page, language)
+    await assert_single_marketing_chrome(page)
     data = json.loads(await page.locator('head script[type="application/ld+json"]').text_content())
     assert data == ssr_data
     assert data["@context"] == "https://schema.org"

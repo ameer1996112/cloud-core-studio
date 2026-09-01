@@ -12,6 +12,9 @@ const PUBLIC_SHELL_PATHS = new Set([
   "/instagram",
   "/promo/yoga-lina",
   "/app",
+  "/app/ar",
+  "/app/he",
+  "/app/en",
 ]);
 
 export function shouldShowRootSkipLink(pathname: string) {
