@@ -31,3 +31,15 @@ export function shouldClearPendingMobileNavigation({
     destination && !isLoading && (navigationStarted || resolvedPathname === destination),
   );
 }
+
+export function isPendingMemberPathChange({
+  isLoading,
+  pathname,
+  resolvedPathname,
+}: {
+  isLoading: boolean;
+  pathname: string;
+  resolvedPathname: string;
+}) {
+  return isLoading && pathname !== resolvedPathname;
+}

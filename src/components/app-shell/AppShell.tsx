@@ -29,6 +29,7 @@ import { MemberRouteSkeleton, type MemberRoute } from "@/components/member/Membe
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
 import {
+  isPendingMemberPathChange,
   isPlainPrimaryNavigationClick,
   shouldClearPendingMobileNavigation,
 } from "./memberNavigation";
@@ -249,6 +250,9 @@ export function AppShell({ role, children }: Props) {
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
   const mobileDrawerSideStyle = { insetInlineStart: 0 as const };
+  const isPendingPathChange =
+    pendingMobilePathname !== null ||
+    isPendingMemberPathChange({ isLoading: isRouteLoading, pathname, resolvedPathname });
 
   useEffect(() => {
     if (!pendingMobilePathname) return;
@@ -486,7 +490,7 @@ export function AppShell({ role, children }: Props) {
             {useBottomNav ? (
               <MemberRouteContent
                 pathname={pendingMobilePathname ?? pathname}
-                isPendingPathChange={pendingMobilePathname !== null}
+                isPendingPathChange={isPendingPathChange}
               >
                 {children}
               </MemberRouteContent>

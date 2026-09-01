@@ -13,15 +13,21 @@ const rowCount: Record<MemberRoute, number> = {
 export function MemberRouteSkeleton({ route }: { route: MemberRoute }) {
   return (
     <div
-      className={`member-route-skeleton member-route-skeleton--${route}`}
+      className={`member-route-skeleton member-route-skeleton--${route} grid gap-4`}
       role="status"
       aria-live="polite"
     >
       <span className="sr-only">{t("common.loading")}</span>
-      <div aria-hidden="true" className="member-route-skeleton__intro skeleton-brand" />
-      <div aria-hidden="true" className="member-route-skeleton__rows">
+      <div
+        aria-hidden="true"
+        className="member-route-skeleton__intro skeleton-brand min-h-28 rounded-[var(--cc-radius-panel)]"
+      />
+      <div aria-hidden="true" className="member-route-skeleton__rows grid gap-3">
         {Array.from({ length: rowCount[route] }, (_, index) => (
-          <div key={index} className="member-route-skeleton__row skeleton-brand" />
+          <div
+            key={index}
+            className="member-route-skeleton__row skeleton-brand min-h-28 rounded-[var(--cc-radius-card)]"
+          />
         ))}
       </div>
     </div>
