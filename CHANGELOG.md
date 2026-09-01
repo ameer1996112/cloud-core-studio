@@ -2,6 +2,12 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.3.0] - 2026-09-01
+
+### Fixed
+
+- Show one clean header, language switcher, content area, footer, and skip link on every localized app marketing page instead of stacking the shared public layout around the page's own navigation.
+
 ## [0.3.2.0] - 2026-08-31
 
 ### Fixed
