@@ -2,8 +2,8 @@
 
 ## Decision
 
-- **P2-02 — RELEASE-READY — MANUAL VOICEOVER VERIFICATION PENDING.** The correct flow is `/member/packages` → `PackagePricingCard` → `PaymentMethodSheet` → `createCheckoutSession`; public `/checkout` is separate. Real local fixture data, the authoritative ILS amount, bidi isolation, loading, exact duplicate counts, error/retry/malformed contracts, provider-handoff presentation, keyboard, EN/HE/AR, mobile/tablet/desktop, axe, and actual 200% browser zoom passed. No real payment occurred and P1-01 was unchanged.
-- **P2-03 — RELEASE-READY — MANUAL VOICEOVER VERIFICATION PENDING.** Real local account data, confirmation dialog name/description/focus trap/Escape/focus restoration, loading, exact duplicate counts, accurate submitted-request wording, success/failure/retry/persistence/live-region semantics, EN/HE/AR, mobile/tablet/desktop, axe, and actual 200% browser zoom passed. No real deletion request occurred.
+- **P2-02 — RELEASED — MANUAL VOICEOVER VERIFICATION PENDING.** The correct flow is `/member/packages` → `PackagePricingCard` → `PaymentMethodSheet` → `createCheckoutSession`; public `/checkout` is separate. Real local fixture data, the authoritative ILS amount, bidi isolation, loading, exact duplicate counts, error/retry/malformed contracts, provider-handoff presentation, keyboard, EN/HE/AR, mobile/tablet/desktop, axe, and actual 200% browser zoom passed. No real payment occurred and P1-01 was unchanged.
+- **P2-03 — RELEASED — MANUAL VOICEOVER VERIFICATION PENDING.** Real local account data, confirmation dialog name/description/focus trap/Escape/focus restoration, loading, exact duplicate counts, accurate submitted-request wording, success/failure/retry/persistence/live-region semantics, EN/HE/AR, mobile/tablet/desktop, axe, and actual 200% browser zoom passed. No real deletion request occurred.
 - **P2-04 — PARTIALLY RESOLVED.** Only the approved semantic `MemberFeedbackPanel` consolidation is complete; broad member-component consolidation remains open.
 - **P1-01 and P1-02 — UNIMPLEMENTED.** Their decision documents remain documentation-only.
 
@@ -27,3 +27,7 @@ No payment, deletion, booking, entitlement, Supabase, RLS, analytics, navigation
 - Screenshots: `screenshots/after/milestone-2-automated-closure/` (100 files, including 19 actual-zoom images)
 
 The only audit-closure item left is genuine VoiceOver use. It does not block the controlled release under the approved release gate, but it prevents the word “resolved.”
+
+## Production release
+
+Released exact clean tested SHA `371244aee580e56dafd97f5ca6c150c992e767bf` through PR #44/main. Cloud Build `d426a3fd-dc4a-45d8-b5de-329ca160de11` succeeded; Cloud Run revision `cloud-core-studio-00481-bcc` serves 100% traffic. Public read-only smoke passed; no rollback was needed. Full artifact, log, safety, and remaining-risk evidence is in `validation/member-ui-ux-deployment-result.md`.

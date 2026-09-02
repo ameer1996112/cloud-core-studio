@@ -1,0 +1,211 @@
+{
+  "startedAt": "2026-09-02T16:39:11.623Z",
+  "routes": [
+    {
+      "path": "/",
+      "viewport": 390,
+      "status": 200,
+      "finalPath": "/app/he",
+      "loadMs": 8979,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 390,
+      "scrollWidth": 390,
+      "textLength": 2482,
+      "heading": "יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה"
+    },
+    {
+      "path": "/auth",
+      "viewport": 390,
+      "status": 200,
+      "finalPath": "/auth",
+      "loadMs": 6000,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 390,
+      "scrollWidth": 390,
+      "textLength": 306,
+      "heading": "כניסה לסטודיו"
+    },
+    {
+      "path": "/checkout",
+      "viewport": 390,
+      "status": 200,
+      "finalPath": "/checkout",
+      "loadMs": 2245,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 390,
+      "scrollWidth": 390,
+      "textLength": 722,
+      "heading": "עמוד תשלום"
+    },
+    {
+      "path": "/support",
+      "viewport": 390,
+      "status": 200,
+      "finalPath": "/support",
+      "loadMs": 1773,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 390,
+      "scrollWidth": 390,
+      "textLength": 805,
+      "heading": "תמיכה"
+    },
+    {
+      "path": "/auth",
+      "language": "en",
+      "viewport": 390,
+      "direction": "ltr",
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "scenario": "saved-language-refresh",
+      "language": "en",
+      "viewport": 390,
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "language": "he",
+      "viewport": 390,
+      "direction": "rtl",
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "scenario": "saved-language-refresh",
+      "language": "he",
+      "viewport": 390,
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "language": "ar",
+      "viewport": 390,
+      "direction": "rtl",
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "scenario": "saved-language-refresh",
+      "language": "ar",
+      "viewport": 390,
+      "result": "pass"
+    },
+    {
+      "path": "/app/ar → /auth",
+      "viewport": 390,
+      "language": "ar",
+      "result": "pass"
+    },
+    {
+      "path": "/",
+      "viewport": 1440,
+      "status": 200,
+      "finalPath": "/app/he",
+      "loadMs": 11569,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "textLength": 2482,
+      "heading": "יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה"
+    },
+    {
+      "path": "/auth",
+      "viewport": 1440,
+      "status": 200,
+      "finalPath": "/auth",
+      "loadMs": 1739,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "textLength": 306,
+      "heading": "כניסה לסטודיו"
+    },
+    {
+      "path": "/checkout",
+      "viewport": 1440,
+      "status": 200,
+      "finalPath": "/checkout",
+      "loadMs": 2211,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "textLength": 722,
+      "heading": "עמוד תשלום"
+    },
+    {
+      "path": "/support",
+      "viewport": 1440,
+      "status": 200,
+      "finalPath": "/support",
+      "loadMs": 1717,
+      "lang": "he",
+      "dir": "rtl",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "textLength": 805,
+      "heading": "תמיכה"
+    },
+    {
+      "path": "/auth",
+      "language": "en",
+      "viewport": 1440,
+      "direction": "ltr",
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "scenario": "saved-language-refresh",
+      "language": "en",
+      "viewport": 1440,
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "language": "he",
+      "viewport": 1440,
+      "direction": "rtl",
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "scenario": "saved-language-refresh",
+      "language": "he",
+      "viewport": 1440,
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "language": "ar",
+      "viewport": 1440,
+      "direction": "rtl",
+      "result": "pass"
+    },
+    {
+      "path": "/auth",
+      "scenario": "saved-language-refresh",
+      "language": "ar",
+      "viewport": 1440,
+      "result": "pass"
+    },
+    {
+      "path": "/app/ar → /auth",
+      "viewport": 1440,
+      "language": "ar",
+      "result": "pass"
+    }
+  ],
+  "blockedMutations": [],
+  "pageErrors": [],
+  "failedAssets": [],
+  "consoleErrors": [],
+  "finishedAt": "2026-09-02T16:40:05.696Z",
+  "result": "pass"
+}

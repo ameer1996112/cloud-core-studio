@@ -5,7 +5,7 @@ Branch: `codex/member-ui-ux-improvements`
 
 ## Scope and status
 
-P2-02 and P2-03 are release-ready without changing their server contracts. Local real-auth data, intercepted purchase/deletion states, exact request counts, EN/HE/AR responsive states, keyboard, axe, and actual 200% browser zoom passed. Manual VoiceOver remains pending, so neither finding is marked resolved. No production account, payment, or deletion request was used.
+P2-02 and P2-03 were released in exact tested SHA `371244a` without changing their server contracts. Local real-auth data, intercepted purchase/deletion states, exact request counts, EN/HE/AR responsive states, keyboard, axe, and actual 200% browser zoom passed. Manual VoiceOver remains pending, so neither finding is marked resolved. No production account, payment, or deletion request was used.
 
 ## Changes
 
@@ -53,4 +53,4 @@ Remaining P2-04 work includes shared buttons, inputs, cards, dialog/bottom-sheet
 
 ## Safety confirmation
 
-No deployment occurred. No production data, Supabase schema/migration/RLS/RPC/edge function, payment configuration, Stripe/HYP configuration, account-deletion backend behavior, booking logic, cancellation rule, entitlement logic, analytics contract, or route/deep-link behavior was changed. No payment was submitted and no account deletion request was sent.
+Production deployment is recorded in `validation/member-ui-ux-deployment-result.md`. No production data, Supabase schema/migration/RLS/RPC/edge function, payment configuration, Stripe/HYP configuration, account-deletion backend behavior, booking logic, cancellation rule, entitlement logic, analytics contract, or route/deep-link behavior was changed. No payment was submitted and no account deletion request was sent.

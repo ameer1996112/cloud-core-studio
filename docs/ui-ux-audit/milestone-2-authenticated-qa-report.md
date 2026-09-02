@@ -23,8 +23,8 @@ The fixture is `qa-member-ui@cloudcore.test`, has a member profile and two deter
 
 Only genuine manual VoiceOver output remains missing. All automatable, responsive, keyboard, axe, and actual-browser-zoom gates passed.
 
-**P2-02: RELEASE-READY — MANUAL VOICEOVER VERIFICATION PENDING.**
+**P2-02: RELEASED — MANUAL VOICEOVER VERIFICATION PENDING.**
 
-**P2-03: RELEASE-READY — MANUAL VOICEOVER VERIFICATION PENDING.**
+**P2-03: RELEASED — MANUAL VOICEOVER VERIFICATION PENDING.**
 
 **P2-04: PARTIALLY RESOLVED.** Only `MemberFeedbackPanel` consolidation is in scope; broad component consolidation remains open.

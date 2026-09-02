@@ -13,4 +13,4 @@ Validated application/evidence commit: `a2661a0` in a clean detached worktree at
 | Client bundle QA-leak scan | No fixture email, `.env.qa.local`, service-role identifier, axe, or manual/release harness marker |
 | Local credentials | No `.env.qa.local` was copied to the release worktree |
 
-The follow-up documentation-only commit containing this report must be validated again before production. Its exact SHA and provider build/revision evidence are recorded in the deployment result rather than embedded self-referentially here.
+The documentation-inclusive final SHA `371244aee580e56dafd97f5ca6c150c992e767bf` was checked out in the same detached worktree and the frozen install, full 1,213-test suite, lint, build, TypeScript diagnostic-set comparison, and bundle leak scan were repeated successfully. Its deployment identity is recorded in `member-ui-ux-deployment-result.md`.

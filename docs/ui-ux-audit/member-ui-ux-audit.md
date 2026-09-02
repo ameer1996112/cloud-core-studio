@@ -13,7 +13,7 @@ The live public experience is unusually strong for an early boutique studio prod
 
 ## Milestone 2 authenticated QA update
 
-A deterministic local-only fixture completed real `/auth`, loaded package/account data, and exercised intercepted side-effect states. EN/HE/AR responsive evidence, exact counts, keyboard dialog behavior, actual 200% zoom, and 36 axe scans passed. Manual VoiceOver alone remains pending, so P2-02/P2-03 are release-ready but not fully resolved. See `milestone-2-final-closure-report.md`.
+A deterministic local-only fixture completed real `/auth`, loaded package/account data, and exercised intercepted side-effect states. EN/HE/AR responsive evidence, exact counts, keyboard dialog behavior, actual 200% zoom, and 36 axe scans passed. P2-02/P2-03 were released in `371244a`; manual VoiceOver remains pending, so they are not fully audit-resolved. See `milestone-2-final-closure-report.md`.
 
 ### Ten biggest reasons it does not yet feel fully professional
 
