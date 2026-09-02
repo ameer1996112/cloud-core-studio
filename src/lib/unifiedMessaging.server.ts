@@ -101,7 +101,15 @@ type DeliveryRow = {
   provider_payload: Record<string, unknown>;
   expires_at: string | null;
   attempt_count: number;
+  lease_token?: string | null;
 };
+
+function currentDeliveryLease<T extends { eq(column: string, value: string): T }>(
+  query: T,
+  delivery: DeliveryRow,
+) {
+  return delivery.lease_token ? query.eq("lease_token", delivery.lease_token) : query;
+}
 
 async function fetchAllRows<T>(
   page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
@@ -133,18 +141,22 @@ async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
   if (gate.error) throw gate.error;
   const result = Array.isArray(gate.data) ? gate.data[0] : gate.data;
   if (result?.allowed === true) return false;
-  const suppressed = await db
-    .from("message_deliveries")
-    .update({
-      status: "suppressed",
-      failure_class: "configuration",
-      error_code: result?.reason ?? "concierge_send_gate_denied",
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const suppressed = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "suppressed",
+        failure_class: "configuration",
+        error_code: result?.reason ?? "concierge_send_gate_denied",
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (suppressed.error) throw suppressed.error;
   return true;
 }
@@ -679,6 +691,10 @@ async function materializeOutbox(
             variables: context.variables,
             action_url: deepLink,
             staff_test: outbox.payload.staff_test === true,
+            source_class_starts_at:
+              typeof outbox.payload.class_starts_at === "string"
+                ? outbox.payload.class_starts_at
+                : null,
           },
           notification_family: plan.message.notificationFamily,
           notification_tier: plan.message.notificationTier,
@@ -812,7 +828,7 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
   }
   const booking = await db
     .from("bookings")
-    .select("status,class:classes(status)")
+    .select("status,class:classes(status,starts_at)")
     .eq("id", message.related_booking_id)
     .maybeSingle();
   if (booking.error) throw booking.error;
@@ -822,21 +838,29 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
       message.event_type,
       booking.data?.status,
       studioClass?.status,
+      typeof message.content?.source_class_starts_at === "string"
+        ? message.content.source_class_starts_at
+        : null,
+      studioClass?.starts_at,
     )
   ) {
     return false;
   }
-  const cancelled = await db
-    .from("message_deliveries")
-    .update({
-      status: "cancelled",
-      error_code: "booking_or_class_cancelled",
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const cancelled = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "cancelled",
+        error_code: "booking_or_class_cancelled",
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (cancelled.error) throw cancelled.error;
   return true;
 }
@@ -881,17 +905,21 @@ async function cancelInvalidPaymentReminderDelivery(
   if (!errorCode) {
     return false;
   }
-  const cancelled = await db
-    .from("message_deliveries")
-    .update({
-      status: "cancelled",
-      error_code: errorCode,
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const cancelled = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "cancelled",
+        error_code: errorCode,
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (cancelled.error) throw cancelled.error;
   return true;
 }
@@ -976,17 +1004,21 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
     return false;
   }
 
-  const cancelled = await db
-    .from("message_deliveries")
-    .update({
-      status: "cancelled",
-      error_code: "open_class_alert_no_longer_eligible",
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const cancelled = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "cancelled",
+        error_code: "open_class_alert_no_longer_eligible",
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (cancelled.error) throw cancelled.error;
   return true;
 }
@@ -1003,20 +1035,24 @@ class WhatsappPersistenceUncertainError extends Error {
 async function markWhatsappDeliveryUnknown(delivery: DeliveryRow, reason: string) {
   const now = new Date().toISOString();
   const db = supabaseAdmin as any;
-  const update = await db
-    .from("message_deliveries")
-    .update({
-      status: "delivery_unknown",
-      failure_class: "ambiguous",
-      error_code: "provider_result_persistence_uncertain",
-      error_message: reason.slice(0, 500),
-      next_attempt_at: null,
-      failed_at: now,
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now,
-    })
-    .eq("id", delivery.id);
+  const update = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "delivery_unknown",
+        failure_class: "ambiguous",
+        error_code: "provider_result_persistence_uncertain",
+        error_message: reason.slice(0, 500),
+        next_attempt_at: null,
+        failed_at: now,
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now,
+      })
+      .eq("id", delivery.id),
+    delivery,
+  );
   if (update.error) throw update.error;
   await createAdminAlert({
     idempotencyKey: `admin:delivery:${delivery.id}:delivery_unknown`,
@@ -1332,6 +1368,7 @@ async function recordDeliveryResult(
     provider_message_id: result.ok ? result.providerMessageId : null,
     next_attempt_at: nextAttemptAt?.toISOString() ?? null,
     lease_owner: null,
+    lease_token: null,
     lease_expires_at: null,
     failure_class: result.ok ? null : result.failureClass,
     error_message: result.ok ? null : result.error.slice(0, 500),
@@ -1340,7 +1377,10 @@ async function recordDeliveryResult(
     failed_at: result.ok ? null : now.toISOString(),
     updated_at: now.toISOString(),
   };
-  const updated = await db.from("message_deliveries").update(update).eq("id", delivery.id);
+  const updated = await currentDeliveryLease(
+    db.from("message_deliveries").update(update).eq("id", delivery.id),
+    delivery,
+  );
   if (updated.error) throw updated.error;
   if (status === "dead_letter" || status === "delivery_unknown") {
     const ambiguousProvider = delivery.channel === "whatsapp" ? "WhatsApp" : "push provider";
@@ -1386,15 +1426,19 @@ async function processDelivery(
   const startedAt = new Date();
   if (await enforceConciergeSendGate(delivery, startedAt)) return "suppressed";
   if (delivery.expires_at && new Date(delivery.expires_at) <= startedAt) {
-    const expired = await db
-      .from("message_deliveries")
-      .update({
-        status: "expired",
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
+    const expired = await currentDeliveryLease(
+      db
+        .from("message_deliveries")
+        .update({
+          status: "expired",
+          lease_owner: null,
+          lease_token: null,
+          lease_expires_at: null,
+          updated_at: startedAt.toISOString(),
+        })
+        .eq("id", delivery.id),
+      delivery,
+    );
     if (expired.error) throw expired.error;
     return "expired";
   }
@@ -1405,31 +1449,39 @@ async function processDelivery(
     if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
   }
   if (delivery.channel === "in_app") {
-    const delivered = await db
-      .from("message_deliveries")
-      .update({
-        status: "delivered",
-        delivered_at: startedAt.toISOString(),
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
+    const delivered = await currentDeliveryLease(
+      db
+        .from("message_deliveries")
+        .update({
+          status: "delivered",
+          delivered_at: startedAt.toISOString(),
+          lease_owner: null,
+          lease_token: null,
+          lease_expires_at: null,
+          updated_at: startedAt.toISOString(),
+        })
+        .eq("id", delivery.id),
+      delivery,
+    );
     if (delivered.error) throw delivered.error;
     return "delivered";
   }
   if (!runtimeAllowsRecipient(runtime, delivery.channel, delivery.recipient_address)) {
-    const suppressed = await db
-      .from("message_deliveries")
-      .update({
-        status: "suppressed",
-        failure_class: "configuration",
-        error_code: "recipient_not_allowlisted",
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
+    const suppressed = await currentDeliveryLease(
+      db
+        .from("message_deliveries")
+        .update({
+          status: "suppressed",
+          failure_class: "configuration",
+          error_code: "recipient_not_allowlisted",
+          lease_owner: null,
+          lease_token: null,
+          lease_expires_at: null,
+          updated_at: startedAt.toISOString(),
+        })
+        .eq("id", delivery.id),
+      delivery,
+    );
     if (suppressed.error) throw suppressed.error;
     return "suppressed";
   }
@@ -1439,16 +1491,20 @@ async function processDelivery(
     message.event_type !== "human_handoff" &&
     (await activeHandoff(delivery.recipient_address))
   ) {
-    const paused = await db
-      .from("message_deliveries")
-      .update({
-        status: "suppressed",
-        error_code: "active_handoff",
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
+    const paused = await currentDeliveryLease(
+      db
+        .from("message_deliveries")
+        .update({
+          status: "suppressed",
+          error_code: "active_handoff",
+          lease_owner: null,
+          lease_token: null,
+          lease_expires_at: null,
+          updated_at: startedAt.toISOString(),
+        })
+        .eq("id", delivery.id),
+      delivery,
+    );
     if (paused.error) throw paused.error;
     return "suppressed";
   }
@@ -1600,6 +1656,94 @@ async function processDelivery(
     }
   }
   return recordedStatus;
+}
+
+const TERMINAL_DELIVERY_STATUSES: ReadonlySet<DeliveryStatus> = new Set([
+  "accepted",
+  "sent",
+  "delivered",
+  "read",
+  "dead_letter",
+  "suppressed",
+  "expired",
+  "cancelled",
+  "delivery_unknown",
+]);
+
+export async function processUnifiedMessagingDeliveryById(
+  deliveryId: string,
+  input?: { workerId?: string; leaseSeconds?: number },
+): Promise<{
+  outcome:
+    | "sent"
+    | "delivered"
+    | "accepted"
+    | "skipped"
+    | "cancelled"
+    | "failed_permanent"
+    | "already_terminal"
+    | "lease_busy"
+    | "retryable_failure";
+}> {
+  const db = supabaseAdmin as any;
+  const current = await db
+    .from("message_deliveries")
+    .select("id,status,channel")
+    .eq("id", deliveryId)
+    .maybeSingle();
+  if (current.error) throw current.error;
+  if (!current.data) return { outcome: "failed_permanent" };
+  if (TERMINAL_DELIVERY_STATUSES.has(current.data.status as DeliveryStatus)) {
+    return { outcome: "already_terminal" };
+  }
+  // WhatsApp remains on the existing Mac-local atomic claim/report bridge.
+  if (current.data.channel === "whatsapp") return { outcome: "skipped" };
+
+  const leaseToken = randomUUID();
+  const workerId = input?.workerId ?? `cloud-task:${randomUUID()}`;
+  const claimed = await db.rpc("claim_message_delivery_by_id", {
+    p_delivery_id: deliveryId,
+    p_worker: workerId,
+    p_lease_token: leaseToken,
+    p_lease_seconds: Math.min(Math.max(input?.leaseSeconds ?? 300, 30), 900),
+  });
+  if (claimed.error) throw claimed.error;
+  const delivery = (claimed.data?.[0] ?? null) as DeliveryRow | null;
+  if (!delivery) {
+    const refreshed = await db
+      .from("message_deliveries")
+      .select("status")
+      .eq("id", deliveryId)
+      .maybeSingle();
+    if (refreshed.error) throw refreshed.error;
+    if (TERMINAL_DELIVERY_STATUSES.has(refreshed.data?.status as DeliveryStatus)) {
+      return { outcome: "already_terminal" };
+    }
+    return { outcome: "lease_busy" };
+  }
+
+  const runtime = resolveMessagingRuntime(process.env);
+  try {
+    const status = await processDelivery(delivery, runtime);
+    if (status === "failed") return { outcome: "retryable_failure" };
+    if (status === "dead_letter" || status === "delivery_unknown") {
+      return { outcome: "failed_permanent" };
+    }
+    if (status === "cancelled") return { outcome: "cancelled" };
+    if (status === "suppressed" || status === "expired") return { outcome: "skipped" };
+    if (status === "delivered" || status === "sent" || status === "accepted") {
+      return { outcome: status };
+    }
+    return { outcome: "retryable_failure" };
+  } catch (error) {
+    const errorCode = error instanceof Error ? error.name : "delivery_worker_error";
+    await recordDeliveryResult(
+      delivery,
+      { ok: false, failureClass: "transient", error: errorCode },
+      new Date(),
+    );
+    return { outcome: "retryable_failure" };
+  }
 }
 
 function finalReminderAt(startsAt: Date) {
@@ -2303,8 +2447,12 @@ async function enqueueDueCanonicalEvents(
           aggregate_type: "booking",
           aggregate_id: booking.id,
           member_id: booking.member_id,
-          payload: { booking_id: booking.id, class_id: booking.class_id },
-          deduplication_key: `booking:${booking.id}:${eventType}`,
+          payload: {
+            booking_id: booking.id,
+            class_id: booking.class_id,
+            class_starts_at: startsAt.toISOString(),
+          },
+          deduplication_key: `booking:${booking.id}:${eventType}:${startsAt.toISOString()}`,
           available_at: now.toISOString(),
           expires_at: startsAt.toISOString(),
         },
@@ -2727,6 +2875,7 @@ export async function runUnifiedMessagingSweep(input?: {
   limit?: number;
   now?: Date;
   workerId?: string;
+  deliveryTransport?: "inline" | "cloud_tasks";
 }) {
   const db = supabaseAdmin as any;
   const now = input?.now ?? new Date();
@@ -2885,6 +3034,23 @@ export async function runUnifiedMessagingSweep(input?: {
   }
   const { reconcilePendingProviderWebhookLedger } = await import("@/lib/messageStatus.server");
   const webhookReconciliation = await reconcilePendingProviderWebhookLedger(limit);
+
+  if (input?.deliveryTransport === "cloud_tasks") {
+    return {
+      workerId,
+      mode: runtime.mode,
+      disabledBacklogSuppressed,
+      expiredOutbox,
+      staleOutbox,
+      staleDeliveries,
+      scheduled,
+      outboxClaimed: outboxClaim.data?.length ?? 0,
+      materialized,
+      webhookReconciliation,
+      deliveriesClaimed: 0,
+      deliveryOutcomes: {},
+    };
+  }
 
   const enabledExternalChannels = (
     Object.keys(externalChannels) as ExternalMessageChannel[]
