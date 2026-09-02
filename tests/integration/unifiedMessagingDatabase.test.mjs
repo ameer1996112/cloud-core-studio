@@ -119,6 +119,94 @@ describe("unified messaging database integration", () => {
       await psql(signupPreferenceColumnsMigration);
       await psql(signupConsentMigration);
       await psql(durableNotificationMigration);
+      await psql(
+        await readFile(
+          path.join(root, "supabase/migrations/20260902210000_guard_legacy_notification_tasks.sql"),
+          "utf8",
+        ),
+      );
+
+      const taskSelectionHistory = await psql(`
+        BEGIN;
+        INSERT INTO public.messages (
+          id,member_id,direction,audience,event_type,language,template_key,
+          template_version,body,content,member_visible,idempotency_key,legacy_source_table
+        ) VALUES
+          ('68000000-0000-4000-8000-000000000001',
+            '00000000-0000-0000-0000-000000000001','outbound','member',
+            'booking_confirmed','en','history','legacy','fixture','{}',false,
+            'integration:history-message','notification_logs'),
+          ('68000000-0000-4000-8000-000000000002',
+            '00000000-0000-0000-0000-000000000001','outbound','member',
+            'booking_confirmed','en','current','v2','fixture','{}',false,
+            'integration:current-message',NULL),
+          ('68000000-0000-4000-8000-000000000003',
+            '00000000-0000-0000-0000-000000000001','outbound','member',
+            'booking_confirmed','en','converted','v2','fixture','{}',false,
+            'integration:converted-message','notification_logs'),
+          ('68000000-0000-4000-8000-000000000004',
+            '00000000-0000-0000-0000-000000000001','outbound','member',
+            'booking_confirmed','en','native','v3','fixture','{}',false,
+            'integration:native-message',NULL),
+          ('68000000-0000-4000-8000-000000000005',
+            '00000000-0000-0000-0000-000000000001','outbound','member',
+            'booking_confirmed','en','history','legacy','fixture','{}',false,
+            'integration:history-retry-message','member_notifications');
+        INSERT INTO public.message_deliveries (
+          id,message_id,channel,status,idempotency_key,scheduled_for,
+          task_enqueued_at,lease_expires_at
+        ) VALUES
+          ('68000000-0000-4000-8000-000000000011','68000000-0000-4000-8000-000000000001',
+            'email','queued','integration:history-queued',now()-interval '2 days',NULL,NULL),
+          ('68000000-0000-4000-8000-000000000012','68000000-0000-4000-8000-000000000001',
+            'push','enqueued','integration:history-enqueued',now()-interval '2 days',
+            now()-interval '26 hours',NULL),
+          ('68000000-0000-4000-8000-000000000013','68000000-0000-4000-8000-000000000001',
+            'in_app','sending','integration:history-sending',now()-interval '2 days',
+            NULL,now()-interval '1 minute'),
+          ('68000000-0000-4000-8000-000000000014','68000000-0000-4000-8000-000000000002',
+            'email','queued','integration:current-queued',now()-interval '1 minute',NULL,NULL),
+          ('68000000-0000-4000-8000-000000000015','68000000-0000-4000-8000-000000000005',
+            'email','failed','integration:history-failed',now()-interval '2 days',NULL,NULL),
+          ('68000000-0000-4000-8000-000000000016','68000000-0000-4000-8000-000000000003',
+            'email','queued','integration:converted-queued',now()-interval '1 minute',NULL,NULL),
+          ('68000000-0000-4000-8000-000000000017','68000000-0000-4000-8000-000000000004',
+            'email','queued','integration:native-queued',now()-interval '1 minute',NULL,NULL);
+        SELECT jsonb_build_object('selected',COALESCE(jsonb_agg(id::text ORDER BY id),'[]'::jsonb))
+        FROM public.list_notification_deliveries_for_tasks(100);
+        SELECT jsonb_build_object('claimed',jsonb_agg(claimed ORDER BY id))
+        FROM (
+          SELECT candidate.id,(SELECT count(*) FROM public.claim_message_delivery_by_id(
+            candidate.id,'integration:direct-task','68000000-0000-4000-8000-000000000099',300
+          )) AS claimed
+          FROM public.message_deliveries candidate
+          WHERE candidate.id BETWEEN '68000000-0000-4000-8000-000000000011'
+            AND '68000000-0000-4000-8000-000000000017'
+        ) claims;
+        SELECT jsonb_build_object('history',jsonb_agg(
+          jsonb_build_object('status',status,'generation',task_generation,'attempts',attempt_count)
+          ORDER BY id))
+        FROM public.message_deliveries WHERE message_id IN (
+          '68000000-0000-4000-8000-000000000001','68000000-0000-4000-8000-000000000005'
+        );
+        ROLLBACK;
+      `);
+      const [selectedTasks, directClaims, preservedHistory] = taskSelectionHistory
+        .split("\n")
+        .filter((line) => line.startsWith("{"))
+        .map((line) => JSON.parse(line));
+      expect(selectedTasks.selected).toEqual([
+        "68000000-0000-4000-8000-000000000014",
+        "68000000-0000-4000-8000-000000000016",
+        "68000000-0000-4000-8000-000000000017",
+      ]);
+      expect(directClaims.claimed).toEqual([0, 0, 0, 1, 0, 1, 1]);
+      expect(preservedHistory.history).toEqual([
+        { status: "queued", generation: 0, attempts: 0 },
+        { status: "enqueued", generation: 0, attempts: 0 },
+        { status: "sending", generation: 0, attempts: 0 },
+        { status: "failed", generation: 0, attempts: 0 },
+      ]);
 
       const storedLocale = await psql(`
         BEGIN;

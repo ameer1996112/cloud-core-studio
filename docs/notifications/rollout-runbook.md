@@ -2,6 +2,8 @@
 
 No step in this document has been run against production by this branch.
 
+Before activating the new transport, also complete the [historical-message and fallback safety patch](cutover-safety-patch.md). That patch does not authorize activation or changing the live WhatsApp provider.
+
 ## Flags
 
 New flags default safe:
@@ -36,7 +38,7 @@ Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider
 1. Verify a current backup and record current Cloud Run service/revision/job/scheduler configuration.
 2. Run the read-only cost audit.
 3. Apply the database migration to a clean local/test database and run unit plus integration tests.
-4. After verifying the production backup, apply only `20260902150000_durable_notification_cloud_tasks.sql` through the reviewed migration process and confirm its migration-history entry. Do not push unrelated historical migrations. The migration must precede application deployment: the legacy sweep also calls the new reminder-cancellation RPC, even with the new flags off.
+4. After verifying the production backup, apply `20260902150000_durable_notification_cloud_tasks.sql` and then `20260902210000_guard_legacy_notification_tasks.sql` through the reviewed migration process and confirm their migration-history entries. Skip any already-applied migration; do not push unrelated historical migrations. The first migration must precede application deployment: the legacy sweep also calls the new reminder-cancellation RPC, even with the new flags off. The second must precede any new task activation so imported history cannot become transport work.
 5. Deploy code with all new flags false and dry-run true. Confirm normal payment/booking behavior is unchanged.
 6. Review the infrastructure script dry-run. Have a second operator verify project, region, service, queue, identities, URLs, audience, removed tags, and IAM scope.
 7. Apply infrastructure only through the normal reviewed production process.
