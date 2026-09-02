@@ -1,5 +1,6 @@
 const baseUrl = process.env.CLOUD_CORE_BASE_URL?.trim().replace(/\/+$/, "");
 const token = process.env.NOTIFICATION_AUTOMATION_TOKEN?.trim();
+const canary = process.env.NOTIFICATION_SWEEP_CANARY?.trim().toLowerCase() === "true";
 const limit = Math.max(
   1,
   Math.min(100, Math.trunc(Number(process.env.NOTIFICATION_SWEEP_LIMIT ?? 50) || 50)),
@@ -25,13 +26,20 @@ async function invoke(path, payload) {
   return JSON.parse(body);
 }
 
-const results = {
-  conciergeOrchestration: await invoke("/api/internal/concierge/run", { limit }),
-  conciergeDispatch: await invoke("/api/internal/concierge/dispatch", { limit }),
-  canonicalDelivery: await invoke("/api/internal/messages/sweep", { limit }),
-};
+const results = canary
+  ? {
+      canonicalReadiness: await invoke("/api/internal/messages/sweep", { limit, canary: true }),
+    }
+  : {
+      conciergeOrchestration: await invoke("/api/internal/concierge/run", { limit }),
+      conciergeDispatch: await invoke("/api/internal/concierge/dispatch", { limit }),
+      canonicalDelivery: await invoke("/api/internal/messages/sweep", { limit }),
+    };
 
-if (process.env.LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED?.trim().toLowerCase() === "true") {
+if (
+  !canary &&
+  process.env.LEGACY_MEMBER_NOTIFICATION_DELIVERY_ENABLED?.trim().toLowerCase() === "true"
+) {
   results.legacyLifecycle = await invoke("/api/internal/notifications/lifecycle-sweep", {
     limitPerEvent: limit,
   });

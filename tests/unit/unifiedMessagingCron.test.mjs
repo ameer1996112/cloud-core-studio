@@ -111,6 +111,8 @@ test("main-branch Cloud Build publishes an immutable image and deploys it to pro
     "run",
     "run",
     "run",
+    "run",
+    "run",
   ]);
   expect(cloudbuild.steps[0].args).toContain(immutableImage);
   expect(cloudbuild.steps[1].args).toEqual(["push", immutableImage]);
@@ -169,4 +171,44 @@ test("Cloud Run setup reuses the production automation-token secret", async () =
   expect(setup).toContain(
     'SECRET_NAME="${NOTIFICATION_SECRET_NAME:-NOTIFICATION_AUTOMATION_TOKEN}"',
   );
+});
+
+test("release updates both scheduled runners to its immutable image and probes them without sending", async () => {
+  const build = Bun.YAML.parse(await readFile("cloudbuild.yaml", "utf8"));
+  const updates = build.steps.filter(
+    (step) => step.entrypoint === "gcloud" && step.args.slice(0, 3).join(" ") === "run jobs update",
+  );
+  expect(
+    updates.map((step) => ({
+      job: step.args[3],
+      image: step.args[step.args.indexOf("--image") + 1],
+      changesEnvironment: step.args.some((arg) => arg.includes("env-vars")),
+    })),
+  ).toEqual([
+    {
+      job: "cloud-core-unified-messaging-sweep",
+      image: "${_IMAGE}:$COMMIT_SHA",
+      changesEnvironment: false,
+    },
+    {
+      job: "cloud-core-notification-sweep",
+      image: "${_IMAGE}:$COMMIT_SHA",
+      changesEnvironment: false,
+    },
+  ]);
+  const executions = build.steps.filter(
+    (step) =>
+      step.entrypoint === "gcloud" && step.args.slice(0, 3).join(" ") === "run jobs execute",
+  );
+  expect(
+    executions.map((step) => [step.args[3], step.args[step.args.indexOf("--update-env-vars") + 1]]),
+  ).toEqual([
+    ["cloud-core-unified-messaging-sweep", "UNIFIED_MESSAGING_CANARY=true"],
+    ["cloud-core-notification-sweep", "NOTIFICATION_SWEEP_CANARY=true"],
+  ]);
+  for (const execution of executions) {
+    expect(execution.args).toContain("--wait");
+    const update = updates.find((step) => step.args[3] === execution.args[3]);
+    expect(build.steps.indexOf(update)).toBeLessThan(build.steps.indexOf(execution));
+  }
 });
