@@ -1,5 +1,15 @@
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
 
+function isLibpqEnvironmentName(name) {
+  return name.toUpperCase().startsWith("PG");
+}
+
+export function sanitizedPsqlEnvironment(runtimeEnv = process.env) {
+  return Object.fromEntries(
+    Object.entries(runtimeEnv).filter(([name]) => !isLibpqEnvironmentName(name)),
+  );
+}
+
 function parsedLoopbackUrl(value, missingError, invalidError, remoteError, protocols) {
   if (!value) throw new Error(missingError);
 
@@ -37,6 +47,9 @@ export function requireLocalFixtureTarget(
   );
 
   if (requireDatabase) {
+    if (Object.keys(runtimeEnv).some(isLibpqEnvironmentName)) {
+      throw new Error("fixture_libpq_environment_override_not_allowed");
+    }
     const databaseUrl = parsedLoopbackUrl(
       env.DB_URL,
       "fixture_local_database_url_missing",

@@ -17,7 +17,10 @@ import {
   resolveFixtureEnvPath,
   snapshotPathForEnvPath,
 } from "./member-ui-ux-fixture-lifecycle.mjs";
-import { requireLocalFixtureTarget } from "./member-ui-ux-local-target.mjs";
+import {
+  requireLocalFixtureTarget,
+  sanitizedPsqlEnvironment,
+} from "./member-ui-ux-local-target.mjs";
 
 const ENV_PATH = resolveFixtureEnvPath(process.cwd(), process.env.ENV_PATH);
 const STUDIO_SETTINGS_SNAPSHOT_PATH = snapshotPathForEnvPath(ENV_PATH);
@@ -117,6 +120,7 @@ function seedLocalAuthUser(env, password) {
     {
       input: sql,
       encoding: "utf8",
+      env: sanitizedPsqlEnvironment(process.env),
     },
   );
   if (result.status !== 0) {

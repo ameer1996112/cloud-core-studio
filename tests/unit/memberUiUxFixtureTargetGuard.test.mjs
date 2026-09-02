@@ -4,7 +4,10 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { requireLocalFixtureTarget } from "../../scripts/qa/member-ui-ux-local-target.mjs";
+import {
+  requireLocalFixtureTarget,
+  sanitizedPsqlEnvironment,
+} from "../../scripts/qa/member-ui-ux-local-target.mjs";
 import { snapshotPathForEnvPath } from "../../scripts/qa/member-ui-ux-fixture-lifecycle.mjs";
 
 const RUNTIME_ENV = {
@@ -25,7 +28,12 @@ afterEach(() => {
   }
 });
 
-function expectSeedRejectedBeforeState(dbUrl, expectedError, valuesThatMustStayPrivate = []) {
+function expectSeedRejectedBeforeState(
+  dbUrl,
+  expectedError,
+  valuesThatMustStayPrivate = [],
+  runtimeOverrides = {},
+) {
   const directory = mkdtempSync(join(tmpdir(), "member-ui-ux-target-guard-"));
   temporaryDirectories.push(directory);
   const envPath = join(directory, ".env.qa.local");
@@ -44,6 +52,7 @@ function expectSeedRejectedBeforeState(dbUrl, expectedError, valuesThatMustStayP
       APP_ENV: "test",
       ALLOW_MEMBER_UI_UX_FIXTURE: "true",
       ENV_PATH: envPath,
+      ...runtimeOverrides,
     },
     encoding: "utf8",
   });
@@ -141,6 +150,57 @@ describe("member UI/UX fixture local target guard", () => {
         { requireDatabase: true },
       ),
     ).toThrow("fixture_database_url_options_not_allowed");
+  });
+
+  test.each([
+    ["PGHOSTADDR", "203.0.113.21"],
+    ["PGHOST", "remote.example.test"],
+    ["PGSERVICE", "do-not-print-service"],
+    ["PGSERVICEFILE", "/tmp/do-not-print-service-file"],
+  ])("rejects inherited %s without exposing its value", (name, privateValue) => {
+    let message = "";
+    try {
+      requireLocalFixtureTarget(
+        LOCAL_ENV,
+        { ...RUNTIME_ENV, [name]: privateValue },
+        { requireDatabase: true },
+      );
+    } catch (error) {
+      message = error.message;
+    }
+
+    expect(message).toBe("fixture_libpq_environment_override_not_allowed");
+    expect(message).not.toContain(privateValue);
+  });
+
+  test("the seed rejects inherited PGHOSTADDR before writing any fixture state", () => {
+    const remoteHostAddress = "203.0.113.22";
+    expectSeedRejectedBeforeState(
+      LOCAL_ENV.DB_URL,
+      "fixture_libpq_environment_override_not_allowed",
+      [remoteHostAddress],
+      { PGHOSTADDR: remoteHostAddress },
+    );
+  });
+
+  test("the psql child environment removes every PG-prefixed variable", () => {
+    expect(
+      sanitizedPsqlEnvironment({
+        PATH: "/usr/local/bin:/usr/bin",
+        HOME: "/tmp/member-ui-home",
+        APP_ENV: "test",
+        PGHOSTADDR: "203.0.113.23",
+        PGHOST: "remote.example.test",
+        PGSERVICE: "remote-service",
+        PGSERVICEFILE: "/tmp/remote-service.conf",
+        PGSSLROOTCERT: "/tmp/remote-root.pem",
+        PGFUTUREOVERRIDE: "future-value",
+      }),
+    ).toEqual({
+      PATH: "/usr/local/bin:/usr/bin",
+      HOME: "/tmp/member-ui-home",
+      APP_ENV: "test",
+    });
   });
 
   test("rejects missing and malformed database targets without leaking their values", () => {
