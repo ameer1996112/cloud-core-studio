@@ -1,0 +1,270 @@
+/**
+ * Local authenticated layout verification for the premium member account page.
+ *
+ * Run only with the disposable local member fixture and loopback QA server.
+ */
+import { existsSync } from "node:fs";
+import { mkdir, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { chromium } from "playwright";
+
+const DEFAULT_BASE_URL = "http://127.0.0.1:4176";
+const FIXTURE_EMAIL = "qa-member-ui@cloudcore.test";
+const LOCAL_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const SCREENSHOT_DIR = resolve(
+  process.cwd(),
+  "docs/ui-ux-audit/screenshots/after/member-account-premium-polish",
+);
+const CASES = [
+  { lang: "en", dir: "ltr", width: 320, height: 720 },
+  { lang: "en", dir: "ltr", width: 390, height: 844 },
+  { lang: "en", dir: "ltr", width: 1440, height: 900 },
+  { lang: "he", dir: "rtl", width: 390, height: 844 },
+  { lang: "he", dir: "rtl", width: 1440, height: 900 },
+  { lang: "ar", dir: "rtl", width: 390, height: 844 },
+  { lang: "ar", dir: "rtl", width: 1440, height: 900 },
+];
+
+function parseEnv(contents) {
+  return Object.fromEntries(
+    contents
+      .split(/\r?\n/)
+      .filter((line) => line && !line.startsWith("#") && line.includes("="))
+      .map((line) => {
+        const index = line.indexOf("=");
+        const value = line.slice(index + 1);
+        return [line.slice(0, index), value.replace(/^(?:"(.*)"|'(.*)')$/, "$1$2")];
+      }),
+  );
+}
+
+export function requireLoopbackBaseUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("member_account_layout_invalid_app_target");
+  }
+
+  const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (!new Set(["localhost", "127.0.0.1", "::1"]).has(hostname)) {
+    throw new Error("member_account_layout_refuses_non_local_target");
+  }
+  return url.origin;
+}
+
+function requireCondition(condition, code) {
+  if (!condition) throw new Error(code);
+}
+
+async function waitForDocumentLanguage(page, lang, dir) {
+  await page.waitForFunction(
+    ({ expectedLang, expectedDir }) =>
+      document.documentElement.lang === expectedLang &&
+      document.documentElement.dir === expectedDir,
+    { expectedLang: lang, expectedDir: dir },
+  );
+}
+
+async function authenticate(page, baseUrl, password) {
+  await page.goto(`${baseUrl}/auth`, { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await waitForDocumentLanguage(page, "en", "ltr");
+  await page.locator('input[name="username"]').fill(FIXTURE_EMAIL);
+  await page.locator('input[name="current-password"]').fill(password);
+  let authStatus = "none";
+  const observeAuthResponse = (response) => {
+    if (new URL(response.url()).pathname.includes("/auth/v1/token")) {
+      authStatus = String(response.status());
+    }
+  };
+  page.on("response", observeAuthResponse);
+  try {
+    await page.locator('form button[type="submit"]').click();
+    await page.waitForURL((url) => url.pathname === "/member", { timeout: 15_000 });
+  } catch {
+    const path = new URL(page.url()).pathname.replace(/[^a-z0-9/_-]/gi, "");
+    const hasAlert = await page
+      .getByRole("alert")
+      .isVisible()
+      .catch(() => false);
+    const invalidFields = await page
+      .locator('form [aria-invalid="true"]')
+      .count()
+      .catch(() => -1);
+    throw new Error(
+      `member_account_login_redirect_failed_${path}_${authStatus}_${hasAlert}_${invalidFields}`,
+    );
+  } finally {
+    page.off("response", observeAuthResponse);
+  }
+  requireCondition(
+    new URL(page.url()).pathname === "/member",
+    "member_account_login_redirect_failed",
+  );
+}
+
+async function inspectAccountLayout(page, baseUrl, testCase) {
+  const { lang, dir, width, height } = testCase;
+  await page.setViewportSize({ width, height });
+  await page.goto(`${baseUrl}/member/account`, {
+    waitUntil: "networkidle",
+  });
+
+  const languageSelect = page.locator("#profile-language");
+  await languageSelect.waitFor({ state: "visible" });
+  await languageSelect.selectOption(lang);
+  await waitForDocumentLanguage(page, lang, dir);
+
+  const heading = page.locator("h1").filter({ hasText: "Member QA" }).first();
+  await heading.waitFor({ state: "visible" });
+  await page.getByText("Member QA", { exact: true }).first().waitFor({ state: "visible" });
+
+  const baseGeometry = await page.evaluate(() => {
+    const root = document.documentElement;
+    const content = document.querySelector(".member-account-page__content");
+    const legalLinks = [...document.querySelectorAll(".member-account-legal-links a")];
+    const legalNav = document.querySelector(".member-account-legal-links");
+    const legalStyle = legalNav ? getComputedStyle(legalNav) : null;
+    return {
+      noHorizontalOverflow: root.scrollWidth <= root.clientWidth,
+      contentWidth: content?.getBoundingClientRect().width ?? 0,
+      legalCount: legalLinks.length,
+      legalHeights: legalLinks.map((link) => link.getBoundingClientRect().height),
+      legalRowGap: Number.parseFloat(legalStyle?.rowGap ?? "0"),
+      legalColumnGap: Number.parseFloat(legalStyle?.columnGap ?? "0"),
+    };
+  });
+
+  requireCondition(baseGeometry.noHorizontalOverflow, `horizontal_overflow_${lang}_${width}`);
+  requireCondition(baseGeometry.legalCount === 3, `legal_link_count_${lang}_${width}`);
+  requireCondition(
+    baseGeometry.legalRowGap > 0 && baseGeometry.legalColumnGap > 0,
+    `legal_link_gap_${lang}_${width}`,
+  );
+  requireCondition(
+    baseGeometry.legalHeights.every((linkHeight) => linkHeight >= 44),
+    `legal_link_height_${lang}_${width}`,
+  );
+  if (width >= 1000) {
+    requireCondition(
+      baseGeometry.contentWidth > 0 && baseGeometry.contentWidth <= 961,
+      `desktop_content_width_${lang}_${width}`,
+    );
+  }
+
+  const dangerZone = page.locator(".member-danger-zone");
+  await dangerZone.scrollIntoViewIfNeeded();
+  const dangerGeometry = await page.evaluate(() => {
+    const panel = document.querySelector(".member-danger-zone");
+    const action = document.querySelector(".member-danger-zone__action");
+    if (!(panel instanceof HTMLElement) || !(action instanceof HTMLElement)) return null;
+    const panelRect = panel.getBoundingClientRect();
+    const actionRect = action.getBoundingClientRect();
+    const insideViewport = (rect) =>
+      rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight;
+    const insidePanel =
+      actionRect.left >= panelRect.left &&
+      actionRect.top >= panelRect.top &&
+      actionRect.right <= panelRect.right &&
+      actionRect.bottom <= panelRect.bottom;
+    return {
+      panelDisplay: getComputedStyle(panel).display,
+      panelWidth: panelRect.width,
+      panelHeight: panelRect.height,
+      panelInsideViewport: insideViewport(panelRect),
+      actionHeight: actionRect.height,
+      actionInsidePanel: insidePanel,
+      actionInsideViewport: insideViewport(actionRect),
+    };
+  });
+
+  requireCondition(dangerGeometry, `danger_zone_missing_${lang}_${width}`);
+  requireCondition(dangerGeometry.panelDisplay === "grid", `danger_zone_display_${lang}_${width}`);
+  requireCondition(dangerGeometry.panelInsideViewport, `danger_zone_viewport_${lang}_${width}`);
+  requireCondition(dangerGeometry.actionInsidePanel, `delete_action_panel_${lang}_${width}`);
+  requireCondition(dangerGeometry.actionInsideViewport, `delete_action_viewport_${lang}_${width}`);
+  requireCondition(dangerGeometry.actionHeight >= 44, `delete_action_height_${lang}_${width}`);
+
+  const deleteTrigger = page.locator("#account-delete-request");
+  let deletionRequests = 0;
+  const countDeletionRequests = (request) => {
+    if (request.method() === "POST" && new URL(request.url()).pathname.startsWith("/_serverFn/")) {
+      deletionRequests += 1;
+    }
+  };
+
+  page.on("request", countDeletionRequests);
+  try {
+    await deleteTrigger.focus();
+    await deleteTrigger.press("Enter");
+    const dialog = page.getByRole("alertdialog");
+    await dialog.waitFor({ state: "visible" });
+    const dialogInsideViewport = await dialog.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return (
+        rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight
+      );
+    });
+    requireCondition(dialogInsideViewport, `dialog_viewport_${lang}_${width}`);
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "hidden" });
+    await page.waitForFunction(
+      () => document.activeElement === document.querySelector("#account-delete-request"),
+    );
+  } finally {
+    page.off("request", countDeletionRequests);
+  }
+  requireCondition(deletionRequests === 0, `deletion_request_count_${lang}_${width}`);
+
+  await page.screenshot({
+    path: resolve(SCREENSHOT_DIR, `account-premium-${lang}-${width}.png`),
+    fullPage: true,
+  });
+
+  return {
+    case: `${lang}-${width}x${height}`,
+    contentWidth: Math.round(baseGeometry.contentWidth),
+    legalGap: Math.round(Math.min(baseGeometry.legalRowGap, baseGeometry.legalColumnGap)),
+    panel: `${Math.round(dangerGeometry.panelWidth)}x${Math.round(dangerGeometry.panelHeight)}`,
+    deletionRequests,
+  };
+}
+
+async function main() {
+  const baseUrl = requireLoopbackBaseUrl(process.env.APP_BASE_URL || DEFAULT_BASE_URL);
+  const envPath = resolve(process.cwd(), process.env.ENV_PATH || ".env.qa.local");
+  const env = parseEnv(await readFile(envPath, "utf8"));
+  requireCondition(env.QA_MEMBER_UI_UX_PASSWORD, "member_account_layout_fixture_password_missing");
+
+  let browser;
+  try {
+    browser = await chromium.launch({
+      headless: true,
+      ...(existsSync(LOCAL_CHROME) ? { executablePath: LOCAL_CHROME } : {}),
+    });
+    const context = await browser.newContext({
+      baseURL: baseUrl,
+      viewport: { width: CASES[0].width, height: CASES[0].height },
+    });
+    const page = await context.newPage();
+    await mkdir(SCREENSHOT_DIR, { recursive: true });
+    await authenticate(page, baseUrl, env.QA_MEMBER_UI_UX_PASSWORD);
+
+    const geometry = [];
+    for (const testCase of CASES) {
+      geometry.push(await inspectAccountLayout(page, baseUrl, testCase));
+    }
+
+    console.log(`member-account-premium-layout-pass:${CASES.length}`);
+    console.log(`member-account-premium-layout-geometry:${JSON.stringify(geometry)}`);
+  } finally {
+    await browser?.close();
+  }
+}
+
+main().catch((error) => {
+  const firstLine = error instanceof Error ? error.message.split("\n", 1)[0] : "unknown";
+  console.error(`member-account-premium-layout-failed:${firstLine.slice(0, 180)}`);
+  process.exitCode = 1;
+});
