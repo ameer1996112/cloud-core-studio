@@ -1,7 +1,7 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import type { NotificationTaskQueue } from "./task-queue.server";
+import { notificationDatabase } from "./database-scope.server";
+import { NotificationTaskNameExpiredError, type NotificationTaskQueue } from "./task-queue.server";
 
-export type RecoverableDelivery = { id: string; scheduledFor: string };
+export type RecoverableDelivery = { id: string; scheduledFor: string; taskGeneration: number };
 
 export interface NotificationTaskRepository {
   listRecoverable(limit: number): Promise<RecoverableDelivery[]>;
@@ -13,7 +13,7 @@ export type NotificationTaskLog = (entry: {
   event: "notification_task_enqueue";
   notification_delivery_id: string;
   outcome: "enqueued" | "failed";
-  error_code?: "task_enqueue_failed";
+  error_code?: "task_enqueue_failed" | "task_name_expired";
 }) => void;
 
 export async function enqueueRecoverableNotificationDeliveries(input: {
@@ -32,7 +32,12 @@ export async function enqueueRecoverableNotificationDeliveries(input: {
   for (const delivery of deliveries) {
     input.signal?.throwIfAborted();
     try {
-      const task = await input.queue.enqueueDelivery(delivery.id, new Date(delivery.scheduledFor));
+      const task = await input.queue.enqueueDelivery(
+        delivery.id,
+        new Date(delivery.scheduledFor),
+        delivery.taskGeneration,
+        input.signal,
+      );
       await input.repository.markEnqueued(delivery.id, task.taskName);
       enqueued += 1;
       input.log({
@@ -40,14 +45,19 @@ export async function enqueueRecoverableNotificationDeliveries(input: {
         notification_delivery_id: delivery.id,
         outcome: "enqueued",
       });
-    } catch {
+    } catch (error) {
+      input.signal?.throwIfAborted();
       failed += 1;
-      await input.repository.recordEnqueueFailure(delivery.id, "task_enqueue_failed");
+      const errorCode =
+        error instanceof NotificationTaskNameExpiredError
+          ? "task_name_expired"
+          : "task_enqueue_failed";
+      await input.repository.recordEnqueueFailure(delivery.id, errorCode);
       input.log({
         event: "notification_task_enqueue",
         notification_delivery_id: delivery.id,
         outcome: "failed",
-        error_code: "task_enqueue_failed",
+        error_code: errorCode,
       });
     }
   }
@@ -56,7 +66,7 @@ export async function enqueueRecoverableNotificationDeliveries(input: {
 }
 
 export function createSupabaseNotificationTaskRepository(): NotificationTaskRepository {
-  const database = supabaseAdmin as any;
+  const database = notificationDatabase as any;
   return {
     async listRecoverable(limit) {
       const result = await database.rpc("list_notification_deliveries_for_tasks", {
@@ -66,6 +76,7 @@ export function createSupabaseNotificationTaskRepository(): NotificationTaskRepo
       return (result.data ?? []).map((row: any) => ({
         id: row.id,
         scheduledFor: row.next_attempt_at ?? row.scheduled_for,
+        taskGeneration: Number(row.task_generation ?? 0),
       }));
     },
     async markEnqueued(deliveryId, taskName) {

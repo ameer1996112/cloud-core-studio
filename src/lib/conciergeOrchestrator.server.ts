@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notificationDatabase } from "@/server/notifications/database-scope.server";
 import {
   runConciergeBatchWithRepository,
   type ConciergeAutomationConfig,
@@ -50,20 +50,24 @@ function allowlistedRecipientIds(env: NodeJS.ProcessEnv) {
     .filter(Boolean);
 }
 
-function createSupabaseConciergeRepository(): ConciergeBatchRepository {
-  const db = supabaseAdmin as any;
+function createSupabaseConciergeRepository(signal?: AbortSignal): ConciergeBatchRepository {
+  const db = notificationDatabase as any;
+  const active = () => signal?.throwIfAborted();
   return {
     async claim(input) {
+      active();
       const result = await db.rpc("claim_domain_outbox", {
         p_worker_identifier: input.workerId,
         p_limit: input.limit,
         p_lease_seconds: 120,
       });
+      active();
       if (result.error) throw result.error;
       return ((result.data ?? []) as DomainOutboxRow[]).map(mapDomainEvent);
     },
 
     async getAutomation(studioId, journeyType): Promise<ConciergeAutomationConfig> {
+      active();
       const result = await db
         .from("automation_config_versions")
         .select("mode,version")
@@ -74,11 +78,13 @@ function createSupabaseConciergeRepository(): ConciergeBatchRepository {
         .limit(1)
         .maybeSingle();
       if (result.error) throw result.error;
+      active();
       if (!result.data) return { mode: "paused", version: 0 };
       return result.data as ConciergeAutomationConfig;
     },
 
     async materialize(input) {
+      active();
       const result = await db.rpc("materialize_concierge_claim", {
         p_outbox_id: input.outboxId,
         p_worker_identifier: input.workerId,
@@ -96,21 +102,25 @@ function createSupabaseConciergeRepository(): ConciergeBatchRepository {
         p_execution_action: input.executionAction,
         p_execution_reason: input.executionReason,
       });
+      active();
       if (result.error) throw result.error;
     },
 
     async defer(input) {
+      active();
       const result = await db.rpc("defer_domain_outbox_claim", {
         p_outbox_id: input.outboxId,
         p_worker_identifier: input.workerId,
         p_reason: input.reason,
         p_next_attempt_at: input.nextAttemptAt,
       });
+      active();
       if (result.error) throw result.error;
       if (result.data !== true) throw new Error("outbox_defer_claim_not_owned");
     },
 
     async fail(input) {
+      active();
       const result = await db.rpc("fail_domain_outbox_claim", {
         p_outbox_id: input.outboxId,
         p_worker_identifier: input.workerId,
@@ -118,6 +128,7 @@ function createSupabaseConciergeRepository(): ConciergeBatchRepository {
         p_retryable: input.retryable,
         p_max_attempts: 8,
       });
+      active();
       if (result.error) throw result.error;
       const row = Array.isArray(result.data) ? result.data[0] : result.data;
       return { deadLettered: row?.dead_lettered === true };
@@ -134,16 +145,19 @@ export async function runConciergeOrchestrator(input?: {
   limit?: number;
   workerId?: string;
   now?: Date;
+  signal?: AbortSignal;
 }) {
+  input?.signal?.throwIfAborted();
   const startedAt = Date.now();
   const workerId = input?.workerId ?? `concierge:${randomUUID()}`;
   const result = await runConciergeBatchWithRepository({
-    repository: createSupabaseConciergeRepository(),
+    repository: createSupabaseConciergeRepository(input?.signal),
     workerId,
     limit: normalizeConciergeRunLimit(input?.limit),
     allowlistedRecipientIds: allowlistedRecipientIds(process.env),
     now: input?.now ?? new Date(),
   });
+  input?.signal?.throwIfAborted();
   logMessagingEvent("concierge_batch_completed", {
     workerId,
     outcome: result.failed > 0 ? "partial_failure" : "completed",

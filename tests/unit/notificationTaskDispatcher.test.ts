@@ -13,23 +13,23 @@ describe("notification task dispatcher", () => {
       limit: 10,
       repository: {
         listRecoverable: async () => [
-          { id: first, scheduledFor: "2026-09-02T12:00:00.000Z" },
-          { id: second, scheduledFor: "2026-09-02T12:00:00.000Z" },
+          { id: first, scheduledFor: "2026-09-02T12:00:00.000Z", taskGeneration: 0 },
+          { id: second, scheduledFor: "2026-09-02T12:00:00.000Z", taskGeneration: 2 },
         ],
         markEnqueued: async (deliveryId, taskName) => marked.push([deliveryId, taskName]),
         recordEnqueueFailure: async (deliveryId, errorCode) => failed.push([deliveryId, errorCode]),
       },
       queue: {
-        enqueueDelivery: async (deliveryId) => {
+        enqueueDelivery: async (deliveryId, _scheduledFor, generation) => {
           if (deliveryId === second) throw new Error("private provider detail");
-          return { taskName: `tasks/${deliveryId}` };
+          return { taskName: `tasks/${deliveryId}/g${generation}` };
         },
       },
       log: (entry) => logs.push(entry),
     });
 
     expect(summary).toEqual({ selected: 2, enqueued: 1, failed: 1 });
-    expect(marked).toEqual([[first, `tasks/${first}`]]);
+    expect(marked).toEqual([[first, `tasks/${first}/g0`]]);
     expect(failed).toEqual([[second, "task_enqueue_failed"]]);
     expect(JSON.stringify(logs)).not.toContain("private provider detail");
   });

@@ -66,7 +66,10 @@ export async function kickUnifiedMessagingAfterCommit() {
       enqueueTasks: async () => {
         const { runNotificationTaskOrchestration } =
           await import("@/server/notifications/orchestrator.server");
-        return runNotificationTaskOrchestration({ limit: 50 });
+        return runNotificationTaskOrchestration({
+          limit: 50,
+          signal: AbortSignal.timeout(10_000),
+        });
       },
       legacySweep: () => requestImmediateMessagingSweep(),
     });
