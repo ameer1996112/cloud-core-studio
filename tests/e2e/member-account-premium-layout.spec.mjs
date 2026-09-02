@@ -105,9 +105,21 @@ async function authenticate(page, baseUrl, password) {
   );
 }
 
-async function captureCompleteMemberPage(page, screenshotPath, viewportHeight) {
+async function captureCompleteMemberPage(page, screenshotPath, viewportWidth, viewportHeight) {
   const markerAttribute = "data-qa-account-screenshot-flow";
   const styleId = "qa-account-screenshot-flow-style";
+  const originalScroll = await page.evaluate(() => {
+    const main = document.querySelector(".member-shell-main");
+    if (!(main instanceof HTMLElement)) return null;
+    return {
+      windowX: window.scrollX,
+      windowY: window.scrollY,
+      mainLeft: main.scrollLeft,
+      mainTop: main.scrollTop,
+    };
+  });
+  requireCondition(originalScroll, "member_account_capture_scroller_missing");
+
   try {
     const expandedHeight = await page.evaluate(
       async ({ attribute, id }) => {
@@ -115,10 +127,12 @@ async function captureCompleteMemberPage(page, screenshotPath, viewportHeight) {
         const shell = main?.parentElement;
         if (!(main instanceof HTMLElement) || !(shell instanceof HTMLElement)) return 0;
 
+        main.scrollLeft = 0;
         main.scrollTop = 0;
         shell.setAttribute(attribute, "");
         const style = document.createElement("style");
         style.id = id;
+        // Evidence-only styles run after all real layout and dialog assertions.
         style.textContent = `
         html,
         body,
@@ -168,18 +182,33 @@ async function captureCompleteMemberPage(page, screenshotPath, viewportHeight) {
     );
     const screenshot = await page.screenshot({ path: screenshotPath, fullPage: true });
     const metadata = await sharp(screenshot).metadata();
+    const captureWidth = metadata.width ?? 0;
+    const captureHeight = metadata.height ?? 0;
     requireCondition(
-      Boolean(metadata.height && metadata.height > viewportHeight),
-      "member_account_png_not_taller_than_viewport",
+      Math.abs(captureWidth - viewportWidth) <= 1,
+      "member_account_png_width_mismatch",
     );
-    return { width: metadata.width ?? 0, height: metadata.height ?? 0 };
+    requireCondition(captureHeight > viewportHeight, "member_account_png_not_taller_than_viewport");
+    requireCondition(
+      Math.abs(captureHeight - expandedHeight) <= 2,
+      "member_account_png_height_mismatch",
+    );
+    return { width: captureWidth, height: captureHeight };
   } finally {
     await page.evaluate(
-      ({ attribute, id }) => {
+      async ({ attribute, id, scroll }) => {
         document.getElementById(id)?.remove();
         document.querySelector(`[${attribute}]`)?.removeAttribute(attribute);
+        await new Promise((resolveFrame) => requestAnimationFrame(() => resolveFrame()));
+        const main = document.querySelector(".member-shell-main");
+        if (main instanceof HTMLElement) {
+          main.scrollLeft = scroll.mainLeft;
+          main.scrollTop = scroll.mainTop;
+        }
+        window.scrollTo(scroll.windowX, scroll.windowY);
+        await new Promise((resolveFrame) => requestAnimationFrame(() => resolveFrame()));
       },
-      { attribute: markerAttribute, id: styleId },
+      { attribute: markerAttribute, id: styleId, scroll: originalScroll },
     );
   }
 }
@@ -203,11 +232,15 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
   const baseGeometry = await page.evaluate(() => {
     const root = document.documentElement;
     const content = document.querySelector(".member-account-page__content");
+    const memberShellMain = document.querySelector(".member-shell-main");
     const legalLinks = [...document.querySelectorAll(".member-account-legal-links a")];
     const legalNav = document.querySelector(".member-account-legal-links");
     const legalStyle = legalNav ? getComputedStyle(legalNav) : null;
     return {
       noHorizontalOverflow: root.scrollWidth <= root.clientWidth,
+      memberShellNoHorizontalOverflow:
+        memberShellMain instanceof HTMLElement &&
+        memberShellMain.scrollWidth <= memberShellMain.clientWidth + 1,
       contentWidth: content?.getBoundingClientRect().width ?? 0,
       legalCount: legalLinks.length,
       legalHeights: legalLinks.map((link) => link.getBoundingClientRect().height),
@@ -217,6 +250,10 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
   });
 
   requireCondition(baseGeometry.noHorizontalOverflow, `horizontal_overflow_${lang}_${width}`);
+  requireCondition(
+    baseGeometry.memberShellNoHorizontalOverflow,
+    `member_shell_horizontal_overflow_${lang}_${width}`,
+  );
   requireCondition(baseGeometry.legalCount === 3, `legal_link_count_${lang}_${width}`);
   requireCondition(
     baseGeometry.legalRowGap > 0 && baseGeometry.legalColumnGap > 0,
@@ -268,13 +305,17 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
 
   const deleteTrigger = page.locator("#account-delete-request");
   let deletionRequests = 0;
-  const countDeletionRequests = (request) => {
-    if (request.method() === "POST" && new URL(request.url()).pathname.startsWith("/_serverFn/")) {
+  const blockServerFunctionPosts = async (route) => {
+    if (route.request().method() === "POST") {
       deletionRequests += 1;
+      await route.abort("blockedbyclient");
+      return;
     }
+    await route.continue();
   };
 
-  page.on("request", countDeletionRequests);
+  await page.route("**/_serverFn/**", blockServerFunctionPosts);
+  let capture;
   try {
     await deleteTrigger.focus();
     await deleteTrigger.press("Enter");
@@ -292,16 +333,17 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     await page.waitForFunction(
       () => document.activeElement === document.querySelector("#account-delete-request"),
     );
+    // Evidence-only capture runs after every real rendered/computed assertion.
+    capture = await captureCompleteMemberPage(
+      page,
+      resolve(SCREENSHOT_DIR, `account-premium-${lang}-${width}.png`),
+      width,
+      height,
+    );
+    requireCondition(deletionRequests === 0, `deletion_request_count_${lang}_${width}`);
   } finally {
-    page.off("request", countDeletionRequests);
+    await page.unroute("**/_serverFn/**", blockServerFunctionPosts);
   }
-  requireCondition(deletionRequests === 0, `deletion_request_count_${lang}_${width}`);
-
-  const capture = await captureCompleteMemberPage(
-    page,
-    resolve(SCREENSHOT_DIR, `account-premium-${lang}-${width}.png`),
-    height,
-  );
 
   return {
     case: `${lang}-${width}x${height}`,
