@@ -32,10 +32,13 @@ export function requireOpenwaAutomationAuth(request: Request): Response | null {
   return null;
 }
 
-export function requireNotificationAutomationAuth(request: Request): Response | null {
+export function requireNotificationAutomationAuth(
+  request: Request,
+  environment: Record<string, string | undefined> = process.env,
+): Response | null {
   const configuredToken =
-    process.env.NOTIFICATION_AUTOMATION_TOKEN?.trim() ||
-    process.env.OPENWA_AUTOMATION_TOKEN?.trim();
+    environment.NOTIFICATION_AUTOMATION_TOKEN?.trim() ||
+    environment.OPENWA_AUTOMATION_TOKEN?.trim();
   if (!configuredToken) return unauthorizedResponse();
 
   const bearerToken = readBearerToken(request.headers.get("authorization"));
