@@ -182,10 +182,19 @@ describe("member profile fields", () => {
       /\.member-account-session\s*\{[^}]*display:\s*flex[^}]*justify-content:\s*space-between[^}]*padding:/s,
     );
     expect(stylesSource).toMatch(
+      /\.member-account-session\s*\{[^}]*border:\s*1px solid color-mix\(in srgb, var\(--color-gold\) 24%, var\(--color-border\)\)[^}]*background:\s*color-mix\(in srgb, var\(--color-surface\) 86%, transparent\)/s,
+    );
+    expect(stylesSource).toMatch(
       /\.member-danger-zone\s*\{[^}]*display:\s*grid[^}]*gap:[^}]*border:[^}]*background:[^}]*padding:/s,
     );
     expect(stylesSource).toMatch(
+      /\.member-danger-zone\s*\{[^}]*border:\s*1px solid color-mix\(in srgb, var\(--color-destructive\) 24%, var\(--color-border\)\)[^}]*background:\s*color-mix\(in srgb, var\(--color-destructive\) 4%, var\(--color-surface\)\)[^}]*box-shadow:\s*var\(--shadow-card\)/s,
+    );
+    expect(stylesSource).toMatch(
       /\.member-danger-zone__action\s*\{[^}]*justify-self:\s*start[^}]*margin-block-start:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone__action:hover:not\(:disabled\)\s*\{[^}]*border-color:\s*color-mix\(in srgb, var\(--color-gold\) 34%, transparent\)[^}]*background-color:\s*color-mix\(in srgb, var\(--color-sand\) 68%, var\(--color-surface\)\)/s,
     );
     expect(stylesSource).toMatch(
       /@media \(max-width:\s*640px\)[\s\S]*\.member-account-session\s*\{[^}]*flex-direction:\s*column/s,
