@@ -11,18 +11,18 @@ Legend: **Pass** means inspected live or from deterministic layout source; **Sou
 | `/support`                                                           | Source  | Source | Source          | Source | Source     | Source      | Pass EN      | Source | Pass   | Professional two-column desktop use                                              |
 | `/reset-password`                                                    | Source  | Source | Pass expired EN | Source | Source     | Source      | Source       | Source | Pass   | Valid-token form blocked                                                         |
 | `/payment-result`                                                    | Source  | Source | Pass pending EN | Source | Source     | Source      | Source       | Source | Pass   | Only simulated pending presentation reviewed                                     |
-| `/member`, `/member/bookings`, `/member/packages`, `/member/account` | Source  | Source | Pass EN loaded | Source | Source     | Source      | Source       | Source | Pass   | Local fixture visibly loaded on packages/account at 390; full matrix remains open |
+| `/member/packages`, `/member/account` milestone-2 states            | Pass AR | Pass EN | Pass EN/HE/AR | Pass EN | Pass EN | Pass EN | Pass EN/HE/AR | Pass | Pass | Real local fixture; payment/deletion mutations intercepted; zero horizontal overflow |
 | Receipt, promo claim, legal, app install, Instagram                  | Source  | Source | Source          | Source | Source     | Source      | Source       | Source | Source | Source review; campaign/payment records not exercised                            |
 
-Unperformed required variants: 360×800, 430×932, tablet landscape, browser zoom 125%/200%, authenticated content and keyboard with a screen reader. They are test-plan blockers, not claims of a pass.
+Milestone-2 authenticated states passed 320/360/390/430/768/1366/1440 responsive coverage and actual Chrome 200% zoom. Manual VoiceOver remains pending and is not inferred from automation.
 
 ## Milestone 2 authenticated package-payment and deletion matrix
 
 | Flow/state                                            | 320×720 | 360×800 | 390×844 | 430×932 | 768×1024 | 1366×768 | 1440×900 | EN / HE / AR | Evidence status                                                                                              |
 | ----------------------------------------------------- | ------- | ------- | ------- | ------- | -------- | -------- | -------- | ------------ | ------------------------------------------------------------------------------------------------------------ |
-| Authenticated packages, loaded data                   | Source | Source | Pass EN | Source | Source | Source | Source | EN only | Real local fixture/login and 390px package screenshot; payment-sheet states remain unverified. |
-| Payment sheet summary/loading/error                   | Open | Open | Open | Open | Open | Open | Open | Open | P2-02 mutation states have not been executed. |
-| Authenticated account, loaded data                    | Source | Source | Pass EN | Source | Source | Source | Source | EN only | Real local fixture/login and 390px account screenshot; deletion dialog/result states remain unverified. |
-| Deletion dialog/loading/success/error                 | Open | Open | Open | Open | Open | Open | Open | Open | P2-03 mutation states have not been executed. |
+| Authenticated packages, loaded data                   | Pass AR/HE | Pass EN | Pass EN/HE/AR | Pass EN | Pass EN | Pass EN | Pass EN/HE/AR | Pass | Fixture data visibly rendered; no overflow. |
+| Payment sheet summary/loading/error                   | Pass AR/HE | Pass EN | Pass EN/HE/AR | Pass EN | Pass EN | Pass EN | Pass EN/HE/AR | Pass | Intercepted mutations, exact counts, bidi isolation and in-bounds sheet verified. |
+| Authenticated account, loaded data                    | Pass AR/HE | Pass EN | Pass EN/HE/AR | Pass EN | Pass EN | Pass EN | Pass EN/HE/AR | Pass | Fixture member visibly rendered; no overflow. |
+| Deletion dialog/loading/success/error                 | Pass AR/HE | Pass EN | Pass EN/HE/AR | Pass EN | Pass EN | Pass EN | Pass EN/HE/AR | Pass | Dialog, persistent feedback, exact counts and focus behavior verified. |
 
-The fixture/access blocker is resolved locally, but the authenticated state matrix remains **incomplete**, not passed. Public `/checkout` screenshots remain P1-01 baseline context rather than P2-02 closure evidence. No production member, payment, or deletion interaction has been used.
+The authenticated milestone-2 matrix passed against local-only fixture data. Public `/checkout` remains P1-01 baseline context rather than P2-02 evidence. No production member, real payment, or real deletion interaction was used.

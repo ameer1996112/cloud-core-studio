@@ -5,15 +5,15 @@
 **Overall member-experience score: 78/100. Mobile: 82. Desktop: 84. Arabic: 79. Hebrew: 83. English: 84.**
 
 - Member-related routes discovered: 23 (including 5 legacy redirects and record-dependent receipt route)
-- Fully audited live: 9 reachable public/guard/error routes; source-audited: 14; authenticated loaded-data evidence is available locally for packages/account, while mutation states remain unexecuted
-- Important actions live-tested: 14 non-mutating actions; mutation actions tested: 0 by design
+- Fully audited live: 9 reachable public/guard/error routes; source-audited: 14; authenticated local loaded-data and intercepted mutation evidence is complete for milestone-2 packages/account states
+- Important actions live-tested: 14 non-mutating public actions plus local authenticated payment/deletion UI contracts with all side effects intercepted
 - Findings: P0 0, P1 5, P2 4, P3 2, observations 5
 
 The live public experience is unusually strong for an early boutique studio product: it is calm, legible, genuinely responsive and has clear guest-to-member boundaries. The product is held below a fully professional standard primarily by completion-risk details rather than visual taste: checkout continuity, incomplete location information, unconfirmed recurring cancellation, weak focus contrast, and source/deployment localization divergence.
 
 ## Milestone 2 authenticated QA update
 
-A deterministic local-only member fixture now completes the real `/auth` password flow and visibly renders fixture package and account data at 390 × 844. This establishes safe authenticated loaded-data coverage, but it does not close the package-payment/deletion findings: intercepted side-effect states, EN/HE/AR responsive evidence, keyboard-dialog, 200% zoom, automated accessibility and manual screen-reader verification remain incomplete. See `milestone-2-final-closure-report.md`.
+A deterministic local-only fixture completed real `/auth`, loaded package/account data, and exercised intercepted side-effect states. EN/HE/AR responsive evidence, exact counts, keyboard dialog behavior, actual 200% zoom, and 36 axe scans passed. Manual VoiceOver alone remains pending, so P2-02/P2-03 are release-ready but not fully resolved. See `milestone-2-final-closure-report.md`.
 
 ### Ten biggest reasons it does not yet feel fully professional
 

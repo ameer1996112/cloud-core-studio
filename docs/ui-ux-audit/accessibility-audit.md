@@ -2,9 +2,9 @@
 
 ## Evidence and limitations
 
-Final authenticated loaded-data evidence is available for English at 390px. VoiceOver, actual 200% browser zoom, and the complete authenticated dialog keyboard matrix remain unverified and must not be inferred from this addition.
+Final authenticated evidence covers EN/HE/AR, mobile/tablet/desktop, intercepted mutation states, exact request counts, headed keyboard interaction, 36 axe scans, and actual Chrome 200% zoom. VoiceOver alone remains pending and is not inferred from automation.
 
-Manual checks used the live accessibility tree, keyboard Tab, visible focus, semantic snapshots, code review and 320px layout checks. The direct `axe` CLI could not initialize in this restricted environment (two 30-second attempts produced no report), so **no automated-violation count is claimed**. VoiceOver/NVDA and authenticated-dialog checks have not yet been executed with the available safe local member fixture.
+Manual checks used a headed Chrome browser, real Tab/Shift+Tab/Enter/Space/Escape input, visible focus, and actual browser zoom. `@axe-core/playwright` completed 36 scans with zero violations at every impact level. VoiceOver was not operated.
 
 ## Findings
 
@@ -28,9 +28,9 @@ Manual checks used the live accessibility tree, keyboard Tab, visible focus, sem
 
 ## Milestone 2 additions
 
-- **P2-02 package payment:** `PaymentMethodSheet` displays the server-provided amount without client-side arithmetic and uses `BidiValue kind="currency"` for mixed-direction currency isolation. Its payment-session failure is an in-context assertive message rather than toast-only feedback; the primary action exposes loading and disabled state while a checkout session is pending. These are implemented/source-asserted; payment mutation states have not been manually or automatically exercised in this release candidate.
-- **P2-03 deletion request:** The destructive action opens a labelled Radix alert dialog, whose cancel and submit actions are designed for keyboard operation. Submission has repeat protection. The persistent result panel receives programmatic focus; submitted/already-open states use a polite live region and failed submission uses an assertive alert plus the existing support route. It accurately says “request,” never “account deleted.” These are implemented/source-asserted; the authenticated dialog/result matrix has not yet been manually verified.
-- **Remaining evidence gap:** A safe local member session now exists and authenticated route access is verified, but VoiceOver/NVDA output, a real keyboard pass through the authenticated dialog, automated axe, and 200% browser zoom remain unexecuted. This is not claimed as complete evidence.
+- **P2-02 package payment:** The server-provided amount, `BidiValue` isolation, persistent assertive recovery, loading/disabled state, exact duplicate counts, headed keyboard flow, EN/HE/AR, responsive layout, axe, and real 200% zoom passed.
+- **P2-03 deletion request:** The labelled Radix alert dialog, focus trap/restoration, pending protection, exact duplicate counts, persistent focusable result, polite/assertive live regions, retry/support recovery, EN/HE/AR, responsive layout, axe, and real 200% zoom passed.
+- **Remaining evidence gap:** Manual VoiceOver output only. It remains a full audit-closure criterion and is not replaced by semantics, axe, or keyboard evidence.
 
 ## Exit criteria
 

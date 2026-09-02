@@ -20,16 +20,14 @@ Result: **pass**.
 - `/member/account` remained on its protected route.
 - Public `/checkout` loaded normally after authentication, but this is unrelated public-route smoke and not P2-02 package-payment proof.
 - Final local loaded-data probe: **pass**. After the QA-only alias adapter supplied `SUPABASE_PUBLISHABLE_KEY` before the server bundle imported, both deterministic fixture package names and the fake member profile visibly rendered. Evidence: `screenshots/after/milestone-2-authenticated-complete/`.
-- This does not establish the uncompleted intercepted mutation matrix or manual accessibility matrix.
+- The final closure suite subsequently established the intercepted mutation, language/responsive, keyboard, axe, and actual-zoom matrices; see `milestone-2-final-test-results.md`.
 - Screenshots were captured at 390 × 844: `../screenshots/after/milestone-2-authenticated-complete/`.
 
-## Not yet executed
+## Final remaining manual item
 
-- Payment-session interception, loading/error/retry and duplicate-activation assertions.
-- Deletion-request interception, loading/success/error/retry and focus assertions.
-- Arabic/Hebrew authenticated flows, responsive matrix, automated axe, browser zoom, and manual screen-reader checks.
+Only genuine VoiceOver verification remains pending. It is not inferred from axe, DOM roles, or keyboard automation.
 
-These omissions mean this is route/authentication evidence only; it does **not** close P2-02 or P2-03.
+This document preserves the earlier route/authentication evidence; final status is recorded in `../milestone-2-final-closure-report.md`.
 
 ## Regression commands
 

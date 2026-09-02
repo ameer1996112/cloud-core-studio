@@ -1077,9 +1077,10 @@ export function PaymentMethodSheet({
       <SheetContent
         side="bottom"
         dir={dir}
+        style={{ maxBlockSize: "92dvh" }}
         onOpenAutoFocus={focusHandlers.onOpenAutoFocus}
         onCloseAutoFocus={focusHandlers.onCloseAutoFocus}
-        className="member-sheet-content max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-ivory p-5 shadow-[0_30px_60px_-28px_var(--cc-alpha-navy-38)] sm:bottom-5 sm:mx-auto sm:max-w-xl sm:rounded-2xl sm:p-6"
+        className="member-sheet-content w-full overflow-y-auto rounded-t-2xl bg-ivory p-5 shadow-[0_30px_60px_-28px_var(--cc-alpha-navy-38)] sm:bottom-5 sm:mx-auto sm:max-w-xl sm:rounded-2xl sm:p-6"
       >
         <SheetHeader className="border-b hairline pe-12 pb-4 text-start">
           <div className="text-start">

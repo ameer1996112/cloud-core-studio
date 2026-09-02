@@ -18,12 +18,12 @@
 
 ## Milestone 2 status
 
-Final local loaded-data verification repaired the QA-only public-key alias and proved fixture rendering, but P2-02/P2-03 remain verification-incomplete pending the full intercepted mutation, language/viewport, keyboard, axe, actual zoom, and VoiceOver matrices. See `milestone-2-final-closure-report.md`.
+Local authenticated fixture rendering, intercepted mutation contracts, exact duplicate counts, EN/HE/AR responsive states, keyboard, axe, and actual 200% browser zoom are complete. VoiceOver is the only outstanding manual acceptance item. See `milestone-2-final-closure-report.md`.
 
 | Finding | Status                                         | Scope                                                                                                                                                                                                                           |
 | ------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P2-02   | Implemented — verification incomplete | Authenticated package-payment sheet (`/member/packages` → `PackagePricingCard` → `PaymentMethodSheet`) is implemented and local real-auth route access is verified; payment interception, EN/HE/AR state matrix, keyboard, zoom and screen-reader evidence remain open. |
-| P2-03   | Implemented — verification incomplete | Local real-auth route access is verified; deletion interception, dialog keyboard/focus, EN/HE/AR, zoom and screen-reader evidence remain open. |
+| P2-02   | Release-ready — manual VoiceOver verification pending | Authenticated package-payment sheet (`/member/packages` → `PackagePricingCard` → `PaymentMethodSheet`) passed all automated, keyboard, responsive, axe, and actual-zoom gates; VoiceOver remains open. |
+| P2-03   | Release-ready — manual VoiceOver verification pending | Account deletion request passed intercepted success/failure/retry, exact counts, dialog/focus, EN/HE/AR, axe, responsive and actual-zoom gates; VoiceOver remains open. |
 | P2-04   | Partially resolved                             | One documented semantic feedback panel is shared by `PaymentMethodSheet` and deletion. Broad component consolidation remains open.                                                                                              |
 | P1-01   | Documentation only                             | See `decisions/P1-01-checkout-handoff.md`; behavior is unchanged.                                                                                                                                                               |
 | P1-02   | Documentation only                             | See `decisions/P1-02-subscription-cancellation.md`; behavior is unchanged.                                                                                                                                                      |

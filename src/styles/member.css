@@ -522,6 +522,10 @@
   box-shadow: 0 10px 24px -24px color-mix(in srgb, var(--color-navy) 46%, transparent);
 }
 
+.member-package-status > .member-eyebrow {
+  color: var(--color-text-secondary);
+}
+
 .member-package-status__plan {
   color: var(--color-navy);
   font-size: 1rem;

@@ -15,16 +15,16 @@ The fixture is `qa-member-ui@cloudcore.test`, has a member profile and two deter
 - Real local password authentication through `/auth`.
 - Authenticated protected-route access to `/member/packages` and `/member/account`.
 - Public `/checkout` rendering was observed separately; it is not evidence for the authenticated P2-02 package-payment flow.
-- The previous missing-alias limitation is superseded by `validation/local-supabase-env-contract.md`; the remaining mutation, language, zoom, axe, and VoiceOver matrix is still incomplete.
-- 390 × 844 English screenshots for the three routes.
+- The missing-alias limitation is superseded by `validation/local-supabase-env-contract.md`; mutation, language, responsive, keyboard, axe, and actual-zoom matrices are complete.
+- EN/HE/AR evidence at mobile and desktop, plus English tablet and actual 200% zoom evidence.
 - No real payment, deletion request, remote database operation, outbound notification, deployment, or payment-provider call.
 
-## Verification incomplete
+## Closure status
 
-The following required closure evidence is still missing: intercepted payment/deletion state matrix; rapid-activation counts; error/retry flows; Arabic/Hebrew authenticated states; 320/desktop responsive matrix; keyboard dialog pass; 200% browser zoom; automated accessibility scan; and manual VoiceOver output.
+Only genuine manual VoiceOver output remains missing. All automatable, responsive, keyboard, axe, and actual-browser-zoom gates passed.
 
-**P2-02: IMPLEMENTED — VERIFICATION INCOMPLETE.**
+**P2-02: RELEASE-READY — MANUAL VOICEOVER VERIFICATION PENDING.**
 
-**P2-03: IMPLEMENTED — VERIFICATION INCOMPLETE.**
+**P2-03: RELEASE-READY — MANUAL VOICEOVER VERIFICATION PENDING.**
 
 **P2-04: PARTIALLY RESOLVED.** Only `MemberFeedbackPanel` consolidation is in scope; broad component consolidation remains open.

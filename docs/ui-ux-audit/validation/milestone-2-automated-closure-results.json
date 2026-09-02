@@ -1,0 +1,600 @@
+{
+  "startedAt": "2026-09-02T15:31:19.603Z",
+  "paymentPath": "/_serverFn/4d3f9eb3778935f79cea7886fb47c37468e8968a691763e74686e50401eb56a8",
+  "deletionPath": "/_serverFn/319b2500137ce249ac571c2c9fdce3856a28dc788a58f9f4e16a68e2a8a2a418",
+  "paymentCounts": {
+    "Opening payment sheet": 0,
+    "Refresh before submit": 0,
+    "Browser back before submit": 0,
+    "Rapid double-click": 1,
+    "Repeated Enter": 1,
+    "Repeated Space": 1,
+    "Initial server error": 1,
+    "Retry after server error": 1,
+    "Network error": 1,
+    "Invalid response": 1,
+    "Missing redirect URL": 1,
+    "Unknown status": 1,
+    "Invalid JSON": 1,
+    "Successful handoff": 1
+  },
+  "deletionCounts": {
+    "Open confirmation dialog": 0,
+    "Escape from dialog": 0,
+    "Cancel confirmation": 0,
+    "Rapid double-click": 1,
+    "Repeated Enter": 1,
+    "Repeated Space": 1,
+    "Successful request": 1,
+    "Refresh after success": 0,
+    "Browser back after success": 0,
+    "Initial server error": 1,
+    "Retry after server error": 1,
+    "Validation error": 1,
+    "Network error": 1,
+    "Invalid response": 1,
+    "Invalid JSON": 1
+  },
+  "keyboard": [
+    {
+      "flow": "payment",
+      "action": "Enter opens sheet",
+      "result": "pass"
+    },
+    {
+      "flow": "payment",
+      "action": "Rapid double-click",
+      "result": "pass"
+    },
+    {
+      "flow": "payment",
+      "action": "Repeated Enter",
+      "result": "pass"
+    },
+    {
+      "flow": "payment",
+      "action": "Repeated Space",
+      "result": "pass"
+    },
+    {
+      "flow": "payment",
+      "action": "Retry with Enter",
+      "result": "pass"
+    },
+    {
+      "flow": "deletion",
+      "action": "Enter/Space, Tab trap, Shift+Tab trap, Escape, Cancel, focus restoration",
+      "result": "pass"
+    },
+    {
+      "flow": "deletion",
+      "action": "Rapid double-click",
+      "result": "pass"
+    },
+    {
+      "flow": "deletion",
+      "action": "Repeated Enter",
+      "result": "pass"
+    },
+    {
+      "flow": "deletion",
+      "action": "Repeated Space",
+      "result": "pass"
+    },
+    {
+      "flow": "deletion",
+      "action": "Retry with Enter",
+      "result": "pass"
+    }
+  ],
+  "responsive": [
+    {
+      "lang": "en",
+      "viewport": "390x844",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    },
+    {
+      "lang": "en",
+      "viewport": "1440x900",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    },
+    {
+      "lang": "he",
+      "viewport": "390x844",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": true,
+      "result": "pass"
+    },
+    {
+      "lang": "he",
+      "viewport": "1440x900",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": true,
+      "result": "pass"
+    },
+    {
+      "lang": "ar",
+      "viewport": "390x844",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": true,
+      "result": "pass"
+    },
+    {
+      "lang": "ar",
+      "viewport": "1440x900",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": true,
+      "result": "pass"
+    },
+    {
+      "lang": "en",
+      "viewport": "320x720",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    },
+    {
+      "lang": "he",
+      "viewport": "320x720",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": true,
+      "result": "pass"
+    },
+    {
+      "lang": "ar",
+      "viewport": "320x720",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": true,
+      "result": "pass"
+    },
+    {
+      "lang": "en",
+      "viewport": "768x1024",
+      "states": 9,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    },
+    {
+      "lang": "en",
+      "viewport": "360x800",
+      "states": 3,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    },
+    {
+      "lang": "en",
+      "viewport": "430x932",
+      "states": 3,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    },
+    {
+      "lang": "en",
+      "viewport": "1366x768",
+      "states": 3,
+      "noHorizontalOverflow": true,
+      "rtlPriceIsolation": "not-applicable",
+      "result": "pass"
+    }
+  ],
+  "axe": [
+    {
+      "label": "packages-loaded",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-summary",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-loading",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-error",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "account-loaded",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-dialog",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-loading",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-success",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-error",
+      "lang": "en",
+      "viewport": "390x844",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "packages-loaded",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-summary",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-loading",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-error",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "account-loaded",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-dialog",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-loading",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-success",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-error",
+      "lang": "en",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "packages-loaded",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-summary",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-loading",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-error",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "account-loaded",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-dialog",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-loading",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-success",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-error",
+      "lang": "ar",
+      "viewport": "1440x900",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "packages-loaded",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-summary",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-loading",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "payment-error",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "account-loaded",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-dialog",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-loading",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-success",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    },
+    {
+      "label": "deletion-error",
+      "lang": "ar",
+      "viewport": "320x720",
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0,
+      "rules": []
+    }
+  ],
+  "network": {
+    "localHosts": [
+      "127.0.0.1:4176",
+      "127.0.0.1:54321"
+    ],
+    "blockedRemote": []
+  },
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+  ],
+  "finishedAt": "2026-09-02T15:35:12.019Z"
+}

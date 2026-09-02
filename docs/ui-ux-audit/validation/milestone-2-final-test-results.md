@@ -1,10 +1,16 @@
-# Milestone 2 reconciled release-candidate validation
+# Milestone 2 final release validation
 
-- `bun test tests/unit tests/integration`: **1,177 passed, 6 skipped, 0 failed**. The six skips are configured real-database integrations; the local-QA guard tests are included.
-- `bun test tests/unit/memberCheckoutDeletionUi.test.mjs tests/unit/memberUiFoundation.test.mjs tests/unit/memberUiUxQaServerGuard.test.mjs`: **18 passed, 0 failed**.
-- `bun run ui-audit:build` followed by `bun run ui-audit:interactions`: **48/48** deterministic local fixture scenario-language rows passed. The runner bound only to loopback and did not use Supabase, payment or deletion endpoints.
-- `bun run lint`: **passed** with 813 existing warnings and zero errors.
-- `bun run build`: **passed**; existing TanStack deprecation warnings remain.
-- `bunx tsc --noEmit --pretty false`: exits nonzero with **70 pre-existing diagnostics** from the reconciled upstream state. No diagnostic refers to a changed milestone-2 or QA file; it is not described as a full TypeScript pass.
-- Local authenticated loaded-data probe: **passed** for `/member/packages` and `/member/account`, visibly rendering the deterministic fixture.
-- Expanded payment/deletion mutation browser suite, full language/viewport matrix, axe, manual keyboard, actual 200% zoom and VoiceOver: **not complete**. Do not treat those unexecuted checks as passing.
+| Validation | Exact result |
+| --- | --- |
+| Focused QA, fixture, and UI contract tests | 42 passed, 0 failed |
+| Style cascade and contract tests | 19 passed, 0 failed |
+| Browser-dependent marketing unit tests | 14 passed, 0 failed |
+| `bun test tests/unit tests/integration` | 1,213 passed, 6 skipped, 0 failed; 14,578 expectations across 168 files |
+| Milestone-2 authenticated browser suite | Passed: payment/deletion mutations, exact counts, keyboard, language/responsive matrix, 36 axe scans |
+| `bun run lint` | Passed with 0 errors and 813 pre-existing warnings |
+| `bun run build` | Passed |
+| `bunx tsc --noEmit --pretty false` | Nonzero with 70 diagnostics before and 70 after; exact output SHA-256 identical (`b686ddf3c009efde5be3aded8b4296754508a161a1e0831176c49e8a3a7cd1f2`) |
+
+TypeScript introduced 0 diagnostics, removed 0, and reports no diagnostic in a milestone-2 or QA file. The full TypeScript command is not described as passing.
+
+The browser suite tested real local password authentication and fixture data, while intercepting only the classified payment and deletion mutations. Network destinations were limited to `127.0.0.1:4176` and `127.0.0.1:54321`; no remote host, HYP provider, production API, or staging API was contacted. The fixture reset completed with zero fixture users/plans and four unrelated local plans retained.
