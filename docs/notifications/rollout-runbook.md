@@ -36,9 +36,10 @@ Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider
 1. Verify a current backup and record current Cloud Run service/revision/job/scheduler configuration.
 2. Run the read-only cost audit.
 3. Apply the database migration to a clean local/test database and run unit plus integration tests.
-4. Deploy code with all new flags false and dry-run true. Confirm normal payment/booking behavior is unchanged.
-5. Review the infrastructure script dry-run. Have a second operator verify project, region, service, queue, identities, URLs, audience, removed tags, and IAM scope.
-6. Apply infrastructure only through the normal reviewed production process.
+4. After verifying the production backup, apply only `20260902150000_durable_notification_cloud_tasks.sql` through the reviewed migration process and confirm its migration-history entry. Do not push unrelated historical migrations. The migration must precede application deployment: the legacy sweep also calls the new reminder-cancellation RPC, even with the new flags off.
+5. Deploy code with all new flags false and dry-run true. Confirm normal payment/booking behavior is unchanged.
+6. Review the infrastructure script dry-run. Have a second operator verify project, region, service, queue, identities, URLs, audience, removed tags, and IAM scope.
+7. Apply infrastructure only through the normal reviewed production process.
 
 ## Phased activation
 
@@ -47,7 +48,7 @@ Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider
 - Set `NOTIFICATIONS_OUTBOX_ENABLED=true`, `NOTIFICATIONS_TASKS_ENABLED=true`, and `NOTIFICATIONS_MAINTENANCE_ENABLED=true` only after the queue/OIDC configuration is present.
 - Keep `NOTIFICATIONS_DRY_RUN=true`; this runs durable preparation but creates no Cloud Tasks and the delivery endpoint remains closed.
 - Keep the existing external delivery mode disabled or tightly allowlisted.
-- Confirm deterministic outbox growth, one message/channel delivery, bounded maintenance batches, no external sends, and no PII in logs.
+- Confirm deterministic outbox growth, one message/channel delivery, bounded maintenance batches, no external sends from the new task path, and no PII in logs. Dry-run does not mute the existing live sweep or promotion sender; do not create synthetic customer events while those senders remain enabled.
 
 ### Phase 2 — allowlist delivery
 
@@ -59,7 +60,7 @@ Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider
 
 - Enable only required existing channel flags and expand the recipient policy deliberately.
 - Observe at least one full reminder window with healthy queue age and no duplicate external sends.
-- Pause `cloud-core-unified-messaging-sweep-1m` and `cloud-core-notification-sweep-15m`. The new maintenance endpoint covers Concierge orchestration/materialization and canonical delivery recovery without a Cloud Run Job. Do not delete either old job during the proving window.
+- Pause `cloud-core-unified-messaging-sweep-1m` only after proving canonical delivery. Keep `cloud-core-notification-sweep-15m` enabled for now: current production added scheduled promotion broadcasts after this feature branch diverged, and those broadcasts still send inline. Cloud Tasks preparation explicitly skips that sender so shadow runs cannot send promotions. The fifteen-minute legacy job must not be paused until promotion scheduling and delivery are covered by the replacement and verified. Do not delete either old job during the proving window.
 - Confirm requests still wake Cloud Run, maintenance catches missed kicks within 15 minutes, and the service scales to zero when quiet.
 - After the rollback window, remove obsolete revision tags/minimum instances and retire the paused legacy job through a separate reviewed change. Tag removal is disabled by default in the infrastructure script; `CLOUD_RUN_REMOVE_REVISION_TAGS` must explicitly name reviewed tags. Do not rerun the full setup script against a live rollout just to remove tags, because it deliberately resets the feature flags.
 

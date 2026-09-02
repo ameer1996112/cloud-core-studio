@@ -3397,7 +3397,14 @@ export async function runUnifiedMessagingSweep(input?: {
     },
     now,
   );
-  const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });
+  // The current promotion sender performs provider I/O inline. Task preparation
+  // must never invoke it, including during shadow rollout or post-commit kicks.
+  // Retain the legacy scheduled sweep until promotions have a task-safe path.
+  const promotions = await dispatchDuePromotions({
+    now,
+    limit: Math.min(limit, 10),
+    dryRun: input?.deliveryTransport === "cloud_tasks",
+  });
   input?.signal?.throwIfAborted();
   const obsoleteReminders = await db.rpc("cancel_obsolete_notification_reminders", {
     p_limit: limit,

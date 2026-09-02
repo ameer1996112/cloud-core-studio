@@ -2,6 +2,7 @@ import type { LocalizedCatalog } from "../types";
 
 export const coreCatalog = {
   en: {
+    "booking.cancelled": "Booking cancelled. Your booking list has been updated.",
     "auth.already": "Already a member? Sign in",
     "auth.back": "Back to sign in",
     "auth.browseSchedule": "Browse Schedule",
@@ -476,6 +477,7 @@ export const coreCatalog = {
     "status.void": "Void",
   },
   he: {
+    "booking.cancelled": "ההזמנה בוטלה. רשימת ההזמנות עודכנה.",
     "auth.already": "כבר רשומים? כניסה",
     "auth.back": "חזרה לכניסה",
     "auth.browseSchedule": "עיון בלוח השיעורים",
@@ -924,6 +926,7 @@ export const coreCatalog = {
     "status.void": "מבוטל",
   },
   ar: {
+    "booking.cancelled": "تم إلغاء الحجز. تم تحديث قائمة حجوزاتك.",
     "auth.already": "لديك حساب؟ سجّل الدخول",
     "auth.back": "العودة لتسجيل الدخول",
     "auth.browseSchedule": "تصفح الجدول",

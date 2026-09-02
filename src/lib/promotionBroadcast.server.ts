@@ -404,7 +404,12 @@ export async function dispatchPromotionCampaign(promotionId: string, now = new D
   }
 }
 
-export async function dispatchDuePromotions(input?: { now?: Date; limit?: number }) {
+export async function dispatchDuePromotions(input?: {
+  now?: Date;
+  limit?: number;
+  dryRun?: boolean;
+}) {
+  if (input?.dryRun) return [];
   const db = supabaseAdmin as any;
   const now = input?.now ?? new Date();
   const { error: activationError } = await db
