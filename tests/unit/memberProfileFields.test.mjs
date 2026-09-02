@@ -170,4 +170,28 @@ describe("member profile fields", () => {
     );
     expect(dangerZone.indexOf("member-danger-zone__action")).toBeGreaterThan(deleteReasonEnd);
   });
+
+  test("account presentation uses a bounded editorial column and a responsive warning panel", () => {
+    expect(stylesSource).toMatch(
+      /\.member-account-page__content\s*\{[^}]*width:\s*min\(100%,\s*60rem\)[^}]*margin-inline:\s*auto/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-page \.member-section__content\s*\{[^}]*display:\s*grid[^}]*gap:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-session\s*\{[^}]*display:\s*flex[^}]*justify-content:\s*space-between[^}]*padding:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone\s*\{[^}]*display:\s*grid[^}]*gap:[^}]*border:[^}]*background:[^}]*padding:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone__action\s*\{[^}]*justify-self:\s*start[^}]*margin-block-start:/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-session\s*\{[^}]*flex-direction:\s*column/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-danger-zone__action\s*\{[^}]*justify-self:\s*stretch[^}]*inline-size:\s*100%/s,
+    );
+  });
 });
