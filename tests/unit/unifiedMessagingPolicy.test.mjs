@@ -239,6 +239,15 @@ describe("unified messaging delivery policy", () => {
     expect(shouldCancelReminderForDomainState("booking_confirmed", "cancelled", "cancelled")).toBe(
       false,
     );
+    expect(
+      shouldCancelReminderForDomainState(
+        "class_reminder_final",
+        "booked",
+        "scheduled",
+        "2026-09-03T17:00:00.000Z",
+        "2026-09-03T18:00:00.000Z",
+      ),
+    ).toBe(true);
   });
 
   test("cancels the 72-hour payment escalation as soon as payment is resolved", () => {

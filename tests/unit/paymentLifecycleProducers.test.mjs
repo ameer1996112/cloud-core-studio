@@ -19,4 +19,12 @@ describe("payment lifecycle producers", () => {
       expect(lifecycleBlock).not.toContain('"whatsapp"');
     }
   });
+
+  test("kicks asynchronous delivery after the browser-return payment transaction commits", () => {
+    const source = readSource("../../src/routes/api/public/payments/hyp.return.ts");
+    expect(source).toContain("import { kickUnifiedMessagingAfterCommit }");
+    expect(source).toMatch(
+      /await handleHypConfirmedPayment\(result\);\s+await kickUnifiedMessagingAfterCommit\(\);/,
+    );
+  });
 });

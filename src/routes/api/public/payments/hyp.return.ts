@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getHypConfig, hypRedirectMetadata, validateHypRedirect } from "@/lib/hyp.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { handleHypConfirmedPayment } from "@/lib/hypPaymentConfirmation.server";
+import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import { createSubscriptionFromInitialPayment } from "@/lib/subscriptions.server";
 import { processKidsHypReturn } from "@/lib/kids.server";
 
@@ -179,6 +180,7 @@ export const Route = createFileRoute("/api/public/payments/hyp/return")({
             console.error("hyp_return_subscription_setup_failed", subscriptionError);
           }
           await handleHypConfirmedPayment(result);
+          await kickUnifiedMessagingAfterCommit();
         }
 
         throw redirect(paymentResult("success", paymentId));

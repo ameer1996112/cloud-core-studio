@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { requestImmediateMessagingSweep } from "../../src/lib/unifiedMessagingKick.server.ts";
+import {
+  requestImmediateMessagingSweep,
+  runPostCommitNotificationDispatch,
+} from "../../src/lib/unifiedMessagingKick.server.ts";
 
 describe("post-commit messaging kick", () => {
   test("is disabled unless explicitly enabled", async () => {
@@ -34,5 +37,32 @@ describe("post-commit messaging kick", () => {
         body: '{"limit":50}',
       },
     });
+  });
+
+  test("uses Cloud Tasks after commit without invoking the legacy sweep", async () => {
+    let legacyCalled = false;
+    let tasksCalled = false;
+    const result = await runPostCommitNotificationDispatch(
+      {
+        NOTIFICATIONS_OUTBOX_ENABLED: "true",
+        NOTIFICATIONS_TASKS_ENABLED: "true",
+      },
+      {
+        enqueueTasks: async () => {
+          tasksCalled = true;
+          return { enabled: true, tasks: { selected: 1, enqueued: 1, failed: 0 } };
+        },
+        legacySweep: async () => {
+          legacyCalled = true;
+          return { ok: true };
+        },
+      },
+    );
+    expect(result).toEqual({
+      enabled: true,
+      tasks: { selected: 1, enqueued: 1, failed: 0 },
+    });
+    expect(tasksCalled).toBe(true);
+    expect(legacyCalled).toBe(false);
   });
 });

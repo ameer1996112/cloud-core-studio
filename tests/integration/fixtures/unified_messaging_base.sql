@@ -52,7 +52,7 @@ CREATE TABLE public.classes (
   booked_count integer NOT NULL DEFAULT 0
 );
 CREATE TABLE public.bookings (
-  id uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   class_id uuid NOT NULL REFERENCES public.classes(id),
   member_id uuid NOT NULL REFERENCES public.members(id),
   status text NOT NULL DEFAULT 'booked',

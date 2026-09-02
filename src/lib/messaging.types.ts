@@ -58,6 +58,7 @@ export type ConversationStatus = "unassigned" | "claimed" | "resolved";
 
 export type DeliveryStatus =
   | "queued"
+  | "enqueued"
   | "sending"
   | "accepted"
   | "sent"

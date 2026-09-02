@@ -3,10 +3,26 @@ type MessagingKickEnvironment = Partial<
     | "MESSAGING_IMMEDIATE_DISPATCH_ENABLED"
     | "MESSAGING_INTERNAL_SWEEP_URL"
     | "NOTIFICATION_AUTOMATION_TOKEN"
-    | "OPENWA_AUTOMATION_TOKEN",
+    | "OPENWA_AUTOMATION_TOKEN"
+    | "NOTIFICATIONS_OUTBOX_ENABLED"
+    | "NOTIFICATIONS_TASKS_ENABLED",
     string
   >
 >;
+
+function flag(value: string | undefined) {
+  return value?.trim().toLowerCase() === "true";
+}
+
+export async function runPostCommitNotificationDispatch<T, U>(
+  env: MessagingKickEnvironment,
+  dependencies: { enqueueTasks(): Promise<T>; legacySweep(): Promise<U> },
+) {
+  if (flag(env.NOTIFICATIONS_OUTBOX_ENABLED) && flag(env.NOTIFICATIONS_TASKS_ENABLED)) {
+    return dependencies.enqueueTasks();
+  }
+  return dependencies.legacySweep();
+}
 
 export async function requestImmediateMessagingSweep(
   env: MessagingKickEnvironment = process.env,
@@ -46,7 +62,14 @@ export async function requestImmediateMessagingSweep(
 
 export async function kickUnifiedMessagingAfterCommit() {
   try {
-    return await requestImmediateMessagingSweep();
+    return await runPostCommitNotificationDispatch(process.env, {
+      enqueueTasks: async () => {
+        const { runNotificationTaskOrchestration } =
+          await import("@/server/notifications/orchestrator.server");
+        return runNotificationTaskOrchestration({ limit: 50 });
+      },
+      legacySweep: () => requestImmediateMessagingSweep(),
+    });
   } catch (error) {
     console.warn("messaging_immediate_kick_failed", {
       outcome: "failed",

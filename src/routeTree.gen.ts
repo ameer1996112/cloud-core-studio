@@ -59,6 +59,8 @@ import { Route as AuthenticatedMemberAccountRouteImport } from './routes/_authen
 import { Route as AuthenticatedMemberBookingsRouteImport } from './routes/_authenticated/member/bookings'
 import { Route as AuthenticatedMemberPackagesRouteImport } from './routes/_authenticated/member/packages'
 import { Route as AuthenticatedReceiptsIdRouteImport } from './routes/_authenticated/receipts/$id'
+import { Route as InternalNotificationsDeliverRouteImport } from './routes/internal/notifications/deliver'
+import { Route as InternalNotificationsMaintainRouteImport } from './routes/internal/notifications/maintain'
 import { Route as AuthenticatedAdminClassesIndexRouteImport } from './routes/_authenticated/admin/classes/index'
 import { Route as AuthenticatedAdminClassesIdRouteImport } from './routes/_authenticated/admin/classes/$id'
 import { Route as AuthenticatedAdminClassesNewRouteImport } from './routes/_authenticated/admin/classes/new'
@@ -351,6 +353,18 @@ const AuthenticatedReceiptsIdRoute = AuthenticatedReceiptsIdRouteImport.update({
   path: '/receipts/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const InternalNotificationsDeliverRoute =
+  InternalNotificationsDeliverRouteImport.update({
+    id: '/internal/notifications/deliver',
+    path: '/internal/notifications/deliver',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InternalNotificationsMaintainRoute =
+  InternalNotificationsMaintainRouteImport.update({
+    id: '/internal/notifications/maintain',
+    path: '/internal/notifications/maintain',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminClassesIndexRoute =
   AuthenticatedAdminClassesIndexRouteImport.update({
     id: '/classes/',
@@ -516,6 +530,8 @@ export interface FileRoutesByFullPath {
   '/member/bookings': typeof AuthenticatedMemberBookingsRoute
   '/member/packages': typeof AuthenticatedMemberPackagesRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
+  '/internal/notifications/deliver': typeof InternalNotificationsDeliverRoute
+  '/internal/notifications/maintain': typeof InternalNotificationsMaintainRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/instructor/': typeof AuthenticatedInstructorIndexRoute
@@ -584,6 +600,8 @@ export interface FileRoutesByTo {
   '/member/bookings': typeof AuthenticatedMemberBookingsRoute
   '/member/packages': typeof AuthenticatedMemberPackagesRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
+  '/internal/notifications/deliver': typeof InternalNotificationsDeliverRoute
+  '/internal/notifications/maintain': typeof InternalNotificationsMaintainRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/bookings': typeof AuthenticatedBookingsIndexRoute
   '/instructor': typeof AuthenticatedInstructorIndexRoute
@@ -657,6 +675,8 @@ export interface FileRoutesById {
   '/_authenticated/member/bookings': typeof AuthenticatedMemberBookingsRoute
   '/_authenticated/member/packages': typeof AuthenticatedMemberPackagesRoute
   '/_authenticated/receipts/$id': typeof AuthenticatedReceiptsIdRoute
+  '/internal/notifications/deliver': typeof InternalNotificationsDeliverRoute
+  '/internal/notifications/maintain': typeof InternalNotificationsMaintainRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/bookings/': typeof AuthenticatedBookingsIndexRoute
   '/_authenticated/instructor/': typeof AuthenticatedInstructorIndexRoute
@@ -730,6 +750,8 @@ export interface FileRouteTypes {
     | '/member/bookings'
     | '/member/packages'
     | '/receipts/$id'
+    | '/internal/notifications/deliver'
+    | '/internal/notifications/maintain'
     | '/admin/'
     | '/bookings/'
     | '/instructor/'
@@ -798,6 +820,8 @@ export interface FileRouteTypes {
     | '/member/bookings'
     | '/member/packages'
     | '/receipts/$id'
+    | '/internal/notifications/deliver'
+    | '/internal/notifications/maintain'
     | '/admin'
     | '/bookings'
     | '/instructor'
@@ -870,6 +894,8 @@ export interface FileRouteTypes {
     | '/_authenticated/member/bookings'
     | '/_authenticated/member/packages'
     | '/_authenticated/receipts/$id'
+    | '/internal/notifications/deliver'
+    | '/internal/notifications/maintain'
     | '/_authenticated/admin/'
     | '/_authenticated/bookings/'
     | '/_authenticated/instructor/'
@@ -913,6 +939,8 @@ export interface RootRouteChildren {
   AuthResetRoute: typeof AuthResetRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
   PromoYogaLinaRoute: typeof PromoYogaLinaRoute
+  InternalNotificationsDeliverRoute: typeof InternalNotificationsDeliverRoute
+  InternalNotificationsMaintainRoute: typeof InternalNotificationsMaintainRoute
   ApiInternalConciergeDispatchRoute: typeof ApiInternalConciergeDispatchRoute
   ApiInternalConciergeRunRoute: typeof ApiInternalConciergeRunRoute
   ApiInternalMessagesSweepRoute: typeof ApiInternalMessagesSweepRoute
@@ -1282,6 +1310,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReceiptsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/internal/notifications/deliver': {
+      id: '/internal/notifications/deliver'
+      path: '/internal/notifications/deliver'
+      fullPath: '/internal/notifications/deliver'
+      preLoaderRoute: typeof InternalNotificationsDeliverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internal/notifications/maintain': {
+      id: '/internal/notifications/maintain'
+      path: '/internal/notifications/maintain'
+      fullPath: '/internal/notifications/maintain'
+      preLoaderRoute: typeof InternalNotificationsMaintainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/classes/': {
       id: '/_authenticated/admin/classes/'
       path: '/classes'
@@ -1566,6 +1608,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthResetRoute: AuthResetRoute,
   MemberScheduleRoute: MemberScheduleRoute,
   PromoYogaLinaRoute: PromoYogaLinaRoute,
+  InternalNotificationsDeliverRoute: InternalNotificationsDeliverRoute,
+  InternalNotificationsMaintainRoute: InternalNotificationsMaintainRoute,
   ApiInternalConciergeDispatchRoute: ApiInternalConciergeDispatchRoute,
   ApiInternalConciergeRunRoute: ApiInternalConciergeRunRoute,
   ApiInternalMessagesSweepRoute: ApiInternalMessagesSweepRoute,
