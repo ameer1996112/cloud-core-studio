@@ -143,6 +143,20 @@ describe("unified messaging database integration", () => {
           "SELECT (public.notification_delivery_health()->>'last_maintenance_execution' IS NOT NULL)::text;",
         ),
       ).toBe("true");
+      const scheduleVersionRoundTrip = await psql(`
+        BEGIN;
+        UPDATE public.classes
+        SET starts_at = starts_at + interval '1 hour'
+        WHERE id='20000000-0000-0000-0000-000000000001';
+        UPDATE public.classes
+        SET starts_at = starts_at - interval '1 hour'
+        WHERE id='20000000-0000-0000-0000-000000000001';
+        SELECT notification_schedule_version::text
+        FROM public.classes
+        WHERE id='20000000-0000-0000-0000-000000000001';
+        ROLLBACK;
+      `);
+      expect(scheduleVersionRoundTrip.split("\n")).toContain("2");
       await psql(`
         INSERT INTO public.message_deliveries (
           id, message_id, channel, status, idempotency_key, scheduled_for
@@ -154,16 +168,18 @@ describe("unified messaging database integration", () => {
         ORDER BY created_at
         LIMIT 1;
       `);
-      expect(
-        await psql(
+      const concurrentClaims = await Promise.all([
+        psql(
           "SELECT count(*) FROM public.claim_message_delivery_by_id('69000000-0000-4000-8000-000000000001','integration-a','69000000-0000-4000-8000-000000000002',300);",
         ),
-      ).toBe("1");
-      expect(
-        await psql(
+        psql(
           "SELECT count(*) FROM public.claim_message_delivery_by_id('69000000-0000-4000-8000-000000000001','integration-b','69000000-0000-4000-8000-000000000003',300);",
         ),
-      ).toBe("0");
+      ]);
+      expect(concurrentClaims.sort()).toEqual(["0", "1"]);
+      const staleLeaseToken = await psql(
+        "SELECT lease_token::text FROM public.message_deliveries WHERE id='69000000-0000-4000-8000-000000000001';",
+      );
       await psql(
         "UPDATE public.message_deliveries SET lease_expires_at=now() - interval '1 second' WHERE id='69000000-0000-4000-8000-000000000001';",
       );
@@ -172,6 +188,17 @@ describe("unified messaging database integration", () => {
           "SELECT count(*) FROM public.claim_message_delivery_by_id('69000000-0000-4000-8000-000000000001','integration-c','69000000-0000-4000-8000-000000000004',300);",
         ),
       ).toBe("1");
+      expect(
+        await psql(
+          `WITH stale AS (
+             UPDATE public.message_deliveries
+             SET status='sent'
+             WHERE id='69000000-0000-4000-8000-000000000001'
+               AND lease_token='${staleLeaseToken}'
+             RETURNING id
+           ) SELECT count(*) FROM stale;`,
+        ),
+      ).toBe("0");
 
       expect(
         await psql("SELECT count(*) FROM public.messages WHERE legacy_source_table IS NOT NULL;"),

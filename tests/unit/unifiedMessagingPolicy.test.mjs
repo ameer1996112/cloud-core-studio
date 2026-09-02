@@ -16,6 +16,7 @@ import {
   shouldCancelPaymentReminderForDomainState,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
+import { finalReminderAt } from "../../src/lib/unifiedMessaging.server.ts";
 
 describe("unified messaging delivery policy", () => {
   test("fans out each event to its approved channel matrix", () => {
@@ -159,7 +160,17 @@ describe("unified messaging delivery policy", () => {
       "ambiguous",
     );
     expect(classifyProviderFailure("email", { status: 429 })).toBe("transient");
+    expect(classifyProviderFailure("email", { status: 500 })).toBe("transient");
     expect(classifyProviderFailure("push", { status: 410 })).toBe("permanent");
+  });
+
+  test("schedules early-class reminders correctly on both sides of Jerusalem DST", () => {
+    expect(finalReminderAt(new Date("2026-07-15T06:00:00.000Z")).toISOString()).toBe(
+      "2026-07-14T17:00:00.000Z",
+    );
+    expect(finalReminderAt(new Date("2026-12-15T07:00:00.000Z")).toISOString()).toBe(
+      "2026-12-14T18:00:00.000Z",
+    );
   });
 
   test("recognizes localized WhatsApp opt-out requests", () => {

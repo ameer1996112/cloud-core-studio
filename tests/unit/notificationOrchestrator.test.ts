@@ -40,4 +40,22 @@ describe("notification Cloud Tasks orchestration", () => {
     expect(result).toEqual({ enabled: false, skipped: "disabled" });
     expect(called).toBe(false);
   });
+
+  test("stops cooperatively when the maintenance time budget aborts", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("time_budget_exhausted"));
+    let called = false;
+    await expect(
+      orchestrateNotificationTasks({
+        enabled: true,
+        signal: controller.signal,
+        prepare: async () => {
+          called = true;
+          return {};
+        },
+        dispatch: async () => ({ selected: 0, enqueued: 0, failed: 0 }),
+      }),
+    ).rejects.toThrow("time_budget_exhausted");
+    expect(called).toBe(false);
+  });
 });

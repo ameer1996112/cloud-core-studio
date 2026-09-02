@@ -5,7 +5,7 @@ const requestSchema = z.object({ limit: z.number().int().positive().optional() }
 type MaintenanceHandlerDependencies = {
   enabled: boolean;
   authorize(request: Request): Promise<boolean>;
-  run(limit: number): Promise<{ tasks?: unknown }>;
+  run(limit: number, signal: AbortSignal): Promise<{ tasks?: unknown }>;
   timeBudgetMs?: number;
   log?: (entry: Record<string, string | number | boolean | null>) => void;
 };
@@ -17,23 +17,6 @@ export function normalizeNotificationMaintenanceTimeBudget(value?: string) {
     throw new Error("invalid_notification_maintenance_time_budget");
   }
   return parsed;
-}
-
-async function runWithinTimeBudget<T>(operation: Promise<T>, timeBudgetMs: number): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      operation,
-      new Promise<never>((_, reject) => {
-        timeout = setTimeout(
-          () => reject(new Error("notification_maintenance_time_budget_exhausted")),
-          timeBudgetMs,
-        );
-      }),
-    ]);
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
 }
 
 export function createNotificationMaintenanceHandler(dependencies: MaintenanceHandlerDependencies) {
@@ -59,8 +42,13 @@ export function createNotificationMaintenanceHandler(dependencies: MaintenanceHa
       Math.max(Math.trunc(dependencies.timeBudgetMs ?? 150_000), 1_000),
       150_000,
     );
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(new Error("notification_maintenance_time_budget_exhausted")),
+      timeBudgetMs,
+    );
     try {
-      const result = await runWithinTimeBudget(dependencies.run(limit), timeBudgetMs);
+      const result = await dependencies.run(limit, controller.signal);
       const tasks =
         result.tasks && typeof result.tasks === "object"
           ? (result.tasks as Record<string, unknown>)
@@ -77,6 +65,8 @@ export function createNotificationMaintenanceHandler(dependencies: MaintenanceHa
     } catch {
       dependencies.log?.({ event: "notification_maintenance", outcome: "failed", limit });
       return Response.json({ ok: false, reason: "temporary_failure" }, { status: 503 });
+    } finally {
+      clearTimeout(timeout);
     }
   };
 }

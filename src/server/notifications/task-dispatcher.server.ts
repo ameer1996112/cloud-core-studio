@@ -20,14 +20,17 @@ export async function enqueueRecoverableNotificationDeliveries(input: {
   limit?: number;
   repository: NotificationTaskRepository;
   queue: NotificationTaskQueue;
+  signal?: AbortSignal;
   log: NotificationTaskLog;
 }) {
+  input.signal?.throwIfAborted();
   const limit = Math.min(Math.max(Math.trunc(input.limit ?? 100), 1), 100);
   const deliveries = await input.repository.listRecoverable(limit);
   let enqueued = 0;
   let failed = 0;
 
   for (const delivery of deliveries) {
+    input.signal?.throwIfAborted();
     try {
       const task = await input.queue.enqueueDelivery(delivery.id, new Date(delivery.scheduledFor));
       await input.repository.markEnqueued(delivery.id, task.taskName);

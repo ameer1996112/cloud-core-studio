@@ -6,6 +6,29 @@ ALTER TABLE public.message_outbox
   ADD COLUMN IF NOT EXISTS template_version integer,
   ADD COLUMN IF NOT EXISTS locale text;
 
+ALTER TABLE public.classes
+  ADD COLUMN IF NOT EXISTS notification_schedule_version bigint NOT NULL DEFAULT 0;
+
+CREATE OR REPLACE FUNCTION public.bump_class_notification_schedule_version()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.starts_at IS DISTINCT FROM OLD.starts_at OR NEW.status IS DISTINCT FROM OLD.status THEN
+    NEW.notification_schedule_version := OLD.notification_schedule_version + 1;
+  ELSE
+    NEW.notification_schedule_version := OLD.notification_schedule_version;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_bump_class_notification_schedule_version ON public.classes;
+CREATE TRIGGER trg_bump_class_notification_schedule_version
+  BEFORE UPDATE ON public.classes
+  FOR EACH ROW EXECUTE FUNCTION public.bump_class_notification_schedule_version();
+
 UPDATE public.message_outbox AS outbox
 SET template_key = COALESCE(outbox.template_key, outbox.event_type),
     template_version = COALESCE(outbox.template_version, 2),
@@ -219,9 +242,9 @@ BEGIN
         OR studio_class.status <> 'scheduled'
         OR studio_class.starts_at IS DISTINCT FROM (message.content->>'source_class_starts_at')::timestamptz
         OR (
-          message.content ? 'class_schedule_version'
+          message.content->>'class_schedule_version' IS NOT NULL
           AND message.content->>'class_schedule_version'
-            IS DISTINCT FROM (floor(extract(epoch FROM studio_class.starts_at) * 1000)::bigint)::text
+            IS DISTINCT FROM studio_class.notification_schedule_version::text
         )
       )
     ORDER BY delivery.created_at
@@ -333,6 +356,57 @@ AS $$
   FROM public.message_deliveries AS delivery;
 $$;
 
+CREATE OR REPLACE FUNCTION public.admin_retry_notification_delivery(
+  p_actor_id uuid,
+  p_delivery_id uuid,
+  p_now timestamptz DEFAULT now()
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_delivery public.message_deliveries%ROWTYPE;
+BEGIN
+  IF p_actor_id IS NULL OR NOT public.has_role(p_actor_id, 'admin') THEN
+    RAISE EXCEPTION 'admin_required';
+  END IF;
+  SELECT * INTO v_delivery
+  FROM public.message_deliveries
+  WHERE id = p_delivery_id
+  FOR UPDATE;
+  IF NOT FOUND
+    OR v_delivery.status NOT IN ('failed', 'dead_letter')
+    OR (v_delivery.failure_class IS NOT NULL AND v_delivery.failure_class <> 'transient')
+    OR (v_delivery.expires_at IS NOT NULL AND v_delivery.expires_at <= p_now) THEN
+    RETURN false;
+  END IF;
+  UPDATE public.message_deliveries
+  SET status = 'queued',
+      failure_class = NULL,
+      error_code = NULL,
+      error_message = NULL,
+      next_attempt_at = p_now,
+      lease_owner = NULL,
+      lease_token = NULL,
+      lease_expires_at = NULL,
+      task_name = NULL,
+      task_enqueued_at = NULL,
+      updated_at = p_now
+  WHERE id = p_delivery_id;
+  INSERT INTO public.admin_activity_log(actor_id, action, entity_type, entity_id, metadata)
+  VALUES (
+    p_actor_id,
+    'notification.delivery_retried',
+    'message_delivery',
+    p_delivery_id,
+    jsonb_build_object('previous_status', v_delivery.status)
+  );
+  RETURN true;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.mark_notification_delivery_task_enqueued(
   p_delivery_id uuid,
   p_task_name text
@@ -420,6 +494,7 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.populate_message_outbox_metadata() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.bump_class_notification_schedule_version() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.list_notification_deliveries_for_tasks(integer) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.cancel_obsolete_notification_reminders(integer) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.mark_notification_delivery_task_enqueued(uuid, text) FROM PUBLIC, anon, authenticated;
@@ -427,6 +502,7 @@ REVOKE ALL ON FUNCTION public.mark_notification_delivery_task_failed(uuid, text)
 REVOKE ALL ON FUNCTION public.claim_message_delivery_by_id(uuid, text, uuid, integer) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.record_notification_runtime_heartbeat(text, text, jsonb) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.notification_delivery_health() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_retry_notification_delivery(uuid, uuid, timestamptz) FROM PUBLIC, anon, authenticated;
 
 REVOKE ALL ON TABLE public.notification_runtime_heartbeats FROM PUBLIC, anon, authenticated;
 GRANT ALL ON TABLE public.notification_runtime_heartbeats TO service_role;
@@ -439,6 +515,7 @@ GRANT EXECUTE ON FUNCTION public.mark_notification_delivery_task_failed(uuid, te
 GRANT EXECUTE ON FUNCTION public.claim_message_delivery_by_id(uuid, text, uuid, integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.record_notification_runtime_heartbeat(text, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.notification_delivery_health() TO service_role;
+GRANT EXECUTE ON FUNCTION public.admin_retry_notification_delivery(uuid, uuid, timestamptz) TO service_role;
 
 COMMENT ON COLUMN public.message_outbox.template_key IS
   'Versioned rendering key captured with the immutable business event.';

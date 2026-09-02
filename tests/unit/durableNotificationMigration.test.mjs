@@ -51,6 +51,11 @@ describe("durable notification Cloud Tasks migration", () => {
     expect(migration).toContain("notification_delivery_health");
     expect(migration).toContain("last_whatsapp_worker_heartbeat");
     expect(migration).toContain("REVOKE ALL ON FUNCTION public.notification_delivery_health()");
+    expect(migration).toContain(
+      "notification_schedule_version := OLD.notification_schedule_version + 1",
+    );
+    expect(migration).toContain("admin_retry_notification_delivery");
+    expect(migration).toContain("'notification.delivery_retried'");
   });
 
   test("records an attempt before delivery revalidation and provider I/O", () => {

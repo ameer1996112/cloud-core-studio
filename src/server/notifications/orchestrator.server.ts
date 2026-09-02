@@ -11,18 +11,24 @@ import { createNotificationTaskQueue, loadNotificationTaskConfig } from "./task-
 export async function orchestrateNotificationTasks<T>(input: {
   enabled: boolean;
   limit?: number;
+  signal?: AbortSignal;
   prepare(): Promise<T>;
   dispatch(): Promise<{ selected: number; enqueued: number; failed: number }>;
 }) {
   if (!input.enabled) return { enabled: false as const, skipped: "disabled" as const };
+  input.signal?.throwIfAborted();
   const preparation = await input.prepare();
+  input.signal?.throwIfAborted();
   const tasks = await input.dispatch();
+  input.signal?.throwIfAborted();
   return { enabled: true as const, preparation, tasks };
 }
 
 export async function runNotificationTaskOrchestration(input?: {
   limit?: number;
   environment?: Record<string, string | undefined>;
+  signal?: AbortSignal;
+  recordMaintenanceHeartbeat?: boolean;
 }) {
   const environment = input?.environment ?? process.env;
   const taskConfig = loadNotificationTaskConfig(environment);
@@ -36,12 +42,17 @@ export async function runNotificationTaskOrchestration(input?: {
     const result = await orchestrateNotificationTasks({
       enabled: outboxEnabled && taskConfig.enabled,
       limit: input?.limit,
+      signal: input?.signal,
       prepare: async () => {
+        input?.signal?.throwIfAborted();
         const conciergeOrchestration = await runConciergeOrchestrator({ limit: input?.limit });
+        input?.signal?.throwIfAborted();
         const conciergeDispatch = await runConciergeDispatch({ limit: input?.limit });
+        input?.signal?.throwIfAborted();
         const unifiedMessaging = await runUnifiedMessagingSweep({
           limit: input?.limit,
           deliveryTransport: "cloud_tasks",
+          signal: input?.signal,
         });
         return { conciergeOrchestration, conciergeDispatch, unifiedMessaging };
       },
@@ -52,9 +63,11 @@ export async function runNotificationTaskOrchestration(input?: {
               limit: input?.limit,
               repository,
               queue: queue!,
+              signal: input?.signal,
               log: (entry) => console.info(JSON.stringify(entry)),
             }),
     });
+    if (!input?.recordMaintenanceHeartbeat) return result;
     const tasks = "tasks" in result ? result.tasks : null;
     const heartbeat = await (supabaseAdmin as any).rpc("record_notification_runtime_heartbeat", {
       p_heartbeat_key: "maintenance",
@@ -69,6 +82,7 @@ export async function runNotificationTaskOrchestration(input?: {
     if (heartbeat.error) throw heartbeat.error;
     return result;
   } catch (error) {
+    if (!input?.recordMaintenanceHeartbeat) throw error;
     try {
       await (supabaseAdmin as any).rpc("record_notification_runtime_heartbeat", {
         p_heartbeat_key: "maintenance",
