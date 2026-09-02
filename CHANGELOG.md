@@ -2,6 +2,19 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.5.0] - 2026-09-02
+
+### Changed
+
+- Give the member account page a calmer, premium editorial layout across mobile and desktop while preserving all existing profile, concierge, session, privacy, and deletion-request behavior.
+- Separate privacy links, session controls, and destructive account actions into clear responsive surfaces with consistent spacing, hierarchy, and touch targets.
+
+### Fixed
+
+- Prevent account privacy and deletion-recovery actions from appearing visually joined or cramped on small screens.
+- Keep deletion retry and support actions readable, keyboard accessible, and safely stacked for long English, Hebrew, and Arabic labels.
+- Harden the local-only member fixture lifecycle so studio settings are restored exactly and all fixture database access refuses non-loopback targets and inherited PostgreSQL overrides.
+
 ## [0.3.4.0] - 2026-09-01
 
 ### Added

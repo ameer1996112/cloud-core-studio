@@ -5,15 +5,25 @@
  *   APP_ENV=test ALLOW_MEMBER_UI_UX_FIXTURE=true bun scripts/qa/seed-member-ui-ux-fixture.mjs
  *
  * Credentials are read from the ignored .env.qa.local file created by `supabase status -o env`.
- * This script deliberately reports no credentials, IDs, or remote endpoints.
+ * The shared studio settings changed for QA are snapshotted beside that ignored file and restored
+ * by the reset script. This script deliberately reports no credentials, IDs, or remote endpoints.
  */
 import { randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { appendFile, readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import {
+  captureStudioSettingsSnapshot,
+  resolveFixtureEnvPath,
+  snapshotPathForEnvPath,
+} from "./member-ui-ux-fixture-lifecycle.mjs";
+import {
+  requireLocalFixtureTarget,
+  sanitizedPsqlEnvironment,
+} from "./member-ui-ux-local-target.mjs";
 
-const ENV_PATH = resolve(process.cwd(), ".env.qa.local");
+const ENV_PATH = resolveFixtureEnvPath(process.cwd(), process.env.ENV_PATH);
+const STUDIO_SETTINGS_SNAPSHOT_PATH = snapshotPathForEnvPath(ENV_PATH);
 const FIXTURE_EMAIL = "qa-member-ui@cloudcore.test";
 const FIXTURE_MARKERS = [
   "member_ui_ux_milestone_2_primary",
@@ -31,17 +41,6 @@ function parseEnv(contents) {
         return [line.slice(0, index), value.replace(/^(["'])(.*)\1$/, "$2")];
       }),
   );
-}
-
-function requireLocalTarget(env) {
-  if (process.env.APP_ENV !== "test" || process.env.ALLOW_MEMBER_UI_UX_FIXTURE !== "true") {
-    throw new Error("fixture_requires_explicit_test_opt_in");
-  }
-  if (!env.API_URL || !env.SERVICE_ROLE_KEY) throw new Error("fixture_local_credentials_missing");
-  const host = new URL(env.API_URL).hostname;
-  if (host !== "127.0.0.1" && host !== "localhost") {
-    throw new Error("fixture_refuses_non_local_supabase_target");
-  }
 }
 
 async function fixturePassword(env) {
@@ -121,6 +120,7 @@ function seedLocalAuthUser(env, password) {
     {
       input: sql,
       encoding: "utf8",
+      env: sanitizedPsqlEnvironment(process.env),
     },
   );
   if (result.status !== 0) {
@@ -149,12 +149,25 @@ async function upsertPlan(supabase, plan) {
 
 async function main() {
   const env = parseEnv(await readFile(ENV_PATH, "utf8"));
-  requireLocalTarget(env);
-  const password = await fixturePassword(env);
-  seedLocalAuthUser(env, password);
+  requireLocalFixtureTarget(env, process.env, { requireDatabase: true });
   const supabase = createClient(env.API_URL, env.SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
+  await captureStudioSettingsSnapshot(STUDIO_SETTINGS_SNAPSHOT_PATH, async () => {
+    const { data, error } = await supabase
+      .from("studio_settings")
+      .select("payments_enabled,payments_provider,payments_mode,email_enabled,whatsapp_enabled")
+      .eq("id", 1)
+      .single();
+    if (error || !data) {
+      throw new Error(
+        `fixture_studio_settings_snapshot_read:${error?.message || error?.code || "missing"}`,
+      );
+    }
+    return data;
+  });
+  const password = await fixturePassword(env);
+  seedLocalAuthUser(env, password);
   for (const result of [
     await supabase
       .from("studio_settings")

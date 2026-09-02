@@ -390,7 +390,9 @@ function MemberAccount() {
               eyebrow={conciergeCopy.eyebrow}
               title={conciergeCopy.title}
             >
-              <p className="member-page-body max-w-2xl">{conciergeCopy.body}</p>
+              <p className="member-page-body member-account-section-copy max-w-2xl">
+                {conciergeCopy.body}
+              </p>
               <div className="member-account-fields member-account-fields--concierge">
                 <MemberField id="concierge-pace" label={conciergeCopy.pace}>
                   <select
@@ -444,7 +446,9 @@ function MemberAccount() {
 
           <MemberSection id="session" title={t("shell.signOut")}>
             <div className="member-account-session">
-              <p className="text-sm leading-6 text-slate">{t("profile.endSession")}</p>
+              <p className="member-account-section-copy text-sm leading-6 text-slate">
+                {t("profile.endSession")}
+              </p>
               <button
                 id="account-sign-out"
                 type="button"
@@ -463,7 +467,9 @@ function MemberAccount() {
             eyebrow={t("profile.privacyKicker")}
             title={t("profile.privacyTitle")}
           >
-            <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
+            <p className="member-account-section-copy text-sm leading-6 text-slate">
+              {t("profile.privacyBody")}
+            </p>
             <nav className="member-account-legal-links" aria-label={t("profile.privacyTitle")}>
               <Link
                 to="/privacy"
@@ -485,6 +491,9 @@ function MemberAccount() {
               </Link>
             </nav>
             <div className="member-danger-zone">
+              <p className="member-danger-zone__explanation text-sm leading-6 text-slate">
+                {t("profile.deleteRequestExplanation")}
+              </p>
               <MemberField id="delete-reason" label={t("profile.deleteReason")}>
                 <textarea
                   className="editorial-input min-h-24 resize-y"
@@ -494,9 +503,6 @@ function MemberAccount() {
                   placeholder={t("profile.deleteReasonPlaceholder")}
                 />
               </MemberField>
-              <p className="text-sm leading-6 text-slate">
-                {t("profile.deleteRequestExplanation")}
-              </p>
               {deletionFeedback === "submitted" ? (
                 <MemberFeedbackPanel
                   ref={deletionFeedbackRef}
@@ -525,18 +531,15 @@ function MemberAccount() {
                   live="assertive"
                 >
                   <p>{t("profile.deleteRequestErrorBody")}</p>
-                  <div className="mt-3 flex flex-wrap gap-3">
+                  <div className="member-account-recovery-actions">
                     <button
                       type="button"
                       onClick={() => setDeletionDialogOpen(true)}
-                      className="btn-outline min-h-11"
+                      className="btn-outline member-account-action member-account-recovery-actions__primary"
                     >
                       {t("common.retry")}
                     </button>
-                    <Link
-                      to="/support"
-                      className="inline-flex min-h-11 items-center font-semibold text-navy underline underline-offset-2"
-                    >
+                    <Link to="/support" className="member-account-recovery-actions__support">
                       {t("profile.deleteRequestSupport")}
                     </Link>
                   </div>
@@ -552,7 +555,7 @@ function MemberAccount() {
                   deletionFeedback === "already-requested"
                 }
                 onClick={() => setDeletionDialogOpen(true)}
-                className="btn-ghost member-account-action border-destructive/30 text-destructive hover:btn-ghost-hover hover:text-destructive"
+                className="btn-ghost member-account-action member-danger-zone__action border-destructive/30 text-destructive hover:btn-ghost-hover hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                 {deletion.isPending

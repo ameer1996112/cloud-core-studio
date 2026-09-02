@@ -133,4 +133,94 @@ describe("member profile fields", () => {
       /@media \(max-width:\s*640px\)[\s\S]*\.member-account-save-action\s*\{[^}]*inline-size:\s*100%[^}]*min-inline-size:\s*0/s,
     );
   });
+
+  test("privacy links remain visually separated instead of touching like a segmented control", () => {
+    expect(stylesSource).toMatch(
+      /\.member-account-legal-links\s*\{[^}]*display:\s*grid[^}]*gap:\s*var\(--space-3\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-legal-links\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    );
+  });
+
+  test("deletion error recovery actions keep a clear hierarchy and stack safely on mobile", () => {
+    expect(accountSource).toContain('className="member-account-recovery-actions"');
+    expect(accountSource).toContain(
+      'className="btn-outline member-account-action member-account-recovery-actions__primary"',
+    );
+    expect(accountSource).toContain('className="member-account-recovery-actions__support');
+    expect(stylesSource).toMatch(
+      /\.member-account-recovery-actions\s*\{[^}]*display:\s*flex[^}]*flex-wrap:\s*wrap[^}]*gap:\s*var\(--space-3\)[^}]*margin-block-start:\s*var\(--space-3\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-recovery-actions__support\s*\{[^}]*min-height:\s*44px[^}]*max-inline-size:\s*100%[^}]*overflow-wrap:\s*anywhere/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-recovery-actions\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-recovery-actions__primary,[^}]*\.member-account-recovery-actions__support\s*\{[^}]*inline-size:\s*100%/s,
+    );
+  });
+
+  test("the account route exposes a calm editorial hierarchy for session and deletion content", () => {
+    expect(accountSource).toContain(
+      '<p className="member-page-body member-account-section-copy max-w-2xl">',
+    );
+    expect(accountSource).toContain(
+      '<p className="member-account-section-copy text-sm leading-6 text-slate">\n                {t("profile.endSession")}',
+    );
+    expect(accountSource).toContain(
+      '<p className="member-account-section-copy text-sm leading-6 text-slate">\n              {t("profile.privacyBody")}',
+    );
+    expect(accountSource).toContain(
+      'className="member-danger-zone__explanation text-sm leading-6 text-slate"',
+    );
+    expect(accountSource).toContain(
+      'className="btn-ghost member-account-action member-danger-zone__action',
+    );
+
+    const start = accountSource.indexOf('<div className="member-danger-zone">');
+    const dangerZone = accountSource.slice(start, accountSource.indexOf("</MemberSection>", start));
+    expect(dangerZone.indexOf("member-danger-zone__explanation")).toBeGreaterThan(-1);
+    const deleteReasonStart = dangerZone.indexOf('<MemberField id="delete-reason"');
+    const deleteReasonEnd = dangerZone.indexOf("</MemberField>", deleteReasonStart);
+    expect(deleteReasonStart).toBeGreaterThan(
+      dangerZone.indexOf("member-danger-zone__explanation"),
+    );
+    expect(dangerZone.indexOf("member-danger-zone__action")).toBeGreaterThan(deleteReasonEnd);
+  });
+
+  test("account presentation uses a bounded editorial column and a responsive warning panel", () => {
+    expect(stylesSource).toMatch(
+      /\.member-account-page__content\s*\{[^}]*width:\s*min\(100%,\s*60rem\)[^}]*margin-inline:\s*auto/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-page \.member-section__content\s*\{[^}]*display:\s*grid[^}]*gap:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-session\s*\{[^}]*display:\s*flex[^}]*justify-content:\s*space-between[^}]*padding:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-session\s*\{[^}]*border:\s*1px solid color-mix\(in srgb, var\(--color-gold\) 24%, var\(--color-border\)\)[^}]*background:\s*color-mix\(in srgb, var\(--color-surface\) 86%, transparent\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone\s*\{[^}]*display:\s*grid[^}]*gap:[^}]*border:[^}]*background:[^}]*padding:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone\s*\{[^}]*border:\s*1px solid color-mix\(in srgb, var\(--color-destructive\) 24%, var\(--color-border\)\)[^}]*background:\s*color-mix\(in srgb, var\(--color-destructive\) 4%, var\(--color-surface\)\)[^}]*box-shadow:\s*var\(--shadow-card\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone__action\s*\{[^}]*justify-self:\s*start[^}]*margin-block-start:/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-danger-zone__action:hover:not\(:disabled\)\s*\{[^}]*border-color:\s*color-mix\(in srgb, var\(--color-gold\) 34%, transparent\)[^}]*background-color:\s*color-mix\(in srgb, var\(--color-sand\) 68%, var\(--color-surface\)\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-session\s*\{[^}]*flex-direction:\s*column/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-danger-zone__action\s*\{[^}]*justify-self:\s*stretch[^}]*inline-size:\s*100%/s,
+    );
+  });
 });
