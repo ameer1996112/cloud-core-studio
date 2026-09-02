@@ -1,9 +1,16 @@
-/** Resets only the named local milestone-2 fixture user and its exact fixture plans. */
+/** Removes only the local milestone-2 fixture and restores its saved studio settings. */
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import {
+  loadStudioSettingsSnapshot,
+  requireSnapshotForReset,
+  resolveFixtureEnvPath,
+  restoreStudioSettingsSnapshot,
+  snapshotPathForEnvPath,
+} from "./member-ui-ux-fixture-lifecycle.mjs";
 
-const ENV_PATH = resolve(process.cwd(), ".env.qa.local");
+const ENV_PATH = resolveFixtureEnvPath(process.cwd(), process.env.ENV_PATH);
+const STUDIO_SETTINGS_SNAPSHOT_PATH = snapshotPathForEnvPath(ENV_PATH);
 const FIXTURE_EMAIL = "qa-member-ui@cloudcore.test";
 const FIXTURE_MARKERS = [
   "member_ui_ux_milestone_2_primary",
@@ -47,6 +54,16 @@ async function main() {
   if (userListError) throw userListError;
   const fixtureUser = users.users.find((user) => user.email === FIXTURE_EMAIL);
 
+  const { data: plans, error: plansError } = await supabase
+    .from("plans")
+    .select("id")
+    .in("description", FIXTURE_MARKERS);
+  if (plansError) throw plansError;
+  const snapshot = requireSnapshotForReset(
+    await loadStudioSettingsSnapshot(STUDIO_SETTINGS_SNAPSHOT_PATH),
+    Boolean(fixtureUser || plans.length > 0),
+  );
+
   if (fixtureUser) {
     for (const result of [
       await supabase.from("account_deletion_requests").delete().eq("member_id", fixtureUser.id),
@@ -60,11 +77,6 @@ async function main() {
     if (deleteUserError) throw deleteUserError;
   }
 
-  const { data: plans, error: plansError } = await supabase
-    .from("plans")
-    .select("id")
-    .in("description", FIXTURE_MARKERS);
-  if (plansError) throw plansError;
   if (plans.length > 0) {
     const { error: deletePlansError } = await supabase
       .from("plans")
@@ -74,6 +86,21 @@ async function main() {
         plans.map((plan) => plan.id),
       );
     if (deletePlansError) throw deletePlansError;
+  }
+  if (snapshot) {
+    await restoreStudioSettingsSnapshot(STUDIO_SETTINGS_SNAPSHOT_PATH, async (settings) => {
+      const { data, error } = await supabase
+        .from("studio_settings")
+        .update(settings)
+        .eq("id", 1)
+        .select("id")
+        .single();
+      if (error || !data) {
+        throw new Error(
+          `fixture_studio_settings_restore:${error?.message || error?.code || "missing"}`,
+        );
+      }
+    });
   }
   console.log("member-ui-ux-local-fixture-reset");
 }
