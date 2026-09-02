@@ -133,4 +133,13 @@ describe("member profile fields", () => {
       /@media \(max-width:\s*640px\)[\s\S]*\.member-account-save-action\s*\{[^}]*inline-size:\s*100%[^}]*min-inline-size:\s*0/s,
     );
   });
+
+  test("privacy links remain visually separated instead of touching like a segmented control", () => {
+    expect(stylesSource).toMatch(
+      /\.member-account-legal-links\s*\{[^}]*display:\s*grid[^}]*gap:\s*var\(--space-3\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-legal-links\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    );
+  });
 });

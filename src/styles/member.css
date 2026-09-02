@@ -1153,6 +1153,13 @@
   min-height: 44px;
 }
 
+.member-account-legal-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+}
+
 .member-account-save-row {
   display: flex;
   flex-wrap: wrap;
@@ -1216,6 +1223,10 @@
   .member-account-action {
     width: 100%;
     justify-content: center;
+  }
+
+  .member-account-legal-links {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .member-account-save-row {
