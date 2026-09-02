@@ -301,16 +301,21 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     let conciergeLabelMissing = false;
     if (conciergeCheckbox instanceof HTMLInputElement && isRendered(conciergeCheckbox)) {
       const label = accountPage.querySelector('label[for="concierge-paused"]');
+      // The label is the explicit clickable target for the intentionally small checkbox control.
       if (label instanceof HTMLElement && isRendered(label)) controls.push(label);
       else conciergeLabelMissing = true;
     }
-    const measurements = controls.map((element, index) => ({
-      key:
-        element instanceof HTMLLabelElement && element.htmlFor === "concierge-paused"
-          ? "id_concierge-paused-label"
-          : stableKey(element, index),
-      height: element.getBoundingClientRect().height,
-    }));
+    const measurements = controls.map((element, index) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        key:
+          element instanceof HTMLLabelElement && element.htmlFor === "concierge-paused"
+            ? "id_concierge-paused-label"
+            : stableKey(element, index),
+        width: rect.width,
+        height: rect.height,
+      };
+    });
     const requiredIds = [
       "profile-name",
       "profile-phone",
@@ -328,7 +333,12 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
         measurements.length > 0
           ? Math.min(...measurements.map((measurement) => measurement.height))
           : 0,
+      minimumWidth:
+        measurements.length > 0
+          ? Math.min(...measurements.map((measurement) => measurement.width))
+          : 0,
       tooShort: measurements.filter((measurement) => measurement.height < 43.5),
+      tooNarrow: measurements.filter((measurement) => measurement.width < 43.5),
       missingRequired: requiredIds.filter((id) => !controls.some((element) => element.id === id)),
       conciergeLabelMissing,
     };
@@ -347,6 +357,10 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     touchGeometry.tooShort.length === 0,
     `touch_target_height_${touchGeometry.tooShort[0]?.key || "unknown"}`,
   );
+  requireCondition(
+    touchGeometry.tooNarrow.length === 0,
+    `touch_target_width_${touchGeometry.tooNarrow[0]?.key || "unknown"}`,
+  );
 
   const dangerZone = page.locator(".member-danger-zone");
   await dangerZone.scrollIntoViewIfNeeded();
@@ -359,13 +373,14 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     const actionRect = action.getBoundingClientRect();
     const navRect = mobileNav?.getBoundingClientRect();
     const navStyle = mobileNav ? getComputedStyle(mobileNav) : null;
-    const navVisible =
+    const navRendered =
       Boolean(navRect && navStyle) &&
       navStyle.display !== "none" &&
       navStyle.visibility !== "hidden" &&
       Number(navStyle.opacity) !== 0 &&
       navRect.width > 0 &&
-      navRect.height > 0;
+      navRect.height > 0 &&
+      mobileNav.getClientRects().length > 0;
     const insideViewport = (rect) =>
       rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight;
     const intersects = (first, second) =>
@@ -373,6 +388,14 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
       first.right > second.left &&
       first.top < second.bottom &&
       first.bottom > second.top;
+    const viewportRect = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    const navIntersectsViewport = Boolean(
+      navRendered && navRect && intersects(navRect, viewportRect),
+    );
+    const navBottomDelta = navRect ? Math.abs(navRect.bottom - innerHeight) : null;
+    const navBottomAligned = Boolean(
+      navRendered && navBottomDelta !== null && navBottomDelta <= 1.5,
+    );
     const insidePanel =
       actionRect.left >= panelRect.left &&
       actionRect.top >= panelRect.top &&
@@ -386,9 +409,15 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
       actionHeight: actionRect.height,
       actionInsidePanel: insidePanel,
       actionInsideViewport: insideViewport(actionRect),
-      navVisible,
-      panelOverlapsNav: Boolean(navVisible && navRect && intersects(panelRect, navRect)),
-      actionOverlapsNav: Boolean(navVisible && navRect && intersects(actionRect, navRect)),
+      navRendered,
+      navIntersectsViewport,
+      navPosition: navStyle?.position || "missing",
+      navBottomDelta,
+      navBottomAligned,
+      panelOverlapsNav: Boolean(navIntersectsViewport && navRect && intersects(panelRect, navRect)),
+      actionOverlapsNav: Boolean(
+        navIntersectsViewport && navRect && intersects(actionRect, navRect),
+      ),
     };
   });
 
@@ -399,11 +428,29 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
   requireCondition(dangerGeometry.actionInsideViewport, `delete_action_viewport_${lang}_${width}`);
   requireCondition(dangerGeometry.actionHeight >= 44, `delete_action_height_${lang}_${width}`);
   if (width < 768) {
-    requireCondition(dangerGeometry.navVisible, `mobile_nav_not_visible_${lang}_${width}`);
+    requireCondition(dangerGeometry.navRendered, `mobile_nav_not_rendered_${lang}_${width}`);
+    requireCondition(
+      dangerGeometry.navIntersectsViewport,
+      `mobile_nav_not_in_viewport_${lang}_${width}`,
+    );
+    requireCondition(
+      dangerGeometry.navPosition === "fixed",
+      `mobile_nav_not_fixed_${lang}_${width}`,
+    );
+    requireCondition(
+      dangerGeometry.navBottomAligned,
+      `mobile_nav_not_bottom_aligned_${lang}_${width}`,
+    );
     requireCondition(!dangerGeometry.panelOverlapsNav, `danger_zone_nav_overlap_${lang}_${width}`);
     requireCondition(
       !dangerGeometry.actionOverlapsNav,
       `delete_action_nav_overlap_${lang}_${width}`,
+    );
+  } else {
+    requireCondition(!dangerGeometry.navRendered, `mobile_nav_rendered_desktop_${lang}_${width}`);
+    requireCondition(
+      !dangerGeometry.navIntersectsViewport,
+      `mobile_nav_visible_desktop_${lang}_${width}`,
     );
   }
 
@@ -454,8 +501,20 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     contentWidth: Math.round(baseGeometry.contentWidth),
     legalGap: Math.round(Math.min(baseGeometry.legalRowGap, baseGeometry.legalColumnGap)),
     panel: `${Math.round(dangerGeometry.panelWidth)}x${Math.round(dangerGeometry.panelHeight)}`,
-    nav: dangerGeometry.navVisible ? "visible-clear" : "hidden",
+    nav:
+      width < 768
+        ? `${dangerGeometry.navPosition}-bottom-clear`
+        : dangerGeometry.navIntersectsViewport
+          ? "desktop-visible"
+          : "hidden",
+    navRendered: dangerGeometry.navRendered,
+    navViewportVisible: dangerGeometry.navIntersectsViewport,
+    navBottomDelta:
+      dangerGeometry.navBottomDelta === null
+        ? null
+        : Math.round(dangerGeometry.navBottomDelta * 10) / 10,
     touchTargets: touchGeometry.count,
+    minimumTouchWidth: Math.round(touchGeometry.minimumWidth * 10) / 10,
     minimumTouchHeight: Math.round(touchGeometry.minimumHeight * 10) / 10,
     capture: `${capture.width}x${capture.height}`,
     deletionRequests,
