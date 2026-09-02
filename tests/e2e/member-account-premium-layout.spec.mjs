@@ -270,16 +270,109 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     );
   }
 
+  const touchGeometry = await page.evaluate(() => {
+    const accountPage = document.querySelector(".member-account-page");
+    if (!(accountPage instanceof HTMLElement)) return null;
+    const isRendered = (element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        Number(style.opacity) !== 0 &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        element.getClientRects().length > 0
+      );
+    };
+    const stableKey = (element, index) => {
+      if (element.id) return `id_${element.id.replace(/[^a-z0-9_-]/gi, "")}`;
+      const stableClass = [...element.classList].find((name) =>
+        /^(member-|btn-|editorial-input)/.test(name),
+      );
+      return `${element.tagName.toLowerCase()}_${stableClass || "control"}_${index}`;
+    };
+    const controls = [
+      ...accountPage.querySelectorAll(
+        'input:not([type]), input[type="text"], input[type="tel"], select, textarea, button, .member-account-legal-links a',
+      ),
+    ].filter(isRendered);
+    const conciergeCheckbox = accountPage.querySelector("#concierge-paused");
+    let conciergeLabelMissing = false;
+    if (conciergeCheckbox instanceof HTMLInputElement && isRendered(conciergeCheckbox)) {
+      const label = accountPage.querySelector('label[for="concierge-paused"]');
+      if (label instanceof HTMLElement && isRendered(label)) controls.push(label);
+      else conciergeLabelMissing = true;
+    }
+    const measurements = controls.map((element, index) => ({
+      key:
+        element instanceof HTMLLabelElement && element.htmlFor === "concierge-paused"
+          ? "id_concierge-paused-label"
+          : stableKey(element, index),
+      height: element.getBoundingClientRect().height,
+    }));
+    const requiredIds = [
+      "profile-name",
+      "profile-phone",
+      "profile-language",
+      "profile-emergency-contact",
+      "profile-energy-preference",
+      "profile-save",
+      "account-sign-out",
+      "delete-reason",
+      "account-delete-request",
+    ];
+    return {
+      count: measurements.length,
+      minimumHeight:
+        measurements.length > 0
+          ? Math.min(...measurements.map((measurement) => measurement.height))
+          : 0,
+      tooShort: measurements.filter((measurement) => measurement.height < 43.5),
+      missingRequired: requiredIds.filter((id) => !controls.some((element) => element.id === id)),
+      conciergeLabelMissing,
+    };
+  });
+
+  requireCondition(touchGeometry, `touch_targets_missing_${lang}_${width}`);
+  requireCondition(
+    touchGeometry.missingRequired.length === 0,
+    `touch_target_required_${touchGeometry.missingRequired[0] || "unknown"}`,
+  );
+  requireCondition(
+    !touchGeometry.conciergeLabelMissing,
+    "touch_target_id_concierge-paused-label_missing",
+  );
+  requireCondition(
+    touchGeometry.tooShort.length === 0,
+    `touch_target_height_${touchGeometry.tooShort[0]?.key || "unknown"}`,
+  );
+
   const dangerZone = page.locator(".member-danger-zone");
   await dangerZone.scrollIntoViewIfNeeded();
   const dangerGeometry = await page.evaluate(() => {
     const panel = document.querySelector(".member-danger-zone");
     const action = document.querySelector(".member-danger-zone__action");
+    const mobileNav = document.querySelector(".member-bottom-nav-link")?.closest("nav");
     if (!(panel instanceof HTMLElement) || !(action instanceof HTMLElement)) return null;
     const panelRect = panel.getBoundingClientRect();
     const actionRect = action.getBoundingClientRect();
+    const navRect = mobileNav?.getBoundingClientRect();
+    const navStyle = mobileNav ? getComputedStyle(mobileNav) : null;
+    const navVisible =
+      Boolean(navRect && navStyle) &&
+      navStyle.display !== "none" &&
+      navStyle.visibility !== "hidden" &&
+      Number(navStyle.opacity) !== 0 &&
+      navRect.width > 0 &&
+      navRect.height > 0;
     const insideViewport = (rect) =>
       rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight;
+    const intersects = (first, second) =>
+      first.left < second.right &&
+      first.right > second.left &&
+      first.top < second.bottom &&
+      first.bottom > second.top;
     const insidePanel =
       actionRect.left >= panelRect.left &&
       actionRect.top >= panelRect.top &&
@@ -293,6 +386,9 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
       actionHeight: actionRect.height,
       actionInsidePanel: insidePanel,
       actionInsideViewport: insideViewport(actionRect),
+      navVisible,
+      panelOverlapsNav: Boolean(navVisible && navRect && intersects(panelRect, navRect)),
+      actionOverlapsNav: Boolean(navVisible && navRect && intersects(actionRect, navRect)),
     };
   });
 
@@ -302,6 +398,14 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
   requireCondition(dangerGeometry.actionInsidePanel, `delete_action_panel_${lang}_${width}`);
   requireCondition(dangerGeometry.actionInsideViewport, `delete_action_viewport_${lang}_${width}`);
   requireCondition(dangerGeometry.actionHeight >= 44, `delete_action_height_${lang}_${width}`);
+  if (width < 768) {
+    requireCondition(dangerGeometry.navVisible, `mobile_nav_not_visible_${lang}_${width}`);
+    requireCondition(!dangerGeometry.panelOverlapsNav, `danger_zone_nav_overlap_${lang}_${width}`);
+    requireCondition(
+      !dangerGeometry.actionOverlapsNav,
+      `delete_action_nav_overlap_${lang}_${width}`,
+    );
+  }
 
   const deleteTrigger = page.locator("#account-delete-request");
   let deletionRequests = 0;
@@ -350,6 +454,9 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
     contentWidth: Math.round(baseGeometry.contentWidth),
     legalGap: Math.round(Math.min(baseGeometry.legalRowGap, baseGeometry.legalColumnGap)),
     panel: `${Math.round(dangerGeometry.panelWidth)}x${Math.round(dangerGeometry.panelHeight)}`,
+    nav: dangerGeometry.navVisible ? "visible-clear" : "hidden",
+    touchTargets: touchGeometry.count,
+    minimumTouchHeight: Math.round(touchGeometry.minimumHeight * 10) / 10,
     capture: `${capture.width}x${capture.height}`,
     deletionRequests,
   };
