@@ -4,6 +4,7 @@ import {
   conversationReplyMode,
   channelsForEvent,
   classifyProviderFailure,
+  classifyOpenwaFailure,
   computeDeliveryRetry,
   deliveryAllowedByConsent,
   isQuietHours,
@@ -16,8 +17,25 @@ import {
   shouldCancelPaymentReminderForDomainState,
   shouldCancelReminderForDomainState,
 } from "../../src/lib/messagingPolicy.ts";
+import {
+  finalReminderAt,
+  reminderDeduplicationKey,
+} from "../../src/lib/unifiedMessaging.server.ts";
 
 describe("unified messaging delivery policy", () => {
+  test("never automatically retries an unconfirmed OpenWA transmission", () => {
+    expect(
+      classifyOpenwaFailure({ error: "send_transport_failed:ETIMEDOUT", retryable: true }),
+    ).toBe("ambiguous");
+    expect(classifyOpenwaFailure({ error: "openwa_delivery_unconfirmed", retryable: true })).toBe(
+      "ambiguous",
+    );
+    expect(
+      classifyOpenwaFailure({ error: "failed", providerMessageId: "provider-1", retryable: true }),
+    ).toBe("ambiguous");
+    expect(classifyOpenwaFailure({ error: "worker_not_ready", retryable: true })).toBe("transient");
+    expect(classifyOpenwaFailure({ error: "invalid_phone", retryable: false })).toBe("permanent");
+  });
   test("fans out each event to its approved channel matrix", () => {
     expect(channelsForEvent("booking_confirmed")).toEqual(["in_app", "push", "whatsapp", "email"]);
     expect(channelsForEvent("waitlist_joined")).toEqual(["in_app", "push"]);
@@ -159,7 +177,28 @@ describe("unified messaging delivery policy", () => {
       "ambiguous",
     );
     expect(classifyProviderFailure("email", { status: 429 })).toBe("transient");
+    expect(classifyProviderFailure("email", { status: 500 })).toBe("transient");
     expect(classifyProviderFailure("push", { status: 410 })).toBe("permanent");
+  });
+
+  test("schedules early-class reminders correctly on both sides of Jerusalem DST", () => {
+    expect(finalReminderAt(new Date("2026-07-15T06:00:00.000Z")).toISOString()).toBe(
+      "2026-07-14T17:00:00.000Z",
+    );
+    expect(finalReminderAt(new Date("2026-12-15T07:00:00.000Z")).toISOString()).toBe(
+      "2026-12-14T18:00:00.000Z",
+    );
+  });
+
+  test("creates a replacement reminder when a class moves away and back", () => {
+    const base = {
+      bookingId: "booking-1",
+      eventType: "class_reminder_final",
+      startsAt: new Date("2026-09-03T15:00:00.000Z"),
+    };
+    expect(reminderDeduplicationKey({ ...base, scheduleVersion: 3 })).not.toBe(
+      reminderDeduplicationKey({ ...base, scheduleVersion: 5 }),
+    );
   });
 
   test("recognizes localized WhatsApp opt-out requests", () => {
@@ -239,6 +278,26 @@ describe("unified messaging delivery policy", () => {
     expect(shouldCancelReminderForDomainState("booking_confirmed", "cancelled", "cancelled")).toBe(
       false,
     );
+    expect(
+      shouldCancelReminderForDomainState(
+        "class_reminder_final",
+        "booked",
+        "scheduled",
+        "2026-09-03T17:00:00.000Z",
+        "2026-09-03T18:00:00.000Z",
+      ),
+    ).toBe(true);
+    expect(
+      shouldCancelReminderForDomainState(
+        "class_reminder_final",
+        "booked",
+        "scheduled",
+        "2026-09-03T17:00:00.000Z",
+        "2026-09-03T17:00:00.000Z",
+        "1788454800000",
+        "1788458400000",
+      ),
+    ).toBe(true);
   });
 
   test("cancels the 72-hour payment escalation as soon as payment is resolved", () => {

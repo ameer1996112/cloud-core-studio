@@ -655,5 +655,5 @@ export const retryCanonicalDeliveryAction = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await requireAdmin(context.userId);
     const { retryCanonicalDelivery } = await import("@/lib/unifiedMessaging.server");
-    return retryCanonicalDelivery(data.deliveryId);
+    return retryCanonicalDelivery(data.deliveryId, context.userId);
   });

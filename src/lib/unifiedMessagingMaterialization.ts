@@ -7,7 +7,10 @@ import type {
   MessageLanguage,
   MessagingDeliveryPreferences,
 } from "@/lib/messaging.types";
-import { getMetaTemplateVariant, renderMessageContent } from "@/lib/messageTemplateCatalog";
+import {
+  getMetaTemplateVariant,
+  renderVersionedMessageContent,
+} from "@/lib/messageTemplateCatalog";
 import { channelsForEvent, deliveryAllowedByConsent, isQuietHours } from "@/lib/messagingPolicy";
 import { notificationDefinition } from "@/lib/premiumNotificationCatalog";
 import { studioDateTimeInputToIso } from "@/lib/studio-time";
@@ -99,6 +102,8 @@ export function materializeMessagePlan(input: {
   eventType: MessageEventType;
   memberId: string;
   language: MessageLanguage;
+  templateKey?: string;
+  templateVersion?: number;
   variables: Record<string, unknown>;
   recipients: { whatsapp?: string | null; email?: string | null };
   preferences: MessagingDeliveryPreferences;
@@ -108,7 +113,13 @@ export function materializeMessagePlan(input: {
   now: Date;
   expiresAt?: Date | null;
 }): MaterializedMessagePlan {
-  const rendered = renderMessageContent(input.eventType, input.language, input.variables);
+  const rendered = renderVersionedMessageContent({
+    eventType: input.eventType,
+    templateKey: input.templateKey ?? input.eventType,
+    templateVersion: input.templateVersion ?? 2,
+    language: input.language,
+    variables: input.variables,
+  });
   const definition = notificationDefinition(input.eventType);
   const actions = (() => {
     if (input.eventType === "member_welcome") {

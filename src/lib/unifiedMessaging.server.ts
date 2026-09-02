@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { dispatchDuePromotions } from "@/lib/promotionBroadcast.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notificationDatabase } from "@/server/notifications/database-scope.server";
 import {
   ADMIN_BOOKING_ALERT_EVENT,
   resolveAdminBookingAlertPolicy,
@@ -27,7 +27,9 @@ import type {
 import { logMessagingEvent } from "@/lib/messagingLogging.server";
 import { applyStaffTestVariables, isStaffTestMessageContent } from "@/lib/messagingStaffTest";
 import {
+  classifyOpenwaFailure,
   computeDeliveryRetry,
+  deliveryAllowedByConsent,
   isEssentialMessageEvent,
   isUnopenedSuccessfulPushMessage,
   requiresPromotionalFrequencyReservation,
@@ -87,6 +89,9 @@ type OutboxRow = {
   deduplication_key: string;
   expires_at: string | null;
   attempt_count: number;
+  template_key: string;
+  template_version: number;
+  locale: MessageLanguage;
 };
 
 type DeliveryRow = {
@@ -101,25 +106,37 @@ type DeliveryRow = {
   provider_payload: Record<string, unknown>;
   expires_at: string | null;
   attempt_count: number;
+  lease_token?: string | null;
+  created_at?: string;
+  last_attempt_at?: string | null;
 };
+
+function currentDeliveryLease<T extends { eq(column: string, value: string): T }>(
+  query: T,
+  delivery: DeliveryRow,
+) {
+  return delivery.lease_token ? query.eq("lease_token", delivery.lease_token) : query;
+}
 
 async function fetchAllRows<T>(
   page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
 ) {
   const pageSize = 500;
+  const maxRows = 2_000;
   const rows: T[] = [];
-  for (let from = 0; ; from += pageSize) {
+  for (let from = 0; from < maxRows; from += pageSize) {
     const result = await page(from, from + pageSize - 1);
     if (result.error) throw result.error;
     const next = result.data ?? [];
     rows.push(...next);
     if (next.length < pageSize) return rows;
   }
+  return rows;
 }
 
 async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
   if (!delivery.snapshot_id) return false;
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const allowlist = (process.env.CONCIERGE_TEST_RECIPIENT_IDS ?? "")
     .split(",")
     .map((value) => value.trim())
@@ -133,18 +150,22 @@ async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
   if (gate.error) throw gate.error;
   const result = Array.isArray(gate.data) ? gate.data[0] : gate.data;
   if (result?.allowed === true) return false;
-  const suppressed = await db
-    .from("message_deliveries")
-    .update({
-      status: "suppressed",
-      failure_class: "configuration",
-      error_code: result?.reason ?? "concierge_send_gate_denied",
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const suppressed = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "suppressed",
+        failure_class: "configuration",
+        error_code: result?.reason ?? "concierge_send_gate_denied",
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (suppressed.error) throw suppressed.error;
   return true;
 }
@@ -227,7 +248,7 @@ async function createAdminAlert(input: {
   body: string;
   content: Record<string, unknown>;
 }) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const message = await db
     .from("messages")
     .upsert(
@@ -266,7 +287,7 @@ async function createAdminAlert(input: {
 
 async function loadOutboxContext(outbox: OutboxRow) {
   if (!outbox.member_id) throw new Error("outbox_member_required");
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const memberResult = await db
     .from("members")
     .select("id,name,phone,email,preferred_language,status,remaining_credits")
@@ -274,9 +295,8 @@ async function loadOutboxContext(outbox: OutboxRow) {
     .single();
   if (memberResult.error) throw memberResult.error;
   const member = memberResult.data;
-  const locale =
-    outbox.event_type === ADMIN_BOOKING_ALERT_EVENT ? "he" : language(member.preferred_language);
-  if (!locale) throw new Error(`unsupported_member_language:${member.preferred_language}`);
+  const locale = language(outbox.locale);
+  if (!locale) throw new Error("unsupported_outbox_locale");
   const preferencesResult = await readMemberNotificationPreferences(db, outbox.member_id);
   if (preferencesResult.error) throw preferencesResult.error;
   const mappedPreferences = mapMemberNotificationPreferences(preferencesResult.data);
@@ -538,7 +558,7 @@ async function materializeOutbox(
   externalChannels: ExternalChannelAvailability,
   runtime: ReturnType<typeof resolveMessagingRuntime>,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   try {
     const definition = notificationDefinition(outbox.event_type);
     let enabledChannels: ReadonlySet<MessageChannel> | undefined;
@@ -610,6 +630,8 @@ async function materializeOutbox(
       outboxId: outbox.id,
       deduplicationKey: outbox.deduplication_key,
       eventType: outbox.event_type,
+      templateKey: outbox.template_key,
+      templateVersion: outbox.template_version,
       memberId: outbox.member_id!,
       language: context.adminBookingAlertPolicy?.language ?? context.locale,
       variables: context.variables,
@@ -679,6 +701,14 @@ async function materializeOutbox(
             variables: context.variables,
             action_url: deepLink,
             staff_test: outbox.payload.staff_test === true,
+            source_class_starts_at:
+              typeof outbox.payload.class_starts_at === "string"
+                ? outbox.payload.class_starts_at
+                : null,
+            class_schedule_version:
+              typeof outbox.payload.class_schedule_version === "string"
+                ? outbox.payload.class_schedule_version
+                : null,
           },
           notification_family: plan.message.notificationFamily,
           notification_tier: plan.message.notificationTier,
@@ -791,7 +821,7 @@ async function materializeOutbox(
 async function activeHandoff(recipient: string | null) {
   if (!recipient) return false;
   const normalized = recipient.replace(/\D/g, "");
-  const result = await (supabaseAdmin as any)
+  const result = await (notificationDatabase as any)
     .from("message_conversations")
     .select("id")
     .eq("provider", "whatsapp")
@@ -806,13 +836,13 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
   if (!["class_reminder_planning", "class_reminder_final"].includes(message.event_type)) {
     return false;
   }
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   if (!message.related_booking_id) {
     throw new Error("reminder_booking_context_missing");
   }
   const booking = await db
     .from("bookings")
-    .select("status,class:classes(status)")
+    .select("status,class:classes(status,starts_at,notification_schedule_version)")
     .eq("id", message.related_booking_id)
     .maybeSingle();
   if (booking.error) throw booking.error;
@@ -822,21 +852,35 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
       message.event_type,
       booking.data?.status,
       studioClass?.status,
+      typeof message.content?.source_class_starts_at === "string"
+        ? message.content.source_class_starts_at
+        : null,
+      studioClass?.starts_at,
+      typeof message.content?.class_schedule_version === "string"
+        ? message.content.class_schedule_version
+        : null,
+      studioClass?.notification_schedule_version == null
+        ? null
+        : String(studioClass.notification_schedule_version),
     )
   ) {
     return false;
   }
-  const cancelled = await db
-    .from("message_deliveries")
-    .update({
-      status: "cancelled",
-      error_code: "booking_or_class_cancelled",
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const cancelled = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "cancelled",
+        error_code: "booking_or_class_cancelled",
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (cancelled.error) throw cancelled.error;
   return true;
 }
@@ -848,7 +892,7 @@ async function cancelInvalidPaymentReminderDelivery(
 ) {
   if (message.event_type !== "payment_pending_reminder") return false;
   if (!message.related_payment_id) throw new Error("payment_reminder_context_missing");
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const payment = await db
     .from("payments")
     .select("status,member_id")
@@ -881,17 +925,21 @@ async function cancelInvalidPaymentReminderDelivery(
   if (!errorCode) {
     return false;
   }
-  const cancelled = await db
-    .from("message_deliveries")
-    .update({
-      status: "cancelled",
-      error_code: errorCode,
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const cancelled = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "cancelled",
+        error_code: errorCode,
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (cancelled.error) throw cancelled.error;
   return true;
 }
@@ -902,7 +950,7 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
     throw new Error("open_class_alert_context_missing");
   }
 
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const [
     classResult,
     bookingResult,
@@ -976,17 +1024,21 @@ async function cancelInvalidOpenClassDelivery(delivery: DeliveryRow, message: an
     return false;
   }
 
-  const cancelled = await db
-    .from("message_deliveries")
-    .update({
-      status: "cancelled",
-      error_code: "open_class_alert_no_longer_eligible",
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", delivery.id)
-    .eq("status", "sending");
+  const cancelled = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "cancelled",
+        error_code: "open_class_alert_no_longer_eligible",
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now.toISOString(),
+      })
+      .eq("id", delivery.id)
+      .eq("status", "sending"),
+    delivery,
+  );
   if (cancelled.error) throw cancelled.error;
   return true;
 }
@@ -1002,21 +1054,25 @@ class WhatsappPersistenceUncertainError extends Error {
 
 async function markWhatsappDeliveryUnknown(delivery: DeliveryRow, reason: string) {
   const now = new Date().toISOString();
-  const db = supabaseAdmin as any;
-  const update = await db
-    .from("message_deliveries")
-    .update({
-      status: "delivery_unknown",
-      failure_class: "ambiguous",
-      error_code: "provider_result_persistence_uncertain",
-      error_message: reason.slice(0, 500),
-      next_attempt_at: null,
-      failed_at: now,
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now,
-    })
-    .eq("id", delivery.id);
+  const db = notificationDatabase as any;
+  const update = await currentDeliveryLease(
+    db
+      .from("message_deliveries")
+      .update({
+        status: "delivery_unknown",
+        failure_class: "ambiguous",
+        error_code: "provider_result_persistence_uncertain",
+        error_message: reason.slice(0, 500),
+        next_attempt_at: null,
+        failed_at: now,
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: now,
+      })
+      .eq("id", delivery.id),
+    delivery,
+  );
   if (update.error) throw update.error;
   await createAdminAlert({
     idempotencyKey: `admin:delivery:${delivery.id}:delivery_unknown`,
@@ -1027,7 +1083,7 @@ async function markWhatsappDeliveryUnknown(delivery: DeliveryRow, reason: string
 }
 
 async function alertRecoveredStaleWhatsappDeliveries() {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const stale = await db
     .from("message_deliveries")
     .select("id")
@@ -1051,7 +1107,7 @@ async function sendPush(
   message: any,
   runtime: ReturnType<typeof resolveMessagingRuntime>,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const isAdminGroup = delivery.recipient_address === "admin_group";
   const nowIso = new Date().toISOString();
   const environment = configuredApnsEnvironment();
@@ -1279,10 +1335,11 @@ async function recordDeliveryResult(
         error: string;
         httpStatus?: number;
         retryAfterSeconds?: number | null;
+        providerMessageId?: string | null;
       },
   startedAt: Date,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const now = new Date();
   let status: DeliveryStatus;
   let nextAttemptAt: Date | null = null;
@@ -1317,6 +1374,7 @@ async function recordDeliveryResult(
       finished_at: now.toISOString(),
       outcome: result.ok ? result.status : status,
       provider_http_status: result.ok ? null : (result.httpStatus ?? null),
+      provider_error_code: result.ok ? null : result.error.slice(0, 100),
       failure_class: result.ok ? null : result.failureClass,
       retry_after_seconds: result.ok ? null : (result.retryAfterSeconds ?? null),
       next_attempt_at: nextAttemptAt?.toISOString() ?? null,
@@ -1329,9 +1387,10 @@ async function recordDeliveryResult(
   const update: Record<string, unknown> = {
     status,
     provider_status: status,
-    provider_message_id: result.ok ? result.providerMessageId : null,
+    provider_message_id: result.providerMessageId ?? null,
     next_attempt_at: nextAttemptAt?.toISOString() ?? null,
     lease_owner: null,
+    lease_token: null,
     lease_expires_at: null,
     failure_class: result.ok ? null : result.failureClass,
     error_message: result.ok ? null : result.error.slice(0, 500),
@@ -1340,7 +1399,10 @@ async function recordDeliveryResult(
     failed_at: result.ok ? null : now.toISOString(),
     updated_at: now.toISOString(),
   };
-  const updated = await db.from("message_deliveries").update(update).eq("id", delivery.id);
+  const updated = await currentDeliveryLease(
+    db.from("message_deliveries").update(update).eq("id", delivery.id),
+    delivery,
+  );
   if (updated.error) throw updated.error;
   if (status === "dead_letter" || status === "delivery_unknown") {
     const ambiguousProvider = delivery.channel === "whatsapp" ? "WhatsApp" : "push provider";
@@ -1371,11 +1433,154 @@ async function recordDeliveryResult(
   return status;
 }
 
+async function startDeliveryAttempt(delivery: DeliveryRow, startedAt: Date) {
+  const result = await (notificationDatabase as any).from("message_delivery_attempts").upsert(
+    {
+      delivery_id: delivery.id,
+      attempt_number: delivery.attempt_count,
+      provider: delivery.provider,
+      started_at: startedAt.toISOString(),
+      finished_at: null,
+      outcome: "processing",
+      request_metadata: { channel: delivery.channel },
+      response_metadata: {},
+    },
+    { onConflict: "delivery_id,attempt_number" },
+  );
+  if (result.error) throw result.error;
+}
+
+async function finishDeliveryAttemptWithoutProvider(
+  delivery: DeliveryRow,
+  startedAt: Date,
+  outcome: DeliveryStatus,
+  errorCode?: string,
+) {
+  const finishedAt = new Date();
+  const result = await (notificationDatabase as any)
+    .from("message_delivery_attempts")
+    .update({
+      finished_at: finishedAt.toISOString(),
+      outcome,
+      provider_error_code: errorCode ?? null,
+      failure_class: null,
+    })
+    .eq("delivery_id", delivery.id)
+    .eq("attempt_number", delivery.attempt_count);
+  if (result.error) throw result.error;
+  logMessagingEvent("delivery_attempt", {
+    correlationId: delivery.message_id,
+    messageId: delivery.message_id,
+    deliveryId: delivery.id,
+    provider: delivery.provider,
+    channel: delivery.channel,
+    outcome,
+    durationMs: finishedAt.getTime() - startedAt.getTime(),
+    retryClassification: null,
+    attemptNumber: delivery.attempt_count,
+  });
+}
+
+async function suppressExternalDeliveryIfBlocked(
+  delivery: DeliveryRow,
+  message: { event_type: MessageEventType; member_id?: string | null; audience?: string },
+  runtime: ReturnType<typeof resolveMessagingRuntime>,
+  startedAt: Date,
+) {
+  let errorCode: string | null = null;
+  if (!runtimeAllowsRecipient(runtime, delivery.channel, delivery.recipient_address)) {
+    errorCode = "recipient_not_allowlisted";
+  }
+  if (!errorCode && message.audience !== "admin") {
+    const db = notificationDatabase as any;
+    const member = await db
+      .from("members")
+      .select("id,status,email,phone")
+      .eq("id", message.member_id ?? "00000000-0000-0000-0000-000000000000")
+      .maybeSingle();
+    if (member.error) throw member.error;
+    if (!member.data || member.data.status !== "active") {
+      errorCode = "recipient_no_longer_active";
+    } else {
+      const preferences = await readMemberNotificationPreferences(db, member.data.id);
+      if (preferences.error) throw preferences.error;
+      const mapped = mapMemberNotificationPreferences(preferences.data);
+      if (
+        !deliveryAllowedByConsent(message.event_type, delivery.channel, {
+          pushEnabled: mapped.pushEnabled,
+          whatsappEnabled: mapped.whatsappEnabled,
+          emailEnabled: mapped.emailEnabled,
+          scheduleUpdates: mapped.scheduleUpdates,
+          classOperations: mapped.classOperationsEnabled,
+          classReminders: mapped.classRemindersEnabled,
+          scheduleOpenings: mapped.scheduleOpeningsEnabled,
+          waitlist: mapped.waitlistEnabled,
+          payments: mapped.paymentsEnabled,
+          membership: mapped.membershipEnabled,
+          staffReplies: mapped.staffRepliesEnabled,
+          recommendations: mapped.recommendationsEnabled,
+          marketing: mapped.marketing,
+        })
+      ) {
+        errorCode = "recipient_preferences_changed";
+      }
+      const normalizePhone = (value: string | null) =>
+        (value ?? "").replace(/\D/g, "").replace(/^0/, "972");
+      if (
+        (delivery.channel === "email" &&
+          (member.data.email ?? "").trim().toLowerCase() !==
+            (delivery.recipient_address ?? "").trim().toLowerCase()) ||
+        (delivery.channel === "whatsapp" &&
+          normalizePhone(member.data.phone) !== normalizePhone(delivery.recipient_address))
+      ) {
+        errorCode = "recipient_destination_changed";
+      }
+      if (delivery.channel === "whatsapp") {
+        const consent = await db.rpc("notification_whatsapp_consent_current", {
+          p_member_id: member.data.id,
+        });
+        if (consent.error) throw consent.error;
+        if (consent.data !== true) errorCode = "whatsapp_consent_withdrawn";
+      }
+    }
+  }
+  if (
+    !errorCode &&
+    delivery.channel === "whatsapp" &&
+    !isEssentialMessageEvent(message.event_type) &&
+    message.event_type !== "human_handoff" &&
+    (await activeHandoff(delivery.recipient_address))
+  ) {
+    errorCode = "active_handoff";
+  }
+  if (!errorCode) return false;
+  const suppressed = await currentDeliveryLease(
+    (notificationDatabase as any)
+      .from("message_deliveries")
+      .update({
+        status: "suppressed",
+        failure_class: errorCode === "recipient_not_allowlisted" ? "configuration" : null,
+        error_code: errorCode,
+        lease_owner: null,
+        lease_token: null,
+        lease_expires_at: null,
+        updated_at: startedAt.toISOString(),
+      })
+      .eq("id", delivery.id),
+    delivery,
+  );
+  if (suppressed.error) throw suppressed.error;
+  await finishDeliveryAttemptWithoutProvider(delivery, startedAt, "suppressed", errorCode);
+  return true;
+}
+
 async function processDelivery(
   delivery: DeliveryRow,
   runtime: ReturnType<typeof resolveMessagingRuntime>,
+  startedAt = new Date(),
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
+  await startDeliveryAttempt(delivery, startedAt);
   const messageResult = await db
     .from("messages")
     .select("*")
@@ -1383,73 +1588,82 @@ async function processDelivery(
     .single();
   if (messageResult.error) throw messageResult.error;
   const message = messageResult.data;
-  const startedAt = new Date();
-  if (await enforceConciergeSendGate(delivery, startedAt)) return "suppressed";
+  if (await enforceConciergeSendGate(delivery, startedAt)) {
+    await finishDeliveryAttemptWithoutProvider(
+      delivery,
+      startedAt,
+      "suppressed",
+      "concierge_send_gate",
+    );
+    return "suppressed";
+  }
   if (delivery.expires_at && new Date(delivery.expires_at) <= startedAt) {
-    const expired = await db
-      .from("message_deliveries")
-      .update({
-        status: "expired",
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
+    const expired = await currentDeliveryLease(
+      db
+        .from("message_deliveries")
+        .update({
+          status: "expired",
+          lease_owner: null,
+          lease_token: null,
+          lease_expires_at: null,
+          updated_at: startedAt.toISOString(),
+        })
+        .eq("id", delivery.id),
+      delivery,
+    );
     if (expired.error) throw expired.error;
+    await finishDeliveryAttemptWithoutProvider(delivery, startedAt, "expired", "delivery_expired");
     return "expired";
   }
   if (!isStaffTestMessageContent(message.content)) {
-    if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
-    if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt))
+    if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) {
+      await finishDeliveryAttemptWithoutProvider(
+        delivery,
+        startedAt,
+        "cancelled",
+        "reminder_business_state_changed",
+      );
       return "cancelled";
-    if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
+    }
+    if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt)) {
+      await finishDeliveryAttemptWithoutProvider(
+        delivery,
+        startedAt,
+        "cancelled",
+        "payment_business_state_changed",
+      );
+      return "cancelled";
+    }
+    if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) {
+      await finishDeliveryAttemptWithoutProvider(
+        delivery,
+        startedAt,
+        "cancelled",
+        "open_class_business_state_changed",
+      );
+      return "cancelled";
+    }
   }
   if (delivery.channel === "in_app") {
-    const delivered = await db
-      .from("message_deliveries")
-      .update({
-        status: "delivered",
-        delivered_at: startedAt.toISOString(),
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
+    const delivered = await currentDeliveryLease(
+      db
+        .from("message_deliveries")
+        .update({
+          status: "delivered",
+          delivered_at: startedAt.toISOString(),
+          lease_owner: null,
+          lease_token: null,
+          lease_expires_at: null,
+          updated_at: startedAt.toISOString(),
+        })
+        .eq("id", delivery.id),
+      delivery,
+    );
     if (delivered.error) throw delivered.error;
+    await finishDeliveryAttemptWithoutProvider(delivery, startedAt, "delivered");
     return "delivered";
   }
-  if (!runtimeAllowsRecipient(runtime, delivery.channel, delivery.recipient_address)) {
-    const suppressed = await db
-      .from("message_deliveries")
-      .update({
-        status: "suppressed",
-        failure_class: "configuration",
-        error_code: "recipient_not_allowlisted",
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
-    if (suppressed.error) throw suppressed.error;
-    return "suppressed";
-  }
-  if (
-    delivery.channel === "whatsapp" &&
-    !isEssentialMessageEvent(message.event_type as MessageEventType) &&
-    message.event_type !== "human_handoff" &&
-    (await activeHandoff(delivery.recipient_address))
-  ) {
-    const paused = await db
-      .from("message_deliveries")
-      .update({
-        status: "suppressed",
-        error_code: "active_handoff",
-        lease_owner: null,
-        lease_expires_at: null,
-        updated_at: startedAt.toISOString(),
-      })
-      .eq("id", delivery.id);
-    if (paused.error) throw paused.error;
+  if (await suppressExternalDeliveryIfBlocked(delivery, message, runtime, startedAt)) {
     return "suppressed";
   }
 
@@ -1602,11 +1816,308 @@ async function processDelivery(
   return recordedStatus;
 }
 
-function finalReminderAt(startsAt: Date) {
+const TERMINAL_DELIVERY_STATUSES: ReadonlySet<DeliveryStatus> = new Set([
+  "accepted",
+  "sent",
+  "delivered",
+  "read",
+  "dead_letter",
+  "suppressed",
+  "expired",
+  "cancelled",
+  "delivery_unknown",
+]);
+
+export async function processUnifiedMessagingDeliveryById(
+  deliveryId: string,
+  input?: { workerId?: string; leaseSeconds?: number },
+): Promise<{
+  outcome:
+    | "sent"
+    | "delivered"
+    | "accepted"
+    | "skipped"
+    | "cancelled"
+    | "failed_permanent"
+    | "already_terminal"
+    | "lease_busy"
+    | "retryable_failure";
+}> {
+  const db = notificationDatabase as any;
+  const current = await db
+    .from("message_deliveries")
+    .select("id,status,channel")
+    .eq("id", deliveryId)
+    .maybeSingle();
+  if (current.error) throw current.error;
+  if (!current.data) return { outcome: "failed_permanent" };
+  if (TERMINAL_DELIVERY_STATUSES.has(current.data.status as DeliveryStatus)) {
+    return { outcome: "already_terminal" };
+  }
+  // WhatsApp remains on the existing Mac-local atomic claim/report bridge.
+  if (current.data.channel === "whatsapp") return { outcome: "skipped" };
+
+  const leaseToken = randomUUID();
+  const workerId = input?.workerId ?? `cloud-task:${randomUUID()}`;
+  const claimed = await db.rpc("claim_message_delivery_by_id", {
+    p_delivery_id: deliveryId,
+    p_worker: workerId,
+    p_lease_token: leaseToken,
+    p_lease_seconds: Math.min(Math.max(input?.leaseSeconds ?? 300, 30), 900),
+  });
+  if (claimed.error) throw claimed.error;
+  const delivery = (claimed.data?.[0] ?? null) as DeliveryRow | null;
+  if (!delivery) {
+    const refreshed = await db
+      .from("message_deliveries")
+      .select("status")
+      .eq("id", deliveryId)
+      .maybeSingle();
+    if (refreshed.error) throw refreshed.error;
+    if (TERMINAL_DELIVERY_STATUSES.has(refreshed.data?.status as DeliveryStatus)) {
+      return { outcome: "already_terminal" };
+    }
+    return { outcome: "lease_busy" };
+  }
+
+  const runtime = resolveMessagingRuntime(process.env);
+  const startedAt = new Date();
+  try {
+    const status = await processDelivery(delivery, runtime, startedAt);
+    if (status === "failed") return { outcome: "retryable_failure" };
+    if (status === "dead_letter" || status === "delivery_unknown") {
+      return { outcome: "failed_permanent" };
+    }
+    if (status === "cancelled") return { outcome: "cancelled" };
+    if (status === "suppressed" || status === "expired") return { outcome: "skipped" };
+    if (status === "delivered" || status === "sent" || status === "accepted") {
+      return { outcome: status };
+    }
+    return { outcome: "retryable_failure" };
+  } catch (error) {
+    const errorCode = error instanceof Error ? error.name : "delivery_worker_error";
+    await recordDeliveryResult(
+      delivery,
+      { ok: false, failureClass: "transient", error: errorCode },
+      startedAt,
+    );
+    return { outcome: "retryable_failure" };
+  }
+}
+
+export type CanonicalOpenwaJob = {
+  id: string;
+  to: string;
+  text: string;
+  attemptCount: number;
+  triggerType: string;
+  leaseToken: string;
+  source: "canonical";
+};
+
+export async function claimCanonicalOpenwaDeliveries(input: {
+  workerId: string;
+  limit: number;
+  dryRun?: boolean;
+  claimNotBefore?: Date | null;
+}): Promise<{
+  jobs: CanonicalOpenwaJob[];
+  claimed: number;
+  invalid: number;
+  recovered: number;
+  dryRun: boolean;
+}> {
+  if (input.dryRun) return { jobs: [], claimed: 0, invalid: 0, recovered: 0, dryRun: true };
+  const runtime = resolveMessagingRuntime(process.env);
+  if (runtime.mode === "disabled" || !runtime.channels.whatsapp) {
+    return { jobs: [], claimed: 0, invalid: 0, recovered: 0, dryRun: false };
+  }
+  const db = notificationDatabase as any;
+  const claimed = await db.rpc("claim_message_deliveries", {
+    p_worker: input.workerId,
+    p_limit: Math.min(Math.max(Math.trunc(input.limit), 1), 10),
+    p_lease_seconds: 300,
+    p_channels: ["whatsapp"],
+  });
+  if (claimed.error) throw claimed.error;
+
+  const jobs: CanonicalOpenwaJob[] = [];
+  let invalid = 0;
+  for (const delivery of (claimed.data ?? []) as DeliveryRow[]) {
+    const startedAt = new Date();
+    try {
+      const provider = await currentDeliveryLease(
+        db.from("message_deliveries").update({ provider: "openwa" }).eq("id", delivery.id),
+        delivery,
+      );
+      if (provider.error) throw provider.error;
+      delivery.provider = "openwa";
+      await startDeliveryAttempt(delivery, startedAt);
+      const messageResult = await db
+        .from("messages")
+        .select("*")
+        .eq("id", delivery.message_id)
+        .single();
+      if (messageResult.error) throw messageResult.error;
+      const message = messageResult.data;
+      if (await enforceConciergeSendGate(delivery, startedAt)) {
+        await finishDeliveryAttemptWithoutProvider(
+          delivery,
+          startedAt,
+          "suppressed",
+          "concierge_send_gate",
+        );
+        invalid += 1;
+        continue;
+      }
+      if (await suppressExternalDeliveryIfBlocked(delivery, message, runtime, startedAt)) {
+        invalid += 1;
+        continue;
+      }
+      const outsideRolloutWindow =
+        input.claimNotBefore &&
+        delivery.created_at &&
+        new Date(delivery.created_at).getTime() < input.claimNotBefore.getTime();
+      if (outsideRolloutWindow) {
+        await recordDeliveryResult(
+          delivery,
+          { ok: false, failureClass: "permanent", error: "openwa_claim_before_rollout_cutoff" },
+          startedAt,
+        );
+        invalid += 1;
+        continue;
+      }
+      if (
+        (await cancelInvalidReminderDelivery(delivery, message, startedAt)) ||
+        (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt)) ||
+        (await cancelInvalidOpenClassDelivery(delivery, message, startedAt))
+      ) {
+        await finishDeliveryAttemptWithoutProvider(
+          delivery,
+          startedAt,
+          "cancelled",
+          "delivery_business_state_changed",
+        );
+        invalid += 1;
+        continue;
+      }
+      const text = String(message.body ?? "").trim();
+      const to = delivery.recipient_address?.trim() ?? "";
+      const leaseToken = delivery.lease_token?.trim() ?? "";
+      if (!text || !to || !leaseToken) {
+        await recordDeliveryResult(
+          delivery,
+          {
+            ok: false,
+            failureClass: "configuration",
+            error: !text
+              ? "missing_generated_text"
+              : !to
+                ? "missing_whatsapp_phone"
+                : "missing_lease_token",
+          },
+          startedAt,
+        );
+        invalid += 1;
+        continue;
+      }
+      jobs.push({
+        id: delivery.id,
+        to,
+        text,
+        attemptCount: delivery.attempt_count,
+        triggerType: String(message.event_type ?? "unknown"),
+        leaseToken,
+        source: "canonical",
+      });
+    } catch {
+      // Nothing has been returned to the Mac yet, so this preflight is safe to retry.
+      invalid += 1;
+      try {
+        await recordDeliveryResult(
+          delivery,
+          {
+            ok: false,
+            failureClass: "transient",
+            error: "openwa_preflight_failed",
+          },
+          startedAt,
+        );
+      } catch {
+        logMessagingEvent("openwa_preflight_persistence_failed", {
+          deliveryId: delivery.id,
+          errorCode: "database_write_failed",
+        });
+      }
+    }
+  }
+  return { jobs, claimed: claimed.data?.length ?? 0, invalid, recovered: 0, dryRun: false };
+}
+
+export async function reportCanonicalOpenwaDelivery(input: {
+  jobId: string;
+  leaseToken: string;
+  status: "sent" | "failed";
+  retryable?: boolean;
+  error?: string;
+  providerMessageId?: string | null;
+}): Promise<
+  | { ok: true; outcome: "sent" | "requeued" | "failed"; nextAttemptAt?: string | null }
+  | { ok: false; reason: "not_found" | "not_sending" }
+> {
+  const db = notificationDatabase as any;
+  const deliveryResult = await db
+    .from("message_deliveries")
+    .select("*")
+    .eq("id", input.jobId)
+    .eq("channel", "whatsapp")
+    .maybeSingle();
+  if (deliveryResult.error) throw deliveryResult.error;
+  const delivery = deliveryResult.data as DeliveryRow | null;
+  if (!delivery) return { ok: false, reason: "not_found" };
+  if (delivery.status !== "sending" || delivery.lease_token !== input.leaseToken) {
+    return { ok: false, reason: "not_sending" };
+  }
+  const startedAt = delivery.last_attempt_at ? new Date(delivery.last_attempt_at) : new Date();
+  const status = await recordDeliveryResult(
+    delivery,
+    input.status === "sent"
+      ? { ok: true, status: "sent", providerMessageId: input.providerMessageId?.trim() || null }
+      : {
+          ok: false,
+          failureClass: classifyOpenwaFailure(input),
+          error: input.error?.trim() || "openwa_delivery_failed",
+          providerMessageId: input.providerMessageId?.trim() || null,
+        },
+    startedAt,
+  );
+  if (status === "sent") return { ok: true, outcome: "sent" };
+  if (status === "failed") {
+    const refreshed = await db
+      .from("message_deliveries")
+      .select("next_attempt_at")
+      .eq("id", delivery.id)
+      .single();
+    if (refreshed.error) throw refreshed.error;
+    return { ok: true, outcome: "requeued", nextAttemptAt: refreshed.data.next_attempt_at };
+  }
+  return { ok: true, outcome: "failed" };
+}
+
+export function finalReminderAt(startsAt: Date) {
   const { hour, minute } = getIsraelNowParts(startsAt);
   return hour * 60 + minute < 10 * 60 + 30
     ? getPreviousIsraelEvening(startsAt)
     : new Date(startsAt.getTime() - 2 * 60 * 60_000);
+}
+
+export function reminderDeduplicationKey(input: {
+  bookingId: string;
+  eventType: "class_reminder_planning" | "class_reminder_final";
+  startsAt: Date;
+  scheduleVersion: string | number;
+}) {
+  return `booking:${input.bookingId}:${input.eventType}:${input.startsAt.toISOString()}:v${input.scheduleVersion}`;
 }
 
 async function enqueueOpenClassAlerts(
@@ -1618,7 +2129,7 @@ async function enqueueOpenClassAlerts(
     return { scannedClasses: 0, eligibleMembers: 0, prepared: 0 };
   }
 
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const windowStart = new Date(
     now.getTime() + OPEN_CLASS_ALERT_MIN_LEAD_HOURS * 60 * 60_000,
   ).toISOString();
@@ -1870,7 +2381,7 @@ async function enqueueClassRecommendations(
   limit: number,
   runtime: ReturnType<typeof resolveMessagingRuntime>,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const classes = await db
     .from("classes")
     .select("id,title,starts_at,instructor_id")
@@ -2075,7 +2586,7 @@ async function enqueueScheduledConciergeJourneys(
   runtime: ReturnType<typeof resolveMessagingRuntime>,
   enabledEvents: ReadonlySet<MessageEventType>,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   let weeklySchedules = 0;
   let dailyBriefings = 0;
 
@@ -2265,12 +2776,12 @@ async function enqueueDueCanonicalEvents(
   limit: number,
   runtime: ReturnType<typeof resolveMessagingRuntime>,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const horizon = new Date(now.getTime() + 72 * 60 * 60_000).toISOString();
   const bookings = await db
     .from("bookings")
     .select(
-      "id,member_id,class_id,class:classes!inner(id,starts_at,cancellation_window_hours,status)",
+      "id,member_id,class_id,class:classes!inner(id,starts_at,cancellation_window_hours,status,notification_schedule_version)",
     )
     .eq("status", "booked")
     .gte("class.starts_at", now.toISOString())
@@ -2286,7 +2797,7 @@ async function enqueueDueCanonicalEvents(
       startsAt.getTime() - Number(studioClass.cancellation_window_hours ?? 0) * 60 * 60_000,
     );
     const planningAt = new Date(cancellationDeadline.getTime() - 2 * 60 * 60_000);
-    const events: Array<[MessageEventType, boolean]> = [
+    const events: Array<["class_reminder_planning" | "class_reminder_final", boolean]> = [
       [
         "class_reminder_planning",
         Number(studioClass.cancellation_window_hours ?? 0) > 0 &&
@@ -2303,8 +2814,19 @@ async function enqueueDueCanonicalEvents(
           aggregate_type: "booking",
           aggregate_id: booking.id,
           member_id: booking.member_id,
-          payload: { booking_id: booking.id, class_id: booking.class_id },
-          deduplication_key: `booking:${booking.id}:${eventType}`,
+          payload: {
+            booking_id: booking.id,
+            class_id: booking.class_id,
+            class_starts_at: startsAt.toISOString(),
+            expected_start_at: startsAt.toISOString(),
+            class_schedule_version: String(studioClass.notification_schedule_version ?? 0),
+          },
+          deduplication_key: reminderDeduplicationKey({
+            bookingId: booking.id,
+            eventType,
+            startsAt,
+            scheduleVersion: studioClass.notification_schedule_version ?? 0,
+          }),
           available_at: now.toISOString(),
           expires_at: startsAt.toISOString(),
         },
@@ -2316,19 +2838,19 @@ async function enqueueDueCanonicalEvents(
   }
 
   const pendingBefore = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
-  const pendingPaymentRows = await fetchAllRows<{
+  const pendingPaymentResult = await db
+    .from("payments")
+    .select("id,member_id,created_at")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(Math.min(Math.max(limit * 20, 100), 2_000));
+  if (pendingPaymentResult.error) throw pendingPaymentResult.error;
+  const pendingPaymentRows = (pendingPaymentResult.data ?? []) as Array<{
     id: string;
     member_id: string;
     created_at: string;
-  }>((from, to) =>
-    db
-      .from("payments")
-      .select("id,member_id,created_at")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: false })
-      .range(from, to),
-  );
+  }>;
   const pendingPayments = selectDuePendingPaymentReminders(pendingPaymentRows, {
     dueBefore: new Date(pendingBefore),
     limit,
@@ -2580,7 +3102,7 @@ export function normalizeUnifiedMessagingSweepLimit(value: unknown) {
 }
 
 export async function runUnifiedMessagingCanary() {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const [outboxProbe, deliveryProbe] = await Promise.all([
     db.from("message_outbox").select("id").limit(1),
     db.from("message_deliveries").select("id").limit(1),
@@ -2595,7 +3117,7 @@ export async function runUnifiedMessagingCanary() {
 }
 
 async function staleTransactionStillCurrent(row: StaleOutboxRow, nowIso: string) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   if (
     [
       "booking_confirmed",
@@ -2667,7 +3189,7 @@ async function staleTransactionStillCurrent(row: StaleOutboxRow, nowIso: string)
 async function suppressDisabledExternalDeliveryBacklog(
   externalChannels: ExternalChannelAvailability,
 ) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   let suppressed = 0;
 
   for (const channel of Object.keys(externalChannels) as ExternalMessageChannel[]) {
@@ -2727,15 +3249,19 @@ export async function runUnifiedMessagingSweep(input?: {
   limit?: number;
   now?: Date;
   workerId?: string;
+  deliveryTransport?: "inline" | "cloud_tasks";
+  signal?: AbortSignal;
 }) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const now = input?.now ?? new Date();
   const limit = normalizeUnifiedMessagingSweepLimit(input?.limit);
   const workerId = input?.workerId ?? `messaging:${randomUUID()}`;
   const runtime = resolveMessagingRuntime(process.env);
   const externalChannels =
     runtime.mode === "disabled" ? { whatsapp: false, email: false, push: false } : runtime.channels;
+  input?.signal?.throwIfAborted();
   const disabledBacklogSuppressed = await suppressDisabledExternalDeliveryBacklog(externalChannels);
+  input?.signal?.throwIfAborted();
   const expiredOutbox = await closeExpiredOutboxRows(
     {
       async listExpired(nowIso, batchSize) {
@@ -2769,6 +3295,7 @@ export async function runUnifiedMessagingSweep(input?: {
     },
     now,
   );
+  input?.signal?.throwIfAborted();
   const staleOutbox = await closeStaleOutboxRows(
     {
       async listStale(cutoffIso, nowIso, batchSize) {
@@ -2811,6 +3338,7 @@ export async function runUnifiedMessagingSweep(input?: {
     now,
     (eventType) => requiresPromotionalFrequencyReservation(eventType as MessageEventType, false),
   );
+  input?.signal?.throwIfAborted();
   const staleDeliveries = await closeStaleDeliveryRows(
     {
       async listStale(cutoffIso, nowIso, batchSize) {
@@ -2869,8 +3397,23 @@ export async function runUnifiedMessagingSweep(input?: {
     },
     now,
   );
-  const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });
+  // The current promotion sender performs provider I/O inline. Task preparation
+  // must never invoke it, including during shadow rollout or post-commit kicks.
+  // Retain the legacy scheduled sweep until promotions have a task-safe path.
+  const promotions = await dispatchDuePromotions({
+    now,
+    limit: Math.min(limit, 10),
+    dryRun: input?.deliveryTransport === "cloud_tasks",
+  });
+  input?.signal?.throwIfAborted();
+  const obsoleteReminders = await db.rpc("cancel_obsolete_notification_reminders", {
+    p_limit: limit,
+  });
+  if (obsoleteReminders.error) throw obsoleteReminders.error;
+  const obsoleteRemindersCancelled = Number(obsoleteReminders.data ?? 0);
+  input?.signal?.throwIfAborted();
   const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
+  input?.signal?.throwIfAborted();
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
     p_limit: limit,
@@ -2879,12 +3422,33 @@ export async function runUnifiedMessagingSweep(input?: {
   if (outboxClaim.error) throw outboxClaim.error;
   const materialized = { succeeded: 0, failed: 0 };
   for (const outbox of (outboxClaim.data ?? []) as OutboxRow[]) {
+    input?.signal?.throwIfAborted();
     const result = await materializeOutbox(outbox, now, externalChannels, runtime);
     if (result.ok) materialized.succeeded += 1;
     else materialized.failed += 1;
   }
   const { reconcilePendingProviderWebhookLedger } = await import("@/lib/messageStatus.server");
-  const webhookReconciliation = await reconcilePendingProviderWebhookLedger(limit);
+  input?.signal?.throwIfAborted();
+  const webhookReconciliation = await reconcilePendingProviderWebhookLedger(limit, input?.signal);
+  input?.signal?.throwIfAborted();
+
+  if (input?.deliveryTransport === "cloud_tasks") {
+    return {
+      workerId,
+      mode: runtime.mode,
+      disabledBacklogSuppressed,
+      expiredOutbox,
+      staleOutbox,
+      staleDeliveries,
+      obsoleteRemindersCancelled,
+      scheduled,
+      outboxClaimed: outboxClaim.data?.length ?? 0,
+      materialized,
+      webhookReconciliation,
+      deliveriesClaimed: 0,
+      deliveryOutcomes: {},
+    };
+  }
 
   const enabledExternalChannels = (
     Object.keys(externalChannels) as ExternalMessageChannel[]
@@ -2897,9 +3461,11 @@ export async function runUnifiedMessagingSweep(input?: {
     p_channels: channels,
   });
   if (deliveryClaim.error) throw deliveryClaim.error;
+  input?.signal?.throwIfAborted();
   await alertRecoveredStaleWhatsappDeliveries();
   const delivered: Record<string, number> = {};
   for (const delivery of (deliveryClaim.data ?? []) as DeliveryRow[]) {
+    input?.signal?.throwIfAborted();
     try {
       const status = await processDelivery(delivery, runtime);
       delivered[status] = (delivered[status] ?? 0) + 1;
@@ -2931,6 +3497,7 @@ export async function runUnifiedMessagingSweep(input?: {
     staleOutbox,
     staleDeliveries,
     promotions,
+    obsoleteRemindersCancelled,
     scheduled,
     outboxClaimed: outboxClaim.data?.length ?? 0,
     materialized,
@@ -2940,44 +3507,17 @@ export async function runUnifiedMessagingSweep(input?: {
   };
 }
 
-export async function retryCanonicalDelivery(deliveryId: string, now = new Date()) {
-  const db = supabaseAdmin as any;
-  const delivery = await db
-    .from("message_deliveries")
-    .select("id,status,failure_class,expires_at")
-    .eq("id", deliveryId)
-    .single();
-  if (delivery.error) throw delivery.error;
-  if (delivery.data.status === "delivery_unknown")
-    throw new Error("ambiguous_delivery_requires_reconciliation");
-  if (delivery.data.expires_at && new Date(delivery.data.expires_at) <= now) {
-    throw new Error("delivery_expired");
-  }
-  if (!["failed", "dead_letter"].includes(delivery.data.status)) {
-    throw new Error("delivery_not_retryable");
-  }
-  if (delivery.data.failure_class && delivery.data.failure_class !== "transient") {
-    throw new Error("delivery_not_retryable");
-  }
-  const result = await db
-    .from("message_deliveries")
-    .update({
-      status: "queued",
-      failure_class: null,
-      error_code: null,
-      error_message: null,
-      next_attempt_at: now.toISOString(),
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", deliveryId)
-    .in("status", ["failed", "dead_letter"])
-    .or("failure_class.is.null,failure_class.eq.transient")
-    .or(`expires_at.is.null,expires_at.gt.${now.toISOString()}`)
-    .select("id")
-    .maybeSingle();
+export async function retryCanonicalDelivery(
+  deliveryId: string,
+  actorId: string,
+  now = new Date(),
+) {
+  const result = await (notificationDatabase as any).rpc("admin_retry_notification_delivery", {
+    p_actor_id: actorId,
+    p_delivery_id: deliveryId,
+    p_now: now.toISOString(),
+  });
   if (result.error) throw result.error;
-  if (!result.data) throw new Error("delivery_not_retryable");
+  if (result.data !== true) throw new Error("delivery_not_retryable");
   return { ok: true };
 }

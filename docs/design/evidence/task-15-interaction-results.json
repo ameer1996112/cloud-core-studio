@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-02T14:10:25.013Z",
-  "sourceSha256": "68a8ff46413c4cec539f7e59efd613b9a38200fd38f4f210c773cf122d41bde8",
+  "generatedAt": "2026-09-02T18:15:09.371Z",
+  "sourceSha256": "ebc0a2f50da1727c4c49e7153e10fd31af8e078a60068109857d75d58602d263",
   "errors": [],
   "scenarioLocales": [
     {
@@ -4568,18 +4568,18 @@
   "representativeFlows": {
     "dialog": {
       "status": "pass",
-      "latencyMs": 18.7,
+      "latencyMs": 18.2,
       "notes": [
         "Enter and Space open; Escape closes; Tab/Shift+Tab remain trapped; focus returns."
       ]
     },
     "scheduleFilter": {
       "status": "pass",
-      "latencyMs": 2.3
+      "latencyMs": 2.1
     },
     "tableFilter": {
       "status": "pass",
-      "latencyMs": 1.2
+      "latencyMs": 2.4
     }
   },
   "assistiveTechnologyFixtureSemantics": [

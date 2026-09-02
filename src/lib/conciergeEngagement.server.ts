@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notificationDatabase } from "@/server/notifications/database-scope.server";
 import {
   evaluateConciergeDispatch,
   type ApprovedDispatchTemplate,
@@ -241,8 +241,10 @@ export async function loadMemberEngagementState(input: {
   now: Date;
   journeyTypes?: string[];
   deliveryMode: "shadow" | "test_only" | "live";
+  signal?: AbortSignal;
 }): Promise<MemberEngagementState> {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
+  input.signal?.throwIfAborted();
   const recipientResult = await db
     .from("communication_recipients")
     .select("id,member_id,display_name,email,phone_e164,preferred_locale,is_adult,status")
@@ -250,6 +252,7 @@ export async function loadMemberEngagementState(input: {
     .eq("id", input.communicationRecipientId)
     .single();
   if (recipientResult.error) throw recipientResult.error;
+  input.signal?.throwIfAborted();
   if (recipientResult.data.status !== "active") throw new Error("recipient_inactive");
   const trustedProvider = await db
     .from("concierge_trusted_provider_settings")
@@ -257,6 +260,7 @@ export async function loadMemberEngagementState(input: {
     .eq("studio_id", input.studioId)
     .maybeSingle();
   if (trustedProvider.error) throw trustedProvider.error;
+  input.signal?.throwIfAborted();
   const trustedWhatsappWabaId = trustedProvider.data?.whatsapp_waba_id ?? "";
 
   let intentsQuery = db
@@ -350,6 +354,7 @@ export async function loadMemberEngagementState(input: {
   ]) {
     if (result.error) throw result.error;
   }
+  input.signal?.throwIfAborted();
 
   const intentRows = (intents.data ?? []) as IntentRow[];
   const correlations = intentRows
@@ -364,6 +369,7 @@ export async function loadMemberEngagementState(input: {
           .in("correlation_id", correlations)
       : { data: [], error: null };
   if (evidenceResult.error) throw evidenceResult.error;
+  input.signal?.throwIfAborted();
   const evidence = (evidenceResult.data ?? []) as OutboxEvidence[];
   const classIds = [
     ...new Set(
@@ -396,6 +402,7 @@ export async function loadMemberEngagementState(input: {
   ]);
   if (classesResult.error) throw classesResult.error;
   if (paymentsResult.error) throw paymentsResult.error;
+  input.signal?.throwIfAborted();
   const classById = new Map((classesResult.data ?? []).map((row: { id: string }) => [row.id, row]));
   const paymentRows = (paymentsResult.data ?? []) as PaymentEvidence[];
   const consentRows = (consents.data ?? []) as Array<{
@@ -405,6 +412,7 @@ export async function loadMemberEngagementState(input: {
   const actions: DispatchAction[] = [];
   const correlationByActionId: Record<string, string> = {};
   for (const intent of intentRows) {
+    input.signal?.throwIfAborted();
     const correlationId = relation(intent.journey_instance)?.correlation_id;
     const event = evidence.find((row) => row.correlation_id === correlationId);
     if (!event) continue;

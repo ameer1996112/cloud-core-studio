@@ -72,11 +72,23 @@ export function shouldCancelReminderForDomainState(
   eventType: MessageEventType,
   bookingStatus: string | null | undefined,
   classStatus: string | null | undefined,
+  expectedClassStartsAt?: string | null,
+  currentClassStartsAt?: string | null,
+  expectedScheduleVersion?: string | null,
+  currentScheduleVersion?: string | null,
 ) {
   if (eventType !== "class_reminder_planning" && eventType !== "class_reminder_final") {
     return false;
   }
-  return bookingStatus !== "booked" || classStatus !== "scheduled";
+  if (bookingStatus !== "booked" || classStatus !== "scheduled") return true;
+  if (expectedClassStartsAt) {
+    if (!currentClassStartsAt) return true;
+    const expected = new Date(expectedClassStartsAt).getTime();
+    const current = new Date(currentClassStartsAt).getTime();
+    if (!Number.isFinite(expected) || !Number.isFinite(current) || expected !== current)
+      return true;
+  }
+  return Boolean(expectedScheduleVersion && expectedScheduleVersion !== currentScheduleVersion);
 }
 
 export function shouldCancelPaymentReminderForDomainState(
@@ -165,6 +177,21 @@ export function computeDeliveryRetry(
   if (delay == null) return null;
   const delayMs = Math.max(delay * 60_000, Math.max(0, retryAfterSeconds ?? 0) * 1_000);
   return new Date(failedAt.getTime() + delayMs);
+}
+
+export function classifyOpenwaFailure(input: {
+  error?: string;
+  providerMessageId?: string | null;
+  retryable?: boolean;
+}): DeliveryFailureClass {
+  // A lost transport response does not prove that WhatsApp rejected the message.
+  if (
+    input.providerMessageId?.trim() ||
+    input.error?.startsWith("send_transport_failed:") ||
+    input.error === "openwa_delivery_unconfirmed"
+  )
+    return "ambiguous";
+  return input.retryable ? "transient" : "permanent";
 }
 
 export function classifyProviderFailure(

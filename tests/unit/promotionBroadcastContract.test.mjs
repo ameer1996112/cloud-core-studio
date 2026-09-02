@@ -41,8 +41,8 @@ describe("promotion broadcast contract", () => {
   test("dispatches scheduled promotions from the existing automation sweep", () => {
     expect(server).toContain("dispatchDuePromotions");
     expect(automation).toContain("dispatchDuePromotions");
-    expect(canonicalSweep).toContain(
-      "const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });",
+    expect(canonicalSweep).toMatch(
+      /const promotions = await dispatchDuePromotions\(\{\s*now,\s*limit: Math\.min\(limit, 10\),\s*dryRun: input\?\.deliveryTransport === "cloud_tasks",\s*\}\)/,
     );
     expect(canonicalSweep).toContain("promotions,");
   });

@@ -511,7 +511,11 @@ async function runLifecycleSweep(config) {
 
 async function safeReportResult(config, body, context, job, deps) {
   try {
-    await deps.reportResult(config, body);
+    await deps.reportResult(config, {
+      ...body,
+      ...(job.source ? { source: job.source } : {}),
+      ...(job.leaseToken ? { leaseToken: job.leaseToken } : {}),
+    });
     return true;
   } catch (error) {
     const message = getErrorMessage(error, "report_failed");
@@ -566,7 +570,7 @@ export async function processClaimedJobs(config, jobs, deps = {}) {
           error: "openwa_test_phone_only_blocked",
         },
         "safety_block",
-        { id: safeId, triggerType: safeTrigger },
+        { ...job, id: safeId, triggerType: safeTrigger },
         runtimeDeps,
       );
       continue;
@@ -590,7 +594,7 @@ export async function processClaimedJobs(config, jobs, deps = {}) {
           error: `send_transport_failed:${errorCode}`,
         },
         "send_transport_failure",
-        { id: safeId, triggerType: safeTrigger },
+        { ...job, id: safeId, triggerType: safeTrigger },
         runtimeDeps,
       );
       continue;
@@ -610,7 +614,7 @@ export async function processClaimedJobs(config, jobs, deps = {}) {
           providerMessageId: sendResult.providerMessageId,
         },
         "send_failed",
-        { id: safeId, triggerType: safeTrigger },
+        { ...job, id: safeId, triggerType: safeTrigger },
         runtimeDeps,
       );
       continue;
@@ -624,7 +628,7 @@ export async function processClaimedJobs(config, jobs, deps = {}) {
         providerMessageId: sendResult.providerMessageId,
       },
       "sent",
-      { id: safeId, triggerType: safeTrigger },
+      { ...job, id: safeId, triggerType: safeTrigger },
       runtimeDeps,
     );
     if (reportedSent) {
