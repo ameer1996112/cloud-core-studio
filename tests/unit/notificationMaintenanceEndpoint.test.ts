@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { createNotificationMaintenanceHandler } from "../../src/server/notifications/maintenance-endpoint.server";
+import {
+  createNotificationMaintenanceHandler,
+  normalizeNotificationMaintenanceTimeBudget,
+} from "../../src/server/notifications/maintenance-endpoint.server";
 
 function request(body = {}) {
   return new Request("https://app.example/internal/notifications/maintain", {
@@ -10,6 +13,13 @@ function request(body = {}) {
 }
 
 describe("notification maintenance endpoint", () => {
+  test("uses a validated time budget below the scheduler request deadline", () => {
+    expect(normalizeNotificationMaintenanceTimeBudget()).toBe(150_000);
+    expect(normalizeNotificationMaintenanceTimeBudget("120000")).toBe(120_000);
+    expect(() => normalizeNotificationMaintenanceTimeBudget("180000")).toThrow();
+    expect(() => normalizeNotificationMaintenanceTimeBudget("soon")).toThrow();
+  });
+
   test("fails closed while disabled and rejects unauthorized callers", async () => {
     const run = async () => ({ tasks: { selected: 0, enqueued: 0, failed: 0 } });
     expect(

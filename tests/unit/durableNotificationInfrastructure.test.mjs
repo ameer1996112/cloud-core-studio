@@ -24,15 +24,16 @@ describe("durable notification infrastructure scripts", () => {
 
   test("creates one bounded Cloud Tasks queue and a 15-minute OIDC maintenance request", () => {
     expect(configure).toContain("cc-notification-delivery");
-    expect(configure).toContain("--max-dispatches-per-second=10");
-    expect(configure).toContain("--max-concurrent-dispatches=5");
-    expect(configure).toContain("--max-attempts=100");
-    expect(configure).toContain("--min-backoff=10s");
-    expect(configure).toContain("--max-backoff=3600s");
-    expect(configure).toContain("--max-retry-duration=86400s");
+    expect(configure).toContain("NOTIFICATIONS_TASK_MAX_DISPATCHES_PER_SECOND:-10");
+    expect(configure).toContain("NOTIFICATIONS_TASK_MAX_CONCURRENT_DISPATCHES:-5");
+    expect(configure).toContain("NOTIFICATIONS_TASK_MAX_ATTEMPTS:-8");
+    expect(configure).toContain("NOTIFICATIONS_TASK_MIN_BACKOFF:-10s");
+    expect(configure).toContain("NOTIFICATIONS_TASK_MAX_BACKOFF:-3600s");
+    expect(configure).toContain("NOTIFICATIONS_TASK_MAX_RETRY_DURATION:-86400s");
     expect(configure).toContain("cc-notification-maintenance-15m");
     expect(configure).toContain("--schedule=*/15 * * * *");
     expect(configure).toContain("--oidc-service-account-email");
+    expect(configure).toContain("roles/iam.serviceAccountUser");
   });
 
   test("the cost audit is read-only and reports the expensive execution surfaces", () => {

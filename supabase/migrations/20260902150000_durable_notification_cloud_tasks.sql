@@ -126,19 +126,43 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_limit integer := LEAST(GREATEST(p_limit, 1), 100);
+  v_recovered integer := 0;
+  v_recovered_leases integer := 0;
 BEGIN
   -- A task queue retries for 24 hours. Release only work whose task has been
   -- absent longer than that window, or whose delivery lease expired safely.
+  WITH candidates AS (
+    SELECT delivery.id
+    FROM public.message_deliveries AS delivery
+    WHERE delivery.status = 'enqueued'
+      AND delivery.task_enqueued_at < now() - interval '25 hours'
+      AND delivery.channel IN ('in_app', 'push', 'email')
+    ORDER BY delivery.task_enqueued_at, delivery.created_at
+    FOR UPDATE SKIP LOCKED
+    LIMIT v_limit
+  )
   UPDATE public.message_deliveries AS delivery
   SET status = 'queued',
       task_name = NULL,
       task_enqueued_at = NULL,
       task_last_error_code = 'task_retry_window_exhausted',
       updated_at = now()
-  WHERE delivery.status = 'enqueued'
-    AND delivery.task_enqueued_at < now() - interval '25 hours'
-    AND delivery.channel IN ('in_app', 'push', 'email');
+  FROM candidates
+  WHERE delivery.id = candidates.id;
+  GET DIAGNOSTICS v_recovered = ROW_COUNT;
 
+  WITH candidates AS (
+    SELECT delivery.id
+    FROM public.message_deliveries AS delivery
+    WHERE delivery.status = 'sending'
+      AND delivery.lease_expires_at < now()
+      AND delivery.channel IN ('in_app', 'push', 'email')
+    ORDER BY delivery.lease_expires_at, delivery.created_at
+    FOR UPDATE SKIP LOCKED
+    LIMIT GREATEST(v_limit - v_recovered, 0)
+  )
   UPDATE public.message_deliveries AS delivery
   SET status = 'failed',
       failure_class = 'transient',
@@ -151,9 +175,9 @@ BEGIN
       task_name = NULL,
       task_enqueued_at = NULL,
       updated_at = now()
-  WHERE delivery.status = 'sending'
-    AND delivery.lease_expires_at < now()
-    AND delivery.channel IN ('in_app', 'push', 'email');
+  FROM candidates
+  WHERE delivery.id = candidates.id;
+  GET DIAGNOSTICS v_recovered_leases = ROW_COUNT;
 
   RETURN QUERY
   SELECT delivery.*
@@ -165,8 +189,148 @@ BEGIN
     AND (delivery.expires_at IS NULL OR delivery.expires_at > now())
   ORDER BY COALESCE(delivery.next_attempt_at, delivery.scheduled_for), delivery.created_at
   FOR UPDATE SKIP LOCKED
-  LIMIT LEAST(GREATEST(p_limit, 1), 100);
+  LIMIT GREATEST(v_limit - v_recovered - v_recovered_leases, 0);
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.cancel_obsolete_notification_reminders(
+  p_limit integer DEFAULT 100
+)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_cancelled integer := 0;
+BEGIN
+  WITH candidates AS (
+    SELECT delivery.id
+    FROM public.message_deliveries AS delivery
+    JOIN public.messages AS message ON message.id = delivery.message_id
+    LEFT JOIN public.bookings AS booking ON booking.id = message.related_booking_id
+    LEFT JOIN public.classes AS studio_class ON studio_class.id = booking.class_id
+    WHERE message.event_type IN ('class_reminder_planning', 'class_reminder_final')
+      AND delivery.status IN ('queued', 'enqueued', 'failed')
+      AND (
+        booking.id IS NULL
+        OR booking.status <> 'booked'
+        OR studio_class.id IS NULL
+        OR studio_class.status <> 'scheduled'
+        OR studio_class.starts_at IS DISTINCT FROM (message.content->>'source_class_starts_at')::timestamptz
+        OR (
+          message.content ? 'class_schedule_version'
+          AND message.content->>'class_schedule_version'
+            IS DISTINCT FROM (floor(extract(epoch FROM studio_class.starts_at) * 1000)::bigint)::text
+        )
+      )
+    ORDER BY delivery.created_at
+    FOR UPDATE OF delivery SKIP LOCKED
+    LIMIT LEAST(GREATEST(p_limit, 1), 100)
+  )
+  UPDATE public.message_deliveries AS delivery
+  SET status = 'cancelled',
+      failure_class = NULL,
+      error_code = 'reminder_business_state_changed',
+      error_message = NULL,
+      next_attempt_at = NULL,
+      lease_owner = NULL,
+      lease_token = NULL,
+      lease_expires_at = NULL,
+      task_name = NULL,
+      task_enqueued_at = NULL,
+      updated_at = now()
+  FROM candidates
+  WHERE delivery.id = candidates.id;
+  GET DIAGNOSTICS v_cancelled = ROW_COUNT;
+  RETURN v_cancelled;
+END;
+$$;
+
+CREATE TABLE IF NOT EXISTS public.notification_runtime_heartbeats (
+  heartbeat_key text PRIMARY KEY CHECK (heartbeat_key IN ('maintenance', 'openwa')),
+  checked_at timestamptz NOT NULL DEFAULT now(),
+  outcome text NOT NULL,
+  summary jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.notification_runtime_heartbeats ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.record_notification_runtime_heartbeat(
+  p_heartbeat_key text,
+  p_outcome text,
+  p_summary jsonb DEFAULT '{}'::jsonb
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF p_heartbeat_key NOT IN ('maintenance', 'openwa') THEN
+    RAISE EXCEPTION 'invalid_notification_heartbeat_key';
+  END IF;
+  INSERT INTO public.notification_runtime_heartbeats(
+    heartbeat_key, checked_at, outcome, summary, updated_at
+  ) VALUES (
+    p_heartbeat_key,
+    now(),
+    left(COALESCE(NULLIF(p_outcome, ''), 'unknown'), 40),
+    COALESCE(p_summary, '{}'::jsonb),
+    now()
+  )
+  ON CONFLICT (heartbeat_key) DO UPDATE
+  SET checked_at = EXCLUDED.checked_at,
+      outcome = EXCLUDED.outcome,
+      summary = EXCLUDED.summary,
+      updated_at = EXCLUDED.updated_at;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.notification_delivery_health()
+RETURNS jsonb
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT jsonb_build_object(
+    'pending_count', count(*) FILTER (WHERE delivery.status IN ('queued', 'enqueued')),
+    'retry_wait_count', count(*) FILTER (WHERE delivery.status = 'failed'),
+    'expired_lease_count', count(*) FILTER (
+      WHERE delivery.status = 'sending' AND delivery.lease_expires_at < now()
+    ),
+    'permanently_failed_count', count(*) FILTER (
+      WHERE delivery.status IN ('dead_letter', 'delivery_unknown')
+    ),
+    'sent_last_24_hours', count(*) FILTER (
+      WHERE delivery.status IN ('accepted', 'sent', 'delivered', 'read')
+        AND COALESCE(delivery.sent_at, delivery.accepted_at, delivery.delivered_at) >= now() - interval '24 hours'
+    ),
+    'oldest_pending_at', min(delivery.created_at) FILTER (
+      WHERE delivery.status IN ('queued', 'enqueued', 'failed')
+    ),
+    'attempts_by_provider', (
+      SELECT COALESCE(jsonb_object_agg(attempts.provider_key, attempts.total), '{}'::jsonb)
+      FROM (
+        SELECT COALESCE(attempt.provider, 'unknown') AS provider_key, count(*) AS total
+        FROM public.message_delivery_attempts AS attempt
+        WHERE attempt.started_at >= now() - interval '24 hours'
+        GROUP BY COALESCE(attempt.provider, 'unknown')
+      ) AS attempts
+    ),
+    'last_maintenance_execution', (
+      SELECT heartbeat.checked_at
+      FROM public.notification_runtime_heartbeats AS heartbeat
+      WHERE heartbeat.heartbeat_key = 'maintenance'
+    ),
+    'last_whatsapp_worker_heartbeat', (
+      SELECT heartbeat.checked_at
+      FROM public.notification_runtime_heartbeats AS heartbeat
+      WHERE heartbeat.heartbeat_key = 'openwa'
+    )
+  )
+  FROM public.message_deliveries AS delivery;
 $$;
 
 CREATE OR REPLACE FUNCTION public.mark_notification_delivery_task_enqueued(
@@ -257,15 +421,24 @@ $$;
 
 REVOKE ALL ON FUNCTION public.populate_message_outbox_metadata() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.list_notification_deliveries_for_tasks(integer) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.cancel_obsolete_notification_reminders(integer) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.mark_notification_delivery_task_enqueued(uuid, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.mark_notification_delivery_task_failed(uuid, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.claim_message_delivery_by_id(uuid, text, uuid, integer) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.record_notification_runtime_heartbeat(text, text, jsonb) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.notification_delivery_health() FROM PUBLIC, anon, authenticated;
+
+REVOKE ALL ON TABLE public.notification_runtime_heartbeats FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.notification_runtime_heartbeats TO service_role;
 
 GRANT EXECUTE ON FUNCTION public.populate_message_outbox_metadata() TO service_role;
 GRANT EXECUTE ON FUNCTION public.list_notification_deliveries_for_tasks(integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.cancel_obsolete_notification_reminders(integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mark_notification_delivery_task_enqueued(uuid, text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mark_notification_delivery_task_failed(uuid, text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.claim_message_delivery_by_id(uuid, text, uuid, integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.record_notification_runtime_heartbeat(text, text, jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.notification_delivery_health() TO service_role;
 
 COMMENT ON COLUMN public.message_outbox.template_key IS
   'Versioned rendering key captured with the immutable business event.';

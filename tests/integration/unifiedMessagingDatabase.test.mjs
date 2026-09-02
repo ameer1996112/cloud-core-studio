@@ -130,6 +130,19 @@ describe("unified messaging database integration", () => {
           "SELECT has_function_privilege('authenticated','public.claim_message_delivery_by_id(uuid,text,uuid,integer)','EXECUTE')::text;",
         ),
       ).toBe("false");
+      expect(
+        await psql(
+          "SELECT has_function_privilege('authenticated','public.notification_delivery_health()','EXECUTE')::text;",
+        ),
+      ).toBe("false");
+      await psql(
+        "SELECT public.record_notification_runtime_heartbeat('maintenance','completed','{\"selected\":0}'::jsonb);",
+      );
+      expect(
+        await psql(
+          "SELECT (public.notification_delivery_health()->>'last_maintenance_execution' IS NOT NULL)::text;",
+        ),
+      ).toBe("true");
       await psql(`
         INSERT INTO public.message_deliveries (
           id, message_id, channel, status, idempotency_key, scheduled_for

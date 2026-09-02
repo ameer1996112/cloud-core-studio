@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createNotificationMaintenanceHandler } from "@/server/notifications/maintenance-endpoint.server";
+import {
+  createNotificationMaintenanceHandler,
+  normalizeNotificationMaintenanceTimeBudget,
+} from "@/server/notifications/maintenance-endpoint.server";
 import {
   authorizeNotificationOidcRequest,
   loadNotificationOidcConfig,
@@ -9,8 +12,12 @@ import { runNotificationTaskOrchestration } from "@/server/notifications/orchest
 
 async function handleMaintenance(request: Request) {
   let oidcConfig;
+  let timeBudgetMs;
   try {
     oidcConfig = loadNotificationOidcConfig();
+    timeBudgetMs = normalizeNotificationMaintenanceTimeBudget(
+      process.env.NOTIFICATIONS_MAINTENANCE_TIME_BUDGET_MS,
+    );
   } catch {
     return Response.json(
       { ok: false, reason: "notification_service_not_configured" },
@@ -40,6 +47,7 @@ async function handleMaintenance(request: Request) {
       return result.ok;
     },
     run: (limit) => runNotificationTaskOrchestration({ limit }),
+    timeBudgetMs,
     log: (entry) => console.info(JSON.stringify(entry)),
   })(request);
 }

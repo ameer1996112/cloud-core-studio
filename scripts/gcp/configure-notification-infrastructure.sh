@@ -19,6 +19,12 @@ TASKS_SA_NAME="${NOTIFICATIONS_TASKS_SERVICE_ACCOUNT_NAME:-cc-notification-tasks
 MAINTENANCE_SA_NAME="${NOTIFICATIONS_MAINTENANCE_SERVICE_ACCOUNT_NAME:-cc-notification-maintenance}"
 SCHEDULER="${NOTIFICATIONS_MAINTENANCE_SCHEDULER:-cc-notification-maintenance-15m}"
 REMOVE_REVISION_TAGS="${CLOUD_RUN_REMOVE_REVISION_TAGS:-rollback-smoke,new-release-smoke}"
+TASK_MAX_DISPATCHES_PER_SECOND="${NOTIFICATIONS_TASK_MAX_DISPATCHES_PER_SECOND:-10}"
+TASK_MAX_CONCURRENT_DISPATCHES="${NOTIFICATIONS_TASK_MAX_CONCURRENT_DISPATCHES:-5}"
+TASK_MAX_ATTEMPTS="${NOTIFICATIONS_TASK_MAX_ATTEMPTS:-8}"
+TASK_MIN_BACKOFF="${NOTIFICATIONS_TASK_MIN_BACKOFF:-10s}"
+TASK_MAX_BACKOFF="${NOTIFICATIONS_TASK_MAX_BACKOFF:-3600s}"
+TASK_MAX_RETRY_DURATION="${NOTIFICATIONS_TASK_MAX_RETRY_DURATION:-86400s}"
 TASKS_SA="${TASKS_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 MAINTENANCE_SA="${MAINTENANCE_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
@@ -31,6 +37,31 @@ run() {
     printf '\n'
   fi
 }
+
+require_positive_integer() {
+  local name="$1"
+  local value="$2"
+  if [[ ! "$value" =~ ^[1-9][0-9]*$ ]]; then
+    echo "${name} must be a positive integer." >&2
+    exit 2
+  fi
+}
+
+require_seconds_duration() {
+  local name="$1"
+  local value="$2"
+  if [[ ! "$value" =~ ^[1-9][0-9]*s$ ]]; then
+    echo "${name} must be a positive whole-second duration such as 10s." >&2
+    exit 2
+  fi
+}
+
+require_positive_integer NOTIFICATIONS_TASK_MAX_DISPATCHES_PER_SECOND "$TASK_MAX_DISPATCHES_PER_SECOND"
+require_positive_integer NOTIFICATIONS_TASK_MAX_CONCURRENT_DISPATCHES "$TASK_MAX_CONCURRENT_DISPATCHES"
+require_positive_integer NOTIFICATIONS_TASK_MAX_ATTEMPTS "$TASK_MAX_ATTEMPTS"
+require_seconds_duration NOTIFICATIONS_TASK_MIN_BACKOFF "$TASK_MIN_BACKOFF"
+require_seconds_duration NOTIFICATIONS_TASK_MAX_BACKOFF "$TASK_MAX_BACKOFF"
+require_seconds_duration NOTIFICATIONS_TASK_MAX_RETRY_DURATION "$TASK_MAX_RETRY_DURATION"
 
 ensure_service_account() {
   local name="$1"
@@ -68,6 +99,10 @@ run gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:${RUNTIME_SA}" --role=roles/cloudtasks.enqueuer
 run gcloud iam service-accounts add-iam-policy-binding "$TASKS_SA" \
   --project="$PROJECT_ID" \
+  --member="serviceAccount:${RUNTIME_SA}" \
+  --role=roles/iam.serviceAccountUser
+run gcloud iam service-accounts add-iam-policy-binding "$TASKS_SA" \
+  --project="$PROJECT_ID" \
   --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-cloudtasks.iam.gserviceaccount.com" \
   --role=roles/iam.serviceAccountTokenCreator
 
@@ -80,20 +115,22 @@ done
 if [[ "$APPLY" == "true" ]] && gcloud tasks queues describe "$QUEUE" \
   --location="$REGION" --project="$PROJECT_ID" >/dev/null 2>&1; then
   run gcloud tasks queues update "$QUEUE" --location="$REGION" --project="$PROJECT_ID" \
-    --max-dispatches-per-second=10 --max-concurrent-dispatches=5 \
-    --max-attempts=100 --min-backoff=10s --max-backoff=3600s \
-    --max-retry-duration=86400s
+    --max-dispatches-per-second="$TASK_MAX_DISPATCHES_PER_SECOND" \
+    --max-concurrent-dispatches="$TASK_MAX_CONCURRENT_DISPATCHES" \
+    --max-attempts="$TASK_MAX_ATTEMPTS" --min-backoff="$TASK_MIN_BACKOFF" \
+    --max-backoff="$TASK_MAX_BACKOFF" --max-retry-duration="$TASK_MAX_RETRY_DURATION"
 else
   run gcloud tasks queues create "$QUEUE" --location="$REGION" --project="$PROJECT_ID" \
-    --max-dispatches-per-second=10 --max-concurrent-dispatches=5 \
-    --max-attempts=100 --min-backoff=10s --max-backoff=3600s \
-    --max-retry-duration=86400s
+    --max-dispatches-per-second="$TASK_MAX_DISPATCHES_PER_SECOND" \
+    --max-concurrent-dispatches="$TASK_MAX_CONCURRENT_DISPATCHES" \
+    --max-attempts="$TASK_MAX_ATTEMPTS" --min-backoff="$TASK_MIN_BACKOFF" \
+    --max-backoff="$TASK_MAX_BACKOFF" --max-retry-duration="$TASK_MAX_RETRY_DURATION"
 fi
 
 run gcloud run services update "$SERVICE" --region="$REGION" --project="$PROJECT_ID" \
   --min-instances=0 --max-instances=3 --cpu=1 --memory=512Mi --concurrency=20 \
   --cpu-throttling \
-  --update-env-vars="NOTIFICATIONS_OUTBOX_ENABLED=false,NOTIFICATIONS_TASKS_ENABLED=false,NOTIFICATIONS_MAINTENANCE_ENABLED=false,NOTIFICATIONS_DRY_RUN=true,NOTIFICATIONS_TASKS_PROJECT_ID=${PROJECT_ID},NOTIFICATIONS_TASKS_LOCATION=${REGION},NOTIFICATIONS_TASKS_QUEUE=${QUEUE},NOTIFICATIONS_DELIVERY_URL=${SERVICE_URL}/internal/notifications/deliver,NOTIFICATIONS_OIDC_AUDIENCE=${SERVICE_URL},NOTIFICATIONS_OIDC_ALLOWED_CALLERS=${TASKS_SA},NOTIFICATIONS_TASKS_SERVICE_ACCOUNT=${TASKS_SA},NOTIFICATIONS_MAINTENANCE_SERVICE_ACCOUNT=${MAINTENANCE_SA}"
+  --update-env-vars="NOTIFICATIONS_OUTBOX_ENABLED=false,NOTIFICATIONS_TASKS_ENABLED=false,NOTIFICATIONS_MAINTENANCE_ENABLED=false,NOTIFICATIONS_DRY_RUN=true,NOTIFICATIONS_MAINTENANCE_TIME_BUDGET_MS=150000,NOTIFICATIONS_TASKS_PROJECT_ID=${PROJECT_ID},NOTIFICATIONS_TASKS_LOCATION=${REGION},NOTIFICATIONS_TASKS_QUEUE=${QUEUE},NOTIFICATIONS_DELIVERY_URL=${SERVICE_URL}/internal/notifications/deliver,NOTIFICATIONS_OIDC_AUDIENCE=${SERVICE_URL},NOTIFICATIONS_OIDC_ALLOWED_CALLERS=${TASKS_SA},NOTIFICATIONS_TASKS_SERVICE_ACCOUNT=${TASKS_SA},NOTIFICATIONS_MAINTENANCE_SERVICE_ACCOUNT=${MAINTENANCE_SA}"
 
 if [[ -n "$REMOVE_REVISION_TAGS" ]]; then
   run gcloud run services update-traffic "$SERVICE" --region="$REGION" --project="$PROJECT_ID" \

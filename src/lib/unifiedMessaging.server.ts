@@ -115,14 +115,16 @@ async function fetchAllRows<T>(
   page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
 ) {
   const pageSize = 500;
+  const maxRows = 2_000;
   const rows: T[] = [];
-  for (let from = 0; ; from += pageSize) {
+  for (let from = 0; from < maxRows; from += pageSize) {
     const result = await page(from, from + pageSize - 1);
     if (result.error) throw result.error;
     const next = result.data ?? [];
     rows.push(...next);
     if (next.length < pageSize) return rows;
   }
+  return rows;
 }
 
 async function enforceConciergeSendGate(delivery: DeliveryRow, now: Date) {
@@ -695,6 +697,10 @@ async function materializeOutbox(
               typeof outbox.payload.class_starts_at === "string"
                 ? outbox.payload.class_starts_at
                 : null,
+            class_schedule_version:
+              typeof outbox.payload.class_schedule_version === "string"
+                ? outbox.payload.class_schedule_version
+                : null,
           },
           notification_family: plan.message.notificationFamily,
           notification_tier: plan.message.notificationTier,
@@ -842,6 +848,10 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
         ? message.content.source_class_starts_at
         : null,
       studioClass?.starts_at,
+      typeof message.content?.class_schedule_version === "string"
+        ? message.content.class_schedule_version
+        : null,
+      studioClass?.starts_at ? String(new Date(studioClass.starts_at).getTime()) : null,
     )
   ) {
     return false;
@@ -1353,6 +1363,7 @@ async function recordDeliveryResult(
       finished_at: now.toISOString(),
       outcome: result.ok ? result.status : status,
       provider_http_status: result.ok ? null : (result.httpStatus ?? null),
+      provider_error_code: result.ok ? null : result.error.slice(0, 100),
       failure_class: result.ok ? null : result.failureClass,
       retry_after_seconds: result.ok ? null : (result.retryAfterSeconds ?? null),
       next_attempt_at: nextAttemptAt?.toISOString() ?? null,
@@ -1411,11 +1422,61 @@ async function recordDeliveryResult(
   return status;
 }
 
+async function startDeliveryAttempt(delivery: DeliveryRow, startedAt: Date) {
+  const result = await (supabaseAdmin as any).from("message_delivery_attempts").upsert(
+    {
+      delivery_id: delivery.id,
+      attempt_number: delivery.attempt_count,
+      provider: delivery.provider,
+      started_at: startedAt.toISOString(),
+      finished_at: null,
+      outcome: "processing",
+      request_metadata: { channel: delivery.channel },
+      response_metadata: {},
+    },
+    { onConflict: "delivery_id,attempt_number" },
+  );
+  if (result.error) throw result.error;
+}
+
+async function finishDeliveryAttemptWithoutProvider(
+  delivery: DeliveryRow,
+  startedAt: Date,
+  outcome: DeliveryStatus,
+  errorCode?: string,
+) {
+  const finishedAt = new Date();
+  const result = await (supabaseAdmin as any)
+    .from("message_delivery_attempts")
+    .update({
+      finished_at: finishedAt.toISOString(),
+      outcome,
+      provider_error_code: errorCode ?? null,
+      failure_class: null,
+    })
+    .eq("delivery_id", delivery.id)
+    .eq("attempt_number", delivery.attempt_count);
+  if (result.error) throw result.error;
+  logMessagingEvent("delivery_attempt", {
+    correlationId: delivery.message_id,
+    messageId: delivery.message_id,
+    deliveryId: delivery.id,
+    provider: delivery.provider,
+    channel: delivery.channel,
+    outcome,
+    durationMs: finishedAt.getTime() - startedAt.getTime(),
+    retryClassification: null,
+    attemptNumber: delivery.attempt_count,
+  });
+}
+
 async function processDelivery(
   delivery: DeliveryRow,
   runtime: ReturnType<typeof resolveMessagingRuntime>,
+  startedAt = new Date(),
 ) {
   const db = supabaseAdmin as any;
+  await startDeliveryAttempt(delivery, startedAt);
   const messageResult = await db
     .from("messages")
     .select("*")
@@ -1423,8 +1484,15 @@ async function processDelivery(
     .single();
   if (messageResult.error) throw messageResult.error;
   const message = messageResult.data;
-  const startedAt = new Date();
-  if (await enforceConciergeSendGate(delivery, startedAt)) return "suppressed";
+  if (await enforceConciergeSendGate(delivery, startedAt)) {
+    await finishDeliveryAttemptWithoutProvider(
+      delivery,
+      startedAt,
+      "suppressed",
+      "concierge_send_gate",
+    );
+    return "suppressed";
+  }
   if (delivery.expires_at && new Date(delivery.expires_at) <= startedAt) {
     const expired = await currentDeliveryLease(
       db
@@ -1440,13 +1508,37 @@ async function processDelivery(
       delivery,
     );
     if (expired.error) throw expired.error;
+    await finishDeliveryAttemptWithoutProvider(delivery, startedAt, "expired", "delivery_expired");
     return "expired";
   }
   if (!isStaffTestMessageContent(message.content)) {
-    if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) return "cancelled";
-    if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt))
+    if (await cancelInvalidReminderDelivery(delivery, message, startedAt)) {
+      await finishDeliveryAttemptWithoutProvider(
+        delivery,
+        startedAt,
+        "cancelled",
+        "reminder_business_state_changed",
+      );
       return "cancelled";
-    if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) return "cancelled";
+    }
+    if (await cancelInvalidPaymentReminderDelivery(delivery, message, startedAt)) {
+      await finishDeliveryAttemptWithoutProvider(
+        delivery,
+        startedAt,
+        "cancelled",
+        "payment_business_state_changed",
+      );
+      return "cancelled";
+    }
+    if (await cancelInvalidOpenClassDelivery(delivery, message, startedAt)) {
+      await finishDeliveryAttemptWithoutProvider(
+        delivery,
+        startedAt,
+        "cancelled",
+        "open_class_business_state_changed",
+      );
+      return "cancelled";
+    }
   }
   if (delivery.channel === "in_app") {
     const delivered = await currentDeliveryLease(
@@ -1464,6 +1556,7 @@ async function processDelivery(
       delivery,
     );
     if (delivered.error) throw delivered.error;
+    await finishDeliveryAttemptWithoutProvider(delivery, startedAt, "delivered");
     return "delivered";
   }
   if (!runtimeAllowsRecipient(runtime, delivery.channel, delivery.recipient_address)) {
@@ -1483,6 +1576,12 @@ async function processDelivery(
       delivery,
     );
     if (suppressed.error) throw suppressed.error;
+    await finishDeliveryAttemptWithoutProvider(
+      delivery,
+      startedAt,
+      "suppressed",
+      "recipient_not_allowlisted",
+    );
     return "suppressed";
   }
   if (
@@ -1506,6 +1605,7 @@ async function processDelivery(
       delivery,
     );
     if (paused.error) throw paused.error;
+    await finishDeliveryAttemptWithoutProvider(delivery, startedAt, "suppressed", "active_handoff");
     return "suppressed";
   }
 
@@ -1723,8 +1823,9 @@ export async function processUnifiedMessagingDeliveryById(
   }
 
   const runtime = resolveMessagingRuntime(process.env);
+  const startedAt = new Date();
   try {
-    const status = await processDelivery(delivery, runtime);
+    const status = await processDelivery(delivery, runtime, startedAt);
     if (status === "failed") return { outcome: "retryable_failure" };
     if (status === "dead_letter" || status === "delivery_unknown") {
       return { outcome: "failed_permanent" };
@@ -1740,7 +1841,7 @@ export async function processUnifiedMessagingDeliveryById(
     await recordDeliveryResult(
       delivery,
       { ok: false, failureClass: "transient", error: errorCode },
-      new Date(),
+      startedAt,
     );
     return { outcome: "retryable_failure" };
   }
@@ -2451,6 +2552,7 @@ async function enqueueDueCanonicalEvents(
             booking_id: booking.id,
             class_id: booking.class_id,
             class_starts_at: startsAt.toISOString(),
+            class_schedule_version: String(startsAt.getTime()),
           },
           deduplication_key: `booking:${booking.id}:${eventType}:${startsAt.toISOString()}`,
           available_at: now.toISOString(),
@@ -2464,19 +2566,19 @@ async function enqueueDueCanonicalEvents(
   }
 
   const pendingBefore = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
-  const pendingPaymentRows = await fetchAllRows<{
+  const pendingPaymentResult = await db
+    .from("payments")
+    .select("id,member_id,created_at")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(Math.min(Math.max(limit * 20, 100), 2_000));
+  if (pendingPaymentResult.error) throw pendingPaymentResult.error;
+  const pendingPaymentRows = (pendingPaymentResult.data ?? []) as Array<{
     id: string;
     member_id: string;
     created_at: string;
-  }>((from, to) =>
-    db
-      .from("payments")
-      .select("id,member_id,created_at")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: false })
-      .range(from, to),
-  );
+  }>;
   const pendingPayments = selectDuePendingPaymentReminders(pendingPaymentRows, {
     dueBefore: new Date(pendingBefore),
     limit,
@@ -3019,6 +3121,11 @@ export async function runUnifiedMessagingSweep(input?: {
     now,
   );
   const promotions = await dispatchDuePromotions({ now, limit: Math.min(limit, 10) });
+  const obsoleteReminders = await db.rpc("cancel_obsolete_notification_reminders", {
+    p_limit: limit,
+  });
+  if (obsoleteReminders.error) throw obsoleteReminders.error;
+  const obsoleteRemindersCancelled = Number(obsoleteReminders.data ?? 0);
   const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
@@ -3043,6 +3150,7 @@ export async function runUnifiedMessagingSweep(input?: {
       expiredOutbox,
       staleOutbox,
       staleDeliveries,
+      obsoleteRemindersCancelled,
       scheduled,
       outboxClaimed: outboxClaim.data?.length ?? 0,
       materialized,
@@ -3097,6 +3205,7 @@ export async function runUnifiedMessagingSweep(input?: {
     staleOutbox,
     staleDeliveries,
     promotions,
+    obsoleteRemindersCancelled,
     scheduled,
     outboxClaimed: outboxClaim.data?.length ?? 0,
     materialized,

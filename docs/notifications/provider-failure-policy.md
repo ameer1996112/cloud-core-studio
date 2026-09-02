@@ -9,7 +9,7 @@
 | Event expired or business state is no longer valid                       | expire/cancel                                     | 200           |
 | WhatsApp provider result ambiguous                                       | `delivery_unknown`; operator reconciliation       | 200           |
 
-Cloud Tasks is configured for no more than 100 transport attempts, exponential backoff from 10 seconds to one hour, and a 24-hour retry duration. The larger bounded attempt budget prevents early lease/not-yet-due responses from consuming the provider retry window. Provider calls still use the much smaller existing per-channel retry limits. The database remains authoritative and the 15-minute maintenance pass recovers only work that is safe to retry.
+Cloud Tasks is configured for no more than 8 transport attempts, exponential backoff from 10 seconds to one hour, and a 24-hour retry duration. Queue limits are environment-configurable, while provider calls retain the existing smaller per-channel retry limits. The database remains authoritative and the 15-minute maintenance pass recovers only work that is safe to retry.
 
 Provider calls keep the existing channel adapters and existing policy gates:
 
