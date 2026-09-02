@@ -143,6 +143,26 @@ describe("member profile fields", () => {
     );
   });
 
+  test("deletion error recovery actions keep a clear hierarchy and stack safely on mobile", () => {
+    expect(accountSource).toContain('className="member-account-recovery-actions"');
+    expect(accountSource).toContain(
+      'className="btn-outline member-account-action member-account-recovery-actions__primary"',
+    );
+    expect(accountSource).toContain('className="member-account-recovery-actions__support');
+    expect(stylesSource).toMatch(
+      /\.member-account-recovery-actions\s*\{[^}]*display:\s*flex[^}]*flex-wrap:\s*wrap[^}]*gap:\s*var\(--space-3\)[^}]*margin-block-start:\s*var\(--space-3\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.member-account-recovery-actions__support\s*\{[^}]*min-height:\s*44px[^}]*max-inline-size:\s*100%[^}]*overflow-wrap:\s*anywhere/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-recovery-actions\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    );
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-recovery-actions__primary,[^}]*\.member-account-recovery-actions__support\s*\{[^}]*inline-size:\s*100%/s,
+    );
+  });
+
   test("the account route exposes a calm editorial hierarchy for session and deletion content", () => {
     expect(accountSource).toContain(
       '<p className="member-page-body member-account-section-copy max-w-2xl">',

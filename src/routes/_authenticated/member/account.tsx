@@ -531,18 +531,15 @@ function MemberAccount() {
                   live="assertive"
                 >
                   <p>{t("profile.deleteRequestErrorBody")}</p>
-                  <div className="mt-3 flex flex-wrap gap-3">
+                  <div className="member-account-recovery-actions">
                     <button
                       type="button"
                       onClick={() => setDeletionDialogOpen(true)}
-                      className="btn-outline min-h-11"
+                      className="btn-outline member-account-action member-account-recovery-actions__primary"
                     >
                       {t("common.retry")}
                     </button>
-                    <Link
-                      to="/support"
-                      className="inline-flex min-h-11 items-center font-semibold text-navy underline underline-offset-2"
-                    >
+                    <Link to="/support" className="member-account-recovery-actions__support">
                       {t("profile.deleteRequestSupport")}
                     </Link>
                   </div>

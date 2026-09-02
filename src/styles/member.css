@@ -1234,6 +1234,40 @@
   background-color: color-mix(in srgb, var(--color-sand) 68%, var(--color-surface));
 }
 
+.member-account-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+.member-account-recovery-actions__primary {
+  min-inline-size: 9rem;
+}
+
+.member-account-recovery-actions__support {
+  display: inline-flex;
+  min-height: 44px;
+  max-inline-size: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cc-radius-control);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+  color: var(--color-navy);
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.member-account-recovery-actions__support:hover {
+  background-color: color-mix(in srgb, var(--color-sand) 68%, var(--color-surface));
+}
+
 .member-account-save-row {
   display: flex;
   flex-wrap: wrap;
@@ -1311,6 +1345,17 @@
 
   .member-danger-zone__action {
     justify-self: stretch;
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .member-account-recovery-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .member-account-recovery-actions__primary,
+  .member-account-recovery-actions__support {
     inline-size: 100%;
     min-inline-size: 0;
   }
