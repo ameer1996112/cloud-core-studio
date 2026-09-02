@@ -446,7 +446,9 @@ function MemberAccount() {
 
           <MemberSection id="session" title={t("shell.signOut")}>
             <div className="member-account-session">
-              <p className="member-account-section-copy">{t("profile.endSession")}</p>
+              <p className="member-account-section-copy text-sm leading-6 text-slate">
+                {t("profile.endSession")}
+              </p>
               <button
                 id="account-sign-out"
                 type="button"
@@ -465,7 +467,9 @@ function MemberAccount() {
             eyebrow={t("profile.privacyKicker")}
             title={t("profile.privacyTitle")}
           >
-            <p className="member-account-section-copy">{t("profile.privacyBody")}</p>
+            <p className="member-account-section-copy text-sm leading-6 text-slate">
+              {t("profile.privacyBody")}
+            </p>
             <nav className="member-account-legal-links" aria-label={t("profile.privacyTitle")}>
               <Link
                 to="/privacy"
@@ -487,7 +491,7 @@ function MemberAccount() {
               </Link>
             </nav>
             <div className="member-danger-zone">
-              <p className="member-danger-zone__explanation">
+              <p className="member-danger-zone__explanation text-sm leading-6 text-slate">
                 {t("profile.deleteRequestExplanation")}
               </p>
               <MemberField id="delete-reason" label={t("profile.deleteReason")}>

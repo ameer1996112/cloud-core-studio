@@ -144,8 +144,18 @@ describe("member profile fields", () => {
   });
 
   test("the account route exposes a calm editorial hierarchy for session and deletion content", () => {
-    expect(accountSource).toContain('className="member-account-section-copy"');
-    expect(accountSource).toContain('className="member-danger-zone__explanation"');
+    expect(accountSource).toContain(
+      '<p className="member-page-body member-account-section-copy max-w-2xl">',
+    );
+    expect(accountSource).toContain(
+      '<p className="member-account-section-copy text-sm leading-6 text-slate">\n                {t("profile.endSession")}',
+    );
+    expect(accountSource).toContain(
+      '<p className="member-account-section-copy text-sm leading-6 text-slate">\n              {t("profile.privacyBody")}',
+    );
+    expect(accountSource).toContain(
+      'className="member-danger-zone__explanation text-sm leading-6 text-slate"',
+    );
     expect(accountSource).toContain(
       'className="btn-ghost member-account-action member-danger-zone__action',
     );
@@ -158,8 +168,6 @@ describe("member profile fields", () => {
     expect(deleteReasonStart).toBeGreaterThan(
       dangerZone.indexOf("member-danger-zone__explanation"),
     );
-    expect(dangerZone.indexOf("member-danger-zone__action")).toBeGreaterThan(
-      deleteReasonEnd,
-    );
+    expect(dangerZone.indexOf("member-danger-zone__action")).toBeGreaterThan(deleteReasonEnd);
   });
 });
