@@ -112,7 +112,28 @@ try {
   const bootSource = getBootLangScript();
   assert.match(bootSource, /window\.location\.pathname === "\/app"/);
   assert.match(bootSource, /searchParams\.get\("lang"\)/);
-  assert.match(bootSource, /routeLang \|\| cookieLang/);
+
+  document.cookie = "cc_lang=ar";
+  document.documentElement.lang = "he";
+  document.documentElement.dir = "rtl";
+  window.location = {
+    href: "https://cloudandcorestudio.com/auth",
+    pathname: "/auth",
+    protocol: "https:",
+  };
+  Function(bootSource)();
+  assert.equal(window.__ccBootLang, "he");
+  assert.equal(document.documentElement.lang, "he");
+
+  document.documentElement.lang = "he";
+  window.location = {
+    href: "https://cloudandcorestudio.com/app?lang=ar",
+    pathname: "/app",
+    protocol: "https:",
+  };
+  Function(bootSource)();
+  assert.equal(window.__ccBootLang, "ar");
+  assert.equal(document.documentElement.lang, "ar");
   assert.equal(readLangCookieHeader("other=1; cc_lang=ar"), "ar");
   assert.equal(readLangCookieHeader("cc_lang=fr"), null);
   assert.equal(readLangCookieHeader(null), null);

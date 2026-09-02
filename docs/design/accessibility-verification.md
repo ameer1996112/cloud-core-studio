@@ -6,15 +6,15 @@
 
 **Automated artifact:** `docs/design/evidence/task-15-interaction-results.json`
 
-**Artifact generatedAt:** `2026-09-01T19:24:02.881Z`
+**Artifact generatedAt:** `2026-09-02T13:31:14.174Z`
 
-**Artifact SHA-256:** `2a8fe8e0d3ae9a3541316d3bc318670f0536d99d03900f6be55f0497af92c4db`
+**Artifact SHA-256:** `e384ece44ab15a5d7015506715bc4b088eff2876adba591023d6b98e1779c3e5`
 
 **Forced-colors targets:** `1033/1033`
 
 **Forced-colors focus deltas:** `198/198`
 
-**Representative latency (ms):** `dialog=15.5; schedule=2.2; table=15.6`
+**Representative latency (ms):** `dialog=15.2; schedule=4.4; table=15.4`
 
 **VoiceOver transcript SHA-256:** `65f58e170262196b92f08cd34101eb6af43b0df672e3d1373c00655c1938522e`
 

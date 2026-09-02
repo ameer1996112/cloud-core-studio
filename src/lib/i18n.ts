@@ -123,15 +123,17 @@ export function getLocale(): string {
 export function getBootLangScript() {
   return `(() => {
     try {
-      const cookieMatch = document.cookie.match(/(?:^|; )${LANG_COOKIE}=([^;]+)/);
-      const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
       const url = new URL(window.location.href);
       const requestedRouteLang = window.location.pathname === "/app" ? url.searchParams.get("lang") : null;
       const routeLang = requestedRouteLang === "en" || requestedRouteLang === "he" || requestedRouteLang === "ar"
         ? requestedRouteLang
         : null;
       const currentLang = document.documentElement.lang;
-      const candidate = routeLang || cookieLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
+      // Keep the server-rendered locale authoritative through hydration. Some hosting
+      // proxies do not forward preference cookies, so applying the browser cookie here
+      // can make React hydrate localized client text over different server markup.
+      // The existing post-hydration root effect applies the stored preference safely.
+      const candidate = routeLang || currentLang || ${JSON.stringify(DEFAULT_LOCALE)};
       const next = candidate === "en" || candidate === "he" || candidate === "ar"
         ? candidate
         : ${JSON.stringify(DEFAULT_LOCALE)};

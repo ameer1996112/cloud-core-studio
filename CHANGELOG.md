@@ -2,6 +2,12 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.5.1] - 2026-09-02
+
+### Fixed
+
+- Prevent a saved browser language from changing localized content before React hydrates when the hosting boundary renders the request in a different locale.
+
 ## [0.3.5.0] - 2026-09-02
 
 ### Changed
