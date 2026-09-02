@@ -369,7 +369,7 @@ function MemberAccount() {
                 type="button"
                 disabled={update.isPending || Object.keys(form).length === 0}
                 onClick={() => update.mutate()}
-                className="btn-navy member-account-action hover:btn-navy-hover disabled:opacity-50"
+                className="btn-navy member-account-action member-account-save-action hover:btn-navy-hover"
                 aria-describedby="profile-save-status"
               >
                 <Save className="h-4 w-4" aria-hidden="true" />
@@ -429,7 +429,7 @@ function MemberAccount() {
                 <button
                   id="concierge-save"
                   type="button"
-                  className="btn-navy member-account-action hover:btn-navy-hover disabled:opacity-50"
+                  className="btn-navy member-account-action member-account-save-action hover:btn-navy-hover"
                   disabled={
                     saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())
                   }
