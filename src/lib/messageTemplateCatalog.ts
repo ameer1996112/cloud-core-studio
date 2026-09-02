@@ -687,7 +687,8 @@ const SUBJECTS: Record<MessageLanguage, Partial<Record<MessageEventType, string>
 
 export const MESSAGE_CONTENT_CATALOG = DEFINITIONS;
 
-export function renderMessageContent(
+// Keep this renderer and its v2 catalog stable; new content versions get a new entry point.
+function renderMessageContentV2(
   eventType: MessageEventType,
   language: MessageLanguage,
   variables: Record<string, unknown>,
@@ -708,6 +709,26 @@ export function renderMessageContent(
     metaTemplate: definition.name,
     version: "v2" as const,
   };
+}
+
+export function renderVersionedMessageContent(input: {
+  eventType: MessageEventType;
+  templateKey: string;
+  templateVersion: number;
+  language: MessageLanguage;
+  variables: Record<string, unknown>;
+}) {
+  if (input.templateKey !== input.eventType) throw new Error("template_event_mismatch");
+  if (input.templateVersion !== 2) throw new Error("unsupported_template_version");
+  return renderMessageContentV2(input.eventType, input.language, input.variables);
+}
+
+export function renderMessageContent(
+  eventType: MessageEventType,
+  language: MessageLanguage,
+  variables: Record<string, unknown>,
+) {
+  return renderMessageContentV2(eventType, language, variables);
 }
 
 export function validateMessageContentCatalog() {

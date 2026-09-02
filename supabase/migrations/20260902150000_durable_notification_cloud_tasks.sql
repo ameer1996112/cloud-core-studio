@@ -50,7 +50,7 @@ ALTER TABLE public.message_outbox
   ALTER COLUMN template_version SET NOT NULL,
   ALTER COLUMN template_version SET DEFAULT 2,
   ALTER COLUMN locale SET NOT NULL,
-  ALTER COLUMN locale SET DEFAULT 'he';
+  ALTER COLUMN locale DROP DEFAULT;
 
 ALTER TABLE public.message_outbox
   DROP CONSTRAINT IF EXISTS message_outbox_locale_check;
@@ -115,7 +115,8 @@ ALTER TABLE public.message_deliveries
   ADD COLUMN IF NOT EXISTS lease_token uuid,
   ADD COLUMN IF NOT EXISTS task_name text,
   ADD COLUMN IF NOT EXISTS task_enqueued_at timestamptz,
-  ADD COLUMN IF NOT EXISTS task_last_error_code text;
+  ADD COLUMN IF NOT EXISTS task_last_error_code text,
+  ADD COLUMN IF NOT EXISTS task_generation integer NOT NULL DEFAULT 0;
 
 ALTER TABLE public.message_deliveries
   DROP CONSTRAINT IF EXISTS message_deliveries_status_check;
@@ -170,6 +171,7 @@ BEGIN
   SET status = 'queued',
       task_name = NULL,
       task_enqueued_at = NULL,
+      task_generation = delivery.task_generation + 1,
       task_last_error_code = 'task_retry_window_exhausted',
       updated_at = now()
   FROM candidates
@@ -356,6 +358,24 @@ AS $$
   FROM public.message_deliveries AS delivery;
 $$;
 
+CREATE OR REPLACE FUNCTION public.notification_whatsapp_consent_current(p_member_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.member_notification_preferences AS preferences
+    WHERE preferences.member_id = p_member_id
+      AND preferences.whatsapp_enabled = true
+      AND preferences.whatsapp_opted_out_at IS NULL
+      AND preferences.whatsapp_consented_at IS NOT NULL
+      AND NULLIF(trim(preferences.whatsapp_consent_source), '') IS NOT NULL
+      AND preferences.whatsapp_consent_source NOT IN (
+        'existing_member_auto_enable', 'signup_auto_enable',
+        'legacy_auto_enable_pending_reconsent'
+      )
+  );
+$$;
+
 CREATE OR REPLACE FUNCTION public.admin_retry_notification_delivery(
   p_actor_id uuid,
   p_delivery_id uuid,
@@ -379,7 +399,16 @@ BEGIN
   IF NOT FOUND
     OR v_delivery.status NOT IN ('failed', 'dead_letter')
     OR (v_delivery.failure_class IS NOT NULL AND v_delivery.failure_class <> 'transient')
-    OR (v_delivery.expires_at IS NOT NULL AND v_delivery.expires_at <= p_now) THEN
+    OR (v_delivery.expires_at IS NOT NULL AND v_delivery.expires_at <= p_now)
+    OR (
+      v_delivery.channel = 'whatsapp'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM public.messages AS message
+        WHERE message.id = v_delivery.message_id
+          AND public.notification_whatsapp_consent_current(message.member_id)
+      )
+    ) THEN
     RETURN false;
   END IF;
   UPDATE public.message_deliveries
@@ -404,6 +433,98 @@ BEGIN
     jsonb_build_object('previous_status', v_delivery.status)
   );
   RETURN true;
+END;
+$$;
+
+-- The Mac OpenWA bridge claims the same canonical delivery ledger as every
+-- other channel. A fresh token is returned with each lease and current consent
+-- is checked atomically immediately before the job leaves the database.
+CREATE OR REPLACE FUNCTION public.claim_message_deliveries(
+  p_worker text,
+  p_limit integer DEFAULT 50,
+  p_lease_seconds integer DEFAULT 120,
+  p_channels text[] DEFAULT ARRAY['in_app']::text[]
+)
+RETURNS SETOF public.message_deliveries
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_limit integer := LEAST(GREATEST(p_limit, 1), 200);
+BEGIN
+  WITH stale AS (
+    SELECT id FROM public.message_deliveries
+    WHERE status = 'sending' AND channel = ANY(p_channels)
+      AND lease_expires_at IS NOT NULL AND lease_expires_at < now()
+    ORDER BY lease_expires_at
+    FOR UPDATE SKIP LOCKED LIMIT v_limit
+  )
+  UPDATE public.message_deliveries AS delivery
+  SET status = CASE WHEN delivery.channel = 'whatsapp' THEN 'delivery_unknown' ELSE 'failed' END,
+      failure_class = CASE WHEN delivery.channel = 'whatsapp' THEN 'ambiguous' ELSE 'transient' END,
+      error_code = 'stale_worker_recovered',
+      error_message = CASE
+        WHEN delivery.channel = 'whatsapp' THEN 'Worker lease expired after a possible provider transmission; staff reconciliation required.'
+        ELSE 'Worker lease expired; delivery released for an idempotent retry.'
+      END,
+      next_attempt_at = CASE WHEN delivery.channel = 'whatsapp' THEN NULL ELSE now() END,
+      failed_at = now(), lease_owner = NULL, lease_token = NULL,
+      lease_expires_at = NULL, updated_at = now()
+  FROM stale WHERE delivery.id = stale.id;
+
+  WITH expired AS (
+    SELECT id FROM public.message_deliveries
+    WHERE status IN ('queued', 'failed') AND channel = ANY(p_channels)
+      AND expires_at IS NOT NULL AND expires_at <= now()
+    ORDER BY expires_at
+    FOR UPDATE SKIP LOCKED LIMIT v_limit
+  )
+  UPDATE public.message_deliveries AS delivery
+  SET status = 'expired', updated_at = now(), lease_owner = NULL,
+      lease_token = NULL, lease_expires_at = NULL
+  FROM expired WHERE delivery.id = expired.id;
+
+  WITH opted_out AS (
+    SELECT delivery.id
+    FROM public.message_deliveries AS delivery
+    JOIN public.messages AS message ON delivery.message_id = message.id
+    WHERE delivery.channel = 'whatsapp' AND delivery.channel = ANY(p_channels)
+      AND delivery.status IN ('queued', 'failed')
+      AND NOT public.notification_whatsapp_consent_current(message.member_id)
+    ORDER BY delivery.created_at
+    FOR UPDATE OF delivery SKIP LOCKED LIMIT v_limit
+  )
+  UPDATE public.message_deliveries AS delivery
+  SET status = 'suppressed', failure_class = NULL, error_code = 'whatsapp_consent_withdrawn',
+      error_message = NULL, next_attempt_at = NULL, lease_owner = NULL,
+      lease_token = NULL, lease_expires_at = NULL, updated_at = now()
+  FROM opted_out WHERE delivery.id = opted_out.id;
+
+  RETURN QUERY
+  WITH candidates AS (
+    SELECT delivery.id
+    FROM public.message_deliveries AS delivery
+    JOIN public.messages AS message ON message.id = delivery.message_id
+    WHERE delivery.status IN ('queued', 'failed')
+      AND delivery.channel = ANY(p_channels)
+      AND delivery.scheduled_for <= now()
+      AND (delivery.next_attempt_at IS NULL OR delivery.next_attempt_at <= now())
+      AND (delivery.expires_at IS NULL OR delivery.expires_at > now())
+      AND (delivery.lease_expires_at IS NULL OR delivery.lease_expires_at < now())
+      AND (message.template_version = 'v2' OR message.legacy_source_table IS NULL)
+      AND (
+        delivery.channel <> 'whatsapp'
+        OR public.notification_whatsapp_consent_current(message.member_id)
+      )
+    ORDER BY COALESCE(delivery.next_attempt_at, delivery.scheduled_for), delivery.created_at
+    FOR UPDATE OF delivery SKIP LOCKED
+    LIMIT v_limit
+  )
+  UPDATE public.message_deliveries AS delivery
+  SET status = 'sending', lease_owner = left(p_worker, 200), lease_token = gen_random_uuid(),
+      lease_expires_at = now() + make_interval(secs => LEAST(GREATEST(p_lease_seconds, 30), 900)),
+      last_attempt_at = now(), attempt_count = delivery.attempt_count + 1, updated_at = now()
+  FROM candidates
+  WHERE delivery.id = candidates.id
+  RETURNING delivery.*;
 END;
 $$;
 
@@ -441,6 +562,10 @@ AS $$
 BEGIN
   UPDATE public.message_deliveries AS delivery
   SET task_last_error_code = left(COALESCE(NULLIF(p_error_code, ''), 'task_enqueue_failed'), 100),
+      task_generation = CASE
+        WHEN p_error_code = 'task_name_expired' THEN delivery.task_generation + 1
+        ELSE delivery.task_generation
+      END,
       updated_at = now()
   WHERE delivery.id = p_delivery_id
     AND delivery.status IN ('queued', 'failed');
@@ -503,6 +628,8 @@ REVOKE ALL ON FUNCTION public.claim_message_delivery_by_id(uuid, text, uuid, int
 REVOKE ALL ON FUNCTION public.record_notification_runtime_heartbeat(text, text, jsonb) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.notification_delivery_health() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.admin_retry_notification_delivery(uuid, uuid, timestamptz) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.claim_message_deliveries(text, integer, integer, text[]) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.notification_whatsapp_consent_current(uuid) FROM PUBLIC, anon, authenticated;
 
 REVOKE ALL ON TABLE public.notification_runtime_heartbeats FROM PUBLIC, anon, authenticated;
 GRANT ALL ON TABLE public.notification_runtime_heartbeats TO service_role;
@@ -516,6 +643,8 @@ GRANT EXECUTE ON FUNCTION public.claim_message_delivery_by_id(uuid, text, uuid, 
 GRANT EXECUTE ON FUNCTION public.record_notification_runtime_heartbeat(text, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.notification_delivery_health() TO service_role;
 GRANT EXECUTE ON FUNCTION public.admin_retry_notification_delivery(uuid, uuid, timestamptz) TO service_role;
+GRANT EXECUTE ON FUNCTION public.claim_message_deliveries(text, integer, integer, text[]) TO service_role;
+GRANT EXECUTE ON FUNCTION public.notification_whatsapp_consent_current(uuid) TO service_role;
 
 COMMENT ON COLUMN public.message_outbox.template_key IS
   'Versioned rendering key captured with the immutable business event.';
@@ -523,3 +652,5 @@ COMMENT ON COLUMN public.message_outbox.locale IS
   'Locale snapshot used to render the historical event.';
 COMMENT ON COLUMN public.message_deliveries.task_name IS
   'Cloud Tasks transport identifier. It never contains recipient or message content.';
+COMMENT ON COLUMN public.message_deliveries.task_generation IS
+  'Monotonic transport generation used to avoid stale Cloud Tasks name tombstones during recovery.';

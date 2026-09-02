@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { reportOpenwaNotification } from "@/lib/notificationQueue.server";
+import { reportCanonicalOpenwaDelivery } from "@/lib/unifiedMessaging.server";
 import {
   jsonResponse,
   readJsonBody,
@@ -12,6 +13,8 @@ const sentSchema = z.object({
   status: z.literal("sent"),
   providerMessageId: z.string().trim().min(1).nullable().optional(),
   workerId: z.string().trim().min(1).max(120).optional(),
+  source: z.enum(["canonical", "legacy"]).optional(),
+  leaseToken: z.string().uuid().optional(),
 });
 
 const failedSchema = z.object({
@@ -21,6 +24,8 @@ const failedSchema = z.object({
   error: z.string().trim().min(1),
   providerMessageId: z.string().trim().min(1).nullable().optional(),
   workerId: z.string().trim().min(1).max(120).optional(),
+  source: z.enum(["canonical", "legacy"]).optional(),
+  leaseToken: z.string().uuid().optional(),
 });
 
 const reportRequestSchema = z.union([sentSchema, failedSchema]);
@@ -47,7 +52,16 @@ export const Route = createFileRoute("/api/internal/notifications/openwa-report"
           return jsonResponse({ ok: false, reason: "invalid_request_body" }, 400);
         }
 
-        const result = await reportOpenwaNotification(parsed.data);
+        if (parsed.data.source === "canonical" && !parsed.data.leaseToken) {
+          return jsonResponse({ ok: false, reason: "invalid_request_body" }, 400);
+        }
+        const result =
+          parsed.data.source === "canonical"
+            ? await reportCanonicalOpenwaDelivery({
+                ...parsed.data,
+                leaseToken: parsed.data.leaseToken!,
+              })
+            : await reportOpenwaNotification(parsed.data);
         if (!result.ok) {
           return jsonResponse(
             { ok: false, reason: result.reason },

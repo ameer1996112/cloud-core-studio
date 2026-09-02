@@ -61,9 +61,9 @@ Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider
 - Observe at least one full reminder window with healthy queue age and no duplicate external sends.
 - Pause `cloud-core-unified-messaging-sweep-1m` and `cloud-core-notification-sweep-15m`. The new maintenance endpoint covers Concierge orchestration/materialization and canonical delivery recovery without a Cloud Run Job. Do not delete either old job during the proving window.
 - Confirm requests still wake Cloud Run, maintenance catches missed kicks within 15 minutes, and the service scales to zero when quiet.
-- After the rollback window, remove obsolete revision tags/minimum instances and retire the paused legacy job through a separate reviewed change.
+- After the rollback window, remove obsolete revision tags/minimum instances and retire the paused legacy job through a separate reviewed change. Tag removal is disabled by default in the infrastructure script; `CLOUD_RUN_REMOVE_REVISION_TAGS` must explicitly name reviewed tags. Do not rerun the full setup script against a live rollout just to remove tags, because it deliberately resets the feature flags.
 
-WhatsApp remains on the Mac-local OpenWA worker throughout these phases. Every authenticated claim records the worker heartbeat; never send WhatsApp from both Cloud Tasks and the local bridge.
+WhatsApp remains on the Mac-local OpenWA worker throughout these phases. Once `NOTIFICATIONS_OUTBOX_ENABLED=true`, its existing claim/report endpoints switch to canonical `message_deliveries` and require the returned lease token on every report; `notification_logs` is used only while the canonical flag is off and `OPENWA_LEGACY_DELIVERY_ENABLED=true`. Every authenticated claim records the worker heartbeat; never send WhatsApp from both Cloud Tasks and the local bridge.
 
 ## Health queries
 
@@ -95,7 +95,7 @@ order by provider, outcome;
 
 The service-only health RPC includes pending, retry-wait, expired-lease, permanent-failure, sent-in-24-hours, oldest-pending, provider-attempt, last-maintenance, and last-WhatsApp-heartbeat signals. Only the OIDC Scheduler endpoint records the maintenance heartbeat; post-commit kicks cannot hide a broken schedule. The maintenance request uses a cooperative abort budget below the Scheduler deadline, and every database scan/update remains bounded. Expected steady state for a tiny app: empty/near-empty due backlog, no 25-hour enqueued recovery, no growing dead-letter count, and Cloud Run at zero instances while idle.
 
-The existing admin retry action now uses `admin_retry_notification_delivery`, which locks and revalidates the delivery, queues only safe transient failures, and appends `notification.delivery_retried` to the admin activity log in the same transaction.
+The existing admin retry action now uses `admin_retry_notification_delivery`, which locks and revalidates the delivery, queues only safe transient failures, refuses opted-out WhatsApp recipients, and appends `notification.delivery_retried` to the admin activity log in the same transaction.
 
 ## Rollback
 

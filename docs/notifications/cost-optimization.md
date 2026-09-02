@@ -27,3 +27,5 @@ For an app with roughly five users, scale-to-zero and event-driven delivery shou
 The staging GoldMine Sheets worker also runs every five minutes. If that staging integration is not actively being tested, pause its scheduler separately after confirming ownership; it is outside the production notification rollout and the provided script intentionally does not alter it.
 
 The configuration script is idempotent in intent, defaults to dry-run, leaves all feature flags false, and requires an explicit `--apply`. It does not deploy application code or run migrations.
+
+The script clears both service-level (`--min=0`) and new-revision (`--min-instances=0`) minimums, following [Google Cloud's scaling flag definitions](https://docs.cloud.google.com/sdk/gcloud/reference/run/services/update). Old tagged revisions are immutable and can still retain paid minimums. Tag removal is opt-in through `CLOUD_RUN_REMOVE_REVISION_TAGS`; review the exact tags after the rollback window before using it.

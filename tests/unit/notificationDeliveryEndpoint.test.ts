@@ -76,4 +76,24 @@ describe("notification delivery endpoint", () => {
     })(request());
     expect(permanent.status).toBe(200);
   });
+
+  test("two concurrent handlers cannot both reach the provider behind one lease", async () => {
+    let leaseHeld = false;
+    let providerSends = 0;
+    const handler = createNotificationDeliveryHandler({
+      enabled: true,
+      authorize: async () => true,
+      process: async () => {
+        if (leaseHeld) return { outcome: "lease_busy" as const };
+        leaseHeld = true;
+        await Promise.resolve();
+        providerSends += 1;
+        return { outcome: "sent" as const };
+      },
+    });
+
+    const responses = await Promise.all([handler(request()), handler(request())]);
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 503]);
+    expect(providerSends).toBe(1);
+  });
 });

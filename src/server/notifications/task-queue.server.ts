@@ -30,11 +30,46 @@ type TaskRequest = {
 };
 
 type CloudTasksClientLike = {
-  createTask(request: TaskRequest): Promise<readonly [{ name?: string | null }, ...unknown[]]>;
+  createTask(
+    request: TaskRequest,
+    options?: { timeout: number },
+  ): Promise<readonly [{ name?: string | null }, ...unknown[]]>;
+  getTask(
+    request: { name: string },
+    options?: { timeout: number },
+  ): Promise<readonly [{ name?: string | null }, ...unknown[]]>;
 };
 
+export class NotificationTaskNameExpiredError extends Error {
+  constructor() {
+    super("notification_task_name_expired");
+  }
+}
+
+async function withAbort<T>(operation: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return operation;
+  signal.throwIfAborted();
+  let abort: () => void;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        abort = () => reject(signal.reason);
+        signal.addEventListener("abort", abort, { once: true });
+      }),
+    ]);
+  } finally {
+    signal.removeEventListener("abort", abort!);
+  }
+}
+
 export interface NotificationTaskQueue {
-  enqueueDelivery(deliveryId: string, scheduleTime?: Date): Promise<{ taskName: string }>;
+  enqueueDelivery(
+    deliveryId: string,
+    scheduleTime?: Date,
+    generation?: number,
+    signal?: AbortSignal,
+  ): Promise<{ taskName: string }>;
 }
 
 function enabled(value: string | undefined) {
@@ -80,18 +115,21 @@ export function parseNotificationTaskPayload(value: unknown): NotificationTaskPa
   return parsed.data;
 }
 
-export function notificationTaskId(deliveryId: string) {
-  return `delivery-${parseNotificationTaskPayload({ deliveryId }).deliveryId.replaceAll("-", "")}`;
+export function notificationTaskId(deliveryId: string, generation = 0) {
+  const normalizedGeneration = Math.max(0, Math.trunc(generation));
+  const base = `delivery-${parseNotificationTaskPayload({ deliveryId }).deliveryId.replaceAll("-", "")}`;
+  return normalizedGeneration === 0 ? base : `${base}-g${normalizedGeneration}`;
 }
 
 export function buildNotificationTask(
   config: NotificationTaskConfig,
   deliveryId: string,
   scheduleTime?: Date,
+  generation = 0,
 ): TaskRequest {
   const payload = parseNotificationTaskPayload({ deliveryId });
   const parent = `projects/${config.projectId}/locations/${config.location}/queues/${config.queue}`;
-  const taskId = notificationTaskId(deliveryId);
+  const taskId = notificationTaskId(deliveryId, generation);
   return {
     parent,
     task: {
@@ -119,14 +157,36 @@ export class GoogleCloudNotificationTaskQueue implements NotificationTaskQueue {
     private readonly config: NotificationTaskConfig,
   ) {}
 
-  async enqueueDelivery(deliveryId: string, scheduleTime?: Date) {
-    const request = buildNotificationTask(this.config, deliveryId, scheduleTime);
+  async enqueueDelivery(
+    deliveryId: string,
+    scheduleTime?: Date,
+    generation = 0,
+    signal?: AbortSignal,
+  ) {
+    signal?.throwIfAborted();
+    const request = buildNotificationTask(this.config, deliveryId, scheduleTime, generation);
     try {
-      const [task] = await this.client.createTask(request);
+      const [task] = await withAbort(this.client.createTask(request, { timeout: 15_000 }), signal);
       return { taskName: task.name ?? request.task.name };
     } catch (error) {
       const code = (error as { code?: number | string })?.code;
-      if (code === 6 || code === "ALREADY_EXISTS") return { taskName: request.task.name };
+      if (code === 6 || code === "ALREADY_EXISTS") {
+        // Cloud Tasks keeps deleted task names reserved. Verify a task really
+        // exists before marking the durable delivery as enqueued.
+        try {
+          const [task] = await withAbort(
+            this.client.getTask({ name: request.task.name }, { timeout: 15_000 }),
+            signal,
+          );
+          return { taskName: task.name ?? request.task.name };
+        } catch (lookupError) {
+          const lookupCode = (lookupError as { code?: number | string })?.code;
+          if (lookupCode === 5 || lookupCode === "NOT_FOUND") {
+            throw new NotificationTaskNameExpiredError();
+          }
+          throw lookupError;
+        }
+      }
       throw error;
     }
   }

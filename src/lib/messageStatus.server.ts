@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notificationDatabase } from "@/server/notifications/database-scope.server";
 import type { DeliveryFailureClass, DeliveryStatus } from "@/lib/messaging.types";
 
 type ProviderStatusInput = {
@@ -17,7 +17,7 @@ type ProviderStatusInput = {
 };
 
 export async function applyProviderDeliveryStatus(input: ProviderStatusInput) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const result = await db.rpc("apply_message_delivery_status", {
     p_provider: input.provider,
     p_provider_message_id: input.providerMessageId,
@@ -58,7 +58,7 @@ export async function reconcilePendingProviderWebhookEvents(
   providerMessageId: string,
 ) {
   if (provider !== "official_whatsapp" && provider !== "resend") return { processed: 0 };
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const pending = await db
     .from("message_webhook_events")
     .select("id,event_type,payload")
@@ -105,8 +105,9 @@ export async function reconcilePendingProviderWebhookEvents(
   return { processed };
 }
 
-export async function reconcilePendingProviderWebhookLedger(limit = 200) {
-  const db = supabaseAdmin as any;
+export async function reconcilePendingProviderWebhookLedger(limit = 200, signal?: AbortSignal) {
+  const db = notificationDatabase as any;
+  signal?.throwIfAborted();
   const pending = await db
     .from("message_webhook_events")
     .select("provider,provider_message_id")
@@ -115,14 +116,17 @@ export async function reconcilePendingProviderWebhookLedger(limit = 200) {
     .order("received_at", { ascending: true })
     .limit(Math.max(1, Math.min(limit, 500)));
   if (pending.error) throw pending.error;
+  signal?.throwIfAborted();
   const keys = new Set<string>();
   let processed = 0;
   for (const event of pending.data ?? []) {
+    signal?.throwIfAborted();
     const provider = event.provider === "whatsapp" ? "official_whatsapp" : event.provider;
     const key = `${provider}:${event.provider_message_id}`;
     if (keys.has(key)) continue;
     keys.add(key);
     const result = await reconcilePendingProviderWebhookEvents(provider, event.provider_message_id);
+    signal?.throwIfAborted();
     processed += result.processed;
   }
   return { processed };

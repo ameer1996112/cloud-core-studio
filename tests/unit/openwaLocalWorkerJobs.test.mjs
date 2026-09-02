@@ -25,6 +25,39 @@ function createJob(id, overrides = {}) {
 }
 
 describe("processClaimedJobs", () => {
+  test("returns the canonical lease token with the provider result", async () => {
+    const reports = [];
+    await processClaimedJobs(
+      createConfig(),
+      [
+        createJob("job-1", {
+          source: "canonical",
+          leaseToken: "64000000-0000-4000-8000-000000000001",
+        }),
+      ],
+      {
+        async sendViaOpenwa() {
+          return { ok: true, providerMessageId: "provider-job-1" };
+        },
+        async reportResult(_config, body) {
+          reports.push(body);
+        },
+        logError() {},
+        logInfo() {},
+      },
+    );
+
+    expect(reports).toEqual([
+      {
+        jobId: "job-1",
+        status: "sent",
+        providerMessageId: "provider-job-1",
+        source: "canonical",
+        leaseToken: "64000000-0000-4000-8000-000000000001",
+      },
+    ]);
+  });
+
   test("sendViaOpenwa posts chatId and text for the OpenWA send-text endpoint", async () => {
     const requests = [];
     const result = await sendViaOpenwa(

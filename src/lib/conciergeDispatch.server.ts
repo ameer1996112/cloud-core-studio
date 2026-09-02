@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notificationDatabase } from "@/server/notifications/database-scope.server";
 import { evaluateConciergeDispatch } from "@/lib/conciergeDispatch";
 import { loadMemberEngagementState } from "@/lib/conciergeEngagement.server";
 import { buildConciergeMaterializationPlan } from "@/lib/conciergeMaterialization";
@@ -51,11 +51,13 @@ export async function runConciergeDispatch(input?: {
   limit?: number;
   now?: Date;
   workerId?: string;
+  signal?: AbortSignal;
 }) {
-  const db = supabaseAdmin as any;
+  const db = notificationDatabase as any;
   const now = input?.now ?? new Date();
   const workerId = input?.workerId ?? `concierge-dispatch:${randomUUID()}`;
   const startedAt = Date.now();
+  input?.signal?.throwIfAborted();
   const configurations = await db
     .from("automation_config_versions")
     .select("studio_id,journey_type,version,mode")
@@ -63,6 +65,7 @@ export async function runConciergeDispatch(input?: {
     .is("retired_at", null)
     .order("version", { ascending: false });
   if (configurations.error) throw configurations.error;
+  input?.signal?.throwIfAborted();
   const configRows = (configurations.data ?? []) as Array<{
     studio_id: string;
     journey_type: string;
@@ -91,6 +94,7 @@ export async function runConciergeDispatch(input?: {
   let failed = 0;
 
   for (const [groupKey, studioConfigs] of configsByStudioMode) {
+    input?.signal?.throwIfAborted();
     if (evaluations.length >= normalizeConciergeDispatchLimit(input?.limit)) break;
     const studioId = groupKey.slice(0, groupKey.lastIndexOf(":"));
     const intents = await db
@@ -106,6 +110,7 @@ export async function runConciergeDispatch(input?: {
       .order("priority", { ascending: true })
       .limit(normalizeConciergeDispatchLimit(input?.limit));
     if (intents.error) throw intents.error;
+    input?.signal?.throwIfAborted();
     const recipientIds: string[] = [
       ...new Set<string>(
         (intents.data ?? []).map(
@@ -114,6 +119,7 @@ export async function runConciergeDispatch(input?: {
       ),
     ];
     for (const recipientId of recipientIds) {
+      input?.signal?.throwIfAborted();
       if (evaluations.length >= normalizeConciergeDispatchLimit(input?.limit)) break;
       try {
         const state = await loadMemberEngagementState({
@@ -122,7 +128,9 @@ export async function runConciergeDispatch(input?: {
           now,
           journeyTypes: studioConfigs.map((configuration) => configuration.journey_type),
           deliveryMode: studioConfigs[0]?.mode ?? "shadow",
+          signal: input?.signal,
         });
+        input?.signal?.throwIfAborted();
         const evaluation = evaluateConciergeDispatch({
           ...state,
           pendingActions: state.actions,
@@ -281,7 +289,8 @@ export async function runConciergeDispatch(input?: {
           channels: evaluation.channels,
           mode: evaluationMode,
         });
-      } catch {
+      } catch (error) {
+        if (input?.signal?.aborted) throw error;
         failed += 1;
       }
     }

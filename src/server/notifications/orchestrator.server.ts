@@ -7,6 +7,7 @@ import {
   enqueueRecoverableNotificationDeliveries,
 } from "./task-dispatcher.server";
 import { createNotificationTaskQueue, loadNotificationTaskConfig } from "./task-queue.server";
+import { withNotificationDatabaseSignal } from "./database-scope.server";
 
 export async function orchestrateNotificationTasks<T>(input: {
   enabled: boolean;
@@ -24,7 +25,7 @@ export async function orchestrateNotificationTasks<T>(input: {
   return { enabled: true as const, preparation, tasks };
 }
 
-export async function runNotificationTaskOrchestration(input?: {
+async function executeNotificationTaskOrchestration(input?: {
   limit?: number;
   environment?: Record<string, string | undefined>;
   signal?: AbortSignal;
@@ -45,9 +46,15 @@ export async function runNotificationTaskOrchestration(input?: {
       signal: input?.signal,
       prepare: async () => {
         input?.signal?.throwIfAborted();
-        const conciergeOrchestration = await runConciergeOrchestrator({ limit: input?.limit });
+        const conciergeOrchestration = await runConciergeOrchestrator({
+          limit: input?.limit,
+          signal: input?.signal,
+        });
         input?.signal?.throwIfAborted();
-        const conciergeDispatch = await runConciergeDispatch({ limit: input?.limit });
+        const conciergeDispatch = await runConciergeDispatch({
+          limit: input?.limit,
+          signal: input?.signal,
+        });
         input?.signal?.throwIfAborted();
         const unifiedMessaging = await runUnifiedMessagingSweep({
           limit: input?.limit,
@@ -69,29 +76,41 @@ export async function runNotificationTaskOrchestration(input?: {
     });
     if (!input?.recordMaintenanceHeartbeat) return result;
     const tasks = "tasks" in result ? result.tasks : null;
-    const heartbeat = await (supabaseAdmin as any).rpc("record_notification_runtime_heartbeat", {
-      p_heartbeat_key: "maintenance",
-      p_outcome: "completed",
-      p_summary: {
-        selected: tasks?.selected ?? 0,
-        enqueued: tasks?.enqueued ?? 0,
-        failed: tasks?.failed ?? 0,
-        duration_ms: Date.now() - startedAt,
-      },
-    });
+    const heartbeat = await (supabaseAdmin as any)
+      .rpc("record_notification_runtime_heartbeat", {
+        p_heartbeat_key: "maintenance",
+        p_outcome: "completed",
+        p_summary: {
+          selected: tasks?.selected ?? 0,
+          enqueued: tasks?.enqueued ?? 0,
+          failed: tasks?.failed ?? 0,
+          duration_ms: Date.now() - startedAt,
+        },
+      })
+      .abortSignal(AbortSignal.timeout(3_000));
     if (heartbeat.error) throw heartbeat.error;
     return result;
   } catch (error) {
     if (!input?.recordMaintenanceHeartbeat) throw error;
     try {
-      await (supabaseAdmin as any).rpc("record_notification_runtime_heartbeat", {
-        p_heartbeat_key: "maintenance",
-        p_outcome: "failed",
-        p_summary: { duration_ms: Date.now() - startedAt },
-      });
+      await (supabaseAdmin as any)
+        .rpc("record_notification_runtime_heartbeat", {
+          p_heartbeat_key: "maintenance",
+          p_outcome: "failed",
+          p_summary: { duration_ms: Date.now() - startedAt },
+        })
+        .abortSignal(AbortSignal.timeout(3_000));
     } catch {
       // The scheduler retry remains authoritative if health persistence also fails.
     }
     throw error;
   }
+}
+
+export function runNotificationTaskOrchestration(
+  input?: Parameters<typeof executeNotificationTaskOrchestration>[0],
+) {
+  return withNotificationDatabaseSignal(input?.signal, () =>
+    executeNotificationTaskOrchestration(input),
+  );
 }

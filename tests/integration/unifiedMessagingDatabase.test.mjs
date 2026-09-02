@@ -120,6 +120,22 @@ describe("unified messaging database integration", () => {
       await psql(signupConsentMigration);
       await psql(durableNotificationMigration);
 
+      const storedLocale = await psql(`
+        BEGIN;
+        UPDATE public.members SET preferred_language='ar'
+        WHERE id='00000000-0000-0000-0000-000000000001';
+        INSERT INTO public.message_outbox
+          (event_type,aggregate_type,aggregate_id,member_id,payload,deduplication_key)
+        VALUES ('booking_confirmed','booking','69000000-0000-4000-8000-000000000099',
+          '00000000-0000-0000-0000-000000000001','{}','integration:locale');
+        UPDATE public.members SET preferred_language='en'
+        WHERE id='00000000-0000-0000-0000-000000000001';
+        SELECT locale || ':' || template_key || ':' || template_version::text
+        FROM public.message_outbox WHERE deduplication_key='integration:locale';
+        ROLLBACK;
+      `);
+      expect(storedLocale.split("\n")).toContain("ar:booking_confirmed:2");
+
       expect(
         await psql(
           "SELECT count(*) FROM public.message_outbox WHERE template_key IS NULL OR template_version IS NULL OR locale IS NULL;",
@@ -158,6 +174,22 @@ describe("unified messaging database integration", () => {
       `);
       expect(scheduleVersionRoundTrip.split("\n")).toContain("2");
       await psql(`
+        INSERT INTO public.messages (
+          id, member_id, direction, audience, event_type, language, template_key,
+          template_version, body, content, member_visible, idempotency_key, created_at
+        ) VALUES
+        ('69000000-0000-4000-8000-000000000020',
+          '00000000-0000-0000-0000-000000000001', 'outbound', 'member',
+          'booking_confirmed', 'en', 'cc_booking_confirmed_v2', 'v2', 'task body',
+          '{}', false, 'integration:task-generation-message', '1999-01-01T00:00:00Z'),
+        ('69000000-0000-4000-8000-000000000021',
+          '00000000-0000-0000-0000-000000000001', 'outbound', 'member',
+          'booking_confirmed', 'en', 'cc_booking_confirmed_v2', 'v2', 'openwa body',
+          '{}', false, 'integration:canonical-openwa-message', '1999-01-01T00:00:00Z'),
+        ('69000000-0000-4000-8000-000000000022',
+          '00000000-0000-0000-0000-000000000001', 'outbound', 'member',
+          'booking_confirmed', 'en', 'cc_booking_confirmed_v2', 'v2', 'optout body',
+          '{}', false, 'integration:openwa-optout-message', '1999-01-01T00:00:00Z');
         INSERT INTO public.message_deliveries (
           id, message_id, channel, status, idempotency_key, scheduled_for
         )
@@ -199,6 +231,73 @@ describe("unified messaging database integration", () => {
            ) SELECT count(*) FROM stale;`,
         ),
       ).toBe("0");
+
+      await psql(`
+        INSERT INTO public.message_deliveries (
+          id, message_id, channel, provider, recipient_address, status,
+          idempotency_key, scheduled_for, task_enqueued_at
+        )
+        VALUES ('69000000-0000-4000-8000-000000000010',
+          '69000000-0000-4000-8000-000000000020', 'email', 'resend',
+          'member@example.com', 'enqueued', 'integration:task-generation', now(),
+          now() - interval '26 hours');
+      `);
+      expect(
+        await psql(
+          "SELECT task_generation::text FROM public.list_notification_deliveries_for_tasks(10) WHERE id='69000000-0000-4000-8000-000000000010';",
+        ),
+      ).toBe("1");
+
+      await psql(`
+        UPDATE public.member_notification_preferences
+        SET whatsapp_enabled=true, whatsapp_opted_out_at=NULL,
+          whatsapp_consented_at=now(), whatsapp_consent_source='member_notification_settings'
+        WHERE member_id='00000000-0000-0000-0000-000000000001';
+        INSERT INTO public.message_deliveries (
+          id, message_id, channel, provider, recipient_address, status,
+          idempotency_key, scheduled_for
+        )
+        VALUES ('69000000-0000-4000-8000-000000000011',
+          '69000000-0000-4000-8000-000000000021', 'whatsapp', 'openwa',
+          '972501234567', 'queued', 'integration:canonical-openwa', now() - interval '10 years');
+      `);
+      const openwaClaims = await Promise.all([
+        psql(
+          "SELECT count(*) FROM public.claim_message_deliveries('openwa-a',1,300,ARRAY['whatsapp']) WHERE id='69000000-0000-4000-8000-000000000011';",
+        ),
+        psql(
+          "SELECT count(*) FROM public.claim_message_deliveries('openwa-b',1,300,ARRAY['whatsapp']) WHERE id='69000000-0000-4000-8000-000000000011';",
+        ),
+      ]);
+      expect(openwaClaims.sort()).toEqual(["0", "1"]);
+      expect(
+        await psql(
+          "SELECT (lease_token IS NOT NULL)::text FROM public.message_deliveries WHERE id='69000000-0000-4000-8000-000000000011';",
+        ),
+      ).toBe("true");
+
+      await psql(`
+        UPDATE public.member_notification_preferences
+        SET whatsapp_enabled=false, whatsapp_opted_out_at=now()
+        WHERE member_id='00000000-0000-0000-0000-000000000001';
+        INSERT INTO public.message_deliveries (
+          id, message_id, channel, provider, recipient_address, status, failure_class,
+          idempotency_key, scheduled_for
+        )
+        VALUES ('69000000-0000-4000-8000-000000000012',
+          '69000000-0000-4000-8000-000000000022', 'whatsapp', 'openwa',
+          '972501234567', 'dead_letter', 'transient', 'integration:openwa-optout', now());
+      `);
+      expect(
+        await psql(
+          "SELECT public.admin_retry_notification_delivery('00000000-0000-0000-0000-000000000002','69000000-0000-4000-8000-000000000012',now())::text;",
+        ),
+      ).toBe("false");
+      await psql(`
+        UPDATE public.member_notification_preferences
+        SET whatsapp_enabled=true, whatsapp_opted_out_at=NULL
+        WHERE member_id='00000000-0000-0000-0000-000000000001';
+      `);
 
       expect(
         await psql("SELECT count(*) FROM public.messages WHERE legacy_source_table IS NOT NULL;"),

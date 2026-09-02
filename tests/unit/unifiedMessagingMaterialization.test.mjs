@@ -25,6 +25,20 @@ const base = {
 };
 
 describe("outbox message materialization", () => {
+  test("renders the stored template version and rejects unsupported historical templates", () => {
+    const result = materializeMessagePlan({
+      ...base,
+      templateKey: "booking_confirmed",
+      templateVersion: 2,
+    });
+    expect(result.message.body).toBe(materializeMessagePlan(base).message.body);
+    expect(() => materializeMessagePlan({ ...base, templateVersion: 999 })).toThrow(
+      "unsupported_template_version",
+    );
+    expect(() => materializeMessagePlan({ ...base, templateKey: "payment_confirmed" })).toThrow(
+      "template_event_mismatch",
+    );
+  });
   test("preserves scheduled journey counts from the outbox payload", () => {
     expect(scheduledJourneyVariables({ class_count: 8, week_key: "2026-W32" })).toEqual({
       class_count: 8,

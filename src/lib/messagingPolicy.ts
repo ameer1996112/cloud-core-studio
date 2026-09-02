@@ -179,6 +179,21 @@ export function computeDeliveryRetry(
   return new Date(failedAt.getTime() + delayMs);
 }
 
+export function classifyOpenwaFailure(input: {
+  error?: string;
+  providerMessageId?: string | null;
+  retryable?: boolean;
+}): DeliveryFailureClass {
+  // A lost transport response does not prove that WhatsApp rejected the message.
+  if (
+    input.providerMessageId?.trim() ||
+    input.error?.startsWith("send_transport_failed:") ||
+    input.error === "openwa_delivery_unconfirmed"
+  )
+    return "ambiguous";
+  return input.retryable ? "transient" : "permanent";
+}
+
 export function classifyProviderFailure(
   channel: MessageChannel,
   input: { status?: number | null; timeout?: boolean; requestTransmitted?: boolean },
