@@ -17,6 +17,7 @@ import {
   resolveFixtureEnvPath,
   snapshotPathForEnvPath,
 } from "./member-ui-ux-fixture-lifecycle.mjs";
+import { requireLocalFixtureTarget } from "./member-ui-ux-local-target.mjs";
 
 const ENV_PATH = resolveFixtureEnvPath(process.cwd(), process.env.ENV_PATH);
 const STUDIO_SETTINGS_SNAPSHOT_PATH = snapshotPathForEnvPath(ENV_PATH);
@@ -37,17 +38,6 @@ function parseEnv(contents) {
         return [line.slice(0, index), value.replace(/^(["'])(.*)\1$/, "$2")];
       }),
   );
-}
-
-function requireLocalTarget(env) {
-  if (process.env.APP_ENV !== "test" || process.env.ALLOW_MEMBER_UI_UX_FIXTURE !== "true") {
-    throw new Error("fixture_requires_explicit_test_opt_in");
-  }
-  if (!env.API_URL || !env.SERVICE_ROLE_KEY) throw new Error("fixture_local_credentials_missing");
-  const host = new URL(env.API_URL).hostname;
-  if (host !== "127.0.0.1" && host !== "localhost") {
-    throw new Error("fixture_refuses_non_local_supabase_target");
-  }
 }
 
 async function fixturePassword(env) {
@@ -155,7 +145,7 @@ async function upsertPlan(supabase, plan) {
 
 async function main() {
   const env = parseEnv(await readFile(ENV_PATH, "utf8"));
-  requireLocalTarget(env);
+  requireLocalFixtureTarget(env, process.env, { requireDatabase: true });
   const supabase = createClient(env.API_URL, env.SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
