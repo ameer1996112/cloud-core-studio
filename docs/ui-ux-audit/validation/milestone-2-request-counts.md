@@ -1,6 +1,6 @@
 # Milestone 2 intercepted request counts
 
-The application endpoints were not changed. Tests classified the two TanStack Start mutations by exact generated path plus serialized payload signature, and failed closed for unrecognized `POST /_serverFn/*` requests. No mutation reached a remote service.
+The application endpoints were not changed. Tests classified the two TanStack Start mutations by serialized payload signature, request origin/method, and calling action; then required distinct, stable generated paths across scenarios. Unrecognized `POST /_serverFn/*` requests failed closed. No mutation reached a remote service.
 
 - Payment: `POST /_serverFn/4d3f9eb3778935f79cea7886fb47c37468e8968a691763e74686e50401eb56a8`, payload signature includes the selected package/plan identifier and checkout method; success requires `status: "ready"`, `provider: "hyp"`, `payment_id`, and `checkout_url`.
 - Deletion: `POST /_serverFn/319b2500137ce249ac571c2c9fdce3856a28dc788a58f9f4e16a68e2a8a2a418`, authenticated deletion action payload; success requires `ok: true` and a string `status`.

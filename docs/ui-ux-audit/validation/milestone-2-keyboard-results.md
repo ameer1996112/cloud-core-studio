@@ -1,6 +1,6 @@
 # Milestone 2 keyboard verification
 
-Automated input used Playwright keyboard events. The manual pass used a headed Chrome for Testing window on macOS and real keyboard input through the browser UI.
+Automated input used Playwright keyboard events. The manual pass used a headed Chrome for Testing window on macOS and real keyboard input through the browser UI. Manual observations cover package opening/traversal/Escape and deletion opening/focus trap/Escape/restoration. Pending, retry, and result assertions below are automated evidence, not a claimed manual screen-reader pass.
 
 | Route/state | Language | Action | Expected | Actual | Pass/fail |
 | --- | --- | --- | --- | --- | --- |
