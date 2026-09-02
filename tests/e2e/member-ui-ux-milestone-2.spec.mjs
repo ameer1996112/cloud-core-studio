@@ -102,7 +102,9 @@ async function assertDeletionRecoveryLayout(page, { mobile }) {
       rowGap,
       columnGap,
       verticalGap: supportRect.top - primaryRect.bottom,
-      horizontalGap: supportRect.left - primaryRect.right,
+      horizontalSeparation:
+        Math.max(primaryRect.left, supportRect.left) -
+        Math.min(primaryRect.right, supportRect.right),
       verticallyOrdered: primaryRect.bottom <= supportRect.top + 1,
       desktopAligned: Math.abs(primaryRect.top - supportRect.top) <= 1,
       actionsOverlap: intersects(primaryRect, supportRect),
@@ -127,7 +129,6 @@ async function assertDeletionRecoveryLayout(page, { mobile }) {
   };
   check(geometry.primaryHeight >= 44, "primary_height");
   check(geometry.supportHeight >= 44, "support_height");
-  check(Math.max(geometry.rowGap, geometry.columnGap) > 0, "gap");
   check(!geometry.actionsOverlap, "action_overlap");
   check(geometry.primaryInsideWrapper, "primary_containment");
   check(geometry.supportInsideWrapper, "support_containment");
@@ -137,6 +138,7 @@ async function assertDeletionRecoveryLayout(page, { mobile }) {
   check(geometry.noHorizontalOverflow, "horizontal_overflow");
 
   if (mobile) {
+    check(geometry.rowGap > 0, "mobile_row_gap");
     check(geometry.verticallyOrdered, "mobile_order");
     check(geometry.verticalGap >= geometry.rowGap - 1, "mobile_gap");
     check(Math.abs(geometry.primaryWidth - geometry.wrapperWidth) <= 2, "mobile_primary_width");
@@ -146,8 +148,9 @@ async function assertDeletionRecoveryLayout(page, { mobile }) {
     check(!geometry.primaryOverlapsNav, "mobile_primary_nav_overlap");
     check(!geometry.supportOverlapsNav, "mobile_support_nav_overlap");
   } else {
+    check(geometry.columnGap > 0, "desktop_column_gap");
     check(geometry.desktopAligned, "desktop_alignment");
-    check(geometry.horizontalGap >= geometry.columnGap - 1, "desktop_gap");
+    check(geometry.horizontalSeparation >= geometry.columnGap - 1, "desktop_gap");
   }
 
   if (failures.length > 0) {
@@ -290,11 +293,19 @@ async function main() {
     });
     const deletionRequestCountBeforeDesktopLayout = deletionRequests;
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.locator("#profile-language").selectOption("he");
+    await page.waitForFunction(
+      () => document.documentElement.lang === "he" && document.documentElement.dir === "rtl",
+    );
     await assertDeletionRecoveryLayout(page, { mobile: false });
+    await page.locator("#profile-language").selectOption("en");
+    await page.waitForFunction(
+      () => document.documentElement.lang === "en" && document.documentElement.dir === "ltr",
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
     if (deletionRequests !== deletionRequestCountBeforeDesktopLayout) {
       throw new Error("deletion_recovery_desktop_created_request");
     }
-    await page.setViewportSize({ width: 390, height: 844 });
 
     if (paymentRequests !== 1 || deletionRequests !== 1) {
       throw new Error(

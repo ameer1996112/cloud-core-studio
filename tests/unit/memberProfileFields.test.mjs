@@ -12,10 +12,6 @@ const accountSource = readFileSync(
   "utf8",
 );
 const stylesSource = readFileSync(resolve(root, "src/styles/member.css"), "utf8");
-const milestone2E2eSource = readFileSync(
-  resolve(root, "tests/e2e/member-ui-ux-milestone-2.spec.mjs"),
-  "utf8",
-);
 
 await ensureI18nNamespaces(["member"]);
 
@@ -164,26 +160,6 @@ describe("member profile fields", () => {
     );
     expect(stylesSource).toMatch(
       /@media \(max-width:\s*640px\)[\s\S]*\.member-account-recovery-actions__primary,[^}]*\.member-account-recovery-actions__support\s*\{[^}]*inline-size:\s*100%/s,
-    );
-  });
-
-  test("the intercepted deletion error scenario verifies rendered mobile and desktop recovery geometry", () => {
-    expect(milestone2E2eSource).toContain("async function assertDeletionRecoveryLayout");
-    expect(milestone2E2eSource).toContain('page.locator(".member-account-recovery-actions")');
-    expect(milestone2E2eSource).toContain(
-      "await assertDeletionRecoveryLayout(page, { mobile: true });",
-    );
-    expect(milestone2E2eSource).toContain(
-      "await page.setViewportSize({ width: 1440, height: 900 });",
-    );
-    expect(milestone2E2eSource).toContain(
-      "await assertDeletionRecoveryLayout(page, { mobile: false });",
-    );
-    expect(milestone2E2eSource).toContain(
-      "const deletionRequestCountBeforeDesktopLayout = deletionRequests;",
-    );
-    expect(milestone2E2eSource).toContain(
-      "deletionRequests !== deletionRequestCountBeforeDesktopLayout",
     );
   });
 
