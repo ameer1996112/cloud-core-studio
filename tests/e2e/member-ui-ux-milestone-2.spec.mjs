@@ -38,6 +38,125 @@ function requireLocalBaseUrl() {
   }
 }
 
+async function assertDeletionRecoveryLayout(page, { mobile }) {
+  const wrapper = page.locator(".member-account-recovery-actions");
+  const primary = page.locator(".member-account-recovery-actions__primary");
+  const support = page.locator(".member-account-recovery-actions__support");
+  await Promise.all([
+    wrapper.waitFor({ state: "visible" }),
+    primary.waitFor({ state: "visible" }),
+    support.waitFor({ state: "visible" }),
+  ]);
+  await wrapper.evaluate((element) =>
+    element.scrollIntoView({ block: "center", inline: "nearest" }),
+  );
+
+  const geometry = await page.evaluate(() => {
+    const wrapperElement = document.querySelector(".member-account-recovery-actions");
+    const primaryElement = document.querySelector(".member-account-recovery-actions__primary");
+    const supportElement = document.querySelector(".member-account-recovery-actions__support");
+    const mobileNav = document.querySelector(".member-bottom-nav-link")?.closest("nav");
+    if (
+      !(wrapperElement instanceof HTMLElement) ||
+      !(primaryElement instanceof HTMLElement) ||
+      !(supportElement instanceof HTMLElement)
+    ) {
+      return null;
+    }
+
+    const wrapperRect = wrapperElement.getBoundingClientRect();
+    const primaryRect = primaryElement.getBoundingClientRect();
+    const supportRect = supportElement.getBoundingClientRect();
+    const navRect = mobileNav?.getBoundingClientRect() ?? null;
+    const navStyle = mobileNav ? getComputedStyle(mobileNav) : null;
+    const wrapperStyle = getComputedStyle(wrapperElement);
+    const rowGap = Number.parseFloat(wrapperStyle.rowGap) || 0;
+    const columnGap = Number.parseFloat(wrapperStyle.columnGap) || 0;
+    const intersects = (first, second) =>
+      first.left < second.right &&
+      first.right > second.left &&
+      first.top < second.bottom &&
+      first.bottom > second.top;
+    const inside = (inner, outer, tolerance = 1) =>
+      inner.left >= outer.left - tolerance &&
+      inner.top >= outer.top - tolerance &&
+      inner.right <= outer.right + tolerance &&
+      inner.bottom <= outer.bottom + tolerance;
+    const viewport = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    const navRendered = Boolean(
+      navRect &&
+      navStyle &&
+      navStyle.display !== "none" &&
+      navStyle.visibility !== "hidden" &&
+      Number(navStyle.opacity) !== 0 &&
+      navRect.width > 0 &&
+      navRect.height > 0,
+    );
+
+    return {
+      wrapperWidth: wrapperRect.width,
+      primaryWidth: primaryRect.width,
+      supportWidth: supportRect.width,
+      primaryHeight: primaryRect.height,
+      supportHeight: supportRect.height,
+      rowGap,
+      columnGap,
+      verticalGap: supportRect.top - primaryRect.bottom,
+      horizontalGap: supportRect.left - primaryRect.right,
+      verticallyOrdered: primaryRect.bottom <= supportRect.top + 1,
+      desktopAligned: Math.abs(primaryRect.top - supportRect.top) <= 1,
+      actionsOverlap: intersects(primaryRect, supportRect),
+      primaryInsideWrapper: inside(primaryRect, wrapperRect),
+      supportInsideWrapper: inside(supportRect, wrapperRect),
+      wrapperInsideViewport: inside(wrapperRect, viewport),
+      primaryInsideViewport: inside(primaryRect, viewport),
+      supportInsideViewport: inside(supportRect, viewport),
+      navRendered,
+      wrapperOverlapsNav: Boolean(navRendered && navRect && intersects(wrapperRect, navRect)),
+      primaryOverlapsNav: Boolean(navRendered && navRect && intersects(primaryRect, navRect)),
+      supportOverlapsNav: Boolean(navRendered && navRect && intersects(supportRect, navRect)),
+      noHorizontalOverflow:
+        document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    };
+  });
+
+  if (!geometry) throw new Error("deletion_recovery_layout_missing");
+  const failures = [];
+  const check = (condition, name) => {
+    if (!condition) failures.push(name);
+  };
+  check(geometry.primaryHeight >= 44, "primary_height");
+  check(geometry.supportHeight >= 44, "support_height");
+  check(Math.max(geometry.rowGap, geometry.columnGap) > 0, "gap");
+  check(!geometry.actionsOverlap, "action_overlap");
+  check(geometry.primaryInsideWrapper, "primary_containment");
+  check(geometry.supportInsideWrapper, "support_containment");
+  check(geometry.wrapperInsideViewport, "wrapper_viewport");
+  check(geometry.primaryInsideViewport, "primary_viewport");
+  check(geometry.supportInsideViewport, "support_viewport");
+  check(geometry.noHorizontalOverflow, "horizontal_overflow");
+
+  if (mobile) {
+    check(geometry.verticallyOrdered, "mobile_order");
+    check(geometry.verticalGap >= geometry.rowGap - 1, "mobile_gap");
+    check(Math.abs(geometry.primaryWidth - geometry.wrapperWidth) <= 2, "mobile_primary_width");
+    check(Math.abs(geometry.supportWidth - geometry.wrapperWidth) <= 2, "mobile_support_width");
+    check(geometry.navRendered, "mobile_nav_missing");
+    check(!geometry.wrapperOverlapsNav, "mobile_wrapper_nav_overlap");
+    check(!geometry.primaryOverlapsNav, "mobile_primary_nav_overlap");
+    check(!geometry.supportOverlapsNav, "mobile_support_nav_overlap");
+  } else {
+    check(geometry.desktopAligned, "desktop_alignment");
+    check(geometry.horizontalGap >= geometry.columnGap - 1, "desktop_gap");
+  }
+
+  if (failures.length > 0) {
+    throw new Error(
+      `deletion_recovery_layout_${mobile ? "mobile" : "desktop"}:${failures.join(",")}`,
+    );
+  }
+}
+
 async function main() {
   requireLocalBaseUrl();
   const env = parseEnv(await readFile(ENV_PATH, "utf8"));
@@ -160,10 +279,22 @@ async function main() {
     const confirm = page.getByRole("button", { name: /submit deletion request/i });
     await Promise.all([confirm.click(), confirm.click()]);
     await page.getByRole("alert").waitFor({ state: "visible" });
+    const deletionRequestCountBeforeLayout = deletionRequests;
+    await assertDeletionRecoveryLayout(page, { mobile: true });
+    if (deletionRequests !== deletionRequestCountBeforeLayout) {
+      throw new Error("deletion_recovery_mobile_created_request");
+    }
     await page.screenshot({
       path: resolve(SCREENSHOT_DIR, "account-delete-error-en-390.png"),
       fullPage: true,
     });
+    const deletionRequestCountBeforeDesktopLayout = deletionRequests;
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await assertDeletionRecoveryLayout(page, { mobile: false });
+    if (deletionRequests !== deletionRequestCountBeforeDesktopLayout) {
+      throw new Error("deletion_recovery_desktop_created_request");
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
 
     if (paymentRequests !== 1 || deletionRequests !== 1) {
       throw new Error(
