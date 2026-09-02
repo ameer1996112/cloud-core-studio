@@ -153,11 +153,13 @@ describe("member profile fields", () => {
     const start = accountSource.indexOf('<div className="member-danger-zone">');
     const dangerZone = accountSource.slice(start, accountSource.indexOf("</MemberSection>", start));
     expect(dangerZone.indexOf("member-danger-zone__explanation")).toBeGreaterThan(-1);
-    expect(dangerZone.indexOf('<MemberField id="delete-reason"')).toBeGreaterThan(
+    const deleteReasonStart = dangerZone.indexOf('<MemberField id="delete-reason"');
+    const deleteReasonEnd = dangerZone.indexOf("</MemberField>", deleteReasonStart);
+    expect(deleteReasonStart).toBeGreaterThan(
       dangerZone.indexOf("member-danger-zone__explanation"),
     );
     expect(dangerZone.indexOf("member-danger-zone__action")).toBeGreaterThan(
-      dangerZone.indexOf('<MemberField id="delete-reason"'),
+      deleteReasonEnd,
     );
   });
 });
