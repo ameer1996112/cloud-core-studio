@@ -29,7 +29,7 @@ Delivery states are:
 
 Temporary provider failures become `failed` with `next_attempt_at`; permanent failures become `dead_letter` or a suppressed/cancelled terminal state. The task handler returns 503 for a retryable outcome or an active lease, so a crashed lease holder cannot strand the task. Already-terminal work returns 200 to stop duplicate retries.
 
-Before provider I/O, `claim_message_delivery_by_id` atomically moves one due row to `sending` and gives it a random `lease_token`. Completion/failure writes are constrained by that token. Expired non-WhatsApp leases are recoverable. An `enqueued` row whose task retry window ended is released after 25 hours.
+Before provider I/O, `claim_message_delivery_by_id` atomically moves one due row to `sending` and gives it a random `lease_token`. It increments the attempt number, and the handler immediately opens an append-only attempt record before revalidating business state. Completion/failure writes are constrained by that token. Expired non-WhatsApp leases are recoverable. An `enqueued` row whose task retry window ended is released after 25 hours.
 
 This provides at-least-once execution with duplicate-resistant application effects. It does not claim impossible universal exactly-once delivery: a provider that accepts a request but loses the response can still be ambiguous. WhatsApp explicitly keeps its existing `delivery_unknown` safety treatment.
 
@@ -43,7 +43,7 @@ This provides at-least-once execution with duplicate-resistant application effec
 
 ## Scheduled messages
 
-The existing canonical scheduler creates stable reminder facts and the existing delivery worker revalidates current booking/class/payment state before send. A changed or cancelled booking is cancelled/suppressed instead of delivered. Reminder identity is based on the underlying business entity and reminder stage, so repeated maintenance runs do not duplicate it.
+The existing canonical scheduler creates stable reminder facts containing the booking, class, expected start, and a schedule-version snapshot. Both bounded maintenance and the delivery worker revalidate current booking/class/payment state before send. A changed or cancelled booking is cancelled/suppressed instead of delivered. Reminder identity includes the expected class start, so a changed class can create the correct replacement reminder without reviving the obsolete one.
 
 ## Security and privacy
 
@@ -53,6 +53,7 @@ The existing canonical scheduler creates stable reminder facts and the existing 
 - Browser authentication and a shared static secret are not accepted by these endpoints.
 - Logs use delivery IDs, outcome classes, and safe error codes; they do not log message bodies, email addresses, phone numbers, access tokens, or payment payloads.
 - Database functions are revoked from `PUBLIC`, `anon`, and `authenticated`; only `service_role` can execute them.
+- A service-only health RPC reports queue state, provider-attempt totals, maintenance execution, and the Mac worker heartbeat without exposing destinations or message content.
 
 ## Channel ownership
 

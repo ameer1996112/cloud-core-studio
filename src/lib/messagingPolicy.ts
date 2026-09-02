@@ -74,16 +74,21 @@ export function shouldCancelReminderForDomainState(
   classStatus: string | null | undefined,
   expectedClassStartsAt?: string | null,
   currentClassStartsAt?: string | null,
+  expectedScheduleVersion?: string | null,
+  currentScheduleVersion?: string | null,
 ) {
   if (eventType !== "class_reminder_planning" && eventType !== "class_reminder_final") {
     return false;
   }
   if (bookingStatus !== "booked" || classStatus !== "scheduled") return true;
-  if (!expectedClassStartsAt) return false;
-  if (!currentClassStartsAt) return true;
-  const expected = new Date(expectedClassStartsAt).getTime();
-  const current = new Date(currentClassStartsAt).getTime();
-  return !Number.isFinite(expected) || !Number.isFinite(current) || expected !== current;
+  if (expectedClassStartsAt) {
+    if (!currentClassStartsAt) return true;
+    const expected = new Date(expectedClassStartsAt).getTime();
+    const current = new Date(currentClassStartsAt).getTime();
+    if (!Number.isFinite(expected) || !Number.isFinite(current) || expected !== current)
+      return true;
+  }
+  return Boolean(expectedScheduleVersion && expectedScheduleVersion !== currentScheduleVersion);
 }
 
 export function shouldCancelPaymentReminderForDomainState(

@@ -1,6 +1,7 @@
 import { runConciergeDispatch } from "@/lib/conciergeDispatch.server";
 import { runConciergeOrchestrator } from "@/lib/conciergeOrchestrator.server";
 import { runUnifiedMessagingSweep } from "@/lib/unifiedMessaging.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   createSupabaseNotificationTaskRepository,
   enqueueRecoverableNotificationDeliveries,
@@ -30,27 +31,53 @@ export async function runNotificationTaskOrchestration(input?: {
   const queue =
     taskConfig.enabled && !dryRun ? await createNotificationTaskQueue(environment) : null;
   const repository = createSupabaseNotificationTaskRepository();
-
-  return orchestrateNotificationTasks({
-    enabled: outboxEnabled && taskConfig.enabled,
-    limit: input?.limit,
-    prepare: async () => {
-      const conciergeOrchestration = await runConciergeOrchestrator({ limit: input?.limit });
-      const conciergeDispatch = await runConciergeDispatch({ limit: input?.limit });
-      const unifiedMessaging = await runUnifiedMessagingSweep({
-        limit: input?.limit,
-        deliveryTransport: "cloud_tasks",
+  const startedAt = Date.now();
+  try {
+    const result = await orchestrateNotificationTasks({
+      enabled: outboxEnabled && taskConfig.enabled,
+      limit: input?.limit,
+      prepare: async () => {
+        const conciergeOrchestration = await runConciergeOrchestrator({ limit: input?.limit });
+        const conciergeDispatch = await runConciergeDispatch({ limit: input?.limit });
+        const unifiedMessaging = await runUnifiedMessagingSweep({
+          limit: input?.limit,
+          deliveryTransport: "cloud_tasks",
+        });
+        return { conciergeOrchestration, conciergeDispatch, unifiedMessaging };
+      },
+      dispatch: () =>
+        dryRun
+          ? Promise.resolve({ selected: 0, enqueued: 0, failed: 0 })
+          : enqueueRecoverableNotificationDeliveries({
+              limit: input?.limit,
+              repository,
+              queue: queue!,
+              log: (entry) => console.info(JSON.stringify(entry)),
+            }),
+    });
+    const tasks = "tasks" in result ? result.tasks : null;
+    const heartbeat = await (supabaseAdmin as any).rpc("record_notification_runtime_heartbeat", {
+      p_heartbeat_key: "maintenance",
+      p_outcome: "completed",
+      p_summary: {
+        selected: tasks?.selected ?? 0,
+        enqueued: tasks?.enqueued ?? 0,
+        failed: tasks?.failed ?? 0,
+        duration_ms: Date.now() - startedAt,
+      },
+    });
+    if (heartbeat.error) throw heartbeat.error;
+    return result;
+  } catch (error) {
+    try {
+      await (supabaseAdmin as any).rpc("record_notification_runtime_heartbeat", {
+        p_heartbeat_key: "maintenance",
+        p_outcome: "failed",
+        p_summary: { duration_ms: Date.now() - startedAt },
       });
-      return { conciergeOrchestration, conciergeDispatch, unifiedMessaging };
-    },
-    dispatch: () =>
-      dryRun
-        ? Promise.resolve({ selected: 0, enqueued: 0, failed: 0 })
-        : enqueueRecoverableNotificationDeliveries({
-            limit: input?.limit,
-            repository,
-            queue: queue!,
-            log: (entry) => console.info(JSON.stringify(entry)),
-          }),
-  });
+    } catch {
+      // The scheduler retry remains authoritative if health persistence also fails.
+    }
+    throw error;
+  }
 }

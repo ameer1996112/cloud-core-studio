@@ -9,6 +9,7 @@ import {
   readJsonBody,
   requireOpenwaAutomationAuth,
 } from "@/lib/internalAutomationAuth.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const claimRequestSchema = z.object({
   limit: z.number().finite().optional(),
@@ -50,6 +51,24 @@ export const Route = createFileRoute("/api/internal/notifications/openwa-claim")
           testPhone: parsed.data.testPhone ?? null,
           claimNotBefore: parsed.data.claimNotBefore ? new Date(parsed.data.claimNotBefore) : null,
         });
+        const heartbeat = await (supabaseAdmin as any).rpc(
+          "record_notification_runtime_heartbeat",
+          {
+            p_heartbeat_key: "openwa",
+            p_outcome: "completed",
+            p_summary: {
+              dry_run: result.dryRun,
+              claimed: result.claimed,
+              recovered: result.recovered,
+              invalid: result.invalid,
+            },
+          },
+        );
+        if (heartbeat.error) {
+          console.warn("openwa_heartbeat_persistence_failed", {
+            errorCode: "heartbeat_write_failed",
+          });
+        }
 
         return jsonResponse({
           ok: true,

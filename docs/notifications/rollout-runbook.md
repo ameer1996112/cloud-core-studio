@@ -24,7 +24,10 @@ NOTIFICATIONS_TASKS_SERVICE_ACCOUNT
 NOTIFICATIONS_MAINTENANCE_SERVICE_ACCOUNT
 NOTIFICATIONS_OIDC_AUDIENCE
 NOTIFICATIONS_OIDC_ALLOWED_CALLERS
+NOTIFICATIONS_MAINTENANCE_TIME_BUDGET_MS
 ```
+
+Optional queue tuning variables default to the reviewed values: `NOTIFICATIONS_TASK_MAX_DISPATCHES_PER_SECOND=10`, `NOTIFICATIONS_TASK_MAX_CONCURRENT_DISPATCHES=5`, `NOTIFICATIONS_TASK_MAX_ATTEMPTS=8`, `NOTIFICATIONS_TASK_MIN_BACKOFF=10s`, `NOTIFICATIONS_TASK_MAX_BACKOFF=3600s`, and `NOTIFICATIONS_TASK_MAX_RETRY_DURATION=86400s`.
 
 Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider credentials, preferences, and consent remain authoritative.
 
@@ -60,13 +63,15 @@ Existing `MESSAGING_DELIVERY_MODE`, channel flags, recipient allowlist, provider
 - Confirm requests still wake Cloud Run, maintenance catches missed kicks within 15 minutes, and the service scales to zero when quiet.
 - After the rollback window, remove obsolete revision tags/minimum instances and retire the paused legacy job through a separate reviewed change.
 
-WhatsApp remains on the Mac-local OpenWA worker throughout these phases. Verify its atomic claim/report and health separately; never send it from both Cloud Tasks and the local bridge.
+WhatsApp remains on the Mac-local OpenWA worker throughout these phases. Every authenticated claim records the worker heartbeat; never send WhatsApp from both Cloud Tasks and the local bridge.
 
 ## Health queries
 
 Run these through an authorized database/admin path, not a public client:
 
 ```sql
+select public.notification_delivery_health();
+
 select status, channel, count(*)
 from public.message_deliveries
 group by status, channel
@@ -80,9 +85,15 @@ select task_last_error_code, count(*)
 from public.message_deliveries
 where task_last_error_code is not null
 group by task_last_error_code;
+
+select provider, outcome, count(*)
+from public.message_delivery_attempts
+where started_at >= now() - interval '24 hours'
+group by provider, outcome
+order by provider, outcome;
 ```
 
-Expected steady state for a tiny app: empty/near-empty due backlog, no 25-hour enqueued recovery, no growing dead-letter count, and Cloud Run at zero instances while idle.
+The service-only health RPC includes pending, retry-wait, expired-lease, permanent-failure, sent-in-24-hours, oldest-pending, provider-attempt, last-maintenance, and last-WhatsApp-heartbeat signals. Expected steady state for a tiny app: empty/near-empty due backlog, no 25-hour enqueued recovery, no growing dead-letter count, and Cloud Run at zero instances while idle.
 
 ## Rollback
 
