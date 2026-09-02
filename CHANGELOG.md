@@ -2,6 +2,12 @@
 
 All notable changes to Cloud & Core Studio are documented in this file.
 
+## [0.3.5.2] - 2026-09-02
+
+### Fixed
+
+- Defer saved-language synchronization until the hydrated route has painted, preventing localized text mismatches when a hosting boundary renders the initial document in another locale.
+
 ## [0.3.5.1] - 2026-09-02
 
 ### Fixed

@@ -339,9 +339,9 @@ function RootComponent() {
   useEffect(() => {
     if (isPublicAppMarketingPathname(window.location.pathname)) return;
 
-    if (typeof window !== "undefined") {
-      applyLang(getStoredLang());
-    }
+    let languageSyncFrame = window.requestAnimationFrame(() => {
+      languageSyncFrame = window.requestAnimationFrame(() => applyLang(getStoredLang()));
+    });
     if (typeof window !== "undefined") {
       void import("@capacitor/splash-screen")
         .then(({ SplashScreen }) => SplashScreen.hide())
@@ -370,6 +370,7 @@ function RootComponent() {
       })
       .catch((error) => console.warn("native_auth_lifecycle_setup_failed", error));
     return () => {
+      window.cancelAnimationFrame(languageSyncFrame);
       effectActive = false;
       stop();
     };

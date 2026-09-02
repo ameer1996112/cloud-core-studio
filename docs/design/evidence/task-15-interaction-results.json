@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-02T13:31:14.174Z",
+  "generatedAt": "2026-09-02T14:10:25.013Z",
   "sourceSha256": "68a8ff46413c4cec539f7e59efd613b9a38200fd38f4f210c773cf122d41bde8",
   "errors": [],
   "scenarioLocales": [
@@ -4568,18 +4568,18 @@
   "representativeFlows": {
     "dialog": {
       "status": "pass",
-      "latencyMs": 15.2,
+      "latencyMs": 18.7,
       "notes": [
         "Enter and Space open; Escape closes; Tab/Shift+Tab remain trapped; focus returns."
       ]
     },
     "scheduleFilter": {
       "status": "pass",
-      "latencyMs": 4.4
+      "latencyMs": 2.3
     },
     "tableFilter": {
       "status": "pass",
-      "latencyMs": 15.4
+      "latencyMs": 1.2
     }
   },
   "assistiveTechnologyFixtureSemantics": [

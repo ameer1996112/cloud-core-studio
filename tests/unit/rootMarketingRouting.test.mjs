@@ -70,6 +70,16 @@ describe("root marketing routing", () => {
     expect(authRoute).toContain('import("@/integrations/supabase/auth-session")');
   });
 
+  test("defers stored-language synchronization until descendant hydration has painted", () => {
+    expect(appRoot).toMatch(
+      /requestAnimationFrame\(\(\) => \{\s*languageSyncFrame = window\.requestAnimationFrame\(\(\) => applyLang\(getStoredLang\(\)\)\);/,
+    );
+    expect(appRoot).toContain("window.cancelAnimationFrame(languageSyncFrame)");
+    expect(appRoot).not.toMatch(
+      /if \(typeof window !== "undefined"\) \{\s*applyLang\(getStoredLang\(\)\);/,
+    );
+  });
+
   test("recognizes only the explicit native platform marker", () => {
     expect(isExplicitNativePlatformRequest("?platform=native")).toBe(true);
     expect(isExplicitNativePlatformRequest("?platform=web")).toBe(false);
