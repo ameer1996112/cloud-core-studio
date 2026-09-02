@@ -7,6 +7,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium } from "playwright";
+import sharp from "sharp";
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:4176";
 const FIXTURE_EMAIL = "qa-member-ui@cloudcore.test";
@@ -102,6 +103,85 @@ async function authenticate(page, baseUrl, password) {
     new URL(page.url()).pathname === "/member",
     "member_account_login_redirect_failed",
   );
+}
+
+async function captureCompleteMemberPage(page, screenshotPath, viewportHeight) {
+  const markerAttribute = "data-qa-account-screenshot-flow";
+  const styleId = "qa-account-screenshot-flow-style";
+  try {
+    const expandedHeight = await page.evaluate(
+      async ({ attribute, id }) => {
+        const main = document.querySelector(".member-shell-main");
+        const shell = main?.parentElement;
+        if (!(main instanceof HTMLElement) || !(shell instanceof HTMLElement)) return 0;
+
+        main.scrollTop = 0;
+        shell.setAttribute(attribute, "");
+        const style = document.createElement("style");
+        style.id = id;
+        style.textContent = `
+        html,
+        body,
+        #root {
+          height: auto !important;
+          min-height: 100vh !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        [${attribute}] {
+          position: static !important;
+          inset: auto !important;
+          width: 100% !important;
+          height: auto !important;
+          min-height: 100vh !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        [${attribute}] > .member-shell-main {
+          flex: none !important;
+          width: 100% !important;
+          height: auto !important;
+          min-height: 100vh !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        [${attribute}] > .member-shell-main > nav {
+          position: static !important;
+          inset: auto !important;
+          width: 100% !important;
+        }
+      `;
+        document.head.append(style);
+        window.scrollTo(0, 0);
+        await new Promise((resolveFrame) => requestAnimationFrame(() => resolveFrame()));
+        return document.documentElement.scrollHeight;
+      },
+      { attribute: markerAttribute, id: styleId },
+    );
+
+    requireCondition(
+      expandedHeight > viewportHeight,
+      "member_account_capture_not_taller_than_viewport",
+    );
+    const screenshot = await page.screenshot({ path: screenshotPath, fullPage: true });
+    const metadata = await sharp(screenshot).metadata();
+    requireCondition(
+      Boolean(metadata.height && metadata.height > viewportHeight),
+      "member_account_png_not_taller_than_viewport",
+    );
+    return { width: metadata.width ?? 0, height: metadata.height ?? 0 };
+  } finally {
+    await page.evaluate(
+      ({ attribute, id }) => {
+        document.getElementById(id)?.remove();
+        document.querySelector(`[${attribute}]`)?.removeAttribute(attribute);
+      },
+      { attribute: markerAttribute, id: styleId },
+    );
+  }
 }
 
 async function inspectAccountLayout(page, baseUrl, testCase) {
@@ -217,16 +297,18 @@ async function inspectAccountLayout(page, baseUrl, testCase) {
   }
   requireCondition(deletionRequests === 0, `deletion_request_count_${lang}_${width}`);
 
-  await page.screenshot({
-    path: resolve(SCREENSHOT_DIR, `account-premium-${lang}-${width}.png`),
-    fullPage: true,
-  });
+  const capture = await captureCompleteMemberPage(
+    page,
+    resolve(SCREENSHOT_DIR, `account-premium-${lang}-${width}.png`),
+    height,
+  );
 
   return {
     case: `${lang}-${width}x${height}`,
     contentWidth: Math.round(baseGeometry.contentWidth),
     legalGap: Math.round(Math.min(baseGeometry.legalRowGap, baseGeometry.legalColumnGap)),
     panel: `${Math.round(dangerGeometry.panelWidth)}x${Math.round(dangerGeometry.panelHeight)}`,
+    capture: `${capture.width}x${capture.height}`,
     deletionRequests,
   };
 }
