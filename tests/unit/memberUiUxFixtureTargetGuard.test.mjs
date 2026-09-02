@@ -25,6 +25,37 @@ afterEach(() => {
   }
 });
 
+function expectSeedRejectedBeforeState(dbUrl, expectedError, valuesThatMustStayPrivate = []) {
+  const directory = mkdtempSync(join(tmpdir(), "member-ui-ux-target-guard-"));
+  temporaryDirectories.push(directory);
+  const envPath = join(directory, ".env.qa.local");
+  const contents = [
+    `API_URL=${LOCAL_ENV.API_URL}`,
+    `SERVICE_ROLE_KEY=${LOCAL_ENV.SERVICE_ROLE_KEY}`,
+    `DB_URL=${dbUrl}`,
+    "",
+  ].join("\n");
+  writeFileSync(envPath, contents, "utf8");
+
+  const result = spawnSync(process.execPath, ["scripts/qa/seed-member-ui-ux-fixture.mjs"], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      APP_ENV: "test",
+      ALLOW_MEMBER_UI_UX_FIXTURE: "true",
+      ENV_PATH: envPath,
+    },
+    encoding: "utf8",
+  });
+  const output = `${result.stdout || ""}${result.stderr || ""}`;
+
+  expect(result.status).toBe(1);
+  expect(output).toContain(expectedError);
+  for (const value of valuesThatMustStayPrivate) expect(output).not.toContain(value);
+  expect(readFileSync(envPath, "utf8")).toBe(contents);
+  expect(existsSync(snapshotPathForEnvPath(envPath))).toBe(false);
+}
+
 describe("member UI/UX fixture local target guard", () => {
   test.each([
     ["IPv4", "http://127.0.0.1:54321", "postgresql://postgres:test@127.0.0.1:54322/postgres"],
@@ -58,36 +89,58 @@ describe("member UI/UX fixture local target guard", () => {
   });
 
   test("the seed rejects a remote database before writing any local fixture state", () => {
-    const directory = mkdtempSync(join(tmpdir(), "member-ui-ux-target-guard-"));
-    temporaryDirectories.push(directory);
-    const envPath = join(directory, ".env.qa.local");
     const secret = "do-not-print-database-password";
-    const contents = [
-      `API_URL=${LOCAL_ENV.API_URL}`,
-      `SERVICE_ROLE_KEY=${LOCAL_ENV.SERVICE_ROLE_KEY}`,
-      `DB_URL=postgresql://fixture:${secret}@example.supabase.co:5432/postgres`,
-      "",
-    ].join("\n");
-    writeFileSync(envPath, contents, "utf8");
+    expectSeedRejectedBeforeState(
+      `postgresql://fixture:${secret}@example.supabase.co:5432/postgres`,
+      "fixture_refuses_non_local_database_target",
+      [secret, "example.supabase.co"],
+    );
+  });
 
-    const result = spawnSync(process.execPath, ["scripts/qa/seed-member-ui-ux-fixture.mjs"], {
-      cwd: process.cwd(),
-      env: {
-        ...process.env,
-        APP_ENV: "test",
-        ALLOW_MEMBER_UI_UX_FIXTURE: "true",
-        ENV_PATH: envPath,
-      },
-      encoding: "utf8",
-    });
-    const output = `${result.stdout || ""}${result.stderr || ""}`;
+  test.each([
+    ["hostaddr", "hostaddr=203.0.113.10", "203.0.113.10"],
+    ["mixed-case host", "HoSt=remote.example.test", "remote.example.test"],
+    ["service", "service=do-not-print-service", "do-not-print-service"],
+    ["percent-encoded hostaddr", "%68ostaddr=198.51.100.9", "198.51.100.9"],
+  ])("rejects the libpq %s authority override", (_label, query, privateValue) => {
+    const dbUrl = `${LOCAL_ENV.DB_URL}?${query}`;
+    let message = "";
+    try {
+      requireLocalFixtureTarget({ ...LOCAL_ENV, DB_URL: dbUrl }, RUNTIME_ENV, {
+        requireDatabase: true,
+      });
+    } catch (error) {
+      message = error.message;
+    }
 
-    expect(result.status).toBe(1);
-    expect(output).toContain("fixture_refuses_non_local_database_target");
-    expect(output).not.toContain(secret);
-    expect(output).not.toContain("example.supabase.co");
-    expect(readFileSync(envPath, "utf8")).toBe(contents);
-    expect(existsSync(snapshotPathForEnvPath(envPath))).toBe(false);
+    expect(message).toBe("fixture_database_url_options_not_allowed");
+    expect(message).not.toContain(privateValue);
+  });
+
+  test.each([
+    ["hostaddr", "hostaddr=203.0.113.11", "203.0.113.11"],
+    ["host", "host=remote.example.test", "remote.example.test"],
+    ["service", "service=do-not-print-service", "do-not-print-service"],
+    ["percent-encoded hostaddr", "%68ostaddr=198.51.100.10", "198.51.100.10"],
+  ])(
+    "the seed rejects local authority with libpq %s before writing state",
+    (_label, query, privateValue) => {
+      expectSeedRejectedBeforeState(
+        `${LOCAL_ENV.DB_URL}?${query}`,
+        "fixture_database_url_options_not_allowed",
+        [privateValue],
+      );
+    },
+  );
+
+  test("rejects even otherwise benign database options to keep the allowlist explicit", () => {
+    expect(() =>
+      requireLocalFixtureTarget(
+        { ...LOCAL_ENV, DB_URL: `${LOCAL_ENV.DB_URL}?sslmode=disable` },
+        RUNTIME_ENV,
+        { requireDatabase: true },
+      ),
+    ).toThrow("fixture_database_url_options_not_allowed");
   });
 
   test("rejects missing and malformed database targets without leaking their values", () => {

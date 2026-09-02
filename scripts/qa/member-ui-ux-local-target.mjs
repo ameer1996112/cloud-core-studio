@@ -37,12 +37,15 @@ export function requireLocalFixtureTarget(
   );
 
   if (requireDatabase) {
-    parsedLoopbackUrl(
+    const databaseUrl = parsedLoopbackUrl(
       env.DB_URL,
       "fixture_local_database_url_missing",
       "fixture_local_database_url_invalid",
       "fixture_refuses_non_local_database_target",
       new Set(["postgres:", "postgresql:"]),
     );
+    if ([...databaseUrl.searchParams].length > 0) {
+      throw new Error("fixture_database_url_options_not_allowed");
+    }
   }
 }
