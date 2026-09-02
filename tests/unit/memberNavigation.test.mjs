@@ -28,8 +28,11 @@ mock.module("@tanstack/react-router", () => ({
 
 const { MemberDesktopHeader, MemberMobileBottomNavigation, MemberRouteContent } =
   await import("../../src/components/app-shell/AppShell.tsx");
-const { isPlainPrimaryNavigationClick, shouldClearPendingMobileNavigation } =
-  await import("../../src/components/app-shell/memberNavigation.ts");
+const {
+  isPendingMemberPathChange,
+  isPlainPrimaryNavigationClick,
+  shouldClearPendingMobileNavigation,
+} = await import("../../src/components/app-shell/memberNavigation.ts");
 
 afterEach(() => applyLang("he"));
 
@@ -166,6 +169,30 @@ describe("member navigation", () => {
     expect(markup).toContain('aria-busy="true"');
     expect(markup).toContain("member-route-skeleton--packages");
     expect(markup).not.toContain("Old bookings content");
+  });
+
+  test("recognizes a router-level pending path change for desktop member navigation", () => {
+    expect(
+      isPendingMemberPathChange({
+        isLoading: true,
+        pathname: "/member/account",
+        resolvedPathname: "/member/schedule",
+      }),
+    ).toBe(true);
+    expect(
+      isPendingMemberPathChange({
+        isLoading: false,
+        pathname: "/member/account",
+        resolvedPathname: "/member/account",
+      }),
+    ).toBe(false);
+    expect(
+      isPendingMemberPathChange({
+        isLoading: true,
+        pathname: "/member/account",
+        resolvedPathname: "/member/account",
+      }),
+    ).toBe(false);
   });
 
   test("does not add mobile transition handlers to desktop member navigation", () => {

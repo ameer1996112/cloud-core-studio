@@ -118,4 +118,19 @@ describe("member profile fields", () => {
     );
     expect(stylesSource).toMatch(/\.member-account-action\s*\{[^}]*min-height:\s*44px/s);
   });
+
+  test("profile save actions keep intentional spacing and disabled hierarchy", () => {
+    expect(accountSource.match(/member-account-save-action/g)).toHaveLength(2);
+    expect(stylesSource).toMatch(
+      /\.member-account-save-row\s*\{[^}]*display:\s*flex[^}]*gap:\s*[^;]+;[^}]*margin-block-start:/s,
+    );
+    expect(stylesSource).toMatch(/\.member-account-save-action\s*\{[^}]*min-inline-size:\s*11rem/s);
+    expect(stylesSource).toMatch(
+      /\.member-account-save-action:disabled\s*\{[^}]*background-color:/s,
+    );
+    expect(stylesSource).toMatch(/\.member-account-save-action:disabled\s*\{[^}]*opacity:\s*1/s);
+    expect(stylesSource).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.member-account-save-action\s*\{[^}]*inline-size:\s*100%[^}]*min-inline-size:\s*0/s,
+    );
+  });
 });
