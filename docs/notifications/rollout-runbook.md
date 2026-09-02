@@ -93,7 +93,9 @@ group by provider, outcome
 order by provider, outcome;
 ```
 
-The service-only health RPC includes pending, retry-wait, expired-lease, permanent-failure, sent-in-24-hours, oldest-pending, provider-attempt, last-maintenance, and last-WhatsApp-heartbeat signals. Expected steady state for a tiny app: empty/near-empty due backlog, no 25-hour enqueued recovery, no growing dead-letter count, and Cloud Run at zero instances while idle.
+The service-only health RPC includes pending, retry-wait, expired-lease, permanent-failure, sent-in-24-hours, oldest-pending, provider-attempt, last-maintenance, and last-WhatsApp-heartbeat signals. Only the OIDC Scheduler endpoint records the maintenance heartbeat; post-commit kicks cannot hide a broken schedule. The maintenance request uses a cooperative abort budget below the Scheduler deadline, and every database scan/update remains bounded. Expected steady state for a tiny app: empty/near-empty due backlog, no 25-hour enqueued recovery, no growing dead-letter count, and Cloud Run at zero instances while idle.
+
+The existing admin retry action now uses `admin_retry_notification_delivery`, which locks and revalidates the delivery, queues only safe transient failures, and appends `notification.delivery_retried` to the admin activity log in the same transaction.
 
 ## Rollback
 

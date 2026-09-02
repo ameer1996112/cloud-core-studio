@@ -833,7 +833,7 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
   }
   const booking = await db
     .from("bookings")
-    .select("status,class:classes(status,starts_at)")
+    .select("status,class:classes(status,starts_at,notification_schedule_version)")
     .eq("id", message.related_booking_id)
     .maybeSingle();
   if (booking.error) throw booking.error;
@@ -850,7 +850,9 @@ async function cancelInvalidReminderDelivery(delivery: DeliveryRow, message: any
       typeof message.content?.class_schedule_version === "string"
         ? message.content.class_schedule_version
         : null,
-      studioClass?.starts_at ? String(new Date(studioClass.starts_at).getTime()) : null,
+      studioClass?.notification_schedule_version == null
+        ? null
+        : String(studioClass.notification_schedule_version),
     )
   ) {
     return false;
@@ -1846,7 +1848,7 @@ export async function processUnifiedMessagingDeliveryById(
   }
 }
 
-function finalReminderAt(startsAt: Date) {
+export function finalReminderAt(startsAt: Date) {
   const { hour, minute } = getIsraelNowParts(startsAt);
   return hour * 60 + minute < 10 * 60 + 30
     ? getPreviousIsraelEvening(startsAt)
@@ -2514,7 +2516,7 @@ async function enqueueDueCanonicalEvents(
   const bookings = await db
     .from("bookings")
     .select(
-      "id,member_id,class_id,class:classes!inner(id,starts_at,cancellation_window_hours,status)",
+      "id,member_id,class_id,class:classes!inner(id,starts_at,cancellation_window_hours,status,notification_schedule_version)",
     )
     .eq("status", "booked")
     .gte("class.starts_at", now.toISOString())
@@ -2551,7 +2553,8 @@ async function enqueueDueCanonicalEvents(
             booking_id: booking.id,
             class_id: booking.class_id,
             class_starts_at: startsAt.toISOString(),
-            class_schedule_version: String(startsAt.getTime()),
+            expected_start_at: startsAt.toISOString(),
+            class_schedule_version: String(studioClass.notification_schedule_version ?? 0),
           },
           deduplication_key: `booking:${booking.id}:${eventType}:${startsAt.toISOString()}`,
           available_at: now.toISOString(),
@@ -2977,6 +2980,7 @@ export async function runUnifiedMessagingSweep(input?: {
   now?: Date;
   workerId?: string;
   deliveryTransport?: "inline" | "cloud_tasks";
+  signal?: AbortSignal;
 }) {
   const db = supabaseAdmin as any;
   const now = input?.now ?? new Date();
@@ -2985,7 +2989,9 @@ export async function runUnifiedMessagingSweep(input?: {
   const runtime = resolveMessagingRuntime(process.env);
   const externalChannels =
     runtime.mode === "disabled" ? { whatsapp: false, email: false, push: false } : runtime.channels;
+  input?.signal?.throwIfAborted();
   const disabledBacklogSuppressed = await suppressDisabledExternalDeliveryBacklog(externalChannels);
+  input?.signal?.throwIfAborted();
   const expiredOutbox = await closeExpiredOutboxRows(
     {
       async listExpired(nowIso, batchSize) {
@@ -3019,6 +3025,7 @@ export async function runUnifiedMessagingSweep(input?: {
     },
     now,
   );
+  input?.signal?.throwIfAborted();
   const staleOutbox = await closeStaleOutboxRows(
     {
       async listStale(cutoffIso, nowIso, batchSize) {
@@ -3061,6 +3068,7 @@ export async function runUnifiedMessagingSweep(input?: {
     now,
     (eventType) => requiresPromotionalFrequencyReservation(eventType as MessageEventType, false),
   );
+  input?.signal?.throwIfAborted();
   const staleDeliveries = await closeStaleDeliveryRows(
     {
       async listStale(cutoffIso, nowIso, batchSize) {
@@ -3119,12 +3127,15 @@ export async function runUnifiedMessagingSweep(input?: {
     },
     now,
   );
+  input?.signal?.throwIfAborted();
   const obsoleteReminders = await db.rpc("cancel_obsolete_notification_reminders", {
     p_limit: limit,
   });
   if (obsoleteReminders.error) throw obsoleteReminders.error;
   const obsoleteRemindersCancelled = Number(obsoleteReminders.data ?? 0);
+  input?.signal?.throwIfAborted();
   const scheduled = await enqueueDueCanonicalEvents(now, limit, runtime);
+  input?.signal?.throwIfAborted();
   const outboxClaim = await db.rpc("claim_message_outbox", {
     p_worker: workerId,
     p_limit: limit,
@@ -3133,12 +3144,15 @@ export async function runUnifiedMessagingSweep(input?: {
   if (outboxClaim.error) throw outboxClaim.error;
   const materialized = { succeeded: 0, failed: 0 };
   for (const outbox of (outboxClaim.data ?? []) as OutboxRow[]) {
+    input?.signal?.throwIfAborted();
     const result = await materializeOutbox(outbox, now, externalChannels, runtime);
     if (result.ok) materialized.succeeded += 1;
     else materialized.failed += 1;
   }
   const { reconcilePendingProviderWebhookLedger } = await import("@/lib/messageStatus.server");
+  input?.signal?.throwIfAborted();
   const webhookReconciliation = await reconcilePendingProviderWebhookLedger(limit);
+  input?.signal?.throwIfAborted();
 
   if (input?.deliveryTransport === "cloud_tasks") {
     return {
@@ -3169,9 +3183,11 @@ export async function runUnifiedMessagingSweep(input?: {
     p_channels: channels,
   });
   if (deliveryClaim.error) throw deliveryClaim.error;
+  input?.signal?.throwIfAborted();
   await alertRecoveredStaleWhatsappDeliveries();
   const delivered: Record<string, number> = {};
   for (const delivery of (deliveryClaim.data ?? []) as DeliveryRow[]) {
+    input?.signal?.throwIfAborted();
     try {
       const status = await processDelivery(delivery, runtime);
       delivered[status] = (delivered[status] ?? 0) + 1;
@@ -3212,44 +3228,17 @@ export async function runUnifiedMessagingSweep(input?: {
   };
 }
 
-export async function retryCanonicalDelivery(deliveryId: string, now = new Date()) {
-  const db = supabaseAdmin as any;
-  const delivery = await db
-    .from("message_deliveries")
-    .select("id,status,failure_class,expires_at")
-    .eq("id", deliveryId)
-    .single();
-  if (delivery.error) throw delivery.error;
-  if (delivery.data.status === "delivery_unknown")
-    throw new Error("ambiguous_delivery_requires_reconciliation");
-  if (delivery.data.expires_at && new Date(delivery.data.expires_at) <= now) {
-    throw new Error("delivery_expired");
-  }
-  if (!["failed", "dead_letter"].includes(delivery.data.status)) {
-    throw new Error("delivery_not_retryable");
-  }
-  if (delivery.data.failure_class && delivery.data.failure_class !== "transient") {
-    throw new Error("delivery_not_retryable");
-  }
-  const result = await db
-    .from("message_deliveries")
-    .update({
-      status: "queued",
-      failure_class: null,
-      error_code: null,
-      error_message: null,
-      next_attempt_at: now.toISOString(),
-      lease_owner: null,
-      lease_expires_at: null,
-      updated_at: now.toISOString(),
-    })
-    .eq("id", deliveryId)
-    .in("status", ["failed", "dead_letter"])
-    .or("failure_class.is.null,failure_class.eq.transient")
-    .or(`expires_at.is.null,expires_at.gt.${now.toISOString()}`)
-    .select("id")
-    .maybeSingle();
+export async function retryCanonicalDelivery(
+  deliveryId: string,
+  actorId: string,
+  now = new Date(),
+) {
+  const result = await (supabaseAdmin as any).rpc("admin_retry_notification_delivery", {
+    p_actor_id: actorId,
+    p_delivery_id: deliveryId,
+    p_now: now.toISOString(),
+  });
   if (result.error) throw result.error;
-  if (!result.data) throw new Error("delivery_not_retryable");
+  if (result.data !== true) throw new Error("delivery_not_retryable");
   return { ok: true };
 }

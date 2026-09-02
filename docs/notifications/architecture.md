@@ -43,7 +43,7 @@ This provides at-least-once execution with duplicate-resistant application effec
 
 ## Scheduled messages
 
-The existing canonical scheduler creates stable reminder facts containing the booking, class, expected start, and a schedule-version snapshot. Both bounded maintenance and the delivery worker revalidate current booking/class/payment state before send. A changed or cancelled booking is cancelled/suppressed instead of delivered. Reminder identity includes the expected class start, so a changed class can create the correct replacement reminder without reviving the obsolete one.
+The existing canonical scheduler creates stable reminder facts containing the booking, class, expected start, and an independent monotonic class schedule version. The version increments whenever class time or status changes, so moving a class away and later back to the same time still invalidates the old reminder. Both bounded maintenance and the delivery worker revalidate current booking/class/payment state before send. A changed or cancelled booking is cancelled/suppressed instead of delivered. Reminder identity includes the expected class start, so a changed class can create the correct replacement reminder without reviving the obsolete one.
 
 ## Security and privacy
 

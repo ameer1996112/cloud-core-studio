@@ -46,7 +46,12 @@ async function handleMaintenance(request: Request) {
       );
       return result.ok;
     },
-    run: (limit) => runNotificationTaskOrchestration({ limit }),
+    run: (limit, signal) =>
+      runNotificationTaskOrchestration({
+        limit,
+        signal,
+        recordMaintenanceHeartbeat: true,
+      }),
     timeBudgetMs,
     log: (entry) => console.info(JSON.stringify(entry)),
   })(request);

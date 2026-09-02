@@ -44,15 +44,19 @@ describe("notification maintenance endpoint", () => {
 
   test("runs one bounded batch and returns a safe summary", async () => {
     let limit = 0;
+    let receivedSignal: AbortSignal | null = null;
     const response = await createNotificationMaintenanceHandler({
       enabled: true,
       authorize: async () => true,
-      run: async (requestedLimit) => {
+      run: async (requestedLimit, signal) => {
         limit = requestedLimit;
+        receivedSignal = signal;
         return { tasks: { selected: 4, enqueued: 3, failed: 1 } };
       },
     })(request({ limit: 10_000 }));
     expect(limit).toBe(100);
+    expect(receivedSignal).toBeInstanceOf(AbortSignal);
+    expect(receivedSignal?.aborted).toBe(false);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       ok: true,
