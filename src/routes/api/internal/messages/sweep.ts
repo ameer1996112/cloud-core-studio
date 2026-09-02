@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import {
-  jsonResponse,
-  readJsonBody,
-  requireNotificationAutomationAuth,
-} from "@/lib/internalAutomationAuth.server";
+import { jsonResponse, readJsonBody } from "@/lib/internalAutomationAuth.server";
+import { requireMessagingSweepAuth } from "@/server/notifications/scheduler-auth.server";
 import {
   normalizeUnifiedMessagingSweepLimit,
   runUnifiedMessagingCanary,
@@ -20,7 +17,7 @@ export const Route = createFileRoute("/api/internal/messages/sweep")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const unauthorized = requireNotificationAutomationAuth(request);
+        const unauthorized = await requireMessagingSweepAuth(request);
         if (unauthorized) return unauthorized;
         if (process.env.MESSAGING_SCHEDULER_ENABLED?.trim().toLowerCase() !== "true") {
           return jsonResponse({ ok: false, reason: "messaging_scheduler_disabled" }, 409);
