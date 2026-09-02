@@ -142,4 +142,22 @@ describe("member profile fields", () => {
       /@media \(max-width:\s*640px\)[\s\S]*\.member-account-legal-links\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
     );
   });
+
+  test("the account route exposes a calm editorial hierarchy for session and deletion content", () => {
+    expect(accountSource).toContain('className="member-account-section-copy"');
+    expect(accountSource).toContain('className="member-danger-zone__explanation"');
+    expect(accountSource).toContain(
+      'className="btn-ghost member-account-action member-danger-zone__action',
+    );
+
+    const start = accountSource.indexOf('<div className="member-danger-zone">');
+    const dangerZone = accountSource.slice(start, accountSource.indexOf("</MemberSection>", start));
+    expect(dangerZone.indexOf("member-danger-zone__explanation")).toBeGreaterThan(-1);
+    expect(dangerZone.indexOf('<MemberField id="delete-reason"')).toBeGreaterThan(
+      dangerZone.indexOf("member-danger-zone__explanation"),
+    );
+    expect(dangerZone.indexOf("member-danger-zone__action")).toBeGreaterThan(
+      dangerZone.indexOf('<MemberField id="delete-reason"'),
+    );
+  });
 });
