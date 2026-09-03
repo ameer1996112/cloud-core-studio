@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import { processHypPaymentNotification } from "@/lib/subscriptions.server";
+import { authorizeLegacyHypNotification } from "@/lib/adultHypNotificationBoundary.server";
 
 type HypSnsEnvelope = {
   Type?: string;
@@ -112,29 +113,21 @@ function paramsFromHypSnsEnvelope(envelope: HypSnsEnvelope) {
 }
 
 function hasConfiguredHypWebhookToken(request: Request, url: URL) {
-  const configuredToken = process.env.SUBSCRIPTION_AUTOMATION_TOKEN?.trim();
-  if (!configuredToken) return true;
-  const suppliedToken =
-    url.searchParams.get("token")?.trim() ||
-    url.searchParams.get("automation_token")?.trim() ||
-    request.headers.get("x-cloud-core-token")?.trim();
-  return suppliedToken === configuredToken;
+  return authorizeLegacyHypNotification({
+    configuredToken: process.env.SUBSCRIPTION_AUTOMATION_TOKEN,
+    suppliedToken:
+      url.searchParams.get("token")?.trim() ||
+      url.searchParams.get("automation_token")?.trim() ||
+      request.headers.get("x-cloud-core-token")?.trim(),
+  });
 }
 
 /**
  * Generic payments webhook endpoint.
  *
- * URL: /api/public/webhooks/payments/:provider  (e.g. hyp, stripe, paddle)
- *
- * HYP is wired for managed recurring payment notifications. When Stripe or
- * Paddle is enabled in a later pass, the matching branch will:
- *   1. Verify the provider's signature against the raw body
- *   2. Look up payment by provider_session_id / provider_payment_id
- *   3. Insert into public.provider_events (unique on provider+event_id) for idempotency
- *   4. Call confirm_payment_and_issue_receipt RPC on success
- *
- * Returning 503 today is intentional: no provider should think this endpoint
- * is alive and accepting events until we explicitly turn it on.
+ * Legacy JSON/SNS traffic remains available for existing member payments under
+ * its configured token boundary. Adult trials always require a signed HYP form
+ * callback independently verified against HYP.
  */
 export const Route = createFileRoute("/api/public/webhooks/payments/$provider")({
   server: {
@@ -147,20 +140,16 @@ export const Route = createFileRoute("/api/public/webhooks/payments/$provider")(
         if (provider === "hyp") {
           const rawBody = await request.text();
           const url = new URL(request.url);
-          if (!hasConfiguredHypWebhookToken(request, url)) {
-            return new Response(JSON.stringify({ ok: false, reason: "unauthorized" }), {
-              status: 401,
-              headers: { "content-type": "application/json" },
-            });
-          }
-
+          const contentType = request.headers.get("content-type") ?? "";
+          const snsType = request.headers.get("x-amz-sns-message-type") ?? "";
           try {
-            const contentType = request.headers.get("content-type") ?? "";
-            const snsType = request.headers.get("x-amz-sns-message-type") ?? "";
-            let notificationParams = new URLSearchParams(url.searchParams);
-            let source = "webhook";
-
             if (contentType.includes("application/json") || snsType) {
+              if (!hasConfiguredHypWebhookToken(request, url)) {
+                return new Response(JSON.stringify({ ok: false, reason: "unauthorized" }), {
+                  status: 401,
+                  headers: { "content-type": "application/json" },
+                });
+              }
               const envelope = JSON.parse(rawBody || "{}") as HypSnsEnvelope;
               const type = envelope.Type || snsType;
               if (type === "SubscriptionConfirmation") {
@@ -175,23 +164,32 @@ export const Route = createFileRoute("/api/public/webhooks/payments/$provider")(
                   },
                 );
               }
-              if (type === "Notification") {
-                notificationParams = paramsFromHypSnsEnvelope(envelope);
-                source = "hyp_sns_webhook";
-              } else {
+              if (type !== "Notification") {
                 return new Response(JSON.stringify({ ok: true, status: "ignored", type }), {
                   status: 200,
                   headers: { "content-type": "application/json" },
                 });
               }
-            } else {
-              const paramsFromBody = new URLSearchParams(rawBody);
-              for (const [key, value] of paramsFromBody.entries()) {
-                notificationParams.set(key, value);
-              }
+              const result = await processHypPaymentNotification(
+                paramsFromHypSnsEnvelope(envelope),
+                "legacy_sns_webhook",
+              );
+              await kickUnifiedMessagingAfterCommit();
+              return new Response(JSON.stringify({ ok: true, ...result }), {
+                status: 200,
+                headers: { "content-type": "application/json" },
+              });
             }
 
-            const result = await processHypPaymentNotification(notificationParams, source);
+            const notificationParams = new URLSearchParams(url.searchParams);
+            const paramsFromBody = new URLSearchParams(rawBody);
+            for (const [key, value] of paramsFromBody.entries()) {
+              notificationParams.set(key, value);
+            }
+            const result = await processHypPaymentNotification(
+              notificationParams,
+              "signed_callback",
+            );
             await kickUnifiedMessagingAfterCommit();
             return new Response(JSON.stringify({ ok: true, ...result }), {
               status: 200,
@@ -207,19 +205,18 @@ export const Route = createFileRoute("/api/public/webhooks/payments/$provider")(
             );
           }
         }
-        // Drain body so the provider doesn't see a connection-reset
+        // Drain body so the provider doesn't see a connection-reset.
         try {
           await request.text();
         } catch {
-          /* ignore */
+          // Ignore a disconnected peer.
         }
         return new Response(
           JSON.stringify({
             ok: false,
             reason: "webhook_endpoint_not_configured",
             provider,
-            message:
-              "This studio has not enabled online payments yet. Webhook deliveries are being acknowledged but not processed.",
+            message: "This studio has not enabled online payments yet.",
           }),
           { status: 503, headers: { "content-type": "application/json" } },
         );

@@ -7,6 +7,15 @@ import {
   validateHypRedirect,
   type HypInquiryTransaction,
 } from "@/lib/hyp.server";
+import {
+  confirmVerifiedAdultTrialHypPayment,
+  findAdultTrialPayment,
+} from "@/lib/adultTrialPayments.server";
+import {
+  adultHypProviderEventPayload,
+  adultTrialNotificationDisposition,
+  type HypNotificationEvidence,
+} from "@/lib/adultHypNotificationBoundary.server";
 
 type InitialSubscriptionInput = {
   paymentId: string;
@@ -100,6 +109,20 @@ function paramsFromHypTokenChargeResult(input: {
     _hyp_sync_source: "softToken",
   });
   return params;
+}
+
+function verifiedHypCurrency(params: URLSearchParams) {
+  const coin = pickSearchParam(params, "Coin", "coin");
+  const currency = pickSearchParam(params, "Currency", "currency");
+  if (currency) return currency.toUpperCase();
+  // Adult HYP pages are created with Coin=1 (ILS). Some HYP callbacks omit
+  // Coin, so this is the only configured currency accepted by this integration.
+  return !coin || coin === "1" ? "ILS" : "";
+}
+
+function verifiedHypAmount(params: URLSearchParams) {
+  const amount = Number(pickSearchParam(params, "Amount", "amount"));
+  return Number.isFinite(amount) ? amount : Number.NaN;
 }
 
 async function firstAdminUserId() {
@@ -415,11 +438,43 @@ async function createAndConfirmSubscriptionRenewal(params: URLSearchParams) {
   return { status: "confirmed" as const, paymentId: payment.id, result };
 }
 
-export async function processHypPaymentNotification(params: URLSearchParams, source: string) {
+export async function processHypPaymentNotification(
+  params: URLSearchParams,
+  evidence: HypNotificationEvidence,
+  options: {
+    confirmExistingMemberPayment?: (
+      paymentId: string,
+      notificationParams: URLSearchParams,
+    ) => Promise<{ status: "confirmed_existing_payment"; confirmResult: any }>;
+  } = {},
+) {
+  const source =
+    evidence === "signed_callback"
+      ? "hyp_signed_callback"
+      : evidence === "legacy_sns_webhook"
+        ? "hyp_sns_webhook"
+        : evidence;
   const eventId =
     pickSearchParam(params, "Id", "txId", "uniqueID", "uniqueId", "Order") ||
     `${source}:${Date.now()}`;
-  const payload = Object.fromEntries(params.entries());
+  const paymentId = pickSearchParam(params, "Order", "uniqueID", "uniqueId", "uniqueid");
+  const adultTrialPayment = paymentId ? await findAdultTrialPayment(paymentId) : null;
+  if (
+    adultTrialPayment &&
+    adultTrialNotificationDisposition(evidence) === "adult_trial_legacy_notification_rejected"
+  ) {
+    return { status: "adult_trial_legacy_notification_rejected" as const, eventId };
+  }
+  const isValid = evidence !== "signed_callback" || (await validateHypRedirect(params));
+  if (!isValid) {
+    return { status: "invalid_signature" as const, eventId };
+  }
+
+  // Do not create an idempotency record until HYP has authenticated the
+  // callback; otherwise arbitrary payloads could poison a later real event.
+  const payload = adultTrialPayment
+    ? adultHypProviderEventPayload(params)
+    : Object.fromEntries(params.entries());
   const { error: eventError } = await (supabaseAdmin as any).from("provider_events").insert({
     provider: "hyp",
     event_id: eventId,
@@ -444,33 +499,37 @@ export async function processHypPaymentNotification(params: URLSearchParams, sou
     return { status: "ignored_non_success" as const, eventId, ccode };
   }
 
-  const isTrustedServerSource =
-    source === "hyp_sns_webhook" || source === "hyp_inquiry_sync" || source === "hyp_token_charge";
-  const isValid = isTrustedServerSource || (await validateHypRedirect(params));
-  if (!isValid) {
-    await (supabaseAdmin as any)
-      .from("provider_events")
-      .update({ processing_status: "failed", error_message: "invalid_signature" })
-      .eq("provider", "hyp")
-      .eq("event_id", eventId);
-    return { status: "invalid_signature" as const, eventId };
-  }
-
   try {
-    const paymentId = pickSearchParam(params, "Order", "uniqueID", "uniqueId", "uniqueid");
-    const result = paymentId
-      ? await confirmPayment(paymentId, params).then(async (confirmResult) => {
-          await createSubscriptionFromInitialPayment({
-            paymentId,
-            memberPlanId: confirmResult.member_plan_id ?? null,
-            hkId: pickSearchParam(params, "HKId", "hkId"),
-            cardMask: pickSearchParam(params, "cardMask", "L4digit"),
-            transId: pickSearchParam(params, "Id", "txId"),
-            userId: pickSearchParam(params, "UserId"),
-          });
-          return { status: "confirmed_existing_payment" as const, confirmResult };
-        })
-      : await createAndConfirmSubscriptionRenewal(params);
+    const confirmExistingMemberPayment =
+      options.confirmExistingMemberPayment ??
+      (async (existingPaymentId: string, notificationParams: URLSearchParams) => {
+        const confirmResult = await confirmPayment(existingPaymentId, notificationParams);
+        await createSubscriptionFromInitialPayment({
+          paymentId: existingPaymentId,
+          memberPlanId: confirmResult.member_plan_id ?? null,
+          hkId: pickSearchParam(notificationParams, "HKId", "hkId"),
+          cardMask: pickSearchParam(notificationParams, "cardMask", "L4digit"),
+          transId: pickSearchParam(notificationParams, "Id", "txId"),
+          userId: pickSearchParam(notificationParams, "UserId"),
+        });
+        return { status: "confirmed_existing_payment" as const, confirmResult };
+      });
+    const result = adultTrialPayment
+      ? await confirmVerifiedAdultTrialHypPayment({
+          paymentId,
+          providerPaymentId: pickSearchParam(params, "ACode", "cgUid", "authNumber") || null,
+          providerSessionId: pickSearchParam(params, "Id", "txId") || null,
+          providerStatus: "paid",
+          providerAmount: verifiedHypAmount(params),
+          providerCurrency: verifiedHypCurrency(params),
+          providerOrderId: paymentId,
+        }).then((confirmation) => ({
+          status: "confirmed_adult_trial_payment" as const,
+          confirmation,
+        }))
+      : paymentId
+        ? await confirmExistingMemberPayment(paymentId, params)
+        : await createAndConfirmSubscriptionRenewal(params);
 
     const notificationResult =
       "confirmResult" in result ? result.confirmResult : "result" in result ? result.result : null;
@@ -549,7 +608,7 @@ export async function syncDueHypSubscriptions(options?: { limit?: number; now?: 
       for (const tx of candidates) {
         const result = await processHypPaymentNotification(
           paramsFromHypInquiryTransaction(tx, reconciliationId),
-          "hyp_inquiry_sync",
+          "server_inquiry",
         );
         processed.push(result);
       }
@@ -627,7 +686,7 @@ export async function chargeDueHypTokenSubscriptions(options?: { limit?: number;
           reconciliationId,
           cardLast4: tokenRow.token.slice(-4),
         }),
-        "hyp_token_charge",
+        "server_token_charge",
       );
       results.push({ subscriptionId: subscription.id, status: "charged", processed });
     } catch (error) {

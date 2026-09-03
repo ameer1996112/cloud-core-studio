@@ -5,6 +5,7 @@ import { handleHypConfirmedPayment } from "@/lib/hypPaymentConfirmation.server";
 import { kickUnifiedMessagingAfterCommit } from "@/lib/unifiedMessagingKick.server";
 import { createSubscriptionFromInitialPayment } from "@/lib/subscriptions.server";
 import { processKidsHypReturn } from "@/lib/kids.server";
+import { findAdultTrialPayment } from "@/lib/adultTrialPayments.server";
 
 function pickSearchParam(params: URLSearchParams, ...names: string[]) {
   for (const name of names) {
@@ -97,6 +98,18 @@ export const Route = createFileRoute("/api/public/payments/hyp/return")({
           }
           console.error("hyp_return_kids_confirm_failed", kidsResult);
           throw redirect(paymentResult("pending", paymentId, "kids"));
+        }
+
+        const adultTrialPayment = await findAdultTrialPayment(paymentId);
+        if (adultTrialPayment) {
+          // A customer browser return is not provider confirmation. Only the
+          // authenticated HYP webhook/inquiry path may mark a trial as paid.
+          if (adultTrialPayment.status === "paid") {
+            throw redirect(paymentResult("success", paymentId));
+          }
+          throw redirect(
+            paymentResult(returnStatus === "cancel" ? "cancelled" : "pending", paymentId),
+          );
         }
 
         if (returnStatus === "cancel") {

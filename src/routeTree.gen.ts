@@ -38,6 +38,7 @@ import { Route as MemberScheduleRouteImport } from './routes/member.schedule'
 import { Route as PromoSlugRouteImport } from './routes/promo.$slug'
 import { Route as PromoYogaLinaRouteImport } from './routes/promo.yoga-lina'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminAdultInquiriesRouteImport } from './routes/_authenticated/admin/adult-inquiries'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin/attendance'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAutomationsRouteImport } from './routes/_authenticated/admin/automations'
@@ -235,6 +236,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminAdultInquiriesRoute =
+  AuthenticatedAdminAdultInquiriesRouteImport.update({
+    id: '/adult-inquiries',
+    path: '/adult-inquiries',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAttendanceRoute =
   AuthenticatedAdminAttendanceRouteImport.update({
     id: '/attendance',
@@ -555,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/member/schedule': typeof MemberScheduleRoute
   '/promo/$slug': typeof PromoSlugRoute
   '/promo/yoga-lina': typeof PromoYogaLinaRoute
+  '/admin/adult-inquiries': typeof AuthenticatedAdminAdultInquiriesRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -632,6 +640,7 @@ export interface FileRoutesByTo {
   '/member/schedule': typeof MemberScheduleRoute
   '/promo/$slug': typeof PromoSlugRoute
   '/promo/yoga-lina': typeof PromoYogaLinaRoute
+  '/admin/adult-inquiries': typeof AuthenticatedAdminAdultInquiriesRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -714,6 +723,7 @@ export interface FileRoutesById {
   '/member/schedule': typeof MemberScheduleRoute
   '/promo/$slug': typeof PromoSlugRoute
   '/promo/yoga-lina': typeof PromoYogaLinaRoute
+  '/_authenticated/admin/adult-inquiries': typeof AuthenticatedAdminAdultInquiriesRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/automations': typeof AuthenticatedAdminAutomationsRoute
@@ -796,6 +806,7 @@ export interface FileRouteTypes {
     | '/member/schedule'
     | '/promo/$slug'
     | '/promo/yoga-lina'
+    | '/admin/adult-inquiries'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/automations'
@@ -873,6 +884,7 @@ export interface FileRouteTypes {
     | '/member/schedule'
     | '/promo/$slug'
     | '/promo/yoga-lina'
+    | '/admin/adult-inquiries'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/automations'
@@ -954,6 +966,7 @@ export interface FileRouteTypes {
     | '/member/schedule'
     | '/promo/$slug'
     | '/promo/yoga-lina'
+    | '/_authenticated/admin/adult-inquiries'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/automations'
@@ -1249,6 +1262,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/adult-inquiries': {
+      id: '/_authenticated/admin/adult-inquiries'
+      path: '/adult-inquiries'
+      fullPath: '/admin/adult-inquiries'
+      preLoaderRoute: typeof AuthenticatedAdminAdultInquiriesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/attendance': {
@@ -1605,6 +1625,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminAdultInquiriesRoute: typeof AuthenticatedAdminAdultInquiriesRoute
   AuthenticatedAdminAttendanceRoute: typeof AuthenticatedAdminAttendanceRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminAutomationsRoute: typeof AuthenticatedAdminAutomationsRoute
@@ -1635,6 +1656,8 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminAdultInquiriesRoute:
+      AuthenticatedAdminAdultInquiriesRoute,
     AuthenticatedAdminAttendanceRoute: AuthenticatedAdminAttendanceRoute,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
     AuthenticatedAdminAutomationsRoute: AuthenticatedAdminAutomationsRoute,

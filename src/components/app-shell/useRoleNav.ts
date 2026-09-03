@@ -37,6 +37,7 @@ export function navForRole(role: AppRole): NavGroup[] {
           { to: "/admin/pulse", label: t("nav.studioPulse"), icon: Activity },
           { to: "/admin/calendar", label: t("nav.schedule"), icon: Calendar },
           { to: "/admin/attendance", label: t("nav.attendance"), icon: ClipboardList },
+          { to: "/admin/adult-inquiries", label: "Adult inquiries", icon: Users },
           { to: "/admin/rooms", label: t("nav.rooms"), icon: DoorOpen },
         ],
       },
