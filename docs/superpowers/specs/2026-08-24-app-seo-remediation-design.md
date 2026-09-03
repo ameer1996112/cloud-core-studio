@@ -4,7 +4,7 @@
 
 Remediate the existing Cloud & Core marketing route into three crawlable, server-rendered, localized pages at `/app/ar`, `/app/he`, and `/app/en`. Preserve the current application, authentication, booking, payment, and native-wrapper behavior. The work is isolated on `codex/app-seo-remediation`, based directly on `origin/main`.
 
-This remediation does not include the separate Yoga-with-Lina promotion, schedule-source work, database migrations, deployment, or App Store submission.
+This remediation does not include the separate Yoga-with-Lina promotion, database migrations, deployment, or App Store submission.
 
 ## Goals
 

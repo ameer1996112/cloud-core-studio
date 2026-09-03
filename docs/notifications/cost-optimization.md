@@ -24,7 +24,6 @@ For an app with roughly five users, scale-to-zero and event-driven delivery shou
 5. Create billing budgets/alerts in the billing account (for example at ₪20 and ₪40); budget alerts notify but do not cap spend.
 6. Inspect billing by SKU after 24–48 hours. Forecasts based on one partial day are noisy; compare actual daily cost.
 
-The staging GoldMine Sheets worker also runs every five minutes. If that staging integration is not actively being tested, pause its scheduler separately after confirming ownership; it is outside the production notification rollout and the provided script intentionally does not alter it.
 
 The configuration script is idempotent in intent, defaults to dry-run, leaves all feature flags false, and requires an explicit `--apply`. It does not deploy application code or run migrations.
 

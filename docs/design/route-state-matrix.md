@@ -109,7 +109,7 @@ All admin routes support the global locale system in code, but no authenticated 
 
 ## Non-UI route inventory
 
-These routes return data, receive webhooks, or redirect provider responses and therefore do not have visual states: `/api/public/payments/hyp/return`, payment/WhatsApp/Resend webhooks, internal concierge dispatch/run, internal message media/sweep, lifecycle and WhatsApp/OpenWA jobs, subscription sync, and `/internal/goldmine/v1/schedule`. They require security, contract, idempotency, and operational tests rather than screenshots.
+These routes return data, receive webhooks, or redirect provider responses and therefore do not have visual states: `/api/public/payments/hyp/return`, payment/WhatsApp/Resend webhooks, internal concierge dispatch/run, internal message media/sweep, lifecycle and WhatsApp/OpenWA jobs, and subscription sync. They require security, contract, idempotency, and operational tests rather than screenshots.
 
 ## Final evidence disposition
 

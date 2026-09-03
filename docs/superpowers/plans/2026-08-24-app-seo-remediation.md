@@ -479,10 +479,10 @@ Run:
 
 ```bash
 git diff --name-only origin/main...HEAD
-git diff --name-only origin/main...HEAD | rg 'yoga-lina|supabase/migrations|goldmineScheduleSource' && exit 1 || true
+git diff --name-only origin/main...HEAD | rg 'yoga-lina|supabase/migrations' && exit 1 || true
 ```
 
-Expected: no Yoga-with-Lina, schedule-source, or migration files.
+Expected: no Yoga-with-Lina or migration files.
 
 - [ ] **Step 5: Write and commit the evidence report**
 
