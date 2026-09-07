@@ -1,0 +1,1409 @@
+/*
+ * Cloud & Core neutral member candidate
+ *
+ * This is the active member/auth presentation. It intentionally keeps the
+ * existing route/controller markup and Radix primitives, but removes the
+ * previous navy canvas, blue-gray washes, and decorative gold hierarchy.
+ * Light is porcelain/white/charcoal; dark is charcoal/soft white.
+ */
+
+:root:has(.member-app, .auth-page) {
+  --color-ivory: #f9f9f9;
+  --color-navy: #202020;
+  --color-navy-strong: #111111;
+  --color-navy-elevated: #3a3a3a;
+  --color-gold: #76531d;
+  --color-gold-soft: #e8e8e8;
+  --color-powder: #f0f0f0;
+  --color-sand: #f0f0f0;
+  --color-blue: #f0f0f0;
+  --color-surface: #ffffff;
+  --color-surface-warm: #f9f9f9;
+  --color-surface-canvas: #f9f9f9;
+  --color-surface-base: #ffffff;
+  --color-surface-subtle: #f0f0f0;
+  --color-text-primary: #202020;
+  --color-text-secondary: #646464;
+  --color-text-muted: #646464;
+  --color-slate: #646464;
+  --color-border: #e2e2e2;
+  --color-control-soft: #858585;
+  --color-action-primary: #202020;
+  --color-on-primary: #ffffff;
+  --color-focus-inner: #ffffff;
+  --color-focus-outer: #202020;
+  --color-success: #316b45;
+  --color-danger: #a63c3c;
+  --input: #858585;
+  --accent: #f0f0f0;
+  --shadow-card: 0 1px 2px rgb(32 32 32 / 4%);
+  --shadow-elevated: 0 12px 32px rgb(32 32 32 / 8%);
+  --shadow-sidebar: 0 0 28px rgb(32 32 32 / 7%);
+  color-scheme: light;
+}
+
+:root:has(.member-app, .auth-page) body {
+  background-color: #f9f9f9;
+  background-image: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:has(.member-app, .auth-page) {
+    --color-ivory: #111111;
+    --color-navy: #eeeeee;
+    --color-navy-strong: #ffffff;
+    --color-navy-elevated: #d4d4d4;
+    --color-gold: #c2c2c2;
+    --color-gold-soft: #2a2a2a;
+    --color-powder: #222222;
+    --color-sand: #222222;
+    --color-blue: #222222;
+    --color-surface: #191919;
+    --color-surface-warm: #111111;
+    --color-surface-canvas: #111111;
+    --color-surface-base: #191919;
+    --color-surface-subtle: #222222;
+    --color-text-primary: #eeeeee;
+    --color-text-secondary: #b4b4b4;
+    --color-text-muted: #b4b4b4;
+    --color-slate: #b4b4b4;
+    --color-border: #353535;
+    --color-control-soft: #777777;
+    --color-action-primary: #eeeeee;
+    --color-on-primary: #202020;
+    --color-focus-inner: #111111;
+    --color-focus-outer: #eeeeee;
+    --color-success: #9ac7a7;
+    --color-danger: #edaaaa;
+    --input: #777777;
+    --accent: #2a2a2a;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 20%);
+    --shadow-elevated: 0 16px 36px rgb(0 0 0 / 28%);
+    --shadow-sidebar: -10px 0 34px rgb(0 0 0 / 24%);
+    color-scheme: dark;
+  }
+}
+
+/* Shared member shell and navigation */
+.member-app {
+  background: var(--color-surface-warm);
+  color: var(--color-text-primary);
+}
+
+.member-app .studio-member-header {
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  border-bottom: 1px solid var(--color-border);
+  padding-inline: clamp(20px, 4vw, 40px);
+}
+
+.member-app .studio-member-header-inner {
+  width: min(100%, 1200px);
+  min-height: 76px;
+  gap: clamp(20px, 4vw, 48px);
+}
+
+.member-app .studio-member-brand .studio-logo {
+  width: 116px;
+}
+
+.member-app .studio-member-desktop-nav {
+  gap: clamp(16px, 2.5vw, 32px);
+}
+
+.member-app .studio-member-desktop-nav a {
+  min-height: 48px;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  font-size: 15px;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.member-app .studio-member-desktop-nav a:hover,
+.member-app .studio-member-desktop-nav a[aria-current="page"] {
+  color: var(--color-text-primary);
+}
+
+.member-app .studio-member-desktop-nav a[aria-current="page"] {
+  border-color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.member-app .studio-member-tools button {
+  color: var(--color-text-secondary);
+  border-radius: 10px;
+}
+
+.member-app .studio-member-tools button:hover {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+}
+
+.member-app .studio-member-bottom-nav {
+  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -8px 24px rgb(32 32 32 / 5%);
+}
+
+.member-app .studio-member-bottom-nav-inner {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.member-app .studio-member-bottom-nav a {
+  color: var(--color-text-secondary);
+  border-radius: 10px;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+.member-app .studio-member-bottom-nav a[aria-current="page"] {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.member-app .studio-member-bottom-nav a[aria-current="page"] svg {
+  color: var(--color-text-primary);
+}
+
+.member-app .member-content-frame {
+  width: min(100%, 1200px);
+}
+
+.member-app .member-shell-main {
+  background: var(--color-surface-warm);
+}
+
+.member-app :is(a, button, input, textarea, select, summary):focus-visible,
+.auth-page :is(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--color-focus-outer);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-focus-outer) 24%, transparent);
+}
+
+/* Home: calm editorial hierarchy with one bounded studio image. */
+.member-app .aura-home-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.78fr);
+  gap: 36px 48px;
+  padding: 36px 0 48px;
+}
+
+.aura-home-page .home-greeting {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+.aura-home-page .home-greeting > p,
+.aura-home-page .home-next > h2,
+.aura-home-page .member-eyebrow {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.aura-home-page .home-greeting > p {
+  margin-bottom: 6px;
+}
+
+.aura-home-page .home-greeting h1,
+.aura-schedule-page h1,
+.aura-member-page h1 {
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.aura-home-page h2,
+.aura-member-page h2,
+.aura-home-page h3,
+.aura-member-page h3 {
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+.aura-home-page .home-next {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+}
+
+.aura-home-page .home-account {
+  grid-column: 2;
+  grid-row: 2;
+  padding-top: 0;
+}
+
+.aura-home-page .home-discovery {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.aura-home-page .home-primary-layout + .home-discovery {
+  grid-row: 3;
+}
+
+.aura-home-page .home-announcement,
+.aura-home-page .home-concierge {
+  grid-column: 1;
+}
+
+.aura-home-page .home-section-heading {
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.aura-home-page .home-section-heading h2,
+.aura-home-page .home-next > h2 {
+  font-size: 21px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.aura-home-page .home-next > h2 {
+  margin-bottom: 12px;
+}
+
+.aura-home-page .home-primary,
+.aura-home-page .studio-class--featured .home-primary,
+.aura-schedule-page .home-primary,
+.aura-member-page .btn-navy,
+.auth-page .cta-navy {
+  min-height: 50px;
+  border: 1px solid var(--color-action-primary);
+  border-radius: 10px;
+  background: var(--color-action-primary);
+  color: var(--color-on-primary);
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.aura-home-page .home-primary:hover,
+.aura-home-page .studio-class--featured .home-primary:hover,
+.aura-schedule-page .home-primary:hover,
+.aura-member-page .btn-navy:hover,
+.auth-page .cta-navy:hover:not(:disabled) {
+  border-color: var(--color-navy-elevated);
+  background: var(--color-navy-elevated);
+  transform: translateY(-1px);
+}
+
+.aura-home-page .home-text-action {
+  min-height: 44px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.aura-home-page .home-text-action:hover {
+  color: var(--color-text-secondary);
+}
+
+.aura-home-page .home-choose {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.72fr) minmax(0, 1fr);
+  min-height: 210px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+
+.aura-home-page .home-choose-photo {
+  width: 100%;
+  height: 210px;
+  min-height: 210px;
+  object-fit: cover;
+  object-position: 50% 78%;
+}
+
+.aura-home-page .home-choose-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 28px;
+  color: var(--color-text-primary);
+}
+
+.aura-home-page .home-choose-copy h3 {
+  color: var(--color-text-primary);
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.aura-home-page .home-choose-copy p,
+.aura-home-page .home-empty p,
+.aura-home-page .home-announcement p,
+.aura-home-page .home-concierge p {
+  max-width: 58ch;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.aura-home-page .home-membership {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  min-height: 0;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.aura-home-page .home-membership:hover {
+  border-color: var(--color-control-soft);
+  box-shadow: var(--shadow-elevated);
+}
+
+.aura-home-page .membership-identity > p,
+.aura-home-page .membership-balance span,
+.aura-home-page .membership-validity {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.aura-home-page .membership-identity h3 {
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.aura-home-page .membership-balance {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.aura-home-page .membership-balance strong {
+  color: var(--color-text-primary);
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.aura-home-page .membership-validity {
+  grid-column: 1 / -1;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.aura-home-page .membership-validity svg {
+  color: var(--color-text-secondary);
+}
+
+.aura-home-page .home-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 20px;
+}
+
+.aura-home-page .home-quick-actions > p {
+  margin-bottom: 4px;
+}
+
+.aura-home-page .home-quick-actions a {
+  min-height: 48px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 14px;
+}
+
+.aura-home-page .home-quick-actions a:last-child {
+  border-bottom: 0;
+}
+
+.aura-home-page .home-quick-actions svg {
+  color: var(--color-text-secondary);
+}
+
+.aura-home-page .home-announcement,
+.aura-home-page .home-concierge {
+  display: flex;
+  gap: 14px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.aura-home-page .home-announcement > svg {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+}
+
+/* Shared class anatomy: readable time/date, no blue capsules. */
+.aura-home-page .studio-class--row,
+.aura-schedule-page .studio-class--row,
+.aura-member-page .studio-class--row {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.22fr) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  border-radius: 0;
+}
+
+.aura-home-page .studio-class--row :is(.studio-class-overview, .studio-class-reading),
+.aura-schedule-page .studio-class--row :is(.studio-class-overview, .studio-class-reading),
+.aura-member-page .studio-class--row :is(.studio-class-overview, .studio-class-reading) {
+  display: contents;
+}
+
+.aura-home-page .studio-class--row .studio-class-time,
+.aura-schedule-page .studio-class--row .studio-class-time,
+.aura-member-page .studio-class--row .studio-class-time {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-items: start;
+  padding: 0 16px 0 0;
+  border: 0;
+  border-inline-end: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  text-align: start;
+}
+
+.aura-home-page .studio-class--row .studio-class-time time,
+.aura-schedule-page .studio-class--row .studio-class-time time,
+.aura-member-page .studio-class--row .studio-class-time time {
+  color: var(--color-text-primary);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.aura-home-page .studio-class--row .studio-class-time > span,
+.aura-schedule-page .studio-class--row .studio-class-time > span,
+.aura-member-page .studio-class--row .studio-class-time > span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.aura-home-page .studio-class--row .studio-class-content,
+.aura-schedule-page .studio-class--row .studio-class-content,
+.aura-member-page .studio-class--row .studio-class-content {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.aura-home-page .studio-class--row h3,
+.aura-schedule-page .studio-class--row h3,
+.aura-member-page .studio-class--row h3 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.aura-home-page .studio-class--row .studio-class-meta,
+.aura-schedule-page .studio-class--row .studio-class-meta,
+.aura-member-page .studio-class--row .studio-class-meta,
+.aura-home-page .studio-class-descriptors,
+.aura-schedule-page .studio-class-descriptors {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.aura-home-page .studio-class--row .studio-class-status,
+.aura-schedule-page .studio-class--row .studio-class-status,
+.aura-member-page .studio-class--row .studio-class-status {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 4px;
+}
+
+.aura-home-page .studio-class--row .studio-class-status > span,
+.aura-schedule-page .studio-class--row .studio-class-status > span,
+.aura-member-page .studio-class--row .studio-class-status > span {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.aura-home-page .studio-class--row .studio-class-actions,
+.aura-schedule-page .studio-class--row .studio-class-actions,
+.aura-member-page .studio-class--row .studio-class-actions {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.aura-home-page .studio-class--row .home-text-action,
+.aura-schedule-page .studio-class--row .home-text-action,
+.aura-member-page .studio-class--row .btn-outline {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-control-soft);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+/* Keep the booking photo as identity, but make the reading pass the surface. */
+.aura-home-page .studio-class--featured {
+  display: block;
+  border: 0;
+  background: transparent;
+}
+
+.aura-home-page .studio-class--featured .studio-class-hero {
+  min-height: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.aura-home-page .studio-class--featured .studio-class-media {
+  position: relative;
+  z-index: 0;
+  height: clamp(190px, 25vw, 260px);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.aura-home-page .studio-class--featured .studio-class-photo {
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: 50% 78%;
+}
+
+.aura-home-page .studio-class--featured .studio-class-hero::after,
+.aura-home-page .studio-class--featured .studio-class-reading::before {
+  display: none;
+}
+
+.aura-home-page .studio-class--featured .studio-class-reading {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 24px;
+  margin: -28px 20px 0;
+  padding: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-elevated);
+}
+
+.aura-home-page .studio-class--featured .studio-class-content,
+.aura-home-page .studio-class--featured .studio-class-status {
+  color: var(--color-text-primary);
+}
+
+.aura-home-page .studio-class--featured h3 {
+  color: var(--color-text-primary);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.aura-home-page .studio-class--featured .studio-class-meta,
+.aura-home-page .studio-class--featured .studio-class-time > span {
+  color: var(--color-text-secondary);
+}
+
+.aura-home-page .studio-class--featured .studio-class-time {
+  color: var(--color-text-primary);
+}
+
+.aura-home-page .studio-class--featured .studio-class-time time {
+  color: var(--color-text-primary);
+  font-size: 30px;
+}
+
+.aura-home-page .studio-class--featured .studio-class-status > span {
+  color: var(--color-text-secondary);
+}
+
+.aura-home-page .studio-class--featured .studio-class-actions {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.aura-home-page .studio-class-note {
+  padding: 12px 20px 0;
+  color: var(--color-text-secondary);
+}
+
+/* Schedule: one predictable top filter band, then the date groups. */
+.member-app .aura-schedule-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 36px 0 48px;
+}
+
+.aura-schedule-page .aura-schedule-heading {
+  align-items: end;
+  padding-bottom: 4px;
+}
+
+.aura-schedule-page .aura-schedule-heading p {
+  max-width: 60ch;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.aura-schedule-page .aura-schedule-totals {
+  color: var(--color-text-secondary);
+}
+
+.aura-schedule-page .aura-schedule-totals strong {
+  color: var(--color-text-primary);
+}
+
+.aura-schedule-page .member-schedule-filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 0 20px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.aura-schedule-page .member-schedule-filter-panel__primary {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.aura-schedule-page .member-schedule-search-field {
+  min-height: 50px;
+  border: 1px solid var(--color-control-soft);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.aura-schedule-page .member-schedule-search-field__input {
+  height: 48px;
+  color: var(--color-text-primary);
+  background: transparent;
+  font-size: 16px;
+}
+
+.aura-schedule-page .member-schedule-search-field__icon {
+  color: var(--color-text-secondary);
+}
+
+.aura-schedule-page .member-schedule-segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.aura-schedule-page .member-schedule-segment {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.aura-schedule-page .member-schedule-segment-active {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-on-primary);
+}
+
+.aura-schedule-page .member-schedule-filter-disclosure summary,
+.aura-schedule-page .member-schedule-filter-panel__reset {
+  min-height: 44px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.aura-schedule-page .member-schedule-filter-groups {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface-subtle);
+}
+
+.aura-schedule-page .member-schedule-filter-chip {
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.aura-schedule-page .member-schedule-filter-chip-active {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-on-primary);
+}
+
+.aura-schedule-page .aura-schedule-results {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.aura-schedule-page .schedule-day-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 0 0 8px;
+  border: 0;
+  background: transparent;
+}
+
+.aura-schedule-page .schedule-day-header__title {
+  color: var(--color-text-primary);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.aura-schedule-page :is(.schedule-day-header__count, .schedule-day-header__date) {
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.aura-schedule-page .schedule-day-section {
+  padding: 0;
+}
+
+/* Bookings, packages and profile use content-sized states and factual surfaces. */
+.aura-member-page {
+  gap: 28px;
+  padding: 36px 0 48px;
+}
+
+.aura-page-heading > p:not(.member-eyebrow),
+.aura-page-heading > div > p:not(.member-eyebrow) {
+  max-width: 62ch;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.aura-member-page .member-tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 16px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.aura-member-page .member-tab-button {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.aura-member-page .member-tab-button-active {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-on-primary);
+}
+
+.aura-member-page .member-tab-count {
+  color: inherit;
+  background: transparent;
+}
+
+.aura-member-page .member-empty-state {
+  width: min(100%, 620px);
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+  box-shadow: none;
+}
+
+.aura-member-page .member-empty-state-center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.aura-member-page .member-empty-state-start {
+  text-align: start;
+}
+
+.aura-member-page :is(.member-empty-title, .member-empty-eyebrow, .member-empty-body) {
+  color: var(--color-text-primary);
+}
+
+.aura-member-page .member-empty-body {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.aura-member-page .member-empty-illustration,
+.aura-member-page .member-empty-cloud-card,
+.aura-member-page .member-empty-hairline {
+  display: none;
+}
+
+.aura-bookings-page .aura-reservation {
+  max-width: 960px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.aura-bookings-page .aura-reservation .studio-class--row {
+  border-bottom: 0;
+}
+
+.aura-bookings-page .aura-reservation .studio-class-note {
+  grid-column: 2 / -1;
+  padding: 12px 0 20px;
+  border: 0;
+}
+
+.aura-bookings-page .aura-reservation-utilities {
+  color: var(--color-text-secondary);
+}
+
+.aura-packages-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.aura-wallet {
+  gap: 20px;
+}
+
+.aura-wallet-summary {
+  padding: 18px 0;
+  border-block: 1px solid var(--color-border);
+}
+
+.aura-member-page .aura-wallet-title {
+  color: var(--color-text-primary);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.aura-wallet-balance strong {
+  color: var(--color-text-primary);
+  font-size: 30px;
+}
+
+.aura-wallet-balance span,
+.aura-wallet-summary .text-sm,
+.aura-wallet-summary .text-xs {
+  color: var(--color-text-secondary);
+}
+
+.aura-member-page .package-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.aura-member-page .aura-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.aura-member-page .aura-plan-card:hover {
+  border-color: var(--color-control-soft);
+  box-shadow: var(--shadow-elevated);
+}
+
+.aura-member-page .aura-plan-name {
+  color: var(--color-text-primary);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.aura-member-page .aura-plan-price {
+  color: var(--color-text-primary);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.aura-member-page .aura-plan-facts {
+  gap: 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.aura-member-page .aura-plan-facts p {
+  color: var(--color-text-primary);
+}
+
+.aura-member-page .package-plan-badge,
+.aura-member-page .package-recurring-disclosure,
+.aura-member-page .aura-plan-card > div:last-child > span {
+  border-color: var(--color-border);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+}
+
+.aura-account-history {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--color-border);
+}
+
+.aura-account-history .member-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.aura-account-history .member-card > div {
+  padding-inline: 0;
+  border-color: var(--color-border);
+}
+
+.aura-account-layout {
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+  gap: 48px;
+}
+
+.aura-account-main,
+.aura-account-utilities {
+  gap: 32px;
+}
+
+.aura-settings-section {
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.aura-profile-fields {
+  gap: 20px;
+}
+
+.aura-member-page :is(input.editorial-input, select.editorial-input, textarea.editorial-input) {
+  min-height: 50px;
+  border: 1px solid var(--color-control-soft);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 16px;
+}
+
+.aura-member-page .field-label {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.aura-member-page .aura-session-section,
+.aura-member-page .aura-account-utilities {
+  color: var(--color-text-secondary);
+}
+
+.aura-member-page .btn-outline,
+.aura-member-page .btn-ghost {
+  min-height: 48px;
+  border-radius: 10px;
+  border-color: var(--color-control-soft);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.aura-member-page .btn-outline:hover,
+.aura-member-page .btn-ghost:hover {
+  background: var(--color-surface-subtle);
+}
+
+/* Existing Radix detail sheet: a neutral, bounded reading surface. */
+.aura-class-detail.lesson-detail {
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elevated);
+}
+
+.aura-class-detail > .aura-detail-close {
+  background: var(--color-surface);
+  border-color: var(--color-control-soft);
+  color: var(--color-text-primary);
+}
+
+.aura-detail-hero {
+  min-height: 240px;
+  padding: 120px 28px 24px;
+  background: #202020;
+}
+
+.aura-detail-hero::after {
+  background: linear-gradient(transparent 12%, rgb(32 32 32 / 84%) 86%);
+}
+
+.aura-detail-heading h2,
+.aura-detail-heading > p {
+  color: #ffffff;
+}
+
+.aura-detail-heading > span {
+  color: #ffffff;
+}
+
+.aura-detail-reading {
+  padding: 24px 28px 28px;
+}
+
+.aura-detail-facts dt,
+.aura-detail-reading .studio-class-descriptors,
+.aura-detail-notes {
+  color: var(--color-text-secondary);
+}
+
+.aura-class-detail .lesson-detail__cta :is(button, a) {
+  min-height: 50px;
+  border-radius: 10px;
+}
+
+/* Auth uses the real photograph, but the application framing is neutral. */
+.auth-page.auth-entry {
+  --cc-radius-button: 10px;
+  --cc-radius-input: 10px;
+  background: var(--color-surface-warm);
+  color: var(--color-text-primary);
+}
+
+.auth-page.auth-entry .auth-language-switcher button[data-active="true"] {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+}
+
+.auth-page.auth-entry .auth-studio-photo {
+  background: #202020;
+  border-radius: 14px;
+}
+
+.auth-page.auth-entry .auth-studio-photo::after {
+  background: linear-gradient(180deg, transparent 32%, rgb(32 32 32 / 10%) 58%, #202020 100%);
+}
+
+.auth-page.auth-entry .auth-scene-heading::before {
+  background: linear-gradient(transparent, rgb(32 32 32 / 86%) 42%, #202020);
+}
+
+.auth-page.auth-entry .auth-scene-heading .member-eyebrow,
+.auth-page.auth-entry .auth-scene-heading .auth-form-title {
+  color: #ffffff;
+}
+
+.auth-page.auth-entry .auth-form-card .editorial-input {
+  min-height: 52px !important;
+  border-radius: 10px;
+  border-color: var(--color-control-soft);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.auth-page.auth-entry .auth-form-card .cta-navy {
+  border-radius: 10px;
+  background: var(--color-action-primary);
+  color: var(--color-on-primary);
+}
+
+.auth-page.auth-entry .auth-form-card .cta-navy:hover:not(:disabled) {
+  background: var(--color-navy-elevated);
+  border-color: var(--color-navy-elevated);
+}
+
+.auth-page.auth-entry .auth-guest-section,
+.auth-page.auth-entry .auth-form-card,
+.auth-page.auth-entry .auth-footer {
+  border-color: var(--color-border);
+}
+
+@media (max-width: 1023px) {
+  .aura-schedule-page .member-schedule-filter-panel__primary {
+    grid-template-columns: 1fr;
+  }
+
+  .aura-schedule-page .member-schedule-segmented {
+    justify-content: start;
+  }
+
+  .aura-packages-layout,
+  .aura-account-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .aura-wallet-summary {
+    padding-block: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .member-app .aura-schedule-page {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .aura-schedule-page .member-schedule-filter-panel__primary {
+    grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .aura-schedule-page .aura-schedule-results {
+    width: min(100%, 980px);
+    align-self: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .member-app .aura-home-page,
+  .member-app .aura-schedule-page,
+  .member-app .aura-member-page {
+    display: flex;
+    gap: 24px;
+    padding-top: 24px;
+  }
+
+  .aura-home-page .home-greeting h1,
+  .aura-schedule-page h1,
+  .aura-member-page h1 {
+    font-size: 30px;
+  }
+
+  .aura-home-page .home-choose {
+    grid-template-columns: 1fr;
+  }
+
+  .aura-home-page .home-choose-photo {
+    height: 150px;
+    min-height: 150px;
+  }
+
+  .aura-home-page .home-choose-copy {
+    padding: 20px;
+  }
+
+  .aura-home-page .home-primary {
+    width: 100%;
+  }
+
+  .aura-home-page .studio-class--featured .studio-class-media {
+    height: 164px;
+  }
+
+  .aura-home-page .studio-class--featured .studio-class-reading {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    margin: -20px 12px 0;
+    padding: 18px;
+  }
+
+  .aura-home-page .studio-class--featured h3 {
+    font-size: 20px;
+  }
+
+  .aura-home-page .studio-class--featured .studio-class-time time {
+    font-size: 24px;
+  }
+
+  .aura-home-page .studio-class--featured .studio-class-actions {
+    margin-top: 0;
+  }
+
+  .aura-home-page .studio-class--featured .home-primary {
+    width: auto;
+    flex: 1;
+  }
+
+  .aura-home-page .home-membership {
+    padding: 16px;
+  }
+
+  .aura-home-page .home-discovery .studio-class--row,
+  .aura-schedule-page .studio-class--row,
+  .aura-member-page .studio-class--row {
+    grid-template-columns: minmax(82px, 0.28fr) minmax(0, 1fr);
+    gap: 8px 14px;
+    padding-block: 18px;
+  }
+
+  .aura-home-page .home-discovery .studio-class--row .studio-class-actions,
+  .aura-schedule-page .studio-class--row .studio-class-actions,
+  .aura-member-page .studio-class--row .studio-class-actions {
+    grid-column: 2;
+    grid-row: 3;
+    justify-content: start;
+  }
+
+  .aura-home-page .studio-class--row .studio-class-time,
+  .aura-schedule-page .studio-class--row .studio-class-time,
+  .aura-member-page .studio-class--row .studio-class-time {
+    padding-inline-end: 12px;
+  }
+
+  .aura-member-page .package-pricing-grid,
+  .aura-account-history,
+  .aura-profile-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .aura-member-page .aura-plan-card {
+    padding: 20px;
+  }
+
+  .aura-account-history {
+    gap: 28px;
+  }
+
+  .aura-bookings-page .aura-reservation .studio-class-note {
+    grid-column: 1 / -1;
+  }
+
+  .aura-class-detail.lesson-detail {
+    width: min(100vw - 24px, 720px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 14px;
+  }
+
+  .aura-detail-hero {
+    min-height: 210px;
+    padding: 104px 20px 20px;
+  }
+
+  .aura-detail-reading {
+    padding: 20px;
+  }
+
+  .aura-detail-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-page.auth-entry {
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .auth-page.auth-entry .auth-studio-photo {
+    min-height: 216px;
+    border-radius: 12px;
+  }
+
+  .auth-page.auth-entry .auth-scene-heading {
+    padding: 28px 20px;
+  }
+
+  .auth-page.auth-entry .auth-scene-heading .auth-form-title {
+    font-size: 30px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-app *,
+  .auth-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Beat the legacy gold active-state selectors without changing the shared nav component. */
+.member-app:has(.aura-home-page, .aura-schedule-page, .aura-member-page) .studio-member-desktop-nav a[aria-current="page"] {
+  border-color: var(--color-action-primary);
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 1023px) {
+  .member-app:has(.aura-home-page, .aura-schedule-page, .aura-member-page) .studio-member-bottom-nav a[aria-current="page"] {
+    color: var(--color-text-primary);
+  }
+
+  .member-app:has(.aura-home-page, .aura-schedule-page, .aura-member-page) .studio-member-bottom-nav a[aria-current="page"] svg {
+    color: var(--color-text-primary);
+  }
+}
+
+/* Legacy package/account markup still carries utility classes from the former palette.
+   Keep those semantic surfaces neutral without changing the shared components. */
+.member-app .aura-member-page :is(.font-display, .font-serif),
+.member-app .aura-class-detail :is(.font-display, .font-serif) {
+  font-family: var(--font-sans);
+}
+
+.member-app .aura-member-page :is(.text-navy, .text-slate, .text-ivory) {
+  color: var(--color-text-primary);
+}
+
+.member-app .aura-member-page [class*="bg-navy"],
+.member-app .aura-member-page [class*="bg-ivory"] {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.member-app .aura-member-page [class*="bg-gold"],
+.member-app .aura-member-page [class*="bg-sand"] {
+  background: var(--color-surface-subtle);
+}
+
+.member-app .aura-member-page [class*="border-gold"],
+.member-app .aura-member-page [class*="border-sand"] {
+  border-color: var(--color-border);
+}
+
+.member-app .aura-member-page [class*="text-gold"] {
+  color: var(--color-accent);
+}
+
+.member-app .aura-member-page :is(h1, h2, h3) {
+  font-family: var(--font-sans);
+}
+
+/* The former English editorial rule has higher root-selector specificity. */
+:root[lang="en"]:has(.aura-member-page) .member-app .aura-member-page :is(h1, h2, h3),
+:root[lang="en"]:has(.aura-member-page) .member-app .aura-member-page :is(.font-display, .font-serif) {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}

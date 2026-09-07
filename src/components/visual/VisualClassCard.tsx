@@ -959,18 +959,8 @@ export function LessonReservationCard({
   return (
     <article
       dir={dir}
-      role="button"
-      tabIndex={0}
-      aria-label={openLabel}
-      aria-haspopup="dialog"
+      aria-label={localizedClassTitle(cls)}
       data-lesson-variant="booking"
-      onClick={onOpen}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpen();
-        }
-      }}
       className={`lesson-card premium-lesson-card lesson-reservation-card class-card-shell ${
         muted ? "lesson-reservation-card--muted" : ""
       }`}
@@ -1045,11 +1035,18 @@ export function LessonReservationCard({
             <bdi>{supportTextFor(state, chipLabel, lang)}</bdi>
           </span>
         </div>
-        {cta ? (
-          <div className="lesson-reservation-card__primary-action">
-            <CtaLabel label={ctaLabelFor(state, cta.label, lang)} disabled={cta.disabled} strong />
-          </div>
-        ) : null}
+        <button
+          type="button"
+          className="lesson-reservation-card__primary-action text-start"
+          onClick={onOpen}
+          aria-label={openLabel}
+          aria-haspopup="dialog"
+        >
+          <CtaLabel
+            label={cta ? ctaLabelFor(state, cta.label, lang) : t("booking.details")}
+            strong
+          />
+        </button>
         {children ? <div className="lesson-reservation-card__actions">{children}</div> : null}
       </div>
     </article>

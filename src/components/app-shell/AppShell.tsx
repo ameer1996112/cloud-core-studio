@@ -1,199 +1,26 @@
+import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Globe2, X, LogOut } from "lucide-react";
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createClientOnlyFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  navForRole,
-  bottomTabsForRole,
-  isActive,
-  usesMemberShell,
-  type NavGroup,
-  type NavItem,
-} from "./useRoleNav";
+import { navForRole, bottomTabsForRole, isActive, type NavGroup } from "./useRoleNav";
+import { nextLanguageMenuIndex } from "./language-menu";
 import type { AppRole } from "@/lib/auth-redirect";
 import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
 import { MemberNotificationCenter } from "@/components/member/MemberNotificationCenter";
 import { MemberPushOnboarding } from "@/components/member/MemberPushOnboarding";
 import { MemberWhatsappOnboarding } from "@/components/member/MemberWhatsappOnboarding";
-import { MemberRouteSkeleton, type MemberRoute } from "@/components/member/MemberRouteSkeleton";
 import { deactivateMemberPushTokens } from "@/lib/memberNotifications.functions";
 import { syncMyPreferredLanguage } from "@/lib/member.functions";
-import {
-  isPendingMemberPathChange,
-  isPlainPrimaryNavigationClick,
-  shouldClearPendingMobileNavigation,
-} from "./memberNavigation";
-import { nextLanguageMenuIndex } from "./language-menu";
 
 type Props = {
   role: AppRole;
   children: ReactNode;
 };
-
-type MemberDesktopHeaderProps = {
-  tabs: NavItem[];
-  pathname: string;
-  isRtl: boolean;
-  notificationControl: ReactNode;
-  signOutControl: ReactNode;
-};
-
-type MemberMobileBottomNavigationProps = {
-  tabs: NavItem[];
-  pathname: string;
-  isRtl: boolean;
-  onNavigate?: (pathname: string) => void;
-};
-
-export function MemberDesktopHeader({
-  tabs,
-  pathname,
-  isRtl,
-  notificationControl,
-  signOutControl,
-}: MemberDesktopHeaderProps) {
-  return (
-    <header className="member-desktop-header hidden md:block">
-      <div className="member-content-frame member-desktop-header__row">
-        <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
-          <BrandHeaderWordmark />
-        </Link>
-        <nav
-          aria-label={t("shell.practice")}
-          className="member-desktop-header__nav"
-          dir={isRtl ? "rtl" : "ltr"}
-        >
-          {tabs.map((item) => {
-            const { to, icon: Icon, label } = item;
-            const active = isActive(pathname, item);
-            return (
-              <Link
-                key={to}
-                to={to}
-                preload="intent"
-                preloadDelay={50}
-                aria-current={active ? "page" : undefined}
-                className={
-                  active
-                    ? "member-desktop-nav__link member-desktop-nav__link--active"
-                    : "member-desktop-nav__link"
-                }
-              >
-                <Icon aria-hidden="true" className="h-4 w-4" />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="member-desktop-header__actions">
-          {notificationControl}
-          {signOutControl}
-        </div>
-      </div>
-    </header>
-  );
-}
-
-export function MemberMobileBottomNavigation({
-  tabs,
-  pathname,
-  isRtl,
-  onNavigate,
-}: MemberMobileBottomNavigationProps) {
-  return (
-    <nav
-      aria-label={t("shell.practice")}
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1 pointer-events-none"
-    >
-      <div
-        dir={isRtl ? "rtl" : "ltr"}
-        className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[var(--radius-lg)] border border-gold/30 bg-ivory/96 px-1.5 py-0.5 shadow-[0_-8px_28px_-24px_var(--cc-alpha-member-nav-shadow)] backdrop-blur pointer-events-auto"
-      >
-        {tabs.map((item) => {
-          const { to, icon: Icon, label } = item;
-          const active = isActive(pathname, item);
-          return (
-            <Link
-              key={to}
-              to={to}
-              preload="render"
-              onClick={
-                active || !onNavigate
-                  ? undefined
-                  : (event) => {
-                      if (!isPlainPrimaryNavigationClick(event)) return;
-
-                      onNavigate(to);
-                    }
-              }
-              aria-label={label}
-              aria-current={active ? "page" : undefined}
-              className={`member-bottom-nav-link relative flex-1 flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1 text-[13px] leading-tight transition-colors ${
-                active ? "font-semibold text-navy" : "text-slate hover:text-navy"
-              }`}
-            >
-              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
-              <span className="max-w-full truncate text-center leading-tight">{label}</span>
-              {active && (
-                <span aria-hidden className="absolute bottom-1 h-[2px] w-5 rounded-full bg-gold" />
-              )}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-function memberRouteForPath(pathname: string): MemberRoute {
-  if (pathname === "/member/schedule" || pathname.startsWith("/member/schedule/")) {
-    return "schedule";
-  }
-  if (pathname === "/member/bookings" || pathname.startsWith("/member/bookings/")) {
-    return "bookings";
-  }
-  if (pathname === "/member/packages" || pathname.startsWith("/member/packages/")) {
-    return "packages";
-  }
-  if (pathname === "/member/account" || pathname.startsWith("/member/account/")) {
-    return "account";
-  }
-  return "home";
-}
-
-export function MemberRouteContent({
-  pathname,
-  isPendingPathChange,
-  children,
-}: {
-  pathname: string;
-  isPendingPathChange: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      key={`${pathname}:${isPendingPathChange ? "pending" : "ready"}`}
-      className="member-route-transition"
-      aria-busy={isPendingPathChange || undefined}
-    >
-      {isPendingPathChange ? (
-        <MemberRouteSkeleton route={memberRouteForPath(pathname)} />
-      ) : (
-        children
-      )}
-    </div>
-  );
-}
 
 const disconnectMemberPushSession = createClientOnlyFn(async () => {
   const memberPush = await import("@/lib/memberPush.client");
@@ -212,22 +39,13 @@ const getCurrentMemberPushInstallationId = createClientOnlyFn(async () => {
 
 export function AppShell({ role, children }: Props) {
   const { lang } = useI18n();
-  const { pathname, resolvedPathname, isRouteLoading } = useRouterState({
-    select: (state) => ({
-      pathname: state.location.pathname,
-      resolvedPathname: state.resolvedLocation?.pathname ?? state.location.pathname,
-      isRouteLoading: state.isLoading,
-    }),
-  });
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const qc = useQueryClient();
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
-  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [pendingMobilePathname, setPendingMobilePathname] = useState<string | null>(null);
-  const mobileNavigationStartedRef = useRef(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -245,48 +63,19 @@ export function AppShell({ role, children }: Props) {
 
   // Shell separation: members use bottom nav (no drawer);
   // admin/instructor use sidebar+drawer (no bottom nav).
-  const useBottomNav = usesMemberShell(role);
+  const useBottomNav = role === "member";
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
   const mobileDrawerSideStyle = { insetInlineStart: 0 as const };
-  const isPendingPathChange =
-    pendingMobilePathname !== null ||
-    isPendingMemberPathChange({ isLoading: isRouteLoading, pathname, resolvedPathname });
-
-  useEffect(() => {
-    if (!pendingMobilePathname) return;
-
-    if (isRouteLoading) {
-      mobileNavigationStartedRef.current = true;
-      return;
-    }
-
-    if (
-      shouldClearPendingMobileNavigation({
-        destination: pendingMobilePathname,
-        isLoading: isRouteLoading,
-        resolvedPathname,
-        navigationStarted: mobileNavigationStartedRef.current,
-      })
-    ) {
-      mobileNavigationStartedRef.current = false;
-      setPendingMobilePathname(null);
-      return;
-    }
-
-    const fallback = window.setTimeout(() => {
-      mobileNavigationStartedRef.current = false;
-      setPendingMobilePathname(null);
-    }, 1_500);
-    return () => window.clearTimeout(fallback);
-  }, [isRouteLoading, pendingMobilePathname, resolvedPathname]);
 
   useEffect(() => {
     if (!useDrawer || !mobileOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     const previousPaddingInlineEnd = document.body.style.paddingInlineEnd;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const scrollbarCompensation = window.innerWidth - document.documentElement.clientWidth;
 
     document.body.style.overflow = "hidden";
@@ -304,32 +93,29 @@ export function AppShell({ role, children }: Props) {
 
     window.addEventListener("keydown", handleKeyDown);
 
-    const onCloseAutoFocus = () => menuTriggerRef.current?.focus();
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
       document.body.style.paddingInlineEnd = previousPaddingInlineEnd;
-      onCloseAutoFocus();
+      previouslyFocused?.focus?.();
     };
   }, [mobileOpen, useDrawer]);
   const menuControl = useDrawer ? (
     <button
-      ref={menuTriggerRef}
       onClick={() => setMobileOpen(true)}
       aria-label={t("shell.openMenu")}
-      className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-secondary)] transition-[background-color,color] duration-200 hover:bg-gold/8 hover:text-[var(--color-text-primary)]"
     >
       <StandardMenuIcon />
     </button>
   ) : (
-    <MemberNotificationCenter viewport="mobile" className="member-shell-action" />
+    <MemberNotificationCenter viewport="mobile" />
   );
   const signOutControl = (
     <button
       onClick={signOut}
       aria-label={t("shell.signOut")}
-      className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-transparent text-[var(--color-text-muted)] transition-[background-color,color] duration-200 hover:bg-gold/10 hover:text-[var(--color-text-primary)]"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] bg-transparent text-[var(--color-text-muted)] transition-[background-color,color] duration-200 hover:bg-gold/10 hover:text-[var(--color-text-primary)]"
     >
       <LogOut className="h-[18px] w-[18px]" />
     </button>
@@ -360,10 +146,7 @@ export function AppShell({ role, children }: Props) {
 
   if (isSigningOut) {
     return (
-      <div
-        role="main"
-        className="fixed inset-0 flex items-center justify-center bg-ivory text-foreground"
-      >
+      <div className="fixed inset-0 flex items-center justify-center bg-ivory text-foreground">
         <div className="text-center">
           <p className="eyebrow">Cloud &amp; Core</p>
           <h1 className="cc-page-title mt-3">{t("shell.signingOut")}</h1>
@@ -375,13 +158,17 @@ export function AppShell({ role, children }: Props) {
 
   if (role === "member" && !isHydrated) {
     return (
-      <div
-        role="main"
-        className="fixed inset-0 bg-ivory text-foreground"
-        dir={isRtl ? "rtl" : "ltr"}
-      >
-        <div className="member-content-frame px-4 pt-[calc(env(safe-area-inset-top)+4rem)]">
-          <MemberRouteSkeleton route="home" />
+      <div className="fixed inset-0 bg-ivory text-foreground">
+        <div className="mx-auto flex min-h-full w-full max-w-[28rem] items-center justify-center px-6">
+          <div className="member-card w-full max-w-sm p-8 text-center shadow-[var(--shadow-elevated)]">
+            <StudioLogo className="mx-auto" />
+            <div className="mx-auto mt-5 h-px w-12 bg-gold/70" />
+            <div className="mt-6 space-y-3">
+              <div className="skeleton-brand h-4 rounded-full" />
+              <div className="skeleton-brand mx-auto h-4 w-3/4 rounded-full" />
+              <div className="skeleton-brand mx-auto h-11 w-full rounded-[16px]" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -390,7 +177,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className="fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground"
+      className={`${useBottomNav ? "member-app" : ""} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}
@@ -438,83 +225,70 @@ export function AppShell({ role, children }: Props) {
         id="main-content"
         className="member-shell-main min-w-0 flex-1 flex flex-col overflow-y-auto"
       >
-        {/* Mobile bar */}
-        <div
-          className={`member-mobile-header-pad ${useBottomNav ? "md:hidden" : "lg:hidden"} sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]`}
-          style={{ paddingTop: "env(safe-area-inset-top)" }}
-        >
-          <div className="flex h-[52px] w-11 shrink-0 items-center justify-start">
-            {isRtl ? menuControl : signOutControl}
+        {/* Staff mobile bar */}
+        {!useBottomNav && (
+          <div
+            className={`member-mobile-header-pad ${useBottomNav ? "md:hidden" : "lg:hidden"} sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]`}
+            style={{ paddingTop: "env(safe-area-inset-top)" }}
+          >
+            <div className="flex h-[52px] w-11 shrink-0 items-center justify-start">
+              {isRtl ? menuControl : signOutControl}
+            </div>
+            <span className="flex h-[52px] min-w-0 flex-1 items-center justify-center px-2">
+              <BrandHeaderWordmark />
+            </span>
+            <div className="flex h-[52px] w-11 shrink-0 items-center justify-end">
+              {isRtl ? signOutControl : menuControl}
+            </div>
           </div>
-          <span className="flex h-[52px] min-w-0 flex-1 items-center justify-center px-2">
-            <BrandHeaderWordmark />
-          </span>
-          <div className="flex h-[52px] w-11 shrink-0 items-center justify-end">
-            {isRtl ? signOutControl : menuControl}
-          </div>
-        </div>
-
-        {/* Compact desktop navigation — member only */}
-        {useBottomNav && (
-          <MemberDesktopHeader
-            tabs={bottomTabs}
-            pathname={pathname}
-            isRtl={isRtl}
-            notificationControl={
-              <MemberNotificationCenter viewport="desktop" className="member-shell-action" />
-            }
-            signOutControl={signOutControl}
-          />
         )}
 
-        {/* Page header — admin/instructor only */}
-        {!useBottomNav && (
-          <header className="block px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6">
-            <div className={contentFrameClass}>
+        {useBottomNav ? (
+          <MemberHeader
+            pathname={pathname}
+            notifications={
+              <>
+                <div className="hidden md:block">
+                  <MemberNotificationCenter viewport="desktop" />
+                </div>
+                <div className="md:hidden">
+                  <MemberNotificationCenter viewport="mobile" />
+                </div>
+              </>
+            }
+            signOut={signOutControl}
+          />
+        ) : (
+          <header
+            className={`app-page-header ${useBottomNav ? "hidden md:block" : "block"} px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6`}
+          >
+            <div
+              className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
+            >
               <div className="min-w-0">
                 <p className="eyebrow">{eyebrowFor(role)}</p>
                 <h1 className="cc-page-title mt-2 truncate">
                   {currentSectionLabel(pathname, groups)}
                 </h1>
               </div>
+              <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
+                {useBottomNav ? (
+                  <>
+                    <MemberNotificationCenter viewport="desktop" />
+                    <BrandHeaderWordmark className="scale-[0.95]" />
+                  </>
+                ) : null}
+              </div>
             </div>
           </header>
         )}
 
         {/* Content */}
-        <div
-          className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${
-            useBottomNav
-              ? "pb-[calc(var(--member-bottom-nav-height)+env(safe-area-inset-bottom)+1rem)] md:pb-16"
-              : "pb-12"
-          }`}
-        >
-          <div className={contentFrameClass}>
-            {useBottomNav ? (
-              <MemberRouteContent
-                pathname={pendingMobilePathname ?? pathname}
-                isPendingPathChange={isPendingPathChange}
-              >
-                {children}
-              </MemberRouteContent>
-            ) : (
-              children
-            )}
-          </div>
+        <div className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
+          <div className={contentFrameClass}>{children}</div>
         </div>
 
-        {/* Bottom tabs — member only, mobile only */}
-        {useBottomNav && (
-          <MemberMobileBottomNavigation
-            tabs={bottomTabs}
-            pathname={pathname}
-            isRtl={isRtl}
-            onNavigate={(to) => {
-              mobileNavigationStartedRef.current = false;
-              flushSync(() => setPendingMobilePathname(to));
-            }}
-          />
-        )}
+        {useBottomNav && <MemberBottomNavigation pathname={pathname} />}
       </main>
     </div>
   );
@@ -665,46 +439,39 @@ function SidebarPanel({
 
 function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: boolean }) {
   const [open, setOpen] = useState(false);
+  const menuWrapperRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const codes = Object.keys(LANG_META) as Lang[];
   const currentLang = LANG_META[lang] ? lang : "he";
   const current = LANG_META[currentLang];
-  const menuId = useId().replace(/:/g, "");
-  const menuWrapperRef = useRef<HTMLDivElement | null>(null);
-  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const menuItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
-
-  function focusMenuItem(index: number) {
-    requestAnimationFrame(() => menuItemRefs.current[index]?.focus());
-  }
-
-  function openFromKeyboard(key: string) {
-    const selectedIndex = Math.max(0, codes.indexOf(currentLang));
-    const targetIndex = nextLanguageMenuIndex(key, selectedIndex, selectedIndex, codes.length);
-    if (targetIndex === null) return false;
-    setOpen(true);
-    focusMenuItem(targetIndex);
-    return true;
-  }
+  const menuId = `member-language-menu-${useId().replace(/:/g, "")}`;
 
   function choose(next: Lang) {
     applyLang(next);
     setOpen(false);
-    requestAnimationFrame(() => menuTriggerRef.current?.focus());
+    window.requestAnimationFrame(() => triggerRef.current?.focus());
   }
 
-  function handleMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+  function focusMenuItem(index: number) {
+    setOpen(true);
+    window.requestAnimationFrame(() => menuItemRefs.current[index]?.focus());
+  }
+
+  function handleMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const currentIndex = Math.max(0, codes.indexOf(currentLang));
+    const focusedIndex = menuItemRefs.current.findIndex((item) => item === document.activeElement);
     if (event.key === "Escape") {
       event.preventDefault();
       setOpen(false);
-      requestAnimationFrame(() => menuTriggerRef.current?.focus());
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
       return;
     }
-    const focusedIndex = menuItemRefs.current.findIndex((item) => item === document.activeElement);
-    const selectedIndex = Math.max(0, codes.indexOf(currentLang));
-    const targetIndex = nextLanguageMenuIndex(event.key, focusedIndex, selectedIndex, codes.length);
-    if (targetIndex === null) return;
-    event.preventDefault();
-    focusMenuItem(targetIndex);
+    const nextIndex = nextLanguageMenuIndex(event.key, focusedIndex, currentIndex, codes.length);
+    if (nextIndex !== null) {
+      event.preventDefault();
+      focusMenuItem(nextIndex);
+    }
   }
 
   return (
@@ -712,22 +479,16 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
       ref={menuWrapperRef}
       className="relative inline-block text-start"
       onBlur={() => {
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
           if (!menuWrapperRef.current?.contains(document.activeElement)) setOpen(false);
         });
       }}
+      onKeyDown={handleMenuKeyDown}
     >
       <button
-        ref={menuTriggerRef}
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen((value) => !value)}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            setOpen(false);
-            return;
-          }
-          if (openFromKeyboard(event.key)) event.preventDefault();
-        }}
         className={`inline-flex max-w-full shrink-0 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border)] bg-white/78 text-[var(--color-text-secondary)] shadow-[var(--shadow-card)] transition-[background-color,color,border-color] duration-200 hover:bg-white ${
           compact ? "h-10 w-10 px-0" : "min-h-11 px-4 text-xs"
         }`}
@@ -749,21 +510,18 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
         <div
           id={menuId}
           role="menu"
-          aria-label={t("profile.language")}
-          onKeyDown={handleMenuKeyDown}
           className="absolute bottom-full end-0 z-50 mb-2 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[var(--color-surface-warm)] p-1 shadow-[var(--shadow-elevated)] backdrop-blur-xl"
         >
-          {codes.map((code, index) => (
+          {codes.map((code) => (
             <button
-              ref={(element) => {
-                menuItemRefs.current[index] = element;
-              }}
               key={code}
+              ref={(node) => {
+                menuItemRefs.current[codes.indexOf(code)] = node;
+              }}
               type="button"
               role="menuitemradio"
-              aria-checked={lang === code}
               tabIndex={currentLang === code ? 0 : -1}
-              onMouseDown={(event) => event.preventDefault()}
+              aria-checked={lang === code}
               onClick={() => choose(code)}
               className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--radius-md)] px-3 text-sm transition-[background-color,color] duration-200 ${
                 currentLang === code
@@ -802,9 +560,9 @@ function BrandMark({
   className?: string;
   tone?: "gold" | "navy";
 }) {
-  const strokeColor = tone === "gold" ? "var(--color-gold)" : "var(--color-navy)";
-  const goldColor = "var(--color-gold)";
-  const fillColor = tone === "gold" ? "var(--cc-alpha-gold-10)" : "var(--cc-alpha-navy-03)";
+  const strokeColor = tone === "gold" ? "#C59B4E" : "var(--color-navy)";
+  const goldColor = "#C59B4E";
+  const fillColor = tone === "gold" ? "rgba(197, 155, 78, 0.08)" : "rgba(11, 29, 58, 0.03)";
 
   return (
     <svg

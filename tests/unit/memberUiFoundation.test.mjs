@@ -9,8 +9,9 @@ const root = resolve(import.meta.dir, "../..");
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 
 describe("member UI foundation", () => {
-  test("defines the current semantic surface, action, focus, spacing, and type tokens", () => {
+  test("defines the shared semantic tokens and neutral member palette", () => {
     const tokens = read("src/styles/tokens.css");
+    const neutral = read("src/styles/neutral-member-candidate.css");
 
     for (const token of [
       "--cc-surface-canvas",
@@ -23,13 +24,16 @@ describe("member UI foundation", () => {
     ]) {
       expect(tokens).toContain(token);
     }
+    expect(neutral).toContain("--color-surface-canvas: #f9f9f9");
+    expect(neutral).toContain("--color-text-primary: #202020");
   });
 
   test("keeps class location readable instead of truncating it", () => {
-    const detail = read("src/components/member/ClassDetailSheet.tsx");
-
-    expect(detail).toContain("allowWrap={true}");
-    expect(detail).toContain("break-words");
+    const detail = read("src/components/member/ClassDetailContent.tsx");
+    const styles = read("src/styles/studio-refinement.css");
+    expect(detail).toContain("getFriendlyStudioLocation(lang)");
+    expect(detail).toContain("<bdi>{f.value}</bdi>");
+    expect(styles).toMatch(/\.aura-detail-facts dd\s*\{[^}]*overflow-wrap:\s*anywhere/s);
   });
 
   test("keeps the language menu keyboard-operable", () => {
@@ -39,10 +43,14 @@ describe("member UI foundation", () => {
     expect(shell).toContain('event.key === "Escape"');
     expect(shell).toContain("menuWrapperRef.current?.contains(document.activeElement)");
     expect(shell).toContain("tabIndex={currentLang === code ? 0 : -1}");
+
     expect(nextLanguageMenuIndex("ArrowDown", 0, 0, 3)).toBe(1);
+    expect(nextLanguageMenuIndex("ArrowDown", 1, 0, 3)).toBe(2);
+    expect(nextLanguageMenuIndex("ArrowDown", 2, 0, 3)).toBe(0);
     expect(nextLanguageMenuIndex("ArrowUp", 0, 0, 3)).toBe(2);
     expect(nextLanguageMenuIndex("Home", 2, 0, 3)).toBe(0);
     expect(nextLanguageMenuIndex("End", 0, 0, 3)).toBe(2);
+    expect(nextLanguageMenuIndex("Enter", 0, 0, 3)).toBeNull();
   });
 
   test("uses locale-derived direction in root, authenticated recovery, and payment-result presentation", () => {

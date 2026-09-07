@@ -1,2 +1,12 @@
-/* Compatibility entry for tooling and older consumers. Route CSS is owned by route shells. */
+/* Compatibility entry for the neutral member/auth shell. Keep main's shared
+   foundation and add the focused route skins shipped with this redesign. */
 @import "./styles/base.css";
+@source "../src";
+@import "./styles/admin.css";
+@import "./styles/member.css";
+@import "./styles/member-refresh.css";
+@import "./styles/studio-auth.css";
+@import "./styles/member-home-phase1.css";
+@import "./styles/studio-refinement.css";
+@import "./styles/studio-member-completion.css";
+@import "./styles/neutral-member-candidate.css";

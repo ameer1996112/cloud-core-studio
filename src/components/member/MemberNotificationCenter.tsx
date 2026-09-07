@@ -423,7 +423,7 @@ export function MemberNotificationCenter({
     <div className={className}>
       <button
         type="button"
-        aria-label={copy.title}
+        aria-label={`${copy.title}${(data?.unreadCount ?? 0) > 0 ? `, ${data?.unreadCount} ${copy.unread}` : ""}`}
         onClick={() => setOpen(true)}
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate transition-colors hover:bg-gold/10 hover:text-navy"
       >
