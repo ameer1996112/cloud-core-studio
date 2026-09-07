@@ -1,18 +1,17 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { AuthFrame } from "@/components/auth/AuthFrame";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearSupabaseAccessTokenCookie } from "@/integrations/supabase/session-cookie";
 import { toast } from "sonner";
-import { useI18n } from "@/lib/i18n";
+import { applyLang, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   clearPasswordResetUrlTokens,
   getResetPasswordValidationError,
   validatePasswordResetRecovery,
 } from "@/lib/password-reset-flow";
-import { PublicShell } from "@/components/public/PublicShell";
-import { PasswordResetPanel } from "@/components/auth/PasswordResetPanel";
 
 export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
@@ -29,8 +28,6 @@ function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<"validating" | "ready" | "invalid">("validating");
   const [formError, setFormError] = useState("");
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const confirmRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,9 +69,6 @@ function ResetPasswordPage() {
       const message = t(validationKey);
       setFormError(message);
       toast(message);
-      window.requestAnimationFrame(() => {
-        (validationKey === "reset.mismatch" ? confirmRef : passwordRef).current?.focus();
-      });
       return;
     }
     setBusy(true);
@@ -97,19 +91,34 @@ function ResetPasswordPage() {
   }
 
   return (
-    <PublicShell
-      headerMode="compact"
-      showAccount={false}
-      mainClassName="auth-page min-h-[100dvh] member-shell flex items-center justify-center px-6 py-10"
+    <AuthFrame
+      lang={lang}
+      onLocaleChange={applyLang}
+      recovery
+      eyebrow={t("reset.eyebrow")}
+      title={
+        status === "ready"
+          ? t("reset.headline")
+          : status === "invalid"
+            ? t("reset.invalidTitle")
+            : t("reset.validatingTitle")
+      }
     >
-      <PasswordResetPanel status={status} lang={lang}>
+      <div className="auth-form-card">
+        <p className="text-sm text-slate mt-4 text-start">
+          {status === "ready"
+            ? t("reset.hint.ready")
+            : status === "invalid"
+              ? t("reset.invalidBody")
+              : t("reset.hint.loading")}
+        </p>
+
         {status === "ready" && (
-          <form onSubmit={submit} className="space-y-4 mt-7" dir={dir}>
+          <form onSubmit={submit} className="auth-form" dir={dir}>
             <label className="block text-start">
               <span className="field-label">{t("reset.newPassword")}</span>
               <div className="relative">
                 <input
-                  ref={passwordRef}
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
@@ -124,8 +133,6 @@ function ResetPasswordPage() {
                   autoCorrect="off"
                   spellCheck={false}
                   className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus pe-10"
-                  aria-invalid={formError === t("reset.tooShort")}
-                  aria-describedby={formError ? "reset-password-error" : undefined}
                 />
                 <button
                   type="button"
@@ -141,7 +148,6 @@ function ResetPasswordPage() {
               <span className="field-label">{t("reset.confirmPassword")}</span>
               <div className="relative">
                 <input
-                  ref={confirmRef}
                   type={showConfirm ? "text" : "password"}
                   value={confirm}
                   onChange={(e) => {
@@ -156,8 +162,6 @@ function ResetPasswordPage() {
                   autoCorrect="off"
                   spellCheck={false}
                   className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus pe-10"
-                  aria-invalid={formError === t("reset.mismatch")}
-                  aria-describedby={formError ? "reset-password-error" : undefined}
                 />
                 <button
                   type="button"
@@ -171,12 +175,7 @@ function ResetPasswordPage() {
             </label>
 
             {formError && (
-              <p
-                id="reset-password-error"
-                className="auth-form-error"
-                role="alert"
-                aria-live="polite"
-              >
+              <p className="auth-form-error" role="alert" aria-live="polite">
                 {formError}
               </p>
             )}
@@ -205,8 +204,8 @@ function ResetPasswordPage() {
             </Link>
           </div>
         )}
-      </PasswordResetPanel>
-    </PublicShell>
+      </div>
+    </AuthFrame>
   );
 }
 

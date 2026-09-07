@@ -1,0 +1,198 @@
+/* Aura Reference Implementation A1. Replaces the rejected scoped home reset.
+   Auth retains its separate studio-auth.css presentation. No template scripts or assets. */
+.auth-page { font-family: var(--font-sans); }
+:root:has(.aura-home-page,.aura-schedule-page,.aura-class-detail,.aura-member-page) {
+  --font-ui-he: "Heebo Phase One", sans-serif;
+  --font-ui-ar: "IBM Plex Sans Arabic", "Heebo Phase One", sans-serif;
+  --font-ui-latin: "DM Sans", "Heebo Phase One", "IBM Plex Sans Arabic", sans-serif;
+  --font-sans: var(--font-ui-he);
+}
+:root[lang="en"]:has(.aura-home-page,.aura-schedule-page,.aura-class-detail,.aura-member-page) { --font-sans: var(--font-ui-latin); }
+:root[lang="ar"]:has(.aura-home-page,.aura-schedule-page,.aura-class-detail,.aura-member-page) { --font-sans: var(--font-ui-ar); }
+:is(.aura-home-page,.aura-schedule-page,.aura-class-detail,.aura-member-page) { font-family: var(--font-sans); color: var(--color-text-primary); }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) :is(h1,h2,h3) { font-family: var(--font-sans); letter-spacing: 0; text-wrap: balance; }
+:root[lang="en"] :is(.aura-home-page,.aura-schedule-page,.aura-member-page) :is(h1,h2), :root[lang="en"] .studio-class--featured h3 { font-family: Georgia,serif; letter-spacing: -.035em; font-weight: 500; }
+:is(.aura-home-page,.aura-schedule-page,.aura-class-detail,.aura-member-page) :is(h1,h2,h3) bdi { font-family: inherit; }
+/* The reference is mobile/dark only. Ivory canvas and desktop grid are C&C adaptations. */
+.member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) { background: var(--color-surface-warm); }
+.member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-header { background: var(--color-surface-warm); border-bottom: 1px solid var(--color-border); }
+.member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-header-inner { min-height: 80px; }
+.member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-desktop-nav a { font-family: var(--font-sans); font-size: .9375rem; background: none; border-radius: 0; padding-inline: 4px; }
+.member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-desktop-nav a[aria-current="page"] { border-color: #d4af6a; }
+.member-app .aura-home-page { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(0,1fr); gap: 24px 40px; padding: 28px 0 40px; }
+.aura-home-page .home-greeting { grid-column: 1 / -1; padding: 0; }
+.aura-home-page .home-greeting>p { font-size: .875rem; margin-bottom: 4px; }
+.aura-home-page .home-greeting h1 { font-size: 2.25rem; line-height: 1.3; font-weight: 500; }
+.aura-home-page h2 { font-size: 1.375rem; line-height: 1.5; font-weight: 500; }
+.aura-home-page .home-next { grid-column: 1; grid-row: 2; }
+.aura-home-page .home-next>h2 { font-size: .875rem; color: var(--color-text-secondary); margin-bottom: 12px; }
+.aura-home-page .home-account { grid-column: 1; grid-row: 3; padding: 0; }
+.aura-home-page .home-discovery { grid-column: 2; }
+.aura-home-page .home-primary-layout+.home-discovery { grid-row: 2 / 4; }
+.aura-home-page .home-section-heading { align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.aura-home-page .home-section-heading a { font-size: .875rem; }
+.aura-home-page .home-announcement { grid-column: 1; padding: 24px 0; border-top: 1px solid var(--color-border); }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .home-primary { min-height: 48px; padding: 12px 20px; border-radius: 999px; background: var(--color-action-primary,var(--color-navy)); color: var(--color-on-primary,var(--color-ivory)); font-weight: 500; font-size: 1rem; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .home-text-action { font-size: .875rem; font-weight: 500; min-height: 44px; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) :is(button,a,input,summary):focus-visible { outline: 2px solid var(--color-focus-outer); outline-offset: 4px; }
+/* One focal image. Content remains in flow so translated titles can expand. */
+.aura-home-page .studio-class--featured { container-type: inline-size; display: block; border: 0; background: none; box-shadow: none; border-radius: 0; }
+.aura-home-page .studio-class-hero { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; min-height: 390px; padding: 144px 28px 24px; overflow: hidden; border-radius: 28px; background: #0b1d3a; color: #faf7f2; }
+.aura-home-page .studio-class-media { position: absolute; inset: 0; z-index: -2; height: 100%; border-radius: 0; }
+.aura-home-page .studio-class-photo { display: block; width: 100%; height: 100%; max-height: none; object-fit: cover; object-position: 50% 80%; border-radius: 0; }
+.aura-home-page .studio-class-hero::after { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg,rgba(11,29,58,0) 0%,rgba(11,29,58,.14) 24%,rgba(11,29,58,.94) 62%,#0b1d3a 100%); pointer-events: none; }
+.aura-home-page .studio-class--featured .studio-class-reading { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px 24px; padding: 0; margin: 0; background: none; border: 0; border-radius: 0; box-shadow: none; color: #faf7f2; }
+.aura-home-page .studio-class--featured .studio-class-reading::before { content: ""; position: absolute; z-index: -1; inset: -28px -28px -160px; background: linear-gradient(180deg,transparent,#0b1d3ae0 28px,#0b1d3a 100%); pointer-events: none; }
+.aura-home-page .studio-class--featured .studio-class-content { grid-column: 1; grid-row: 1; }
+.aura-home-page .studio-class--featured h3 { color: #faf7f2; font-size: 1.875rem; line-height: 1.35; font-weight: 500; margin: 0; }
+.aura-home-page .studio-class--featured .studio-class-meta { color: #ede9e1; font-size: .875rem; margin: 8px 0 0; gap: 4px 10px; }
+.aura-home-page .studio-class--featured .studio-class-time { grid-column: 2; grid-row: 1 / 3; align-self: start; padding: 0; border: 0; border-radius: 0; background: none; min-width: 0; gap: 4px; color: #faf7f2; }
+.aura-home-page .studio-class--featured .studio-class-time time { font-size: 2rem; font-weight: 500; line-height: 1.2; color: #faf7f2; }
+.aura-home-page .studio-class--featured .studio-class-time>span { font-size: .875rem; color: #ede9e1; }
+.aura-home-page .studio-class--featured .studio-class-status { grid-column: 1; grid-row: 2; margin: 0; }
+.aura-home-page .studio-class--featured .studio-class-status>span { background: none; color: #f1d6a5; border: 0; padding: 0; font-size: .875rem; font-weight: 500; }
+.aura-home-page .studio-class--featured .studio-class-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 20px 0 0; }
+.aura-home-page .studio-class--featured .home-primary { background: #d4af6a; color: #0b1d3a; border: 1px solid #d4af6a; }
+.aura-home-page .studio-class--featured .home-text-action { color: #faf7f2; }
+.aura-home-page .studio-class--featured :is(button,a):focus-visible { outline-color: #faf7f2; }
+.aura-home-page .home-calendar-action { width: 44px; min-width: 44px; height: 44px; border: 1px solid #8795a9; border-radius: 50%; padding: 0; }
+.aura-home-page .home-calendar-action span { display: none; }
+.aura-home-page .studio-class-note { border: 0; padding: 12px 4px 0; font-size: .875rem; line-height: 1.6; color: var(--color-text-secondary); }
+/* Repeated classes use the same time / identity / action anatomy without repeated photos. */
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row { display: grid; grid-template-columns: 5.5em minmax(0,1fr) auto; gap: 4px 20px; align-items: center; padding: 20px 0; border: 0; border-bottom: 1px solid var(--color-border); background: none; border-radius: 0; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row :is(.studio-class-overview,.studio-class-reading) { display: contents; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-time { grid-column: 1; grid-row: 1 / 3; background: var(--color-surface-subtle); border-radius: 16px; padding: 12px 8px; gap: 4px; align-self: start; text-align: center; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-time time { font-size: 1.5rem; font-weight: 500; line-height: 1.2; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-time>span { font-size: .8125rem; line-height: 1.4; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-content { grid-column: 2; grid-row: 1; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row h3 { font-size: 1.25rem; line-height: 1.4; font-weight: 500; margin: 0; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-meta { font-size: .875rem; line-height: 1.5; margin-top: 6px; gap: 4px 10px; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-status { grid-column: 2; grid-row: 2; margin: 0; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-status>span { padding: 0; background: none; border: 0; border-radius: 0; color: var(--color-text-secondary); font-size: .875rem; font-weight: 400; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-actions { grid-column: 3; grid-row: 1 / 3; margin: 0; }
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .home-text-action { border: 1px solid var(--color-control-soft,#79879a); padding: 8px 16px; border-radius: 999px; }
+.aura-home-page .home-discovery .studio-class--row { grid-template-columns: 5em minmax(0,1fr); column-gap: 16px; }
+.aura-home-page .home-discovery .studio-class-actions { grid-column: 2; grid-row: 3; justify-content: start; }
+.aura-home-page .home-discovery .studio-class--row h3 { font-size: 1.125rem; }
+.aura-home-page .home-membership { display: grid; grid-template-columns: minmax(0,1fr) auto; padding: 16px 0; gap: 8px 16px; min-height: 0; background: none; border: 0; border-block: 1px solid var(--color-border); border-radius: 0; box-shadow: none; color: var(--color-text-primary); }
+.aura-home-page .membership-identity>p { color: var(--color-text-secondary); font-size: .8125rem; }
+.member-app .aura-home-page .membership-identity h3 { font-size: 1rem; font-weight: 500; color: var(--color-text-primary); margin-top: 4px; }
+.aura-home-page .membership-balance { grid-column: 2; grid-row: 1; flex-direction: row; gap: 8px; align-items: baseline; }
+.aura-home-page .membership-balance strong { font-size: 1.875rem; font-weight: 500; line-height: 1; }
+.aura-home-page .membership-balance span { color: var(--color-text-secondary); font-size: .8125rem; }
+.aura-home-page .membership-validity { grid-column: 1 / -1; padding: 0; border: 0; color: var(--color-text-secondary); font-size: .8125rem; }
+.aura-home-page .membership-unlimited { color: var(--color-text-primary)!important; font-size: 1rem!important; }
+.aura-home-page .home-utilities { margin-top: 12px; }
+.aura-home-page .home-quick-actions { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.aura-home-page .home-quick-actions a { font-size: .875rem; font-weight: 400; }
+.aura-home-page :is(.home-status,.home-choose,.home-empty) { padding: 24px 0; background: none; box-shadow: none; border: 0; border-radius: 0; }
+.aura-home-page .home-choose { border-block: 1px solid var(--color-border); }
+.aura-home-page .home-loading-main { min-height: 390px; border-radius: 28px; }
+/* Schedule: compact heading, search and date chips, optional detailed filters. */
+.aura-schedule-page { padding: 28px 0 40px; display: flex; flex-direction: column; gap: 24px; }
+.aura-schedule-results { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.aura-schedule-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.aura-schedule-heading h1 { font-size: 2.25rem; line-height: 1.3; margin: 4px 0 8px; font-weight: 500; }
+.aura-schedule-heading p { color: var(--color-text-secondary); font-size: .9375rem; }
+.aura-schedule-heading .member-eyebrow { font-size: .8125rem; color: var(--color-text-secondary); }
+.aura-schedule-totals { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-bottom: 4px; font-size: .875rem; color: var(--color-text-secondary); }
+.aura-schedule-totals strong { font-size: 1.25rem; font-weight: 500; color: var(--color-text-primary); margin-inline-end: 4px; }
+.aura-schedule-page .member-schedule-filter-panel { border: 0; padding: 0 0 20px; border-bottom: 1px solid var(--color-border); border-radius: 0; background: none; box-shadow: none; display: flex; flex-direction: column; gap: 12px; }
+.aura-schedule-page .member-schedule-filter-panel::before { display: none; }
+.aura-schedule-page .member-schedule-filter-panel__primary { display: grid; grid-template-columns: minmax(240px,1fr) auto; align-items: center; gap: 24px; }
+.aura-schedule-page .member-schedule-search-field { background: var(--color-surface-subtle); border: 1px solid var(--color-control-soft,#79879a); border-radius: 999px; min-height: 52px; box-shadow: none; }
+.aura-schedule-page .member-schedule-search-field__input { height: 50px; font-size: 1rem; color: var(--color-text-primary); background: transparent; }
+.aura-schedule-page .member-schedule-segmented { padding: 0; background: none; border: 0; box-shadow: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.aura-schedule-page .member-schedule-segment { padding: 10px 20px; min-height: 44px; border: 1px solid var(--color-border); border-radius: 999px; font-size: .9375rem; color: var(--color-text-primary); background: var(--color-surface); box-shadow: none; }
+.aura-schedule-page .member-schedule-segment-active { background: #d4af6a; border-color: #d4af6a; color: #0b1d3a; font-weight: 500; }
+.aura-schedule-page .member-schedule-filter-disclosure summary { width: fit-content; min-height: 44px; padding-block: 10px; font-size: .875rem; cursor: pointer; }
+.aura-schedule-page .member-schedule-filter-groups { background: var(--color-surface-subtle); border-radius: 16px; padding: 16px; gap: 16px; }
+.aura-schedule-page .member-schedule-filter-group { padding: 0; border: 0; }
+.aura-schedule-page .member-schedule-filter-chip { min-height: 44px; font-size: .875rem; border-radius: 999px; padding-inline: 16px; }
+.aura-schedule-page .member-schedule-filter-chip-active { background: var(--color-action-primary,var(--color-navy)); color: var(--color-on-primary,var(--color-ivory)); }
+.aura-schedule-page .member-schedule-filter-panel__reset { align-self: start; min-height: 44px; color: var(--color-text-primary); }
+.aura-schedule-page .schedule-day-header { display: flex; flex-wrap: wrap; align-items: baseline; background: none; padding: 0 0 8px; border: 0; margin: 0; box-shadow: none; gap: 12px; }
+.aura-schedule-page .schedule-day-header__copy { width: auto; flex: 0 1 auto; }
+.aura-schedule-page .schedule-day-header__rule { display: none; }
+.aura-schedule-page .schedule-day-header__eyebrow { display: none; }
+.aura-schedule-page .schedule-day-header__title { font-size: 1.25rem; font-weight: 500; }
+.aura-schedule-page :is(.schedule-day-header__count,.schedule-day-header__date) { background: none; color: var(--color-text-secondary); padding: 0; border: 0; font-size: .875rem; }
+.aura-schedule-page .schedule-day-section { gap: 0; padding: 0; margin: 0; }
+.aura-schedule-page .schedule-day-section__cards { display: block; }
+/* Existing Radix dialog and mutations retained; readable detail sheet replaces nested panels. */
+.aura-class-detail.lesson-detail { width: min(720px,calc(100vw - 32px)); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; gap: 0; padding: 0; overflow-y: auto; background: var(--color-surface-warm); border: 1px solid var(--color-border); border-radius: 24px; box-shadow: 0 20px 60px #0b1d3a30; }
+.aura-class-detail>.aura-detail-close { position: sticky; top: 12px; align-self: end; margin: 12px 12px -56px; min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-control-soft); z-index: 3; }
+.aura-class-detail>button:last-child:not(.aura-detail-close) { display: none; }
+.aura-detail-hero { position: relative; isolation: isolate; padding: 140px 28px 24px; min-height: 280px; display: flex; align-items: end; background: #0b1d3a; color: #faf7f2; }
+.aura-detail-hero>img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; }
+.aura-detail-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(transparent 10%,#0b1d3aea 85%); }
+.aura-detail-heading h2 { color: #faf7f2; font-family: var(--font-sans); font-size: 1.875rem; line-height: 1.4; margin: 8px 0; font-weight: 500; }
+.aura-detail-heading>span { background: none; padding: 0; border: 0; color: #f1d6a5; font-size: .875rem; }
+.aura-detail-heading>p { font-size: 1rem; }
+.aura-detail-reading { padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 20px; }
+.aura-detail-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 24px; }
+.aura-detail-facts dt { font-size: .875rem; color: var(--color-text-secondary); margin-bottom: 4px; }
+.aura-detail-facts dd { font-size: 1rem; overflow-wrap: anywhere; }
+.aura-detail-reading .studio-class-descriptors { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .875rem; color: var(--color-text-secondary); }
+.aura-detail-notes { padding-top: 20px; border-top: 1px solid var(--color-border); font-size: .875rem; line-height: 1.7; }
+.aura-detail-notes h3 { font-size: 1rem; font-weight: 500; margin-bottom: 8px; }
+.aura-detail-description { line-height: 1.7; }
+.aura-class-detail .lesson-detail__cta { position: static; padding: 0; margin: 0; background: none; border: 0; box-shadow: none; }
+.aura-class-detail .lesson-detail__cta :is(button,a) { min-height: 52px; border-radius: 999px; font-size: 1rem; }
+.aura-class-detail :is(a,button):focus-visible { outline: 2px solid var(--color-focus-outer); outline-offset: 3px; }
+@media(min-width:1024px) {
+  .aura-schedule-page { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 24px 40px; align-items: start; }
+  .aura-schedule-heading { grid-column: 1 / -1; }
+  .aura-schedule-page .member-schedule-filter-panel { grid-column: 2; grid-row: 2; padding: 20px; border: 1px solid var(--color-border); border-radius: 24px; }
+  .aura-schedule-page .member-schedule-filter-panel__primary { grid-template-columns: minmax(0,1fr); gap: 16px; }
+  .aura-schedule-page .member-schedule-segmented { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .aura-schedule-results { grid-column: 1; grid-row: 2; }
+  .aura-schedule-page .studio-class--row { grid-template-columns: 5.5em fit-content(24em) auto; padding-block: 16px; }
+  .aura-schedule-page .studio-class-actions { justify-content: start; }
+}
+@media(max-width:1023px) {
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-header-inner { min-height: 72px; }
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .member-shell-main { margin-bottom: calc(var(--member-nav-height,80px) + 12px); padding-bottom: 16px; }
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-bottom-nav { padding: 0 16px env(safe-area-inset-bottom); background: var(--color-surface-warm); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 24px #0b1d3a08; }
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-bottom-nav-inner { display: grid; grid-template-columns: repeat(auto-fit,minmax(4.4em,1fr)); font-size: .75rem; gap: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-bottom-nav a { min-height: 68px; padding: 8px 2px; font-family: var(--font-sans); font-size: .75rem; font-weight: 400; color: var(--color-text-secondary); border: 0; border-radius: 0; background: none; box-shadow: none; overflow-wrap: normal; word-break: normal; }
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-bottom-nav a[aria-current="page"] { color: var(--color-text-primary); font-weight: 500; }
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-bottom-nav a[aria-current="page"] svg { color: #89672e; }
+}
+@media(max-width:767px) {
+  .member-app .aura-home-page { display: flex; gap: 20px; padding-top: 16px; }
+  .aura-home-page .home-greeting h1,.aura-schedule-heading h1 { font-size: 1.875rem; }
+  .aura-home-page .home-next>h2 { margin-bottom: 8px; }
+  .aura-home-page .studio-class-hero { min-height: 324px; padding: 112px 20px 20px; border-radius: 24px; }
+  .aura-home-page .studio-class--featured .studio-class-reading { gap: 8px 12px; }
+  .aura-home-page .studio-class--featured h3 { font-size: 1.5rem; }
+  .aura-home-page .studio-class--featured .studio-class-time time { font-size: 1.625rem; }
+  .aura-home-page .studio-class--featured .studio-class-meta { margin-top: 6px; }
+  .aura-home-page .studio-class--featured .studio-class-actions { margin-top: 16px; }
+  .aura-home-page .studio-class--featured .home-primary { flex: 1; }
+  .aura-home-page .home-membership { padding-block: 12px; gap: 6px 12px; }
+  .aura-home-page .membership-balance { flex-direction: column; gap: 4px; align-items: end; }
+  .aura-home-page .home-discovery { width: 100%; }
+  .aura-schedule-page { padding-top: 20px; gap: 20px; }
+  .aura-schedule-heading { align-items: start; flex-direction: column; gap: 12px; }
+  .aura-schedule-totals { gap: 16px; }
+  .aura-schedule-page .member-schedule-filter-panel__primary { grid-template-columns: minmax(0,1fr); gap: 16px; }
+  .aura-schedule-page .member-schedule-segmented { gap: 8px; }
+  .aura-schedule-page .member-schedule-segment { flex: 1 0 auto; max-width: 100%; padding: 10px 12px; font-size: .875rem; }
+  :is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row { grid-template-columns: 4.75em minmax(0,1fr); gap: 6px 16px; padding-block: 16px; }
+  :is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row .studio-class-actions { grid-column: 2; grid-row: 3; justify-content: start; }
+  :is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class--row h3 { font-size: 1.125rem; }
+}
+@container(max-width:18em) {
+  .aura-home-page .studio-class--featured .studio-class-reading { grid-template-columns: minmax(0,1fr); }
+  .aura-home-page .studio-class--featured .studio-class-time { grid-column: 1; grid-row: 2; }
+  .aura-home-page .studio-class--featured .studio-class-status { grid-row: 3; }
+}
+@media(prefers-color-scheme:dark) {
+  .member-app:has(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-member-bottom-nav a[aria-current="page"] svg { color: #d4af6a; }
+}
+:is(.aura-home-page,.aura-schedule-page,.aura-member-page) .studio-class-descriptors { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .875rem; color: var(--color-text-secondary); margin-top: 6px; }
+.aura-schedule-page .studio-class-actions { flex-wrap: wrap; }
+.aura-schedule-page .schedule-day-header__copy { flex: 0 1 auto; grid-column: auto; }
+.aura-schedule-page .schedule-day-header__date { margin-inline-start: 0; }
+.aura-schedule-page .schedule-day-header__count { margin-inline-start: auto; }

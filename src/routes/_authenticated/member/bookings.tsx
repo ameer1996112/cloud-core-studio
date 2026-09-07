@@ -1,3 +1,4 @@
+import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,15 +11,8 @@ import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
 import { formatDate, formatTime, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
-import { LessonReservationCard } from "@/components/visual/VisualClassCard";
-import { BidiValue } from "@/components/ui/bidi";
-import { MemberCancellationDialog } from "@/components/member/MemberCancellationDialog";
-import { MemberPageIntro } from "@/components/member/MemberPage";
-import {
-  MemberSegmentedControl,
-  memberSegmentIds,
-} from "@/components/member/MemberSegmentedControl";
-import { MemberRouteError, MemberRouteSkeleton } from "@/components/member/MemberRouteSkeleton";
+import { ReservationRow } from "@/components/member/ReservationRow";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
@@ -35,25 +29,12 @@ import {
   resolvePersonalConciergeOnboarding,
   type PersonalConciergeOnboardingChoice,
 } from "@/lib/personalConciergeOnboarding";
-import { deriveBookingViewState } from "@/lib/booking-view-state";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
   component: MyBookings,
 });
 
 type Tab = "upcoming" | "past" | "waitlist" | "cancelled";
-
-// eslint-disable-next-line react-refresh/only-export-components -- Public pure ordering seam.
-export function sortUpcomingBookingsByStart<
-  Booking extends { class?: { starts_at?: string | null } | null },
->(bookings: readonly Booking[]) {
-  const startTime = (booking: Booking) => {
-    const parsed = Date.parse(booking.class?.starts_at ?? "");
-    return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
-  };
-
-  return [...bookings].sort((left, right) => startTime(left) - startTime(right));
-}
 
 function MyBookings() {
   const { dir, lang } = useI18n();
@@ -154,10 +135,8 @@ function MyBookings() {
   const now = Date.now();
   const bookings = data?.bookings ?? [];
   const attMap = data?.attendanceByBooking ?? {};
-  const upcoming = sortUpcomingBookingsByStart(
-    bookings.filter(
-      (b: any) => b.status === "booked" && b.class && new Date(b.class.starts_at).getTime() >= now,
-    ),
+  const upcoming = bookings.filter(
+    (b: any) => b.status === "booked" && b.class && new Date(b.class.starts_at).getTime() >= now,
   );
   const past = bookings.filter(
     (b: any) =>
@@ -174,9 +153,6 @@ function MyBookings() {
     waitlist: waitlist.length,
     cancelled: cancelled.length,
   };
-  const hasBookingsData = data != null;
-  const isInitialLoading = isLoading && !hasBookingsData;
-  const hasFatalError = isError && !hasBookingsData;
   const current =
     tab === "upcoming"
       ? upcoming
@@ -185,7 +161,6 @@ function MyBookings() {
         : tab === "cancelled"
           ? cancelled
           : waitlist;
-  const activePanelIds = memberSegmentIds("member-bookings", tab);
   const firstVisitBooking = data?.hasAttended === false ? upcoming[0] : null;
   const conciergeOnboarding = resolvePersonalConciergeOnboarding({
     conciergeAvailable: conciergeProfile?.available === true,
@@ -262,124 +237,103 @@ function MyBookings() {
             location: "Location",
           };
 
+  if (isLoading || isError)
+    return (
+      <MemberPageState title={t("nav.myBookings")} error={isError} onRetry={() => void refetch()} />
+    );
+
   return (
-    <section dir={dir} className="member-page member-bookings-page w-full space-y-6 pb-10">
-      <MemberPageIntro
-        eyebrow={t("member.bookings.kicker")}
-        title={t("nav.myBookings")}
-        body={t("member.bookings.body")}
-        aside={
-          hasBookingsData ? (
-            <div className="member-booking-counts member-bookings-stat-strip">
-              <StatCell label={t("bookings.upcoming")} value={counts.upcoming} />
-              <StatCell label={t("bookings.waitlist")} value={counts.waitlist} />
-            </div>
-          ) : (
-            <div className="member-booking-counts-placeholder" aria-hidden="true">
-              <span className="skeleton-brand" />
-              <span className="skeleton-brand" />
-            </div>
-          )
-        }
-      />
+    <section dir={dir} className="member-page aura-member-page aura-bookings-page">
+      <header className="aura-page-heading">
+        <p className="member-eyebrow">{t("member.bookings.kicker")}</p>
+        <h1>{t("nav.myBookings")}</h1>
+        <p>{t("member.bookings.body")}</p>
+      </header>
 
-      <MemberSegmentedControl
-        baseId="member-bookings"
-        label={t("nav.myBookings")}
-        value={tab}
-        onChange={setTab}
-        dir={dir}
-        items={[
-          {
-            value: "upcoming",
-            label: t("bookings.upcoming"),
-            count: hasBookingsData ? counts.upcoming : undefined,
-          },
-          {
-            value: "waitlist",
-            label: t("bookings.waitlist"),
-            count: hasBookingsData ? counts.waitlist : undefined,
-          },
-          {
-            value: "past",
-            label: t("bookings.past"),
-            count: hasBookingsData ? counts.past : undefined,
-          },
-          {
-            value: "cancelled",
-            label: t("bookings.cancelled"),
-            count: hasBookingsData ? counts.cancelled : undefined,
-          },
-        ]}
-      />
+      <div className="member-control-panel member-tab-bar no-scrollbar">
+        {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (
+          <button
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
+            aria-pressed={tab === tabKey}
+            className={`member-tab-button ${
+              tab === tabKey
+                ? "member-tab-button-active"
+                : "bg-transparent text-slate hover:bg-sand/60 hover:text-navy"
+            }`}
+          >
+            {tabKey === "upcoming"
+              ? t("bookings.upcoming")
+              : tabKey === "waitlist"
+                ? t("bookings.waitlist")
+                : tabKey === "past"
+                  ? t("bookings.past")
+                  : t("bookings.cancelled")}{" "}
+            {!isLoading && <span className="member-tab-count">{counts[tabKey]}</span>}
+          </button>
+        ))}
+      </div>
 
-      <div
-        id={activePanelIds.panelId}
-        role="tabpanel"
-        aria-labelledby={activePanelIds.tabId}
-        aria-busy={isInitialLoading || undefined}
-        tabIndex={0}
-        className="member-bookings-panel"
-      >
-        {isInitialLoading ? <MemberRouteSkeleton route="bookings" /> : null}
+      {isLoading && (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-32 skeleton-brand rounded-[var(--cc-radius-card)]" />
+          ))}
+        </div>
+      )}
 
-        {hasFatalError ? <MemberRouteError onRetry={() => void refetch()} /> : null}
+      {!isLoading && current.length === 0 && (
+        <MemberEmptyState
+          variant={tab === "upcoming" ? "bookings" : "cloudCard"}
+          eyebrow={tab === "upcoming" ? t("member.empty.bookings.eyebrow") : undefined}
+          title={
+            tab === "upcoming"
+              ? t("member.empty.bookings.title")
+              : tab === "waitlist"
+                ? t("member.empty.waitlist.title")
+                : tab === "past"
+                  ? t("member.empty.past.title")
+                  : t("member.empty.cancelled.title")
+          }
+          body={
+            tab === "upcoming"
+              ? t("member.empty.bookings.body")
+              : tab === "waitlist"
+                ? t("member.empty.waitlist.body")
+                : tab === "past"
+                  ? t("member.empty.past.body")
+                  : t("member.empty.cancelled.body")
+          }
+          primaryAction={
+            tab === "upcoming"
+              ? { label: t("member.browseSchedule"), to: "/member/schedule" }
+              : undefined
+          }
+          illustration={null}
+        />
+      )}
 
-        {hasBookingsData && !hasFatalError && current.length === 0 && (
-          <MemberEmptyState
-            variant={tab === "upcoming" ? "bookings" : "cloudCard"}
-            eyebrow={tab === "upcoming" ? t("member.empty.bookings.eyebrow") : undefined}
-            title={
-              tab === "upcoming"
-                ? t("member.empty.bookings.title")
-                : tab === "waitlist"
-                  ? t("member.empty.waitlist.title")
-                  : tab === "past"
-                    ? t("member.empty.past.title")
-                    : t("member.empty.cancelled.title")
-            }
-            body={
-              tab === "upcoming"
-                ? t("member.empty.bookings.body")
-                : tab === "waitlist"
-                  ? t("member.empty.waitlist.body")
-                  : tab === "past"
-                    ? t("member.empty.past.body")
-                    : t("member.empty.cancelled.body")
-            }
-            primaryAction={
-              tab === "upcoming"
-                ? { label: t("member.browseSchedule"), to: "/member/schedule" }
-                : undefined
-            }
-            illustration={tab === "upcoming" ? "cloudCardPreview" : "noBookings"}
-          />
-        )}
-
-        {hasBookingsData && !hasFatalError && current.length > 0 ? (
-          <div className="member-bookings-list">
-            {tab === "waitlist"
-              ? waitlist.map((w: any) => (
-                  <WaitlistCard
-                    key={w.id}
-                    entry={w}
-                    onOpen={() => setOpenClass(w.class.id)}
-                    onLeave={() => leave.mutate(w.id)}
-                  />
-                ))
-              : current.map((b: any) => (
-                  <BookingCard
-                    key={b.id}
-                    booking={b}
-                    attendance={attMap[b.id]}
-                    onOpen={() => setOpenClass(b.class.id)}
-                    onCancel={tab === "upcoming" ? () => setConfirmCancel(b) : undefined}
-                    muted={tab !== "upcoming"}
-                    studio={settings ?? null}
-                  />
-                ))}
-          </div>
-        ) : null}
+      <div className="space-y-3">
+        {tab === "waitlist"
+          ? waitlist.map((w: any) => (
+              <WaitlistCard
+                key={w.id}
+                entry={w}
+                onOpen={() => setOpenClass(w.class.id)}
+                onLeave={() => leave.mutate(w.id)}
+              />
+            ))
+          : current.map((b: any) => (
+              <BookingCard
+                key={b.id}
+                booking={b}
+                attendance={attMap[b.id]}
+                onOpen={() => setOpenClass(b.class.id)}
+                onCancel={tab === "upcoming" ? () => setConfirmCancel(b) : undefined}
+                muted={tab !== "upcoming"}
+                studio={settings ?? null}
+              />
+            ))}
       </div>
 
       {showConciergeOnboarding && (
@@ -417,7 +371,7 @@ function MyBookings() {
               type="button"
               disabled={resolveOnboarding.isPending}
               onClick={() => resolveOnboarding.mutate({ kind: "deferred" })}
-              className="member-concierge-defer-action min-h-11 text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
+              className="text-sm text-slate underline-offset-4 hover:text-navy hover:underline sm:col-span-3"
             >
               {onboardingCopy.later}
             </button>
@@ -429,15 +383,10 @@ function MyBookings() {
         <section className="member-card member-panel-sand p-5 sm:p-7">
           <p className="member-eyebrow">{firstVisitCopy.eyebrow}</p>
           <h2 className="member-section-title mt-2">{firstVisitCopy.title}</h2>
-          <p className="mt-3 font-medium text-navy">
-            {localizedClassTitle(firstVisitBooking.class)}
-          </p>
+          <p className="mt-3 font-medium text-navy">{firstVisitBooking.class.title}</p>
           <p className="mt-1 text-sm text-slate">
-            <BidiValue kind="localized-date">
-              {formatDate(firstVisitBooking.class.starts_at)}
-            </BidiValue>{" "}
-            ·{" "}
-            <BidiValue kind="time-range">{formatTime(firstVisitBooking.class.starts_at)}</BidiValue>
+            {formatDate(firstVisitBooking.class.starts_at)} ·{" "}
+            {formatTime(firstVisitBooking.class.starts_at)}
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {[firstVisitCopy.arrival, firstVisitCopy.clothing, firstVisitCopy.expectation].map(
@@ -468,29 +417,45 @@ function MyBookings() {
         </section>
       )}
 
-      {confirmCancel ? (
-        <MemberCancellationDialog
-          open
-          onOpenChange={(open) => {
-            if (!open) setConfirmCancel(null);
-          }}
-          dir={dir}
-          title={t("bookings.cancelTitle")}
-          description={t("bookings.creditReturned", { count: confirmCancel.credit_cost })}
-          classTitle={localizedClassTitle(confirmCancel.class)}
-          formattedDate={formatDate(confirmCancel.class.starts_at)}
-          formattedTime={formatTime(confirmCancel.class.starts_at)}
-          state={deriveBookingViewState({
-            availability: "booked",
-            lang,
-            manageLabel: t("bookings.keep"),
-          })}
-          keepLabel={t("bookings.keep")}
-          confirmLabel={cancel.isPending ? "…" : t("bookings.cancelBooking")}
-          pending={cancel.isPending}
-          onConfirm={() => cancel.mutate(confirmCancel.id)}
-        />
-      ) : null}
+      <Dialog open={!!confirmCancel} onOpenChange={(v) => !v && setConfirmCancel(null)}>
+        <DialogContent dir={dir} className="max-w-md bg-ivory border-gold/30">
+          <DialogTitle className="font-display text-2xl text-navy">
+            {t("bookings.cancelTitle")}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {t("bookings.creditReturned", { count: confirmCancel?.credit_cost ?? 0 })}
+          </DialogDescription>
+          {confirmCancel && (
+            <div className="space-y-4">
+              <div className="member-card p-4">
+                <p className="font-display text-lg text-navy">{confirmCancel.class.title}</p>
+                <p className="text-xs text-slate mt-1">
+                  {formatDate(confirmCancel.class.starts_at)} ·{" "}
+                  {formatTime(confirmCancel.class.starts_at)}
+                </p>
+              </div>
+              <p className="text-sm text-slate">
+                {t("bookings.creditReturned", { count: confirmCancel.credit_cost })}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmCancel(null)}
+                  className="btn-ghost flex-1 hover:btn-ghost-hover"
+                >
+                  {t("bookings.keep")}
+                </button>
+                <button
+                  onClick={() => cancel.mutate(confirmCancel.id)}
+                  disabled={cancel.isPending}
+                  className="btn-navy flex-1 hover:btn-navy-hover"
+                >
+                  {cancel.isPending ? "…" : t("bookings.cancelBooking")}
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ClassDetailSheet
         classId={openClass}
@@ -504,11 +469,9 @@ function MyBookings() {
 
 function StatCell({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="member-booking-stat">
-      <p className="member-booking-stat__label">{label}</p>
-      <p className="member-booking-stat__value" dir="ltr">
-        {value}
-      </p>
+    <div className="member-stat-cell">
+      <p className="member-eyebrow text-slate">{label}</p>
+      <p className="numeric-display numeric-display-md mt-2">{value}</p>
     </div>
   );
 }
@@ -577,7 +540,7 @@ function BookingCard({
   });
 
   return (
-    <LessonReservationCard
+    <ReservationRow
       cls={cls}
       state={
         booking.status === "cancelled"
@@ -597,24 +560,22 @@ function BookingCard({
           </span>
           <div className="lesson-reservation-card__action-row">
             <button
-              type="button"
               onClick={addToCalendar}
-              className="member-booking-action btn-ghost inline-flex min-h-11 items-center gap-1 px-2 text-xs hover:btn-ghost-hover"
+              className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
             >
-              <CalendarPlus className="h-3 w-3" aria-hidden="true" /> {t("member.addCalendar")}
+              <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
             </button>
             <span className="basis-full text-xs text-slate leading-relaxed">
               {t("member.calendarHelp")}
             </span>
             {canCancel && onCancel ? (
               <button
-                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   onCancel();
                 }}
-                className="member-booking-action member-booking-action--cancel min-h-11 px-2 text-xs"
+                className="btn-ghost min-h-10 px-0 text-xs hover:btn-ghost-hover"
               >
                 {t("common.cancel")}
               </button>
@@ -624,15 +585,15 @@ function BookingCard({
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="member-booking-action btn-ghost inline-flex min-h-11 items-center gap-1 px-2 text-xs hover:btn-ghost-hover"
+                className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
               >
-                <MessageCircle className="h-3 w-3" aria-hidden="true" /> {t("member.contactStudio")}
+                <MessageCircle className="h-3 w-3" /> {t("member.contactStudio")}
               </a>
             )}
           </div>
         </>
       )}
-    </LessonReservationCard>
+    </ReservationRow>
   );
 }
 
@@ -648,7 +609,7 @@ function WaitlistCard({
   const cls = entry.class;
   if (!cls) return null;
   return (
-    <LessonReservationCard
+    <ReservationRow
       cls={cls}
       state={
         entry.status === "ready" || entry.status === "offered"
@@ -659,16 +620,15 @@ function WaitlistCard({
       onOpen={onOpen}
     >
       <button
-        type="button"
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
           onLeave();
         }}
-        className="member-booking-action member-booking-action--cancel min-h-11 px-2 text-xs"
+        className="btn-ghost min-h-10 px-0 text-xs hover:btn-ghost-hover"
       >
         {t("booking.leaveWaitlist")}
       </button>
-    </LessonReservationCard>
+    </ReservationRow>
   );
 }

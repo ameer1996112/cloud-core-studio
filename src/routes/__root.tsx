@@ -23,7 +23,8 @@ import "@fontsource/cormorant-garamond/latin-600-italic.css";
 import "@fontsource/noto-sans-arabic/arabic-400.css";
 import "@fontsource/noto-sans-arabic/arabic-600.css";
 import "@fontsource/noto-sans-arabic/arabic-700.css";
-import appCss from "../styles/base.css?url";
+import "@/styles/phase-one-fonts.css";
+import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { Toaster } from "sonner";
 import {
