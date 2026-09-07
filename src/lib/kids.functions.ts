@@ -7,7 +7,9 @@ const KIDS_WEEKDAY = 1;
 const KIDS_START_TIME = "18:00";
 const KIDS_START_TIME_DB = "18:00:00";
 const KIDS_CAPACITY = 7;
-const KIDS_GENERATION_WEEKS = 16;
+const KIDS_START_SESSION = 9;
+const KIDS_TOTAL_SESSIONS = 35;
+const KIDS_GENERATION_WEEKS = KIDS_TOTAL_SESSIONS - KIDS_START_SESSION + 1;
 
 async function ensureAdmin(supabase: any, userId: string) {
   const { data, error } = await supabase
@@ -25,6 +27,10 @@ function startOfMonth(date = new Date()) {
 
 function endOfMonth(date = new Date()) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function currentBillingMonth(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
 }
 
 function addDaysToLocalDate(date: string, days: number) {
@@ -64,9 +70,22 @@ function assignmentMatchesClass(assignment: any, cls: any) {
 
 export const kidsDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d) =>
+    z
+      .object({
+        billingMonth: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
     const now = new Date();
+    const selectedBillingMonth = data.billingMonth
+      ? `${data.billingMonth}-01`
+      : currentBillingMonth(now);
     const monthStart = startOfMonth(now).toISOString();
     const monthEnd = endOfMonth(now).toISOString();
     const next60 = new Date(now);
@@ -115,7 +134,7 @@ export const kidsDashboard = createServerFn({ method: "GET" })
       (context.supabase as any)
         .from("classes")
         .select(
-          "id,title,starts_at,duration_minutes,capacity,booked_count,room,status,member_visible,program_type:program_types(slug,name_he,name_en)",
+          "id,title,starts_at,duration_minutes,capacity,booked_count,room,status,member_visible,kid_session_number,program_type:program_types(slug,name_he,name_en)",
         )
         .gte("starts_at", now.toISOString())
         .lte("starts_at", next60.toISOString())
@@ -153,9 +172,10 @@ export const kidsDashboard = createServerFn({ method: "GET" })
     const paidThisMonth = (payments.data ?? []).filter(
       (payment: any) =>
         payment.status === "paid" &&
-        payment.paid_at &&
-        payment.paid_at >= monthStart &&
-        payment.paid_at <= monthEnd,
+        (payment.billing_month
+          ? String(payment.billing_month).slice(0, 7) === selectedBillingMonth.slice(0, 7)
+          : payment.paid_at &&
+            String(payment.paid_at).slice(0, 7) === selectedBillingMonth.slice(0, 7)),
     );
     const overdue = (enrollments.data ?? []).filter(
       (enrollment: any) => enrollment.status === "past_due",
@@ -163,6 +183,29 @@ export const kidsDashboard = createServerFn({ method: "GET" })
     const present = (attendance.data ?? []).filter((row: any) => row.status === "present").length;
     const absent = (attendance.data ?? []).filter((row: any) => row.status === "absent").length;
     const excused = (attendance.data ?? []).filter((row: any) => row.status === "excused").length;
+    const enrollmentByChild = new Map(
+      (enrollments.data ?? []).map((enrollment: any) => [enrollment.child_id, enrollment]),
+    );
+    const defaultMonthlyPackage = (packages.data ?? []).find((pkg: any) => pkg.code === "monthly");
+    const paymentByChild = new Map<string, any>();
+    for (const payment of paidThisMonth) {
+      if (!paymentByChild.has(payment.child_id)) paymentByChild.set(payment.child_id, payment);
+    }
+    const activeChildren = (children.data ?? []).filter((child: any) => child.status === "active");
+    const paymentLedger = activeChildren.map((child: any) => {
+      const enrollment = enrollmentByChild.get(child.id);
+      const payment = paymentByChild.get(child.id);
+      return {
+        child_id: child.id,
+        child_name: child.child_name,
+        guardian_name: child.guardian_name,
+        amount_due: enrollment?.price ?? defaultMonthlyPackage?.price ?? null,
+        amount_paid: payment?.amount ?? 0,
+        method: payment?.method ?? null,
+        payment_id: payment?.id ?? null,
+        status: payment ? "paid" : enrollment?.status === "past_due" ? "overdue" : "pending",
+      };
+    });
 
     return {
       children: children.data ?? [],
@@ -179,17 +222,21 @@ export const kidsDashboard = createServerFn({ method: "GET" })
         weekday: KIDS_WEEKDAY,
         startTime: KIDS_START_TIME,
         capacity: KIDS_CAPACITY,
+        startSession: KIDS_START_SESSION,
+        totalSessions: KIDS_TOTAL_SESSIONS,
       },
+      billingMonth: selectedBillingMonth.slice(0, 7),
+      paymentLedger,
       attendance: attendance.data ?? [],
       report: {
-        activeChildren: (children.data ?? []).filter((child: any) => child.status === "active")
-          .length,
+        activeChildren: activeChildren.length,
         overdueCount: overdue.length,
         paidThisMonthIls: paidThisMonth.reduce(
           (sum: number, payment: any) => sum + Number(payment.amount ?? 0),
           0,
         ),
         paidThisMonthCount: paidThisMonth.length,
+        pendingCount: paymentLedger.filter((row: any) => row.status !== "paid").length,
         present,
         absent,
         excused,
@@ -248,6 +295,10 @@ export const createKidCardPaymentLink = createServerFn({ method: "POST" })
         childId: z.string().uuid(),
         packageId: z.string().uuid(),
         amount: z.number().positive().nullable().optional(),
+        billingMonth: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
         notes: z.string().nullable().optional(),
       })
       .parse(d),
@@ -259,6 +310,7 @@ export const createKidCardPaymentLink = createServerFn({ method: "POST" })
       childId: data.childId,
       packageId: data.packageId,
       amount: data.amount ?? null,
+      billingMonth: data.billingMonth ?? undefined,
       notes: data.notes ?? null,
       actorId: context.userId,
     });
@@ -273,6 +325,10 @@ export const recordKidManualPayment = createServerFn({ method: "POST" })
         packageId: z.string().uuid(),
         method: z.enum(["cash", "bit", "other"]),
         amount: z.number().positive().nullable().optional(),
+        billingMonth: z
+          .string()
+          .regex(/^\d{4}-\d{2}$/)
+          .optional(),
         reference: z.string().trim().nullable().optional(),
         notes: z.string().trim().nullable().optional(),
       })
@@ -294,6 +350,7 @@ export const recordKidManualPayment = createServerFn({ method: "POST" })
         child_id: data.childId,
         package_id: data.packageId,
         amount,
+        billing_month: data.billingMonth ? `${data.billingMonth}-01` : currentBillingMonth(),
         currency: pkg.currency ?? "ILS",
         method: data.method,
         status: "pending",
@@ -486,7 +543,7 @@ export const setupKidsWeeklyClasses = createServerFn({ method: "POST" })
 
     const { data: existing, error: existingError } = await (context.supabase as any)
       .from("classes")
-      .select("id,starts_at")
+      .select("id,starts_at,kid_session_number")
       .eq("program_type_id", program.id)
       .gte("starts_at", firstStartsAt)
       .lte("starts_at", lastStartsAt);
@@ -497,8 +554,9 @@ export const setupKidsWeeklyClasses = createServerFn({ method: "POST" })
     );
     const toInsert = targetDates
       .filter((date) => !existingByInput.has(`${date}T${KIDS_START_TIME}`))
-      .map((date) => ({
+      .map((date, index) => ({
         title: program.name_he ?? "יוגה אווירית לילדים",
+        kid_session_number: KIDS_START_SESSION + index,
         starts_at: studioDateTimeInputToIso(`${date}T${KIDS_START_TIME}`),
         duration_minutes: Number(program.default_duration_minutes ?? 60),
         capacity: KIDS_CAPACITY,
@@ -552,10 +610,36 @@ export const setupKidsWeeklyClasses = createServerFn({ method: "POST" })
       if (updateError) throw updateError;
     }
 
+    const { data: numberingClasses, error: numberingError } = await (context.supabase as any)
+      .from("classes")
+      .select("id,starts_at")
+      .eq("program_type_id", program.id)
+      .gte("starts_at", firstStartsAt)
+      .lte("starts_at", lastStartsAt)
+      .eq("status", "scheduled");
+    if (numberingError) throw numberingError;
+
+    const classByInput = new Map(
+      (numberingClasses ?? []).map((cls: any) => [classStudioInput(cls.starts_at), cls]),
+    );
+    await Promise.all(
+      targetDates.map(async (date, index) => {
+        const cls = classByInput.get(`${date}T${KIDS_START_TIME}`);
+        if (!cls) return;
+        const { error } = await (context.supabase as any)
+          .from("classes")
+          .update({ kid_session_number: KIDS_START_SESSION + index })
+          .eq("id", cls.id);
+        if (error) throw error;
+      }),
+    );
+
     return {
       created: toInsert.length,
       archived: wrongClassIds.length,
       ensuredWeeks: KIDS_GENERATION_WEEKS,
+      firstSession: KIDS_START_SESSION,
+      lastSession: KIDS_TOTAL_SESSIONS,
     };
   });
 

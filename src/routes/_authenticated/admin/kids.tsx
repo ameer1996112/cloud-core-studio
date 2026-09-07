@@ -4,8 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   Baby,
+  CalendarCheck2,
   CalendarDays,
   CheckCircle2,
+  CircleAlert,
   Copy,
   CreditCard,
   Link2,
@@ -58,11 +60,17 @@ type ChildForm = {
 type PaymentForm = {
   childId: string;
   packageId: string;
+  billingMonth: string;
   method: "cash" | "bit" | "card" | "other";
   amount: string;
   reference: string;
   notes: string;
 };
+
+function currentBillingMonth() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
 
 function KidsAerialPage() {
   const { locale } = useI18n();
@@ -76,9 +84,10 @@ function KidsAerialPage() {
   const attendanceFn = useServerFn(markKidAttendance);
   const cancelSubscriptionFn = useServerFn(cancelKidSubscription);
   const setupWeeklyFn = useServerFn(setupKidsWeeklyClasses);
+  const [ledgerMonth, setLedgerMonth] = useState(currentBillingMonth());
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["admin-kids-aerial"],
-    queryFn: () => dashboardFn(),
+    queryKey: ["admin-kids-aerial", ledgerMonth],
+    queryFn: () => dashboardFn({ data: { billingMonth: ledgerMonth } }),
   });
 
   const [childForm, setChildForm] = useState<ChildForm>({
@@ -91,6 +100,7 @@ function KidsAerialPage() {
   const [paymentForm, setPaymentForm] = useState<PaymentForm>({
     childId: "",
     packageId: "",
+    billingMonth: currentBillingMonth(),
     method: "cash",
     amount: "",
     reference: "",
@@ -165,6 +175,7 @@ function KidsAerialPage() {
         data: {
           childId: paymentForm.childId,
           packageId: paymentForm.packageId,
+          billingMonth: paymentForm.billingMonth,
           method: paymentForm.method === "card" ? "other" : paymentForm.method,
           amount: paymentForm.amount ? Number(paymentForm.amount) : null,
           reference: paymentForm.reference || null,
@@ -185,6 +196,7 @@ function KidsAerialPage() {
         data: {
           childId: paymentForm.childId,
           packageId: paymentForm.packageId,
+          billingMonth: paymentForm.billingMonth,
           amount: paymentForm.amount ? Number(paymentForm.amount) : null,
           notes: paymentForm.notes || null,
         },
@@ -212,7 +224,7 @@ function KidsAerialPage() {
     onSuccess: (result: any) => {
       setOutcome({
         tone: "success",
-        title: `שיעורי יום שני הוכנו: ${result.created} חדשים, ${result.archived} שיעורים לא נכונים הועברו לארכיון.`,
+        title: `שיעורי יום שני הוכנו: מפגשים 9–35 · ${result.created} חדשים · ${result.archived} שיעורים לא נכונים הועברו לארכיון.`,
       });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
     },
@@ -380,21 +392,116 @@ function KidsAerialPage() {
                 helper="ברשימה"
               />
               <AdminMetricCard
-                label="תשלומים החודש"
+                label="תשלומים בחודש הנבחר"
                 value={<BidiValue kind="currency">{ils(data.report.paidThisMonthIls)}</BidiValue>}
                 helper={`${data.report.paidThisMonthCount} תשלומים`}
               />
               <AdminMetricCard
-                label="באיחור תשלום"
-                value={data.report.overdueCount}
+                label="ממתינים לתשלום"
+                value={data.report.pendingCount}
                 helper="דורש מעקב"
-                accent={data.report.overdueCount > 0}
+                accent={data.report.pendingCount > 0}
               />
               <AdminMetricCard
                 label="נוכחות החודש"
                 value={data.report.present}
                 helper={`${data.report.absent} חיסורים · ${data.report.excused} מוצדק`}
               />
+            </section>
+
+            <section className="editorial-panel p-5">
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 text-navy">
+                    <CalendarCheck2 className="h-4 w-4 text-gold" />
+                    <h3 className="cc-section-title">מעקב תשלום חודשי</h3>
+                  </div>
+                  <p className="mt-1 text-sm text-slate">
+                    מסך ניהול פנימי: כל ילדה, החודש שנבחר, הסכום ששולם והפעולה הבאה.
+                  </p>
+                </div>
+                <Field label="חודש להצגה">
+                  <input
+                    type="month"
+                    className="editorial-input min-w-44"
+                    value={ledgerMonth}
+                    onChange={(event) => setLedgerMonth(event.target.value)}
+                  />
+                </Field>
+              </div>
+              <div className="admin-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="text-start">ילדה</th>
+                      <th className="text-start">הורה</th>
+                      <th className="text-end">לתשלום</th>
+                      <th className="text-end">שולם</th>
+                      <th className="text-start">אמצעי</th>
+                      <th className="text-end">סטטוס</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(data.paymentLedger ?? []).map((row: any) => {
+                      const paid = row.status === "paid";
+                      const overdue = row.status === "overdue";
+                      return (
+                        <tr key={row.child_id}>
+                          <td className="font-semibold">
+                            <bdi>{row.child_name}</bdi>
+                          </td>
+                          <td className="text-slate">
+                            <bdi>{row.guardian_name}</bdi>
+                          </td>
+                          <td className="text-end numeric-display">
+                            {row.amount_due == null ? "—" : ils(Number(row.amount_due))}
+                          </td>
+                          <td className="text-end numeric-display">
+                            {row.amount_paid ? ils(Number(row.amount_paid)) : "—"}
+                          </td>
+                          <td className="text-slate">{paymentMethodLabel(row.method)}</td>
+                          <td className="text-end">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                                paid
+                                  ? "border-green-200 bg-green-50 text-green-700"
+                                  : overdue
+                                    ? "border-red-200 bg-red-50 text-red-700"
+                                    : "border-gold/35 bg-gold/10 text-navy"
+                              }`}
+                            >
+                              {paid ? (
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              ) : (
+                                <CircleAlert className="h-3.5 w-3.5" />
+                              )}
+                              {paid ? "שולם" : overdue ? "באיחור" : "ממתין"}
+                            </span>
+                          </td>
+                          <td className="text-end">
+                            {!paid && (
+                              <button
+                                type="button"
+                                className="btn-outline px-2.5 py-1.5 text-xs hover:btn-outline-hover"
+                                onClick={() =>
+                                  setPaymentForm((current) => ({
+                                    ...current,
+                                    childId: row.child_id,
+                                    billingMonth: ledgerMonth,
+                                  }))
+                                }
+                              >
+                                רישום תשלום
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </section>
 
             <section className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
@@ -507,6 +614,16 @@ function KidsAerialPage() {
                     <option value="card">אשראי HYP</option>
                     <option value="other">אחר</option>
                   </SelectField>
+                  <Field label="חודש חיוב">
+                    <input
+                      type="month"
+                      className="editorial-input"
+                      value={paymentForm.billingMonth}
+                      onChange={(event) =>
+                        setPaymentForm((f) => ({ ...f, billingMonth: event.target.value }))
+                      }
+                    />
+                  </Field>
                   <Field label="סכום אחר (אופציונלי)">
                     <input
                       type="number"
@@ -597,7 +714,9 @@ function KidsAerialPage() {
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="eyebrow">שיבוץ שבועי</p>
-                  <h3 className="cc-section-title mt-1">קבוצה קבועה · יום שני 18:00</h3>
+                  <h3 className="cc-section-title mt-1">
+                    קבוצה קבועה · יום שני 18:00 · מפגשים 9–35
+                  </h3>
                   <p className="mt-1 text-sm text-slate">
                     עד {data.weeklyGroup?.capacity ?? 7} ילדים. השיעורים מוסתרים מלקוחות ונפתחים
                     לנוכחות בלבד.
@@ -630,7 +749,7 @@ function KidsAerialPage() {
               {data.classes.length === 0 ? (
                 <Empty
                   title="אין עדיין שיעורי יום שני"
-                  body="לחצו על הכנת ימי שני 18:00 כדי ליצור את השיעורים הקרובים. הם יהיו לצוות בלבד."
+                  body="לחצו על הכנת ימי שני 18:00 כדי ליצור את מפגשים 9–35. הם יהיו לצוות בלבד."
                   primaryAction={
                     <button type="button" onClick={() => setupWeekly.mutate()} className="btn-navy">
                       הכנת שיעורים
@@ -711,7 +830,10 @@ function KidsClassCard({
     <div className="editorial-card p-4">
       <div className="flex items-start justify-between gap-3 border-b border-gold/20 pb-3">
         <div>
-          <p className="cc-card-title">
+          <p className="cc-card-title flex items-center gap-2">
+            <span className="rounded-full border border-gold/35 px-2 py-0.5 text-xs font-semibold text-navy">
+              מפגש {cls.kid_session_number ?? "—"}/35
+            </span>
             <bdi>{cls.title}</bdi>
           </p>
           <p className="mt-1 text-xs font-medium text-slate">
@@ -782,6 +904,15 @@ function KidsClassCard({
       )}
     </div>
   );
+}
+
+function paymentMethodLabel(method: string | null) {
+  if (method === "cash") return "מזומן";
+  if (method === "bit") return "ביט";
+  if (method === "card") return "אשראי";
+  if (method === "transfer") return "העברה";
+  if (method === "other") return "אחר";
+  return "—";
 }
 
 function AttendButton({

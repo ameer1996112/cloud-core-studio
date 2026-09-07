@@ -95,6 +95,7 @@ export async function createKidsHypPaymentLink(input: {
   childId: string;
   packageId: string;
   amount?: number | null;
+  billingMonth?: string | null;
   notes?: string | null;
   actorId: string;
 }) {
@@ -127,6 +128,7 @@ export async function createKidsHypPaymentLink(input: {
       child_id: child.id,
       package_id: pkg.id,
       amount,
+      billing_month: input.billingMonth ? `${input.billingMonth}-01` : null,
       currency: pkg.currency ?? "ILS",
       method: "card",
       status: "pending",
@@ -631,6 +633,7 @@ async function createKidsRenewalPayment(subscription: any, params: URLSearchPara
       package_id: subscription.package_id,
       enrollment_id: subscription.enrollment_id,
       amount: Number(subscription.amount),
+      billing_month: `${periodStart.getFullYear()}-${String(periodStart.getMonth() + 1).padStart(2, "0")}-01`,
       currency: subscription.currency ?? "ILS",
       method: "card",
       status: "pending",
