@@ -13,7 +13,7 @@ import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getPasswordResetRedirectUrl } from "@/lib/password-reset-flow";
 import { resolvePostAuthDestination } from "@/lib/guest-auth-intent";
-import { notifyAdminMemberSignup } from "@/lib/adminPush.functions";
+import { notifyAdminMemberSignup } from "@/lib/signupNotification.functions";
 import { SignupNotificationChoices } from "@/components/auth/SignupNotificationChoices";
 import {
   DEFAULT_SIGNUP_NOTIFICATION_CHOICES,

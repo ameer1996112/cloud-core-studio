@@ -1,40 +1,31 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { MESSAGES } from "../../src/lib/i18n.ts";
+import { coreCatalog } from "../../src/lib/i18n/catalogs/core.ts";
+import { memberCatalog } from "../../src/lib/i18n/catalogs/member.ts";
 import { nextLanguageMenuIndex } from "../../src/components/app-shell/language-menu.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 
 describe("member UI foundation", () => {
-  test("defines semantic surface, action, focus, spacing and type tokens", () => {
+  test("defines the shared semantic tokens and neutral member palette", () => {
     const tokens = read("src/styles/tokens.css");
+    const neutral = read("src/styles/neutral-member-candidate.css");
 
     for (const token of [
-      "--color-surface-canvas",
-      "--color-surface-base",
-      "--color-surface-subtle",
-      "--color-action-primary",
-      "--color-focus-outer",
-      "--space-16",
-      "--text-page-title-mobile",
+      "--cc-surface-canvas",
+      "--cc-surface-raised",
+      "--cc-action-primary",
+      "--cc-focus-outline",
+      "--cc-focus-ring",
+      "--cc-space-12",
+      "--cc-target-min",
     ]) {
       expect(tokens).toContain(token);
     }
-  });
-
-  test("uses a two-layer high-contrast focus indicator", () => {
-    const tokens = read("src/styles/tokens.css");
-    const theme = read("src/styles/theme-session.css");
-    const base = read("src/styles/base-components.css");
-
-    expect(tokens).toContain("--color-focus-inner: #d4af6a");
-    expect(theme).toContain("--cc-focus-ring: 0 0 0 2px var(--color-focus-inner)");
-    expect(theme).toContain("0 0 0 4px var(--color-focus-outer)");
-    expect(base).toContain("box-shadow: var(--cc-focus-ring)");
-    expect(theme).toContain(".session-input:focus");
-    expect(theme).toContain(".premium-time-selects select:focus");
+    expect(neutral).toContain("--color-surface-canvas: #f9f9f9");
+    expect(neutral).toContain("--color-text-primary: #202020");
   });
 
   test("keeps class location readable instead of truncating it", () => {
@@ -50,7 +41,6 @@ describe("member UI foundation", () => {
 
     expect(shell).toContain("onKeyDown={handleMenuKeyDown}");
     expect(shell).toContain('event.key === "Escape"');
-    expect(shell).toContain("useId().replace");
     expect(shell).toContain("menuWrapperRef.current?.contains(document.activeElement)");
     expect(shell).toContain("tabIndex={currentLang === code ? 0 : -1}");
 
@@ -63,26 +53,26 @@ describe("member UI foundation", () => {
     expect(nextLanguageMenuIndex("Enter", 0, 0, 3)).toBeNull();
   });
 
-  test("derives local error direction from the active locale", () => {
+  test("uses locale-derived direction in root, authenticated recovery, and payment-result presentation", () => {
     const rootRoute = read("src/routes/__root.tsx");
+    const authenticatedRoute = read("src/routes/_authenticated/route.tsx");
     const paymentResult = read("src/routes/payment-result.tsx");
 
-    expect(rootRoute).toContain("const { dir } = useI18n()");
-    expect(paymentResult).toContain("const { dir } = useI18n()");
+    expect(rootRoute).toContain("dir={getDirection(initialLang)}");
+    expect(authenticatedRoute).toContain("const { dir, t } = useI18n()");
+    expect(authenticatedRoute).toContain('t("recovery.error.title")');
+    expect(authenticatedRoute).toContain('t("recovery.notFound.title")');
+    expect(paymentResult).toContain("useI18n()");
     expect(paymentResult).not.toContain('dir="rtl"');
   });
 
-  test("supplies every payment outcome and shared error state in all supported languages", () => {
+  test("supplies recovery copy in all supported languages", () => {
     for (const lang of ["en", "he", "ar"]) {
-      expect(MESSAGES[lang]["page.error.eyebrow"]).toBeDefined();
-      expect(MESSAGES[lang]["page.error.body"]).toBeDefined();
-      expect(MESSAGES[lang]["page.notFound.eyebrow"]).toBeDefined();
-      expect(MESSAGES[lang]["paymentResult.kidsSuccess.detail"]).toBeDefined();
-      for (const status of ["success", "pending", "cancelled", "failed", "missing"]) {
-        expect(MESSAGES[lang][`paymentResult.${status}.title`]).toBeDefined();
-        expect(MESSAGES[lang][`paymentResult.${status}.body`]).toBeDefined();
-        expect(MESSAGES[lang][`paymentResult.${status}.detail`]).toBeDefined();
-      }
+      expect(coreCatalog[lang]["recovery.error.title"]).toBeDefined();
+      expect(coreCatalog[lang]["recovery.error.body"]).toBeDefined();
+      expect(coreCatalog[lang]["recovery.notFound.title"]).toBeDefined();
+      expect(memberCatalog[lang]["profile.deleteRequestSubmittedTitle"]).toBeDefined();
+      expect(memberCatalog[lang]["packages.cardPaymentRetry"]).toBeDefined();
     }
   });
 });

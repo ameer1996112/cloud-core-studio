@@ -1,4 +1,4 @@
-import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation";
+import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
