@@ -1,3 +1,4 @@
+import { MemberPageState } from "@/components/member/MemberPageState";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,7 +10,6 @@ import { getMyPackages, requestMyAccountDeletion, updateMyProfile } from "@/lib/
 import { supabase } from "@/integrations/supabase/client";
 import { flushSync } from "react-dom";
 import { applyLang, labelForStatus, t, useI18n, getLocale, type Lang } from "@/lib/i18n";
-import { studioImages, localizedAlt } from "@/lib/image-assets";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { LtrInline } from "@/components/ui/bidi";
 import { MemberFeedbackPanel } from "@/components/member/MemberFeedbackPanel";
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/_authenticated/member/account")({
 });
 
 function MemberAccount() {
-  const { lang, dir } = useI18n();
+  const { lang, dir, locale } = useI18n();
   useDocumentTitle("page.profile.title");
   const fetchPkg = useServerFn(getMyPackages);
   const updateFn = useServerFn(updateMyProfile);
@@ -71,7 +71,10 @@ function MemberAccount() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data } = useQuery({ queryKey: ["member-packages"], queryFn: () => fetchPkg() });
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["member-packages"],
+    queryFn: () => fetchPkg(),
+  });
   const { data: concierge } = useQuery({
     queryKey: ["personal-concierge"],
     queryFn: () => fetchConcierge(),
@@ -216,267 +219,264 @@ function MemberAccount() {
     navigate({ to: "/auth", replace: true });
   }
 
+  if (isLoading || isError)
+    return (
+      <MemberPageState title={t("nav.profile")} error={isError} onRetry={() => void refetch()} />
+    );
+
   return (
-    <section dir={dir} className="member-page w-full space-y-6 sm:space-y-8 pb-10">
-      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="member-page-copy p-5 sm:p-8">
+    <section dir={dir} className="member-page aura-member-page aura-account-page">
+      <header className="aura-page-heading aura-profile-heading">
+        <div>
           <p className="member-eyebrow">{t("member.account.kicker")}</p>
-          <h1 className="member-page-title mt-3 capitalize">{me?.name ?? t("nav.profile")}</h1>
-          <p className="member-page-body mt-3">
-            {me?.email ? (
-              <LtrInline className="inline-block">{me.email}</LtrInline>
-            ) : (
-              t("member.account.body")
-            )}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="member-chip">{labelForStatus(me?.status ?? "active")}</span>
-            <span className="member-chip">{selectedLanguage.toUpperCase()}</span>
-          </div>
+          <h1>
+            <bdi>{me?.name ?? t("nav.profile")}</bdi>
+          </h1>
+          <p>{me?.email ? <LtrInline>{me.email}</LtrInline> : t("member.account.body")}</p>
         </div>
-        <div className="relative min-h-[150px] sm:min-h-[180px] md:min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
-          <img
-            src={studioImages.logoWall.src}
-            alt={localizedAlt(studioImages.logoWall, getLocale())}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-navy/10"
-          />
-        </div>
-      </div>
-
-      <div className="member-card p-5 sm:p-6 space-y-4">
-        <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
-          <div>
-            <h2 className="member-section-title">{t("profile.details")}</h2>
-          </div>
-          {me?.created_at && (
-            <div className="text-xs bg-gold/10 text-gold border border-gold/20 px-3 py-1 rounded-full font-medium tracking-wide">
-              {t("profile.memberSince")}{" "}
-              <span className="font-semibold">
-                {new Date(me.created_at).toLocaleDateString(
-                  getLocale() === "he" ? "he-IL" : "en-GB",
-                  {
-                    year: "numeric",
-                    month: "long",
-                  },
-                )}
-              </span>
+        {me?.status && <span className="aura-profile-status">{labelForStatus(me.status)}</span>}
+      </header>
+      <div className="aura-account-layout">
+        <div className="aura-account-main">
+          <div className="aura-settings-section aura-profile-details">
+            <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
+              <div>
+                <h2 className="member-section-title">{t("profile.details")}</h2>
+              </div>
+              {me?.created_at && (
+                <div className="aura-member-since">
+                  {t("profile.memberSince")}{" "}
+                  <span className="font-semibold">
+                    {new Date(me.created_at).toLocaleDateString(locale, {
+                      year: "numeric",
+                      month: "long",
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
+
+            <div className="aura-profile-fields">
+              <Field label={t("profile.name")}>
+                <input
+                  className="editorial-input"
+                  dir={val("name") ? "auto" : undefined}
+                  value={val("name")}
+                  onChange={(e) => set("name", e.target.value)}
+                />
+              </Field>
+              <Field label={t("profile.phone")}>
+                <input
+                  className="editorial-input"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={val("phone") ?? ""}
+                  onChange={(e) => set("phone", e.target.value)}
+                />
+              </Field>
+              <Field label={t("profile.language")}>
+                <select
+                  className="editorial-input"
+                  value={selectedLanguage}
+                  onChange={(e) => setLanguage(e.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="he">עברית</option>
+                  <option value="ar">العربية</option>
+                </select>
+              </Field>
+              <Field label={t("profile.emergency")}>
+                <input
+                  className="editorial-input"
+                  dir={val("emergency_contact") ? "auto" : undefined}
+                  value={val("emergency_contact") ?? ""}
+                  onChange={(e) => set("emergency_contact", e.target.value)}
+                  placeholder={t("profile.emergencyPlaceholder")}
+                />
+              </Field>
+              <Field label={t("profile.energy")}>
+                <input
+                  className="editorial-input"
+                  dir={val("energy_preference") ? "auto" : undefined}
+                  value={val("energy_preference") ?? ""}
+                  onChange={(e) => set("energy_preference", e.target.value)}
+                  placeholder={t("profile.energyPlaceholder")}
+                />
+              </Field>
+            </div>
+            <div className="aura-form-submit">
+              <button
+                disabled={update.isPending || Object.keys(form).length === 0}
+                onClick={() => update.mutate()}
+                className="btn-navy hover:btn-navy-hover disabled:opacity-50"
+              >
+                <Save className="h-3 w-3" />{" "}
+                {update.isPending ? t("common.saving") : t("profile.save")}
+              </button>
+            </div>
+          </div>
+
+          {concierge?.available && (
+            <section id="between-us" className="aura-settings-section space-y-5">
+              <div>
+                <p className="member-eyebrow">{conciergeCopy.eyebrow}</p>
+                <h2 className="member-section-title mt-2">{conciergeCopy.title}</h2>
+                <p className="member-page-body mt-2 max-w-2xl">{conciergeCopy.body}</p>
+              </div>
+              <Field label={conciergeCopy.pace}>
+                <select
+                  className="editorial-input"
+                  value={conciergePace}
+                  onChange={(event) => setConciergePace(event.target.value)}
+                >
+                  <option value="">{conciergeCopy.balanced}</option>
+                  <option value="quiet">{conciergeCopy.quiet}</option>
+                  <option value="balanced">{conciergeCopy.balanced}</option>
+                  <option value="attentive">{conciergeCopy.attentive}</option>
+                </select>
+              </Field>
+              <Field label={conciergeCopy.intention}>
+                <input
+                  className="editorial-input"
+                  dir="auto"
+                  value={conciergeIntention}
+                  onChange={(event) => setConciergeIntention(event.target.value)}
+                  placeholder={conciergeCopy.intentionPlaceholder}
+                  maxLength={120}
+                />
+              </Field>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline pt-4">
+                <label className="flex items-center gap-2 text-sm text-slate">
+                  <input
+                    type="checkbox"
+                    checked={concierge?.relationship?.personalization_paused === true}
+                    onChange={(event) => pauseBetweenUs.mutate(event.target.checked)}
+                    disabled={pauseBetweenUs.isPending}
+                  />
+                  {conciergeCopy.pause}
+                </label>
+                <button
+                  className="btn-navy hover:btn-navy-hover disabled:opacity-50"
+                  disabled={
+                    saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())
+                  }
+                  onClick={() => saveBetweenUs.mutate()}
+                >
+                  <Save className="h-3 w-3" />
+                  {conciergeCopy.save}
+                </button>
+              </div>
+            </section>
           )}
         </div>
-
-        <Field label={t("profile.name")}>
-          <input
-            className="editorial-input"
-            dir={val("name") ? "auto" : undefined}
-            value={val("name")}
-            onChange={(e) => set("name", e.target.value)}
-          />
-        </Field>
-        <Field label={t("profile.phone")}>
-          <input
-            className="editorial-input"
-            inputMode="tel"
-            autoComplete="tel"
-            value={val("phone") ?? ""}
-            onChange={(e) => set("phone", e.target.value)}
-          />
-        </Field>
-        <Field label={t("profile.language")}>
-          <select
-            className="editorial-input"
-            value={selectedLanguage}
-            onChange={(e) => setLanguage(e.target.value)}
-          >
-            <option value="en">English</option>
-            <option value="he">עברית</option>
-            <option value="ar">العربية</option>
-          </select>
-        </Field>
-        <Field label={t("profile.emergency")}>
-          <input
-            className="editorial-input"
-            dir={val("emergency_contact") ? "auto" : undefined}
-            value={val("emergency_contact") ?? ""}
-            onChange={(e) => set("emergency_contact", e.target.value)}
-            placeholder={t("profile.emergencyPlaceholder")}
-          />
-        </Field>
-        <Field label={t("profile.energy")}>
-          <input
-            className="editorial-input"
-            dir={val("energy_preference") ? "auto" : undefined}
-            value={val("energy_preference") ?? ""}
-            onChange={(e) => set("energy_preference", e.target.value)}
-            placeholder={t("profile.energyPlaceholder")}
-          />
-        </Field>
-
-        <div className="pt-3 border-t hairline flex justify-start">
-          <button
-            disabled={update.isPending || Object.keys(form).length === 0}
-            onClick={() => update.mutate()}
-            className="btn-navy hover:btn-navy-hover disabled:opacity-50"
-          >
-            <Save className="h-3 w-3" /> {update.isPending ? t("common.saving") : t("profile.save")}
-          </button>
-        </div>
-      </div>
-
-      {concierge?.available && (
-        <section id="between-us" className="member-card member-panel-sand p-5 sm:p-7 space-y-5">
-          <div>
-            <p className="member-eyebrow">{conciergeCopy.eyebrow}</p>
-            <h2 className="member-section-title mt-2">{conciergeCopy.title}</h2>
-            <p className="member-page-body mt-2 max-w-2xl">{conciergeCopy.body}</p>
-          </div>
-          <Field label={conciergeCopy.pace}>
-            <select
-              className="editorial-input"
-              value={conciergePace}
-              onChange={(event) => setConciergePace(event.target.value)}
-            >
-              <option value="">{conciergeCopy.balanced}</option>
-              <option value="quiet">{conciergeCopy.quiet}</option>
-              <option value="balanced">{conciergeCopy.balanced}</option>
-              <option value="attentive">{conciergeCopy.attentive}</option>
-            </select>
-          </Field>
-          <Field label={conciergeCopy.intention}>
-            <input
-              className="editorial-input"
-              dir="auto"
-              value={conciergeIntention}
-              onChange={(event) => setConciergeIntention(event.target.value)}
-              placeholder={conciergeCopy.intentionPlaceholder}
-              maxLength={120}
-            />
-          </Field>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline pt-4">
-            <label className="flex items-center gap-2 text-sm text-slate">
-              <input
-                type="checkbox"
-                checked={concierge?.relationship?.personalization_paused === true}
-                onChange={(event) => pauseBetweenUs.mutate(event.target.checked)}
-                disabled={pauseBetweenUs.isPending}
-              />
-              {conciergeCopy.pause}
-            </label>
+        <aside className="aura-account-utilities">
+          <div className="aura-settings-section aura-session-section">
+            <div className="min-w-0">
+              <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
+              <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
+            </div>
             <button
-              className="btn-navy hover:btn-navy-hover disabled:opacity-50"
-              disabled={saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())}
-              onClick={() => saveBetweenUs.mutate()}
+              onClick={signOut}
+              disabled={signingOut}
+              className="btn-outline hover:btn-outline-hover"
             >
-              <Save className="h-3 w-3" />
-              {conciergeCopy.save}
+              <LogOut className="h-3 w-3" /> {t("shell.signOut")}
             </button>
           </div>
-        </section>
-      )}
 
-      <div className="member-card p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
-          <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
-        </div>
-        <button
-          onClick={signOut}
-          disabled={signingOut}
-          className="btn-outline hover:btn-outline-hover"
-        >
-          <LogOut className="h-3 w-3" /> {t("shell.signOut")}
-        </button>
-      </div>
-
-      <div className="member-card p-5 sm:p-6 space-y-4">
-        <div className="member-section-heading">
-          <div>
-            <p className="member-eyebrow">{t("profile.privacyKicker")}</p>
-            <h2 className="member-section-title mt-1">{t("profile.privacyTitle")}</h2>
-          </div>
-        </div>
-        <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <Link to="/privacy" className="btn-outline hover:btn-outline-hover justify-center">
-            {t("legal.privacy")}
-          </Link>
-          <Link to="/terms" className="btn-outline hover:btn-outline-hover justify-center">
-            {t("legal.terms")}
-          </Link>
-          <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
-            {t("legal.support")}
-          </Link>
-        </div>
-        <div className="border-t hairline pt-4">
-          <Field label={t("profile.deleteReason")}>
-            <textarea
-              className="editorial-input min-h-24 resize-y"
-              dir="auto"
-              value={deletionReason}
-              onChange={(e) => setDeletionReason(e.target.value)}
-              placeholder={t("profile.deleteReasonPlaceholder")}
-            />
-          </Field>
-          <p className="mt-3 text-sm leading-6 text-slate">
-            {t("profile.deleteRequestExplanation")}
-          </p>
-          {deletionFeedback === "submitted" && (
-            <MemberFeedbackPanel
-              ref={deletionFeedbackRef}
-              variant="success"
-              title={t("profile.deleteRequestSubmittedTitle")}
-              live="polite"
-              className="mt-4"
-            >
-              {t("profile.deleteRequestSubmittedBody")}
-            </MemberFeedbackPanel>
-          )}
-          {deletionFeedback === "already-requested" && (
-            <MemberFeedbackPanel
-              ref={deletionFeedbackRef}
-              variant="info"
-              title={t("profile.deleteAlreadyRequested")}
-              live="polite"
-              className="mt-4"
-            >
-              {t("profile.deleteAlreadyRequestedBody")}
-            </MemberFeedbackPanel>
-          )}
-          {deletionFeedback === "error" && (
-            <MemberFeedbackPanel
-              ref={deletionFeedbackRef}
-              variant="error"
-              title={t("profile.deleteRequestError")}
-              live="assertive"
-              className="mt-4"
-            >
-              {t("profile.deleteRequestErrorBody")}{" "}
-              <Link to="/support" className="font-semibold text-navy underline underline-offset-2">
-                {t("profile.deleteRequestSupport")}
+          <div className="aura-settings-section space-y-4">
+            <div className="member-section-heading">
+              <div>
+                <p className="member-eyebrow">{t("profile.privacyKicker")}</p>
+                <h2 className="member-section-title mt-1">{t("profile.privacyTitle")}</h2>
+              </div>
+            </div>
+            <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
+            <div className="aura-legal-links">
+              <Link to="/privacy" className="btn-outline hover:btn-outline-hover justify-center">
+                {t("legal.privacy")}
               </Link>
-            </MemberFeedbackPanel>
-          )}
-          <div className="mt-3 flex justify-start">
-            <button
-              ref={deletionTriggerRef}
-              type="button"
-              disabled={
-                deletion.isPending ||
-                deletionFeedback === "submitted" ||
-                deletionFeedback === "already-requested"
-              }
-              onClick={() => setDeletionDialogOpen(true)}
-              className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3" />
-              {deletion.isPending
-                ? t("profile.deleteRequestSubmitting")
-                : t("profile.deleteRequest")}
-            </button>
+              <Link to="/terms" className="btn-outline hover:btn-outline-hover justify-center">
+                {t("legal.terms")}
+              </Link>
+              <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
+                {t("legal.support")}
+              </Link>
+            </div>
+            <div className="border-t hairline pt-4">
+              <Field label={t("profile.deleteReason")}>
+                <textarea
+                  className="editorial-input min-h-24 resize-y"
+                  dir="auto"
+                  value={deletionReason}
+                  onChange={(e) => setDeletionReason(e.target.value)}
+                  placeholder={t("profile.deleteReasonPlaceholder")}
+                />
+              </Field>
+              <p className="mt-3 text-sm leading-6 text-slate">
+                {t("profile.deleteRequestExplanation")}
+              </p>
+              {deletionFeedback === "submitted" && (
+                <MemberFeedbackPanel
+                  ref={deletionFeedbackRef}
+                  variant="success"
+                  title={t("profile.deleteRequestSubmittedTitle")}
+                  live="polite"
+                  className="mt-4"
+                >
+                  {t("profile.deleteRequestSubmittedBody")}
+                </MemberFeedbackPanel>
+              )}
+              {deletionFeedback === "already-requested" && (
+                <MemberFeedbackPanel
+                  ref={deletionFeedbackRef}
+                  variant="info"
+                  title={t("profile.deleteAlreadyRequested")}
+                  live="polite"
+                  className="mt-4"
+                >
+                  {t("profile.deleteAlreadyRequestedBody")}
+                </MemberFeedbackPanel>
+              )}
+              {deletionFeedback === "error" && (
+                <MemberFeedbackPanel
+                  ref={deletionFeedbackRef}
+                  variant="error"
+                  title={t("profile.deleteRequestError")}
+                  live="assertive"
+                  className="mt-4"
+                >
+                  {t("profile.deleteRequestErrorBody")}{" "}
+                  <Link
+                    to="/support"
+                    className="font-semibold text-navy underline underline-offset-2"
+                  >
+                    {t("profile.deleteRequestSupport")}
+                  </Link>
+                </MemberFeedbackPanel>
+              )}
+              <div className="mt-3 flex justify-start">
+                <button
+                  ref={deletionTriggerRef}
+                  type="button"
+                  disabled={
+                    deletion.isPending ||
+                    deletionFeedback === "submitted" ||
+                    deletionFeedback === "already-requested"
+                  }
+                  onClick={() => setDeletionDialogOpen(true)}
+                  className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  {deletion.isPending
+                    ? t("profile.deleteRequestSubmitting")
+                    : t("profile.deleteRequest")}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </aside>
       </div>
-
       <AlertDialog
         open={deletionDialogOpen}
         onOpenChange={(open) => {
@@ -514,9 +514,9 @@ function MemberAccount() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="field-label">{label}</label>
+    <label className="block">
+      <span className="field-label">{label}</span>
       {children}
-    </div>
+    </label>
   );
 }

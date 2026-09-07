@@ -1,3 +1,4 @@
+import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,10 +11,9 @@ import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
 import { formatDate, formatTime, MemberEmptyState } from "@/components/member/PremiumClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
-import { LessonReservationCard } from "@/components/visual/VisualClassCard";
+import { ReservationRow } from "@/components/member/ReservationRow";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { studioImages, localizedAlt } from "@/lib/image-assets";
-import { t, useI18n, getLocale } from "@/lib/i18n";
+import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   getMemberViewerCacheKey,
@@ -44,7 +44,7 @@ function MyBookings() {
   const fetchConcierge = useServerFn(getMyPersonalConcierge);
   const saveConciergePreference = useServerFn(saveMyPersonalConciergePreference);
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["my-bookings-all"],
     queryFn: () => fetchAll(),
   });
@@ -237,27 +237,103 @@ function MyBookings() {
             location: "Location",
           };
 
+  if (isLoading || isError)
+    return (
+      <MemberPageState title={t("nav.myBookings")} error={isError} onRetry={() => void refetch()} />
+    );
+
   return (
-    <section dir={dir} className="member-page w-full space-y-6 pb-10">
-      <div className="member-page-panel grid overflow-hidden md:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="member-page-copy p-5 sm:p-8">
-          <p className="member-eyebrow">{t("member.bookings.kicker")}</p>
-          <h1 className="member-page-title mt-3">{t("nav.myBookings")}</h1>
-          <p className="member-page-body mt-3">{t("member.bookings.body")}</p>
-          <div className="member-stat-strip mt-6">
-            <StatCell label={t("bookings.upcoming")} value={counts.upcoming} />
-            <StatCell label={t("bookings.waitlist")} value={counts.waitlist} />
-            <StatCell label={t("bookings.past")} value={counts.past} />
-          </div>
+    <section dir={dir} className="member-page aura-member-page aura-bookings-page">
+      <header className="aura-page-heading">
+        <p className="member-eyebrow">{t("member.bookings.kicker")}</p>
+        <h1>{t("nav.myBookings")}</h1>
+        <p>{t("member.bookings.body")}</p>
+      </header>
+
+      <div className="member-control-panel member-tab-bar no-scrollbar">
+        {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (
+          <button
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
+            aria-pressed={tab === tabKey}
+            className={`member-tab-button ${
+              tab === tabKey
+                ? "member-tab-button-active"
+                : "bg-transparent text-slate hover:bg-sand/60 hover:text-navy"
+            }`}
+          >
+            {tabKey === "upcoming"
+              ? t("bookings.upcoming")
+              : tabKey === "waitlist"
+                ? t("bookings.waitlist")
+                : tabKey === "past"
+                  ? t("bookings.past")
+                  : t("bookings.cancelled")}{" "}
+            {!isLoading && <span className="member-tab-count">{counts[tabKey]}</span>}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-32 skeleton-brand rounded-[var(--cc-radius-card)]" />
+          ))}
         </div>
-        <div className="relative min-h-[150px] sm:min-h-[180px] md:min-h-[190px] border-t border-gold/20 bg-sand/60 md:border-s md:border-t-0">
-          <img
-            src={studioImages.atmosphere.src}
-            alt={localizedAlt(studioImages.atmosphere, getLocale())}
-            loading="eager"
-            className="absolute inset-0 h-full w-full object-cover outline outline-1 -outline-offset-1 outline-navy/10"
-          />
-        </div>
+      )}
+
+      {!isLoading && current.length === 0 && (
+        <MemberEmptyState
+          variant={tab === "upcoming" ? "bookings" : "cloudCard"}
+          eyebrow={tab === "upcoming" ? t("member.empty.bookings.eyebrow") : undefined}
+          title={
+            tab === "upcoming"
+              ? t("member.empty.bookings.title")
+              : tab === "waitlist"
+                ? t("member.empty.waitlist.title")
+                : tab === "past"
+                  ? t("member.empty.past.title")
+                  : t("member.empty.cancelled.title")
+          }
+          body={
+            tab === "upcoming"
+              ? t("member.empty.bookings.body")
+              : tab === "waitlist"
+                ? t("member.empty.waitlist.body")
+                : tab === "past"
+                  ? t("member.empty.past.body")
+                  : t("member.empty.cancelled.body")
+          }
+          primaryAction={
+            tab === "upcoming"
+              ? { label: t("member.browseSchedule"), to: "/member/schedule" }
+              : undefined
+          }
+          illustration={null}
+        />
+      )}
+
+      <div className="space-y-3">
+        {tab === "waitlist"
+          ? waitlist.map((w: any) => (
+              <WaitlistCard
+                key={w.id}
+                entry={w}
+                onOpen={() => setOpenClass(w.class.id)}
+                onLeave={() => leave.mutate(w.id)}
+              />
+            ))
+          : current.map((b: any) => (
+              <BookingCard
+                key={b.id}
+                booking={b}
+                attendance={attMap[b.id]}
+                onOpen={() => setOpenClass(b.class.id)}
+                onCancel={tab === "upcoming" ? () => setConfirmCancel(b) : undefined}
+                muted={tab !== "upcoming"}
+                studio={settings ?? null}
+              />
+            ))}
       </div>
 
       {showConciergeOnboarding && (
@@ -340,91 +416,6 @@ function MyBookings() {
           </p>
         </section>
       )}
-
-      <div className="member-control-panel member-tab-bar no-scrollbar">
-        {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (
-          <button
-            key={tabKey}
-            onClick={() => setTab(tabKey)}
-            className={`member-tab-button ${
-              tab === tabKey
-                ? "member-tab-button-active"
-                : "bg-transparent text-slate hover:bg-sand/60 hover:text-navy"
-            }`}
-          >
-            {tabKey === "upcoming"
-              ? t("bookings.upcoming")
-              : tabKey === "waitlist"
-                ? t("bookings.waitlist")
-                : tabKey === "past"
-                  ? t("bookings.past")
-                  : t("bookings.cancelled")}{" "}
-            <span className="member-tab-count">· {counts[tabKey]}</span>
-          </button>
-        ))}
-      </div>
-
-      {isLoading && (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-32 skeleton-brand rounded-[var(--cc-radius-card)]" />
-          ))}
-        </div>
-      )}
-
-      {!isLoading && current.length === 0 && (
-        <MemberEmptyState
-          variant={tab === "upcoming" ? "bookings" : "cloudCard"}
-          eyebrow={tab === "upcoming" ? t("member.empty.bookings.eyebrow") : undefined}
-          title={
-            tab === "upcoming"
-              ? t("member.empty.bookings.title")
-              : tab === "waitlist"
-                ? t("member.empty.waitlist.title")
-                : tab === "past"
-                  ? t("member.empty.past.title")
-                  : t("member.empty.cancelled.title")
-          }
-          body={
-            tab === "upcoming"
-              ? t("member.empty.bookings.body")
-              : tab === "waitlist"
-                ? t("member.empty.waitlist.body")
-                : tab === "past"
-                  ? t("member.empty.past.body")
-                  : t("member.empty.cancelled.body")
-          }
-          primaryAction={
-            tab === "upcoming"
-              ? { label: t("member.browseSchedule"), to: "/member/schedule" }
-              : undefined
-          }
-          illustration={tab === "upcoming" ? "cloudCardPreview" : "noBookings"}
-        />
-      )}
-
-      <div className="space-y-3">
-        {tab === "waitlist"
-          ? waitlist.map((w: any) => (
-              <WaitlistCard
-                key={w.id}
-                entry={w}
-                onOpen={() => setOpenClass(w.class.id)}
-                onLeave={() => leave.mutate(w.id)}
-              />
-            ))
-          : current.map((b: any) => (
-              <BookingCard
-                key={b.id}
-                booking={b}
-                attendance={attMap[b.id]}
-                onOpen={() => setOpenClass(b.class.id)}
-                onCancel={tab === "upcoming" ? () => setConfirmCancel(b) : undefined}
-                muted={tab !== "upcoming"}
-                studio={settings ?? null}
-              />
-            ))}
-      </div>
 
       <Dialog open={!!confirmCancel} onOpenChange={(v) => !v && setConfirmCancel(null)}>
         <DialogContent dir={dir} className="max-w-md bg-ivory border-gold/30">
@@ -549,7 +540,7 @@ function BookingCard({
   });
 
   return (
-    <LessonReservationCard
+    <ReservationRow
       cls={cls}
       state={
         booking.status === "cancelled"
@@ -602,7 +593,7 @@ function BookingCard({
           </div>
         </>
       )}
-    </LessonReservationCard>
+    </ReservationRow>
   );
 }
 
@@ -618,7 +609,7 @@ function WaitlistCard({
   const cls = entry.class;
   if (!cls) return null;
   return (
-    <LessonReservationCard
+    <ReservationRow
       cls={cls}
       state={
         entry.status === "ready" || entry.status === "offered"
@@ -638,6 +629,6 @@ function WaitlistCard({
       >
         {t("booking.leaveWaitlist")}
       </button>
-    </LessonReservationCard>
+    </ReservationRow>
   );
 }

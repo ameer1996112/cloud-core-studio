@@ -1,0 +1,672 @@
+/* Member application skin. Public marketing and staff workspaces keep their own theme.
+   Shapes: 16px panels, 10px controls, pills only for compact filters.
+   Layers: photo 0, content 1, sticky header 30, mobile navigation 40, dialogs 50. */
+/* Shared primary actions retain the studio navy. */
+.member-app .btn-navy,
+.member-app .cc-button-primary {
+  background: var(--color-navy);
+  color: var(--color-ivory);
+  border-color: var(--color-navy);
+  box-shadow: none;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+
+/* A single row of desktop navigation; mobile tabs are anchored to a solid surface. */
+.member-desktop-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-inline: clamp(1rem, 4vw, 3rem);
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.member-desktop-bar-inner {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 32px;
+}
+
+.member-desktop-brand {
+  flex-shrink: 0;
+  width: 156px;
+}
+
+.member-desktop-nav {
+  display: flex;
+  flex: 1;
+  align-self: stretch;
+  align-items: stretch;
+  gap: 24px;
+}
+
+.member-desktop-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  font-size: 15px;
+}
+
+.member-desktop-nav a[aria-current="page"] {
+  border-color: var(--color-gold);
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.member-desktop-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .member-desktop-bar-inner {
+    gap: 20px;
+  }
+  .member-desktop-brand {
+    width: 128px;
+  }
+  .member-desktop-nav {
+    gap: 16px;
+  }
+}
+
+.member-app .member-mobile-header-pad {
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.member-mobile-nav {
+  padding-inline: 0;
+  padding-top: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.member-mobile-nav > div {
+  max-width: 560px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.member-mobile-nav a {
+  gap: 5px;
+  background: transparent;
+  font-size: 12px;
+}
+
+.member-mobile-nav a[aria-current="page"] {
+  background: var(--color-surface-subtle);
+  font-weight: 700;
+}
+
+.member-mobile-nav a[aria-current="page"] > span[aria-hidden] {
+  display: none;
+}
+
+.member-app .member-content-frame {
+  max-width: 1080px;
+}
+
+.member-app .member-home-page {
+  gap: 28px;
+}
+
+.member-app
+  :is(
+    .member-card,
+    .member-page-panel,
+    .member-schedule-filter-panel,
+    .package-plan-card,
+    .member-empty-state,
+    .lesson-card
+  ) {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.member-app :is(.member-page-panel, .member-schedule-filter-panel, .package-plan-card)::before,
+.member-app .package-plan-card::after,
+.member-app .member-empty-hairline {
+  display: none;
+}
+
+.member-app :is(.member-card, .member-empty-state):hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.member-app :is(.member-eyebrow, .member-chip, .member-empty-eyebrow, .member-filter-label) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.member-app :is(.member-page-title, .member-hero-title) {
+  font-size: clamp(28px, 3.5vw, 38px);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.member-app .member-section-title {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.member-app .member-page-body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.member-app .member-hero-panel {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 36%);
+  border: 0;
+  background: transparent;
+  gap: 32px;
+  border-radius: 0;
+  align-items: center;
+}
+
+.member-app .member-hero-content {
+  padding: 24px 0;
+}
+
+.member-app .member-hero-media {
+  min-height: 200px;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.member-app .member-hero-media > div {
+  display: none;
+}
+
+.member-app :is(.member-hero-greeting-stack, .member-hero-greeting-line) {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.25em;
+  align-items: baseline;
+}
+
+.member-app .member-home-stats {
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 0;
+  border-block: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.member-app .member-home-stats .member-stat-cell {
+  padding: 16px;
+  border-color: var(--color-border);
+}
+
+.member-app .member-stat-cell .numeric-display {
+  font-size: 28px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.member-app .member-stat-cell .member-eyebrow {
+  font-size: 13px;
+}
+
+.member-app .member-schedule-filter-panel__mark,
+.member-app .member-schedule-filter-panel__eyebrow {
+  display: none;
+}
+
+.member-app
+  :is(
+    .member-schedule-search-field,
+    .member-schedule-segmented,
+    .member-schedule-filter-group,
+    .member-date-segment,
+    .member-stat-strip:not(.member-home-stats)
+  ) {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.member-app
+  :is(
+    .member-schedule-filter-chip,
+    .member-schedule-segment,
+    .member-date-pill,
+    .member-filter-pill
+  ) {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.member-app
+  :is(
+    .member-schedule-filter-chip-active,
+    .member-schedule-segment-active,
+    .member-date-pill-active,
+    .member-filter-pill-active
+  ) {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: var(--color-ivory);
+}
+
+.member-app .lesson-card__accent {
+  display: none;
+}
+
+.member-app .lesson-card__time-row {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.member-app .lesson-card__time-badge {
+  color: var(--color-text-primary);
+  font-size: 17px;
+  padding-inline: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.member-app :is(.lesson-card__duration, .lesson-card__availability, .lesson-card__meta) {
+  color: var(--color-text-secondary);
+}
+
+.member-app .lesson-card__content {
+  padding: 20px;
+  gap: 20px;
+}
+
+.member-app .lesson-card__art-tile {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.member-app
+  :is(
+    .lesson-card__plate-mark,
+    .lesson-card__plate-kicker,
+    .lesson-card__plate-code,
+    .lesson-card__plate-label,
+    .lesson-card__plate-rule
+  ) {
+  display: none;
+}
+
+.member-app .package-plan-card.is-recommended {
+  border-color: var(--color-gold);
+  box-shadow: none;
+}
+
+:where(.member-app, .auth-page) :is(button, a):active {
+  scale: 0.98;
+}
+
+@media (max-width: 767px) {
+  .member-app .member-hero-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .member-app .member-hero-content {
+    padding: 20px 0 0;
+  }
+
+  .member-app .member-hero-media {
+    min-height: 136px;
+  }
+
+  .member-app .member-home-page {
+    gap: 24px;
+  }
+
+  .member-app .member-section-title {
+    font-size: 22px;
+  }
+
+  .member-app .lesson-card__content {
+    padding: 16px;
+    gap: 12px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Existing logo assets contain navy ink. A neutral plate preserves the artwork. */
+  .member-app img[src*="wordmark"] {
+    background: #f6f7f8;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .member-app :is(.bg-white, [class*="bg-white/"], .editorial-input, .settings-input) {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+  }
+
+  .member-app
+    :is(
+      .member-chip,
+      .package-value-chip,
+      .package-plan-badge,
+      .package-recurring-disclosure,
+      .member-schedule-filter-panel__reset
+    ) {
+    background: var(--color-surface-subtle);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+  }
+
+  .member-app .lesson-card__hero-art {
+    background: var(--color-surface-subtle);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.member-app, .auth-page) *,
+  :where(.member-app, .auth-page) *::before,
+  :where(.member-app, .auth-page) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* The next reservation reads as a booking, with its photograph beside the details. */
+.member-app .member-cloud-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 30%) minmax(0, 1fr);
+}
+
+.member-app .member-next-photo {
+  height: 100%;
+  min-height: 260px;
+  border-radius: 0;
+}
+
+.member-app .member-cloud-card-body {
+  background: var(--color-surface);
+  padding: 24px;
+}
+
+.member-app .member-next-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.member-app .member-next-title {
+  font-size: 28px;
+  line-height: 1.3;
+}
+
+.member-app .member-cloud-card-note {
+  border: 0;
+  background: var(--color-surface-subtle);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.member-app :is(.member-cloud-card-summary, .member-cloud-card-actions) {
+  justify-content: flex-start;
+}
+
+@media (max-width: 767px) {
+  .member-app .member-cloud-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .member-app .member-next-photo {
+    height: 150px;
+    min-height: 150px;
+  }
+  .member-app .member-cloud-card-body {
+    padding: 20px;
+  }
+  .member-app .member-next-title {
+    font-size: 24px;
+  }
+}
+
+.member-app .member-schedule-filter-panel__primary {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.member-app .member-schedule-filter-group {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.member-app .member-schedule-filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.member-app .member-schedule-filter-label > span[aria-hidden] {
+  display: none;
+}
+
+.member-app .member-schedule-search-field__input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.member-app .member-schedule-filter-panel__primary,
+.member-app .member-schedule-filter-groups {
+  border-color: var(--color-border);
+}
+
+.member-app .schedule-day-header__eyebrow {
+  display: none;
+}
+
+.member-app .schedule-day-header__title {
+  font-size: 24px;
+}
+
+.member-app :is(.schedule-day-header__date, .schedule-day-header__count) {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 0;
+  box-shadow: none;
+  padding-inline: 0;
+}
+
+.member-app .schedule-day-header__rule {
+  background: var(--color-border);
+}
+
+.member-app :is(.lesson-card-title, .lesson-card__title, .lesson-card-title > span) {
+  color: var(--color-text-primary);
+}
+
+.member-app :is(.premium-lesson-card__descriptor, .lesson-card__meta-inline) {
+  color: var(--color-text-secondary);
+}
+
+.member-app :is(.member-class-meta-chip, .lesson-detail__time) {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
+}
+
+.member-app .lesson-availability-meter {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.member-app :is(.lesson-availability-meter__label, .lesson-availability-meter__count) {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.member-app .lesson-availability-meter__track {
+  display: none;
+}
+
+.member-app .member-tab-button-active .member-tab-count {
+  color: var(--color-ivory);
+}
+
+.member-app .premium-lesson-card__media .pointer-events-none {
+  display: none;
+}
+
+.member-app .premium-lesson-card__media {
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.member-app :is(.member-section-heading, .hairline) {
+  border-color: var(--color-border);
+}
+
+.member-app .member-home-stats .member-eyebrow {
+  text-align: center;
+}
+
+/* Radix dialogs render outside the app shell; scope their skin through the active root. */
+:root:has(.member-app) .lesson-detail {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: var(--shadow-elevated);
+}
+
+:root:has(.member-app)
+  :is(
+    .lesson-detail__summary,
+    .lesson-detail__body,
+    .lesson-detail__key-card,
+    .lesson-detail__section
+  ) {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: none;
+  color: var(--color-text-secondary);
+}
+
+:root:has(.member-app) :is(.lesson-detail__title, .lesson-detail__title > span) {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+:root:has(.member-app)
+  :is(
+    .lesson-detail__descriptor,
+    .lesson-detail__meta-line,
+    .lesson-detail__program,
+    .lesson-detail__notes
+  ) {
+  color: var(--color-text-secondary);
+}
+
+:root:has(.member-app)
+  .lesson-detail
+  :is(
+    .member-class-meta-chip,
+    .lesson-detail__time,
+    .lesson-detail__key-card,
+    .lesson-detail__notes
+  ) {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  border-radius: 10px;
+}
+
+:root:has(.member-app) .lesson-detail .lesson-availability-meter {
+  background: transparent;
+  border: 0;
+  padding-inline: 0;
+  box-shadow: none;
+}
+
+:root:has(.member-app)
+  .lesson-detail
+  :is(.lesson-availability-meter__label, .lesson-availability-meter__count) {
+  color: var(--color-text-secondary);
+}
+
+:root:has(.member-app) .lesson-detail .lesson-availability-meter__track {
+  display: none;
+}
+
+:root:has(.member-app) .lesson-detail .member-eyebrow {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 13px;
+}
+
+:root:has(.member-app) .lesson-detail__visual {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.member-app .member-mobile-nav a > span:not([aria-hidden]) {
+  min-height: 2.4em;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.2;
+}
+
+.member-app .field-label {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.member-app .member-page > .member-page-panel:not(:has(img)) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 24px 0 0;
+}
+
+:root:has(.member-app) .lesson-detail__body {
+  display: flex;
+  flex-direction: column;
+}
+
+:root:has(.member-app) .lesson-detail__body > * {
+  flex-shrink: 0;
+}

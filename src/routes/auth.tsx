@@ -1,13 +1,13 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   clearSupabaseAccessTokenCookie,
   syncSupabaseAccessTokenCookie,
 } from "@/integrations/supabase/session-cookie";
 import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
-import { applyLang, LANG_META, t, useI18n, type Lang } from "@/lib/i18n";
+import { applyLang, t, useI18n, type Lang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { roleHome, getCurrentRole } from "@/lib/auth-redirect";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -27,7 +27,7 @@ import {
 } from "@/lib/authValidation";
 import { getYogaPromoAttributionToken, trackYogaPromo } from "@/lib/yogaPromo";
 
-import { authImages, authLogo } from "@/lib/auth-assets";
+import { AuthFrame } from "@/components/auth/AuthFrame";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -281,9 +281,7 @@ function AuthPage() {
           ? t("auth.checkEmailTitle")
           : t("auth.forgotHeadline");
   const guestEntryTitle = t("auth.guestTitle");
-  const guestEntryBody = t("auth.guestBody");
   const browseScheduleLabel = t("auth.browseSchedule");
-  const guestSupportLabel = t("auth.guestSupport");
   const isPackageReturn = returnToPath === "/member/packages";
   const fieldErrorText = (field: AuthFieldName) => {
     const issue = fieldErrors[field];
@@ -291,320 +289,231 @@ function AuthPage() {
   };
 
   return (
-    <main
-      id="main-content"
-      dir={dir}
-      className="auth-page relative min-h-[100dvh] overflow-x-hidden bg-[var(--color-surface-warm)] flex flex-col"
-    >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <img
-          src={authImages.hero.src}
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full object-cover opacity-[0.48] contrast-[1.08] saturate-[0.94] md:opacity-[0.66]"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-          width={853}
-          height={1280}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(246,238,226,0.28)_0%,rgba(246,238,226,0.58)_36%,rgba(246,238,226,0.92)_100%)] md:bg-[linear-gradient(90deg,rgba(246,238,226,0.94)_0%,rgba(246,238,226,0.74)_46%,rgba(246,238,226,0.18)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.38),transparent_30%),linear-gradient(180deg,rgba(11,29,58,0.08),transparent_42%,rgba(11,29,58,0.07))]" />
-      </div>
+    <AuthFrame lang={lang} onLocaleChange={changeLang} eyebrow={eyebrow} title={headline}>
+      <div className="auth-form-card">
+        {(mode === "forgot" || mode === "check-email") && (
+          <p className="auth-form-helper mt-3 text-sm text-slate text-start">
+            {mode === "forgot" ? t("auth.forgotBody") : t("auth.resetSent")}
+          </p>
+        )}
+        {!restoringSession && mode === "signin" && isPackageReturn && (
+          <p className="auth-form-helper mt-3 text-sm text-slate text-start">
+            {t("auth.returnToPackagesBody")}
+          </p>
+        )}
 
-      <header className="auth-mobile-topbar">
-        <AuthLanguageSwitcher lang={lang} onChange={changeLang} />
-      </header>
+        {restoringSession ? (
+          <div
+            className="auth-check-email-panel mt-5 min-h-24 justify-center"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="auth-restoring-orbit" aria-hidden="true">
+              <span />
+            </span>
+            <p className="auth-restoring-text">{t("auth.checkingSession")}</p>
+          </div>
+        ) : (
+          <form
+            key={`${mode}-${formVersion}`}
+            ref={formRef}
+            onSubmit={submit}
+            className="auth-form mt-4 sm:mt-5"
+            dir={dir}
+            autoComplete="on"
+            noValidate
+          >
+            {mode === "check-email" ? (
+              <div className="auth-check-email-panel" role="status" aria-live="polite">
+                <p>{t("auth.resetSent")}</p>
+              </div>
+            ) : null}
 
-      <div className="relative z-10 flex-1 overflow-y-auto">
-        <div className="auth-mobile-stage">
-          <div className="auth-mobile-panel">
-            <div className="auth-brand-lockup">
-              <img
-                src={authLogo.src}
-                alt={authLogo.alt}
-                width={authLogo.width}
-                height={authLogo.height}
-                className="auth-brand-logo"
-              />
-            </div>
-
-            <div className="auth-form-card member-card relative">
-              <p className="member-eyebrow">{eyebrow}</p>
-              <h1 className="auth-form-title font-semibold text-navy mt-2 text-balance">
-                {headline}
-              </h1>
-              <div className="mt-3 h-px w-10 bg-gold" />
-              {(mode === "forgot" || mode === "check-email") && (
-                <p className="auth-form-helper mt-3 text-sm text-slate text-start">
-                  {mode === "forgot" ? t("auth.forgotBody") : t("auth.resetSent")}
-                </p>
-              )}
-              {!restoringSession && mode === "signin" && isPackageReturn && (
-                <p className="auth-form-helper mt-3 text-sm text-slate text-start">
-                  {t("auth.returnToPackagesBody")}
-                </p>
-              )}
-
-              {restoringSession ? (
-                <div
-                  className="auth-check-email-panel mt-5 min-h-24 justify-center"
-                  role="status"
-                  aria-live="polite"
+            {mode === "signup" && (
+              <>
+                <Field
+                  label={t("auth.name")}
+                  error={fieldErrorText("name")}
+                  errorId="auth-name-error"
                 >
-                  <span className="auth-restoring-orbit" aria-hidden="true">
-                    <span />
-                  </span>
-                  <p className="auth-restoring-text">{t("auth.checkingSession")}</p>
-                </div>
-              ) : (
-                <form
-                  key={`${mode}-${formVersion}`}
-                  ref={formRef}
-                  onSubmit={submit}
-                  className="auth-form mt-4 sm:mt-5"
-                  dir={dir}
-                  autoComplete="on"
-                  noValidate
-                >
-                  {mode === "check-email" ? (
-                    <div className="auth-check-email-panel" role="status" aria-live="polite">
-                      <p>{t("auth.resetSent")}</p>
-                    </div>
-                  ) : null}
-
-                  {mode === "signup" && (
-                    <>
-                      <Field
-                        label={t("auth.name")}
-                        error={fieldErrorText("name")}
-                        errorId="auth-name-error"
-                      >
-                        <input
-                          name="name"
-                          value={name}
-                          onChange={(e) => {
-                            setName(e.target.value);
-                            clearError("name");
-                          }}
-                          required
-                          className="auth-text-input editorial-input focus:editorial-input-focus"
-                          autoComplete="name"
-                          aria-invalid={Boolean(fieldErrors.name)}
-                          aria-describedby={fieldErrors.name ? "auth-name-error" : undefined}
-                          autoCapitalize="words"
-                          autoCorrect="off"
-                          spellCheck={false}
-                        />
-                      </Field>
-                      <Field label={t("auth.phoneOptional")}>
-                        <input
-                          type="tel"
-                          name={`signup-phone-${formVersion}`}
-                          value={phone}
-                          onChange={(e) => {
-                            setPhone(e.target.value);
-                            clearError();
-                          }}
-                          className="auth-text-input editorial-input focus:editorial-input-focus"
-                          autoComplete="tel"
-                          autoCapitalize="none"
-                          autoCorrect="off"
-                          spellCheck={false}
-                        />
-                        <p className="mt-2 text-xs leading-5 text-slate text-start">
-                          {t("auth.phoneOptionalHelp")}
-                        </p>
-                      </Field>
-                    </>
-                  )}
-                  {mode !== "check-email" && (
-                    <Field
-                      label={t("auth.email")}
-                      error={fieldErrorText("email")}
-                      errorId="auth-email-error"
-                    >
-                      <input
-                        type="email"
-                        name={mode === "signin" ? "username" : "email"}
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          clearError("email");
-                        }}
-                        required
-                        className="auth-ltr-input editorial-input focus:editorial-input-focus"
-                        autoComplete={mode === "signin" ? "username" : "email"}
-                        aria-invalid={Boolean(fieldErrors.email)}
-                        aria-describedby={fieldErrors.email ? "auth-email-error" : undefined}
-                        dir="ltr"
-                        inputMode="email"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                      />
-                    </Field>
-                  )}
-                  {(mode === "signin" || mode === "signup") && (
-                    <Field
-                      label={t("auth.password")}
-                      error={fieldErrorText("password")}
-                      errorId="auth-password-error"
-                    >
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          name={
-                            mode === "signup"
-                              ? `signup-password-${formVersion}`
-                              : "current-password"
-                          }
-                          value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value);
-                            clearError("password");
-                          }}
-                          required
-                          minLength={6}
-                          className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus"
-                          autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                          aria-invalid={Boolean(fieldErrors.password)}
-                          aria-describedby={
-                            fieldErrors.password ? "auth-password-error" : undefined
-                          }
-                          dir="ltr"
-                          autoCapitalize="none"
-                          autoCorrect="off"
-                          spellCheck={false}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((v) => !v)}
-                          className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
-                          aria-label={
-                            showPassword ? t("auth.hidePassword") : t("auth.showPassword")
-                          }
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                      {mode === "signup" && <PasswordStrength password={password} />}
-                    </Field>
-                  )}
-                  {mode === "signup" && (
-                    <SignupNotificationChoices
-                      lang={lang}
-                      phone={phone}
-                      whatsapp={whatsappUpdatesEnabled}
-                      marketing={marketingUpdatesEnabled}
-                      onWhatsappChange={setWhatsappUpdatesEnabled}
-                      onMarketingChange={setMarketingUpdatesEnabled}
-                    />
-                  )}
-
-                  {formError && (
-                    <p
-                      className="auth-form-error"
-                      role="alert"
-                      aria-live="polite"
-                      dir={lang === "en" ? "ltr" : "rtl"}
-                    >
-                      {formError}
-                    </p>
-                  )}
-                  {formSuccess && (
-                    <p className="auth-form-success" role="status" aria-live="polite">
-                      {formSuccess}
-                    </p>
-                  )}
-
-                  {mode !== "check-email" && (
-                    <button
-                      type="submit"
-                      disabled={busy}
-                      className={
-                        busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"
-                      }
-                    >
-                      {busy
-                        ? t("auth.busy")
-                        : mode === "signin"
-                          ? t("auth.enter")
-                          : mode === "signup"
-                            ? t("auth.reserve")
-                            : t("auth.reset")}
-                    </button>
-                  )}
-
-                  {mode === "signin" && (
-                    <button
-                      type="button"
-                      onClick={() => switchMode("forgot")}
-                      className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
-                    >
-                      {t("auth.forgot")}
-                    </button>
-                  )}
-
+                  <input
+                    name="name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      clearError("name");
+                    }}
+                    required
+                    className="auth-text-input editorial-input focus:editorial-input-focus"
+                    autoComplete="name"
+                    aria-invalid={Boolean(fieldErrors.name)}
+                    aria-describedby={fieldErrors.name ? "auth-name-error" : undefined}
+                    autoCapitalize="words"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
+                </Field>
+                <Field label={t("auth.phoneOptional")}>
+                  <input
+                    type="tel"
+                    name={`signup-phone-${formVersion}`}
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      clearError();
+                    }}
+                    className="auth-text-input editorial-input focus:editorial-input-focus"
+                    autoComplete="tel"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
+                  <p className="mt-2 text-xs leading-5 text-slate text-start">
+                    {t("auth.phoneOptionalHelp")}
+                  </p>
+                </Field>
+              </>
+            )}
+            {mode !== "check-email" && (
+              <Field
+                label={t("auth.email")}
+                error={fieldErrorText("email")}
+                errorId="auth-email-error"
+              >
+                <input
+                  type="email"
+                  name={mode === "signin" ? "username" : "email"}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearError("email");
+                  }}
+                  required
+                  className="auth-ltr-input editorial-input focus:editorial-input-focus"
+                  autoComplete={mode === "signin" ? "username" : "email"}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? "auth-email-error" : undefined}
+                  dir="ltr"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+              </Field>
+            )}
+            {(mode === "signin" || mode === "signup") && (
+              <Field
+                label={t("auth.password")}
+                error={fieldErrorText("password")}
+                errorId="auth-password-error"
+              >
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name={mode === "signup" ? `signup-password-${formVersion}` : "current-password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearError("password");
+                    }}
+                    required
+                    minLength={6}
+                    className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus"
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    aria-invalid={Boolean(fieldErrors.password)}
+                    aria-describedby={fieldErrors.password ? "auth-password-error" : undefined}
+                    dir="ltr"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
                   <button
                     type="button"
-                    onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
-                    className="auth-switch-action block w-full text-center text-navy hover:text-gold pt-2 border-t hairline"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
+                    aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                   >
-                    {mode === "signin"
-                      ? t("auth.create")
-                      : mode === "signup"
-                        ? t("auth.already")
-                        : t("auth.back")}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
-                  <section
-                    className="mt-5 border-t hairline pt-5"
-                    aria-labelledby="auth-guest-entry"
-                  >
-                    <p id="auth-guest-entry" className="member-eyebrow text-slate">
-                      {guestEntryTitle}
-                    </p>
-                    <p className="mt-3 text-sm leading-7 text-slate text-start">{guestEntryBody}</p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <Link
-                        to="/member/schedule"
-                        className="inline-flex min-h-12 items-center justify-center rounded-full border border-gold/35 bg-white/92 px-5 text-sm font-semibold tracking-[0.08em] text-navy shadow-[0_18px_50px_-30px_rgba(11,29,58,0.38)] transition-colors hover:bg-gold/8"
-                      >
-                        {browseScheduleLabel}
-                      </Link>
-                      <Link
-                        to="/support"
-                        className="inline-flex min-h-12 items-center justify-center rounded-full border border-navy/12 bg-transparent px-5 text-sm font-medium text-slate transition-colors hover:border-gold/35 hover:text-navy"
-                      >
-                        {guestSupportLabel}
-                      </Link>
-                    </div>
-                  </section>
-                </form>
-              )}
-            </div>
+                </div>
+                {mode === "signup" && <PasswordStrength password={password} />}
+              </Field>
+            )}
+            {mode === "signup" && (
+              <SignupNotificationChoices
+                lang={lang}
+                phone={phone}
+                whatsapp={whatsappUpdatesEnabled}
+                marketing={marketingUpdatesEnabled}
+                onWhatsappChange={setWhatsappUpdatesEnabled}
+                onMarketingChange={setMarketingUpdatesEnabled}
+              />
+            )}
 
-            <div className="auth-legal-links flex justify-center gap-6 mt-6 pb-6">
-              <Link to="/privacy" className="auth-legal-link text-slate hover:text-navy">
-                {t("legal.privacy")}
+            {formError && (
+              <p
+                className="auth-form-error"
+                role="alert"
+                aria-live="polite"
+                dir={lang === "en" ? "ltr" : "rtl"}
+              >
+                {formError}
+              </p>
+            )}
+            {formSuccess && (
+              <p className="auth-form-success" role="status" aria-live="polite">
+                {formSuccess}
+              </p>
+            )}
+
+            {mode !== "check-email" && (
+              <button
+                type="submit"
+                disabled={busy}
+                className={busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"}
+              >
+                {busy
+                  ? t("auth.busy")
+                  : mode === "signin"
+                    ? t("auth.enter")
+                    : mode === "signup"
+                      ? t("auth.reserve")
+                      : t("auth.reset")}
+              </button>
+            )}
+
+            {mode === "signin" && (
+              <button
+                type="button"
+                onClick={() => switchMode("forgot")}
+                className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
+              >
+                {t("auth.forgot")}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
+              className="auth-switch-action block w-full text-center text-navy hover:text-gold pt-2 border-t hairline"
+            >
+              {mode === "signin"
+                ? t("auth.create")
+                : mode === "signup"
+                  ? t("auth.already")
+                  : t("auth.back")}
+            </button>
+            <section className="auth-guest-section" aria-labelledby="auth-guest-entry">
+              <p id="auth-guest-entry">{guestEntryTitle}</p>
+              <Link to="/member/schedule" className="auth-guest-action">
+                {browseScheduleLabel}
+                <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" />
               </Link>
-              <Link to="/terms" className="auth-legal-link text-slate hover:text-navy">
-                {t("legal.terms")}
-              </Link>
-              <Link to="/support" className="auth-legal-link text-slate hover:text-navy">
-                {t("legal.support")}
-              </Link>
-              <Link to="/checkout" className="auth-legal-link text-slate hover:text-navy">
-                {t("legal.checkout")}
-              </Link>
-            </div>
-            <p className="pb-6 text-center text-xs font-medium text-slate/80">
-              Cloud and Core Studio · Hurfeish, North District, Israel
-            </p>
-          </div>
-        </div>
+            </section>
+          </form>
+        )}
       </div>
-    </main>
+    </AuthFrame>
   );
 }
 
@@ -651,28 +560,6 @@ function Field({
         </span>
       ) : null}
     </label>
-  );
-}
-
-function AuthLanguageSwitcher({ lang, onChange }: { lang: Lang; onChange: (next: Lang) => void }) {
-  const codes: Lang[] = ["he", "en", "ar"];
-
-  return (
-    <div className="auth-language-switcher" role="group" aria-label={t("profile.language")}>
-      {codes.map((code) => (
-        <button
-          key={code}
-          type="button"
-          data-active={lang === code}
-          aria-pressed={lang === code}
-          lang={code}
-          dir={LANG_META[code].dir}
-          onClick={() => onChange(code)}
-        >
-          {LANG_META[code].label}
-        </button>
-      ))}
-    </div>
   );
 }
 

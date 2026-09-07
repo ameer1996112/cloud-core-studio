@@ -1,3 +1,4 @@
+import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,7 +67,7 @@ function MemberPackages() {
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [checkoutFeedback, setCheckoutFeedback] = useState<"error" | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["member-packages"],
     queryFn: () => fetchPackages(),
   });
@@ -176,193 +177,210 @@ function MemberPackages() {
   const requestsByPlan: Record<string, any> = {};
   for (const r of requests ?? []) if (r.plan_id) requestsByPlan[r.plan_id] = r;
 
+  if (isLoading || isError)
+    return (
+      <MemberPageState title={t("nav.plans")} error={isError} onRetry={() => void refetch()} />
+    );
+
   return (
-    <section dir={dir} className="member-page w-full space-y-6 sm:space-y-8 pb-10">
-      <div className="member-page-panel p-5 sm:p-8">
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] md:items-end">
-          <div className="member-page-copy">
-            <p className="member-eyebrow">{t("member.packages.kicker")}</p>
-            <h1 className="member-page-title mt-3">{t("nav.plans")}</h1>
-            <p className="member-page-body mt-3">{t("member.packages.body")}</p>
-          </div>
-          <div className="member-stat-strip">
-            <StatCell label={t("member.stat.credits")} value={credits} />
-            <StatCell label={t("payments.pending")} value={pendingPayments.length} />
-          </div>
-        </div>
-        <div className="mt-6 border-t border-gold/25 pt-5">
-          <p className="member-eyebrow">{t("member.activePackage")}</p>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <p className="font-display text-[clamp(1.55rem,7vw,1.875rem)] text-navy leading-tight">
-              {active?.plan
-                ? t("member.planWithCredits", {
-                    plan: getPlanDisplay(active.plan, lang).name,
-                    count: credits,
-                  })
-                : credits > 0
-                  ? t("member.creditsAvailable", { count: credits })
-                  : t("member.noActivePackage")}
-            </p>
-            {active?.expires_at && (
-              <p className="text-sm text-slate">
-                {t("member.expires")}{" "}
-                <LtrInline className="text-navy">
-                  {new Date(active.expires_at).toLocaleDateString(locale, {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </LtrInline>
-              </p>
+    <section dir={dir} className="member-page aura-member-page aura-packages-page">
+      <header className="aura-page-heading">
+        <p className="member-eyebrow">{t("member.packages.kicker")}</p>
+        <h1>{t("nav.plans")}</h1>
+        <p>{t("member.packages.body")}</p>
+      </header>
+      <div className="aura-packages-layout">
+        <aside className="aura-wallet" aria-label={t("member.activePackage")}>
+          <div className="aura-wallet-summary">
+            <p className="member-eyebrow">{t("member.activePackage")}</p>
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <h2 className="aura-wallet-title">
+                {isLoading ? (
+                  t("common.loading")
+                ) : active?.plan ? (
+                  <bdi>{getPlanDisplay(active.plan, lang).name}</bdi>
+                ) : (
+                  t("member.noActivePackage")
+                )}
+              </h2>
+              {!isLoading && (
+                <p className="aura-wallet-balance">
+                  {active?.plan &&
+                  (active.plan.credits >= 999 || /unlim/i.test(active.plan.name)) ? (
+                    t("packages.unlimited")
+                  ) : (
+                    <>
+                      <strong>
+                        <bdi>{credits}</bdi>
+                      </strong>
+                      <span>{t("member.stat.credits")}</span>
+                    </>
+                  )}
+                </p>
+              )}
+              {active?.expires_at && (
+                <p className="text-sm text-slate">
+                  {t("member.expires")}{" "}
+                  <LtrInline className="text-navy">
+                    {new Date(active.expires_at).toLocaleDateString(locale, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </LtrInline>
+                </p>
+              )}
+            </div>
+            {activeSubscription && (
+              <div className="mt-4 rounded-xl border border-gold/25 bg-white/55 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
+                      <RefreshCw className="h-4 w-4 text-gold" />
+                      {activeSubscription.status === "past_due"
+                        ? t("packages.subscriptionPastDue")
+                        : t("packages.subscriptionActive")}
+                    </p>
+                    <p className="mt-1 text-sm text-slate">
+                      {t("packages.subscriptionRenews", {
+                        date: new Date(
+                          activeSubscription.next_charge_at ??
+                            activeSubscription.current_period_end ??
+                            Date.now(),
+                        ).toLocaleDateString(locale),
+                      })}
+                    </p>
+                    {activeSubscription.card_mask && (
+                      <p className="mt-1 text-xs font-medium text-slate">
+                        {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => cancelSubscriptionMutation.mutate()}
+                    disabled={cancelSubscriptionMutation.isPending}
+                    className="btn-outline shrink-0 disabled:opacity-50"
+                  >
+                    {cancelSubscriptionMutation.isPending
+                      ? t("common.saving")
+                      : t("packages.subscriptionCancel")}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
-          {activeSubscription && (
-            <div className="mt-4 rounded-xl border border-gold/25 bg-white/55 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
-                    <RefreshCw className="h-4 w-4 text-gold" />
-                    {activeSubscription.status === "past_due"
-                      ? t("packages.subscriptionPastDue")
-                      : t("packages.subscriptionActive")}
+
+          {promoEntitlements.map((entitlement: any) => (
+            <div
+              key={entitlement.id}
+              className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_rgba(11,29,58,.16)] sm:p-6"
+              data-testid="yoga-promo-wallet-credit"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="member-eyebrow text-gold">Cloud &amp; Core</p>
+                  <h2 className="mt-2 font-display text-2xl text-ivory">
+                    {t("promo.yoga.walletTitle")}
+                  </h2>
+                  <p className="mt-3 text-sm font-semibold text-ivory/90">
+                    {t("promo.yoga.quantity")}
                   </p>
-                  <p className="mt-1 text-sm text-slate">
-                    {t("packages.subscriptionRenews", {
-                      date: new Date(
-                        activeSubscription.next_charge_at ??
-                          activeSubscription.current_period_end ??
-                          Date.now(),
-                      ).toLocaleDateString(locale),
-                    })}
-                  </p>
-                  {activeSubscription.card_mask && (
-                    <p className="mt-1 text-xs font-medium text-slate">
-                      {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
+                  <p className="mt-1 text-sm text-ivory/75">{t("promo.yoga.restriction")}</p>
+                  {entitlement.expires_at ? (
+                    <p className="mt-1 text-sm text-ivory/75">
+                      {t("promo.yoga.validUntil", {
+                        date: new Date(entitlement.expires_at).toLocaleDateString(locale),
+                      })}
                     </p>
-                  )}
+                  ) : null}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => cancelSubscriptionMutation.mutate()}
-                  disabled={cancelSubscriptionMutation.isPending}
-                  className="btn-outline shrink-0 disabled:opacity-50"
-                >
-                  {cancelSubscriptionMutation.isPending
-                    ? t("common.saving")
-                    : t("packages.subscriptionCancel")}
-                </button>
+                <Sparkles className="h-6 w-6 shrink-0 text-gold" aria-hidden="true" />
               </div>
+            </div>
+          ))}
+
+          {requests && requests.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="member-eyebrow">{t("packages.recent")}</h2>
+              <div className="member-card divide-y hairline">
+                {requests.slice(0, 4).map((r: any) => (
+                  <div
+                    key={r.id}
+                    className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-navy">
+                        {r.plan ? getPlanDisplay(r.plan, lang).name : t("nav.plans")}
+                      </p>
+                      <p className="mt-0.5 text-xs font-medium text-slate">
+                        {new Date(r.created_at).toLocaleDateString(locale)}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                        r.status === "paid"
+                          ? "border-navy bg-navy text-ivory"
+                          : r.status === "contacted"
+                            ? "border-powder/70 bg-powder/75 text-navy"
+                            : r.status === "cancelled"
+                              ? "border-sand bg-sand/70 text-slate"
+                              : "border-gold/35 bg-gold/12 text-navy"
+                      }`}
+                    >
+                      {labelForStatus(r.status)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!isLoading && pendingPayments.length > 0 && (
+            <p className="aura-pending-payments">
+              {t("payments.pending")}: <bdi>{pendingPayments.length}</bdi>
+            </p>
+          )}
+        </aside>
+        <div className="aura-plan-selection space-y-4">
+          <div className="member-section-heading">
+            <div>
+              <h2 className="member-section-title">{t("packages.available")}</h2>
+              <p className="member-page-body mt-2 max-w-2xl text-sm sm:text-base">
+                {pricingCopy[lang].subtitle}
+              </p>
+            </div>
+          </div>
+          {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
+          {visiblePlans.length === 0 && !isLoading ? (
+            <MemberEmptyState
+              variant="packages"
+              title={t("member.empty.packages.title")}
+              body={t("member.empty.packages.body")}
+            />
+          ) : (
+            <div className="package-pricing-grid">
+              {visiblePlans.map((p: any) => (
+                <PackagePricingCard
+                  key={p.id}
+                  plan={p}
+                  lang={lang}
+                  request={requestsByPlan[p.id]}
+                  payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
+                  onRequest={() => setSelectedPlan(p)}
+                  pending={
+                    manualPayment.isPending ||
+                    checkoutPayment.isPending ||
+                    hasUsableActivePackage ||
+                    hasRunningSubscription
+                  }
+                  blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
+                />
+              ))}
             </div>
           )}
         </div>
       </div>
-
-      {promoEntitlements.map((entitlement: any) => (
-        <div
-          key={entitlement.id}
-          className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_rgba(11,29,58,.16)] sm:p-6"
-          data-testid="yoga-promo-wallet-credit"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="member-eyebrow text-gold">Cloud &amp; Core</p>
-              <h2 className="mt-2 font-display text-2xl text-ivory">
-                {t("promo.yoga.walletTitle")}
-              </h2>
-              <p className="mt-3 text-sm font-semibold text-ivory/90">{t("promo.yoga.quantity")}</p>
-              <p className="mt-1 text-sm text-ivory/75">{t("promo.yoga.restriction")}</p>
-              {entitlement.expires_at ? (
-                <p className="mt-1 text-sm text-ivory/75">
-                  {t("promo.yoga.validUntil", {
-                    date: new Date(entitlement.expires_at).toLocaleDateString(locale),
-                  })}
-                </p>
-              ) : null}
-            </div>
-            <Sparkles className="h-6 w-6 shrink-0 text-gold" aria-hidden="true" />
-          </div>
-        </div>
-      ))}
-
-      {requests && requests.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="member-eyebrow">{t("packages.recent")}</h2>
-          <div className="member-card divide-y hairline">
-            {requests.slice(0, 4).map((r: any) => (
-              <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3 text-sm">
-                <div className="min-w-0">
-                  <p className="text-navy truncate">
-                    {r.plan ? getPlanDisplay(r.plan, lang).name : t("nav.plans")}
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-slate">
-                    {new Date(r.created_at).toLocaleDateString(locale)}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
-                    r.status === "paid"
-                      ? "border-navy bg-navy text-ivory"
-                      : r.status === "contacted"
-                        ? "border-powder/70 bg-powder/75 text-navy"
-                        : r.status === "cancelled"
-                          ? "border-sand bg-sand/70 text-slate"
-                          : "border-gold/35 bg-gold/12 text-navy"
-                  }`}
-                >
-                  {labelForStatus(r.status)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <div className="member-section-heading">
-          <div>
-            <h2 className="member-section-title">{t("packages.available")}</h2>
-            <p className="member-page-body mt-2 max-w-2xl text-sm sm:text-base">
-              {pricingCopy[lang].subtitle}
-            </p>
-          </div>
-        </div>
-        <div className="package-value-strip" aria-label={pricingCopy[lang].valueStripLabel}>
-          {pricingCopy[lang].valueChips.map((chip) => (
-            <span key={chip} className="package-value-chip">
-              {chip}
-            </span>
-          ))}
-        </div>
-        {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
-        {visiblePlans.length === 0 && !isLoading ? (
-          <MemberEmptyState
-            variant="packages"
-            title={t("member.empty.packages.title")}
-            body={t("member.empty.packages.body")}
-          />
-        ) : (
-          <div className="package-pricing-grid">
-            {visiblePlans.map((p: any) => (
-              <PackagePricingCard
-                key={p.id}
-                plan={p}
-                lang={lang}
-                request={requestsByPlan[p.id]}
-                payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
-                onRequest={() => setSelectedPlan(p)}
-                pending={
-                  manualPayment.isPending ||
-                  checkoutPayment.isPending ||
-                  hasUsableActivePackage ||
-                  hasRunningSubscription
-                }
-                blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
       {selectedPlan && (
         <PaymentMethodSheet
           plan={selectedPlan}
@@ -377,92 +395,92 @@ function MemberPackages() {
         />
       )}
 
-      <div className="space-y-3">
-        <div className="member-section-heading">
-          <h2 className="member-section-title">{t("packages.creditHistory")}</h2>
-        </div>
-        {data?.ledger.length === 0 ? (
-          <MemberEmptyState
-            variant="packages"
-            title={t("packages.noCredit")}
-            body={t("member.empty.packages.body")}
-            align="start"
-            tone="sand"
-            illustration={null}
-          />
-        ) : (
-          <div className="member-card divide-y hairline">
-            {data?.ledger.map((t: any) => (
-              <div key={t.id} className="px-4 py-3 flex items-center justify-between text-sm">
-                <div className="min-w-0">
-                  <p className="text-navy truncate">
-                    {formatCreditReason(t.reason, t.amount_delta)}
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-slate">
-                    {new Date(t.created_at).toLocaleDateString(locale)}
-                  </p>
-                </div>
-                <span
-                  className={`numeric-display font-display text-xl ${t.amount_delta >= 0 ? "text-navy" : "text-slate"}`}
-                >
-                  {t.amount_delta > 0 ? "+" : ""}
-                  {t.amount_delta}
-                </span>
-              </div>
-            ))}
+      <div className="aura-account-history">
+        <div className="space-y-3">
+          <div className="member-section-heading">
+            <h2 className="member-section-title">{t("packages.creditHistory")}</h2>
           </div>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        <div className="member-section-heading">
-          <h2 className="member-section-title">{t("packages.paymentHistory")}</h2>
-        </div>
-        {visiblePaymentHistory.length === 0 ? (
-          <MemberEmptyState
-            variant="payments"
-            title={t("packages.noPayments")}
-            body={t("member.empty.payments.body")}
-            align="start"
-            tone="ivory"
-          />
-        ) : (
-          <div className="member-card divide-y hairline">
-            {visiblePaymentHistory.map((p: any) => {
-              const receipt = Array.isArray(p.receipt) ? p.receipt[0] : p.receipt;
-              return (
-                <div
-                  key={p.id}
-                  className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
-                >
+          {data?.ledger.length === 0 ? (
+            <MemberEmptyState
+              variant="packages"
+              title={t("packages.noCredit")}
+              body={t("member.empty.creditHistory.body")}
+              align="start"
+              tone="sand"
+              illustration={null}
+            />
+          ) : (
+            <div className="member-card divide-y hairline">
+              {data?.ledger.map((t: any) => (
+                <div key={t.id} className="px-4 py-3 flex items-center justify-between text-sm">
                   <div className="min-w-0">
-                    <p className="text-navy truncate">
-                      {p.plan ? getPlanDisplay(p.plan, lang).name : t("receipt.studioPayment")}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs font-medium text-slate">
-                      {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)} ·{" "}
-                      {labelForMethod(p.method)} · {labelForStatus(p.status)}
+                    <p className="text-navy">{formatCreditReason(t.reason, t.amount_delta)}</p>
+                    <p className="mt-0.5 text-xs font-medium text-slate">
+                      {new Date(t.created_at).toLocaleDateString(locale)}
                     </p>
                   </div>
-                  <div className="text-start shrink-0">
-                    <p className="font-display text-xl text-navy">
-                      <LtrInline>{formatPaymentAmount(p.amount, p.currency)}</LtrInline>
-                    </p>
-                    {receipt && (
-                      <Link
-                        to="/receipts/$id"
-                        params={{ id: receipt.id }}
-                        className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-gold"
-                      >
-                        <FileText className="h-3 w-3" /> {receipt.receipt_number}
-                      </Link>
-                    )}
-                  </div>
+                  <span
+                    className={`numeric-display font-display text-xl ${t.amount_delta >= 0 ? "text-navy" : "text-slate"}`}
+                  >
+                    {t.amount_delta > 0 ? "+" : ""}
+                    {t.amount_delta}
+                  </span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <div className="member-section-heading">
+            <h2 className="member-section-title">{t("packages.paymentHistory")}</h2>
           </div>
-        )}
+          {visiblePaymentHistory.length === 0 ? (
+            <MemberEmptyState
+              variant="payments"
+              title={t("packages.noPayments")}
+              body={t("member.empty.payments.body")}
+              align="start"
+              tone="ivory"
+            />
+          ) : (
+            <div className="member-card divide-y hairline">
+              {visiblePaymentHistory.map((p: any) => {
+                const receipt = Array.isArray(p.receipt) ? p.receipt[0] : p.receipt;
+                return (
+                  <div
+                    key={p.id}
+                    className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-navy">
+                        {p.plan ? getPlanDisplay(p.plan, lang).name : t("receipt.studioPayment")}
+                      </p>
+                      <p className="mt-0.5 text-sm text-slate">
+                        {new Date(p.created_at ?? p.paid_at).toLocaleDateString(locale)} ·{" "}
+                        {labelForMethod(p.method)} · {labelForStatus(p.status)}
+                      </p>
+                    </div>
+                    <div className="text-start shrink-0">
+                      <p className="font-display text-xl text-navy">
+                        <LtrInline>{formatPaymentAmount(p.amount, p.currency)}</LtrInline>
+                      </p>
+                      {receipt && (
+                        <Link
+                          to="/receipts/$id"
+                          params={{ id: receipt.id }}
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-gold"
+                        >
+                          <FileText className="h-3 w-3" /> {receipt.receipt_number}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -502,25 +520,20 @@ function PackagePricingCard({
   const isRecurringMonthly = isRecurringCardPlan(plan);
   const creditsLine = getPackageCreditsLine(plan.credits, lang);
   return (
-    <div
-      className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
-      data-plan-kind={marketing.kind}
-    >
+    <article className="package-plan-card aura-plan-card" data-plan-kind={marketing.kind}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-display text-2xl text-navy leading-tight">{display.name}</p>
-            {marketing.badge && <span className="package-plan-badge">{marketing.badge}</span>}
-            {marketing.secondaryBadge && (
-              <span className="package-plan-badge is-secondary">{marketing.secondaryBadge}</span>
-            )}
+            <h3 className="aura-plan-name">
+              <bdi>{display.name}</bdi>
+            </h3>
             {isRecurringMonthly && (
               <span className="package-plan-badge is-secondary">
                 {t("packages.subscriptionRecurringBadge")}
               </span>
             )}
           </div>
-          <p className="text-sm text-slate mt-1.5">{marketing.subtitle || display.description}</p>
+          <p className="text-sm text-slate mt-1.5">{display.description}</p>
           {isRecurringMonthly && (
             <p className="package-recurring-disclosure">
               <RefreshCw className="h-3.5 w-3.5" />
@@ -528,32 +541,24 @@ function PackagePricingCard({
             </p>
           )}
         </div>
-        <span className="package-plan-icon" aria-hidden="true">
-          <Sparkles className="h-4 w-4" />
-        </span>
       </div>
       <div>
-        <p className="numeric-display font-display text-4xl text-navy">{price}</p>
-        <p className="mt-2 text-sm font-semibold text-navy">{marketing.priceNote}</p>
-        {marketing.savings && (
-          <p className="mt-1 text-xs font-semibold text-gold-dark">{marketing.savings}</p>
-        )}
+        <p className="aura-plan-price">
+          <LtrInline>{price}</LtrInline>
+        </p>
       </div>
-      <div className="space-y-2 text-sm">
-        {(marketing.features.length
-          ? marketing.features
-          : [
-              isUnlimited ? t("packages.unlimited") : creditsLine,
-              plan.duration_days
-                ? t("packages.validDays", { days: plan.duration_days })
-                : t("packages.noExpiry"),
-              t("packages.allPrograms"),
-            ]
-        ).map((feature) => (
-          <p key={feature} className="flex items-center gap-2 text-navy">
-            <Check className="h-3.5 w-3.5 text-gold" /> {feature}
+      <div className="aura-plan-facts">
+        <div>
+          <span>{t("member.stat.credits")}</span>
+          <p>{isUnlimited ? t("packages.unlimited") : creditsLine}</p>
+        </div>
+        <div>
+          <p>
+            {plan.duration_days
+              ? t("packages.validDays", { days: plan.duration_days })
+              : t("packages.noExpiry")}
           </p>
-        ))}
+        </div>
       </div>
       <div className="mt-auto flex items-end justify-between gap-3 pt-3 border-t hairline">
         <p className="text-xs font-medium text-slate">{t("packages.choosePackage")}</p>
@@ -574,17 +579,18 @@ function PackagePricingCard({
           <button
             onClick={onRequest}
             disabled={pending}
+            aria-label={`${t("packages.choosePackage")}: ${display.name}`}
             className={
               isRecommended
                 ? "btn-navy hover:btn-navy-hover disabled:opacity-50"
                 : "btn-outline hover:btn-ghost-hover disabled:opacity-50"
             }
           >
-            <Send className="h-3 w-3" /> {marketing.cta}
+            <Send className="h-3 w-3" /> {t("packages.choosePackage")}
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 

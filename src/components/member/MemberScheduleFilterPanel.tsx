@@ -1,4 +1,4 @@
-import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
 import { t, type Lang } from "@/lib/i18n";
 
 export type DateScope = "today" | "tomorrow" | "week" | "all";
@@ -52,32 +52,6 @@ export function MemberScheduleFilterPanel({
 
   return (
     <section dir={dir} className="member-schedule-filter-panel" aria-label={t("nav.schedule")}>
-      <div className="member-schedule-filter-panel__header">
-        <div className="member-schedule-filter-panel__title-wrap">
-          <span className="member-schedule-filter-panel__mark" aria-hidden="true">
-            <SlidersHorizontal className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="member-schedule-filter-panel__eyebrow">
-              {t("member.schedule.filter.eyebrow")}
-            </p>
-            <h2 className="member-schedule-filter-panel__title">
-              {t("member.schedule.filter.title")}
-            </h2>
-          </div>
-        </div>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="member-schedule-filter-panel__reset"
-          >
-            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{t("member.schedule.filter.clear")}</span>
-          </button>
-        )}
-      </div>
-
       <div className="member-schedule-filter-panel__primary">
         <div className="member-schedule-search-field">
           <span className="member-schedule-search-field__icon" aria-hidden="true">
@@ -96,13 +70,12 @@ export function MemberScheduleFilterPanel({
           />
         </div>
 
-        <div className="member-schedule-segmented" role="tablist" aria-label={t("nav.schedule")}>
+        <div className="member-schedule-segmented" role="group" aria-label={t("nav.schedule")}>
           {dateOptions.map((scope) => (
             <button
               key={scope}
               type="button"
-              role="tab"
-              aria-selected={dateScope === scope}
+              aria-pressed={dateScope === scope}
               onClick={() => onDateScopeChange(scope)}
               className={
                 dateScope === scope
@@ -123,37 +96,53 @@ export function MemberScheduleFilterPanel({
       </div>
 
       {visibleFilters.length > 0 && (
-        <div className="member-schedule-filter-groups" data-lang={lang}>
-          {visibleFilters.map((group) => (
-            <div key={group.key} className="member-schedule-filter-group">
-              <span className="member-schedule-filter-label">
-                <span aria-hidden="true" />
-                <span>{group.label}</span>
-              </span>
-              <div className="member-schedule-filter-chip-row">
-                {group.options.map((option) => {
-                  const selected = group.value === option;
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => onFilterChange(group.key, selected ? undefined : option)}
-                      className={
-                        selected
-                          ? "member-schedule-filter-chip member-schedule-filter-chip-active"
-                          : "member-schedule-filter-chip"
-                      }
-                      dir="auto"
-                    >
-                      <bdi>{group.formatOption ? group.formatOption(option) : option}</bdi>
-                    </button>
-                  );
-                })}
+        <details className="member-schedule-filter-disclosure">
+          <summary>
+            {t("member.schedule.filter.title")}
+            {activeFilterCount > 0 && <span> · {activeFilterCount}</span>}
+          </summary>
+          <div className="member-schedule-filter-groups" data-lang={lang}>
+            {visibleFilters.map((group) => (
+              <div key={group.key} className="member-schedule-filter-group">
+                <span className="member-schedule-filter-label">
+                  <span aria-hidden="true" />
+                  <span>{group.label}</span>
+                </span>
+                <div className="member-schedule-filter-chip-row">
+                  {group.options.map((option) => {
+                    const selected = group.value === option;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => onFilterChange(group.key, selected ? undefined : option)}
+                        className={
+                          selected
+                            ? "member-schedule-filter-chip member-schedule-filter-chip-active"
+                            : "member-schedule-filter-chip"
+                        }
+                        dir="auto"
+                      >
+                        <bdi>{group.formatOption ? group.formatOption(option) : option}</bdi>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </details>
+      )}
+      {hasActiveFilters && (
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="member-schedule-filter-panel__reset"
+        >
+          <RotateCcw size={16} aria-hidden="true" />
+          {t("member.schedule.filter.clear")}
+        </button>
       )}
     </section>
   );

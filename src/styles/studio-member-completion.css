@@ -1,0 +1,99 @@
+/* A1 member completion: bookings, wallet and profile. Controllers remain route-owned. */
+.aura-member-page { --cc-radius-button:999px; --cc-radius-input:16px; --cc-radius-card:24px; display:flex; flex-direction:column; gap:32px; padding:28px 0 40px; }
+.aura-member-page > * { margin-block:0; min-width:0; }
+.aura-page-heading { max-width:760px; }
+.aura-page-heading h1 { font-size:2.25rem; line-height:1.3; font-weight:500; margin:4px 0 8px; overflow-wrap:anywhere; }
+.aura-page-heading>p, .aura-page-heading>div>p { font-size:.9375rem; color:var(--color-text-secondary); line-height:1.7; }
+.aura-member-page .member-eyebrow { font-size:.8125rem; letter-spacing:0; font-weight:400; }
+.aura-member-page :is(.btn-navy,.btn-outline,.btn-ghost) { min-height:48px; font-size:.9375rem; font-family:var(--font-sans); padding:10px 20px; gap:8px; white-space:normal; }
+.aura-member-page .btn-navy { background:#d4af6a; border-color:#d4af6a; color:#0b1d3a; }
+.aura-member-page .btn-navy:hover { background:#e0bc79; }
+.aura-member-page .btn-outline { border-color:var(--color-control-soft); background:transparent; color:var(--color-text-primary); }
+.aura-member-page :is(input,select,textarea) { font-family:var(--font-sans); font-size:1rem; min-height:54px; border:1px solid var(--color-control-soft); background:var(--color-surface); color:var(--color-text-primary); box-shadow:none; }
+.aura-member-page input[type=checkbox] { min-height:20px; width:20px; }
+.aura-member-page .field-label { font-size:.875rem; color:var(--color-text-primary); font-weight:500; margin-bottom:8px; }
+.aura-member-page :is(h2,.member-section-title) { font-size:1.5rem; font-weight:500; line-height:1.4; }
+.aura-member-page .member-section-heading { padding:0; border:0; margin:0 0 16px; }
+.aura-member-page .member-card { background:var(--color-surface); box-shadow:none; border:1px solid var(--color-border); }
+.aura-member-page .member-empty-state { box-shadow:none; }
+/* Bookings: a navigable journal, with supporting guidance after reservations. */
+.aura-bookings-page .member-tab-bar { display:flex; flex-wrap:wrap; padding:0 0 16px; gap:8px; border:0; border-bottom:1px solid var(--color-border); border-radius:0; background:none; box-shadow:none; overflow:visible; }
+.aura-bookings-page .member-tab-button { display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 18px; min-height:44px; border:1px solid var(--color-border); border-radius:999px; font-size:.9375rem; font-weight:400; background:transparent; }
+.aura-bookings-page .member-tab-button-active { color:#0b1d3a; background:#d4af6a; border-color:#d4af6a; font-weight:500; box-shadow:none; }
+.aura-bookings-page .member-tab-count { color:inherit; background:none; padding:0; font-size:.8125rem; }
+.aura-reservation { max-width:960px; }
+.aura-reservation .studio-class-note { grid-column:2 / -1; border:0; padding:12px 0 0; margin:0; }
+.aura-reservation-utilities { display:flex; flex-direction:column; gap:8px; }
+.aura-reservation-utilities>span, .aura-reservation-utilities .text-xs { font-size:.875rem; line-height:1.6; }
+.aura-reservation-utilities .lesson-reservation-card__action-row { display:flex; flex-wrap:wrap; gap:4px 16px; }
+.aura-reservation-utilities .lesson-reservation-card__action-row>span { order:3; }
+.aura-reservation[data-history] .studio-class-time { background:none; border:1px solid var(--color-border); }
+/* Plans: small wallet rail and factual, equal-weight comparison. */
+.aura-packages-layout { display:grid; grid-template-columns:300px minmax(0,1fr); gap:40px; align-items:start; }
+.aura-wallet { display:flex; flex-direction:column; gap:24px; min-width:0; }
+.aura-wallet-summary { border-block:1px solid var(--color-border); padding:24px 0; }
+.aura-wallet-summary>div:first-of-type { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:16px; }
+.aura-wallet-summary>div:first-of-type>p:last-child { grid-column:1 / -1; font-size:.875rem; }
+.aura-member-page .aura-wallet-title { font-size:1.25rem; line-height:1.5; overflow-wrap:anywhere; }
+.aura-wallet-balance { display:flex; flex-direction:column; gap:4px; align-items:end; margin:0; }
+.aura-wallet-balance strong { font-size:2.25rem; font-weight:500; line-height:1.1; }
+.aura-wallet-balance span { font-size:.8125rem; color:var(--color-text-secondary); }
+.aura-plan-selection { min-width:0; }
+.aura-member-page .package-pricing-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.aura-member-page .aura-plan-card { display:flex; flex-direction:column; min-width:0; gap:24px; padding:24px; border:1px solid var(--color-border); border-radius:24px; background:var(--color-surface); box-shadow:none; transform:none; }
+.aura-member-page .aura-plan-card::before, .aura-member-page .aura-plan-card::after { display:none; }
+.aura-member-page .aura-plan-name { font-size:1.375rem; font-weight:500; line-height:1.4; }
+.aura-plan-price { font-size:2.5rem; font-weight:500; line-height:1.1; font-variant-numeric:tabular-nums; }
+.aura-plan-facts { display:flex; flex-direction:column; gap:12px; color:var(--color-text-secondary); font-size:.9375rem; }
+.aura-plan-facts>div { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 16px; }
+.aura-plan-facts p { color:var(--color-text-primary); }
+.aura-plan-card>div:last-child { flex-direction:column; align-items:stretch; gap:12px; }
+.aura-plan-card>div:last-child>p { display:none; }
+.aura-plan-card>div:last-child>span { justify-content:center; background:var(--color-surface-subtle); border:0; border-radius:12px; font-size:.875rem; color:var(--color-text-primary); }
+.aura-account-history { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:40px; border-top:1px solid var(--color-border); padding-top:32px; }
+.aura-account-history .member-card { border:0; border-radius:0; background:none; }
+.aura-account-history .member-card>div { padding-inline:0; padding-block:16px; gap:16px; }
+.aura-account-history .member-card p { overflow-wrap:anywhere; }
+/* Profile: readable fields, a separate quieter rail for session/privacy. */
+.aura-profile-heading { max-width:none; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.aura-profile-status { padding:8px 16px; background:var(--color-surface-subtle); border-radius:999px; font-size:.875rem; }
+.aura-account-layout { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr); gap:48px; align-items:start; }
+.aura-account-main,.aura-account-utilities { display:flex; flex-direction:column; gap:32px; min-width:0; }
+.aura-settings-section { padding:24px 0 0; border-top:1px solid var(--color-border); min-width:0; }
+.aura-member-since { font-size:.8125rem; color:var(--color-text-secondary); }
+.aura-profile-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:24px; }
+.aura-profile-fields>label:last-child { grid-column:1 / -1; }
+.aura-profile-fields label { min-width:0; }
+.aura-form-submit { padding-top:24px; }
+.aura-session-section { display:flex; flex-direction:column; align-items:start; gap:16px; }
+.aura-session-section .text-xs { font-size:.875rem; }
+.aura-legal-links { display:flex; flex-wrap:wrap; gap:8px; }
+.aura-legal-links .btn-outline { padding-inline:14px; min-height:44px; font-size:.875rem; }
+@media(max-width:1023px) {
+  .aura-packages-layout { grid-template-columns:minmax(0,1fr); gap:28px; }
+  .aura-account-layout { gap:28px; grid-template-columns:minmax(0,1fr); }
+  .aura-wallet-summary { padding:16px 0; }
+  .aura-wallet-title { max-width:28em; }
+}
+@media(max-width:639px) {
+  .aura-member-page { gap:24px; padding-top:20px; }
+  .aura-page-heading h1 { font-size:1.875rem; }
+  .aura-profile-heading { align-items:start; gap:12px; }
+  .aura-profile-status { font-size:.8125rem; padding:6px 10px; }
+  .aura-member-page :is(h2,.member-section-title) { font-size:1.375rem; }
+  .aura-bookings-page .member-tab-button { flex:1 0 calc(50% - 8px); padding-inline:10px; }
+  .aura-member-page .package-pricing-grid,.aura-account-history,.aura-profile-fields { grid-template-columns:minmax(0,1fr); }
+  .aura-member-page .aura-plan-card { padding:24px; }
+  .aura-reservation .studio-class-note { grid-column:1 / -1; }
+  .aura-account-history { gap:32px; }
+  .aura-form-submit .btn-navy { width:100%; }
+}
+/* Empty states are reading surfaces; never inherit the legacy navy/gold panel. */
+.aura-member-page .member-empty-state { background:var(--color-surface-subtle); color:var(--color-text-primary); border:0; padding:32px; border-radius:24px; box-shadow:none; }
+.aura-member-page .member-empty-hairline { display:none; }
+.aura-member-page .member-empty-title { color:var(--color-text-primary); font-family:var(--font-sans); }
+.aura-member-page :is(.member-empty-eyebrow,.member-empty-body) { color:var(--color-text-secondary); font-size:.9375rem; line-height:1.7; }
+.aura-member-page .package-recurring-disclosure { border:0; padding:8px 0 0; border-radius:0; background:none; font-size:.875rem; font-weight:400; line-height:1.6; }
+.aura-member-page .package-recurring-disclosure svg { color:var(--color-text-secondary); flex-shrink:0; }
+.aura-profile-heading { flex-wrap:wrap; }
+.aura-profile-heading>div { flex:1 1 260px; min-width:0; overflow-wrap:anywhere; }

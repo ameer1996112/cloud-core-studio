@@ -1,3 +1,5 @@
+import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Globe2, X, LogOut } from "lucide-react";
@@ -159,11 +161,7 @@ export function AppShell({ role, children }: Props) {
       <div className="fixed inset-0 bg-ivory text-foreground">
         <div className="mx-auto flex min-h-full w-full max-w-[28rem] items-center justify-center px-6">
           <div className="member-card w-full max-w-sm p-8 text-center shadow-[var(--shadow-elevated)]">
-            <img
-              src="/brand/cloud-core-logo-full.png"
-              alt="Cloud & Core Studio"
-              className="mx-auto h-auto w-[12.5rem]"
-            />
+            <StudioLogo className="mx-auto" />
             <div className="mx-auto mt-5 h-px w-12 bg-gold/70" />
             <div className="mt-6 space-y-3">
               <div className="skeleton-brand h-4 rounded-full" />
@@ -179,7 +177,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className="fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground"
+      className={`${useBottomNav ? "member-app" : ""} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}
@@ -227,81 +225,62 @@ export function AppShell({ role, children }: Props) {
         id="main-content"
         className="member-shell-main min-w-0 flex-1 flex flex-col overflow-y-auto"
       >
-        {/* Mobile bar */}
-        <div
-          className={`member-mobile-header-pad ${useBottomNav ? "md:hidden" : "lg:hidden"} sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]`}
-          style={{ paddingTop: "env(safe-area-inset-top)" }}
-        >
-          <div className="flex h-[52px] w-11 shrink-0 items-center justify-start">
-            {isRtl ? menuControl : signOutControl}
-          </div>
-          <span className="flex h-[52px] min-w-0 flex-1 items-center justify-center px-2">
-            <BrandHeaderWordmark />
-          </span>
-          <div className="flex h-[52px] w-11 shrink-0 items-center justify-end">
-            {isRtl ? signOutControl : menuControl}
-          </div>
-        </div>
-
-        {/* Page header */}
-        <header
-          className={`${useBottomNav ? "hidden md:block" : "block"} px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6`}
-        >
+        {/* Staff mobile bar */}
+        {!useBottomNav && (
           <div
-            className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
+            className={`member-mobile-header-pad ${useBottomNav ? "md:hidden" : "lg:hidden"} sticky top-0 z-30 flex h-[calc(52px+env(safe-area-inset-top))] items-end justify-between border-b border-[color:var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-warm)_100%)] px-4 shadow-[var(--shadow-card)]`}
+            style={{ paddingTop: "env(safe-area-inset-top)" }}
           >
-            <div className="min-w-0">
-              <p className="eyebrow">{eyebrowFor(role)}</p>
-              <h1 className="cc-page-title mt-2 truncate">
-                {currentSectionLabel(pathname, groups)}
-              </h1>
+            <div className="flex h-[52px] w-11 shrink-0 items-center justify-start">
+              {isRtl ? menuControl : signOutControl}
             </div>
-            <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
-              {useBottomNav ? (
-                <>
-                  <MemberNotificationCenter viewport="desktop" />
-                  <BrandHeaderWordmark className="scale-[0.95]" />
-                </>
-              ) : null}
+            <span className="flex h-[52px] min-w-0 flex-1 items-center justify-center px-2">
+              <BrandHeaderWordmark />
+            </span>
+            <div className="flex h-[52px] w-11 shrink-0 items-center justify-end">
+              {isRtl ? signOutControl : menuControl}
             </div>
           </div>
-        </header>
+        )}
 
-        {/* Member desktop/tablet top nav — replaces the missing sidebar */}
-        {useBottomNav && (
-          <nav
-            aria-label={t("shell.practice")}
-            className="hidden md:block px-[clamp(1rem,4vw,3rem)] pb-3"
+        {useBottomNav ? (
+          <MemberHeader
+            pathname={pathname}
+            notifications={
+              <>
+                <div className="hidden md:block">
+                  <MemberNotificationCenter viewport="desktop" />
+                </div>
+                <div className="md:hidden">
+                  <MemberNotificationCenter viewport="mobile" />
+                </div>
+              </>
+            }
+            signOut={signOutControl}
+          />
+        ) : (
+          <header
+            className={`app-page-header ${useBottomNav ? "hidden md:block" : "block"} px-[clamp(1rem,4vw,3rem)] pt-4 sm:pt-6 md:pt-12 pb-3 md:pb-6`}
           >
             <div
-              className={`${contentFrameClass} flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gold/30 pb-2`}
-              dir={isRtl ? "rtl" : "ltr"}
+              className={`${contentFrameClass} grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4`}
             >
-              {bottomTabs.map(({ to, icon: Icon, label, exact }) => {
-                const active = exact
-                  ? pathname === to
-                  : pathname === to || pathname.startsWith(to + "/");
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={`relative inline-flex min-h-11 items-center gap-2 text-sm transition-colors pb-2 ${
-                      active ? "text-navy font-medium" : "text-slate hover:text-navy"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 opacity-80" />
-                    <span>{label}</span>
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 -bottom-[1px] h-[2px] rounded-full bg-gold"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
+              <div className="min-w-0">
+                <p className="eyebrow">{eyebrowFor(role)}</p>
+                <h1 className="cc-page-title mt-2 truncate">
+                  {currentSectionLabel(pathname, groups)}
+                </h1>
+              </div>
+              <div className="hidden shrink-0 items-center justify-end gap-4 border-b border-gold/40 pb-1 text-xs font-medium text-slate md:flex">
+                {useBottomNav ? (
+                  <>
+                    <MemberNotificationCenter viewport="desktop" />
+                    <BrandHeaderWordmark className="scale-[0.95]" />
+                  </>
+                ) : null}
+              </div>
             </div>
-          </nav>
+          </header>
         )}
 
         {/* Content */}
@@ -309,41 +288,7 @@ export function AppShell({ role, children }: Props) {
           <div className={contentFrameClass}>{children}</div>
         </div>
 
-        {/* Bottom tabs — member only, mobile only */}
-        {useBottomNav && (
-          <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 px-2 pb-[max(env(safe-area-inset-bottom),0.45rem)] pt-1.5 pointer-events-none">
-            <div
-              dir={isRtl ? "rtl" : "ltr"}
-              className="mx-auto flex max-w-[28rem] min-h-[var(--member-bottom-nav-height)] justify-around gap-0.5 rounded-[calc(var(--radius-lg)+2px)] border border-gold/30 bg-ivory/96 px-1.5 py-1 shadow-[0_-10px_34px_-28px_rgba(28,43,69,0.28)] backdrop-blur pointer-events-auto"
-            >
-              {bottomTabs.map(({ to, icon: Icon, label, exact }) => {
-                const active = exact
-                  ? pathname === to
-                  : pathname === to || pathname.startsWith(to + "/");
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    aria-label={label}
-                    aria-current={active ? "page" : undefined}
-                    className={`relative flex-1 flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5 text-[11px] leading-tight transition-colors ${
-                      active ? "bg-white/72 text-navy" : "text-slate hover:text-navy"
-                    }`}
-                  >
-                    <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-navy" : ""}`} />
-                    <span className="max-w-full truncate text-center leading-tight">{label}</span>
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute bottom-1 h-[2px] w-5 rounded-full bg-gold"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
-        )}
+        {useBottomNav && <MemberBottomNavigation pathname={pathname} />}
       </main>
     </div>
   );

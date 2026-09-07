@@ -38,11 +38,11 @@ describe("member UI foundation", () => {
   });
 
   test("keeps class location readable instead of truncating it", () => {
-    const detail = read("src/components/member/ClassDetailSheet.tsx");
-
-    expect(detail).toContain("allowWrap");
-    expect(detail).toContain("allowWrap={true}");
-    expect(detail).toContain("break-words");
+    const detail = read("src/components/member/ClassDetailContent.tsx");
+    const styles = read("src/styles/studio-refinement.css");
+    expect(detail).toContain("getFriendlyStudioLocation(lang)");
+    expect(detail).toContain("<bdi>{f.value}</bdi>");
+    expect(styles).toMatch(/\.aura-detail-facts dd\s*\{[^}]*overflow-wrap:\s*anywhere/s);
   });
 
   test("keeps the language menu keyboard-operable", () => {

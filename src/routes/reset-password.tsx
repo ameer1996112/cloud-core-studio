@@ -1,10 +1,11 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { AuthFrame } from "@/components/auth/AuthFrame";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearSupabaseAccessTokenCookie } from "@/integrations/supabase/session-cookie";
 import { toast } from "sonner";
-import { useI18n } from "@/lib/i18n";
+import { applyLang, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   clearPasswordResetUrlTokens,
@@ -90,30 +91,20 @@ function ResetPasswordPage() {
   }
 
   return (
-    <main
-      id="main-content"
-      dir={dir}
-      className="auth-page min-h-[100dvh] member-shell flex items-center justify-center px-6 py-10"
+    <AuthFrame
+      lang={lang}
+      onLocaleChange={applyLang}
+      recovery
+      eyebrow={t("reset.eyebrow")}
+      title={
+        status === "ready"
+          ? t("reset.headline")
+          : status === "invalid"
+            ? t("reset.invalidTitle")
+            : t("reset.validatingTitle")
+      }
     >
-      <div className="w-full max-w-sm member-card auth-form-card p-8" lang={lang}>
-        <div className="auth-brand-lockup">
-          <img
-            src="/brand/cloud-core-logo-full.png"
-            alt="Cloud & Core Studio"
-            width={180}
-            height={102}
-            className="auth-brand-logo"
-          />
-        </div>
-        <p className="member-eyebrow mt-6">{t("reset.eyebrow")}</p>
-        <h1 className="auth-form-title font-semibold text-navy mt-3 text-balance">
-          {status === "ready"
-            ? t("reset.headline")
-            : status === "invalid"
-              ? t("reset.invalidTitle")
-              : t("reset.validatingTitle")}
-        </h1>
-        <div className="mt-4 h-px w-12 bg-gold" />
+      <div className="auth-form-card">
         <p className="text-sm text-slate mt-4 text-start">
           {status === "ready"
             ? t("reset.hint.ready")
@@ -123,7 +114,7 @@ function ResetPasswordPage() {
         </p>
 
         {status === "ready" && (
-          <form onSubmit={submit} className="space-y-4 mt-7" dir={dir}>
+          <form onSubmit={submit} className="auth-form" dir={dir}>
             <label className="block text-start">
               <span className="field-label">{t("reset.newPassword")}</span>
               <div className="relative">
@@ -214,7 +205,7 @@ function ResetPasswordPage() {
           </div>
         )}
       </div>
-    </main>
+    </AuthFrame>
   );
 }
 
