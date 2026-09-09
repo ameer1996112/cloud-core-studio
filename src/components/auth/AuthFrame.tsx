@@ -1,8 +1,15 @@
+import { MapPin } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { authImages } from "@/lib/auth-assets";
 import { LANG_META, t, type Lang } from "@/lib/i18n";
+
+const STUDIO_LOCATION: Record<Lang, string> = {
+  he: "חורפיש, מחוז הצפון, ישראל",
+  ar: "حرفيش، المنطقة الشمالية، إسرائيل",
+  en: "Hurfeish, North District, Israel",
+};
 
 /** Shared presentation only. Session, validation and recovery state stay in the routes. */
 export function AuthFrame({
@@ -82,7 +89,15 @@ export function AuthFrame({
                 {t("legal.checkout")}
               </Link>
             </nav>
-            <p dir="ltr">Cloud and Core Studio · Hurfeish, North District, Israel</p>
+            <address className="auth-studio-signature">
+              <MapPin size={20} strokeWidth={1.5} aria-hidden="true" />
+              <div className="auth-studio-signature-copy">
+                <span className="auth-studio-name">
+                  <bdi lang="en">Cloud and Core Studio</bdi>
+                </span>
+                <span className="auth-studio-location">{STUDIO_LOCATION[lang]}</span>
+              </div>
+            </address>
           </footer>
         </div>
       </div>
