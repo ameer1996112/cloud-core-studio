@@ -1,3 +1,4 @@
+import { editorialSrc } from "./editorial-assets";
 // Centralized image registry for Cloud & Core.
 //
 // Layout-aware: each class photo ships in 3 crops so cards, modals, and
@@ -15,17 +16,16 @@ import aerialYogaFlowCard from "@/assets/classes/aerial-yoga-flow-card.webp";
 import aerialYogaFlowHero from "@/assets/classes/aerial-yoga-flow-hero.webp";
 import aerialYogaFlowThumb from "@/assets/classes/aerial-yoga-flow-thumb.webp";
 
-import coreBalanceCard from "@/assets/classes/core-balance-card.webp";
-import coreBalanceHero from "@/assets/classes/core-balance-hero.webp";
-import coreBalanceThumb from "@/assets/classes/core-balance-thumb.webp";
-
-import pilatesSculptCard from "@/assets/classes/pilates-sculpt-card.webp";
-import pilatesSculptHero from "@/assets/classes/pilates-sculpt-hero.webp";
-import pilatesSculptThumb from "@/assets/classes/pilates-sculpt-thumb.webp";
-
 import privateCard from "@/assets/classes/private-session-card.webp";
 import privateHero from "@/assets/classes/private-session-hero.webp";
 import privateThumb from "@/assets/classes/private-session-thumb.webp";
+
+const coreBalanceCard = editorialSrc("mat", 960);
+const coreBalanceHero = editorialSrc("mat", 1440);
+const coreBalanceThumb = editorialSrc("mat", 480);
+const pilatesSculptCard = coreBalanceCard;
+const pilatesSculptHero = coreBalanceHero;
+const pilatesSculptThumb = coreBalanceThumb;
 
 export type Lang = "he" | "en" | "ar";
 export type ImageVariant = "card" | "hero" | "thumb";
@@ -301,14 +301,19 @@ export const instructorImages = {
 } satisfies Record<string, ImageAsset>;
 
 /**
- * Real class photography — boutique studio shoot.
+ * Class visuals: explicit catalog images remain authoritative.
+ * Mat/core defaults are generated editorial imagery, not a real instructor or premises.
  * Each entry ships 3 crops so the consumer never stretches one shape.
  */
 export const classImages = {
   coreBalance: {
     src: coreBalanceCard,
     variants: { card: coreBalanceCard, hero: coreBalanceHero, thumb: coreBalanceThumb },
-    alt: { he: "שיעור Core Balance", en: "Core Balance class", ar: "درس Core Balance" },
+    alt: {
+      he: "תרגול מזרן להמחשה",
+      en: "Editorial mat practice",
+      ar: "صورة توضيحية لتمرين على الحصيرة",
+    },
     tone: "class" as const,
     fit: "cover" as const,
     position: "center center",
@@ -324,7 +329,11 @@ export const classImages = {
   pilatesSculpt: {
     src: pilatesSculptCard,
     variants: { card: pilatesSculptCard, hero: pilatesSculptHero, thumb: pilatesSculptThumb },
-    alt: { he: "פילאטיס Sculpt", en: "Pilates Sculpt", ar: "بيلاتس Sculpt" },
+    alt: {
+      he: "תרגול מזרן להמחשה",
+      en: "Editorial mat practice",
+      ar: "صورة توضيحية لتمرين على الحصيرة",
+    },
     tone: "class" as const,
     fit: "cover" as const,
     position: "center 52%",

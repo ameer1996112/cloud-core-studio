@@ -22,7 +22,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-navy/16 backdrop-blur-[6px] motion-reduce:animate-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-navy/16 backdrop-blur-[6px] motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -32,7 +32,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 border-[color:var(--color-border)] bg-background p-6 shadow-[var(--shadow-elevated)] transition ease-in-out motion-reduce:animate-none motion-reduce:transition-none data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
+  "fixed z-50 gap-4 border-[color:var(--color-border)] bg-background p-6 shadow-[var(--shadow-elevated)] transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none data-[state=open]:animate-in data-[state=closed]:animate-out",
   {
     variants: {
       side: {
@@ -74,7 +74,7 @@ const SheetContent = React.forwardRef<
       >
         <SheetPrimitive.Close
           aria-label={t("common.close")}
-          className="absolute end-4 top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] z-20 inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-ivory/90 text-[var(--color-text-muted)] shadow-sm ring-offset-background backdrop-blur-sm cursor-pointer transition-[background-color,color,opacity] duration-200 hover:bg-gold/8 hover:text-navy focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:pointer-events-none data-[state=open]:bg-ivory/90"
+          className="absolute end-4 top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] z-20 inline-flex min-h-11 min-w-11 h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-ivory/90 text-[var(--color-text-muted)] shadow-sm ring-offset-background backdrop-blur-sm cursor-pointer transition-[background-color,color,opacity] duration-200 hover:bg-gold/8 hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none data-[state=open]:bg-ivory/90"
         >
           <X className="h-4 w-4" />
           <span className="sr-only">{t("common.close")}</span>

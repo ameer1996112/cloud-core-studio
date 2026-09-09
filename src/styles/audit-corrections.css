@@ -1,0 +1,274 @@
+/* Targeted corrections from the rendered UI/UX audit. */
+.app-marketing__account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 16px;
+}
+.app-marketing__account-actions .app-marketing__member-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding-block: 8px;
+  line-height: 1.5;
+  text-underline-offset: 4px;
+}
+.app-marketing__hero-copy h1 {
+  font-family: var(--font-sans);
+  font-weight: 550;
+  letter-spacing: normal;
+  text-wrap: balance;
+}
+.app-marketing__hero-copy .app-marketing__hero-body {
+  font-size: 1rem;
+  line-height: 1.65;
+  margin-block: 16px;
+}
+.app-marketing__hero-copy .app-marketing__trust {
+  line-height: 1.5;
+  margin-block: 12px;
+}
+.aura-member-page .package-pricing-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 360px));
+  justify-content: center;
+  align-items: start;
+}
+.pulse-session-card header > div {
+  width: 100%;
+}
+.pulse-session-card header p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.pulse-session-card header p > span {
+  gap: 6px;
+}
+.pulse-session-card header h3 {
+  white-space: normal;
+}
+.pulse-session-card footer {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pulse-session-card footer > :is(a, button) {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+.pulse-session-card .pulse-roster-action {
+  padding: 10px 16px;
+}
+.calendar-overview {
+  border-block: 1px solid var(--color-border);
+}
+.calendar-overview > summary {
+  cursor: pointer;
+  padding-block: 12px;
+  min-height: 44px;
+  font-weight: 500;
+}
+.calendar-overview .calendar-metrics {
+  padding-bottom: 12px;
+}
+.member-app .aura-schedule-page .schedule-date-days button span {
+  font-size: 0.8125rem;
+}
+.member-app
+  .aura-schedule-page
+  :is(
+    .member-schedule-segment,
+    .member-schedule-filter-disclosure summary,
+    .schedule-day-header__title,
+    .schedule-day-header__date,
+    .aura-schedule-totals
+  ) {
+  font-size: 0.875rem;
+}
+.member-app
+  .aura-schedule-page
+  .studio-class--row
+  :is(.studio-class-meta, .studio-class-time > span, .studio-class-status) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.member-app .aura-schedule-page .studio-class--row .studio-class-actions > :is(button, a) {
+  font-size: 0.875rem;
+}
+@media (min-width: 768px) {
+  .reference-home .home-greeting {
+    min-height: 250px;
+    padding-block: 28px;
+  }
+  .reference-home .home-next .studio-class-media {
+    aspect-ratio: 1;
+    max-height: 220px;
+  }
+  .reference-home .home-next .studio-class-photo {
+    min-height: 0;
+    height: 100%;
+  }
+  .reference-home .home-next .studio-class-reading {
+    gap: 12px;
+  }
+  .reference-home .home-next > h2 {
+    margin-bottom: 12px;
+  }
+}
+@media (max-width: 767px) {
+  .app-marketing__account-actions {
+    flex-direction: column;
+    align-items: start;
+    gap: 4px;
+  }
+  .app-marketing__hero-copy h1 {
+    font-size: 1.875rem;
+  }
+  .app-marketing__hero-copy {
+    display: flex;
+    flex-direction: column;
+  }
+  .app-marketing__hero-copy .app-marketing__hero-actions {
+    margin-top: 8px;
+  }
+  .member-app .aura-schedule-page .studio-class--row {
+    grid-template-columns: 4rem minmax(0, 1fr);
+    gap: 8px 14px;
+  }
+  .member-app .aura-schedule-page .studio-class--row h3 {
+    font-size: 1.0625rem;
+  }
+  .member-app .aura-schedule-page .studio-class--row .studio-class-time {
+    grid-row: 1;
+  }
+  .member-app .aura-schedule-page .studio-class--row .studio-class-actions {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+    gap: 4px 12px;
+  }
+  .member-app .aura-schedule-page .studio-class--row .studio-class-actions > :is(button, a) {
+    padding-inline: 12px;
+  }
+  .member-app .aura-schedule-page .member-schedule-filter-panel {
+    grid-template-columns: 1fr;
+  }
+  .member-app .aura-schedule-page .member-schedule-filter-disclosure summary {
+    padding-block: 8px;
+  }
+  .studio-calendar .calendar-workspace {
+    gap: 16px;
+  }
+  .pulse-session-card header p.flex {
+    row-gap: 8px;
+    column-gap: 16px;
+  }
+}
+
+.app-marketing:lang(en) .app-marketing__hero .app-marketing__hero-copy h1,
+.app-marketing:lang(ar) .app-marketing__hero .app-marketing__hero-copy h1,
+.app-marketing:lang(he) .app-marketing__hero .app-marketing__hero-copy h1 {
+  font-family: inherit;
+  font-weight: 550;
+}
+
+/* Keep supporting labels on the active member type stack, including mixed scripts. */
+.member-app :is(button, input, select, textarea, .eyebrow, .member-eyebrow) {
+  font-family: inherit;
+}
+/* The schedule is a compact time / lesson / action list at ordinary phone widths.
+   Narrow screens and enlarged text retain the existing stacked action fallback. */
+@media (min-width: 370px) and (max-width: 767px) {
+  .member-app .aura-schedule-page .studio-class--row {
+    grid-template-columns: 3.4rem minmax(0, 1fr) minmax(5.5rem, auto);
+    gap: 8px 10px;
+    padding-block: 16px;
+  }
+  .member-app .aura-schedule-page .studio-class--row .studio-class-actions {
+    grid-column: 3;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .member-app .aura-schedule-page .studio-class--row .studio-class-actions > :is(button, a) {
+    padding-inline: 10px;
+    max-width: 8rem;
+    white-space: normal;
+    text-align: center;
+  }
+  .member-app .aura-schedule-page .studio-class--row .studio-class-time strong {
+    font-size: 1.25rem;
+  }
+  .member-app .aura-schedule-page .studio-class--row h3 {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+}
+.aura-schedule-page .schedule-date-strip {
+  padding-block: 8px;
+}
+.aura-schedule-page .schedule-date-days {
+  margin-block: 8px;
+}
+.aura-schedule-page .member-schedule-controls {
+  gap: 8px;
+}
+.guest-schedule-intro {
+  padding: 12px 8px;
+}
+.guest-schedule-intro .member-page-title {
+  margin-block: 0 8px;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+.guest-schedule-intro .member-page-body {
+  margin: 0;
+}
+.guest-schedule-intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 8px;
+}
+.guest-schedule-intro-actions a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-underline-offset: 4px;
+}
+.reference-home .home-next .studio-class-reading {
+  gap: 8px;
+}
+.reference-home .home-next .studio-class-actions {
+  padding-block: 10px;
+}
+.reference-home .home-discovery .studio-class--row {
+  padding-block: 12px;
+}
+@media (min-width: 768px) {
+  .reference-home .home-next .studio-class-media {
+    max-height: 180px;
+  }
+  .reference-home .home-next .studio-class-photo {
+    min-height: 0;
+  }
+  .reference-home .home-next {
+    padding-block: 16px;
+  }
+  .reference-home .home-discovery {
+    padding-block: 16px;
+  }
+  .reference-home .home-next > h2 {
+    margin-bottom: 8px;
+  }
+}
+
+.member-app .aura-schedule-page .schedule-control-region {
+  padding-bottom: 4px;
+}
+.member-app .aura-schedule-page .member-schedule-filter-disclosure {
+  margin-block: 0;
+}

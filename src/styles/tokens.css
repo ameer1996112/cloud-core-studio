@@ -1,5 +1,5 @@
+/* Deployed component aliases retained for compatibility with current controllers. */
 :root {
-  /* Semantic visual contract */
   --cc-text-primary: #24303c;
   --cc-text-secondary: #52606d;
   --cc-text-muted: #687584;
@@ -18,9 +18,6 @@
   --cc-focus-color-dark: #8fc8ff;
   --cc-focus-outline: 3px solid var(--cc-focus-color);
   --cc-focus-offset: 3px;
-  --cc-focus-ring: 0 0 0 3px var(--cc-focus-color);
-
-  /* Color primitives used by semantic component recipes. */
   --cc-palette-black: #000000;
   --cc-palette-navy-975: #07162d;
   --cc-palette-navy-950: #08152b;
@@ -76,8 +73,6 @@
   --cc-palette-danger-500: #994040;
   --cc-palette-coral-500: #ed7966;
   --cc-palette-coral-600: #f25f4c;
-
-  /* Component palettes and translucent presentation primitives. */
   --cc-admin-illustration-gold-start: #dab86f;
   --cc-admin-illustration-gold-end: #b88b3d;
   --cc-admin-danger-surface-end: rgba(255, 245, 243, 0.92);
@@ -168,8 +163,6 @@
   --cc-motion-fast: 150ms;
   --cc-motion-base: 250ms;
   --cc-motion-reduced: 1ms;
-
-  /* Semantic spacing scale */
   --cc-space-1: 4px;
   --cc-space-2: 8px;
   --cc-space-3: 12px;
@@ -177,68 +170,6 @@
   --cc-space-6: 24px;
   --cc-space-8: 32px;
   --cc-space-12: 48px;
-
-  /* Compatibility aliases */
-  --color-ivory: #faf7f2;
-  --color-gold: #d4af6a;
-  --color-navy: #0b1d3a;
-  --color-sand: #e8dfd1;
-  --color-blue: #e8dfd1;
-  --color-text-primary: var(--cc-text-primary);
-  --color-text-secondary: var(--cc-text-secondary);
-  --color-text-muted: var(--cc-text-muted);
-  --color-surface: var(--cc-surface-raised);
-  --color-surface-warm: var(--cc-surface-canvas);
-  --color-border: rgba(212, 175, 106, 0.34);
-
-  /* Spacing */
-  --space-1: var(--cc-space-1);
-  --space-2: var(--cc-space-2);
-  --space-3: var(--cc-space-3);
-  --space-4: var(--cc-space-4);
-  --space-6: var(--cc-space-6);
-  --space-8: var(--cc-space-8);
-  --space-12: var(--cc-space-12);
-
-  /* Typography */
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: system-ui, -apple-system, sans-serif;
-  --text-xs: 12px;
-  --text-sm: 14px;
-  --text-base: 16px;
-  --text-lg: 17px;
-  --text-xl: 21px;
-  --text-2xl: 28px;
-  --text-3xl: 36px;
-
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
-
-  /* Shadows */
-  --shadow-card: 0 1px 8px rgba(11, 29, 58, 0.06);
-  --shadow-sidebar: -4px 0 24px rgba(11, 29, 58, 0.08);
-  --shadow-elevated: 0 4px 20px rgba(11, 29, 58, 0.1);
-
-  /* Transitions */
-  --transition-fast: var(--cc-motion-fast) ease;
-  --transition-base: var(--cc-motion-base) ease;
-
-  /* Local UI aliases */
-  --font-ui-he: "Assistant", system-ui, -apple-system, sans-serif;
-  --font-ui-ar: "Noto Sans Arabic", system-ui, -apple-system, sans-serif;
-  --font-ui-latin: "Assistant", system-ui, -apple-system, sans-serif;
-  --color-powder: var(--color-sand);
-  --color-slate: var(--cc-text-secondary);
-  --color-gold-soft: color-mix(in srgb, var(--color-gold) 58%, var(--color-surface));
-  --color-navy-strong: #07162d;
-  --color-navy-elevated: #173057;
-  --color-success: var(--cc-state-success);
-  --color-danger: var(--cc-state-danger);
-
-  /* Component presentation contracts */
   --cc-premium-logo-ink: var(--color-navy);
   --cc-premium-logo-divider: color-mix(in srgb, var(--color-gold) 50%, transparent);
   --cc-premium-logo-wordmark-size: 28px;
@@ -265,154 +196,64 @@
   --cc-focus-color: var(--cc-focus-color-dark);
 }
 
-/* Existing member system theme, centralized here from the previous visual skin. */
-:root:has(.member-app, .auth-page) {
-  --color-ivory: #f6f7f8;
-  --color-sand: #e9edf0;
-  --color-blue: #e9edf0;
-  --color-powder: #e9edf0;
-  --color-surface: #fdfdfd;
-  --color-surface-warm: #f6f7f8;
-  --color-surface-canvas: #f6f7f8;
-  --color-surface-base: #fdfdfd;
-  --color-surface-subtle: #edf0f3;
-  --color-border: #d8dfe6;
-  --color-text-secondary: #526174;
-  --color-text-muted: #526174;
-  --color-slate: #526174;
-  --color-gold: #89672e;
-  --color-gold-soft: #e3d8c4;
-  --color-focus-inner: #fdfdfd;
-  --color-focus-outer: #89672e;
-  --shadow-card: none;
-  --shadow-elevated: 0 8px 24px rgb(11 29 58 / 6%);
-  --cc-shadow-soft: var(--shadow-elevated);
-  --input: #c4ced8;
-  --accent: #e3d8c4;
-  --member-bottom-nav-height: 68px;
-  color-scheme: light;
+/* Active Cloud & Core application tokens. One palette for all roles and public routes. */
+:root {
+  --color-ivory:#faf7f2; --color-navy:#0b1d3a; --color-navy-strong:#07162d; --color-navy-elevated:#1b3659;
+  --color-gold:#d4af6a; --color-gold-soft:#eee2cb; --color-accent-text:#77571f;
+  --color-sand:#e8dfd1; --color-blue:#b7cce6; --color-powder:#e7edf3; --color-slate:#596577;
+  --color-text-primary:#0b1d3a; --color-text-secondary:#596577; --color-text-muted:#596577;
+  --color-surface:#fffcf7; --color-surface-warm:#faf7f2; --color-surface-canvas:#faf7f2;
+  --color-surface-base:#fffcf7; --color-surface-subtle:#f3eee6; --color-border:#e0d8cd;
+  --color-control-soft:#8c8c88; --color-action-primary:#0b1d3a; --color-on-primary:#faf7f2;
+  --color-focus-inner:#faf7f2; --color-focus-outer:#0b1d3a; --color-success:#386447; --color-danger:#a0383e;
+  --background:var(--color-surface-warm); --foreground:var(--color-text-primary);
+  --card:var(--color-surface); --card-foreground:var(--color-text-primary);
+  --popover:var(--color-surface); --popover-foreground:var(--color-text-primary);
+  --primary:var(--color-action-primary); --primary-foreground:var(--color-on-primary);
+  --secondary:var(--color-surface-subtle); --secondary-foreground:var(--color-text-primary);
+  --muted:var(--color-surface-subtle); --muted-foreground:var(--color-text-secondary);
+  --accent:var(--color-gold-soft); --accent-foreground:var(--color-text-primary);
+  --destructive:var(--color-danger); --destructive-foreground:#fff;
+  --border:var(--color-border); --input:var(--color-control-soft); --ring:var(--color-focus-outer);
+  --color-booking-surface:var(--color-surface); --color-booking-ink:var(--color-text-primary);
+  --color-booking-secondary:var(--color-text-secondary); --color-booking-divider:var(--color-border);
+  --color-booking-action:var(--color-action-primary); --color-booking-on-action:var(--color-on-primary);
+  --font-ui-he:"Assistant",sans-serif; --font-ui-ar:"IBM Plex Sans Arabic","DM Sans","Noto Sans Hebrew",sans-serif;
+  --font-ui-latin:"DM Sans","Noto Sans Hebrew","IBM Plex Sans Arabic",sans-serif;
+  --font-sans:var(--font-ui-he); --font-serif:"Cormorant Garamond",Georgia,serif;
+  --font-phase-display:var(--font-ui-he); --font-display:var(--font-ui-he); --phase-auth-title-size:2.5rem; --phase-home-title-size:3rem;
+  --text-xs:12px; --text-sm:14px; --text-base:16px; --text-lg:18px; --text-xl:22px; --text-2xl:28px; --text-3xl:36px;
+  --text-page-title-mobile:30px; --text-page-title-desktop:40px;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px; --space-12:48px; --space-16:64px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:18px; --radius-pill:999px;
+  --cc-control-height:44px; --cc-control-height-sm:40px; --cc-radius-button:10px; --cc-radius-input:10px; --cc-radius-card:18px; --cc-radius-chip:8px;
+  --shadow-card:0 2px 10px rgb(66 48 26 / 5%); --shadow-elevated:0 14px 40px rgb(66 48 26 / 12%);
+  --shadow-sidebar:0 0 24px rgb(66 48 26 / 5%); --cc-shadow-soft:var(--shadow-card);
+  --cc-focus-ring:0 0 0 2px var(--color-focus-inner),0 0 0 4px var(--color-focus-outer);
+  --transition-fast:150ms ease; --transition-base:220ms ease; --member-bottom-nav-height:72px;
+  color-scheme:light;
 }
+:root[lang="en"] { --font-sans:var(--font-ui-latin); --font-phase-display:var(--font-serif); }
+:root[lang="ar"] { --font-sans:var(--font-ui-ar); --font-phase-display:var(--font-ui-ar); }
+:root[data-theme="dark"],:root.dark {
+  --color-ivory:#101e2c; --color-navy:#f7f1e8; --color-navy-strong:#fffaf2; --color-navy-elevated:#dfcfb2;
+  --color-surface:#1a2a39; --color-surface-warm:#101e2c; --color-surface-canvas:#0a1723; --color-surface-base:#1a2a39;
+  --color-surface-subtle:#263644; --color-text-primary:#f7f1e8; --color-text-secondary:#bdc7cf; --color-text-muted:#bdc7cf;
+  --color-border:#40505e; --color-control-soft:#83909b; --color-sand:#263644; --color-blue:#30485f; --color-powder:#263644;
+  --color-slate:#bdc7cf; --color-gold-soft:#453d30; --color-accent-text:#e2c48f;
+  --color-action-primary:#d4af6a; --color-on-primary:#0b1d3a; --color-focus-inner:#101e2c; --color-focus-outer:#f7f1e8;
+  --color-success:#a6cfb1; --color-danger:#ffb7b5; color-scheme:dark;
+}
+body { background:var(--color-surface-canvas); color:var(--color-text-primary); font-family:var(--font-sans); }
 
-:root:has(.member-app, .auth-page) body {
-  background: var(--color-surface-warm);
+/* Current production components share the approved semantic palette. */
+:root, .dark, [data-theme="dark"] {
+  --cc-text-primary: var(--color-text-primary);
+  --cc-text-secondary: var(--color-text-muted);
+  --cc-text-muted: var(--color-text-muted);
+  --cc-surface-canvas: var(--color-surface-warm);
+  --cc-surface-raised: var(--color-surface);
+  --cc-surface-subtle: var(--color-surface-subtle);
+  --cc-action-primary: var(--color-action-primary);
+  --cc-action-primary-foreground: var(--color-on-primary);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:has(.member-app, .auth-page) {
-    --color-ivory: #142033;
-    --color-navy: #e3ebf5;
-    --color-navy-strong: #f1f5fa;
-    --color-navy-elevated: #c5d5e7;
-    --color-text-primary: #e3ebf5;
-    --color-text-secondary: #a9b7c9;
-    --color-text-muted: #a9b7c9;
-    --color-slate: #a9b7c9;
-    --color-surface: #192638;
-    --color-surface-warm: #111c2c;
-    --color-surface-canvas: #111c2c;
-    --color-surface-base: #192638;
-    --color-surface-subtle: #223248;
-    --color-sand: #223248;
-    --color-blue: #223248;
-    --color-powder: #223248;
-    --color-border: #35465c;
-    --color-gold: #d4af6a;
-    --color-gold-soft: #493f30;
-    --color-focus-inner: #111c2c;
-    --color-focus-outer: #d4af6a;
-    --color-success: #99c6aa;
-    --color-danger: #f0a5aa;
-    --input: #52637a;
-    --accent: #493f30;
-    color-scheme: dark;
-  }
-}
-
-/* Presentation reset Phase 1 palette. Deferred routes retain their existing theme. */
-:root:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) {
-  --color-ivory: #faf7f2;
-  --color-navy: #0b1d3a;
-  --color-navy-strong: #0b1d3a;
-  --color-navy-elevated: #1b3659;
-  --color-gold: #d4af6a;
-  --color-gold-soft: #eee9e1;
-  --color-powder: #eee9e1;
-  --color-sand: #eee9e1;
-  --color-surface: #faf7f2;
-  --color-surface-warm: #faf7f2;
-  --color-surface-canvas: #faf7f2;
-  --color-surface-base: #faf7f2;
-  --color-surface-subtle: #eee9e1;
-  --color-text-primary: #0b1d3a;
-  --color-text-secondary: #576173;
-  --color-text-muted: #576173;
-  --color-slate: #576173;
-  --color-border: #d7d2ca;
-  --color-control-soft: #93969c;
-  --color-action-primary: #0b1d3a;
-  --color-on-primary: #faf7f2;
-  --color-accent-text: #0b1d3a;
-  --color-focus-inner: #faf7f2;
-  --color-focus-outer: #0b1d3a;
-  --color-booking-surface: var(--color-surface);
-  --color-booking-ink: var(--color-text-primary);
-  --color-booking-secondary: var(--color-text-secondary);
-  --color-booking-divider: var(--color-border);
-  --color-booking-action: var(--color-action-primary);
-  --color-booking-on-action: var(--color-on-primary);
-  --input: #79879a;
-  --font-ui-he: "Heebo Phase One", sans-serif;
-  --font-ui-ar: "IBM Plex Sans Arabic", "Heebo Phase One", sans-serif;
-  --font-ui-latin: "DM Sans", "Heebo Phase One", "IBM Plex Sans Arabic", sans-serif;
-  --font-sans: var(--font-ui-he);
-  --font-phase-display: var(--font-sans);
-  --phase-auth-title-size: 2.25rem;
-  --phase-home-title-size: 1.75rem;
-  --cc-radius-button: 8px;
-  --cc-radius-input: 8px;
-  --cc-radius-card: 12px;
-}
-:root[lang="en"]:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) { --font-sans: var(--font-ui-latin); }
-:root[lang="ar"]:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) {
-  --font-sans: var(--font-ui-ar);
-  --phase-auth-title-size: 2.625rem;
-  --phase-home-title-size: 2.375rem;
-}
-@media (max-width:767px) {
-  :root:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page),
-  :root[lang="en"]:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) {
-    --phase-auth-title-size: 2rem;
-    --phase-home-title-size: 1.5rem;
-  }
-  :root[lang="ar"]:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) {
-    --phase-auth-title-size: 2.125rem;
-    --phase-home-title-size: 1.625rem;
-  }
-}
-@media (prefers-color-scheme:dark) {
-  :root:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) {
-    --color-ivory: #0e1c30;
-    --color-navy: #faf7f2;
-    --color-navy-strong: #faf7f2;
-    --color-navy-elevated: #d5e4f4;
-    --color-surface: #0e1c30;
-    --color-surface-warm: #0e1c30;
-    --color-surface-canvas: #0e1c30;
-    --color-surface-base: #0e1c30;
-    --color-surface-subtle: #1a2b41;
-    --color-sand: #1a2b41;
-    --color-text-primary: #faf7f2;
-    --color-text-secondary: #bacbdd;
-    --color-text-muted: #bacbdd;
-    --color-slate: #bacbdd;
-    --color-border: #344d68;
-    --color-control-soft: #738ba5;
-    --color-action-primary: #faf7f2;
-    --color-on-primary: #0b1d3a;
-    --color-accent-text: #faf7f2;
-    --color-focus-inner: #0e1c30;
-    --color-focus-outer: #faf7f2;
-    --input: #8395ac;
-  }
-}
-:root:has(.auth-page, .member-home-page, .aura-schedule-page, .aura-class-detail, .aura-member-page) body { background-image: none; }

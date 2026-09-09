@@ -18,7 +18,7 @@ import {
   resolveAppMarketingLang,
   sanitizeMarketingUtm,
 } from "../../src/lib/app-marketing";
-import { getAppMarketingRouteLoader } from "../../src/components/app-marketing/AppMarketingRoute";
+import { getAppMarketingRouteLoader } from "../../src/lib/app-marketing-route";
 
 describe("app marketing contracts", () => {
   test("accepts only supported explicit languages", () => {
@@ -214,7 +214,7 @@ describe("app marketing contracts", () => {
   test("exposes exact localized conversion copy, benefits, services, screenshots and FAQ", () => {
     expect(APP_MARKETING_COPY.ar.hero).toMatchObject({
       eyebrow: "Cloud & Core Studio · حرفيش",
-      title: "يوغا هوائية وبيلاتس بحرفيش — الحجز بسهولة من التطبيق",
+      title: "يوغا هوائية وبيلاتس، على إيقاعك",
       body: "شوفي جدول الحصص، اختاري الحصة المناسبة، احجزي مكانك وتابعي اشتراكك ورصيدك — كله بمكان واحد.",
       trust: "مناسب للمبتدئات · مجموعات صغيرة · اهتمام شخصي",
       offer: "",
@@ -223,7 +223,7 @@ describe("app marketing contracts", () => {
     });
     expect(APP_MARKETING_COPY.he.hero).toMatchObject({
       eyebrow: "Cloud & Core Studio · חורפיש",
-      title: "יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה",
+      title: "יוגה אווירית ופילאטיס, בקצב שלך",
       body: "צפי בלוח השיעורים, בחרי את החוג שמתאים לך, הזמיני מקום ועקבי אחרי המנוי והקרדיטים — הכול במקום אחד.",
       trust: "מתאים למתחילות · קבוצות קטנות · יחס אישי",
       offer: "",
@@ -232,7 +232,7 @@ describe("app marketing contracts", () => {
     });
     expect(APP_MARKETING_COPY.en.hero).toMatchObject({
       eyebrow: "Cloud & Core Studio · Hurfeish",
-      title: "Aerial Yoga and Pilates in Hurfeish — Easy Booking Through the App",
+      title: "Aerial yoga and Pilates, at your pace",
       body: "View the schedule, choose your class, reserve your place, and track your membership and credits in one place.",
       trust: "Beginner friendly · Small groups · Personal attention",
       offer: "",

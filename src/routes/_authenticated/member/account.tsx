@@ -256,54 +256,63 @@ function MemberAccount() {
               )}
             </div>
 
-            <div className="aura-profile-fields">
-              <Field label={t("profile.name")}>
-                <input
-                  className="editorial-input"
-                  dir={val("name") ? "auto" : undefined}
-                  value={val("name")}
-                  onChange={(e) => set("name", e.target.value)}
-                />
-              </Field>
-              <Field label={t("profile.phone")}>
-                <input
-                  className="editorial-input"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  value={val("phone") ?? ""}
-                  onChange={(e) => set("phone", e.target.value)}
-                />
-              </Field>
-              <Field label={t("profile.language")}>
-                <select
-                  className="editorial-input"
-                  value={selectedLanguage}
-                  onChange={(e) => setLanguage(e.target.value)}
-                >
-                  <option value="en">English</option>
-                  <option value="he">עברית</option>
-                  <option value="ar">العربية</option>
-                </select>
-              </Field>
-              <Field label={t("profile.emergency")}>
-                <input
-                  className="editorial-input"
-                  dir={val("emergency_contact") ? "auto" : undefined}
-                  value={val("emergency_contact") ?? ""}
-                  onChange={(e) => set("emergency_contact", e.target.value)}
-                  placeholder={t("profile.emergencyPlaceholder")}
-                />
-              </Field>
-              <Field label={t("profile.energy")}>
-                <input
-                  className="editorial-input"
-                  dir={val("energy_preference") ? "auto" : undefined}
-                  value={val("energy_preference") ?? ""}
-                  onChange={(e) => set("energy_preference", e.target.value)}
-                  placeholder={t("profile.energyPlaceholder")}
-                />
-              </Field>
-            </div>
+            <fieldset className="profile-field-group">
+              <legend>{t("profile.contactDetails")}</legend>
+              <div className="aura-profile-fields">
+                <Field label={t("profile.name")}>
+                  <input
+                    className="editorial-input"
+                    dir={val("name") ? "auto" : undefined}
+                    value={val("name")}
+                    onChange={(e) => set("name", e.target.value)}
+                  />
+                </Field>
+                <Field label={t("profile.phone")}>
+                  <input
+                    className="editorial-input"
+                    inputMode="tel"
+                    dir="ltr"
+                    autoComplete="tel"
+                    value={val("phone") ?? ""}
+                    onChange={(e) => set("phone", e.target.value)}
+                  />
+                </Field>
+                <Field label={t("profile.emergency")}>
+                  <input
+                    className="editorial-input"
+                    dir={val("emergency_contact") ? "auto" : undefined}
+                    value={val("emergency_contact") ?? ""}
+                    onChange={(e) => set("emergency_contact", e.target.value)}
+                    placeholder={t("profile.emergencyPlaceholder")}
+                  />
+                </Field>
+              </div>
+            </fieldset>
+            <fieldset className="profile-field-group">
+              <legend>{t("profile.preferences")}</legend>
+              <div className="aura-profile-fields">
+                <Field label={t("profile.language")}>
+                  <select
+                    className="editorial-input"
+                    value={selectedLanguage}
+                    onChange={(e) => setLanguage(e.target.value)}
+                  >
+                    <option value="en">English</option>
+                    <option value="he">עברית</option>
+                    <option value="ar">العربية</option>
+                  </select>
+                </Field>
+                <Field label={t("profile.energy")}>
+                  <input
+                    className="editorial-input"
+                    dir={val("energy_preference") ? "auto" : undefined}
+                    value={val("energy_preference") ?? ""}
+                    onChange={(e) => set("energy_preference", e.target.value)}
+                    placeholder={t("profile.energyPlaceholder")}
+                  />
+                </Field>
+              </div>
+            </fieldset>
             <div className="aura-form-submit">
               <button
                 disabled={update.isPending || Object.keys(form).length === 0}
@@ -372,13 +381,12 @@ function MemberAccount() {
         <aside className="aura-account-utilities">
           <div className="aura-settings-section aura-session-section">
             <div className="min-w-0">
-              <p className="font-display text-xl text-navy">{t("shell.signOut")}</p>
               <p className="text-xs text-slate mt-1">{t("profile.endSession")}</p>
             </div>
             <button
               onClick={signOut}
               disabled={signingOut}
-              className="btn-outline hover:btn-outline-hover"
+              className="home-text-action account-signout"
             >
               <LogOut className="h-3 w-3" /> {t("shell.signOut")}
             </button>

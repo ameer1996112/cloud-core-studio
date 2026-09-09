@@ -13,6 +13,8 @@ import { createClientOnlyFn, createIsomorphicFn } from "@tanstack/react-start";
 import { getStartContext } from "@tanstack/start-storage-context";
 
 import "@fontsource/assistant/hebrew-400.css";
+import "@fontsource/assistant/hebrew-500.css";
+import "@fontsource/assistant/latin-500.css";
 import "@fontsource/assistant/hebrew-600.css";
 import "@fontsource/assistant/hebrew-700.css";
 import "@fontsource/assistant/latin-400.css";
@@ -21,10 +23,15 @@ import "@fontsource/assistant/latin-700.css";
 import "@fontsource/cormorant-garamond/latin-600.css";
 import "@fontsource/cormorant-garamond/latin-600-italic.css";
 import "@fontsource/noto-sans-arabic/arabic-400.css";
+import "@fontsource/noto-sans-arabic/arabic-500.css";
 import "@fontsource/noto-sans-arabic/arabic-600.css";
 import "@fontsource/noto-sans-arabic/arabic-700.css";
 import "@/styles/phase-one-fonts.css";
+import { getBootAppearanceScript } from "@/lib/appearance";
 import appCss from "../styles.css?url";
+import marketingEntryCss from "@/styles/marketing-entry.css?url";
+import authEntryCss from "@/styles/auth-entry.css?url";
+import memberVisualCss from "@/styles/member-visual.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { Toaster } from "sonner";
 import {
@@ -134,7 +141,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
@@ -163,7 +170,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.json" },
-      { rel: "stylesheet", href: appCss },
+      {
+        rel: "stylesheet",
+        href: /^\/(auth(?:\/|$)|reset-password(?:\/|$))/.test(matches.at(-1)?.pathname ?? "")
+          ? authEntryCss
+          : /^\/app(?:\/|$)/.test(matches.at(-1)?.pathname ?? "")
+            ? marketingEntryCss
+            : appCss,
+      },
+      ...(/^\/(member|receipts)(\/|$)/.test(matches.at(-1)?.pathname ?? "")
+        ? [{ rel: "stylesheet", href: memberVisualCss }]
+        : []),
     ],
   }),
   shellComponent: RootShell,
@@ -180,6 +197,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang={initialLang} dir={getDirection(initialLang)} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: getBootAppearanceScript() }} />
         <script dangerouslySetInnerHTML={{ __html: getBootLangScript() }} />
         {alternateAppMarketingLocale ? (
           <meta property="og:locale:alternate" content={alternateAppMarketingLocale} />
@@ -257,6 +275,7 @@ const getFreshRootSession = createClientOnlyFn(() =>
 type RootSessionLifecycleHandlers = {
   onSessionAvailable: () => void;
   onSessionChanged: () => void;
+  onSessionResumed: () => void;
   onSignedOut: () => void;
   onError: (error: unknown) => void;
 };
@@ -352,6 +371,9 @@ function RootComponent() {
     let stop: () => void = () => undefined;
     void startRootSessionLifecycle({
       onSessionAvailable: registerAdminPushNotifications,
+      onSessionResumed: () => {
+        void queryClient.invalidateQueries();
+      },
       onSessionChanged: () => {
         void router.invalidate();
         void queryClient.invalidateQueries();

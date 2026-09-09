@@ -1,3 +1,6 @@
+import { PublicShell } from "@/components/public/PublicShell";
+import { EditorialImage } from "@/components/visual/EditorialImage";
+import { AsyncState } from "@/components/ui/async-state";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -24,7 +27,7 @@ export const Route = createFileRoute("/promo/$slug")({
 function PublicPromotionPage() {
   const { slug } = Route.useParams();
   const { lang: requestedLang } = Route.useSearch();
-  const { lang, dir } = useI18n();
+  const { lang, dir, t } = useI18n();
   const [authenticated, setAuthenticated] = useState(false);
   const [attributionReady, setAttributionReady] = useState(false);
   const promotion = useQuery({
@@ -88,61 +91,87 @@ function PublicPromotionPage() {
             body: "The credit is now in your promotion wallet. Choose a class from the filtered schedule.",
             cta: "Choose a class",
           };
-  if (promotion.isLoading) return <main className="min-h-dvh bg-ivory" />;
+  if (promotion.isLoading)
+    return (
+      <PublicShell>
+        <AsyncState state={{ status: "loading", label: t("common.loading") }} />
+      </PublicShell>
+    );
   if (!promotion.data || !copy) {
     return (
-      <main dir={dir} className="grid min-h-dvh place-items-center bg-ivory px-6 text-center">
-        <div>
-          <h1 className="font-display text-4xl text-navy">Cloud &amp; Core</h1>
-          <p className="mt-3 text-slate">This promotion is not currently available.</p>
-          <Link to="/member/schedule" className="btn-navy mt-6 inline-flex">
-            View schedule
-          </Link>
-        </div>
-      </main>
+      <PublicShell>
+        <section
+          dir={dir}
+          className="grid min-h-[60dvh] place-items-center bg-background px-6 py-12 text-center"
+        >
+          <div>
+            <h1 className="font-display text-4xl text-navy">Cloud &amp; Core</h1>
+            <p className="mt-3 text-slate">
+              {t("promotionManager.thisPromotionIsNotCurrentlyAvailable")}
+            </p>
+            <Link to="/member/schedule" className="btn-navy mt-6 inline-flex">
+              {t("promotionManager.viewSchedule")}
+            </Link>
+          </div>
+        </section>
+      </PublicShell>
     );
   }
   const displayCopy = claimed ? confirmation : copy;
 
   return (
-    <main dir={LANG_META[lang].dir} className="min-h-dvh bg-sand px-4 py-10 sm:px-6 sm:py-16">
-      <article className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-gold/35 bg-navy px-6 py-10 text-ivory shadow-2xl sm:px-12 sm:py-16">
-        <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_12%_15%,var(--cc-alpha-gold-22),transparent_28%),radial-gradient(circle_at_88%_82%,var(--cc-alpha-white-38),transparent_32%)]" />
-        <div className="relative max-w-2xl">
-          <div className="flex items-center gap-2 text-gold">
-            <Sparkles className="h-4 w-4" />
-            <p className="text-xs font-semibold uppercase tracking-[.2em]">{displayCopy.eyebrow}</p>
+    <PublicShell>
+      <section dir={LANG_META[lang].dir} className="bg-background px-4 py-10 sm:px-6 sm:py-16">
+        <article className="relative mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-gold/35 bg-navy px-6 py-10 text-ivory shadow-2xl sm:px-12 sm:py-16">
+          <EditorialImage
+            scene="fabric"
+            eager
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,25,42,.92),rgba(8,25,42,.82))]" />
+          <div className="relative max-w-2xl">
+            <div className="flex items-center gap-2 text-gold">
+              <Sparkles className="h-4 w-4" />
+              <p className="text-xs font-semibold uppercase tracking-[.2em]">
+                {displayCopy.eyebrow}
+              </p>
+            </div>
+            <h1 className="mt-5 font-display text-5xl leading-none text-ivory sm:text-7xl">
+              {displayCopy.title}
+            </h1>
+            <p className="mt-5 text-base leading-8 text-ivory/80 sm:text-lg">{displayCopy.body}</p>
+            {promotion.data.promotionType === "free_class_credit" && !claimed ? (
+              <p className="mt-4 font-semibold text-ivory">
+                {promotion.data.remaining} / {promotion.data.claimLimit}
+              </p>
+            ) : null}
+            {(claim.isError || (claim.data && !claimed)) && (
+              <p role="alert" className="mt-5 rounded-lg border border-ivory/40 p-4">
+                {t("booking.toast.error")}
+              </p>
+            )}
+            {claimed ? (
+              <a
+                href={promotion.data.actionUrl}
+                className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-gold px-6 font-bold text-[var(--cc-palette-navy-950)]"
+              >
+                {displayCopy.cta}
+                <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                disabled={!attributionReady || claim.isPending || promotion.data.soldOut}
+                onClick={act}
+                className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-gold px-6 font-bold text-[var(--cc-palette-navy-950)] disabled:opacity-50"
+              >
+                {displayCopy.cta}
+                <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" />
+              </button>
+            )}
           </div>
-          <h1 className="mt-5 font-display text-5xl leading-none text-ivory sm:text-7xl">
-            {displayCopy.title}
-          </h1>
-          <p className="mt-5 text-base leading-8 text-ivory/80 sm:text-lg">{displayCopy.body}</p>
-          {promotion.data.promotionType === "free_class_credit" && !claimed ? (
-            <p className="mt-4 font-semibold text-ivory">
-              {promotion.data.remaining} / {promotion.data.claimLimit}
-            </p>
-          ) : null}
-          {claimed ? (
-            <a
-              href={promotion.data.actionUrl}
-              className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-gold px-6 font-bold text-navy"
-            >
-              {displayCopy.cta}
-              <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" />
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled={!attributionReady || claim.isPending || promotion.data.soldOut}
-              onClick={act}
-              className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-gold px-6 font-bold text-navy disabled:opacity-50"
-            >
-              {displayCopy.cta}
-              <ArrowLeft className="h-4 w-4 rtl:rotate-0 ltr:rotate-180" />
-            </button>
-          )}
-        </div>
-      </article>
-    </main>
+        </article>
+      </section>
+    </PublicShell>
   );
 }

@@ -1,23 +1,36 @@
-/** Approved full lockups, used without filters, cropping, or reconstructed lettering. */
+/** Original, unmodified brand assets. Selection follows the application appearance. */
 export function StudioLogo({
   className = "",
   inverse = false,
+  priority = false,
 }: {
   className?: string;
   inverse?: boolean;
+  priority?: boolean;
 }) {
   return (
-    <picture className={`studio-logo ${className}`}>
-      <source
-        media={inverse ? undefined : "(prefers-color-scheme: dark)"}
-        srcSet="/brand/Cloud_Core_logo_transparent_ivory.png"
-      />
+    <span className={`studio-logo ${inverse ? "studio-logo-inverse" : ""} ${className}`}>
       <img
-        src={`/brand/Cloud_Core_logo_transparent_${inverse ? "ivory" : "navy"}.png`}
+        className="studio-logo-light"
+        src="/brand/Cloud_Core_logo_transparent_navy.png"
+        srcSet="/brand/cloud-core-navy-320.webp 320w, /brand/cloud-core-navy-640.webp 640w"
+        sizes="(min-width: 768px) 180px, 140px"
+        fetchPriority={priority ? "high" : "auto"}
         alt="Cloud & Core"
         width={1152}
         height={726}
       />
-    </picture>
+      <img
+        className="studio-logo-dark"
+        src="/brand/Cloud_Core_logo_transparent_ivory.png"
+        srcSet="/brand/cloud-core-ivory-320.webp 320w, /brand/cloud-core-ivory-640.webp 640w"
+        sizes="(min-width: 768px) 180px, 140px"
+        loading="lazy"
+        fetchPriority="auto"
+        alt="Cloud & Core"
+        width={1152}
+        height={726}
+      />
+    </span>
   );
 }

@@ -1,3 +1,4 @@
+import { StaffFormDialog } from "@/components/admin/StaffFormDialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -348,8 +349,11 @@ function ProgramModal({
   const set = (patch: Partial<typeof f>) => setF({ ...f, ...patch });
 
   return (
-    <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_var(--cc-alpha-navy-30)] space-y-6">
+    <StaffFormDialog
+      title={initial ? t("admin.programs.edit") : t("admin.programs.add")}
+      onClose={onClose}
+    >
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_rgba(11,29,58,0.3)] space-y-6">
         <div className="flex items-center justify-between border-b border-gold/30 pb-4">
           <h3 className="font-display text-xl">
             {initial ? t("admin.programs.edit") : t("admin.programs.add")}
@@ -379,6 +383,7 @@ function ProgramModal({
             <div className="flex items-center gap-2">
               <input
                 type="color"
+                aria-label={t("admin.programs.color")}
                 className="h-10 w-12 cursor-pointer rounded-xl border border-gold/30 bg-ivory"
                 value={f.color_tag}
                 onChange={(e) => set({ color_tag: e.target.value })}
@@ -559,7 +564,7 @@ function ProgramModal({
           </button>
         </div>
       </div>
-    </div>
+    </StaffFormDialog>
   );
 }
 

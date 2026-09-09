@@ -116,16 +116,16 @@ export function deriveClassState(
 export function StateBadge({ state }: { state: ClassState }) {
   const map: Record<string, { label: string; cls: string }> = {
     available: {
-      label: t("member.spotsOpen", { count: state.kind === "available" ? state.spotsLeft : "" }),
-      cls: "bg-white/85 text-navy border-gold/40",
+      label: t("schedule.availability.open"),
+      cls: "bg-card text-navy border-gold/40",
     },
     almost: {
-      label: t("member.spotsOpen", { count: state.kind === "almost" ? state.spotsLeft : "" }),
+      label: t("schedule.availability.few"),
       cls: "bg-gold/15 text-navy border-gold/60",
     },
     full: { label: t("state.full"), cls: "bg-navy/10 text-navy border-navy/20" },
     waitlist_available: {
-      label: t("state.waitlist_available"),
+      label: t("schedule.availability.waitlist"),
       cls: "bg-powder/40 text-navy border-powder",
     },
     booked: { label: t("bookings.confirmed"), cls: "bg-navy text-ivory border-navy" },

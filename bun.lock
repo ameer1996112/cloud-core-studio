@@ -75,6 +75,10 @@
         "@eslint/js": "^9.32.0",
         "@fontsource/assistant": "^5.3.0",
         "@fontsource/cormorant-garamond": "^5.3.0",
+        "@fontsource/dm-sans": "5.3.0",
+        "@fontsource/frank-ruhl-libre": "5.3.0",
+        "@fontsource/heebo": "5.2.8",
+        "@fontsource/ibm-plex-sans-arabic": "5.3.0",
         "@fontsource/noto-sans-arabic": "^5.3.0",
         "@types/node": "^22.16.5",
         "@types/react": "^19.2.0",
@@ -207,6 +211,14 @@
     "@fontsource/assistant": ["@fontsource/assistant@5.3.0", "", {}, "sha512-FJ0gSxkCdNeZgd2yIGmIkjU5SZOpDYs0j5IEWMQPBT5bRuvDqLA4T03KwmvMgWvov966coRVp0dcdd+oAo/MrA=="],
 
     "@fontsource/cormorant-garamond": ["@fontsource/cormorant-garamond@5.3.0", "", {}, "sha512-weuGsCirGVWBWqpt6YUp0yLThTe4G8YO45noq8wxeJCRvEpq5lFrxNMFSTxcyOyV5k5otzJ8guDzYegdYlcLMQ=="],
+
+    "@fontsource/dm-sans": ["@fontsource/dm-sans@5.3.0", "", {}, "sha512-lYJtMXXO28q1z+yz+z8XKd0s4hXaa9QdkETzkyD760sidCv5heI86weYA0sx0Nc4pAMAQTUuyf4gO44cYKKS9g=="],
+
+    "@fontsource/frank-ruhl-libre": ["@fontsource/frank-ruhl-libre@5.3.0", "", {}, "sha512-t9cbVzyuEJZGYafP01s7FQ1KAkh/Fs2nakfPzZpPY8BtfvGlZxQRxXAqJ/qluyfZXilpqw0Hk+GlYiWfmSSRTg=="],
+
+    "@fontsource/heebo": ["@fontsource/heebo@5.2.8", "", {}, "sha512-K5aMLH2Yy/CmmjuM9lpToyIEwSdPKwW6KzZOGCFnj7XFrgatIpnesu6FDgmQl3bkyP/YCT62rzLRqRM9s/OzLw=="],
+
+    "@fontsource/ibm-plex-sans-arabic": ["@fontsource/ibm-plex-sans-arabic@5.3.0", "", {}, "sha512-ZZ4g+JDgQY0NqSh4o0MNWU1sHQmtcee1g++aKAwyJvZxnT5y51JXsN1cIXnaQaMd40dcbK6QFYa+Z1LbaiNuqA=="],
 
     "@fontsource/noto-sans-arabic": ["@fontsource/noto-sans-arabic@5.3.0", "", {}, "sha512-i3t6GR0LOReyJVEk+YfYCnxv53wuIelg7Y9NGNvOq4Diq/EP0YszaGXkQwfQNigLjfO4POrLaPGM0sNliGYk7A=="],
 

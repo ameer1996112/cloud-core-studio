@@ -1,3 +1,4 @@
+import { StaffFormDialog } from "@/components/admin/StaffFormDialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -227,8 +228,11 @@ function RoomsPage() {
       </AsyncState>
 
       {editing && (
-        <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6">
-          <div className="w-full max-h-[92vh] overflow-y-auto rounded-t-2xl border border-gold/30 bg-ivory shadow-[0_30px_60px_-28px_var(--cc-alpha-navy-32)] md:max-w-2xl md:rounded-2xl">
+        <StaffFormDialog
+          title={editing.id ? t("admin.rooms.edit") : t("admin.rooms.add")}
+          onClose={() => setEditing(null)}
+        >
+          <div className="w-full max-h-[92vh] overflow-y-auto rounded-t-2xl border border-gold/30 bg-ivory shadow-[0_30px_60px_-28px_rgba(11,29,58,0.32)] md:max-w-2xl md:rounded-2xl">
             <header className="flex items-center justify-between p-6 border-b border-gold/20">
               <h3 className="font-display text-2xl">
                 {editing.id ? t("admin.rooms.edit") : t("admin.rooms.add")}
@@ -392,7 +396,7 @@ function RoomsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </StaffFormDialog>
       )}
     </AdminPageShell>
   );

@@ -31,7 +31,10 @@ describe("public app marketing route", () => {
       expect(route).not.toContain("requireRouteRole");
       expect(route).not.toContain("validateSearch");
     }
-    const source = readFileSync(appRouteSupport, "utf8");
+    const source = readFileSync(
+      new URL("../../src/lib/app-marketing-route.ts", import.meta.url),
+      "utf8",
+    );
     expect(source).toContain("APP_MARKETING_INSTALL_URL");
     const publicDataSource = readFileSync(appMarketingPublicData, "utf8");
     const serverDataSource = readFileSync(appMarketingServerData, "utf8");
@@ -49,7 +52,7 @@ describe("public app marketing route", () => {
       serverDataSource.indexOf("const appStoreUrl = getDownloadConfig().appStoreUrl"),
     ).toBeGreaterThan(serverDataSource.indexOf("loadAppMarketingPublicData"));
     expect(serverDataSource).toContain("adultPlans");
-    expect(readFileSync(appRouteSupport, "utf8")).toContain("sanitizeMarketingUtm");
+    expect(source).toContain("sanitizeMarketingUtm");
     expect(readFileSync(appRouteSupport, "utf8")).toContain("marketingUtm");
   });
 
@@ -72,7 +75,10 @@ describe("public app marketing route", () => {
   });
 
   test("shares complete static SSR head and page contracts", () => {
-    const source = readFileSync(appRouteSupport, "utf8");
+    const source = readFileSync(
+      new URL("../../src/lib/app-marketing-route.ts", import.meta.url),
+      "utf8",
+    );
     const serverDataSource = readFileSync(appMarketingServerData, "utf8");
     expect(serverDataSource).toContain("loadInstagramLandingData");
     expect(source).toContain('name: "robots"');
@@ -82,8 +88,9 @@ describe("public app marketing route", () => {
     expect(source).toContain('property: "og:locale:alternate"');
     expect(source).toContain("getAppMarketingAlternates");
     expect(source).toContain('rel: "canonical"');
-    expect(source).toContain('rel: "preload"');
-    expect(source).toContain('as: "image"');
+    expect(source).not.toContain("href: APP_MARKETING_HERO_IMAGE");
+    expect(pageSource).toContain('<EditorialImage scene="welcome" eager');
+    expect(source).not.toContain("import { AppMarketingPage }");
     expect(source).toContain("buildAppMarketingStructuredData");
     expect(source).toContain('replace(/</g, "\\\\u003c")');
     expect(source).toContain("faqVisible: true");

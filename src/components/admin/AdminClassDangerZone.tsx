@@ -172,7 +172,7 @@ export function AdminClassDangerZone({
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
                 placeholder={t("admin.classDetail.cancelReasonPlaceholder")}
-                className="min-h-24 w-full rounded-2xl border border-[color:var(--color-border)] bg-white px-3 py-2 text-sm text-navy"
+                className="min-h-24 w-full rounded-2xl border border-[color:var(--color-border)] bg-card px-3 py-2 text-sm text-navy"
               />
               {workflow.requiresCancelConfirmation ? (
                 <label className="flex items-start gap-2 text-sm text-navy">

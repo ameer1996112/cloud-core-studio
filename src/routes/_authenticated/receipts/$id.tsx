@@ -196,13 +196,13 @@ function ReceiptPage() {
         </button>
       </div>
 
-      <article className="member-card relative overflow-hidden bg-[var(--cc-surface-canvas)] p-0 shadow-[0_28px_70px_-42px_var(--cc-alpha-navy-45)] print:border-0 print:p-0 print:shadow-none">
+      <article className="member-card relative overflow-hidden bg-card p-0 shadow-[0_28px_70px_-42px_rgba(11,29,58,0.45)] print:border-0 print:p-0 print:shadow-none">
         <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-gold/25 via-navy to-gold/35" />
 
         <header className="px-5 pb-6 pt-7 sm:px-8 md:px-10">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <div className="inline-flex rounded-full border border-gold/25 bg-white/70 px-3 py-1 text-xs font-semibold text-slate">
+              <div className="inline-flex rounded-full border border-gold/25 bg-card px-3 py-1 text-xs font-semibold text-slate">
                 {t("receipt.paymentReceipt")}
               </div>
               <div className="mt-4 flex items-center gap-3">
@@ -254,12 +254,12 @@ function ReceiptPage() {
         <div className="mx-5 border-t border-gold/20 sm:mx-8 md:mx-10" />
 
         <section className="grid gap-3 px-5 py-5 text-sm sm:grid-cols-2 sm:px-8 md:px-10">
-          <div className="min-w-0 rounded-2xl border border-gold/20 bg-white/55 p-4">
-            <p className="eyebrow text-slate/80">{t("receipt.issuedTo")}</p>
+          <div className="min-w-0 rounded-2xl border border-gold/20 bg-card p-4">
+            <p className="eyebrow text-slate">{t("receipt.issuedTo")}</p>
             <p className="mt-2 text-base font-semibold text-navy break-words">{memberName}</p>
           </div>
-          <div className="min-w-0 rounded-2xl border border-gold/20 bg-white/55 p-4">
-            <p className="eyebrow text-slate/80">{t("receipt.paymentMethod")}</p>
+          <div className="min-w-0 rounded-2xl border border-gold/20 bg-card p-4">
+            <p className="eyebrow text-slate">{t("receipt.paymentMethod")}</p>
             <p className="mt-2 text-base font-semibold text-navy">{methodLabel}</p>
             {provider && (
               <p className="mt-1 text-xs font-medium text-slate">
@@ -280,7 +280,7 @@ function ReceiptPage() {
           <div className="rounded-[22px] border border-gold/25 bg-ivory/70 p-4 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
-                <p className="eyebrow text-slate/80">{t("receipt.studioPayment")}</p>
+                <p className="eyebrow text-slate">{t("receipt.studioPayment")}</p>
                 <p className="mt-2 text-lg font-semibold leading-tight text-navy break-words">
                   {planDisplayName}
                 </p>
@@ -300,7 +300,7 @@ function ReceiptPage() {
           </div>
         </section>
 
-        <section className="mx-5 mb-5 flex items-end justify-between gap-4 rounded-[24px] border border-navy/10 bg-white/75 px-5 py-5 shadow-[0_18px_46px_-34px_var(--cc-alpha-navy-45)] sm:mx-8 sm:px-6 md:mx-10">
+        <section className="mx-5 mb-5 flex items-end justify-between gap-4 rounded-[24px] border border-navy/10 bg-card px-5 py-5 shadow-[0_18px_46px_-34px_rgba(11,29,58,0.45)] sm:mx-8 sm:px-6 md:mx-10">
           <p className="text-xs font-semibold text-slate">{t("receipt.totalPaid")}</p>
           <p className="numeric-display font-display text-4xl leading-none text-navy whitespace-nowrap">
             <BidiValue kind="currency">{formatAmount(Number(r.amount))}</BidiValue>
@@ -309,14 +309,14 @@ function ReceiptPage() {
 
         <div className="space-y-4 px-5 pb-7 sm:px-8 md:px-10">
           {r.footer_note && (
-            <div className="rounded-2xl border border-gold/20 bg-white/50 p-4 text-center">
+            <div className="rounded-2xl border border-gold/20 bg-card p-4 text-center">
               <p className="text-sm leading-relaxed text-slate whitespace-pre-wrap">
                 {r.footer_note}
               </p>
             </div>
           )}
 
-          <p className="border-t border-gold/10 pt-4 text-xs leading-relaxed text-slate/70">
+          <p className="border-t border-gold/10 pt-4 text-xs leading-relaxed text-slate">
             {t("receipt.legalNote")}
           </p>
         </div>

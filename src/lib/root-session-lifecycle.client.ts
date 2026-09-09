@@ -8,6 +8,7 @@ import { getFreshSupabaseSession } from "@/integrations/supabase/auth-session";
 type RootSessionLifecycleHandlers = {
   onSessionAvailable: () => void;
   onSessionChanged: () => void;
+  onSessionResumed: () => void;
   onSignedOut: () => void;
   onError: (error: unknown) => void;
 };
@@ -19,18 +20,32 @@ export function getFreshRootSession() {
 export function startRootSessionLifecycle({
   onSessionAvailable,
   onSessionChanged,
+  onSessionResumed,
   onSignedOut,
   onError,
 }: RootSessionLifecycleHandlers) {
   let active = true;
   let nativeAppStateListener: { remove: () => Promise<void> } | undefined;
 
-  const syncCurrentSession = (notifyChange = false) => {
-    void getFreshSupabaseSession().then((session) => {
-      if (!active || !session) return;
-      onSessionAvailable();
-      if (notifyChange) onSessionChanged();
-    });
+  let refreshInFlight = false;
+  let lastResume = 0;
+  const syncCurrentSession = (resumed = false) => {
+    if (!active || refreshInFlight) return;
+    if (resumed && Date.now() - lastResume < 1_000) return;
+    if (resumed) lastResume = Date.now();
+    refreshInFlight = true;
+    void getFreshSupabaseSession()
+      .then((session) => {
+        if (!active || !session) return;
+        onSessionAvailable();
+        if (resumed) onSessionResumed();
+      })
+      .catch((error) => {
+        if (active) onError(error);
+      })
+      .finally(() => {
+        refreshInFlight = false;
+      });
   };
 
   const refreshCurrentSession = () => syncCurrentSession(true);
@@ -42,16 +57,17 @@ export function startRootSessionLifecycle({
   syncCurrentSession();
   window.addEventListener("focus", refreshCurrentSession);
   document.addEventListener("visibilitychange", onVisibilityChange);
+  window.addEventListener("online", refreshCurrentSession);
 
   void Promise.all([import("@capacitor/core"), import("@capacitor/app")])
     .then(async ([{ Capacitor }, { App }]) => {
       if (!active || !Capacitor.isNativePlatform()) return;
       nativeAppStateListener = await App.addListener("appStateChange", ({ isActive }) => {
         if (isActive) {
-          supabase.auth.startAutoRefresh();
+          void supabase.auth.startAutoRefresh().catch(onError);
           refreshCurrentSession();
         } else {
-          supabase.auth.stopAutoRefresh();
+          void supabase.auth.stopAutoRefresh().catch(onError);
         }
       });
       if (!active) {
@@ -59,7 +75,7 @@ export function startRootSessionLifecycle({
         nativeAppStateListener = undefined;
         return;
       }
-      supabase.auth.startAutoRefresh();
+      void supabase.auth.startAutoRefresh().catch(onError);
     })
     .catch(onError);
 
@@ -79,13 +95,16 @@ export function startRootSessionLifecycle({
     }
     syncSupabaseAccessTokenCookie(session);
     onSessionAvailable();
-    if (event !== "SIGNED_IN") onSessionChanged();
+    // A new token is not a route/role change. Keep the mounted screen in place.
+    if (event === "USER_UPDATED") onSessionChanged();
+    else if (event === "TOKEN_REFRESHED") onSessionResumed();
   });
 
   return () => {
     active = false;
     window.removeEventListener("focus", refreshCurrentSession);
     document.removeEventListener("visibilitychange", onVisibilityChange);
+    window.removeEventListener("online", refreshCurrentSession);
     if (nativeAppStateListener) void nativeAppStateListener.remove();
     subscription.subscription.unsubscribe();
   };

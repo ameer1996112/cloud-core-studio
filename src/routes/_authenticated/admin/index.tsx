@@ -281,7 +281,7 @@ function OverviewPage() {
                           })}
                         </BidiValue>
                       </p>
-                      <p className="mt-1 text-[0.7rem] text-slate/75">
+                      <p className="mt-1 text-[0.7rem] text-slate">
                         {t("admin.overview.bookedAt", { date: bookedAt })}
                       </p>
                     </Link>

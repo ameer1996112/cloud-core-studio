@@ -331,6 +331,7 @@ function Page() {
                     }
                   }}
                   className="btn-ghost p-2 hover:btn-ghost-hover"
+                  aria-label={t("common.cancel")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -361,6 +362,7 @@ function Page() {
                   <button
                     onClick={() => removeWait.mutate(w.id)}
                     className="btn-ghost p-2 hover:btn-ghost-hover"
+                    aria-label={t("common.cancel")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -377,7 +379,7 @@ function Page() {
           {audit?.slice(0, 10).map((a: any) => (
             <div
               key={a.id}
-              className="rounded-xl border border-gold/15 bg-white/80 px-3 py-2 text-xs text-slate"
+              className="rounded-xl border border-gold/15 bg-card px-3 py-2 text-xs text-slate"
             >
               {a.action} · <BidiDateTime value={a.created_at} locales={locale} />
             </div>

@@ -11,8 +11,8 @@ export const attachSupabaseAuth = createMiddleware({ type: "function" }).client(
       return next();
     }
 
-    const { supabase } = await import("./client");
-    const { data } = await supabase.auth.getSession();
+    const { readSupabaseSession } = await import("./read-session");
+    const { data } = await readSupabaseSession();
     const token = data.session?.access_token;
     return next({
       headers: token ? { Authorization: `Bearer ${token}` } : {},

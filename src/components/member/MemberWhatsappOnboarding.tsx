@@ -72,11 +72,11 @@ export function MemberWhatsappOnboarding() {
       <div className="h-1 bg-gradient-to-r from-gold/35 via-gold to-gold/35" />
       <div className="p-5 text-start">
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/25 bg-white text-navy">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/25 bg-card text-navy">
             <MessageCircle className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gold">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
               {copy.eyebrow}
             </p>
             <h2
@@ -106,7 +106,7 @@ export function MemberWhatsappOnboarding() {
             type="button"
             disabled={mutation.isPending}
             onClick={() => mutation.mutate("declined")}
-            className="min-h-11 rounded-[var(--radius-pill)] px-4 py-2.5 text-sm font-medium text-slate transition-colors hover:bg-white hover:text-navy disabled:opacity-60"
+            className="min-h-11 rounded-[var(--radius-pill)] px-4 py-2.5 text-sm font-medium text-slate transition-colors hover:bg-card hover:text-navy disabled:opacity-60"
           >
             {copy.decline}
           </button>

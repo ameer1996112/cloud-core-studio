@@ -150,7 +150,7 @@ export function MemberPushOnboarding() {
           isLoading: query.isLoading,
           isNativeIos: device.isNativeIos,
           permission: device.permission,
-          hasRegisteredToken: device.hasRegisteredToken,
+          hasRegisteredToken: device.hasRegisteredToken === true,
           dismissed,
         });
         if (decision === "bootstrap") {
@@ -258,7 +258,7 @@ export function MemberPushOnboarding() {
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && dismiss()}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[27rem] gap-0 overflow-hidden rounded-[28px] border-gold/25 bg-ivory p-0 shadow-[0_28px_90px_var(--cc-alpha-navy-28)] [&>button:last-child]:text-white/75 [&>button:last-child:hover]:bg-white/10 [&>button:last-child:hover]:text-white">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[27rem] gap-0 overflow-hidden rounded-[28px] border-gold/25 bg-ivory p-0 shadow-[0_28px_90px_rgba(11,29,58,0.28)] [&>button:last-child]:text-white/75 [&>button:last-child:hover]:bg-card [&>button:last-child:hover]:text-white">
         <div className="relative overflow-hidden bg-navy px-7 pb-10 pt-9 text-center text-white">
           <span
             aria-hidden
@@ -269,7 +269,7 @@ export function MemberPushOnboarding() {
             className="absolute -end-12 top-16 h-40 w-40 rounded-full bg-gold/8 blur-2xl"
           />
           {view === "success" ? (
-            <span className="relative mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[20px] bg-white text-navy shadow-[0_14px_40px_var(--cc-alpha-black-24)]">
+            <span className="relative mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[20px] bg-card text-navy shadow-[0_14px_40px_rgba(0,0,0,0.24)]">
               <CheckCircle2 className="h-8 w-8" />
             </span>
           ) : (
@@ -280,7 +280,7 @@ export function MemberPushOnboarding() {
               className="relative mx-auto h-[4.5rem] w-[4.5rem] rounded-[20px] shadow-[0_14px_40px_var(--cc-alpha-black-24)]"
             />
           )}
-          <p className="relative mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
+          <p className="relative mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-accent-text)]">
             {copy.eyebrow}
           </p>
           <DialogTitle className="relative mt-2 text-[1.75rem] font-semibold leading-[1.12] text-white">
@@ -293,7 +293,7 @@ export function MemberPushOnboarding() {
 
         <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
           {view === "success" ? (
-            <div className="-mt-5 flex min-h-24 items-center justify-center rounded-[20px] border border-gold/20 bg-white px-5 text-center shadow-[0_12px_34px_var(--cc-alpha-navy-11)]">
+            <div className="-mt-5 flex min-h-24 items-center justify-center rounded-[20px] border border-gold/20 bg-card px-5 text-center shadow-[0_12px_34px_rgba(11,29,58,0.11)]">
               <span className="flex items-center gap-2 text-sm font-semibold text-navy">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                 {copy.successTitle}
@@ -301,7 +301,7 @@ export function MemberPushOnboarding() {
             </div>
           ) : (
             <>
-              <div className="-mt-5 flex items-start gap-3 rounded-[20px] border border-gold/20 bg-white p-4 text-start shadow-[0_12px_34px_var(--cc-alpha-navy-11)]">
+              <div className="-mt-5 flex items-start gap-3 rounded-[20px] border border-gold/20 bg-card p-4 text-start shadow-[0_12px_34px_rgba(11,29,58,0.11)]">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-navy text-white">
                   <BellRing className="h-5 w-5" />
                 </span>
@@ -310,7 +310,7 @@ export function MemberPushOnboarding() {
                     <span className="text-sm font-semibold leading-5 text-navy">
                       {copy.previewTitle}
                     </span>
-                    <span className="shrink-0 text-[10px] text-slate/70">{copy.previewTime}</span>
+                    <span className="shrink-0 text-[10px] text-slate">{copy.previewTime}</span>
                   </span>
                   <span className="mt-0.5 block text-xs leading-5 text-slate">
                     {copy.previewBody}
@@ -323,7 +323,7 @@ export function MemberPushOnboarding() {
               </p>
 
               <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] leading-5 text-slate">
-                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-gold" />
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[var(--color-accent-text)]" />
                 {copy.privacy}
               </p>
 
@@ -350,7 +350,7 @@ export function MemberPushOnboarding() {
                 type="button"
                 onClick={dismiss}
                 disabled={isEnabling}
-                className="mt-1 min-h-11 w-full rounded-[var(--radius-pill)] px-4 py-2 text-sm font-medium text-slate transition-colors hover:bg-white hover:text-navy disabled:opacity-50"
+                className="mt-1 min-h-11 w-full rounded-[var(--radius-pill)] px-4 py-2 text-sm font-medium text-slate transition-colors hover:bg-card hover:text-navy disabled:opacity-50"
               >
                 {copy.later}
               </button>

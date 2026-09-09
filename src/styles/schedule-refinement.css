@@ -1,0 +1,386 @@
+/* Approved schedule reference: photograph + one ivory sheet + compact rows.
+   Variance 4 / motion 1 / density 6. Scoped to the existing member schedule. */
+.aura-schedule-page {
+  max-width: 960px;
+  gap: 0;
+}
+.aura-schedule-page .aura-schedule-heading {
+  min-height: 230px;
+  padding: 32px 32px 52px;
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  align-items: center;
+  direction: inherit;
+}
+.aura-schedule-page .aura-schedule-heading h1 {
+  color: #faf7f2;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.3;
+  max-width: 12ch;
+  margin: 0;
+}
+.aura-schedule-page .schedule-editorial-photo {
+  width: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center 55%;
+  transform: none;
+}
+.aura-schedule-page .aura-schedule-heading::after {
+  background: linear-gradient(90deg, rgb(8 24 36 / 86%), rgb(8 24 36 / 28%) 65%, transparent);
+}
+.aura-schedule-page[dir="rtl"] .aura-schedule-heading::after {
+  background: linear-gradient(270deg, rgb(8 24 36 / 86%), rgb(8 24 36 / 28%) 65%, transparent);
+}
+.aura-schedule-page .schedule-reading-surface {
+  display: block;
+  position: relative;
+  margin-top: -24px;
+  padding: 8px 24px 20px;
+  border-radius: 24px 24px 18px 18px;
+  border: 0;
+  background: var(--color-surface-warm);
+  box-shadow: 0 8px 24px rgb(40 31 19 / 5%);
+  overflow: visible;
+}
+.aura-schedule-page .schedule-control-region {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.aura-schedule-page .schedule-date-strip {
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: 0;
+}
+.aura-schedule-page .schedule-month-navigation {
+  margin: 0 0 4px;
+}
+.aura-schedule-page .schedule-month-navigation p {
+  font-size: 1rem;
+  font-weight: 500;
+}
+.aura-schedule-page .schedule-month-navigation button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.aura-schedule-page .schedule-date-days {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  overflow-x: auto;
+}
+.aura-schedule-page .schedule-date-days button {
+  flex: 1 0 2.75rem;
+  max-width: 52px;
+  min-height: 56px;
+  padding: 5px 2px;
+  gap: 3px;
+  border: 1px solid transparent;
+  border-radius: 28px;
+}
+.aura-schedule-page .schedule-date-days button span {
+  font-size: 0.6875rem;
+}
+.aura-schedule-page .schedule-date-days button strong {
+  font-size: 1rem;
+  font-weight: 500;
+}
+.aura-schedule-page .schedule-date-days button[data-today] {
+  background: var(--color-surface-subtle);
+}
+.aura-schedule-page .schedule-date-days button[data-today] strong {
+  text-decoration: none;
+}
+.aura-schedule-page .schedule-date-days button[aria-pressed="true"] {
+  background: var(--color-gold-soft);
+  border-color: var(--color-gold);
+}
+.aura-schedule-page .member-schedule-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 0 8px;
+  gap: 8px;
+  align-items: start;
+  border: 0;
+}
+.aura-schedule-page .member-schedule-segmented {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.aura-schedule-page .member-schedule-segment {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  border-radius: 10px;
+  border: 0;
+  background: var(--color-surface-subtle);
+}
+.aura-schedule-page .member-schedule-segment-active {
+  background: var(--color-gold-soft);
+}
+.aura-schedule-page .member-schedule-filter-disclosure {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.aura-schedule-page .member-schedule-filter-disclosure summary {
+  min-height: 44px;
+  padding-block: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.aura-schedule-page .member-schedule-filter-disclosure[open] {
+  grid-column: 1 / -1;
+}
+.aura-schedule-page .member-schedule-filter-panel__primary {
+  margin: 4px 0 14px;
+}
+.aura-schedule-page .member-schedule-search-field__input {
+  min-height: 44px;
+  font-size: 1rem;
+}
+.aura-schedule-page .aura-schedule-results {
+  padding: 0;
+  gap: 0;
+  border: 0;
+  background: none;
+}
+.aura-schedule-page .aura-schedule-totals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 20px;
+  padding: 6px 0 10px;
+  font-size: 0.6875rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+}
+.aura-schedule-page .aura-schedule-totals strong {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.aura-schedule-page .schedule-day-section {
+  padding: 0;
+  gap: 0;
+}
+.aura-schedule-page .schedule-day-section + .schedule-day-section {
+  margin: 0;
+}
+.aura-schedule-page .schedule-day-header {
+  padding: 10px 0 4px;
+  border: 0;
+}
+.aura-schedule-page .schedule-day-header__title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+}
+.aura-schedule-page .schedule-day-header__date {
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.aura-schedule-page .schedule-day-header__count {
+  display: none;
+}
+.aura-schedule-page .studio-class--row {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 16px;
+  padding: 12px 0;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+.aura-schedule-page .studio-class--row :is(.studio-class-overview, .studio-class-reading) {
+  display: contents;
+}
+.aura-schedule-page .studio-class--row .studio-class-content {
+  grid-column: 2;
+  grid-row: 1;
+  padding: 0;
+  border: 0;
+  overflow-wrap: normal;
+}
+.aura-schedule-page .studio-class--row h3 {
+  font-size: 1rem;
+  font-weight: 550;
+  line-height: 1.4;
+  margin: 0;
+}
+.aura-schedule-page .studio-class--row .studio-class-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+.aura-schedule-page .studio-class-meta svg {
+  display: none;
+}
+.aura-schedule-page .studio-class--row .studio-class-time {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: start;
+  gap: 3px;
+  border-inline-end: 1px solid var(--color-gold);
+  padding-block: 2px 0;
+  padding-inline: 0 10px;
+  max-inline-size: none;
+}
+.aura-schedule-page .studio-class--row .studio-class-time time {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.aura-schedule-page .studio-class--row .studio-class-time > span {
+  font-size: 0.6875rem;
+}
+.aura-schedule-page .studio-class--row .studio-class-status {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  font-size: 0.6875rem;
+}
+.aura-schedule-page .studio-class--row .studio-class-status > span {
+  font-size: inherit;
+  font-weight: 400;
+  background: none;
+  padding: 0;
+  border: 0;
+}
+.aura-schedule-page .studio-class--row .studio-class-actions {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  margin: 0;
+  max-width: none;
+}
+.aura-schedule-page .studio-class--row .studio-class-actions > :is(button, a) {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: normal;
+  border-radius: 24px;
+}
+.aura-schedule-page .studio-class--row .studio-class-actions > button {
+  background: var(--color-gold-soft);
+  color: var(--color-text-primary);
+  border: 0;
+}
+.aura-schedule-page .studio-class--row .studio-class-actions > a {
+  background: none;
+  border: 0;
+  padding-inline: 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.aura-schedule-page :is(button, a, input, summary):focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .aura-schedule-page .aura-schedule-heading {
+    min-height: 182px;
+    padding: 24px 22px 42px;
+  }
+  .aura-schedule-page .aura-schedule-heading h1 {
+    font-size: 1.5rem;
+  }
+  .aura-schedule-page .schedule-reading-surface {
+    padding: 8px 12px 16px;
+    margin-top: -22px;
+  }
+  .aura-schedule-page .studio-class--row {
+    grid-template-columns: 3.35rem minmax(0, 1fr) auto;
+    gap: 2px 10px;
+  }
+  .aura-schedule-page .studio-class--row .studio-class-actions > :is(button, a) {
+    font-size: 0.6875rem;
+    padding-inline: 9px;
+  }
+  .aura-schedule-page .studio-class--row h3 {
+    font-size: 0.9375rem;
+  }
+}
+@media (max-width: 360px) {
+  .aura-schedule-page .studio-class--row .studio-class-actions {
+    grid-column: 2 / -1;
+    grid-row: 3;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+  }
+}
+.aura-schedule-page .aura-schedule-results {
+  container-type: inline-size;
+}
+.aura-schedule-page .aura-schedule-totals {
+  padding-top: 14px;
+  border-bottom: 0;
+}
+.aura-schedule-page .studio-class--row {
+  padding-block: 10px;
+}
+.aura-schedule-page .studio-class--row .studio-class-meta {
+  line-height: 1.3;
+}
+.aura-schedule-page .schedule-editorial-photo {
+  object-position: center 74%;
+}
+.aura-schedule-page[dir="rtl"] .schedule-editorial-photo {
+  transform: scaleX(-1);
+}
+@container (max-width: 18rem) {
+  .aura-schedule-page .studio-class--row {
+    grid-template-columns: 3.35rem minmax(0, 1fr);
+  }
+  .aura-schedule-page .studio-class--row .studio-class-actions {
+    grid-column: 2;
+    grid-row: 3;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+  }
+}
+.aura-schedule-page .member-schedule-segmented {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+@media (min-width: 768px) {
+  .aura-schedule-page {
+    max-width: 720px;
+  }
+  .aura-schedule-page .aura-schedule-heading {
+    min-height: 210px;
+  }
+}

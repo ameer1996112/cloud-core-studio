@@ -21,7 +21,8 @@ const getAuthRouteContextForEnv = createIsomorphicFn()
   })
   .client(async (): Promise<AuthRouteContext | null> => {
     const { supabase } = await import("@/integrations/supabase/client");
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const { readSupabaseSession } = await import("@/integrations/supabase/read-session");
+    const { data: sessionData, error: sessionError } = await readSupabaseSession();
     const user = sessionData.session?.user;
     if (sessionError || !user) return null;
 
@@ -29,9 +30,10 @@ const getAuthRouteContextForEnv = createIsomorphicFn()
       .from("profiles")
       .select("role")
       .eq("id", user.id)
+      .abortSignal(AbortSignal.timeout(8_000))
       .maybeSingle();
 
-    if (profileError) return null;
+    if (profileError) throw new Error("Unable to verify account access. Please retry.");
 
     return {
       user,

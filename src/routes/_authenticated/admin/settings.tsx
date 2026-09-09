@@ -261,7 +261,12 @@ function Page() {
         title={t("settings.studioConfig")}
         description={t("settings.headerBody")}
       />
-      <YogaPromotionAdmin />
+      <details className="editorial-panel px-5 py-3">
+        <summary className="min-h-11 flex items-center cursor-pointer font-medium">
+          {t("admin.memberDetail.campaign")}
+        </summary>
+        <YogaPromotionAdmin />
+      </details>
       {outcome ? (
         <PersistentAnnouncement tone={outcome.tone} title={outcome.title}>
           {outcome.body ? <p>{outcome.body}</p> : null}
@@ -640,9 +645,7 @@ function Page() {
               </button>
             </div>
             {pushStatus ? (
-              <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-sm text-slate">
-                {pushStatus}
-              </p>
+              <p className="mt-3 rounded-lg bg-card px-3 py-2 text-sm text-slate">{pushStatus}</p>
             ) : null}
           </div>
         </Section>

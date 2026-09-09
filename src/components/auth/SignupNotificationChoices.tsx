@@ -1,4 +1,4 @@
-import { MailCheck, MessageCircle, Sparkles } from "lucide-react";
+import { MailCheck, MessageCircle, Tag } from "lucide-react";
 import { tForLang, type Lang } from "@/lib/i18n";
 import { isValidSignupWhatsappPhone } from "@/lib/signupNotificationConsent";
 
@@ -59,8 +59,7 @@ export function SignupNotificationChoices({
         ) : null}
         <ConsentChoice
           checked={marketing}
-          disabled={disabled}
-          icon={<Sparkles className="h-5 w-5" aria-hidden="true" />}
+          icon={<Tag className="h-5 w-5" aria-hidden="true" />}
           label={copy("auth.notificationConsentMarketing")}
           onChange={onMarketingChange}
         />
@@ -92,7 +91,7 @@ function ConsentChoice({
     <label
       className={`flex min-h-12 items-center justify-between gap-4 rounded-xl border px-3 py-2.5 text-sm leading-6 transition-colors ${
         disabled
-          ? "cursor-not-allowed border-slate/10 bg-slate/5 text-slate/60"
+          ? "cursor-not-allowed border-slate/10 bg-slate/5 text-slate"
           : "border-gold/15 bg-ivory/45 text-navy"
       }`}
     >

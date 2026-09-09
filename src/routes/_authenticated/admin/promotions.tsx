@@ -1,3 +1,6 @@
+import { t, useI18n } from "@/lib/i18n";
+import { safeErrorMessage } from "@/lib/error-messages";
+import { AsyncState } from "@/components/ui/async-state";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -22,7 +25,6 @@ type Language = (typeof PROMOTION_LANGUAGES)[number];
 type PromotionForm = ReturnType<typeof blankForm>;
 
 const LANGUAGE_LABEL: Record<Language, string> = { he: "עברית", ar: "العربية", en: "English" };
-const CHANNEL_LABEL = { in_app: "In-app", push: "iPhone push", whatsapp: "WhatsApp" };
 
 function promotionShareUrl(slug: string, language: Language) {
   const url = new URL(`/promo/${slug}`, "https://cloudandcorestudio.com");
@@ -112,6 +114,12 @@ function toIso(value: string) {
 }
 
 function Page() {
+  const { dir, lang } = useI18n();
+  const CHANNEL_LABEL = {
+    in_app: t("promotionManager.inapp"),
+    push: t("promotionManager.iPhonePush"),
+    whatsapp: "WhatsApp",
+  };
   useDocumentTitle("page.promotions.title");
   const getManager = useServerFn(getPromotionManager);
   const saveDraft = useServerFn(savePromotionDraft);
@@ -119,7 +127,7 @@ function Page() {
   const sendTest = useServerFn(sendPromotionTest);
   const transition = useServerFn(transitionPromotion);
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin", "promotions"],
     queryFn: () => getManager(),
   });
@@ -160,47 +168,65 @@ function Page() {
         },
       }),
     onSuccess: async (result) => {
-      toast.success("Draft saved. Preview and test evidence was reset.");
+      toast.success(t("promotionManager.draftSavedPreviewAndTestEvidenceWasReset"));
       setSelectedId(result.promotionId);
       await refresh();
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Save failed"),
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? safeErrorMessage(error) : t("promotionManager.saveFailed"),
+      ),
   });
   const preview = useMutation({
     mutationFn: () => previewAudience({ data: { promotionId: form.promotionId! } }),
     onSuccess: async (result) => {
-      toast.success(`Audience preview: ${result.eligibleCount} eligible members`);
+      toast.success(
+        t("promotionManager.audiencePreviewValueEligibleMembers", { count: result.eligibleCount }),
+      );
       await refresh();
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Preview failed"),
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? safeErrorMessage(error) : t("promotionManager.previewFailed"),
+      ),
   });
   const testSend = useMutation({
     mutationFn: () =>
       sendTest({ data: { promotionId: form.promotionId!, language: testLanguage } }),
     onSuccess: async (result) => {
-      toast.success(`Test delivered to ${result.sent} admin device(s)`);
+      toast.success(t("promotionManager.testDeliveredToValueAdminDevices", { count: result.sent }));
       await refresh();
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Test-send failed"),
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? safeErrorMessage(error) : t("promotionManager.testsendFailed"),
+      ),
   });
   const changeStatus = useMutation({
     mutationFn: (nextStatus: "scheduled" | "active" | "paused" | "archived") =>
       transition({ data: { promotionId: form.promotionId!, nextStatus } }),
     onSuccess: async (result) => {
-      toast.success(`Campaign is ${result.nextStatus}`);
+      toast.success(
+        t("promotionManager.campaignIsValue", { status: statusCopy(result.nextStatus) }),
+      );
       await refresh();
     },
     onError: (error) =>
-      toast.error(error instanceof Error ? error.message : "Status change failed"),
+      toast.error(
+        error instanceof Error ? safeErrorMessage(error) : t("promotionManager.statusChangeFailed"),
+      ),
   });
 
   const canOperate = Boolean(form.promotionId);
   const readiness = useMemo(
     () => [
-      { label: "Audience preview", ready: Boolean(selected?.audience_previewed_at) },
-      { label: "Test delivery", ready: Boolean(selected?.test_sent_at) },
       {
-        label: "WhatsApp templates",
+        label: t("promotionManager.audiencePreview"),
+        ready: Boolean(selected?.audience_previewed_at),
+      },
+      { label: t("promotionManager.testDelivery"), ready: Boolean(selected?.test_sent_at) },
+      {
+        label: t("promotionManager.whatsAppTemplates"),
         ready:
           !form.channels.includes("whatsapp") ||
           PROMOTION_LANGUAGES.every(
@@ -208,17 +234,28 @@ function Page() {
           ),
       },
     ],
-    [form.channels, form.whatsappTemplates, selected],
+    [form.channels, form.whatsappTemplates, selected, lang],
   );
 
+  if (isError)
+    return (
+      <AsyncState
+        state={{
+          status: "error",
+          title: t("member.error.title"),
+          body: safeErrorMessage(error),
+          retry: refetch,
+        }}
+      />
+    );
   if (isLoading || !data) return <CardSkeleton rows={6} />;
 
   return (
-    <AdminPageShell className="space-y-6" dir="ltr">
+    <AdminPageShell className="space-y-6" dir={dir}>
       <AdminPageHeader
-        eyebrow="Growth & retention"
-        title="Promotions Manager"
-        description="Create localized campaigns, verify the audience, test delivery, and activate only after every safety gate passes."
+        eyebrow={t("promotionManager.growthRetention")}
+        title={t("promotionManager.promotionsManager")}
+        description={t("promotionManager.createLocalizedCampaignsVerifyTheAudienceTestDeliveryAnd")}
         action={
           <button
             type="button"
@@ -228,7 +265,7 @@ function Page() {
               setForm(blankForm());
             }}
           >
-            <Plus className="h-4 w-4" /> New promotion
+            <Plus className="h-4 w-4" /> {t("promotionManager.newPromotion")}{" "}
           </button>
         }
       />
@@ -236,7 +273,7 @@ function Page() {
       <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="settings-card self-start">
           <div className="settings-card-header">
-            <h2 className="settings-card-title">Campaigns</h2>
+            <h2 className="settings-card-title"> {t("promotionManager.campaigns")} </h2>
           </div>
           <div className="settings-card-body space-y-2">
             {data.campaigns.map((campaign: any) => (
@@ -244,13 +281,13 @@ function Page() {
                 key={campaign.id}
                 type="button"
                 onClick={() => setSelectedId(campaign.id)}
-                className={`w-full rounded-xl border p-3 text-left ${
+                className={`w-full rounded-xl border p-3 text-start ${
                   selectedId === campaign.id ? "border-gold bg-gold/10" : "border-gold/20"
                 }`}
               >
                 <span className="block font-semibold text-navy">{campaign.name}</span>
                 <span className="mt-1 block text-xs uppercase tracking-wider text-slate">
-                  {campaign.status} · {campaign.metrics.claims} claims
+                  {campaign.status} · {campaign.metrics.claims} {t("promotionManager.claims")}{" "}
                 </span>
               </button>
             ))}
@@ -260,56 +297,58 @@ function Page() {
         <div className="space-y-6">
           <section className="settings-card">
             <header className="settings-card-header">
-              <h2 className="settings-card-title">1. Campaign draft</h2>
+              <h2 className="settings-card-title"> {t("promotionManager.1CampaignDraft")} </h2>
               <p className="settings-card-helper">
                 {publishedLocked
-                  ? "Published campaigns are immutable. Use New promotion to create the next campaign."
-                  : "Saving never activates or broadcasts."}
+                  ? t("promotionManager.publishedCampaignsAreImmutableUseNewPromotionToCreate")
+                  : t("promotionManager.savingNeverActivatesOrBroadcasts")}
               </p>
             </header>
             <div className="settings-card-body space-y-5">
               <div className="grid gap-3 md:grid-cols-2">
                 <Field
-                  label="Internal name"
+                  label={t("promotionManager.internalName")}
                   value={form.name}
                   onChange={(name) => setForm({ ...form, name })}
                 />
                 <Field
-                  label="Slug"
+                  label={t("promotionManager.slug")}
                   value={form.slug}
                   onChange={(slug) => setForm({ ...form, slug })}
                 />
                 <SelectField
-                  label="Promotion type"
+                  label={t("promotionManager.promotionType")}
                   value={form.promotionType}
                   onChange={(promotionType) =>
                     setForm({ ...form, promotionType: promotionType as any })
                   }
                   options={[
-                    ["announcement", "Announcement / CTA"],
-                    ["free_class_credit", "Limited free-class credit"],
+                    ["announcement", t("promotionManager.announcementCTA")],
+                    ["free_class_credit", t("promotionManager.limitedFreeclassCredit")],
                   ]}
                 />
                 <SelectField
-                  label="Audience"
+                  label={t("promotionManager.audience")}
                   value={form.audience.kind}
-                  onChange={(kind) => setForm({ ...form, audience: { kind } })}
+                  onChange={(kind) =>
+                    setForm({ ...form, audience: { kind, memberIds: undefined } })
+                  }
                   options={[
-                    ["all_marketing", "All active members"],
-                    ["never_booked", "Never booked"],
-                    ["no_upcoming", "No upcoming booking"],
-                    ["inactive_14d", "Inactive for 14 days"],
-                    ["low_credits", "Low credits"],
-                    ["expiring_7d", "Package expires in 7 days"],
-                    ["not_attended_program", "Has not attended promoted program"],
-                    ["specific", "Specific member IDs"],
+                    ["all_marketing", t("promotionManager.allActiveMembers")],
+                    ["never_booked", t("promotionManager.neverBooked")],
+                    ["no_upcoming", t("promotionManager.noUpcomingBooking")],
+                    ["inactive_14d", t("promotionManager.inactiveFor14Days")],
+                    ["low_credits", t("promotionManager.lowCredits")],
+                    ["expiring_7d", t("promotionManager.packageExpiresIn7Days")],
+                    ["not_attended_program", t("promotionManager.hasNotAttendedPromotedProgram")],
+                    ["specific", t("promotionManager.specificMemberIDs")],
                   ]}
                 />
               </div>
 
               {form.audience.kind === "specific" ? (
                 <TextArea
-                  label="Member IDs (comma or line separated)"
+                  label={t("promotionManager.memberIDsCommaOrLineSeparated")}
                   value={(form.audience.memberIds ?? []).join("\n")}
                   onChange={(value) =>
                     setForm({
@@ -338,22 +377,22 @@ function Page() {
                     </legend>
                     <div className="space-y-3">
                       <Field
-                        label="Eyebrow"
+                        label={t("promotionManager.eyebrow")}
                         value={form.localizedContent[language].eyebrow}
                         onChange={(eyebrow) => updateCopy(setForm, form, language, { eyebrow })}
                       />
                       <Field
-                        label="Title"
+                        label={t("promotionManager.title")}
                         value={form.localizedContent[language].title}
                         onChange={(title) => updateCopy(setForm, form, language, { title })}
                       />
                       <TextArea
-                        label="Message"
+                        label={t("promotionManager.message")}
                         value={form.localizedContent[language].body}
                         onChange={(body) => updateCopy(setForm, form, language, { body })}
                       />
                       <Field
-                        label="CTA"
+                        label={t("promotionManager.cTA")}
                         value={form.localizedContent[language].cta}
                         onChange={(cta) => updateCopy(setForm, form, language, { cta })}
                       />
@@ -364,18 +403,18 @@ function Page() {
 
               <div className="grid gap-3 md:grid-cols-3">
                 <DateField
-                  label="Starts"
+                  label={t("promotionManager.starts")}
                   value={form.startsAt}
                   onChange={(startsAt) => setForm({ ...form, startsAt })}
                 />
                 <DateField
-                  label="Ends"
+                  label={t("promotionManager.ends")}
                   value={form.endsAt}
                   onChange={(endsAt) => setForm({ ...form, endsAt })}
                 />
                 {form.promotionType === "free_class_credit" ? (
                   <DateField
-                    label="Credit expires"
+                    label={t("promotionManager.creditExpires")}
                     value={form.creditExpiresAt}
                     onChange={(creditExpiresAt) => setForm({ ...form, creditExpiresAt })}
                   />
@@ -384,20 +423,23 @@ function Page() {
 
               {form.promotionType === "free_class_credit" ? (
                 <div className="settings-field">
-                  <span className="settings-label">Filtered schedule destination</span>
+                  <span className="settings-label">
+                    {" "}
+                    {t("promotionManager.filteredScheduleDestination")}{" "}
+                  </span>
                   <code className="settings-input block overflow-hidden text-ellipsis whitespace-nowrap text-xs">
                     {filteredScheduleUrl}
                   </code>
                 </div>
               ) : (
                 <Field
-                  label="CTA destination"
+                  label={t("promotionManager.cTADestination")}
                   value={form.actionUrl}
                   onChange={(actionUrl) => setForm({ ...form, actionUrl })}
                 />
               )}
               <div>
-                <p className="settings-label">Channels</p>
+                <p className="settings-label"> {t("promotionManager.channels")} </p>
                 <div className="mt-2 flex flex-wrap gap-3">
                   {PROMOTION_CHANNELS.map((channel) => (
                     <label key={channel} className="settings-toggle min-w-44">
@@ -423,16 +465,22 @@ function Page() {
 
               {form.channels.includes("whatsapp") ? (
                 <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4">
-                  <p className="font-semibold text-navy">Approved Meta marketing templates</p>
+                  <p className="font-semibold text-navy">
+                    {" "}
+                    {t("promotionManager.approvedMetaMarketingTemplates")}{" "}
+                  </p>
                   <p className="mt-1 text-sm text-slate">
-                    Status is verified from the production Meta deployment registry when you save.
-                    Activation stays blocked until all three are approved.
+                    {t(
+                      "promotionManager.statusIsVerifiedFromTheProductionMetaDeploymentRegistry",
+                    )}{" "}
                   </p>
                   <div className="mt-3 grid gap-3 md:grid-cols-3">
                     {PROMOTION_LANGUAGES.map((language) => (
                       <div key={language} className="space-y-2">
                         <Field
-                          label={`${LANGUAGE_LABEL[language]} template`}
+                          label={t("promotionManager.valueTemplate", {
+                            language: LANGUAGE_LABEL[language],
+                          })}
                           value={form.whatsappTemplates[language].name}
                           onChange={(name) =>
                             setForm({
@@ -449,7 +497,8 @@ function Page() {
                           }
                         />
                         <p className="text-xs font-semibold uppercase tracking-wider text-slate">
-                          Meta status: {form.whatsappTemplates[language].status}
+                          {t("promotionManager.metaStatus")}{" "}
+                          {statusCopy(form.whatsappTemplates[language].status)}
                         </p>
                       </div>
                     ))}
@@ -460,13 +509,13 @@ function Page() {
               {form.promotionType === "free_class_credit" ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   <Field
-                    label="Claim cap"
+                    label={t("promotionManager.claimCap")}
                     type="number"
                     value={String(form.claimLimit)}
                     onChange={(claimLimit) => setForm({ ...form, claimLimit: Number(claimLimit) })}
                   />
                   <div>
-                    <p className="settings-label">Eligible programs</p>
+                    <p className="settings-label"> {t("promotionManager.eligiblePrograms")} </p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                       {data.programTypes.map((program: any) => (
                         <label
@@ -500,7 +549,7 @@ function Page() {
                   disabled={save.isPending || publishedLocked}
                   onClick={() => save.mutate()}
                 >
-                  <Save className="h-4 w-4" /> Save draft
+                  <Save className="h-4 w-4" /> {t("promotionManager.saveDraft")}{" "}
                 </button>
                 <label className="settings-toggle">
                   <input
@@ -509,7 +558,10 @@ function Page() {
                     onChange={(event) => setForm({ ...form, public: event.target.checked })}
                   />
                   <span className="settings-toggle-copy">
-                    <span className="settings-toggle-label">Public share page</span>
+                    <span className="settings-toggle-label">
+                      {" "}
+                      {t("promotionManager.publicSharePage")}{" "}
+                    </span>
                   </span>
                 </label>
                 <label className="settings-toggle">
@@ -519,15 +571,21 @@ function Page() {
                     onChange={(event) => setForm({ ...form, featured: event.target.checked })}
                   />
                   <span className="settings-toggle-copy">
-                    <span className="settings-toggle-label">Featured on Home</span>
+                    <span className="settings-toggle-label">
+                      {" "}
+                      {t("promotionManager.featuredOnHome")}{" "}
+                    </span>
                   </span>
                 </label>
               </div>
               {form.public && form.slug ? (
                 <div className="rounded-2xl border border-gold/20 bg-ivory/45 p-4">
-                  <p className="settings-label">Localized public share links</p>
+                  <p className="settings-label">
+                    {" "}
+                    {t("promotionManager.localizedPublicShareLinks")}{" "}
+                  </p>
                   <p className="mt-1 text-xs text-slate">
-                    Each link includes locale and campaign UTM attribution.
+                    {t("promotionManager.eachLinkIncludesLocaleAndCampaignUTMAttribution")}{" "}
                   </p>
                   <div className="mt-3 grid gap-2">
                     {PROMOTION_LANGUAGES.map((language) => {
@@ -541,7 +599,7 @@ function Page() {
                       return (
                         <div
                           key={language}
-                          className="flex flex-col gap-2 rounded-xl border border-gold/15 bg-white p-3 sm:flex-row sm:items-center"
+                          className="flex flex-col gap-2 rounded-xl border border-gold/15 bg-card p-3 sm:flex-row sm:items-center"
                         >
                           <span className="min-w-20 text-sm font-semibold text-navy">
                             {LANGUAGE_LABEL[language]}
@@ -554,10 +612,14 @@ function Page() {
                             className="btn-outline"
                             onClick={() => {
                               void navigator.clipboard.writeText(shareUrl.slice(1, -1));
-                              toast.success(`${LANGUAGE_LABEL[language]} link copied`);
+                              toast.success(
+                                t("promotionManager.valueLinkCopied", {
+                                  language: LANGUAGE_LABEL[language],
+                                }),
+                              );
                             }}
                           >
-                            Copy link
+                            {t("promotionManager.copyLink")}{" "}
                           </button>
                         </div>
                       );
@@ -570,9 +632,9 @@ function Page() {
 
           <section className="settings-card">
             <header className="settings-card-header">
-              <h2 className="settings-card-title">2. Verify and publish</h2>
+              <h2 className="settings-card-title"> {t("promotionManager.2VerifyAndPublish")} </h2>
               <p className="settings-card-helper">
-                These are separate actions. Activation cannot run early.
+                {t("promotionManager.theseAreSeparateActionsActivationCannotRunEarly")}{" "}
               </p>
             </header>
             <div className="settings-card-body space-y-5">
@@ -588,10 +650,10 @@ function Page() {
                   disabled={!canOperate || preview.isPending}
                   onClick={() => preview.mutate()}
                 >
-                  <Eye className="h-4 w-4" /> Preview audience
+                  <Eye className="h-4 w-4" /> {t("promotionManager.previewAudience")}{" "}
                 </button>
                 <label className="settings-field max-w-40">
-                  <span className="settings-label">Test language</span>
+                  <span className="settings-label"> {t("promotionManager.testLanguage")} </span>
                   <select
                     className="settings-input"
                     value={testLanguage}
@@ -610,7 +672,7 @@ function Page() {
                   disabled={!canOperate || testSend.isPending}
                   onClick={() => testSend.mutate()}
                 >
-                  <FlaskConical className="h-4 w-4" /> Send test
+                  <FlaskConical className="h-4 w-4" /> {t("promotionManager.sendTest")}{" "}
                 </button>
                 <button
                   type="button"
@@ -624,19 +686,22 @@ function Page() {
                     )
                   }
                 >
-                  <Play className="h-4 w-4" /> Activate campaign
+                  <Play className="h-4 w-4" /> {t("promotionManager.activateCampaign")}{" "}
                 </button>
               </div>
               {selected ? (
                 <div className="flex flex-wrap gap-3 border-t border-gold/15 pt-4">
-                  <span className="member-chip">Current: {selected.status}</span>
+                  <span className="member-chip">
+                    {" "}
+                    {t("promotionManager.current")} {statusCopy(selected.status)}
+                  </span>
                   {selected.status === "active" || selected.status === "scheduled" ? (
                     <button
                       type="button"
                       className="btn-outline"
                       onClick={() => changeStatus.mutate("paused")}
                     >
-                      <Pause className="h-4 w-4" /> Pause
+                      <Pause className="h-4 w-4" /> {t("promotionManager.pause")}{" "}
                     </button>
                   ) : null}
                   <button
@@ -644,7 +709,7 @@ function Page() {
                     className="btn-outline"
                     onClick={() => changeStatus.mutate("archived")}
                   >
-                    <Archive className="h-4 w-4" /> Archive
+                    <Archive className="h-4 w-4" /> {t("promotionManager.archive")}{" "}
                   </button>
                 </div>
               ) : null}
@@ -654,12 +719,14 @@ function Page() {
           {selected ? (
             <section className="settings-card">
               <header className="settings-card-header">
-                <h2 className="settings-card-title">Performance</h2>
+                <h2 className="settings-card-title"> {t("promotionManager.performance")} </h2>
               </header>
               <div className="settings-card-body grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {Object.entries(selected.metrics).map(([label, value]) => (
                   <div key={label} className="rounded-xl border border-gold/20 p-3">
-                    <p className="text-xs uppercase tracking-wider text-slate">{label}</p>
+                    <p className="text-xs uppercase tracking-wider text-slate">
+                      {statusCopy(label)}
+                    </p>
                     <p className="mt-1 font-display text-2xl text-navy">{String(value)}</p>
                   </div>
                 ))}
@@ -780,12 +847,48 @@ function SelectField({
   );
 }
 function StatusCard({ label, ready }: { label: string; ready: boolean }) {
+  useI18n();
   return (
     <div
       className={`rounded-xl border p-3 ${ready ? "border-emerald-300 bg-emerald-50" : "border-amber-300 bg-amber-50"}`}
     >
       <p className="font-semibold text-navy">{label}</p>
-      <p className="mt-1 text-xs text-slate">{ready ? "Ready" : "Required before activation"}</p>
+      <p className="mt-1 text-xs text-slate">
+        {ready ? t("promotionManager.ready") : t("promotionManager.requiredBeforeActivation")}
+      </p>
     </div>
   );
+}
+
+function statusCopy(status: string) {
+  switch (status) {
+    case "draft":
+      return t("promotionManager.draft");
+    case "scheduled":
+      return t("promotionManager.scheduled");
+    case "active":
+      return t("promotionManager.active");
+    case "paused":
+      return t("promotionManager.paused");
+    case "archived":
+      return t("promotionManager.archived");
+    case "pending":
+      return t("promotionManager.pending");
+    case "approved":
+      return t("promotionManager.approved");
+    case "rejected":
+      return t("promotionManager.rejected");
+    case "claims":
+      return t("promotionManager.claims");
+    case "views":
+      return t("promotionManager.views");
+    case "clicks":
+      return t("promotionManager.clicks");
+    case "bookings":
+      return t("promotionManager.bookings");
+    case "attendance":
+      return t("promotionManager.attendance");
+    default:
+      return status;
+  }
 }

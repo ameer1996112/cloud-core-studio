@@ -5,6 +5,8 @@ import { listMembers } from "@/lib/members.functions";
 import { useState } from "react";
 import {
   AsyncState,
+  Empty,
+  CardSkeleton,
   ResponsiveDataList,
   SectionTitle,
   type ResponsiveDataListColumn,
@@ -104,7 +106,7 @@ function Page() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="staff-member-directory space-y-6">
       <SectionTitle>{t("admin.membersTitle")}</SectionTitle>
 
       <div className="space-y-3">
@@ -146,35 +148,26 @@ function Page() {
         </fieldset>
       </div>
 
-      <AsyncState
-        state={
-          isLoading
-            ? { status: "loading", label: t("common.loading") }
-            : isError
-              ? {
-                  status: "error",
-                  title: t("admin.noMembersFilter"),
-                  body: safeErrorMessage(error, t("admin.noMembersFilter")),
-                  retry: () => void refetch(),
-                }
-              : (data?.length ?? 0) === 0
-                ? {
-                    status: "empty",
-                    title: t("admin.noMembersFilter"),
-                    body: t("admin.noMembersFilter"),
-                  }
-                : { status: "ready", data: data ?? [] }
-        }
-      >
-        {(members) => (
-          <ResponsiveDataList
-            caption={t("admin.membersTitle")}
-            columns={columns}
-            data={members}
-            getRowKey={(member) => member.id}
-          />
-        )}
-      </AsyncState>
+      {isLoading ? (
+        <AsyncState state={{ status: "loading", label: t("common.loading") }} />
+      ) : isError ? (
+        <AsyncState
+          state={{
+            status: "error",
+            title: t("member.error.title"),
+            body: safeErrorMessage(error),
+            retry: refetch,
+          }}
+        />
+      ) : !data?.length ? (
+        <Empty>{t("admin.noMembersFilter")}</Empty>
+      ) : (
+        <section aria-label={t("admin.membersTitle")} className="staff-member-records">
+          {data.map((m) => (
+            <MemberCard key={m.id} m={m} lang={lang} />
+          ))}
+        </section>
+      )}
     </div>
   );
 }
@@ -191,11 +184,11 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
     <Link
       to="/admin/members/$id"
       params={{ id: m.id }}
-      className="editorial-card p-5 hover:editorial-card-hover group flex flex-col gap-3"
+      className="staff-member-record editorial-card p-5 hover:editorial-card-hover group flex flex-col gap-3"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="cc-card-title truncate group-hover:text-gold transition-colors">
+          <p className="cc-card-title truncate group-hover:text-[var(--color-accent-text)] transition-colors">
             <bdi>{m.name}</bdi>
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate">
@@ -243,10 +236,10 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 border-t border-gold/15 pt-3 text-xs text-slate">
+      <dl className="grid grid-cols-2 gap-2 border-t border-gold/15 pt-3 text-xs text-slate">
         <div>
-          <p className="text-xs font-medium">{t("admin.members.lastVisit")}</p>
-          <p className="text-navy mt-0.5">
+          <dt className="text-xs font-medium">{t("admin.members.lastVisit")}</dt>
+          <dd className="text-navy mt-0.5">
             {lastVisit ? (
               <BidiValue kind="localized-date">
                 {lastVisit.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
@@ -254,11 +247,11 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
             ) : (
               "—"
             )}
-          </p>
+          </dd>
         </div>
         <div>
-          <p className="text-xs font-medium">{t("admin.members.next")}</p>
-          <p className="text-navy mt-0.5 truncate">
+          <dt className="text-xs font-medium">{t("admin.members.next")}</dt>
+          <dd className="text-navy mt-0.5 truncate">
             {next ? (
               <span className="inline-flex items-center gap-1">
                 <CalendarIcon className="h-3 w-3" />
@@ -269,19 +262,19 @@ function MemberCard({ m, lang }: { m: any; lang: "en" | "he" | "ar" }) {
             ) : (
               "—"
             )}
-          </p>
+          </dd>
         </div>
         <div>
-          <p className="text-xs font-medium">{t("admin.members.visits")}</p>
-          <p className="text-navy mt-0.5">{m.attendance_count ?? 0}</p>
+          <dt className="text-xs font-medium">{t("admin.members.visits")}</dt>
+          <dd className="text-navy mt-0.5">{m.attendance_count ?? 0}</dd>
         </div>
         <div>
-          <p className="text-xs font-medium">{t("admin.members.spent")}</p>
-          <p className="text-navy mt-0.5">
+          <dt className="text-xs font-medium">{t("admin.members.spent")}</dt>
+          <dd className="text-navy mt-0.5">
             <BidiValue kind="currency">₪{Math.round(m.total_spend ?? 0)}</BidiValue>
-          </p>
+          </dd>
         </div>
-      </div>
+      </dl>
     </Link>
   );
 }
@@ -295,7 +288,7 @@ function Badge({
 }) {
   const cls =
     tone === "gold"
-      ? "text-gold border-gold/40"
+      ? "text-[var(--color-accent-text)] border-gold/40"
       : tone === "amber"
         ? "text-navy border-gold/50 bg-gold/10"
         : tone === "muted"

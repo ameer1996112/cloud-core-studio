@@ -1,0 +1,413 @@
+/* =====================================================================
+   Admin Instructors
+===================================================================== */
+
+.admin-instructors-page {
+  gap: clamp(1rem, 2.2vw, 1.45rem);
+}
+
+.admin-instructors-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 26%, transparent);
+  padding-block-end: 1.2rem;
+}
+
+.admin-instructors-hero__copy {
+  max-width: 45rem;
+  text-align: start;
+}
+
+.admin-instructors-hero__copy .cc-page-title {
+  margin-block-start: 0.45rem;
+}
+
+.admin-instructors-hero__copy p:not(.eyebrow) {
+  margin-block-start: 0.7rem;
+  max-width: 42rem;
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+.admin-instructors-primary-cta {
+  min-width: 10.75rem;
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--color-navy, #0b1d3a) 10%, transparent);
+}
+
+.admin-instructors-control-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 25rem);
+  align-items: stretch;
+  gap: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 24%, transparent);
+  border-radius: var(--cc-radius-card);
+  background:
+    radial-gradient(
+      circle at 12% 10%,
+      color-mix(in srgb, var(--color-gold, #d4af6a) 10%, transparent),
+      transparent 18rem
+    ),
+    color-mix(in srgb, var(--color-surface, #fffaf3) 88%, var(--color-ivory, #faf7f2));
+  box-shadow: var(--shadow-card);
+  padding: clamp(0.85rem, 2vw, 1.1rem);
+}
+
+[dir="rtl"] .admin-instructors-control-panel {
+  background:
+    radial-gradient(
+      circle at 88% 10%,
+      color-mix(in srgb, var(--color-gold, #d4af6a) 10%, transparent),
+      transparent 18rem
+    ),
+    color-mix(in srgb, var(--color-surface, #fffaf3) 88%, var(--color-ivory, #faf7f2));
+}
+
+.admin-instructors-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-instructors-stat {
+  display: flex;
+  min-height: 6rem;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 24%, transparent);
+  border-radius: var(--cc-radius-card);
+  background: color-mix(in srgb, var(--color-surface, #fffaf3) 88%, var(--color-surface));
+  padding: 0.9rem 1rem;
+}
+
+.admin-instructors-stat.is-accent {
+  border-color: color-mix(in srgb, var(--color-gold, #d4af6a) 50%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-gold, #d4af6a) 11%, var(--color-surface, #fffaf3)),
+    color-mix(in srgb, var(--color-surface, #fffaf3) 90%, var(--color-surface))
+  );
+}
+
+.admin-instructors-stat span {
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.admin-instructors-stat strong {
+  color: var(--color-navy, #0b1d3a);
+  font-size: clamp(1.85rem, 4vw, 2.45rem);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.admin-instructors-tools {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-instructors-search {
+  position: relative;
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 30%, transparent);
+  border-radius: var(--cc-radius-input);
+  background: color-mix(in srgb, var(--color-surface) 78%, var(--color-surface, #fffaf3));
+  color: var(--color-navy, #0b1d3a);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.admin-instructors-search:focus-within {
+  border-color: color-mix(in srgb, var(--color-gold, #d4af6a) 68%, transparent);
+  box-shadow: var(--cc-focus-ring);
+  background: var(--color-surface);
+}
+
+.admin-instructors-search__icon {
+  position: absolute;
+  inset-inline-start: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-slate, #6f7a8c);
+  pointer-events: none;
+}
+
+.admin-instructors-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-navy, #0b1d3a);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  padding-block: 0.75rem;
+  padding-inline: 2.85rem 1rem;
+  text-align: start;
+}
+
+[dir="rtl"] .admin-instructors-search input {
+  padding-inline: 2.85rem 1rem;
+}
+
+.admin-instructors-search input::placeholder {
+  color: color-mix(in srgb, var(--color-slate, #6f7a8c) 76%, transparent);
+  font-weight: 550;
+}
+
+.admin-instructors-result-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 34%, transparent);
+  border-radius: var(--cc-radius-chip);
+  background: color-mix(in srgb, var(--color-sand, #e8dfd1) 32%, var(--color-surface));
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.78rem;
+  font-weight: 750;
+  padding: 0.45rem 0.7rem;
+}
+
+[dir="rtl"] .admin-instructors-result-pill {
+  align-self: flex-end;
+}
+
+.admin-instructors-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-instructor-card {
+  display: flex;
+  min-height: 14.5rem;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 28%, transparent);
+  border-radius: var(--cc-radius-card);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-surface) 76%, var(--color-surface, #fffaf3)),
+      var(--color-surface, #fffaf3)
+    ),
+    var(--color-surface, #fffaf3);
+  box-shadow: 0 18px 42px color-mix(in srgb, var(--color-navy, #0b1d3a) 7%, transparent);
+  padding: clamp(1rem, 2vw, 1.25rem);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.admin-instructor-card:hover {
+  border-color: color-mix(in srgb, var(--color-gold, #d4af6a) 54%, transparent);
+  box-shadow: 0 22px 46px color-mix(in srgb, var(--color-navy, #0b1d3a) 10%, transparent);
+  transform: translateY(-1px);
+}
+
+.admin-instructor-card__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-instructor-avatar {
+  position: relative;
+  display: flex;
+  width: 4.75rem;
+  height: 4.75rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 48%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-sand, #e8dfd1) 58%, var(--color-surface));
+  color: var(--color-navy, #0b1d3a);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--color-surface) 54%, transparent);
+}
+
+.admin-instructor-avatar__status {
+  position: absolute;
+  inset-inline-end: 0.15rem;
+  bottom: 0.25rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid var(--color-surface, #fffaf3);
+  border-radius: 999px;
+  background: var(--color-gold, #d4af6a);
+}
+
+.admin-instructor-card__identity {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.admin-instructor-card__identity h3 {
+  margin: 0;
+  color: var(--color-navy, #0b1d3a);
+  font-size: clamp(1.12rem, 2vw, 1.32rem);
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.admin-instructor-card__identity p {
+  display: -webkit-box;
+  min-height: 3.15rem;
+  margin: 0.45rem 0 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.admin-instructor-status {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-slate, #6f7a8c) 28%, transparent);
+  border-radius: var(--cc-radius-chip);
+  background: color-mix(in srgb, var(--color-slate, #6f7a8c) 6%, var(--color-surface));
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.75rem;
+  font-weight: 750;
+  line-height: 1;
+  padding: 0.45rem 0.65rem;
+  white-space: nowrap;
+}
+
+.admin-instructor-status.is-active {
+  border-color: color-mix(in srgb, var(--color-gold, #d4af6a) 58%, transparent);
+  background: color-mix(in srgb, var(--color-gold, #d4af6a) 12%, var(--color-surface));
+  color: var(--color-navy, #0b1d3a);
+}
+
+.admin-instructor-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: auto;
+}
+
+.admin-instructor-chip-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 30%, transparent);
+  border-radius: var(--cc-radius-chip);
+  background: color-mix(in srgb, var(--color-ivory, #faf7f2) 72%, var(--color-surface));
+  color: var(--color-slate, #6f7a8c);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.5rem 0.7rem;
+}
+
+.admin-instructor-chip-row svg {
+  color: var(--color-gold, #d4af6a);
+}
+
+.admin-instructor-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold, #d4af6a) 20%, transparent);
+  padding-block-start: 0.85rem;
+}
+
+.admin-instructor-card__actions .btn-outline,
+.admin-instructor-card__actions .btn-ghost {
+  min-height: 2.45rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 960px) {
+  .admin-instructors-hero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .admin-instructors-primary-cta {
+    width: fit-content;
+  }
+
+  .admin-instructors-control-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-instructors-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-instructors-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-instructors-stat {
+    min-height: 5rem;
+  }
+
+  .admin-instructors-primary-cta,
+  .admin-instructors-tools,
+  .admin-instructors-search {
+    width: 100%;
+  }
+
+  .admin-instructors-result-pill,
+  [dir="rtl"] .admin-instructors-result-pill {
+    align-self: flex-start;
+  }
+
+  .admin-instructor-card {
+    min-height: 0;
+  }
+
+  .admin-instructor-card__header {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-instructor-avatar {
+    width: 4.25rem;
+    height: 4.25rem;
+  }
+
+  .admin-instructor-card__identity {
+    flex-direction: column;
+  }
+
+  .admin-instructor-card__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-instructor-card__actions button {
+    width: 100%;
+  }
+}

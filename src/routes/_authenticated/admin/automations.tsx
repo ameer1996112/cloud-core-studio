@@ -8,15 +8,15 @@ export const Route = createFileRoute("/_authenticated/admin/automations")({
 });
 
 function AutomationsPage() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
 
   return (
     <AdminPageShell>
       <AdminPage>
         <AdminPageHeader
-          eyebrow="Concierge"
-          title="Automations"
-          description="This shared command center is also available as the first tab in Messages."
+          eyebrow={t("admin.automationsEyebrow")}
+          title={t("admin.automationsTitle")}
+          description={t("admin.automationsDescription")}
         />
         <ConciergeCommandCenter lang={lang} />
       </AdminPage>

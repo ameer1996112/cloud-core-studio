@@ -46,7 +46,7 @@ function PersistentAnnouncement({
         "rounded-[var(--cc-radius-card)] border p-4 text-sm",
         tone === "error"
           ? "border-destructive/30 bg-destructive/5 text-destructive"
-          : "border-emerald-600/30 bg-emerald-50 text-emerald-950",
+          : "border-[color:var(--color-success)] bg-card text-foreground",
         className,
       )}
     >

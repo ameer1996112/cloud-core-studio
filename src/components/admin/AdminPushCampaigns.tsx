@@ -278,9 +278,9 @@ export function AdminPushCampaigns() {
             <div
               key={language}
               dir={language === "en" ? "ltr" : "rtl"}
-              className="rounded-[var(--radius-lg)] border border-gold/20 bg-white/55 p-4"
+              className="rounded-[var(--radius-lg)] border border-gold/20 bg-card p-4"
             >
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
                 {language}
               </p>
               <input
@@ -359,7 +359,7 @@ export function AdminPushCampaigns() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-start text-sm">
-              <thead className="bg-white/45 text-xs text-slate">
+              <thead className="bg-card text-xs text-slate">
                 <tr>
                   <th className="px-5 py-3 font-medium">Campaign</th>
                   <th className="px-3 py-3 font-medium">Status</th>
@@ -400,7 +400,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Metric({ label, value, icon }: { label: string; value: number; icon?: React.ReactNode }) {
   return (
-    <div className="rounded-[var(--radius-md)] border border-gold/20 bg-white/55 p-3 text-start">
+    <div className="rounded-[var(--radius-md)] border border-gold/20 bg-card p-3 text-start">
       <p className="flex items-center gap-1.5 text-xs text-slate">
         {icon} {label}
       </p>

@@ -794,7 +794,7 @@ export function DeliveryMonitoringConsole() {
               type="button"
               onClick={() => deliveries.refetch()}
               disabled={deliveries.isFetching}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-gold/30 bg-white px-3 text-xs font-semibold text-navy transition hover:border-gold/60 hover:bg-sand/40 disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-gold/30 bg-card px-3 text-xs font-semibold text-navy transition hover:border-gold/60 hover:bg-sand/40 disabled:opacity-60"
             >
               <RefreshCw
                 className={`h-4 w-4 ${deliveries.isFetching ? "motion-safe:animate-spin" : ""}`}
@@ -984,7 +984,7 @@ export function DeliveryMonitoringConsole() {
                   value={customFrom}
                   max={customTo || undefined}
                   onChange={(event) => setCustomFrom(event.target.value)}
-                  className="min-h-11 rounded-xl border border-gold/25 bg-white px-3 text-sm text-navy outline-none focus:border-gold focus:ring-2 focus:ring-gold/15"
+                  className="min-h-11 rounded-xl border border-gold/25 bg-card px-3 text-sm text-navy outline-none focus:border-gold focus:ring-2 focus:ring-gold/15"
                 />
               </label>
               <label className="text-xs font-medium text-slate">
@@ -994,7 +994,7 @@ export function DeliveryMonitoringConsole() {
                   value={customTo}
                   min={customFrom || undefined}
                   onChange={(event) => setCustomTo(event.target.value)}
-                  className="min-h-11 rounded-xl border border-gold/25 bg-white px-3 text-sm text-navy outline-none focus:border-gold focus:ring-2 focus:ring-gold/15"
+                  className="min-h-11 rounded-xl border border-gold/25 bg-card px-3 text-sm text-navy outline-none focus:border-gold focus:ring-2 focus:ring-gold/15"
                 />
               </label>
             </div>
@@ -1184,7 +1184,7 @@ export function DeliveryMonitoringConsole() {
                             className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
                               isDeliveryAttention(delivery.status, delivery.failure_class)
                                 ? "bg-rose-100 text-rose-700"
-                                : "bg-white text-navy shadow-sm ring-1 ring-gold/20"
+                                : "bg-card text-navy shadow-sm ring-1 ring-gold/20"
                             }`}
                           >
                             <ChannelIcon channel={delivery.channel} />
@@ -1217,7 +1217,7 @@ export function DeliveryMonitoringConsole() {
                 type="button"
                 onClick={() => deliveries.fetchNextPage()}
                 disabled={deliveries.isFetchingNextPage}
-                className="min-h-11 rounded-xl border border-gold/30 bg-white px-4 font-semibold text-navy hover:bg-sand/40"
+                className="min-h-11 rounded-xl border border-gold/30 bg-card px-4 font-semibold text-navy hover:bg-sand/40"
               >
                 {copy.loadMore}
               </button>

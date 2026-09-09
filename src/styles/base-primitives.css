@@ -1,0 +1,418 @@
+@import "tailwindcss" source(none);
+@source "..";
+@source not "../routes/_authenticated/admin";
+@source not "../routes/_authenticated/member";
+@source not "../routes/_authenticated/instructor";
+@source not "../components/admin";
+@import "tw-animate-css";
+@import "./tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Premium radius scale shared across admin, member, auth and instructor surfaces */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: calc(var(--radius-lg) + 2px);
+  --radius-2xl: calc(var(--radius-lg) + 6px);
+  --radius-3xl: calc(var(--radius-lg) + 10px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  /* Brand named tokens — usable as bg-navy, text-gold, etc. */
+  --color-navy: var(--color-navy);
+  --color-ivory: var(--color-ivory);
+  --color-gold: var(--color-gold);
+  --color-gold-soft: var(--color-gold-soft);
+  --color-powder: var(--color-powder);
+  --color-sand: var(--color-sand);
+  --color-slate: var(--color-slate);
+
+  /* Legacy aliases kept so existing components keep compiling */
+  --color-brass: var(--color-gold);
+  --color-brass-soft: var(--color-gold-soft);
+
+  --font-sans: var(--font-ui-he);
+  --font-arabic: var(--font-ui-ar);
+  --font-display: var(--font-sans);
+  --font-brand: var(--font-serif);
+}
+
+:root {
+  --radius: var(--radius-lg);
+  --cc-radius-button: var(--radius-md);
+  --cc-radius-input: var(--radius-md);
+  --cc-radius-card: var(--radius-lg);
+  --cc-radius-panel: calc(var(--radius-lg) + 2px);
+  --cc-radius-chip: var(--radius-pill);
+  --cc-control-height-sm: 44px;
+  --cc-control-height: 48px;
+  --cc-control-height-lg: 52px;
+  --cc-shadow-soft: var(--shadow-elevated);
+
+  /* Brand hexes mapped into the shadcn token system */
+  --background: var(--color-surface-warm);
+  --foreground: var(--color-text-primary);
+
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+
+  /* Primary = Navy (CTA bars, primary buttons) */
+  --primary: var(--color-navy);
+  --primary-foreground: var(--color-ivory);
+
+  /* Secondary = Sand (subtle surfaces) */
+  --secondary: color-mix(in srgb, var(--color-sand) 74%, var(--color-surface));
+  --secondary-foreground: var(--color-text-primary);
+
+  --muted: color-mix(in srgb, var(--color-sand) 42%, var(--color-surface));
+  --muted-foreground: var(--color-text-secondary);
+
+  /* Accent = Gold — reserved for borders/highlights, NOT large fills */
+  --accent: var(--color-gold);
+  --accent-foreground: var(--color-text-primary);
+
+  --destructive: var(--color-danger);
+  --destructive-foreground: var(--color-surface);
+
+  --border: var(--color-border);
+  --input: color-mix(in srgb, var(--color-navy) 14%, transparent);
+  --ring: var(--color-gold);
+
+  /* Legacy brass aliases */
+  --brass: var(--color-gold);
+  --brass-soft: var(--color-gold-soft);
+  --ink: var(--color-navy);
+  --ink-2: var(--color-navy-strong);
+  --ink-3: var(--color-navy-elevated);
+}
+
+/* =====================================================================
+   Base
+===================================================================== */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: var(--font-ui-he);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(
+        900px 500px at 100% -10%,
+        color-mix(in srgb, var(--color-blue) 24%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        700px 500px at -10% 110%,
+        color-mix(in srgb, var(--color-sand) 38%, transparent),
+        transparent 60%
+      );
+    background-attachment: fixed;
+    min-width: 320px;
+  }
+
+  :root[lang="en"] body {
+    font-family: var(--font-ui-latin);
+  }
+
+  :root[lang="ar"] body {
+    font-family: var(--font-ui-ar);
+  }
+
+  /* Functional UI text uses the same premium sans system. Brand serif stays isolated to .font-brand. */
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-display);
+    color: var(--color-foreground);
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 0;
+    line-height: 1.08;
+  }
+
+  :root[lang="he"] h1,
+  :root[lang="he"] h2,
+  :root[lang="he"] h3,
+  :root[lang="he"] h4,
+  :root[lang="he"] .font-display {
+    font-family: var(--font-ui-he);
+    font-weight: 600;
+  }
+
+  .brand-wordmark,
+  .font-brand {
+    font-family: var(--font-brand);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  bdi,
+  [dir="auto"] {
+    font-family: inherit;
+    unicode-bidi: isolate;
+  }
+
+  :lang(he),
+  :lang(ar) {
+    letter-spacing: normal;
+  }
+
+  :root[lang="ar"] h1,
+  :root[lang="ar"] h2,
+  :root[lang="ar"] h3,
+  :root[lang="ar"] h4,
+  :root[lang="ar"] .font-display {
+    font-family: var(--font-ui-ar);
+    font-weight: 600;
+  }
+
+  [dir="rtl"] body,
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4,
+  [dir="rtl"] .font-display {
+    font-style: normal;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-gold) 32%, transparent);
+    color: var(--color-foreground);
+  }
+
+  :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+    outline: var(--cc-focus-outline);
+    outline-offset: var(--cc-focus-offset);
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(
+    button,
+    input:not([type="hidden"]),
+    select,
+    textarea,
+    [role="button"],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"],
+    [role="tab"]
+  ) {
+    border: 1px solid ButtonText;
+  }
+
+  input:is([type="checkbox"], [type="radio"]) {
+    appearance: none;
+    background: Canvas;
+  }
+
+  input[type="radio"] {
+    border-radius: 50%;
+  }
+
+  input:is([type="checkbox"], [type="radio"]):checked {
+    background: Highlight;
+    box-shadow: inset 0 0 0 3px Canvas;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: var(--cc-motion-reduced) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--cc-motion-reduced) !important;
+  }
+}
+
+/* =====================================================================
+   Type scale — 13 / 15 / 17 / 20 / 28 / 40 / 56
+===================================================================== */
+@utility text-xs-brand {
+  font-size: 13px;
+  line-height: 1.45;
+}
+@utility text-sm-brand {
+  font-size: 15px;
+  line-height: 1.55;
+}
+@utility text-base-brand {
+  font-size: 17px;
+  line-height: 1.6;
+}
+@utility text-lg-brand {
+  font-size: 20px;
+  line-height: 1.4;
+}
+@utility text-xl-brand {
+  font-size: 28px;
+  line-height: 1.2;
+}
+@utility text-2xl-brand {
+  font-size: 40px;
+  line-height: 1.1;
+}
+@utility text-3xl-brand {
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+/* Compact eyebrow label. RTL safety rules below remove uppercase/tracking in Hebrew/Arabic. */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+}
+
+.cc-ui-text,
+.cc-page-title,
+.cc-section-title,
+.cc-card-title,
+.cc-label,
+.cc-metric-value,
+.cc-technical-value {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+.cc-page-title {
+  color: var(--color-navy);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.cc-section-title {
+  color: var(--color-navy);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.cc-card-title {
+  color: var(--color-navy);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.cc-label {
+  color: var(--color-slate);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.cc-metric-value {
+  color: var(--color-navy);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cc-technical-value {
+  direction: ltr;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+:where(.admin-page-shell, .admin-content-frame, .member-content-frame, .member-shell-main)
+  :where(h1, h2, h3, h4, p, span, a, button, input, textarea, select, td, th, label, bdi) {
+  font-family: var(--font-sans);
+}
+
+:where(.admin-page-shell, .admin-content-frame, .member-content-frame, .member-shell-main)
+  :where(.font-display, .numeric-display, .tabular-nums, td, th) {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+:root[lang="ar"]
+  :where(.admin-page-shell, .admin-content-frame, .member-content-frame, .member-shell-main)
+  :where(h1, h2, h3, h4, p, span, a, button, input, textarea, select, td, th, label, bdi) {
+  font-family: var(--font-ui-ar);
+  line-height: 1.7;
+}
+
+/* Gold hairline divider — replaces drop shadows */
+@utility hairline {
+  border-color: color-mix(in srgb, var(--color-gold) 35%, transparent);
+}
+@utility hairline-soft {
+  border-color: color-mix(in srgb, var(--color-navy) 8%, transparent);
+}
+
+/* Surfaces */
+@utility surface-ivory {
+  background-color: var(--color-ivory);
+  color: var(--color-foreground);
+}
+@utility surface-sand {
+  background-color: var(--color-sand);
+  color: var(--color-foreground);
+}
+@utility surface-navy {
+  background-color: var(--color-navy);
+  color: var(--color-ivory);
+}
+
+/* Cloud / decorative powder-blue accent backdrop */
+@utility cloud-backdrop {
+  background-image:
+    radial-gradient(
+      600px 320px at 0% 0%,
+      color-mix(in srgb, var(--cc-palette-powder-350) 45%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      500px 280px at 100% 100%,
+      color-mix(in srgb, var(--color-sand) 55%, transparent),
+      transparent 60%
+    );
+}

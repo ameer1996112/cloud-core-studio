@@ -1,0 +1,290 @@
+/* September 2026 ivory refinement. Presentation only; existing state controllers stay authoritative. */
+.studio-logo { display:block; }
+.studio-logo .studio-logo-dark { display:none; }
+:root[data-theme="dark"] .studio-logo .studio-logo-light,
+.studio-logo.studio-logo-inverse .studio-logo-light { display:none; }
+:root[data-theme="dark"] .studio-logo .studio-logo-dark,
+.studio-logo.studio-logo-inverse .studio-logo-dark { display:block; }
+:root[lang="he"] { --font-display:var(--font-ui-he); --font-phase-display:var(--font-ui-he); }
+:root[lang="en"] { --font-display:var(--font-serif); }
+:root[lang="ar"] { --font-display:var(--font-ui-ar); }
+:root[lang="he"] :is(h1,h2,h3,.font-display) { letter-spacing:normal; }
+.appearance-control { position:relative; display:inline-flex; flex-shrink:0; align-items:center; justify-content:center; width:44px; height:44px; color:var(--color-text-primary); background:var(--color-surface); border:1px solid var(--color-border); border-radius:10px; }
+.appearance-control select { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+.appearance-control:focus-within { outline:2px solid var(--color-focus-outer); outline-offset:3px; }
+.appearance-control option { color:var(--color-text-primary); background:var(--color-surface); }
+.member-appearance-tools { display:flex; gap:6px; align-items:center; }
+.studio-member-header,.studio-member-bottom-nav { background:var(--color-surface-warm); }
+.auth-page-header>.appearance-control { position:absolute; inset-block-start:20px; inset-inline-end:20px; }
+.auth-page-header { position:relative; }
+
+/* Reference fidelity: bounded photography, joined reading surface, practical member controls. */
+.reference-home .home-greeting { display:flex; min-height:300px; margin-block-start:16px; padding:32px 42px 52px; background:#102027; color:#faf7f2; border-radius:18px; }
+.reference-home .home-welcome-photo { position:absolute; z-index:0; inset:0 0 0 auto; width:78%; height:100%; mask-image:linear-gradient(90deg,transparent,black 22%); object-position:65% 8%; border-radius:0; }
+.reference-home .home-greeting::after { display:block; z-index:1; background:linear-gradient(90deg,rgba(9,25,34,.76),rgba(9,25,34,.45) 32%,transparent 66%); }
+.reference-home .home-welcome-copy { position:relative; z-index:2; width:45%; max-width:460px; overflow-wrap:anywhere; text-align:left; }
+.reference-home .home-greeting h1 { color:#faf7f2; font-size:clamp(2.75rem,3.7vw,3.25rem); font-weight:700; line-height:1.12; }
+.reference-home .home-greeting p { color:#faf7f2; font-size:1.2rem; margin:10px 0 0; }
+.reference-home .home-primary-layout { margin-top:-22px; padding:20px; border:1px solid var(--color-border); background:var(--color-surface-warm); box-shadow:0 8px 26px rgb(69 52 30 / 7%); border-radius:22px; gap:18px; }
+.reference-home .home-next,.reference-home .home-discovery { padding:16px; border-color:color-mix(in srgb,var(--color-border) 65%,transparent); }
+.reference-home .home-membership { background:var(--color-surface-subtle); border-color:transparent; }
+.reference-home .home-choose-photo { min-height:150px; max-height:220px; }
+.reference-home .home-choose-copy p { margin-block:8px 12px; }
+.reference-home .home-status,.reference-home .home-empty { padding:16px; }
+
+.aura-schedule-heading { min-height:176px; padding:24px 28px 42px; }
+.aura-schedule-heading h1 { font-size:2.1rem; font-weight:650; }
+.aura-schedule-heading>div>p:not(.member-eyebrow) { display:none; }
+.schedule-date-strip { margin:0; padding:8px 0 4px; border:0; border-radius:0; background:transparent; }
+.schedule-date-days button { min-height:52px; gap:2px; padding-block:4px; }
+.aura-schedule-page .member-schedule-filter-panel { padding:4px 0; }
+.aura-schedule-page .member-schedule-filter-panel__primary { gap:8px 16px; }
+.aura-schedule-page .aura-schedule-results { padding:8px 20px 20px; }
+.aura-schedule-page .schedule-day-header { padding-top:8px; }
+
+.aura-packages-page .packages-editorial-heading { min-height:106px; padding:18px 24px; margin-bottom:0; }
+.aura-packages-page .packages-editorial-heading h1 { font-size:1.9rem; }
+.aura-packages-page .packages-editorial-heading>p { display:none; }
+.aura-packages-page .aura-packages-layout { margin-top:-16px; padding:16px; border:1px solid var(--color-border); background:var(--color-surface-warm); border-radius:18px; gap:12px; }
+.aura-packages-page .aura-wallet-summary { padding:12px 16px; background:var(--color-surface-subtle); border:0; border-radius:12px; }
+.aura-packages-page .aura-wallet-summary>div:first-of-type { margin-top:4px; gap:6px 20px; }
+.aura-packages-page .aura-wallet-balance strong { font-size:1.4rem; }
+.aura-packages-page .aura-plan-selection>div:first-child { margin-bottom:8px; }
+.aura-packages-page .aura-plan-selection .member-page-body { margin-top:4px; font-size:.9375rem; }
+.aura-packages-page .aura-plan-card { padding:16px; gap:8px; background:var(--color-surface); box-shadow:none; }
+.aura-packages-page .aura-plan-facts { padding-block:6px; }
+.member-app .package-plan-badge.is-secondary { background:var(--color-gold-soft); color:var(--color-text-primary); border:1px solid var(--color-border); opacity:1; font-size:.8125rem; font-weight:600; padding:4px 8px; border-radius:6px; }
+.member-app .package-recurring-disclosure { color:var(--color-text-secondary); background:transparent; font-size:.8125rem; }
+.aura-packages-page .aura-account-history { padding-inline:0; }
+.aura-account-page { border:0; padding:20px 0; background:transparent; }
+.aura-account-page .aura-account-main { padding:20px; }
+.aura-account-page .aura-account-utilities { padding:20px; border-top:1px solid var(--color-border); }
+.aura-account-page .aura-session-section { display:flex; flex-wrap:wrap; gap:8px 16px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--color-border); }
+.account-signout { min-height:44px; display:inline-flex; align-items:center; gap:8px; color:var(--color-text-secondary); font-size:.875rem; text-decoration:underline; }
+.member-app .member-empty-state { min-height:0; padding:24px; box-shadow:none; background:var(--color-surface); }
+.member-app .member-empty-illustration { max-width:88px; max-height:88px; }
+.member-app .member-empty-title { font-size:1.35rem; }
+
+/* Management surfaces remain compact, with the same semantic palette as dialogs and forms. */
+.app-page-header { padding-top:20px; padding-bottom:12px; }
+.calendar-workspace { background:var(--color-surface); }
+.calendar-workspace .calendar-metrics { margin-bottom:12px; }
+.admin-layout :is(input,textarea,select) { background-color:var(--color-surface); color:var(--color-text-primary); }
+
+@media(max-width:767px) {
+ .studio-member-header { padding-inline:12px; }
+ .studio-member-header-inner { gap:8px; }
+ .studio-member-brand .studio-logo { width:88px; }
+ .studio-member-tools { gap:2px; }
+ .member-appearance-tools { gap:2px; }
+ .reference-home .home-greeting { min-height:224px; width:100%; margin:10px 0 0; padding:24px 18px 42px; border-radius:16px; }
+ .reference-home .home-welcome-photo { width:100%; height:100%; object-position:72% 18%; mask-image:none; }
+ .reference-home .home-welcome-copy { width:58%; max-width:none; }
+ .reference-home .home-greeting h1 { font-size:2rem; }
+ .reference-home .home-greeting::after { background:linear-gradient(90deg,rgba(9,25,34,.85),rgba(9,25,34,.72) 42%,transparent 83%); }
+ .reference-home .home-primary-layout { padding:12px; margin-top:-20px; gap:12px; border-radius:20px; }
+ .reference-home .home-next { padding:0 0 12px; border:0; border-bottom:1px solid var(--color-border); border-radius:0; background:transparent; }
+ .aura-schedule-heading { min-height:152px; margin:0; padding:20px 20px 36px; border-radius:18px 18px 0 0; flex-direction:row; flex-wrap:wrap; align-items:end; gap:8px; }
+ .aura-schedule-heading h1 { font-size:1.65rem; }
+ .aura-schedule-totals { gap:8px; font-size:.75rem; }
+ .schedule-date-strip { padding-inline:12px; }
+ .aura-schedule-page .member-schedule-filter-panel { padding:4px 0; }
+ .aura-schedule-page .aura-schedule-results { padding:6px 12px 20px; }
+ .aura-schedule-page .studio-class--row h3 { font-size:1.125rem; }
+ .aura-packages-page .packages-editorial-heading { min-height:92px; padding:18px 20px; }
+ .aura-packages-page .aura-packages-layout { margin-top:-16px; padding:12px; gap:12px; }
+ .aura-packages-page .aura-wallet-summary { padding:10px 14px; }
+ .aura-packages-page .aura-plan-card { padding:16px; }
+ .aura-account-page { padding:16px 0; }
+ .aura-account-page .aura-account-main { padding:16px; }
+ .aura-account-page .aura-account-utilities { padding:16px 0; }
+ .member-app .member-empty-state { padding:20px 16px; }
+}
+@media(max-width:359px) {
+ .studio-member-brand .studio-logo { width:76px; }
+ .studio-member-header { padding-inline:6px; }
+}
+
+.appearance-settings { flex-wrap:wrap; }
+.appearance-settings>p { flex-basis:100%; }
+.aura-packages-page { gap:12px; }
+:root[lang="he"] { --font-serif:var(--font-ui-he); }
+/* Align comparable plan facts without moving their headings behind prices in the DOM. */
+@supports (grid-template-rows:subgrid) {
+ .aura-packages-page .aura-plan-card { display:grid; grid-row:span 4; grid-template-rows:subgrid; }
+}
+
+/* Member audit: consistent utility controls, compact records and quiet secondary surfaces. */
+.studio-member-tools > button,
+.studio-member-tools button[aria-haspopup="dialog"],
+.studio-member-tools button[aria-haspopup="menu"] { width:44px; height:44px; min-height:44px; padding:0; border:1px solid transparent; border-radius:10px; background:transparent; color:var(--color-text-primary); box-shadow:none; }
+.studio-member-tools button[aria-haspopup="menu"] > span:first-child { background:transparent; color:inherit; border:0; }
+.studio-member-tools :is(button,select):focus-visible { outline:2px solid var(--color-focus-outer); outline-offset:3px; }
+.member-app .studio-member-bottom-nav a { position:relative; }
+.member-app .studio-member-bottom-nav a[aria-current="page"] { background:transparent; font-weight:600; }
+.member-app .studio-member-bottom-nav a[aria-current="page"]::before { content:""; position:absolute; top:5px; width:28px; height:3px; border-radius:3px; background:var(--color-gold); }
+.aura-schedule-page .member-schedule-filter-panel__primary { grid-template-columns:minmax(0,1fr); }
+.aura-schedule-page .member-schedule-filter-disclosure summary { min-height:44px; padding-block:10px; font-size:.875rem; }
+.aura-schedule-page .member-schedule-filter-disclosure[open] { padding-bottom:8px; }
+.aura-schedule-page .member-schedule-filter-disclosure .member-schedule-segmented { margin-bottom:12px; }
+.aura-schedule-page .studio-class--row { padding-block:12px; gap:4px 14px; }
+.aura-schedule-page .studio-class--row .studio-class-descriptors { font-size:.8125rem; margin-top:3px; gap:2px 8px; }
+.aura-schedule-page .studio-class--row .studio-class-meta { margin-top:3px; }
+.aura-schedule-page .schedule-day-header__title { font-size:1.0625rem; font-weight:600; }
+.aura-schedule-page .schedule-day-header { padding-bottom:4px; }
+.aura-bookings-page { gap:18px; }
+.aura-bookings-page .aura-page-heading h1 { font-size:1.9rem; margin-top:0; }
+.aura-bookings-page .member-tab-bar { gap:4px; padding:0 0 10px; }
+.aura-bookings-page .member-tab-button { flex:1; padding:8px; gap:4px; border-color:transparent; font-size:.875rem; }
+.aura-bookings-page .member-tab-button-active { background:transparent; border-color:transparent; border-bottom-color:var(--color-gold); font-weight:650; }
+.aura-bookings-page .aura-reservation { padding:16px 20px; box-shadow:none; }
+.aura-bookings-page .aura-reservation .studio-class--row { padding:0; border:0; row-gap:4px; }
+.aura-bookings-page .aura-reservation .studio-class-note { grid-column:1/-1; margin-top:10px; padding-top:10px; border-top:1px solid var(--color-border); }
+.aura-bookings-page .aura-reservation-utilities { gap:6px; }
+.aura-bookings-page .reservation-policy,
+.aura-bookings-page .reservation-calendar-help { color:var(--color-text-secondary); font-size:.8125rem; line-height:1.5; }
+.aura-bookings-page .lesson-reservation-card__action-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; align-items:start; }
+.aura-bookings-page .reservation-calendar { min-width:0; }
+.aura-bookings-page .aura-reservation :is(button,a) { min-height:44px; padding:8px 12px; font-size:.875rem; }
+.aura-bookings-page .aura-reservation-utilities :is(button,a) { padding-inline:0; }
+.aura-bookings-page .reservation-calendar-help { max-width:42ch; }
+.member-cancel-dialog { border:1px solid var(--color-border); border-radius:20px; background:var(--color-surface-warm); padding:24px; box-shadow:0 16px 48px #0b1d3a26; }
+.member-cancel-dialog .member-card { box-shadow:none; border:0; border-radius:10px; background:var(--color-surface-subtle); }
+.member-cancel-dialog :is(button,a) { min-height:44px; }
+.aura-packages-page .aura-account-history :is(h2,.member-section-title) { font-size:1.25rem; font-weight:600; }
+.aura-packages-page .aura-account-history .member-empty-state { padding:12px 0; border:0; background:transparent; text-align:start; align-items:start; }
+.aura-packages-page .aura-account-history .member-empty-title { font-size:1rem; font-weight:500; }
+.aura-packages-page .aura-account-history .member-empty-body { font-size:.875rem; margin-top:4px; }
+.aura-packages-page .aura-plan-facts { gap:6px; }
+.aura-packages-page .package-recurring-disclosure { margin-top:4px; padding:6px 8px; border-radius:8px; background:var(--color-surface-subtle); line-height:1.5; }
+.aura-account-page .aura-account-layout { grid-template-columns:minmax(0,1.8fr) minmax(230px,1fr); }
+.aura-account-page .aura-account-main { padding:22px; border:0; }
+.aura-account-page .profile-field-group { min-width:0; padding:0; margin:20px 0 0; border:0; }
+.aura-account-page .profile-field-group+fieldset { border-top:1px solid var(--color-border); padding-top:16px; }
+.aura-account-page .profile-field-group legend { font-size:.875rem; font-weight:600; color:var(--color-text-secondary); padding:0 0 4px; }
+.aura-account-page .aura-profile-fields { margin-top:8px; gap:12px 16px; }
+.aura-account-page :is(input,select,textarea).editorial-input { min-height:48px; border-color:var(--color-border); border-radius:8px; }
+.aura-account-page :is(input,select,textarea).editorial-input:focus { outline:2px solid var(--color-focus-outer); outline-offset:2px; }
+.aura-account-page .field-label { margin-bottom:5px; }
+.aura-account-page .aura-account-utilities { border-top:0; padding:8px 0; }
+.reference-home .home-membership { padding:14px 16px; gap:8px; }
+.reference-home .membership-validity { padding-top:8px; }
+.reference-home .home-next .studio-class-media { min-height:212px; max-height:none; }
+.reference-home .home-next .studio-class-photo { height:100%; min-height:212px; object-position:50% 42%; }
+.reference-home .home-next .studio-class-actions { margin-top:10px; }
+@media(max-width:767px) {
+ .studio-member-tools { gap:4px; }
+ .aura-bookings-page .member-tab-button { min-width:0; flex-basis:calc(50% - 4px); padding:8px 6px; }
+ .aura-bookings-page .aura-reservation { padding:14px; }
+ .aura-bookings-page .aura-reservation .studio-class-time { grid-row:1/3; }
+ .aura-bookings-page .aura-reservation .studio-class-actions { grid-column:1/-1; grid-row:3; margin-top:6px; }
+ .aura-bookings-page .aura-reservation .studio-class-note { grid-row:4; }
+ .aura-schedule-page .studio-class--row { grid-template-columns:minmax(3.6rem,max-content) minmax(0,1fr); gap:4px 10px; }
+ .aura-bookings-page .aura-reservation .studio-class--row { grid-template-columns:minmax(4.5rem,max-content) minmax(0,1fr); }
+ .aura-bookings-page .aura-reservation .studio-class-time { max-inline-size:8rem; }
+ .aura-schedule-page .studio-class--row .studio-class-actions { margin-top:2px; }
+ .aura-account-page .aura-account-layout { grid-template-columns:minmax(0,1fr); }
+ .aura-account-page .aura-account-main { padding:16px; }
+ .aura-account-page .aura-account-utilities { padding:0 16px; }
+ .reference-home .home-next .studio-class-media { min-height:162px; }
+ .reference-home .home-next .studio-class-photo { height:100%; min-height:162px; }
+}
+
+/* The member control family is intentionally scoped; staff task layouts keep their density. */
+.studio-member-tools .appearance-control { border-color:transparent; background:transparent; }
+.studio-member-tools :is(button,.appearance-control):hover { background:var(--color-surface-subtle); }
+.reference-home .home-welcome-action { margin-top:18px; border:1px solid rgb(255 255 255 / 20%); box-shadow:0 2px 4px rgb(0 0 0 / 8%); border-radius:12px; }
+.reference-home h2 { font-size:1.2rem; font-weight:700; margin-bottom:12px; }
+.reference-home .home-account { gap:12px; }
+.reference-home .home-atmosphere { height:154px; }
+.reference-home .home-discovery .studio-class--row { grid-template-columns:48px minmax(0,1fr) auto; gap:2px 10px; padding-block:8px; }
+.reference-home .home-discovery .studio-class-thumbnail { width:48px; height:58px; }
+.reference-home .home-discovery .studio-class-meta { gap:0 7px; }
+.reference-home .home-discovery .studio-class-status { font-size:.75rem; }
+.reference-home .home-discovery .studio-class-actions { margin:0; align-self:center; }
+.reference-home .home-next .studio-class-hero { grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); }
+.aura-schedule-page { max-width:960px; margin-inline:auto; width:100%; }
+.aura-schedule-page .schedule-editorial-photo { width:70%; inset:0 0 0 auto; object-position:50% 63%; }
+.aura-schedule-page .aura-schedule-heading::after { background:linear-gradient(90deg,#10232f 12%,rgb(11 29 58 / 60%) 46%,rgb(11 29 58 / 8%) 82%); }
+.aura-schedule-heading { direction:ltr; }
+.aura-schedule-heading>div { direction:rtl; }
+.aura-schedule-page[dir=ltr] .aura-schedule-heading>div { direction:ltr; }
+.schedule-reading-surface { position:relative; margin-top:-20px; border-radius:20px; background:var(--color-surface-warm); border:1px solid var(--color-border); box-shadow:0 6px 18px rgb(69 52 30 / 4%); }
+.schedule-control-region { padding:0 24px 8px; }
+.aura-schedule-page .member-schedule-filter-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 14px; border:0; background:transparent; }
+.aura-schedule-page .member-schedule-filter-disclosure { border:0; align-self:start; }
+.aura-schedule-page .member-schedule-filter-disclosure[open] { grid-column:1/-1; }
+.aura-schedule-page .member-schedule-filter-panel__reset { grid-column:1/-1; justify-self:start; }
+.aura-schedule-page .member-schedule-search-field__input { min-height:44px; border-radius:10px; }
+.aura-schedule-page .aura-schedule-results { border:0; background:transparent; padding-top:0; gap:0; }
+.aura-schedule-page .studio-class--row { grid-template-columns:minmax(4.4rem,max-content) minmax(12rem,16rem) minmax(7rem,auto); justify-content:start; }
+.aura-schedule-page .studio-class-actions { display:flex; gap:6px; flex-wrap:wrap; max-width:12rem; }
+.aura-schedule-page .studio-class-actions > :is(button,a) { min-height:44px; padding:8px 14px; font-size:.9375rem; border-radius:10px; }
+.aura-schedule-page .studio-class-actions > button { background:var(--color-gold-soft); border:1px solid var(--color-border); }
+.aura-schedule-page .studio-class-status>span { padding:2px 0; background:transparent; border:0; }
+.aura-schedule-page .studio-class-meta { line-height:1.45; }
+.member-app :is(.home-primary,.member-primary-button,.member-secondary-button) { border-radius:10px; font-weight:600; }
+@media(max-width:767px) {
+ .reference-home .home-greeting p { font-size:1rem; margin-top:8px; }
+ .reference-home .home-welcome-action { padding:8px 12px; gap:8px; font-size:.9375rem; margin-top:12px; }
+ .reference-home .home-next .studio-class-hero { grid-template-columns:38% minmax(0,1fr); gap:8px 12px; }
+ .reference-home .home-next .studio-class-media { grid-row:1/3; }
+ .reference-home .home-next .studio-class-actions { grid-column:2; margin-top:0; gap:4px; }
+ .reference-home .home-next .home-primary { padding:8px 10px; font-size:.875rem; }
+ .reference-home .home-next .home-calendar-action { border:0; min-height:44px; }
+ .reference-home .home-next .studio-class-note { margin-top:8px; }
+ .reference-home .home-membership { padding:12px; }
+ .reference-home .home-discovery { padding:12px 0 0; border:0; background:transparent; }
+ .reference-home .home-atmosphere { display:none; }
+ .reference-home .home-account { gap:8px; }
+ .aura-schedule-page .schedule-editorial-photo { width:100%; object-position:50% 63%; }
+ .aura-schedule-page .aura-schedule-heading::after { background:linear-gradient(90deg,rgb(11 29 58 / 85%),rgb(11 29 58 / 40%) 55%,transparent); }
+ .schedule-control-region { padding:0 12px 4px; }
+ .schedule-date-strip { padding-inline:0; }
+ .aura-schedule-page .studio-class--row { grid-template-columns:minmax(3.6rem,max-content) minmax(0,1fr) auto; gap:3px 8px; }
+ .aura-schedule-page .studio-class--row .studio-class-actions { grid-column:3; grid-row:1/3; margin:0; max-width:6rem; align-self:center; flex-direction:column; align-items:stretch; }
+ .aura-schedule-page .studio-class-actions > :is(button,a) { padding:6px 8px; font-size:.875rem; overflow-wrap:anywhere; }
+ .aura-schedule-page .studio-class--row .studio-class-time { max-inline-size:8rem; }
+ .aura-schedule-page .studio-class--row .studio-class-content { overflow-wrap:anywhere; }
+}
+
+.aura-schedule-page .schedule-day-section { gap:4px; padding-block:4px 8px; }
+.aura-schedule-page .schedule-day-section + .schedule-day-section { margin-top:6px; }
+.aura-schedule-page .aura-schedule-totals { background:rgb(11 29 58 / 72%); padding:5px 10px; border-radius:8px; }
+.aura-schedule-page .studio-class--row .studio-class-actions button { border-radius:10px; }
+
+/* Remaining member routes use the same heading, reading and control roles. */
+.aura-bookings-page .aura-page-heading h1,
+.aura-account-page .aura-profile-heading h1 { font-size:2rem; font-weight:650; }
+.aura-bookings-page .member-tab-button { border-radius:0; border-bottom:2px solid transparent; min-height:44px; }
+.aura-bookings-page .member-tab-button-active { border-bottom-color:var(--color-gold); }
+.aura-bookings-page .aura-reservation { background:var(--color-surface); border-radius:14px; }
+.aura-bookings-page .booking-first-visit { padding:18px; background:var(--color-surface-subtle); border:0; box-shadow:none; }
+.aura-bookings-page .booking-first-visit h2 { font-size:1.25rem; font-weight:650; }
+.aura-bookings-page .booking-first-visit p { margin-top:6px; }
+.aura-packages-page .aura-wallet-summary { padding:10px 14px; }
+.aura-packages-page .aura-wallet-summary>div:first-of-type { margin-top:0; grid-template-columns:minmax(0,1fr) auto auto; gap:8px 18px; }
+.aura-packages-page .aura-plan-selection .member-section-heading { margin-bottom:8px; }
+.aura-packages-page .aura-plan-selection h2 { font-size:1.25rem; font-weight:650; }
+.aura-packages-page .aura-plan-name { font-size:1.125rem; font-weight:650; line-height:1.4; }
+.aura-packages-page .aura-plan-price { font-size:2.125rem; font-weight:650; }
+.aura-packages-page .aura-plan-card { gap:8px; border-radius:12px; padding:14px; }
+.aura-packages-page .aura-plan-facts { line-height:1.45; border-color:color-mix(in srgb,var(--color-border) 65%,transparent); }
+.aura-packages-page .aura-plan-card>div:last-child { padding-top:8px; }
+.aura-packages-page .aura-plan-card button { border-radius:10px; min-height:44px; font-weight:600; }
+.aura-account-page .aura-profile-heading { padding-bottom:16px; }
+.aura-account-page .field-label { font-weight:600; }
+.aura-account-page .aura-settings-section h2 { font-size:1.25rem; font-weight:650; }
+.aura-account-page :is(input,select,textarea).editorial-input { background:var(--color-surface-warm); border-radius:10px; }
+.aura-detail-facts { gap:16px 20px; padding-bottom:18px; }
+.aura-detail-facts dt { display:flex; align-items:center; gap:8px; font-weight:600; }
+.aura-detail-facts dd { margin-top:6px; }
+.aura-detail-reading .lesson-detail__cta :is(button,a) { border-radius:12px; border:1px solid var(--color-border); min-height:46px; }
+@media(max-width:767px) {
+ .aura-packages-page .packages-editorial-heading { margin-inline:0; min-height:116px; padding-bottom:30px; border-radius:18px; }
+ .aura-packages-page .aura-wallet-summary>div:first-of-type { grid-template-columns:minmax(0,1fr) auto; }
+ .aura-packages-page .aura-wallet-summary>div:first-of-type>p:last-child { grid-column:1/-1; }
+ .aura-packages-page .aura-plan-card { padding:14px; }
+ .aura-bookings-page .aura-page-heading h1 { font-size:1.8rem; }
+ .aura-account-page .aura-account-main { padding:16px; }
+}

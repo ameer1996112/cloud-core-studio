@@ -40,7 +40,7 @@ import {
 } from "@/components/admin-shared";
 import { AdminDestructiveAction } from "@/components/admin/AdminDestructiveAction";
 import { safeErrorMessage } from "@/lib/error-messages";
-import { useI18n } from "@/lib/i18n";
+import { t, useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { BidiDateTime, BidiValue } from "@/components/ui/bidi";
 import { bidiDirectionFor, formatBidiValue } from "@/lib/bidi-format";
@@ -156,7 +156,7 @@ function KidsAerialPage() {
   const saveChild = useMutation({
     mutationFn: () => saveChildFn({ data: childForm }),
     onSuccess: () => {
-      setOutcome({ tone: "success", title: "הילד/ה נשמר/ה" });
+      setOutcome({ tone: "success", title: t("kids.saved") });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
       setChildForm({
         child_name: "",
@@ -166,7 +166,7 @@ function KidsAerialPage() {
         notes: "",
       });
     },
-    onError: (saveError) => reportError("לא הצלחנו לשמור את הילד/ה.", saveError),
+    onError: (saveError) => reportError(t("kids.saveError"), saveError),
   });
 
   const manualPayment = useMutation({
@@ -183,11 +183,11 @@ function KidsAerialPage() {
         },
       }),
     onSuccess: () => {
-      setOutcome({ tone: "success", title: "התשלום נרשם והחבילה הופעלה" });
+      setOutcome({ tone: "success", title: t("kids.paymentSaved") });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
       setPaymentForm((current) => ({ ...current, amount: "", reference: "", notes: "" }));
     },
-    onError: (paymentError) => reportError("לא הצלחנו לרשום את התשלום.", paymentError),
+    onError: (paymentError) => reportError(t("kids.paymentError"), paymentError),
   });
 
   const cardLink = useMutation({
@@ -203,20 +203,20 @@ function KidsAerialPage() {
       }),
     onSuccess: (result: any) => {
       setPaymentLink({ url: result.paymentUrl, expiresAt: result.expiresAt });
-      setOutcome({ tone: "success", title: "קישור התשלום נוצר" });
+      setOutcome({ tone: "success", title: t("kids.linkCreated") });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
     },
-    onError: (linkError) => reportError("לא הצלחנו ליצור קישור HYP.", linkError),
+    onError: (linkError) => reportError(t("kids.linkError"), linkError),
   });
 
   const assign = useMutation({
     mutationFn: () => assignFn({ data: assignment }),
     onSuccess: () => {
-      setOutcome({ tone: "success", title: "השיבוץ נשמר" });
+      setOutcome({ tone: "success", title: t("kids.assigned") });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
       setAssignment({ childId: "" });
     },
-    onError: (assignError) => reportError("לא הצלחנו לשבץ לשיעור.", assignError),
+    onError: (assignError) => reportError(t("kids.assignError"), assignError),
   });
 
   const setupWeekly = useMutation({
@@ -224,11 +224,11 @@ function KidsAerialPage() {
     onSuccess: (result: any) => {
       setOutcome({
         tone: "success",
-        title: `שיעורי יום שני הוכנו: מפגשים 9–35 · ${result.created} חדשים · ${result.archived} שיעורים לא נכונים הועברו לארכיון.`,
+        title: t("kids.setupSuccess", { created: result.created, archived: result.archived }),
       });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
     },
-    onError: (setupError) => reportError("לא הצלחנו להכין את שיעורי יום שני.", setupError),
+    onError: (setupError) => reportError(t("kids.setupError"), setupError),
   });
 
   const mark = useMutation({
@@ -238,19 +238,19 @@ function KidsAerialPage() {
       status: "present" | "absent" | "excused";
     }) => attendanceFn({ data: input }),
     onSuccess: () => {
-      setOutcome({ tone: "success", title: "הנוכחות עודכנה" });
+      setOutcome({ tone: "success", title: t("kids.attendanceSaved") });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
     },
-    onError: (attendanceError) => reportError("לא הצלחנו לעדכן נוכחות.", attendanceError),
+    onError: (attendanceError) => reportError(t("kids.attendanceError"), attendanceError),
   });
 
   const cancelSub = useMutation({
     mutationFn: (subscriptionId: string) => cancelSubscriptionFn({ data: { subscriptionId } }),
     onSuccess: () => {
-      setOutcome({ tone: "success", title: "החיוב החודשי בוטל. ההיסטוריה נשמרה." });
+      setOutcome({ tone: "success", title: t("kids.cancelled") });
       qc.invalidateQueries({ queryKey: ["admin-kids-aerial"] });
     },
-    onError: (cancelError) => reportError("לא הצלחנו לבטל את החיוב החודשי.", cancelError),
+    onError: (cancelError) => reportError(t("kids.cancelError"), cancelError),
   });
 
   const canSaveChild = childForm.child_name.trim() && childForm.guardian_name.trim();
@@ -259,7 +259,7 @@ function KidsAerialPage() {
   const childColumns: ResponsiveDataListColumn<NonNullable<typeof data>["children"][number]>[] = [
     {
       id: "child",
-      label: "ילד/ה",
+      label: t("kids.childNeutral"),
       cell: (child) => (
         <span className="font-semibold">
           <bdi>{child.child_name}</bdi>
@@ -268,7 +268,7 @@ function KidsAerialPage() {
     },
     {
       id: "guardian",
-      label: "הורה",
+      label: t("kids.guardian"),
       cell: (child) => (
         <span className="text-slate">
           <bdi>{child.guardian_name}</bdi>
@@ -282,32 +282,32 @@ function KidsAerialPage() {
     },
     {
       id: "package",
-      label: "חבילה",
+      label: t("kids.package"),
       cell: (child) => {
         const enrollment = activeEnrollmentByChild.get(child.id);
         return enrollment ? (
           <span
             className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${enrollment.status === "past_due" ? "border-red-200 bg-red-50 text-red-700" : "border-gold/40 bg-gold/10 text-navy"}`}
           >
-            {enrollment.package?.name ?? "חבילה פעילה"}
+            {enrollment.package?.name ?? t("kids.activePackage")}
           </span>
         ) : (
-          <span className="text-xs text-slate">אין חבילה פעילה</span>
+          <span className="text-xs text-slate">{t("kids.noPackage")}</span>
         );
       },
     },
     {
       id: "fixed-class",
-      label: "שיעור קבוע",
+      label: t("kids.regularClass"),
       cell: (child) => (
         <span className="text-slate">
-          {assignmentByChild.get(child.id) ? "יום שני · 18:00" : "לא שובץ/ה"}
+          {assignmentByChild.get(child.id) ? t("kids.mondayTime") : t("kids.notAssigned")}
         </span>
       ),
     },
     {
       id: "credits",
-      label: "קרדיטים",
+      label: t("kids.credits"),
       cell: (child) => {
         const enrollment = activeEnrollmentByChild.get(child.id);
         return (
@@ -319,20 +319,20 @@ function KidsAerialPage() {
     },
     {
       id: "billing",
-      label: "חיוב",
+      label: t("kids.billing"),
       cell: (child) => {
         const subscription = subscriptionByChild.get(child.id);
         return subscription ? (
           <AdminDestructiveAction
             objectName={child.child_name}
-            consequence="לבטל חיובים עתידיים באשראי? התקופה הנוכחית וההיסטוריה יישארו."
-            confirmLabel="ביטול חודשי"
-            pendingLabel="מבטל…"
+            consequence={t("kids.cancelConfirm")}
+            confirmLabel={t("kids.cancelMonthly")}
+            pendingLabel={t("kids.cancelPending")}
             onConfirm={() => cancelSub.mutateAsync(subscription.id).then(() => undefined)}
             triggerClassName="btn-ghost min-h-11 px-3 text-xs text-destructive"
           />
         ) : (
-          <span className="text-xs text-slate">ללא חיוב חוזר</span>
+          <span className="text-xs text-slate">{t("kids.noRecurring")}</span>
         );
       },
     },
@@ -341,9 +341,9 @@ function KidsAerialPage() {
   return (
     <AdminPageShell dir="rtl">
       <AdminPageHeader
-        eyebrow="ניהול ילדים"
-        title="יוגה אווירית לילדים"
-        description="רישום ילדים, שיבוץ לשיעור שבועי, מעקב תשלומים ונוכחות במקום אחד."
+        eyebrow={t("kids.eyebrow")}
+        title={t("kids.title")}
+        description={t("kids.description")}
         action={
           <button
             type="button"
@@ -352,7 +352,7 @@ function KidsAerialPage() {
             onClick={() => setupWeekly.mutate()}
           >
             <CalendarDays className="h-4 w-4" />
-            הכנת ימי שני 18:00
+            {t("kids.prepareMondays")}
           </button>
         }
       />
@@ -366,19 +366,19 @@ function KidsAerialPage() {
       <AsyncState
         state={
           isLoading
-            ? { status: "loading", label: "טוען את ניהול הילדים" }
+            ? { status: "loading", label: t("kids.loading") }
             : isError
               ? {
                   status: "error",
-                  title: "לא הצלחנו לטעון את ניהול הילדים",
-                  body: safeErrorMessage(error, "אפשר לנסות שוב."),
+                  title: t("kids.loadError"),
+                  body: safeErrorMessage(error, t("kids.retry")),
                   retry: () => void refetch(),
                 }
               : !data
                 ? {
                     status: "empty",
-                    title: "אין נתונים להצגה",
-                    body: "אפשר לנסות שוב בעוד רגע.",
+                    title: t("kids.emptyData"),
+                    body: t("kids.retryLater"),
                   }
                 : { status: "ready", data }
         }
@@ -387,25 +387,28 @@ function KidsAerialPage() {
           <>
             <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <AdminMetricCard
-                label="ילדים פעילים"
+                label={t("kids.activeChildren")}
                 value={data.report.activeChildren}
-                helper="ברשימה"
+                helper={t("kids.listed")}
               />
               <AdminMetricCard
-                label="תשלומים בחודש הנבחר"
+                label={t("kids.monthPayments")}
                 value={<BidiValue kind="currency">{ils(data.report.paidThisMonthIls)}</BidiValue>}
-                helper={`${data.report.paidThisMonthCount} תשלומים`}
+                helper={t("kids.paymentCount", { count: data.report.paidThisMonthCount })}
               />
               <AdminMetricCard
-                label="ממתינים לתשלום"
+                label={t("kids.awaitingPayment")}
                 value={data.report.pendingCount}
-                helper="דורש מעקב"
+                helper={t("kids.followUp")}
                 accent={data.report.pendingCount > 0}
               />
               <AdminMetricCard
-                label="נוכחות החודש"
+                label={t("kids.monthAttendance")}
                 value={data.report.present}
-                helper={`${data.report.absent} חיסורים · ${data.report.excused} מוצדק`}
+                helper={t("kids.attendanceCount", {
+                  absent: data.report.absent,
+                  excused: data.report.excused,
+                })}
               />
             </section>
 
@@ -414,13 +417,11 @@ function KidsAerialPage() {
                 <div>
                   <div className="flex items-center gap-2 text-navy">
                     <CalendarCheck2 className="h-4 w-4 text-gold" />
-                    <h3 className="cc-section-title">מעקב תשלום חודשי</h3>
+                    <h3 className="cc-section-title">{t("kids.ledger")}</h3>
                   </div>
-                  <p className="mt-1 text-sm text-slate">
-                    מסך ניהול פנימי: כל ילדה, החודש שנבחר, הסכום ששולם והפעולה הבאה.
-                  </p>
+                  <p className="mt-1 text-sm text-slate">{t("kids.ledgerHelp")}</p>
                 </div>
-                <Field label="חודש להצגה">
+                <Field label={t("kids.selectMonth")}>
                   <input
                     type="month"
                     className="editorial-input min-w-44"
@@ -429,16 +430,21 @@ function KidsAerialPage() {
                   />
                 </Field>
               </div>
-              <div className="admin-table-wrap">
+              <div
+                className="admin-table-wrap"
+                tabIndex={0}
+                role="region"
+                aria-label={t("kids.ledger")}
+              >
                 <table>
                   <thead>
                     <tr>
-                      <th className="text-start">ילדה</th>
-                      <th className="text-start">הורה</th>
-                      <th className="text-end">לתשלום</th>
-                      <th className="text-end">שולם</th>
-                      <th className="text-start">אמצעי</th>
-                      <th className="text-end">סטטוס</th>
+                      <th className="text-start">{t("kids.child")}</th>
+                      <th className="text-start">{t("kids.guardian")}</th>
+                      <th className="text-end">{t("kids.due")}</th>
+                      <th className="text-end">{t("kids.paid")}</th>
+                      <th className="text-start">{t("kids.method")}</th>
+                      <th className="text-end">{t("kids.status")}</th>
                       <th />
                     </tr>
                   </thead>
@@ -476,7 +482,11 @@ function KidsAerialPage() {
                               ) : (
                                 <CircleAlert className="h-3.5 w-3.5" />
                               )}
-                              {paid ? "שולם" : overdue ? "באיחור" : "ממתין"}
+                              {paid
+                                ? t("kids.paid")
+                                : overdue
+                                  ? t("kids.overdue")
+                                  : t("kids.pending")}
                             </span>
                           </td>
                           <td className="text-end">
@@ -492,7 +502,7 @@ function KidsAerialPage() {
                                   }))
                                 }
                               >
-                                רישום תשלום
+                                {t("kids.recordPayment")}
                               </button>
                             )}
                           </td>
@@ -508,10 +518,10 @@ function KidsAerialPage() {
               <div className="editorial-panel p-5">
                 <div className="mb-4 flex items-center gap-2 text-navy">
                   <UserRound className="h-4 w-4 text-gold" />
-                  <h3 className="cc-section-title">הוספת ילד/ה</h3>
+                  <h3 className="cc-section-title">{t("kids.addChild")}</h3>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="שם הילד/ה">
+                  <Field label={t("kids.childName")}>
                     <input
                       className="editorial-input"
                       value={childForm.child_name}
@@ -520,7 +530,7 @@ function KidsAerialPage() {
                       }
                     />
                   </Field>
-                  <Field label="שם הורה">
+                  <Field label={t("kids.guardianName")}>
                     <input
                       className="editorial-input"
                       value={childForm.guardian_name}
@@ -529,7 +539,7 @@ function KidsAerialPage() {
                       }
                     />
                   </Field>
-                  <Field label="טלפון הורה">
+                  <Field label={t("kids.guardianPhone")}>
                     <input
                       dir={bidiDirectionFor("phone")}
                       className="editorial-input"
@@ -539,7 +549,7 @@ function KidsAerialPage() {
                       }
                     />
                   </Field>
-                  <Field label="אימייל הורה">
+                  <Field label={t("kids.guardianEmail")}>
                     <input
                       dir={bidiDirectionFor("email")}
                       className="editorial-input"
@@ -550,7 +560,7 @@ function KidsAerialPage() {
                     />
                   </Field>
                   <div className="md:col-span-2">
-                    <Field label="הערות">
+                    <Field label={t("kids.notes")}>
                       <textarea
                         className="editorial-input min-h-24"
                         value={childForm.notes}
@@ -568,22 +578,22 @@ function KidsAerialPage() {
                   className="btn-navy mt-4 hover:btn-navy-hover disabled:opacity-50"
                 >
                   <Plus className="h-4 w-4" />
-                  שמירת ילד/ה
+                  {t("kids.saveChild")}
                 </button>
               </div>
 
               <div className="editorial-panel p-5">
                 <div className="mb-4 flex items-center gap-2 text-navy">
                   <Wallet className="h-4 w-4 text-gold" />
-                  <h3 className="cc-section-title">תשלום וחבילה</h3>
+                  <h3 className="cc-section-title">{t("kids.paymentPackage")}</h3>
                 </div>
                 <div className="grid gap-3">
                   <SelectField
-                    label="ילד/ה"
+                    label={t("kids.childNeutral")}
                     value={paymentForm.childId}
                     onChange={(value) => setPaymentForm((f) => ({ ...f, childId: value }))}
                   >
-                    <option value="">בחירת ילד/ה</option>
+                    <option value="">{t("kids.chooseChild")}</option>
                     {data.children.map((child: any) => (
                       <option key={child.id} value={child.id}>
                         {child.child_name}
@@ -591,11 +601,11 @@ function KidsAerialPage() {
                     ))}
                   </SelectField>
                   <SelectField
-                    label="חבילה"
+                    label={t("kids.package")}
                     value={paymentForm.packageId}
                     onChange={(value) => setPaymentForm((f) => ({ ...f, packageId: value }))}
                   >
-                    <option value="">בחירת חבילה</option>
+                    <option value="">{t("kids.choosePackage")}</option>
                     {data.packages.map((pkg: any) => (
                       <option key={pkg.id} value={pkg.id}>
                         {pkg.name} · {formatBidiValue(ils(Number(pkg.price)), "currency")}
@@ -603,18 +613,18 @@ function KidsAerialPage() {
                     ))}
                   </SelectField>
                   <SelectField
-                    label="אמצעי תשלום"
+                    label={t("kids.paymentMethod")}
                     value={paymentForm.method}
                     onChange={(value) =>
                       setPaymentForm((f) => ({ ...f, method: value as PaymentForm["method"] }))
                     }
                   >
-                    <option value="cash">מזומן</option>
-                    <option value="bit">ביט</option>
-                    <option value="card">אשראי HYP</option>
-                    <option value="other">אחר</option>
+                    <option value="cash">{t("kids.cash")}</option>
+                    <option value="bit">{t("kids.bit")}</option>
+                    <option value="card">{t("kids.hypCard")}</option>
+                    <option value="other">{t("kids.other")}</option>
                   </SelectField>
-                  <Field label="חודש חיוב">
+                  <Field label={t("kids.billingMonth")}>
                     <input
                       type="month"
                       className="editorial-input"
@@ -624,7 +634,7 @@ function KidsAerialPage() {
                       }
                     />
                   </Field>
-                  <Field label="סכום אחר (אופציונלי)">
+                  <Field label={t("kids.amountOverride")}>
                     <input
                       type="number"
                       min="1"
@@ -633,10 +643,10 @@ function KidsAerialPage() {
                       onChange={(event) =>
                         setPaymentForm((f) => ({ ...f, amount: event.target.value }))
                       }
-                      placeholder="השאירו ריק למחיר החבילה"
+                      placeholder={t("kids.amountHint")}
                     />
                   </Field>
-                  <Field label="אסמכתא / הערות">
+                  <Field label={t("kids.reference")}>
                     <input
                       dir={bidiDirectionFor("identifier")}
                       className="editorial-input"
@@ -644,10 +654,10 @@ function KidsAerialPage() {
                       onChange={(event) =>
                         setPaymentForm((f) => ({ ...f, reference: event.target.value }))
                       }
-                      placeholder="ביט, מזומן, קבלה פנימית"
+                      placeholder={t("kids.referenceHint")}
                     />
                   </Field>
-                  <Field label="הערה נוספת">
+                  <Field label={t("kids.extraNote")}>
                     <textarea
                       className="editorial-input min-h-20"
                       value={paymentForm.notes}
@@ -665,7 +675,7 @@ function KidsAerialPage() {
                     className="btn-navy hover:btn-navy-hover disabled:opacity-50"
                   >
                     <ReceiptText className="h-4 w-4" />
-                    רישום תשלום ידני
+                    {t("kids.manualPayment")}
                   </button>
                   <button
                     type="button"
@@ -674,12 +684,12 @@ function KidsAerialPage() {
                     className="btn-outline hover:btn-outline-hover disabled:opacity-50"
                   >
                     <CreditCard className="h-4 w-4" />
-                    יצירת קישור אשראי
+                    {t("kids.createCardLink")}
                   </button>
                 </div>
                 {paymentLink && (
                   <div className="mt-4 rounded-xl border border-gold/25 bg-ivory/70 p-3 text-sm">
-                    <p className="font-semibold text-navy">קישור HYP מוכן</p>
+                    <p className="font-semibold text-navy">{t("kids.hypReady")}</p>
                     <p className="mt-1 break-all text-slate">
                       <BidiValue kind="url">{paymentLink.url}</BidiValue>
                     </p>
@@ -691,18 +701,18 @@ function KidsAerialPage() {
                         className="btn-navy hover:btn-navy-hover"
                       >
                         <Link2 className="h-4 w-4" />
-                        פתיחה
+                        {t("kids.open")}
                       </a>
                       <button
                         type="button"
                         className="btn-outline hover:btn-outline-hover"
                         onClick={() => {
                           navigator.clipboard?.writeText(paymentLink.url);
-                          setOutcome({ tone: "success", title: "הקישור הועתק" });
+                          setOutcome({ tone: "success", title: t("kids.copied") });
                         }}
                       >
                         <Copy className="h-4 w-4" />
-                        העתקה
+                        {t("kids.copy")}
                       </button>
                     </div>
                   </div>
@@ -713,22 +723,20 @@ function KidsAerialPage() {
             <section className="editorial-panel p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="eyebrow">שיבוץ שבועי</p>
-                  <h3 className="cc-section-title mt-1">
-                    קבוצה קבועה · יום שני 18:00 · מפגשים 9–35
-                  </h3>
+                  <p className="eyebrow">{t("kids.weeklyAssignment")}</p>
+                  <h3 className="cc-section-title mt-1">{t("kids.weeklyGroup")}</h3>
                   <p className="mt-1 text-sm text-slate">
-                    עד {data.weeklyGroup?.capacity ?? 7} ילדים. השיעורים מוסתרים מלקוחות ונפתחים
-                    לנוכחות בלבד.
+                    {t("kids.capacityHelp", { count: data.weeklyGroup?.capacity ?? 7 })}
                   </p>
                 </div>
                 <div className="grid min-w-[min(100%,28rem)] gap-2 md:grid-cols-[1fr_auto]">
                   <select
+                    aria-label={t("kids.chooseChild")}
                     className="editorial-input"
                     value={assignment.childId}
                     onChange={(e) => setAssignment((a) => ({ ...a, childId: e.target.value }))}
                   >
-                    <option value="">בחירת ילד/ה</option>
+                    <option value="">{t("kids.chooseChild")}</option>
                     {data.children.map((child: any) => (
                       <option key={child.id} value={child.id}>
                         {child.child_name}
@@ -741,18 +749,18 @@ function KidsAerialPage() {
                     onClick={() => assign.mutate()}
                     className="btn-navy hover:btn-navy-hover disabled:opacity-50"
                   >
-                    שיבוץ
+                    {t("kids.assign")}
                   </button>
                 </div>
               </div>
 
               {data.classes.length === 0 ? (
                 <Empty
-                  title="אין עדיין שיעורי יום שני"
-                  body="לחצו על הכנת ימי שני 18:00 כדי ליצור את מפגשים 9–35. הם יהיו לצוות בלבד."
+                  title={t("kids.noMondays")}
+                  body={t("kids.noMondaysHelp")}
                   primaryAction={
                     <button type="button" onClick={() => setupWeekly.mutate()} className="btn-navy">
-                      הכנת שיעורים
+                      {t("kids.prepareClasses")}
                     </button>
                   }
                 />
@@ -777,7 +785,7 @@ function KidsAerialPage() {
             </section>
 
             <ResponsiveDataList
-              caption="רשימת ילדים, חבילות וחיובים"
+              caption={t("kids.directoryCaption")}
               columns={childColumns}
               data={data.children}
               getRowKey={(child) => child.id}
@@ -832,7 +840,7 @@ function KidsClassCard({
         <div>
           <p className="cc-card-title flex items-center gap-2">
             <span className="rounded-full border border-gold/35 px-2 py-0.5 text-xs font-semibold text-navy">
-              מפגש {cls.kid_session_number ?? "—"}/35
+              {t("kids.session", { number: cls.kid_session_number ?? "—" })}
             </span>
             <bdi>{cls.title}</bdi>
           </p>
@@ -856,7 +864,7 @@ function KidsClassCard({
         </span>
       </div>
       {assignments.length === 0 ? (
-        <p className="py-5 text-sm text-slate">אין ילדים משובצים לשיעור הזה.</p>
+        <p className="py-5 text-sm text-slate">{t("kids.noAssignments")}</p>
       ) : (
         <div className="divide-y divide-gold/15">
           {assignments.map((assignment) => {
@@ -871,7 +879,7 @@ function KidsClassCard({
                     <bdi>{assignment.child?.child_name}</bdi>
                   </p>
                   <p className="mt-1 text-xs text-slate">
-                    {attendance ? attendanceLabel(attendance.status) : "עדיין לא סומן"}
+                    {attendance ? attendanceLabel(attendance.status) : t("kids.notMarked")}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -880,21 +888,21 @@ function KidsClassCard({
                     onClick={() => onMark(assignment.child_id, "present")}
                     icon={<CheckCircle2 className="h-3.5 w-3.5" />}
                   >
-                    נוכח/ת
+                    {t("kids.present")}
                   </AttendButton>
                   <AttendButton
                     active={attendance?.status === "absent"}
                     onClick={() => onMark(assignment.child_id, "absent")}
                     icon={<XCircle className="h-3.5 w-3.5" />}
                   >
-                    חסרה
+                    {t("kids.absent")}
                   </AttendButton>
                   <AttendButton
                     active={attendance?.status === "excused"}
                     onClick={() => onMark(assignment.child_id, "excused")}
                     icon={<Baby className="h-3.5 w-3.5" />}
                   >
-                    מוצדק
+                    {t("kids.excused")}
                   </AttendButton>
                 </div>
               </div>
@@ -907,11 +915,11 @@ function KidsClassCard({
 }
 
 function paymentMethodLabel(method: string | null) {
-  if (method === "cash") return "מזומן";
-  if (method === "bit") return "ביט";
-  if (method === "card") return "אשראי";
-  if (method === "transfer") return "העברה";
-  if (method === "other") return "אחר";
+  if (method === "cash") return t("kids.cash");
+  if (method === "bit") return t("kids.bit");
+  if (method === "card") return t("kids.card");
+  if (method === "transfer") return t("kids.transfer");
+  if (method === "other") return t("kids.other");
   return "—";
 }
 
@@ -933,7 +941,7 @@ function AttendButton({
       className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition ${
         active
           ? "border-navy bg-navy text-ivory"
-          : "border-gold/35 bg-white text-navy hover:border-gold/60"
+          : "border-gold/35 bg-card text-navy hover:border-gold/60"
       }`}
     >
       {icon}
@@ -943,9 +951,9 @@ function AttendButton({
 }
 
 function attendanceLabel(status: string) {
-  if (status === "present") return "נוכח/ת · ירד קרדיט";
-  if (status === "absent") return "חסרה · לא ירד קרדיט";
-  return "חיסור מוצדק · לא ירד קרדיט";
+  if (status === "present") return t("kids.presentCredit");
+  if (status === "absent") return t("kids.absentCredit");
+  return t("kids.excusedCredit");
 }
 
 function assignmentMatchesClass(assignment: any, cls: any) {

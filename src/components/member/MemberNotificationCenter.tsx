@@ -13,10 +13,16 @@ import {
   Settings2,
   Sparkles,
   Users,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { MEMBER_NOTIFICATION_CENTER_QUERY_KEY } from "@/lib/memberNotificationQueryKeys";
 import {
@@ -81,6 +87,11 @@ type PreferenceKey = keyof NotificationCenterData["preferences"];
 const COPY: Record<Lang, Record<string, string>> = {
   en: {
     title: "Notifications",
+    loading: "Loading notifications…",
+    loadFailed: "Could not load notifications.",
+    retry: "Try again",
+    preferencesFailed: "Could not save notification choices. Please try again.",
+    archiveFailed: "Could not archive this notification. Please try again.",
     unread: "unread",
     empty: "Your reminders and studio updates will appear here.",
     markAll: "Mark all read",
@@ -125,6 +136,11 @@ const COPY: Record<Lang, Record<string, string>> = {
   },
   he: {
     title: "התראות",
+    loading: "ההתראות נטענות…",
+    loadFailed: "לא הצלחנו לטעון את ההתראות.",
+    retry: "ניסיון נוסף",
+    preferencesFailed: "לא הצלחנו לשמור את בחירת ההתראות. אפשר לנסות שוב.",
+    archiveFailed: "לא הצלחנו לארכב את ההתראה. אפשר לנסות שוב.",
     unread: "לא נקראו",
     empty: "תזכורות ועדכוני הסטודיו יופיעו כאן.",
     markAll: "סימון הכול כנקרא",
@@ -169,6 +185,11 @@ const COPY: Record<Lang, Record<string, string>> = {
   },
   ar: {
     title: "الإشعارات",
+    loading: "جارٍ تحميل الإشعارات…",
+    loadFailed: "تعذر تحميل الإشعارات.",
+    retry: "حاولي مرة أخرى",
+    preferencesFailed: "تعذر حفظ اختيارات الإشعارات. حاولي مرة أخرى.",
+    archiveFailed: "تعذر أرشفة الإشعار. حاولي مرة أخرى.",
     unread: "غير مقروءة",
     empty: "ستظهر تذكيراتك وتحديثات الاستوديو هنا.",
     markAll: "تحديد الكل كمقروء",
@@ -307,6 +328,7 @@ export function MemberNotificationCenter({
       toast.success(copy.preferencesSaved);
       void queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY });
     },
+    onError: () => toast.error(copy.preferencesFailed),
   });
 
   const data = query.data;
@@ -407,254 +429,264 @@ export function MemberNotificationCenter({
     }
   }
 
-  function archiveNotification(notificationId: string) {
-    void recordEngagement({
-      data: {
-        notificationId,
-        eventType: "archived",
-        occurredAt: new Date().toISOString(),
-      },
-    }).then(() =>
+  const archiveMutation = useMutation({
+    mutationFn: (notificationId: string) =>
+      recordEngagement({
+        data: { notificationId, eventType: "archived", occurredAt: new Date().toISOString() },
+      }),
+    onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: MEMBER_NOTIFICATION_CENTER_QUERY_KEY }),
-    );
-  }
+    onError: () => toast.error(copy.archiveFailed),
+  });
 
   return (
-    <div className={className}>
-      <button
-        type="button"
-        aria-label={`${copy.title}${(data?.unreadCount ?? 0) > 0 ? `, ${data?.unreadCount} ${copy.unread}` : ""}`}
-        onClick={() => setOpen(true)}
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate transition-colors hover:bg-gold/10 hover:text-navy"
-      >
-        <Bell className="h-[19px] w-[19px]" />
-        {(data?.unreadCount ?? 0) > 0 && (
-          <span className="absolute end-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-navy px-1 text-[9px] font-semibold text-white">
-            {Math.min(data?.unreadCount ?? 0, 99)}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <div className={className}>
+        <SheetTrigger asChild>
           <button
             type="button"
-            aria-label="Close"
-            className="fixed inset-0 z-50 bg-navy/25 backdrop-blur-[2px]"
-            onClick={() => setOpen(false)}
-          />
-          <aside
-            role="dialog"
-            aria-modal="true"
-            aria-label={copy.title}
-            className="fixed inset-y-0 end-0 z-[60] flex w-full max-w-md flex-col border-s border-gold/20 bg-ivory shadow-[var(--shadow-elevated)]"
+            aria-label={`${copy.title}${(data?.unreadCount ?? 0) > 0 ? `, ${data?.unreadCount} ${copy.unread}` : ""}`}
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-slate transition-colors hover:bg-gold/10 hover:text-navy"
           >
-            <div className="flex items-center justify-between border-b border-gold/20 px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
-              <div className="text-start">
-                <h2 className="text-xl font-semibold text-navy">{copy.title}</h2>
-                <p className="mt-1 text-xs text-slate">
-                  {data?.unreadCount ?? 0} {copy.unread}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  aria-label={copy.settings}
-                  onClick={() => setShowSettings((value) => !value)}
-                  className="rounded-full p-2.5 text-slate hover:bg-white hover:text-navy"
-                >
-                  <Settings2 className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Close"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full p-2.5 text-slate hover:bg-white hover:text-navy"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+            <Bell className="h-[19px] w-[19px]" />
+            {(data?.unreadCount ?? 0) > 0 && (
+              <span className="absolute end-0.5 top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground">
+                {Math.min(data?.unreadCount ?? 0, 99)}
+              </span>
+            )}
+          </button>
+        </SheetTrigger>
+        <SheetContent
+          side="end"
+          className="flex w-full max-w-md flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-md sm:rounded-s-[var(--cc-radius-card)]"
+        >
+          <div className="flex items-center justify-between shrink-0 border-b border-gold/20 ps-5 pe-16 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
+            <div className="text-start">
+              <SheetTitle className="text-xl font-semibold text-navy">{copy.title}</SheetTitle>
+              <SheetDescription className="mt-1 text-xs text-slate">
+                {data?.unreadCount ?? 0} {copy.unread}
+              </SheetDescription>
             </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label={copy.settings}
+                aria-expanded={showSettings}
+                onClick={() => setShowSettings((value) => !value)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate hover:bg-card hover:text-navy"
+              >
+                <Settings2 className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
 
-            {showSettings && data && (
-              <div className="max-h-[55vh] space-y-5 overflow-y-auto border-b border-gold/20 bg-white/50 px-5 py-4">
-                <p className="text-sm font-semibold text-navy">{copy.settings}</p>
-                {preferenceGroups.map((group) => (
-                  <fieldset key={group.title} className="space-y-2.5">
-                    <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate/70">
-                      {group.title}
-                    </legend>
-                    {group.keys.map((key) => (
-                      <label
-                        key={key}
-                        className="flex min-h-11 items-center justify-between gap-4 rounded-xl bg-white/55 px-3 text-start text-sm text-slate"
-                      >
-                        <span>{copy[key]}</span>
-                        <input
-                          type="checkbox"
-                          checked={data.preferences[key]}
-                          disabled={preferencesMutation.isPending}
-                          onChange={(event) =>
-                            preferencesMutation.mutate({
-                              ...data.preferences,
-                              [key]: event.target.checked,
-                            })
-                          }
-                          className="h-5 w-5 shrink-0 accent-navy"
-                        />
-                      </label>
-                    ))}
-                  </fieldset>
+          {showSettings && data && (
+            <div className="min-h-0 max-h-[55dvh] shrink space-y-5 overflow-y-auto border-b border-gold/20 bg-card px-5 py-4">
+              <p className="text-sm font-semibold text-navy">{copy.settings}</p>
+              {preferenceGroups.map((group) => (
+                <fieldset key={group.title} className="space-y-2.5">
+                  <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate">
+                    {group.title}
+                  </legend>
+                  {group.keys.map((key) => (
+                    <label
+                      key={key}
+                      className="flex min-h-11 items-center justify-between gap-4 rounded-xl bg-card px-3 text-start text-sm text-slate"
+                    >
+                      <span>{copy[key]}</span>
+                      <input
+                        type="checkbox"
+                        checked={data.preferences[key]}
+                        disabled={preferencesMutation.isPending}
+                        onChange={(event) =>
+                          preferencesMutation.mutate({
+                            ...data.preferences,
+                            [key]: event.target.checked,
+                          })
+                        }
+                        className="h-5 w-5 shrink-0 accent-navy"
+                      />
+                    </label>
+                  ))}
+                </fieldset>
+              ))}
+            </div>
+          )}
+
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-5 py-3">
+            <div className="inline-flex rounded-full bg-card p-1 text-xs text-slate">
+              {(["all", "unread"] as const).map((filter) => (
+                <button
+                  type="button"
+                  key={filter}
+                  aria-pressed={inboxFilter === filter}
+                  onClick={() => setInboxFilter(filter)}
+                  className={`min-h-11 rounded-full px-3 py-1.5 transition-colors ${
+                    inboxFilter === filter
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:text-navy"
+                  }`}
+                >
+                  {filter === "all" ? copy.all : copy.unreadOnly}
+                </button>
+              ))}
+            </div>
+            {(data?.unreadCount ?? 0) > 0 && (
+              <button
+                type="button"
+                disabled={markAllMutation.isPending}
+                aria-busy={markAllMutation.isPending}
+                onClick={() => markAllMutation.mutate()}
+                className="inline-flex min-h-11 items-center gap-2 text-xs font-medium text-slate hover:text-navy disabled:pointer-events-none disabled:opacity-50"
+              >
+                <CheckCheck className="h-4 w-4" />
+                {copy.markAll}
+              </button>
+            )}
+          </div>
+
+          <div className="flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-3 text-[11px] text-slate">
+            {(["all", "classes", "waitlist", "payments", "membership", "studio"] as const).map(
+              (filter) => (
+                <button
+                  type="button"
+                  key={filter}
+                  aria-pressed={familyFilter === filter}
+                  onClick={() => setFamilyFilter(filter)}
+                  className={`min-h-11 shrink-0 rounded-full border px-3 py-1.5 transition-colors ${
+                    familyFilter === filter
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-gold/20 bg-card hover:text-navy"
+                  }`}
+                >
+                  {copy[filter]}
+                </button>
+              ),
+            )}
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+            {query.isPending ? (
+              <div role="status" aria-busy="true" className="space-y-3 py-4">
+                <span className="sr-only">{copy.loading}</span>
+                {[0, 1, 2].map((key) => (
+                  <div
+                    key={key}
+                    className="h-28 animate-pulse rounded-[var(--radius-lg)] bg-card motion-reduce:animate-none"
+                  />
+                ))}
+              </div>
+            ) : query.isError ? (
+              <div
+                role="alert"
+                className="mx-1 mt-6 rounded-[var(--radius-lg)] border border-gold/20 bg-card p-5 text-center text-sm text-navy"
+              >
+                <p>{copy.loadFailed}</p>
+                <button
+                  type="button"
+                  disabled={query.isFetching}
+                  onClick={() => void query.refetch()}
+                  className="mt-3 min-h-11 rounded-full bg-primary px-5 text-primary-foreground disabled:opacity-50"
+                >
+                  {copy.retry}
+                </button>
+              </div>
+            ) : !groupedNotifications.length ? (
+              <div className="mx-1 mt-8 rounded-[var(--radius-lg)] border border-gold/20 bg-card p-6 text-center text-sm leading-6 text-slate">
+                {copy.empty}
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {groupedNotifications.map((group) => (
+                  <section key={group.key}>
+                    <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate">
+                      {copy[group.key]}
+                    </h3>
+                    <div className="space-y-2">
+                      {group.items.map((notification) => {
+                        const expired = Boolean(
+                          notification.expires_at &&
+                          new Date(notification.expires_at) <= new Date(),
+                        );
+                        return (
+                          <article
+                            key={notification.id}
+                            className={`relative flex items-start overflow-hidden rounded-[var(--radius-lg)] border transition-all hover:-translate-y-px hover:shadow-[var(--shadow-card)] ${
+                              notification.read_at
+                                ? "border-transparent bg-card"
+                                : "border-gold/25 bg-card shadow-[var(--shadow-card)]"
+                            }`}
+                          >
+                            {notification.tier === "critical" && (
+                              <span className="absolute inset-y-0 start-0 w-1 bg-gold" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => void openNotification(notification)}
+                              className="flex min-w-0 flex-1 items-start gap-3 p-4 text-start"
+                            >
+                              <span
+                                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                  notification.read_at
+                                    ? "bg-sand/35 text-slate"
+                                    : "bg-gold/15 text-navy"
+                                }`}
+                              >
+                                <NotificationFamilyIcon family={notification.family} />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="flex flex-wrap items-center gap-2">
+                                  <span className="block font-semibold text-navy">
+                                    {notification.title}
+                                  </span>
+                                  {notification.tier === "critical" && (
+                                    <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-navy">
+                                      {copy.critical}
+                                    </span>
+                                  )}
+                                  {expired && (
+                                    <span className="rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-navy">
+                                      {copy.expired}
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="mt-1 block text-sm leading-6 text-slate">
+                                  {notification.body}
+                                </span>
+                                <span className="mt-2 flex items-center gap-1 text-[11px] text-slate">
+                                  <Clock3 className="h-3 w-3" />
+                                  {new Date(notification.created_at).toLocaleString(
+                                    lang === "he" ? "he-IL" : lang === "ar" ? "ar" : "en-GB",
+                                  )}
+                                </span>
+                              </span>
+                              {!expired && (
+                                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[var(--color-accent-text)] rtl:rotate-180" />
+                              )}
+                            </button>
+                            {data?.canonical && (
+                              <button
+                                type="button"
+                                aria-label={copy.archive}
+                                onClick={() => archiveMutation.mutate(notification.id)}
+                                disabled={archiveMutation.isPending}
+                                aria-busy={archiveMutation.isPending}
+                                className="m-1 disabled:opacity-50 disabled:pointer-events-none inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate hover:bg-sand/50 hover:text-navy"
+                              >
+                                <Archive className="h-4 w-4" />
+                              </button>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
                 ))}
               </div>
             )}
-
-            <div className="flex items-center justify-between gap-3 px-5 py-3">
-              <div className="inline-flex rounded-full bg-white/70 p-1 text-xs text-slate">
-                {(["all", "unread"] as const).map((filter) => (
-                  <button
-                    type="button"
-                    key={filter}
-                    aria-pressed={inboxFilter === filter}
-                    onClick={() => setInboxFilter(filter)}
-                    className={`rounded-full px-3 py-1.5 transition-colors ${
-                      inboxFilter === filter ? "bg-navy text-white" : "hover:text-navy"
-                    }`}
-                  >
-                    {filter === "all" ? copy.all : copy.unreadOnly}
-                  </button>
-                ))}
-              </div>
-              {(data?.unreadCount ?? 0) > 0 && (
-                <button
-                  type="button"
-                  disabled={markAllMutation.isPending}
-                  aria-busy={markAllMutation.isPending}
-                  onClick={() => markAllMutation.mutate()}
-                  className="inline-flex items-center gap-2 text-xs font-medium text-slate hover:text-navy disabled:pointer-events-none disabled:opacity-50"
-                >
-                  <CheckCheck className="h-4 w-4" />
-                  {copy.markAll}
-                </button>
-              )}
-            </div>
-
-            <div className="flex gap-1.5 overflow-x-auto px-5 pb-3 text-[11px] text-slate">
-              {(["all", "classes", "waitlist", "payments", "membership", "studio"] as const).map(
-                (filter) => (
-                  <button
-                    type="button"
-                    key={filter}
-                    aria-pressed={familyFilter === filter}
-                    onClick={() => setFamilyFilter(filter)}
-                    className={`shrink-0 rounded-full border px-3 py-1.5 transition-colors ${
-                      familyFilter === filter
-                        ? "border-navy bg-navy text-white"
-                        : "border-gold/20 bg-white/50 hover:text-navy"
-                    }`}
-                  >
-                    {copy[filter]}
-                  </button>
-                ),
-              )}
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
-              {!groupedNotifications.length ? (
-                <div className="mx-1 mt-8 rounded-[var(--radius-lg)] border border-gold/20 bg-white/60 p-6 text-center text-sm leading-6 text-slate">
-                  {copy.empty}
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  {groupedNotifications.map((group) => (
-                    <section key={group.key}>
-                      <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate/70">
-                        {copy[group.key]}
-                      </h3>
-                      <div className="space-y-2">
-                        {group.items.map((notification) => {
-                          const expired = Boolean(
-                            notification.expires_at &&
-                            new Date(notification.expires_at) <= new Date(),
-                          );
-                          return (
-                            <article
-                              key={notification.id}
-                              className={`relative flex items-start overflow-hidden rounded-[var(--radius-lg)] border transition-all hover:-translate-y-px hover:shadow-[var(--shadow-card)] ${
-                                notification.read_at
-                                  ? "border-transparent bg-white/42"
-                                  : "border-gold/25 bg-white shadow-[var(--shadow-card)]"
-                              }`}
-                            >
-                              {notification.tier === "critical" && (
-                                <span className="absolute inset-y-0 start-0 w-1 bg-gold" />
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => void openNotification(notification)}
-                                className="flex min-w-0 flex-1 items-start gap-3 p-4 text-start"
-                              >
-                                <span
-                                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                                    notification.read_at
-                                      ? "bg-sand/35 text-slate"
-                                      : "bg-gold/15 text-navy"
-                                  }`}
-                                >
-                                  <NotificationFamilyIcon family={notification.family} />
-                                </span>
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex flex-wrap items-center gap-2">
-                                    <span className="block font-semibold text-navy">
-                                      {notification.title}
-                                    </span>
-                                    {notification.tier === "critical" && (
-                                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-navy">
-                                        {copy.critical}
-                                      </span>
-                                    )}
-                                    {expired && (
-                                      <span className="rounded-full bg-sand px-2 py-0.5 text-[9px] font-semibold uppercase text-slate">
-                                        {copy.expired}
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="mt-1 block text-sm leading-6 text-slate">
-                                    {notification.body}
-                                  </span>
-                                  <span className="mt-2 flex items-center gap-1 text-[11px] text-slate/80">
-                                    <Clock3 className="h-3 w-3" />
-                                    {new Date(notification.created_at).toLocaleString(
-                                      lang === "he" ? "he-IL" : lang === "ar" ? "ar" : "en-GB",
-                                    )}
-                                  </span>
-                                </span>
-                                {!expired && (
-                                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-gold rtl:rotate-180" />
-                                )}
-                              </button>
-                              {data?.canonical && (
-                                <button
-                                  type="button"
-                                  aria-label={copy.archive}
-                                  onClick={() => archiveNotification(notification.id)}
-                                  className="m-2 rounded-full p-2 text-slate/60 hover:bg-sand/50 hover:text-navy"
-                                >
-                                  <Archive className="h-4 w-4" />
-                                </button>
-                              )}
-                            </article>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              )}
-            </div>
-          </aside>
-        </>
-      )}
-    </div>
+          </div>
+        </SheetContent>
+      </div>
+    </Sheet>
   );
 }

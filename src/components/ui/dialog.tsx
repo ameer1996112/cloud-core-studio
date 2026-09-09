@@ -22,7 +22,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-navy/16 backdrop-blur-[6px] motion-reduce:animate-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-navy/16 backdrop-blur-[6px] motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -32,26 +32,28 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { showCloseButton?: boolean }
+>(({ className, children, showCloseButton = true, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100vw-1.5rem)] max-w-lg max-h-[calc(100dvh-1.5rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto border border-[color:var(--color-border)] bg-background p-5 shadow-[var(--shadow-elevated)] duration-200 motion-reduce:animate-none motion-reduce:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:w-full sm:p-6 sm:rounded-[var(--cc-radius-card)]",
+        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100vw-1.5rem)] max-w-lg max-h-[calc(100dvh-1.5rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto border border-[color:var(--color-border)] bg-background p-5 shadow-[var(--shadow-elevated)] duration-200 motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:w-full sm:p-6 sm:rounded-[var(--cc-radius-card)]",
         className,
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close
-        aria-label={t("common.close")}
-        className="absolute end-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-muted)] ring-offset-background cursor-pointer transition-[background-color,color,opacity] duration-200 hover:bg-gold/8 hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:pointer-events-none data-[state=open]:bg-gold/8"
-      >
-        <X className="h-4 w-4" aria-hidden="true" />
-        <span className="sr-only">{t("common.close")}</span>
-      </DialogPrimitive.Close>
+      {showCloseButton && (
+        <DialogPrimitive.Close
+          aria-label={t("common.close")}
+          className="absolute end-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] text-[var(--color-text-muted)] ring-offset-background cursor-pointer transition-[background-color,color,opacity] duration-200 hover:bg-gold/8 hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:pointer-events-none data-[state=open]:bg-gold/8"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">{t("common.close")}</span>
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
