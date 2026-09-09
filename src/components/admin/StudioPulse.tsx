@@ -104,7 +104,7 @@ export function StudioPulse({
   ] as const;
 
   return (
-    <section className="space-y-5 pb-12" dir={dir}>
+    <section className="studio-pulse-page pb-12" dir={dir}>
       {showHeader && (
         <header className="pulse-page-header">
           <div className="min-w-0">

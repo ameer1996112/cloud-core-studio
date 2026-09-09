@@ -291,7 +291,7 @@ export function AppShell({ role, children }: Props) {
         )}
 
         {/* Content */}
-        <div className={`px-[clamp(1rem,4vw,3rem)] flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
+        <div className={`app-shell-content flex-1 ${useBottomNav ? "md:pb-16" : "pb-12"}`}>
           <div className={contentFrameClass}>{children}</div>
         </div>
 

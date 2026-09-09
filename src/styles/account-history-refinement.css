@@ -117,3 +117,29 @@
     font-size: 18px;
   }
 }
+
+/* Keep the package photograph clear of the reading surface below it. */
+.member-app .aura-packages-page .packages-editorial-heading {
+  min-height: 180px;
+  margin-bottom: 0;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+}
+.member-app .aura-packages-page .packages-editorial-photo {
+  object-position: 50% 66%;
+}
+.member-app .aura-packages-page .aura-packages-layout {
+  margin-top: 16px;
+}
+@media (max-width: 767px) {
+  .member-app .aura-packages-page .packages-editorial-heading {
+    min-height: 140px;
+    aspect-ratio: 2.5;
+    padding: 20px;
+    border-radius: 16px;
+  }
+  .member-app .aura-packages-page .aura-packages-layout {
+    margin-top: 14px;
+  }
+}

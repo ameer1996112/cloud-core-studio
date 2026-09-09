@@ -1,0 +1,107 @@
+/* One next-class reading surface; no nested card frame or orphan icon action. */
+.member-app .reference-home .home-next {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.member-app .reference-home .home-next > h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.member-app .reference-home .home-next .studio-class {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.member-app .reference-home .home-next .studio-class-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 20px 16px;
+}
+.member-app .reference-home .home-next .studio-class-media {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  align-self: start;
+}
+.member-app .reference-home .home-next .studio-class-photo {
+  object-position: center 50%;
+}
+.member-app .reference-home .home-next .studio-class-reading {
+  gap: 12px;
+  align-self: start;
+}
+.member-app .reference-home .home-next .studio-class h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.member-app .reference-home .home-next .studio-class-time {
+  border: 0;
+  padding: 0;
+  gap: 4px 8px;
+}
+.member-app .reference-home .home-next .studio-class-time time {
+  font-size: 22px;
+  font-weight: 500;
+}
+.member-app .reference-home .home-next .studio-class-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding-top: 16px;
+}
+.member-app .reference-home .home-next .studio-class-status {
+  align-self: flex-start;
+}
+.member-app .reference-home .home-next .studio-class-status > span {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: 12px;
+}
+.member-app .reference-home .home-next .studio-class-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  width: 100%;
+  gap: 8px 12px;
+}
+.member-app .reference-home .home-next .home-primary {
+  min-height: 46px;
+  padding: 10px 16px;
+  gap: 8px;
+}
+.member-app .reference-home .home-next .home-calendar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 0;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+.member-app .reference-home .home-next .home-calendar-action span { display: inline; }
+.member-app .reference-home .home-next .studio-class-note {
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+.member-app .reference-home .home-next .studio-class-note p { margin: 0; }
+@media (max-width: 359px) {
+  .member-app .reference-home .home-next .studio-class-hero { grid-template-columns: minmax(0, 1fr); }
+  .member-app .reference-home .home-next .studio-class-media { aspect-ratio: 3 / 2; }
+  .member-app .reference-home .home-next .studio-class-reading { grid-row: auto; }
+}
