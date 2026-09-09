@@ -1,4 +1,12 @@
-import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Check } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { t, type Lang } from "@/lib/i18n";
 
 export type DateScope = "today" | "tomorrow" | "week" | "all";
@@ -51,7 +59,11 @@ export function MemberScheduleFilterPanel({
   };
 
   return (
-    <section dir={dir} className="member-schedule-filter-panel" aria-label={t("nav.schedule")}>
+    <section
+      dir={dir}
+      className="member-schedule-filter-panel schedule-filter-refined"
+      aria-label={t("nav.schedule")}
+    >
       <div className="member-schedule-segmented" role="group" aria-label={t("nav.schedule")}>
         {dateOptions.map((scope) => (
           <button
@@ -75,28 +87,10 @@ export function MemberScheduleFilterPanel({
           </button>
         ))}
       </div>
-      <details className="member-schedule-filter-disclosure">
-        <summary>
-          <SlidersHorizontal size={15} strokeWidth={1.5} aria-hidden="true" />
-          {t("member.schedule.filter.title")}
-          {dateScope !== "all" && (
-            <span>
-              {" "}
-              ·{" "}
-              {dateScope === "week"
-                ? t("common.thisWeek")
-                : dateScope === "today"
-                  ? t("common.today")
-                  : t("common.tomorrow")}
-            </span>
-          )}
-          {activeFilterCount > 0 && <span> · {activeFilterCount}</span>}
-        </summary>
-        <div className="member-schedule-filter-panel__primary">
-          <div className="member-schedule-search-field">
-            <span className="member-schedule-search-field__icon" aria-hidden="true">
-              <Search className="h-4 w-4" />
-            </span>
+      <Dialog>
+        <div className="schedule-tools">
+          <label className="schedule-tools-search">
+            <Search size={18} aria-hidden="true" />
             <input
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
@@ -106,49 +100,89 @@ export function MemberScheduleFilterPanel({
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
-              className="member-schedule-search-field__input"
             />
-          </div>
+          </label>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="schedule-tools-trigger"
+              aria-label={t("member.schedule.filter.title")}
+            >
+              <SlidersHorizontal size={18} aria-hidden="true" />
+              <span>{lang === "he" ? "סינון" : lang === "ar" ? "تصفية" : "Filters"}</span>
+              {activeFilterCount > 0 && (
+                <span className="schedule-tools-count">{activeFilterCount}</span>
+              )}
+            </button>
+          </DialogTrigger>
         </div>
-        <div className="member-schedule-filter-groups" data-lang={lang}>
-          {visibleFilters.map((group) => (
-            <div key={group.key} className="member-schedule-filter-group">
-              <span className="member-schedule-filter-label">
-                <span aria-hidden="true" />
-                <span>{group.label}</span>
-              </span>
-              <div className="member-schedule-filter-chip-row">
-                {group.options.map((option) => {
-                  const selected = group.value === option;
-                  return (
+        <DialogContent
+          dir={dir}
+          className="schedule-filter-dialog left-0 top-auto bottom-0 translate-x-0 translate-y-0 sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2"
+        >
+          <header className="schedule-filter-dialog-heading">
+            <DialogTitle>{t("member.schedule.filter.title")}</DialogTitle>
+            <DialogDescription>
+              {lang === "he"
+                ? "התאימו את הלוח לתרגול שלכם."
+                : lang === "ar"
+                  ? "خصّصوا الجدول بما يناسب تمرينكم."
+                  : "Find the classes that fit your practice."}
+            </DialogDescription>
+          </header>
+          <div className="schedule-filter-dialog-options">
+            {visibleFilters.map((group) => (
+              <fieldset key={group.key} className="schedule-option-group">
+                <legend>{group.label}</legend>
+                <div className="schedule-option-list">
+                  <button
+                    type="button"
+                    aria-pressed={!group.value}
+                    onClick={() => onFilterChange(group.key, undefined)}
+                  >
+                    {!group.value && <Check size={14} aria-hidden="true" />}
+                    {t("common.all")}
+                  </button>
+                  {group.options.map((option) => (
                     <button
                       key={option}
                       type="button"
-                      aria-pressed={selected}
-                      onClick={() => onFilterChange(group.key, selected ? undefined : option)}
-                      className={
-                        selected
-                          ? "member-schedule-filter-chip member-schedule-filter-chip-active"
-                          : "member-schedule-filter-chip"
+                      aria-pressed={group.value === option}
+                      onClick={() =>
+                        onFilterChange(group.key, group.value === option ? undefined : option)
                       }
-                      dir="auto"
                     >
+                      {group.value === option && <Check size={14} aria-hidden="true" />}
                       <bdi>{group.formatOption ? group.formatOption(option) : option}</bdi>
                     </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+          </div>
+          <footer className="schedule-filter-dialog-footer">
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="schedule-tools-clear"
+            >
+              {t("member.schedule.filter.clear")}
+            </button>
+            <DialogClose asChild>
+              <button type="button" className="schedule-filter-done">
+                {lang === "he" ? "הצגת שיעורים" : lang === "ar" ? "عرض الدروس" : "Show classes"}
+              </button>
+            </DialogClose>
+          </footer>
+        </DialogContent>
+      </Dialog>
       {hasActiveFilters && (
         <button
           type="button"
           onClick={clearFilters}
-          className="member-schedule-filter-panel__reset"
+          className="schedule-tools-clear schedule-tools-clear-inline"
         >
-          <RotateCcw size={16} aria-hidden="true" />
           {t("member.schedule.filter.clear")}
         </button>
       )}

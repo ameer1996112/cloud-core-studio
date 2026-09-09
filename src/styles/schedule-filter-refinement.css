@@ -1,0 +1,246 @@
+/* Schedule controls: quiet toolbar and focused, accessible filter dialog. */
+.member-app .aura-schedule-page .member-schedule-filter-panel.schedule-filter-refined {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0 18px;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.schedule-filter-refined .member-schedule-segmented {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0;
+}
+.schedule-filter-refined .member-schedule-segment {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 4px;
+  border-radius: 0;
+  font-size: 14px;
+}
+.schedule-tools {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+}
+.schedule-tools-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+.schedule-tools-search input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 16px;
+  box-shadow: none;
+}
+.schedule-tools-search:focus-within {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+.schedule-tools-search input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.schedule-tools-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 46px;
+  padding: 10px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+.schedule-tools-count {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+  color: var(--color-surface);
+  font-size: 12px;
+}
+.schedule-filter-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--color-surface, #faf7f2);
+  color: var(--color-text-primary);
+}
+.schedule-filter-dialog-heading {
+  padding: 28px 24px 20px;
+  padding-inline-end: 68px;
+  border-bottom: 1px solid var(--color-border);
+}
+.schedule-filter-dialog-heading h2 {
+  font-size: 24px;
+  font-weight: 600;
+}
+.schedule-filter-dialog-heading p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.schedule-filter-dialog-options {
+  padding: 8px 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.schedule-option-group {
+  min-width: 0;
+  padding: 18px 0;
+  margin: 0;
+  border: 0;
+}
+.schedule-option-group + .schedule-option-group {
+  border-top: 1px solid var(--color-border);
+}
+.schedule-option-group legend {
+  float: inline-start;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 0;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+.schedule-option-list {
+  clear: both;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.schedule-option-list button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.schedule-option-list button[aria-pressed="true"] {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-surface, #faf7f2);
+}
+.schedule-option-list svg {
+  flex-shrink: 0;
+}
+.schedule-filter-dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--color-border);
+}
+.schedule-tools-clear {
+  min-height: 44px;
+  border: 0;
+  padding: 8px 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.schedule-tools-clear:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.schedule-tools-clear-inline {
+  align-self: flex-end;
+}
+.schedule-filter-done {
+  flex: 1;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-text-primary);
+  color: var(--color-surface, #faf7f2);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.schedule-filter-dialog button:focus-visible,
+.schedule-tools-trigger:focus-visible,
+.schedule-tools-clear:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 3px;
+}
+.aura-schedule-results .member-empty-state {
+  padding: 24px 18px;
+  min-height: 0;
+  text-align: start;
+}
+.aura-schedule-results .member-empty-state h2 {
+  font-size: 22px;
+}
+@media (max-width: 639px) {
+  .schedule-filter-dialog {
+    inset: auto 0 0;
+    top: auto;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 24px);
+    transform: none;
+    border-radius: 24px 24px 0 0;
+  }
+  .schedule-filter-dialog-footer {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 639px) {
+  .schedule-filter-dialog {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    translate: none !important;
+    transform: none !important;
+  }
+}
