@@ -1,15 +1,17 @@
+import bookingsCss from "@/styles/bookings-editorial.css?url";
+import { EditorialImage } from "@/components/visual/EditorialImage";
 import { MemberPageState } from "@/components/member/MemberPageState";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, CalendarPlus, Sparkles } from "lucide-react";
+import { MessageCircle, CalendarPlus, Sparkles, ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyBookingsAll, memberCancelBooking, leaveWaitlist } from "@/lib/member.functions";
 import { getPublicStudioSettings } from "@/lib/studioSettings.functions";
 import { waUrl, buildIcs, downloadIcs } from "@/lib/messageTemplate";
-import { formatDate, formatTime, MemberEmptyState } from "@/components/member/PremiumClassCard";
+import { formatDate, formatTime } from "@/components/member/PremiumClassCard";
 import { ClassDetailSheet } from "@/components/member/ClassDetailSheet";
 import { ReservationRow } from "@/components/member/ReservationRow";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -31,6 +33,7 @@ import {
 } from "@/lib/personalConciergeOnboarding";
 
 export const Route = createFileRoute("/_authenticated/member/bookings")({
+  head: () => ({ links: [{ rel: "stylesheet", href: bookingsCss }] }),
   component: MyBookings,
 });
 
@@ -245,16 +248,30 @@ function MyBookings() {
     );
 
   return (
-    <section dir={dir} className="member-page aura-member-page aura-bookings-page">
-      <header className="aura-page-heading">
+    <section
+      dir={dir}
+      className="member-page aura-member-page aura-bookings-page bookings-editorial"
+    >
+      <header className="aura-page-heading bookings-heading">
         <h1>{t("nav.myBookings")}</h1>
-        <p>{t("member.bookings.body")}</p>
+        <p>
+          {lang === "he"
+            ? "השיעורים שלך, מההזמנה ועד הביקור הבא."
+            : lang === "ar"
+              ? "حصصك، من الحجز حتى زيارتك القادمة."
+              : "Your classes, from booking to your next visit."}
+        </p>
       </header>
 
-      <div className="member-control-panel member-tab-bar no-scrollbar">
+      <div
+        className="member-control-panel member-tab-bar no-scrollbar bookings-tabs"
+        aria-label={t("nav.myBookings")}
+      >
         {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (
           <button
             key={tabKey}
+            type="button"
+            aria-controls="booking-results"
             ref={tab === tabKey ? activeTab : undefined}
             onClick={() => setTab(tabKey)}
             aria-pressed={tab === tabKey}
@@ -284,65 +301,73 @@ function MyBookings() {
         </div>
       )}
 
-      {!isLoading && current.length === 0 && (
-        <MemberEmptyState
-          variant={tab === "upcoming" ? "bookings" : "cloudCard"}
-          eyebrow={tab === "upcoming" ? t("member.empty.bookings.eyebrow") : undefined}
-          title={
-            tab === "upcoming"
-              ? t("member.empty.bookings.title")
-              : tab === "waitlist"
-                ? t("member.empty.waitlist.title")
-                : tab === "past"
-                  ? t("member.empty.past.title")
-                  : t("member.empty.cancelled.title")
-          }
-          body={
-            tab === "upcoming"
-              ? t("member.empty.bookings.body")
-              : tab === "waitlist"
-                ? t("member.empty.waitlist.body")
-                : tab === "past"
-                  ? t("member.empty.past.body")
-                  : t("member.empty.cancelled.body")
-          }
-          primaryAction={
-            tab === "upcoming"
-              ? { label: t("member.browseSchedule"), to: "/member/schedule" }
-              : undefined
-          }
-          illustration={null}
-        />
-      )}
+      <div id="booking-results" className="bookings-results">
+        {!isLoading && current.length === 0 && (
+          <section className="bookings-empty">
+            <div className="bookings-empty-photo">
+              <EditorialImage scene="mat" eager sizes="(min-width: 768px) 480px, 100vw" />
+            </div>
+            <div className="bookings-empty-copy">
+              <h2>
+                {tab === "upcoming"
+                  ? t("member.empty.bookings.title")
+                  : tab === "waitlist"
+                    ? t("member.empty.waitlist.title")
+                    : tab === "past"
+                      ? t("member.empty.past.title")
+                      : t("member.empty.cancelled.title")}
+              </h2>
+              <p>
+                {tab === "upcoming"
+                  ? t("member.empty.bookings.body")
+                  : tab === "waitlist"
+                    ? t("member.empty.waitlist.body")
+                    : tab === "past"
+                      ? t("member.empty.past.body")
+                      : t("member.empty.cancelled.body")}
+              </p>
+              <Link to="/member/schedule" className="bookings-schedule-link">
+                {t("member.browseSchedule")}
+                {dir === "rtl" ? (
+                  <ArrowLeft size={17} aria-hidden="true" />
+                ) : (
+                  <ArrowRight size={17} aria-hidden="true" />
+                )}
+              </Link>
+            </div>
+          </section>
+        )}
 
-      <div className="space-y-3">
-        {tab === "waitlist"
-          ? waitlist.map((w: any) => (
-              <WaitlistCard
-                key={w.id}
-                entry={w}
-                onOpen={() => setOpenClass(w.class.id)}
-                onLeave={() => leave.mutate(w.id)}
-              />
-            ))
-          : current.map((b: any) => (
-              <BookingCard
-                key={b.id}
-                booking={b}
-                attendance={attMap[b.id]}
-                onOpen={() => setOpenClass(b.class.id)}
-                onCancel={
-                  tab === "upcoming"
-                    ? (trigger) => {
-                        cancelTrigger.current = trigger;
-                        setConfirmCancel(b);
-                      }
-                    : undefined
-                }
-                muted={tab !== "upcoming"}
-                studio={settings ?? null}
-              />
-            ))}
+        {/* Presentation only; the original booking and waitlist handlers remain below. */}
+        <div className="bookings-entries">
+          {tab === "waitlist"
+            ? waitlist.map((w: any) => (
+                <WaitlistCard
+                  key={w.id}
+                  entry={w}
+                  onOpen={() => setOpenClass(w.class.id)}
+                  onLeave={() => leave.mutate(w.id)}
+                />
+              ))
+            : current.map((b: any) => (
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  attendance={attMap[b.id]}
+                  onOpen={() => setOpenClass(b.class.id)}
+                  onCancel={
+                    tab === "upcoming"
+                      ? (trigger) => {
+                          cancelTrigger.current = trigger;
+                          setConfirmCancel(b);
+                        }
+                      : undefined
+                  }
+                  muted={tab !== "upcoming"}
+                  studio={settings ?? null}
+                />
+              ))}
+        </div>
       </div>
 
       {showConciergeOnboarding && (
