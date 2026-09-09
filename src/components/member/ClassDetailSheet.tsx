@@ -210,7 +210,7 @@ export function ClassDetailSheet({
     return () => sub.subscription.unsubscribe();
   }, [viewerContext]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: getClassDetailQueryKey(classId, resolvedViewerCacheKey),
     queryFn: () => fetchDetail({ data: { classId: classId! } }),
     enabled: detailQueryEnabled,
@@ -230,7 +230,7 @@ export function ClassDetailSheet({
     },
     onSuccess: (res: BookClassResult) => {
       if (hasBookingId(res)) {
-        if (res.promotion_entitlement_id) {
+        if ("promotion_entitlement_id" in res && res.promotion_entitlement_id) {
           trackYogaPromo("yoga_promo_credit_redeemed", {
             class_id: classId,
             booking_id: res.booking_id,
@@ -354,8 +354,16 @@ export function ClassDetailSheet({
               navigate({ to: "/member/bookings" });
             }}
           />
+        ) : isError || (!isLoading && !cls) ? (
+          <section className="p-6 pt-16 space-y-4 text-center" role="alert">
+            <h2 className="text-xl font-semibold text-navy">{t("page.error.eyebrow")}</h2>
+            <p className="text-slate">{t("page.error.body")}</p>
+            <button className="btn-navy" onClick={() => void refetch()}>
+              {t("common.retry")}
+            </button>
+          </section>
         ) : isLoading || !cls ? (
-          <div className="h-80 skeleton-brand" />
+          <div className="h-80 skeleton-brand" role="status" aria-label={t("common.loading")} />
         ) : (
           <ClassDetailContent
             cls={cls}
@@ -386,7 +394,10 @@ export function ClassDetailSheet({
                 ) : null}
                 {canUseYogaPromo ? (
                   <div className="rounded-2xl border border-gold/45 bg-gold/10 px-4 py-3 text-sm font-semibold leading-6 text-navy">
-                    <Sparkles className="me-2 inline h-4 w-4 text-gold" aria-hidden="true" />
+                    <Sparkles
+                      className="me-2 inline h-4 w-4 text-[var(--color-accent-text)]"
+                      aria-hidden="true"
+                    />
                     {t("promo.yoga.bookingEligible")}
                   </div>
                 ) : null}
@@ -494,7 +505,7 @@ function ConfirmationView({
     <div className="p-6 sm:p-8 space-y-5">
       <div className="text-center space-y-3">
         <div className="member-panel-powder mx-auto h-14 w-14 rounded-full flex items-center justify-center">
-          <Sparkles className="h-6 w-6 text-gold" />
+          <Sparkles className="h-6 w-6 text-[var(--color-accent-text)]" />
         </div>
         <p className="text-xs font-medium text-slate">{t("booking.cloudCard")}</p>
         <h2 className="font-display text-3xl text-navy leading-tight">{t("booking.saved")}</h2>
@@ -538,7 +549,7 @@ function ConfirmationView({
 
           <div className="flex items-center justify-between border-t hairline pt-3 text-xs text-slate">
             <span className="inline-flex items-center gap-1.5">
-              <Clock className="h-3 w-3 text-gold" />
+              <Clock className="h-3 w-3 text-[var(--color-accent-text)]" />
               {t("booking.cancelWindow", { hours: cls.cancellation_window_hours }).replace(
                 /\.$/,
                 "",

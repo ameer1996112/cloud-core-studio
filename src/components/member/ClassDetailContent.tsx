@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
+import { Clock3, UserRound, MapPin, UsersRound, Ticket } from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
-import { authImages } from "@/lib/auth-assets";
+import { resolveClassImageSrc } from "@/lib/image-assets";
 import {
   localizedClassTitle,
   localizedOptionalInstructorName,
   localizedProgramDescription,
   localizedClassMetadataChips,
 } from "@/lib/localized-content";
-import { formatDuration, formatSpots, getFriendlyStudioLocation } from "@/lib/lesson-card-variants";
+import { formatDuration, getFriendlyStudioLocation } from "@/lib/lesson-card-variants";
 import {
   StateBadge,
   formatDate,
@@ -34,26 +35,46 @@ export function ClassDetailContent({
   const instructor = localizedOptionalInstructorName(cls.instructor?.name);
   const description = localizedProgramDescription(cls.program_type);
   const duration = formatDuration(cls.duration_minutes, lang);
-  const spots = formatSpots(
-    Math.max(0, (cls.capacity ?? 0) - (cls.booked_count ?? 0)),
-    cls.capacity ?? 0,
-    lang,
-  );
   const facts = [
-    { label: t("common.when"), value: `${formatTime(cls.starts_at)} · ${duration}` },
-    ...(instructor ? [{ label: t("common.with"), value: instructor }] : []),
-    { label: t("common.where"), value: getFriendlyStudioLocation(lang) },
-    { label: t("common.spots"), value: spots },
-    guestNextStep ?? {
-      label: t("common.credits"),
-      value:
-        cls.credit_cost === 1 ? t("member.oneCredit") : `${cls.credit_cost} ${t("common.credits")}`,
-    },
+    { icon: Clock3, label: t("common.when"), value: `${formatTime(cls.starts_at)} · ${duration}` },
+    ...(instructor ? [{ icon: UserRound, label: t("common.with"), value: instructor }] : []),
+    { icon: MapPin, label: t("common.where"), value: getFriendlyStudioLocation(lang) },
+    ...(cls.status === "scheduled" && cls.capacity != null && cls.booked_count != null
+      ? [
+          {
+            icon: UsersRound,
+            label: t("schedule.availability.label"),
+            value: t(
+              cls.capacity - cls.booked_count <= 0
+                ? "state.full"
+                : cls.capacity - cls.booked_count <= 2
+                  ? "schedule.availability.few"
+                  : "schedule.availability.open",
+            ),
+          },
+        ]
+      : []),
+    guestNextStep
+      ? { ...guestNextStep, icon: Ticket }
+      : {
+          icon: Ticket,
+          label: t("common.credits"),
+          value:
+            cls.credit_cost === 1
+              ? t("member.oneCredit")
+              : `${cls.credit_cost} ${t("common.credits")}`,
+        },
   ];
   return (
     <>
       <div className="aura-detail-hero">
-        <img src={authImages.hero.src} alt={authImages.hero.alt[lang]} width={853} height={1280} />
+        <img
+          src={resolveClassImageSrc(cls, "hero")}
+          alt=""
+          width={1440}
+          height={960}
+          decoding="async"
+        />
         <div className="aura-detail-heading">
           {state && <StateBadge state={state} />}
           <h2>
@@ -67,12 +88,26 @@ export function ClassDetailContent({
         </div>
       </div>
       <div className="aura-detail-reading">
+        <div className="lesson-detail__cta">{action}</div>
         <dl className="aura-detail-facts">
           {facts.map((f) => (
             <div key={f.label}>
-              <dt>{f.label}</dt>
+              <dt>
+                <f.icon size={18} strokeWidth={1.5} aria-hidden="true" />
+                {f.label}
+              </dt>
               <dd>
-                <bdi>{f.value}</bdi>
+                <bdi>
+                  {f.value.split(/(Cloud & Core)/).map((part, index) =>
+                    part === "Cloud & Core" ? (
+                      <bdi key={index} dir="ltr" className="detail-brand-name">
+                        {part}
+                      </bdi>
+                    ) : (
+                      part
+                    ),
+                  )}
+                </bdi>
               </dd>
             </div>
           ))}
@@ -97,7 +132,6 @@ export function ClassDetailContent({
           <p>{t("booking.cancelWindow", { hours: cls.cancellation_window_hours })}</p>
           <p>{t("booking.bring")}</p>
         </section>
-        <div className="lesson-detail__cta">{action}</div>
       </div>
     </>
   );

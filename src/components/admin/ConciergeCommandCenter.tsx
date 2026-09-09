@@ -296,17 +296,17 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
   return (
     <div className="space-y-7">
       <section className="editorial-panel overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-navy p-5 text-ivory">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-5 text-foreground">
           <div className="flex items-start gap-3">
-            <Bot className="mt-0.5 h-6 w-6 text-gold" />
+            <Bot className="mt-0.5 h-6 w-6 text-[var(--color-accent-text)]" />
             <div>
               <h2 className="font-serif text-2xl">{copy.title}</h2>
-              <p className="mt-1 text-sm text-ivory/70">{copy.intro}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{copy.intro}</p>
             </div>
           </div>
           <Button
             variant="outline"
-            className="border-ivory/30 bg-transparent text-ivory hover:bg-ivory/10"
+            className="border-border bg-transparent text-foreground hover:bg-muted"
             disabled={center.isFetching}
             onClick={() => center.refetch()}
           >
@@ -427,7 +427,7 @@ export function ConciergeCommandCenter({ lang }: { lang: Lang }) {
             {simulation && (
               <pre
                 dir="ltr"
-                className="overflow-auto rounded-lg bg-navy p-4 text-left text-xs text-ivory md:col-span-2"
+                className="overflow-auto rounded-lg bg-muted p-4 text-left text-xs text-foreground md:col-span-2"
               >
                 {JSON.stringify(simulation, null, 2)}
               </pre>

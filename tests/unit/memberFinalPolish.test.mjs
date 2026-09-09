@@ -5,8 +5,15 @@ import { renderToStaticMarkup } from "react-dom/server";
 import * as TanStackRouter from "@tanstack/react-router";
 import { mock } from "bun:test";
 
-const read = (relativePath) =>
-  readFileSync(new URL(`../../${relativePath}`, import.meta.url), "utf8");
+const read = (relativePath) => {
+  const file = new URL(`../../${relativePath}`, import.meta.url);
+  const css = readFileSync(file, "utf8");
+  return relativePath === "src/styles/base.css"
+    ? css.replace(/@import "(\.\/[^"]+)";/g, (_match, path) =>
+        readFileSync(new URL(path, file), "utf8"),
+      )
+    : css;
+};
 
 mock.module("@tanstack/react-router", () => ({
   ...TanStackRouter,

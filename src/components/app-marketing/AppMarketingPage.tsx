@@ -1,3 +1,15 @@
+import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
+import {
+  createBrowserAppMarketingAnalytics,
+  createAppMarketingAnalyticsPageContext,
+  createAppMarketingPageViewGate,
+  shouldTrackAppMarketingLanguageChange,
+  type AppMarketingAnalyticsEventName,
+  type AppMarketingCtaLocation,
+} from "@/lib/app-marketing.analytics";
+import { EditorialImage } from "@/components/visual/EditorialImage";
+import { StudioLogo } from "@/components/brand/StudioLogo";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import {
   ArrowUpRight,
@@ -22,15 +34,7 @@ import {
   getAppMarketingScreenshots,
   type AppMarketingPublicProfile,
 } from "@/lib/app-marketing";
-import { authImages } from "@/lib/auth-assets";
-import {
-  createBrowserAppMarketingAnalytics,
-  createAppMarketingAnalyticsPageContext,
-  createAppMarketingPageViewGate,
-  shouldTrackAppMarketingLanguageChange,
-  type AppMarketingAnalyticsEventName,
-  type AppMarketingCtaLocation,
-} from "@/lib/app-marketing.analytics";
+
 import { applyLang, LANG_META, type Lang } from "@/lib/i18n";
 import { buildWhatsappHref } from "@/lib/instagramLanding";
 
@@ -309,15 +313,10 @@ export function AppMarketingPage({
             className="app-marketing__brand-link"
             aria-label="Cloud & Core Studio"
           >
-            <img
-              className="app-marketing__header-logo"
-              src="/brand/cloud-core-logo-full.webp"
-              alt="Cloud & Core Studio"
-              width={164}
-              height={100}
-            />
+            <StudioLogo className="app-marketing__header-logo" />
           </a>
           <div className="app-marketing__header-actions">
+            <AppearanceControl lang={lang} />
             <LanguageSelector
               lang={lang}
               marketingUtm={marketingUtm}
@@ -384,14 +383,7 @@ export function AppMarketingPage({
 
           <figure className="app-marketing__hero-media">
             <span className="app-marketing__hero-rule" aria-hidden="true" />
-            <img
-              src="/images/auth/cloud-core-auth-hero.webp"
-              alt={authImages.hero.alt[lang]}
-              width={853}
-              height={1280}
-              fetchPriority="high"
-            />
-            <figcaption aria-hidden="true">Cloud &amp; Core · Hurfeish</figcaption>
+            <EditorialImage scene="welcome" eager />
           </figure>
         </section>
 
@@ -604,12 +596,7 @@ export function AppMarketingPage({
       <footer className="app-marketing__footer">
         <div className="app-marketing__footer-primary">
           <div className="app-marketing__footer-brand">
-            <img
-              src="/brand/cloud-core-wordmark.svg"
-              alt="Cloud & Core Studio"
-              width={210}
-              height={49}
-            />
+            <StudioLogo className="app-marketing__footer-logo" />
             <p>Cloud &amp; Core Studio</p>
             <p className="app-marketing__footer-location">{copy.footer.location}</p>
             <p className="app-marketing__footer-address">{address.localized}</p>

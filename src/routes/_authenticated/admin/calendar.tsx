@@ -151,7 +151,7 @@ function CalendarPage() {
   const headerEyebrow = view === "day" ? t("calendar.dayView") : t("calendar.weekView");
 
   return (
-    <AdminPageShell>
+    <AdminPageShell className="studio-calendar">
       {/* Editorial page header */}
       <AdminPageHeader
         eyebrow={headerEyebrow}
@@ -177,24 +177,26 @@ function CalendarPage() {
         secondaryAction={<ViewToggle view={view} onChange={setView} />}
       />
 
-      <div className="space-y-7 mt-6">
-        {/* KPI strip */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <AdminMetricCard
-            label={view === "day" ? t("calendar.classesToday") : t("calendar.todayClasses")}
-            value={kpi.classes}
-          />
-          <AdminMetricCard label={t("calendar.bookedSpots")} value={kpi.bookedSpots} />
-          <AdminMetricCard
-            label={t("calendar.waitlistPressure")}
-            value={kpi.waiting}
-            accent={kpi.waiting > 0}
-          />
-          <AdminMetricCard
-            label={t("calendar.roomsInUse")}
-            value={`${kpi.roomsInUse}${rooms.length ? ` / ${rooms.length}` : ""}`}
-          />
-        </section>
+      <div className="calendar-workspace space-y-7">
+        <details className="calendar-overview">
+          <summary>{t("nav.overview")}</summary>
+          <section className="calendar-metrics grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <AdminMetricCard
+              label={view === "day" ? t("calendar.classesToday") : t("calendar.todayClasses")}
+              value={kpi.classes}
+            />
+            <AdminMetricCard label={t("calendar.bookedSpots")} value={kpi.bookedSpots} />
+            <AdminMetricCard
+              label={t("calendar.waitlistPressure")}
+              value={kpi.waiting}
+              accent={kpi.waiting > 0}
+            />
+            <AdminMetricCard
+              label={t("calendar.roomsInUse")}
+              value={`${kpi.roomsInUse}${rooms.length ? ` / ${rooms.length}` : ""}`}
+            />
+          </section>
+        </details>
 
         {/* Body */}
         {isError ? (
@@ -241,7 +243,7 @@ function CalendarPage() {
                 />
                 <span className="truncate">
                   {localizedRoomName(r.name, getLocale() as Lang)}{" "}
-                  <span className="text-slate/60">
+                  <span className="text-slate">
                     · {t("calendar.capacityShort", { count: r.capacity })}
                   </span>
                 </span>
@@ -299,15 +301,14 @@ function QuickActions() {
     { to: "/admin/attendance", icon: ClipboardCheck, label: t("nav.attendance") },
   ] as const;
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="calendar-quick-actions flex flex-wrap items-center gap-2">
       {items.map((i) => (
         <Link
           key={i.label}
           to={i.to}
           className="btn-outline inline-flex h-10 items-center gap-1.5 bg-ivory px-3 text-xs hover:btn-outline-hover"
         >
-          <i.icon className="h-3.5 w-3.5 text-gold" />{" "}
-          <span className="hidden sm:inline">{i.label}</span>
+          <i.icon className="h-3.5 w-3.5 text-[var(--color-accent-text)]" /> <span>{i.label}</span>
         </Link>
       ))}
     </div>
@@ -330,7 +331,7 @@ function CalendarSkeleton() {
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="editorial-panel p-10 text-center space-y-4">
-      <AlertCircle className="h-6 w-6 text-gold mx-auto" />
+      <AlertCircle className="h-6 w-6 text-[var(--color-accent-text)] mx-auto" />
       <p className="font-display text-xl text-navy">{t("calendar.loadErrorTitle")}</p>
       <p className="text-sm text-slate">{t("calendar.loadErrorBody")}</p>
       <button onClick={onRetry} className="btn-navy mx-auto hover:btn-navy-hover">
@@ -462,7 +463,7 @@ function DayTimeline({
                 <button
                   key={c.id}
                   onClick={() => onOpen(c.id)}
-                  className={`absolute inset-x-1.5 rounded-lg px-3 py-2 text-start overflow-hidden bg-white border transition-all duration-200 hover:shadow-[0_6px_18px_var(--cc-alpha-navy-08)] ${
+                  className={`calendar-session absolute inset-x-1.5 rounded-lg px-3 py-2 text-start overflow-hidden bg-card border transition-all duration-200 hover:shadow-[0_6px_18px_rgba(11,29,58,0.08)] ${
                     openClassId === c.id
                       ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_var(--cc-alpha-gold-15)]"
                       : "border-gold/20 hover:border-gold"
@@ -576,7 +577,7 @@ function AgendaCard({
   return (
     <button
       onClick={onOpen}
-      className={`flex w-full items-center gap-4 rounded-xl border bg-white p-4 text-start transition-all duration-200 hover:shadow-[0_8px_22px_var(--cc-alpha-navy-06)] hover:-translate-y-0.5 ${
+      className={`calendar-agenda-item flex w-full items-center gap-4 rounded-xl border bg-card p-4 text-start transition-all duration-200 hover:shadow-[0_8px_22px_rgba(11,29,58,0.06)] hover:-translate-y-0.5 ${
         isOpen
           ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_var(--cc-alpha-gold-15)]"
           : "border-gold/20 hover:border-gold/60"
@@ -600,12 +601,12 @@ function AgendaCard({
         </p>
         <p className="mt-1.5 flex items-center gap-3 text-xs text-slate">
           <span className="inline-flex items-center gap-1">
-            <Users className="h-3 w-3 text-gold" />
+            <Users className="h-3 w-3 text-[var(--color-accent-text)]" />
             {cls.booked_count}/{cls.capacity}
           </span>
           {cls.waitlist_count > 0 && (
             <span className="inline-flex items-center gap-1 text-navy">
-              <Clock className="h-3 w-3 text-gold" />
+              <Clock className="h-3 w-3 text-[var(--color-accent-text)]" />
               {t("calendar.waitingCount", { count: cls.waitlist_count })}
             </span>
           )}
@@ -618,7 +619,7 @@ function AgendaCard({
 function EmptyDay() {
   return (
     <div className="editorial-panel p-10 text-center space-y-3">
-      <Sparkles className="h-5 w-5 text-gold mx-auto" />
+      <Sparkles className="h-5 w-5 text-[var(--color-accent-text)] mx-auto" />
       <p className="font-display text-xl text-navy">{t("calendar.emptyDayTitle")}</p>
       <p className="text-sm text-slate">{t("calendar.emptyDayBody")}</p>
     </div>
@@ -709,7 +710,7 @@ function WeekDesktop({
               </div>
               <div className="p-2 space-y-1.5">
                 {items.length === 0 ? (
-                  <p className="py-6 text-xs text-slate/60 italic text-center">—</p>
+                  <p className="py-6 text-xs text-slate italic text-center">—</p>
                 ) : (
                   items.map((c: any) => (
                     <WeekBlock
@@ -736,7 +737,7 @@ function WeekBlock({ cls, onOpen, isOpen }: { cls: any; onOpen: () => void; isOp
   return (
     <button
       onClick={onOpen}
-      className={`w-full text-start bg-white border rounded-lg px-2.5 py-2 transition-all duration-200 hover:shadow-[0_6px_20px_var(--cc-alpha-navy-06)] hover:-translate-y-0.5 ${
+      className={`calendar-session w-full text-start bg-card border rounded-lg px-2.5 py-2 transition-all duration-200 hover:shadow-[0_6px_20px_rgba(11,29,58,0.06)] hover:-translate-y-0.5 ${
         isOpen
           ? "border-gold ring-1 ring-gold shadow-[0_4px_14px_var(--cc-alpha-gold-15)]"
           : "border-gold/20 hover:border-gold/60"
@@ -788,7 +789,7 @@ function WeekMobile({
 
   return (
     <div className="space-y-5">
-      <div ref={stripRef} className="-mx-5 px-5 overflow-x-auto no-scrollbar">
+      <div ref={stripRef} className="overflow-x-auto no-scrollbar">
         <div className="flex gap-2 min-w-max">
           {days.map((d) => {
             const isSelected = sameDay(d, selected);
@@ -804,7 +805,7 @@ function WeekMobile({
                     ? "bg-navy text-ivory border-navy"
                     : isToday
                       ? "bg-gold/10 border-gold text-navy"
-                      : "bg-white border-gold/30 text-navy hover:border-gold"
+                      : "bg-card border-gold/30 text-navy hover:border-gold"
                 }`}
               >
                 <p className={`text-xs font-medium ${isSelected ? "text-ivory/80" : "text-slate"}`}>
@@ -836,7 +837,7 @@ function WeekMobile({
 
 function StatusBadge({ cls, compact = false }: { cls: any; compact?: boolean }) {
   let label = t("common.open");
-  let cls2 = "border-gold/40 text-navy bg-white";
+  let cls2 = "border-gold/40 text-navy bg-card";
   if (cls.member_visible === false) {
     label = t("admin.classes.staffOnly");
     cls2 = "border-navy/20 text-navy bg-navy/5";

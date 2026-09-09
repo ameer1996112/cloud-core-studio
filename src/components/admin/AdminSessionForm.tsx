@@ -271,7 +271,7 @@ export function SessionForm({
       </header>
 
       {/* 1. Session Summary / Header Dashboard */}
-      <div className="bg-white border border-gold/25 rounded-2xl p-5 shadow-[0_4px_16px_var(--cc-alpha-navy-02)] grid grid-cols-2 md:grid-cols-4 gap-4 text-start">
+      <div className="bg-card border border-gold/25 rounded-2xl p-5 shadow-[0_4px_16px_var(--cc-alpha-navy-02)] grid grid-cols-2 md:grid-cols-4 gap-4 text-start">
         <div>
           <span className="text-[10px] uppercase tracking-wider font-semibold text-slate/80">
             {t("admin.classes.time")}
@@ -504,7 +504,7 @@ export function SessionForm({
               }
             />
           </PremiumField>
-          <div className="session-rule-card border border-gold/15 bg-white rounded-xl p-3.5 flex justify-between items-center text-start">
+          <div className="session-rule-card border border-gold/15 bg-card rounded-xl p-3.5 flex justify-between items-center text-start">
             <span className="text-xs text-slate font-medium">{t("admin.classes.ruleWindow")}</span>
             <strong className="text-navy text-sm font-semibold">
               {t("admin.classes.ruleWindowValue", {
@@ -522,7 +522,7 @@ export function SessionForm({
         description={t("admin.classes.sectionVisibilityHelp")}
       >
         <div className="space-y-3">
-          <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-gold/15 bg-white p-4 text-start">
+          <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-gold/15 bg-card p-4 text-start">
             <span className="min-w-0">
               <span className="block text-sm font-semibold text-navy">
                 {t("admin.classes.memberVisible")}
@@ -607,7 +607,7 @@ export function SessionForm({
       <div className="sticky bottom-0 z-30 -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 bg-white/95 backdrop-blur-md border-t border-gold/25 flex flex-wrap items-center justify-between gap-4 mt-8 shadow-[0_-8px_30px_var(--cc-alpha-navy-08)]">
         <div className="flex items-center gap-2 flex-wrap">
           {isDirty ? (
-            <span className="text-xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
+            <span className="text-xs font-semibold text-[var(--color-accent-text)] bg-gold/10 px-2.5 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
               <Info className="h-3.5 w-3.5" />
               {lang === "he"
                 ? "יש שינויים שלא נשמרו"
@@ -625,7 +625,7 @@ export function SessionForm({
             </span>
           )}
           {disabledReason && (
-            <span className="text-xs font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-medium text-destructive bg-destructive/10 px-2.5 py-1 rounded-full">
               {disabledReason}
             </span>
           )}
@@ -735,14 +735,14 @@ function PremiumClassEditor({
                 {selectedProgram ? programName(selectedProgram, lang) : form.title}
               </span>
             )}
-            <span className="rounded-full border border-navy/10 bg-white px-3 py-1 text-xs font-semibold text-navy">
+            <span className="rounded-full border border-navy/10 bg-card px-3 py-1 text-xs font-semibold text-navy">
               {labelForStatus(form.status ?? "scheduled")}
             </span>
           </div>
         </div>
       </header>
 
-      <section className="rounded-3xl border border-gold/20 bg-white p-5 shadow-[0_12px_35px_var(--cc-alpha-navy-05)] sm:p-6">
+      <section className="rounded-3xl border border-gold/20 bg-card p-5 shadow-[0_12px_35px_var(--cc-alpha-navy-05)] sm:p-6">
         <div className="mb-5 flex items-center gap-3 text-start">
           <span className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/25 bg-gold/8">
             <Clock3 className="h-4 w-4 text-gold" />
@@ -808,7 +808,7 @@ function PremiumClassEditor({
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gold/20 bg-white p-5 shadow-[0_12px_35px_var(--cc-alpha-navy-05)] sm:p-6">
+      <section className="rounded-3xl border border-gold/20 bg-card p-5 shadow-[0_12px_35px_var(--cc-alpha-navy-05)] sm:p-6">
         <div className="grid gap-4 sm:grid-cols-3">
           <PremiumField label={t("admin.classes.durationMin")}>
             <NumberInput
@@ -857,7 +857,7 @@ function PremiumClassEditor({
         </label>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-gold/20 bg-white">
+      <section className="overflow-hidden rounded-3xl border border-gold/20 bg-card">
         <button
           type="button"
           onClick={() => setShowDetails((current) => !current)}
@@ -950,7 +950,7 @@ function PremiumClassEditor({
       <div className="sticky bottom-4 z-30 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/25 bg-white/95 p-4 shadow-[0_18px_45px_var(--cc-alpha-navy-13)] backdrop-blur-md">
         <div className="text-start">
           {disabledReason ? (
-            <p className="text-xs font-semibold text-red-600">{disabledReason}</p>
+            <p className="text-xs font-semibold text-destructive">{disabledReason}</p>
           ) : (
             <p className="text-xs font-medium text-slate">
               {isDirty ? t("admin.classes.unsavedChanges") : t("admin.classes.allChangesSaved")}

@@ -13,7 +13,6 @@ import {
   Users,
   UserPlus,
   Wallet,
-  ChevronRight,
 } from "lucide-react";
 import { studioPulse } from "@/lib/admin.functions";
 import { ClassRosterDrawer } from "@/components/admin/ClassRosterDrawer";
@@ -292,7 +291,9 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
           : "border-s-powder";
 
   return (
-    <article className={`editorial-card p-5 border-s-4 ${tone} flex flex-col gap-4`}>
+    <article
+      className={`pulse-session-card editorial-card p-5 border-s-4 ${tone} flex flex-col gap-4`}
+    >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-slate">
@@ -310,33 +311,26 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
           <h3 className="font-display text-2xl text-navy mt-1 leading-tight truncate">{title}</h3>
           <p className="text-xs text-slate mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3 w-3 text-gold" />
-              {room}
+              <MapPin className="h-3 w-3 text-[var(--color-accent-text)]" />
+              <bdi>{room}</bdi>
             </span>
             <span className="inline-flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-gold" />
-              {instructor}
+              <Sparkles className="h-3 w-3 text-[var(--color-accent-text)]" />
+              <bdi>{instructor}</bdi>
             </span>
             <span className="inline-flex items-center gap-1">
-              <Wallet className="h-3 w-3 text-gold" />
+              <Wallet className="h-3 w-3 text-[var(--color-accent-text)]" />
               {c.credit_cost} {t("common.credit")}
             </span>
           </p>
         </div>
-        <button
-          onClick={onOpen}
-          aria-label={t("pulse.openRoster")}
-          className="btn-outline shrink-0 inline-flex h-9 items-center gap-1 px-3 text-xs hover:btn-outline-hover"
-        >
-          {t("pulse.roster")} <ChevronRight className="h-3 w-3 directional-icon-forward" />
-        </button>
       </header>
 
       {/* Capacity */}
       <div>
         <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-slate">
           <span className="inline-flex items-center gap-1">
-            <Users className="h-3 w-3 text-gold" /> {t("common.capacity")}
+            <Users className="h-3 w-3 text-[var(--color-accent-text)]" /> {t("common.capacity")}
           </span>
           <span className="text-navy">
             {booked}/{cap}
@@ -414,7 +408,9 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
                 )}
               </span>
               <span className="truncate max-w-[8rem]">{m.name?.split(" ")[0]}</span>
-              {m.is_first_timer && <Sparkles className="h-2.5 w-2.5 text-gold" />}
+              {m.is_first_timer && (
+                <Sparkles className="h-2.5 w-2.5 text-[var(--color-accent-text)]" />
+              )}
             </li>
           ))}
           {summary.booked > preview.length && (
@@ -433,13 +429,13 @@ function PulseClassCard({ c, onOpen }: { c: any; onOpen: () => void }) {
         <Link
           to="/admin/classes/$id"
           params={{ id: c.id }}
-          className="text-xs font-medium text-navy transition-colors hover:text-gold"
+          className="text-xs font-medium text-navy transition-colors hover:text-[var(--color-accent-text)]"
         >
           {t("pulse.classDetails")}
         </Link>
         <button
           onClick={onOpen}
-          className="inline-flex items-center gap-1 text-xs font-medium text-navy hover:underline"
+          className="btn-outline pulse-roster-action inline-flex items-center gap-2 text-sm font-medium"
         >
           {t("pulse.openRoster")} <ArrowRight className="h-3 w-3 directional-icon-forward" />
         </button>

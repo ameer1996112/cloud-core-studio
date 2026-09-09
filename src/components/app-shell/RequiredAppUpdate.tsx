@@ -66,9 +66,9 @@ export function RequiredAppUpdate({
         className="absolute -bottom-28 -start-20 h-80 w-80 rounded-full bg-navy/8 blur-3xl"
       />
 
-      <section className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-gold/25 bg-white/80 p-7 text-center shadow-[0_28px_80px_var(--cc-alpha-navy-16)] backdrop-blur-xl sm:p-9">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold/35 bg-navy text-ivory shadow-[0_12px_32px_var(--cc-alpha-navy-24)]">
-          <Sparkles className="h-6 w-6 text-gold" aria-hidden="true" />
+      <section className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-gold/25 bg-card p-7 text-center shadow-[0_28px_80px_rgba(11,29,58,0.16)] backdrop-blur-xl sm:p-9">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold/35 bg-navy text-ivory shadow-[0_12px_32px_rgba(11,29,58,0.24)]">
+          <Sparkles className="h-6 w-6 text-[var(--color-accent-text)]" aria-hidden="true" />
         </div>
 
         <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-dark">
@@ -94,7 +94,7 @@ export function RequiredAppUpdate({
           <Arrow className="h-4 w-4" aria-hidden="true" />
         </a>
 
-        <p className="mt-5 text-[11px] tracking-wide text-slate/70">
+        <p className="mt-5 text-[11px] tracking-wide text-slate">
           {copy.version(installedLabel, minimumVersion)}
         </p>
       </section>

@@ -1,3 +1,5 @@
+import { readSupabaseSession } from "./read-session";
+import { withDeadline } from "@/lib/async-deadline";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./client";
 import {
@@ -17,7 +19,7 @@ function secondsUntilSessionExpires(session: Session) {
 }
 
 export async function getFreshSupabaseSession() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await readSupabaseSession();
   if (error) {
     return restoreSessionFromRefreshCookie();
   }
@@ -32,10 +34,13 @@ export async function getFreshSupabaseSession() {
     return session;
   }
 
-  const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+  const { data: refreshed, error: refreshError } = await withDeadline(
+    supabase.auth.refreshSession(),
+  );
   if (refreshError || !refreshed.session) {
-    clearSupabaseAccessTokenCookie();
-    return null;
+    // A failed network refresh does not revoke an otherwise valid session.
+    if (secondsUntilSessionExpires(session) > 0) return session;
+    throw refreshError ?? new Error("Unable to refresh session. Please retry.");
   }
 
   syncSupabaseAccessTokenCookie(refreshed.session);
@@ -49,10 +54,11 @@ async function restoreSessionFromRefreshCookie() {
     return null;
   }
 
-  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+  const { data, error } = await withDeadline(
+    supabase.auth.refreshSession({ refresh_token: refreshToken }),
+  );
   if (error || !data.session) {
-    clearSupabaseAccessTokenCookie();
-    return null;
+    throw error ?? new Error("Unable to restore session. Please retry.");
   }
 
   syncSupabaseAccessTokenCookie(data.session);

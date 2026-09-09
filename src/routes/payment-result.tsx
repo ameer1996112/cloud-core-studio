@@ -1,3 +1,4 @@
+import { EditorialImage } from "@/components/visual/EditorialImage";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
 import { buildAuthReturnToHref } from "@/lib/guest-auth-intent";
@@ -92,14 +93,9 @@ function PaymentResultPage() {
   return (
     <PublicShell
       headerMode="compact"
-      mainClassName="relative min-h-screen overflow-hidden bg-[var(--cc-payment-canvas)] px-5 py-[max(2.5rem,env(safe-area-inset-top))] text-navy"
+      mainClassName="payment-result-page relative min-h-screen overflow-hidden bg-[var(--cc-payment-canvas)] px-5 py-[max(2.5rem,env(safe-area-inset-top))] text-navy"
     >
-      <img
-        src="/images/auth/cloud-core-auth-hero.webp"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.13] blur-[1px] saturate-[0.85]"
-      />
+      <EditorialImage scene="fabric" className="payment-editorial-photo" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--cc-alpha-white-92),var(--cc-alpha-paper-84)_44%,var(--cc-payment-surface-end)_100%)]" />
       <div className="pointer-events-none absolute inset-x-10 top-8 h-32 rounded-full bg-white/55 blur-3xl" />
       <section className="relative mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-md items-center">
@@ -132,16 +128,16 @@ function PaymentResultPage() {
           <div className="mt-6 rounded-2xl border border-gold/20 bg-ivory/70 p-4 text-start">
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs font-bold text-slate">{t("paymentResult.status")}</span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-navy shadow-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-xs font-bold text-navy shadow-sm">
                 <ShieldCheck className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
                 {t("paymentResult.securedByHyp")}
               </span>
             </div>
-            <p className="mt-3 text-sm leading-6 text-slate/90">{detail}</p>
+            <p className="mt-3 text-sm leading-6 text-slate">{detail}</p>
             {paymentId && (
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-gold/20 pt-3 text-xs font-semibold text-slate">
                 <span>{t("paymentResult.reference")}</span>
-                <BidiValue kind="identifier" className="rounded-full bg-white px-3 py-1 text-navy">
+                <BidiValue kind="identifier" className="rounded-full bg-card px-3 py-1 text-navy">
                   {paymentId.slice(0, 8)}
                 </BidiValue>
               </div>
@@ -168,7 +164,7 @@ function PaymentResultPage() {
             </Link>
             <Link
               to="/member/schedule"
-              className="inline-flex min-h-14 items-center justify-center rounded-full border border-gold/35 bg-white/80 px-5 py-3 text-base font-semibold text-navy transition hover:border-gold/60 hover:bg-ivory"
+              className="inline-flex min-h-14 items-center justify-center rounded-full border border-gold/35 bg-card px-5 py-3 text-base font-semibold text-navy transition hover:border-gold/60 hover:bg-ivory"
             >
               {t("paymentResult.backToSchedule")}
             </Link>

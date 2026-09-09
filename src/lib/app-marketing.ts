@@ -275,7 +275,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     storeAccessibleLabel: "הורדת Cloud & Core מה־App Store",
     hero: {
       eyebrow: "Cloud & Core Studio · חורפיש",
-      title: "יוגה אווירית ופילאטיס בחורפיש — הרשמה קלה דרך האפליקציה",
+      title: "יוגה אווירית ופילאטיס, בקצב שלך",
       body: "צפי בלוח השיעורים, בחרי את החוג שמתאים לך, הזמיני מקום ועקבי אחרי המנוי והקרדיטים — הכול במקום אחד.",
       primaryCta: "צפייה בלוח והרשמה",
       storeCta: "הורדה מה־App Store",
@@ -366,7 +366,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     storeAccessibleLabel: "حمّلي تطبيق Cloud & Core من App Store",
     hero: {
       eyebrow: "Cloud & Core Studio · حرفيش",
-      title: "يوغا هوائية وبيلاتس بحرفيش — الحجز بسهولة من التطبيق",
+      title: "يوغا هوائية وبيلاتس، على إيقاعك",
       body: "شوفي جدول الحصص، اختاري الحصة المناسبة، احجزي مكانك وتابعي اشتراكك ورصيدك — كله بمكان واحد.",
       primaryCta: "شوفي الجدول واحجزي",
       storeCta: "حمّلي من App Store",
@@ -457,7 +457,7 @@ export const APP_MARKETING_COPY: Record<Lang, AppMarketingCopy> = {
     storeAccessibleLabel: "Download Cloud & Core on the App Store",
     hero: {
       eyebrow: "Cloud & Core Studio · Hurfeish",
-      title: "Aerial Yoga and Pilates in Hurfeish — Easy Booking Through the App",
+      title: "Aerial yoga and Pilates, at your pace",
       body: "View the schedule, choose your class, reserve your place, and track your membership and credits in one place.",
       primaryCta: "View Schedule and Book",
       storeCta: "Download on the App Store",

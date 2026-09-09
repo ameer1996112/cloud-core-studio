@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/admin/members/$id")({
 });
 
 function Page() {
-  const { lang, t } = useI18n();
+  const { lang, dir, t } = useI18n();
   useDocumentTitle("page.memberDetail.title");
   const { id } = Route.useParams();
   const qc = useQueryClient();
@@ -53,7 +53,7 @@ function Page() {
   const delNoteFn = useServerFn(deleteMemberNote);
   const deleteMemberFn = useServerFn(deleteMemberAccount);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["admin-member", id],
     queryFn: () => fn({ data: { memberId: id } }),
   });
@@ -113,17 +113,17 @@ function Page() {
         },
       }),
     onSuccess: () => {
-      toast.success("Profile saved");
+      toast.success(t("admin.memberDetail.profileSaved"));
       setEditProfile(false);
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed"),
+    onError: (e: any) => toast.error(e?.message ?? t("admin.memberDetail.failed")),
   });
 
   const toggleStatus = useMutation({
     mutationFn: (status: "active" | "inactive") => profileFn({ data: { memberId: id, status } }),
     onSuccess: () => {
-      toast.success("Status updated");
+      toast.success(t("admin.memberDetail.statusUpdated"));
       invalidate();
     },
   });
@@ -132,10 +132,10 @@ function Page() {
     mutationFn: () => creditsFn({ data: { memberId: id, delta, reason } }),
     onSuccess: (r: any) => {
       if (r?.status === "ok") {
-        toast.success("Credits updated");
+        toast.success(t("admin.memberDetail.creditsUpdated"));
         setReason("");
         invalidate();
-      } else toast.error(r?.message ?? "Failed");
+      } else toast.error(r?.message ?? t("admin.memberDetail.failed"));
     },
   });
 
@@ -143,7 +143,7 @@ function Page() {
     mutationFn: () =>
       addNoteFn({ data: { memberId: id, body: noteBody, important: noteImportant } }),
     onSuccess: () => {
-      toast.success("Note added");
+      toast.success(t("admin.memberDetail.noteAdded"));
       setNoteBody("");
       setNoteImportant(false);
       invalidate();
@@ -157,28 +157,65 @@ function Page() {
   const sendReset = useMutation({
     mutationFn: () =>
       resetFn({ data: { memberId: id, redirectTo: `${window.location.origin}/reset-password` } }),
-    onSuccess: (r: any) => toast.success(`Reset link sent to ${formatBidiValue(r.email, "email")}`),
-    onError: (e: any) => toast.error(e?.message ?? "Failed"),
+    onSuccess: (r: any) =>
+      toast.success(
+        t("admin.memberDetail.resetSent", { email: formatBidiValue(r.email, "email") }),
+      ),
+    onError: (e: any) => toast.error(e?.message ?? t("admin.memberDetail.failed")),
   });
   const setPw = useMutation({
     mutationFn: () => setPwFn({ data: { memberId: id, password: newPassword } }),
     onSuccess: () => {
-      toast.success("Password updated");
+      toast.success(t("admin.memberDetail.passwordUpdated"));
       setNewPassword("");
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed"),
+    onError: (e: any) => toast.error(e?.message ?? t("admin.memberDetail.failed")),
   });
   const deleteMember = useMutation({
     mutationFn: () => deleteMemberFn({ data: { memberId: id, confirmation: deleteConfirm } }),
     onSuccess: () => {
-      toast.success("Member deleted");
+      toast.success(t("admin.memberDetail.deleted"));
       qc.removeQueries({ queryKey: ["admin-member", id] });
       window.location.href = "/admin/members";
     },
-    onError: (e: any) => toast.error(e?.message ?? "Delete failed"),
+    onError: (e: any) => toast.error(e?.message ?? t("admin.memberDetail.deleteFailed")),
   });
 
-  if (isLoading || !data?.member) return <div className="h-40 editorial-panel animate-pulse" />;
+  if (isLoading)
+    return (
+      <div
+        role="status"
+        aria-label={t("common.loading")}
+        className="h-40 editorial-panel animate-pulse"
+      />
+    );
+  if (isError || !data?.member)
+    return (
+      <section
+        className="editorial-panel p-6 space-y-4"
+        dir={dir}
+        role={isError ? "alert" : "status"}
+      >
+        <h1 className="section-title">
+          {t(isError ? "admin.memberDetail.loadError" : "admin.memberDetail.notFound")}
+        </h1>
+        <p>{t(isError ? "admin.memberDetail.loadHint" : "admin.memberDetail.notFoundHint")}</p>
+        <div className="flex flex-wrap gap-3">
+          {isError && (
+            <button
+              className="btn-navy px-5 py-3"
+              disabled={isFetching}
+              onClick={() => void refetch()}
+            >
+              {t(isFetching ? "common.loading" : "common.retry")}
+            </button>
+          )}
+          <Link to="/admin/members" className="btn-outline px-5 py-3">
+            {t("admin.memberDetail.back")}
+          </Link>
+        </div>
+      </section>
+    );
   const m = data.member as any;
   const activePlan = (data.plans ?? []).find((p: any) => p.status === "active");
   const deleteConfirmationOptions = [m.email, m.name]
@@ -187,19 +224,19 @@ function Page() {
   const canDelete = deleteConfirmationOptions.includes(deleteConfirm.trim());
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={dir}>
       <Link
         to="/admin/members"
         className="inline-flex items-center gap-1.5 text-xs font-medium text-slate transition-colors hover:text-navy"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> All members
+        <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" /> {t("admin.memberDetail.back")}
       </Link>
 
       {/* Identity header */}
       <div className="editorial-panel p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <p className="eyebrow">Member</p>
+            <p className="eyebrow">{t("admin.memberDetail.member")}</p>
             <h2 className="font-display text-4xl font-light text-navy mt-2">{m.name}</h2>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-slate">
               {m.phone && (
@@ -219,12 +256,12 @@ function Page() {
               <StatusBadge status={m.status} />
               {m.is_first_timer || (m.attendance_count ?? 0) === 0 ? (
                 <Pill tone="gold">
-                  <Sparkles className="h-2.5 w-2.5" /> First-timer
+                  <Sparkles className="h-2.5 w-2.5" /> {t("admin.memberDetail.firstTimer")}
                 </Pill>
               ) : null}
               {m.care_notes && (
                 <Pill tone="amber">
-                  <AlertTriangle className="h-2.5 w-2.5" /> Care notes
+                  <AlertTriangle className="h-2.5 w-2.5" /> {t("admin.memberDetail.care")}
                 </Pill>
               )}
               {(m.tags ?? []).map((t: string) => (
@@ -239,33 +276,37 @@ function Page() {
               onClick={() => toggleStatus.mutate(m.status === "active" ? "inactive" : "active")}
               className="btn-outline px-3 py-2 text-xs hover:btn-outline-hover"
             >
-              Mark {m.status === "active" ? "inactive" : "active"}
+              {t(
+                m.status === "active"
+                  ? "admin.memberDetail.deactivate"
+                  : "admin.memberDetail.activate",
+              )}
             </button>
             <button
               onClick={startEdit}
               className="btn-navy inline-flex items-center gap-1.5 px-3 py-2 text-xs hover:btn-navy-hover"
             >
-              <Pencil className="h-3.5 w-3.5" /> Edit profile
+              <Pencil className="h-3.5 w-3.5" /> {t("admin.memberDetail.edit")}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gold/20">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gold/20">
           <Stat
-            label="Credits"
+            label={t("admin.memberDetail.credits")}
             value={<BidiValue kind="identifier">{m.remaining_credits}</BidiValue>}
           />
-          <Stat label="Visits" value={m.attendance_count} />
+          <Stat label={t("admin.memberDetail.visits")} value={m.attendance_count} />
           <Stat
-            label="Spent"
+            label={t("admin.memberDetail.spent")}
             value={<BidiValue kind="currency">₪{Math.round(data.total_spend)}</BidiValue>}
           />
           <Stat
-            label="Last"
+            label={t("admin.memberDetail.last")}
             value={
               m.last_visit_at ? (
                 <BidiValue kind="localized-date">
-                  {new Date(m.last_visit_at).toLocaleDateString(undefined, {
+                  {new Date(m.last_visit_at).toLocaleDateString(lang, {
                     month: "short",
                     day: "numeric",
                   })}
@@ -280,13 +321,13 @@ function Page() {
           <div className="mt-6 pt-6 border-t border-gold/20 grid sm:grid-cols-2 gap-4">
             {m.care_notes && (
               <div className="rounded-xl border border-gold/50 bg-gold/10 p-3">
-                <p className="eyebrow text-navy">Care notes</p>
+                <p className="eyebrow text-navy">{t("admin.memberDetail.care")}</p>
                 <p className="text-sm text-navy mt-1 whitespace-pre-line">{m.care_notes}</p>
               </div>
             )}
             {m.emergency_contact && (
               <div>
-                <p className="eyebrow">Emergency contact</p>
+                <p className="eyebrow">{t("admin.memberDetail.emergency")}</p>
                 <p className="text-sm text-navy mt-1">{m.emergency_contact}</p>
               </div>
             )}
@@ -304,24 +345,25 @@ function Page() {
           className="editorial-panel p-6 space-y-4"
         >
           <div className="flex items-center justify-between">
-            <h3 className="section-title">Edit profile</h3>
+            <h3 className="section-title">{t("admin.memberDetail.edit")}</h3>
             <button
               type="button"
               onClick={() => setEditProfile(false)}
+              aria-label={t("admin.memberDetail.cancel")}
               className="btn-ghost p-2 hover:btn-ghost-hover"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Name">
+            <Field label={t("admin.memberDetail.name")}>
               <input
                 className="editorial-input"
                 value={profileForm.name}
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
               />
             </Field>
-            <Field label="Status">
+            <Field label={t("admin.memberDetail.status")}>
               <select
                 className="editorial-input"
                 value={profileForm.status}
@@ -331,7 +373,7 @@ function Page() {
                 <option value="inactive">{t("admin.statusInactive")}</option>
               </select>
             </Field>
-            <Field label="Phone">
+            <Field label={t("admin.memberDetail.phone")}>
               <input
                 type="tel"
                 dir={bidiDirectionFor("phone")}
@@ -340,7 +382,7 @@ function Page() {
                 onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
               />
             </Field>
-            <Field label="Email">
+            <Field label={t("admin.memberDetail.email")}>
               <input
                 type="email"
                 dir={bidiDirectionFor("email")}
@@ -349,7 +391,7 @@ function Page() {
                 onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
               />
             </Field>
-            <Field label="Language">
+            <Field label={t("admin.memberDetail.language")}>
               <select
                 className="editorial-input"
                 value={profileForm.preferred_language}
@@ -362,7 +404,7 @@ function Page() {
                 <option value="ar">العربية</option>
               </select>
             </Field>
-            <Field label="Energy preference">
+            <Field label={t("admin.memberDetail.energy")}>
               <select
                 className="editorial-input"
                 value={profileForm.energy_preference}
@@ -371,38 +413,38 @@ function Page() {
                 }
               >
                 <option value="">{t("admin.noPreference")}</option>
-                <option value="calm">calm</option>
-                <option value="grounding">grounding</option>
-                <option value="uplifting">uplifting</option>
-                <option value="restorative">restorative</option>
+                <option value="calm">{t("admin.memberDetail.calm")}</option>
+                <option value="grounding">{t("admin.memberDetail.grounding")}</option>
+                <option value="uplifting">{t("admin.memberDetail.uplifting")}</option>
+                <option value="restorative">{t("admin.memberDetail.restorative")}</option>
               </select>
             </Field>
           </div>
-          <Field label="Tags (comma-separated)">
+          <Field label={t("admin.memberDetail.tags")}>
             <input
               className="editorial-input"
               value={profileForm.tags}
               onChange={(e) => setProfileForm({ ...profileForm, tags: e.target.value })}
-              placeholder="VIP, prenatal, returning"
+              placeholder={t("admin.memberDetail.tagsHint")}
             />
           </Field>
-          <Field label="Emergency contact">
+          <Field label={t("admin.memberDetail.emergency")}>
             <input
               className="editorial-input"
               value={profileForm.emergency_contact}
               onChange={(e) =>
                 setProfileForm({ ...profileForm, emergency_contact: e.target.value })
               }
-              placeholder="Name + phone"
+              placeholder={t("admin.memberDetail.emergencyHint")}
             />
           </Field>
-          <Field label="Care notes (visible on roster)">
+          <Field label={t("admin.memberDetail.rosterCare")}>
             <textarea
               rows={3}
               className="editorial-input"
               value={profileForm.care_notes}
               onChange={(e) => setProfileForm({ ...profileForm, care_notes: e.target.value })}
-              placeholder="Pregnancy, knee injury, etc."
+              placeholder={t("admin.memberDetail.careHint")}
             />
           </Field>
           <div className="flex gap-2 pt-2">
@@ -411,14 +453,15 @@ function Page() {
               disabled={saveProfile.isPending}
               className="btn-navy inline-flex items-center gap-2 px-4 py-2.5 text-xs hover:btn-navy-hover disabled:opacity-60"
             >
-              <Save className="h-3.5 w-3.5" /> Save
+              <Save className="h-3.5 w-3.5" /> {t("admin.memberDetail.save")}
             </button>
             <button
               type="button"
               onClick={() => setEditProfile(false)}
+              aria-label={t("admin.memberDetail.cancel")}
               className="btn-outline px-4 py-2.5 text-xs hover:btn-outline-hover"
             >
-              Cancel
+              {t("admin.memberDetail.cancel")}
             </button>
           </div>
         </form>
@@ -426,7 +469,7 @@ function Page() {
 
       {/* Active package */}
       <section className="editorial-panel p-6 space-y-3">
-        <h3 className="section-title">Active package</h3>
+        <h3 className="section-title">{t("admin.memberDetail.activePackage")}</h3>
         {activePlan ? (
           <div className="flex items-center justify-between">
             <div>
@@ -434,24 +477,24 @@ function Page() {
                 {activePlan.plan ? getPlanDisplay(activePlan.plan, lang).name : "—"}
               </p>
               <p className="mt-1 text-xs font-medium text-slate">
-                {activePlan.credits_granted} credits granted ·{" "}
+                {t("admin.memberDetail.granted", { count: activePlan.credits_granted })} ·{" "}
                 {activePlan.expires_at ? (
                   <>
-                    expires{" "}
+                    {t("admin.memberDetail.expires")}{" "}
                     <BidiValue kind="localized-date">
-                      {new Date(activePlan.expires_at).toLocaleDateString()}
+                      {new Date(activePlan.expires_at).toLocaleDateString(lang)}
                     </BidiValue>
                   </>
                 ) : (
-                  "no expiry"
+                  t("admin.memberDetail.noExpiry")
                 )}
               </p>
             </div>
             <Link
               to="/admin/plans"
-              className="text-xs font-medium text-navy transition-colors hover:text-gold"
+              className="text-xs font-medium text-navy transition-colors hover:text-[var(--color-accent-text)]"
             >
-              Manage plans →
+              {t("admin.memberDetail.manage")}
             </Link>
           </div>
         ) : (
@@ -461,12 +504,12 @@ function Page() {
 
       {/* Internal notes */}
       <section className="editorial-panel p-6 space-y-4">
-        <h3 className="section-title">Internal notes</h3>
+        <h3 className="section-title">{t("admin.memberDetail.internalNotes")}</h3>
         <div className="space-y-2">
           <textarea
             rows={2}
             className="editorial-input"
-            placeholder="Add a private staff note…"
+            placeholder={t("admin.memberDetail.privateNote")}
             value={noteBody}
             onChange={(e) => setNoteBody(e.target.value)}
           />
@@ -477,14 +520,16 @@ function Page() {
                 checked={noteImportant}
                 onChange={(e) => setNoteImportant(e.target.checked)}
               />{" "}
-              Important
+              {t("admin.memberDetail.important")}
             </label>
             <button
-              onClick={() => (noteBody.trim() ? addNote.mutate() : toast.error("Empty note"))}
+              onClick={() =>
+                noteBody.trim() ? addNote.mutate() : toast.error(t("admin.memberDetail.emptyNote"))
+              }
               disabled={addNote.isPending}
               className="btn-navy px-4 py-2 text-xs hover:btn-navy-hover disabled:opacity-60"
             >
-              Add note
+              {t("admin.memberDetail.addNote")}
             </button>
           </div>
         </div>
@@ -498,6 +543,7 @@ function Page() {
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm text-navy whitespace-pre-line">{n.body}</p>
                 <button
+                  aria-label={t("admin.memberDetail.deleteNote")}
                   onClick={() => delNote.mutate(n.id)}
                   className="text-slate hover:text-destructive shrink-0"
                 >
@@ -506,7 +552,7 @@ function Page() {
               </div>
               <p className="mt-2 text-xs font-medium text-slate">
                 <BidiDateTime value={n.created_at} />
-                {n.important && " · important"}
+                {n.important && ` · ${t("admin.memberDetail.important")}`}
               </p>
             </div>
           ))}
@@ -515,37 +561,38 @@ function Page() {
 
       {/* Adjust credits */}
       <section className="editorial-panel p-6 space-y-3">
-        <h3 className="section-title">Adjust credits</h3>
-        <p className="text-xs text-slate">
-          Every adjustment is recorded in the credit ledger. Reason is required.
-        </p>
+        <h3 className="section-title">{t("admin.memberDetail.adjust")}</h3>
+        <p className="text-xs text-slate">{t("admin.memberDetail.ledgerHint")}</p>
         <div className="flex gap-2">
           <input
             type="number"
+            aria-label={t("common.credits")}
             className="w-24 editorial-input"
             value={delta}
             onChange={(e) => setDelta(+e.target.value)}
           />
           <input
             className="flex-1 editorial-input"
-            placeholder="Reason (required)"
+            placeholder={t("admin.memberDetail.reason")}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
         </div>
         <button
-          onClick={() => (reason.trim() ? adjust.mutate() : toast.error("Reason required"))}
+          onClick={() =>
+            reason.trim() ? adjust.mutate() : toast.error(t("admin.memberDetail.reasonRequired"))
+          }
           disabled={adjust.isPending}
           className="btn-navy px-4 py-2 text-xs hover:btn-navy-hover disabled:opacity-60"
         >
-          Apply
+          {t("admin.memberDetail.apply")}
         </button>
       </section>
 
       {/* Bookings, attendance, payments, ledger */}
       <ListSection
-        title={`Upcoming & past bookings (${data.bookings.length})`}
-        empty="No bookings."
+        title={t("admin.memberDetail.bookings", { count: data.bookings.length })}
+        empty={t("admin.memberDetail.noBookings")}
       >
         {data.bookings.map((b: any) => (
           <Row
@@ -556,14 +603,14 @@ function Page() {
                 {b.class?.starts_at ? <BidiDateTime value={b.class.starts_at} /> : ""} · {b.status}
               </>
             }
-            right={`${b.credit_cost} credit${b.credit_cost === 1 ? "" : "s"}`}
+            right={t("admin.memberDetail.creditCount", { count: b.credit_cost })}
           />
         ))}
       </ListSection>
 
       <ListSection
-        title={`Attendance history (${data.attendance.length})`}
-        empty="No attendance history yet."
+        title={t("admin.memberDetail.attendance", { count: data.attendance.length })}
+        empty={t("admin.memberDetail.noAttendance")}
       >
         {data.attendance.map((a: any) => (
           <Row
@@ -576,15 +623,15 @@ function Page() {
       </ListSection>
 
       <ListSection
-        title={`Payment history (${data.payments.length})`}
-        empty="No payments recorded."
+        title={t("admin.memberDetail.payments", { count: data.payments.length })}
+        empty={t("admin.memberDetail.noPayments")}
       >
         {data.payments.map((p: any) => (
           <Row
             key={p.id}
             primary={p.plan ? getPlanDisplay(p.plan, lang).name : (p.notes ?? p.method)}
             meta={`${formatBidiValue(
-              new Date(p.paid_at).toLocaleDateString(),
+              new Date(p.paid_at).toLocaleDateString(lang),
               "localized-date",
             )} · ${p.method} · ${p.status}`}
             right={formatBidiValue(
@@ -595,14 +642,19 @@ function Page() {
         ))}
       </ListSection>
 
-      <ListSection title={`Credit ledger (${data.ledger.length})`} empty="No credit activity.">
+      <ListSection
+        title={t("admin.memberDetail.ledger", { count: data.ledger.length })}
+        empty={t("admin.memberDetail.noLedger")}
+      >
         {data.ledger.map((l: any) => (
           <Row
             key={l.id}
             primary={l.reason}
             meta={<BidiDateTime value={l.created_at} />}
             right={
-              <span className={l.amount_delta < 0 ? "text-slate" : "text-gold"}>
+              <span
+                className={l.amount_delta < 0 ? "text-slate" : "text-[var(--color-accent-text)]"}
+              >
                 {l.amount_delta > 0 ? "+" : ""}
                 {l.amount_delta}
               </span>
@@ -613,20 +665,22 @@ function Page() {
 
       {/* Sign-in */}
       <section className="editorial-panel p-6 space-y-3">
-        <h3 className="section-title">Sign-in & password</h3>
-        <p className="text-xs text-slate">Email a reset link or set a new password directly.</p>
+        <h3 className="section-title">{t("admin.memberDetail.signin")}</h3>
+        <p className="text-xs text-slate">{t("admin.memberDetail.resetHint")}</p>
         <button
           onClick={() => sendReset.mutate()}
           disabled={sendReset.isPending}
           className="btn-outline w-full px-4 py-2.5 text-xs hover:btn-outline-hover disabled:opacity-60"
         >
-          {sendReset.isPending ? "Sending…" : "Email reset link to member"}
+          {sendReset.isPending
+            ? t("admin.memberDetail.sending")
+            : t("admin.memberDetail.sendReset")}
         </button>
         <div className="flex gap-2 pt-2 border-t border-gold/15">
           <input
             type="password"
             className="flex-1 editorial-input"
-            placeholder="New password (min 8 chars)"
+            placeholder={t("admin.memberDetail.newPassword")}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             autoComplete="new-password"
@@ -634,16 +688,16 @@ function Page() {
           <button
             onClick={() => {
               if (newPassword.length < 8) {
-                toast.error("Use at least 8 characters");
+                toast.error(t("admin.memberDetail.passwordLength"));
                 return;
               }
-              if (!confirm("Set a new password for this member?")) return;
+              if (!confirm(t("admin.memberDetail.confirmPassword"))) return;
               setPw.mutate();
             }}
             disabled={setPw.isPending}
             className="btn-navy px-4 py-2.5 text-xs hover:btn-navy-hover disabled:opacity-60"
           >
-            Set
+            {t("admin.memberDetail.set")}
           </button>
         </div>
       </section>
@@ -651,22 +705,23 @@ function Page() {
       {/* Danger zone */}
       <section className="editorial-panel border-red-200/80 bg-red-50/40 p-6 space-y-4">
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-red-200 bg-white text-red-700">
+          <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-red-200 bg-card text-red-700">
             <Trash2 className="h-4 w-4" />
           </span>
           <div>
-            <h3 className="section-title text-red-950">Delete member</h3>
+            <h3 className="section-title text-red-950">{t("admin.memberDetail.delete")}</h3>
             <p className="mt-1 text-sm leading-6 text-red-900/75">
-              Permanently removes this member, sign-in account, bookings, payments, packages,
-              credits, notes, and related cleanup records. Use this only for duplicate or test
-              accounts.
+              {t("admin.memberDetail.deleteBody")}
             </p>
           </div>
         </div>
-        <Field label={`Type ${m.email ? formatBidiValue(m.email, "email") : m.name} to confirm`}>
+        <Field
+          label={t("admin.memberDetail.confirmDelete", {
+            identity: m.email ? formatBidiValue(m.email, "email") : m.name,
+          })}
+        >
           <input
-            className="editorial-input border-red-200 bg-white"
-            dir={m.email ? bidiDirectionFor("email") : "auto"}
+            className="editorial-input border-red-200 bg-card"
             value={deleteConfirm}
             onChange={(e) => setDeleteConfirm(e.target.value)}
             placeholder={m.email || m.name}
@@ -679,13 +734,15 @@ function Page() {
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-700 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          {deleteMember.isPending ? "Deleting…" : "Delete member permanently"}
+          {deleteMember.isPending
+            ? t("admin.memberDetail.deleting")
+            : t("admin.memberDetail.deleteForever")}
         </button>
       </section>
 
       {/* Activity */}
       <section>
-        <h3 className="section-title mb-3">Activity log</h3>
+        <h3 className="section-title mb-3">{t("admin.memberDetail.activity")}</h3>
         <div className="space-y-1.5">
           {(audit ?? []).slice(0, 10).map((a: any) => (
             <div key={a.id} className="editorial-card px-3 py-2 text-xs font-medium text-slate">
@@ -710,7 +767,7 @@ function Stat({ label, value }: { label: string; value: any }) {
 function Pill({ tone, children }: { tone: "gold" | "amber" | "quiet"; children: React.ReactNode }) {
   const cls =
     tone === "gold"
-      ? "text-gold border-gold/40"
+      ? "text-[var(--color-accent-text)] border-gold/40"
       : tone === "amber"
         ? "text-navy border-gold/50 bg-gold/10"
         : "text-slate border-gold/25";

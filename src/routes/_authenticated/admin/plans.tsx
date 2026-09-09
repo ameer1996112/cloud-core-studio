@@ -1,3 +1,4 @@
+import { StaffFormDialog } from "@/components/admin/StaffFormDialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -237,7 +238,7 @@ function PlanCard({ plan, lang, onEdit }: { plan: Plan; lang: Lang; onEdit: () =
 function Benefit({ children }: { children: React.ReactNode }) {
   return (
     <p className="flex items-center gap-2">
-      <Check className="h-3.5 w-3.5 text-gold" /> {children}
+      <Check className="h-3.5 w-3.5 text-[var(--color-accent-text)]" /> {children}
     </p>
   );
 }
@@ -267,8 +268,11 @@ function PlanModal({
   const isCanonical = typeof form.description === "string" && form.description.startsWith("cloud_");
 
   return (
-    <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_var(--cc-alpha-navy-30)] space-y-6">
+    <StaffFormDialog
+      title={initial ? t("admin.plans.edit") : t("admin.plans.add")}
+      onClose={onClose}
+    >
+      <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-7 shadow-[0_30px_60px_-30px_rgba(11,29,58,0.3)] space-y-6">
         <div className="flex items-center justify-between border-b border-gold/30 pb-4">
           <div>
             <p className="eyebrow">{t("admin.plans.setup")}</p>
@@ -373,6 +377,6 @@ function PlanModal({
           </button>
         </div>
       </div>
-    </div>
+    </StaffFormDialog>
   );
 }

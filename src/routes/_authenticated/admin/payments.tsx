@@ -1,3 +1,4 @@
+import { StaffFormDialog } from "@/components/admin/StaffFormDialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -421,7 +422,11 @@ function PaymentsPage() {
                   retry: () => void refetch(),
                 }
               : (data?.length ?? 0) === 0
-                ? { status: "empty", title: t("payments.empty"), body: t("payments.empty") }
+                ? {
+                    status: "empty",
+                    title: t("admin.memberDetail.paymentsEmptyTitle"),
+                    body: t("payments.empty"),
+                  }
                 : { status: "ready", data: data ?? [] }
         }
       >
@@ -436,7 +441,7 @@ function PaymentsPage() {
       </AsyncState>
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6">
+        <StaffFormDialog title={t("payments.record")} onClose={() => setOpen(false)}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -565,7 +570,7 @@ function PaymentsPage() {
               </button>
             </div>
           </form>
-        </div>
+        </StaffFormDialog>
       )}
     </AdminPageShell>
   );

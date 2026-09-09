@@ -192,7 +192,7 @@ export function SupportPresentation({
           <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
             <a
               href="mailto:cloudandcorestudio@gmail.com"
-              className="group flex min-w-0 items-center gap-4 rounded-xl border border-gold/30 bg-white/70 p-5 transition-all hover:bg-gold/5"
+              className="group flex min-w-0 items-center gap-4 rounded-xl border border-gold/30 bg-card/70 p-5 transition-all hover:bg-gold/5"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold/10 text-gold transition-transform group-hover:scale-110">
                 <Mail className="h-6 w-6" />
@@ -209,7 +209,7 @@ export function SupportPresentation({
               href="https://wa.me/message/S5HBZNKUMX45O1"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex min-w-0 items-center gap-4 rounded-xl border border-gold/30 bg-white/70 p-5 transition-all hover:bg-gold/5"
+              className="group flex min-w-0 items-center gap-4 rounded-xl border border-gold/30 bg-card/70 p-5 transition-all hover:bg-gold/5"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold/10 text-gold transition-transform group-hover:scale-110">
                 <Phone className="h-6 w-6" />
@@ -233,7 +233,7 @@ export function SupportPresentation({
               <Link
                 key={item.title}
                 to={item.to}
-                className="rounded-xl border border-gold/20 bg-white/75 p-4 transition-colors hover:border-gold/40 hover:bg-gold/5"
+                className="rounded-xl border border-gold/20 bg-card/75 p-4 transition-colors hover:border-gold/40 hover:bg-gold/5"
               >
                 <h3 className="text-base font-semibold text-navy">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate">{item.body}</p>
@@ -244,7 +244,7 @@ export function SupportPresentation({
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {data.items.map((item) => (
-            <section key={item.title} className="border hairline bg-white/70 p-4">
+            <section key={item.title} className="border hairline bg-card/70 p-4">
               <h2 className="text-base font-semibold text-navy">{item.title}</h2>
               <p className="mt-2 text-sm leading-6 text-slate">{item.body}</p>
             </section>

@@ -15,7 +15,7 @@ export function ConciergeWhatsappPreview({ preview }: { preview: ConciergeBrande
           <div
             dir={preview.dir}
             lang={preview.locale}
-            className="rounded-lg rounded-tl-none bg-white p-3 text-sm leading-6 text-slate-800 shadow-sm"
+            className="rounded-lg rounded-tl-none bg-card p-3 text-sm leading-6 text-slate-800 shadow-sm"
           >
             {preview.body}
           </div>

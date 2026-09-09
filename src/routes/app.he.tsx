@@ -1,10 +1,7 @@
+import { AppMarketingRoutePage } from "@/components/app-marketing/AppMarketingRoute";
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  AppMarketingRoutePage,
-  getAppMarketingRouteHead,
-  getAppMarketingRouteLoader,
-} from "@/components/app-marketing/AppMarketingRoute";
+import { getAppMarketingRouteHead, getAppMarketingRouteLoader } from "@/lib/app-marketing-route";
 
 export const Route = createFileRoute("/app/he")({
   loader: ({ location }) => getAppMarketingRouteLoader("he", location.searchStr),

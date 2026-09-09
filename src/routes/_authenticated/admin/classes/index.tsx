@@ -219,7 +219,7 @@ function StatusChip({ s, label }: { s: string; label: string }) {
   const map: Record<string, string> = {
     scheduled: "border-gold/50 text-foreground bg-gold/10",
     cancelled: "border-slate/30 text-slate",
-    archived: "border-slate/20 text-slate/70",
+    archived: "border-slate/20 text-slate",
     staff_only: "border-navy/20 bg-navy/5 text-navy",
   };
   return (

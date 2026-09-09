@@ -9,7 +9,7 @@ import {
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 import { t, useI18n } from "@/lib/i18n";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
-import { authImages } from "@/lib/auth-assets";
+import { resolveClassImageSrc } from "@/lib/image-assets";
 
 export type StudioClass = PremiumClassCardClass & {
   id: string;
@@ -26,6 +26,11 @@ type ClassPresentationProps = {
   metadata?: ReactNode;
   showDate?: boolean;
   statusLabel?: string;
+  thumbnail?: boolean;
+  showRoom?: boolean;
+  showStatus?: boolean;
+  inlineStatus?: boolean;
+  compact?: boolean;
 };
 
 /** Shared SessionRow / BookingPass presentation. Callers own state and actions. */
@@ -41,11 +46,16 @@ export function StudioClassItem({
   metadata,
   showDate = true,
   statusLabel,
+  thumbnail = false,
+  showRoom = true,
+  showStatus = true,
+  inlineStatus = false,
+  compact = false,
 }: ClassPresentationProps & {
   variant?: "featured" | "row";
   imageSrc?: string;
 }) {
-  const { locale, dir, lang } = useI18n();
+  const { locale, dir } = useI18n();
   const date = new Date(cls.starts_at);
   const time = new Intl.DateTimeFormat(locale, {
     timeZone,
@@ -64,13 +74,23 @@ export function StudioClassItem({
   const featured = variant === "featured";
   return (
     <article className={`studio-class studio-class--${variant}`} dir={dir}>
+      {thumbnail && !featured && (
+        <img
+          className="studio-class-thumbnail"
+          src={resolveClassImageSrc(cls, "card")}
+          alt=""
+          width={104}
+          height={120}
+          loading="lazy"
+        />
+      )}
       <div className={featured ? "studio-class-hero" : "studio-class-overview"}>
         {featured && imageSrc && (
           <div className="studio-class-media">
             <img
               className="studio-class-photo"
               src={imageSrc}
-              alt={authImages.hero.alt[lang]}
+              alt=""
               width={853}
               height={1280}
               loading="eager"
@@ -89,7 +109,7 @@ export function StudioClassItem({
                   <bdi>{instructor}</bdi>
                 </span>
               )}
-              {room && (
+              {showRoom && room && (
                 <span>
                   <bdi>{room}</bdi>
                 </span>
@@ -98,11 +118,16 @@ export function StudioClassItem({
                 <span>
                   {cls.credit_cost === 1
                     ? t("member.oneCredit")
-                    : t("admin.classes.creditValue", { count: cls.credit_cost })}
+                    : t("common.classCreditValue", { count: cls.credit_cost })}
                 </span>
               )}
             </p>
             {metadata && <div className="studio-class-descriptors">{metadata}</div>}
+            {!featured && inlineStatus && showStatus && (
+              <div className="studio-class-status studio-class-status-inline">
+                {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
+              </div>
+            )}
           </div>
           <div className="studio-class-time">
             <time dateTime={cls.starts_at}>
@@ -115,22 +140,41 @@ export function StudioClassItem({
             )}
             <span>{formatDurationLabel(cls.duration_minutes)}</span>
           </div>
+          {!featured && !compact && !inlineStatus && showStatus && (
+            <div className="studio-class-status">
+              {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
+            </div>
+          )}
+        </div>
+        {featured && (
+          <div className="studio-class-footer">
+            <div className="studio-class-status">
+              {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
+            </div>
+            <div className="studio-class-actions">
+              {action}
+              {secondaryAction}
+            </div>
+          </div>
+        )}
+      </div>
+      {!featured && compact ? (
+        <div className="studio-class-row-footer">
           <div className="studio-class-status">
             {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
           </div>
-        </div>
-        {featured && (
           <div className="studio-class-actions">
             {action}
             {secondaryAction}
           </div>
-        )}
-      </div>
-      {!featured && (
-        <div className="studio-class-actions">
-          {action}
-          {secondaryAction}
         </div>
+      ) : (
+        !featured && (
+          <div className="studio-class-actions">
+            {action}
+            {secondaryAction}
+          </div>
+        )
       )}
       {note && <div className="studio-class-note">{note}</div>}
     </article>
@@ -138,5 +182,11 @@ export function StudioClassItem({
 }
 
 export function BookingPass(props: ClassPresentationProps) {
-  return <StudioClassItem {...props} variant="featured" imageSrc={authImages.hero.src} />;
+  return (
+    <StudioClassItem
+      {...props}
+      variant="featured"
+      imageSrc={resolveClassImageSrc(props.cls, "card")}
+    />
+  );
 }

@@ -12,8 +12,8 @@ const badgeVariants = cva(
           "border-[var(--cc-action-primary)] bg-[var(--cc-action-primary)] text-[var(--cc-action-primary-foreground)] hover:bg-[var(--color-navy-elevated)]",
         secondary: "border-gold/30 bg-sand/40 text-navy hover:bg-sand/60",
         destructive:
-          "border-[color:color-mix(in_srgb,var(--cc-state-danger)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--cc-state-danger)_10%,var(--color-surface))] text-[var(--cc-state-danger)] hover:bg-[color:color-mix(in_srgb,var(--cc-state-danger)_15%,var(--color-surface))]",
-        outline: "border-gold/35 bg-white/70 text-navy",
+          "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/15",
+        outline: "border-gold/35 bg-card text-navy",
       },
     },
     defaultVariants: {

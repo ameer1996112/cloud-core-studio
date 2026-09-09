@@ -1,3 +1,5 @@
+import { AsyncState } from "@/components/ui/async-state";
+import { t, useI18n } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,6 +42,7 @@ function actionKey(prefix: string) {
 }
 
 function AdultInquiriesPage() {
+  useI18n();
   const queryClient = useQueryClient();
   const boardFn = useServerFn(listAdultInquiryBoard);
   const classesFn = useServerFn(listAdultTrialClasses);
@@ -93,19 +96,16 @@ function AdultInquiriesPage() {
         attribution: "",
         primaryQuestion: "",
       }));
-      toast.success("Adult inquiry created");
+      toast.success(t("adult.created"));
       refresh();
     },
-    onError: () => toast.error("Could not create inquiry"),
+    onError: () => toast.error(t("adult.createError")),
   });
 
   return (
     <div className="space-y-6">
-      <SectionTitle>Adult Inquiries</SectionTitle>
-      <p className="max-w-3xl text-sm leading-6 text-slate">
-        Assisted first trial flow. These prospects do not need an app account to reserve a class or
-        record a trial payment.
-      </p>
+      <SectionTitle>{t("adult.title")}</SectionTitle>
+      <p className="max-w-3xl text-sm leading-6 text-slate">{t("adult.description")}</p>
 
       <form
         className="editorial-card grid gap-3 p-4 sm:grid-cols-2 sm:p-5"
@@ -116,52 +116,52 @@ function AdultInquiriesPage() {
       >
         <div className="sm:col-span-2 flex items-center gap-2 text-navy">
           <Plus className="h-4 w-4" />
-          <h2 className="font-display text-2xl">New adult inquiry</h2>
+          <h2 className="font-display text-2xl">{t("adult.new")}</h2>
         </div>
         <Field
-          label="Name"
+          label={t("adult.name")}
           required
           value={form.contactName}
           onChange={(contactName) => setForm({ ...form, contactName })}
         />
         <Field
-          label="Phone"
+          label={t("adult.phone")}
           type="tel"
           value={form.phoneE164}
           onChange={(phoneE164) => setForm({ ...form, phoneE164 })}
         />
         <Field
-          label="Service"
+          label={t("adult.service")}
           required
           value={form.service}
           onChange={(service) => setForm({ ...form, service })}
         />
         <Field
-          label="Locality"
+          label={t("adult.locality")}
           value={form.locality}
           onChange={(locality) => setForm({ ...form, locality })}
         />
         <Field
-          label="Source"
-          placeholder="Instagram, referral, walk-in…"
+          label={t("adult.source")}
+          placeholder={t("adult.sourceHint")}
           value={form.source}
           onChange={(source) => setForm({ ...form, source })}
         />
         <Field
-          label="Email"
+          label={t("adult.email")}
           type="email"
           value={form.email}
           onChange={(email) => setForm({ ...form, email })}
         />
         <Field
-          label="Direct attribution evidence"
-          placeholder="Exact campaign, ad, or referral reference"
+          label={t("adult.attribution")}
+          placeholder={t("adult.attributionHint")}
           value={form.attribution}
           onChange={(attribution) => setForm({ ...form, attribution })}
         />
         <label className="grid gap-1.5 sm:col-span-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate">
-            Question or friction
+            {t("adult.question")}
           </span>
           <textarea
             className="editorial-input min-h-20"
@@ -175,11 +175,21 @@ function AdultInquiriesPage() {
           ) : (
             <UsersRound className="h-4 w-4" />
           )}
-          Create inquiry
+          {t("adult.create")}
         </button>
       </form>
 
-      {board.isLoading ? <p className="text-sm text-slate">Loading inquiries…</p> : null}
+      {board.isLoading ? <p className="text-sm text-slate">{t("adult.loading")}</p> : null}
+      {board.isError && (
+        <AsyncState
+          state={{
+            status: "error",
+            title: t("member.error.title"),
+            body: t("member.error.body"),
+            retry: () => board.refetch(),
+          }}
+        />
+      )}
       <div className="grid gap-4 xl:grid-cols-2">
         {(board.data ?? []).map((inquiry: any) => (
           <InquiryCard
@@ -188,7 +198,7 @@ function AdultInquiriesPage() {
             classes={classes.data ?? []}
             onOffer={(classId, nextAction) =>
               offerFn({ data: { leadJourneyId: inquiry.id, classId, nextAction } }).then(() => {
-                toast.success("Inquiry updated");
+                toast.success(t("adult.updated"));
                 refresh();
               })
             }
@@ -203,19 +213,19 @@ function AdultInquiriesPage() {
                   idempotencyKey: actionKey("reservation"),
                 },
               }).then(() => {
-                toast.success(hold ? "Trial hold created" : "Trial booked");
+                toast.success(hold ? t("adult.held") : t("adult.queue.trial_booked"));
                 refresh();
               })
             }
             onReschedule={(reservationId, classId) =>
               rescheduleFn({ data: { reservationId, classId } }).then(() => {
-                toast.success("Trial rescheduled");
+                toast.success(t("adult.rescheduled"));
                 refresh();
               })
             }
             onCancel={(reservationId) =>
               cancelFn({ data: { reservationId } }).then(() => {
-                toast.success("Trial cancelled");
+                toast.success(t("adult.cancelledToast"));
                 refresh();
               })
             }
@@ -227,9 +237,7 @@ function AdultInquiriesPage() {
                   if (result?.checkoutUrl)
                     window.open(result.checkoutUrl, "_blank", "noopener,noreferrer");
                   toast.success(
-                    result?.checkoutUrl
-                      ? "Verified HYP payment link created"
-                      : "HYP is not configured",
+                    result?.checkoutUrl ? t("adult.hypCreated") : t("adult.hypMissing"),
                   );
                   refresh();
                 });
@@ -242,19 +250,19 @@ function AdultInquiriesPage() {
                   idempotencyKey: actionKey("trial-payment"),
                 },
               }).then(() => {
-                toast.success("Payment request recorded — reconcile before it counts as paid");
+                toast.success(t("adult.paymentRequested"));
                 refresh();
               });
             }}
             onReconcile={(paymentId) =>
               reconcileFn({ data: { paymentId } }).then(() => {
-                toast.success("Payment reconciled");
+                toast.success(t("adult.reconciled"));
                 refresh();
               })
             }
             onAttendance={(reservationId, status) =>
               attendanceFn({ data: { reservationId, status } }).then(() => {
-                toast.success("Attendance finalized");
+                toast.success(t("adult.attendanceSaved"));
                 refresh();
               })
             }
@@ -267,21 +275,21 @@ function AdultInquiriesPage() {
                   trialPaymentId,
                 },
               }).then(() => {
-                toast.success("Continuation saved");
+                toast.success(t("adult.continuationSaved"));
                 refresh();
               })
             }
             onLinkMember={(memberId) =>
               linkMemberFn({ data: { leadJourneyId: inquiry.id, memberId } }).then(() => {
-                toast.success("Prospect linked to the genuine member account");
+                toast.success(t("adult.linked"));
                 refresh();
               })
             }
           />
         ))}
       </div>
-      {!board.isLoading && (board.data ?? []).length === 0 ? (
-        <p className="editorial-card p-5 text-sm text-slate">No Adult inquiries yet.</p>
+      {!board.isLoading && !board.isError && (board.data ?? []).length === 0 ? (
+        <p className="editorial-card p-5 text-sm text-slate">{t("adult.empty")}</p>
       ) : null}
     </div>
   );
@@ -364,7 +372,7 @@ function InquiryCard({
     try {
       await action();
     } catch {
-      toast.error("Action could not be completed");
+      toast.error(t("adult.actionError"));
     } finally {
       setWorking(false);
     }
@@ -384,7 +392,7 @@ function InquiryCard({
           </p>
         </div>
         <span className="rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-xs font-semibold text-navy">
-          {ADULT_INQUIRY_QUEUE_LABELS[queue]}
+          {t(`adult.queue.${queue}` as Parameters<typeof t>[0])}
         </span>
       </header>
       {inquiry.primary_question ? (
@@ -413,10 +421,11 @@ function InquiryCard({
         <div className="grid gap-2">
           <select
             className="editorial-input"
+            aria-label={t("adult.chooseClass")}
             value={classId}
             onChange={(event) => setClassId(event.target.value)}
           >
-            <option value="">Choose a published class</option>
+            <option value="">{t("adult.chooseClass")}</option>
             {relevantClasses.map((row: any) => (
               <option key={row.id} value={row.id}>
                 {row.title} · {formatBidiDateTime(row.starts_at)}
@@ -431,7 +440,7 @@ function InquiryCard({
               onClick={() => run(() => onOffer(classId, "offer_class"))}
             >
               <CalendarDays className="h-4 w-4" />
-              Offer class
+              {t("adult.offer")}
             </button>
             <button
               type="button"
@@ -439,7 +448,7 @@ function InquiryCard({
               disabled={!classId || working}
               onClick={() => run(() => onReserve(classId, false))}
             >
-              Book assisted trial
+              {t("adult.book")}
             </button>
             <button
               type="button"
@@ -447,7 +456,7 @@ function InquiryCard({
               disabled={!classId || working}
               onClick={() => run(() => onReserve(classId, true))}
             >
-              Hold 30 min
+              {t("adult.hold")}
             </button>
             <button
               type="button"
@@ -455,7 +464,7 @@ function InquiryCard({
               disabled={working}
               onClick={() => run(() => onOffer(undefined, "waiting_suitable_time"))}
             >
-              Wait for suitable time
+              {t("adult.waitTime")}
             </button>
             <button
               type="button"
@@ -463,7 +472,7 @@ function InquiryCard({
               disabled={working}
               onClick={() => run(() => onOffer(undefined, "waiting_next_schedule"))}
             >
-              Wait for next schedule
+              {t("adult.waitSchedule")}
             </button>
           </div>
         </div>
@@ -472,10 +481,11 @@ function InquiryCard({
         <div className="grid gap-2 border-t border-gold/15 pt-3">
           <select
             className="editorial-input"
+            aria-label={t("adult.chooseReschedule")}
             value={classId}
             onChange={(event) => setClassId(event.target.value)}
           >
-            <option value="">Reschedule to another published class</option>
+            <option value="">{t("adult.chooseReschedule")}</option>
             {relevantClasses
               .filter((row: any) => row.id !== reservation.class_id)
               .map((row: any) => (
@@ -490,7 +500,7 @@ function InquiryCard({
             disabled={!classId || classId === reservation.class_id || working}
             onClick={() => run(() => onReschedule(reservation.id, classId))}
           >
-            Reschedule trial
+            {t("adult.reschedule")}
           </button>
         </div>
       ) : null}
@@ -502,7 +512,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onRequestPayment(reservation.id, "bit"))}
           >
-            Request Bit ₪80
+            {t("adult.requestBit")}
           </button>
           <button
             type="button"
@@ -510,7 +520,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onRequestPayment(reservation.id, "cash"))}
           >
-            Request cash ₪80
+            {t("adult.requestCash")}
           </button>
           <button
             type="button"
@@ -519,7 +529,7 @@ function InquiryCard({
             onClick={() => run(() => onRequestPayment(reservation.id, "card"))}
           >
             <CreditCard className="h-4 w-4" />
-            Create HYP request
+            {t("adult.requestHyp")}
           </button>
           <button
             type="button"
@@ -527,7 +537,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onCancel(reservation.id))}
           >
-            Cancel / release
+            {t("adult.cancel")}
           </button>
         </div>
       ) : null}
@@ -544,7 +554,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onReconcile(payment.id))}
           >
-            Reconcile received payment
+            {t("adult.reconcile")}
           </button>
         </div>
       ) : null}
@@ -557,7 +567,7 @@ function InquiryCard({
             onClick={() => run(() => onAttendance(reservation.id, "attended"))}
           >
             <CheckCircle2 className="h-4 w-4" />
-            Attended
+            {t("adult.attended")}
           </button>
           <button
             type="button"
@@ -565,7 +575,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onAttendance(reservation.id, "no_show"))}
           >
-            No-show
+            {t("adult.noShow")}
           </button>
           <button
             type="button"
@@ -573,21 +583,23 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onAttendance(reservation.id, "cancelled"))}
           >
-            Cancelled
+            {t("adult.cancelled")}
           </button>
         </div>
       ) : null}
       {reservation?.attendance_status === "attended" &&
       inquiry.continuation_outcome !== "purchased" ? (
         <div className="flex flex-wrap gap-2 border-t border-gold/15 pt-3">
-          <span className="self-center text-sm font-medium text-navy">Continuation:</span>
+          <span className="self-center text-sm font-medium text-navy">
+            {t("adult.continuation")}
+          </span>
           <button
             type="button"
             className="btn-outline"
             disabled={working}
             onClick={() => run(() => onContinuation("pending"))}
           >
-            Pending
+            {t("adult.pending")}
           </button>
           <button
             type="button"
@@ -595,7 +607,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onContinuation("did_not_purchase"))}
           >
-            Did not purchase
+            {t("adult.noPurchase")}
           </button>
           <button
             type="button"
@@ -603,7 +615,7 @@ function InquiryCard({
             disabled={working}
             onClick={() => run(() => onContinuation("unknown"))}
           >
-            Unknown
+            {t("adult.unknown")}
           </button>
         </div>
       ) : null}
@@ -632,7 +644,7 @@ function InquiryCard({
             dir={bidiDirectionFor("identifier")}
             value={packagePaymentId}
             onChange={(event) => setPackagePaymentId(event.target.value)}
-            placeholder="Verified package payment UUID"
+            placeholder={t("adult.packageIdHint")}
           />
           <button
             type="button"
@@ -648,7 +660,7 @@ function InquiryCard({
               )
             }
           >
-            Confirm package purchased
+            {t("adult.confirmPurchase")}
           </button>
         </div>
       ) : null}

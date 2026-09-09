@@ -153,12 +153,15 @@ export function CheckoutPresentation() {
               void navigate({ to: "/auth" });
             }}
           >
-            <section className="rounded-xl border border-gold/25 bg-white/75 p-4">
+            <section className="rounded-xl border border-gold/25 bg-card p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
                 {checkoutCopy.summary}
               </p>
               <div className="mt-3 flex items-center gap-2 text-sm text-slate">
-                <ShieldCheck className="h-4 w-4 text-gold" aria-hidden="true" />
+                <ShieldCheck
+                  className="h-4 w-4 text-[var(--color-accent-text)]"
+                  aria-hidden="true"
+                />
                 <span>{checkoutCopy.secure}</span>
               </div>
             </section>
@@ -174,7 +177,7 @@ export function CheckoutPresentation() {
                   return (
                     <label
                       key={plan.code}
-                      className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gold/25 bg-white/75 p-4 text-sm text-slate has-[:checked]:border-gold has-[:checked]:bg-gold/10"
+                      className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-gold/25 bg-card p-4 text-sm text-slate has-[:checked]:border-gold has-[:checked]:bg-gold/10"
                     >
                       <span>
                         <span className="block font-semibold text-navy">{planDisplay.name}</span>

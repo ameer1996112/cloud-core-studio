@@ -117,6 +117,8 @@ function AuthPage() {
           redirected = true;
           navigate({ to, replace: true });
         }
+      } catch {
+        if (!cancelled) setFormError(t("recovery.error.body"));
       } finally {
         if (!cancelled && !redirected) setRestoringSession(false);
       }
@@ -495,7 +497,7 @@ function AuthPage() {
             <button
               type="button"
               onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
-              className="auth-switch-action block w-full text-center text-navy hover:text-gold pt-2 border-t hairline"
+              className="auth-switch-action block w-full text-center text-navy hover:text-[var(--color-accent-text)] pt-2 border-t hairline"
             >
               {mode === "signin"
                 ? t("auth.create")

@@ -1,8 +1,10 @@
+import { EditorialImage } from "@/components/visual/EditorialImage";
 import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Sparkles,
   Check,
@@ -184,15 +186,15 @@ function MemberPackages() {
 
   return (
     <section dir={dir} className="member-page aura-member-page aura-packages-page">
-      <header className="aura-page-heading">
+      <header className="aura-page-heading packages-editorial-heading">
+        <EditorialImage scene="membership" eager className="packages-editorial-photo" />
         <p className="member-eyebrow">{t("member.packages.kicker")}</p>
         <h1>{t("nav.plans")}</h1>
         <p>{t("member.packages.body")}</p>
       </header>
       <div className="aura-packages-layout">
-        <aside className="aura-wallet" aria-label={t("member.activePackage")}>
+        <aside className="aura-wallet" aria-label={t("nav.plans")}>
           <div className="aura-wallet-summary">
-            <p className="member-eyebrow">{t("member.activePackage")}</p>
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <h2 className="aura-wallet-title">
                 {isLoading ? (
@@ -221,22 +223,22 @@ function MemberPackages() {
               {active?.expires_at && (
                 <p className="text-sm text-slate">
                   {t("member.expires")}{" "}
-                  <LtrInline className="text-navy">
+                  <bdi dir={lang === "en" ? "ltr" : "rtl"} className="text-navy">
                     {new Date(active.expires_at).toLocaleDateString(locale, {
                       month: "long",
                       day: "numeric",
                       year: "numeric",
                     })}
-                  </LtrInline>
+                  </bdi>
                 </p>
               )}
             </div>
             {activeSubscription && (
-              <div className="mt-4 rounded-xl border border-gold/25 bg-white/55 p-4">
+              <div className="mt-4 rounded-xl border border-gold/25 bg-card p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
-                      <RefreshCw className="h-4 w-4 text-gold" />
+                      <RefreshCw className="h-4 w-4 text-[var(--color-accent-text)]" />
                       {activeSubscription.status === "past_due"
                         ? t("packages.subscriptionPastDue")
                         : t("packages.subscriptionActive")}
@@ -274,28 +276,33 @@ function MemberPackages() {
           {promoEntitlements.map((entitlement: any) => (
             <div
               key={entitlement.id}
-              className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-navy p-5 text-ivory shadow-[0_18px_45px_rgba(11,29,58,.16)] sm:p-6"
+              className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-card p-5 text-foreground shadow-sm sm:p-6"
               data-testid="yoga-promo-wallet-credit"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="member-eyebrow text-gold">Cloud &amp; Core</p>
-                  <h2 className="mt-2 font-display text-2xl text-ivory">
+                  <p className="member-eyebrow text-[var(--color-accent-text)]">Cloud &amp; Core</p>
+                  <h2 className="mt-2 font-display text-2xl text-foreground">
                     {t("promo.yoga.walletTitle")}
                   </h2>
-                  <p className="mt-3 text-sm font-semibold text-ivory/90">
+                  <p className="mt-3 text-sm font-semibold text-foreground">
                     {t("promo.yoga.quantity")}
                   </p>
-                  <p className="mt-1 text-sm text-ivory/75">{t("promo.yoga.restriction")}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t("promo.yoga.restriction")}
+                  </p>
                   {entitlement.expires_at ? (
-                    <p className="mt-1 text-sm text-ivory/75">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       {t("promo.yoga.validUntil", {
                         date: new Date(entitlement.expires_at).toLocaleDateString(locale),
                       })}
                     </p>
                   ) : null}
                 </div>
-                <Sparkles className="h-6 w-6 shrink-0 text-gold" aria-hidden="true" />
+                <Sparkles
+                  className="h-6 w-6 shrink-0 text-[var(--color-accent-text)]"
+                  aria-hidden="true"
+                />
               </div>
             </div>
           ))}
@@ -469,7 +476,7 @@ function MemberPackages() {
                         <Link
                           to="/receipts/$id"
                           params={{ id: receipt.id }}
-                          className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-gold"
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-navy hover:text-[var(--color-accent-text)]"
                         >
                           <FileText className="h-3 w-3" /> {receipt.receipt_number}
                         </Link>
@@ -534,12 +541,6 @@ function PackagePricingCard({
             )}
           </div>
           <p className="text-sm text-slate mt-1.5">{display.description}</p>
-          {isRecurringMonthly && (
-            <p className="package-recurring-disclosure">
-              <RefreshCw className="h-3.5 w-3.5" />
-              {t("packages.recurringDisclosure")}
-            </p>
-          )}
         </div>
       </div>
       <div>
@@ -559,20 +560,28 @@ function PackagePricingCard({
               : t("packages.noExpiry")}
           </p>
         </div>
+        {isRecurringMonthly && (
+          <p className="package-recurring-disclosure">
+            <RefreshCw className="h-3.5 w-3.5" />
+            {t("packages.recurringDisclosure")}
+          </p>
+        )}
       </div>
       <div className="mt-auto flex items-end justify-between gap-3 pt-3 border-t hairline">
         <p className="text-xs font-medium text-slate">{t("packages.choosePackage")}</p>
         {payment ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
-            <Wallet className="h-3 w-3 text-gold" /> {t("packages.pendingPayment")}
+            <Wallet className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
+            {t("packages.pendingPayment")}
           </span>
         ) : blockedByActivePackage ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
-            <Wallet className="h-3 w-3 text-gold" /> {t("packages.activePackageBadge")}
+            <Wallet className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
+            {t("packages.activePackageBadge")}
           </span>
         ) : request && request.status !== "cancelled" ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
-            <MessageCircle className="h-3 w-3 text-gold" />{" "}
+            <MessageCircle className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
             {request.status === "paid" ? t("packages.activated") : t("packages.requested")}
           </span>
         ) : (
@@ -861,6 +870,7 @@ function PaymentMethodSheet({
     checkout?: CheckoutConsent,
   ) => void;
 }) {
+  const returnFocus = useRef<HTMLElement | null>(null);
   const [method, setMethod] = useState<"cash" | "bit" | "card" | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [checkout, setCheckout] = useState<CheckoutConsent>({
@@ -917,15 +927,33 @@ function PaymentMethodSheet({
   }
 
   return (
-    <div
-      dir={dir}
-      className="fixed inset-0 z-50 bg-navy/45 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-5"
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="member-card member-sheet-content w-full sm:max-w-xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-[0_30px_60px_-28px_rgba(11,29,58,0.38)]">
+      <DialogContent
+        dir={dir}
+        showCloseButton={false}
+        aria-describedby={undefined}
+        onOpenAutoFocus={() => {
+          returnFocus.current =
+            document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          returnFocus.current?.focus();
+        }}
+        onInteractOutside={(event) => event.preventDefault()}
+        className="member-card member-sheet-content block w-full sm:max-w-xl max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 top-auto bottom-0 translate-y-0 sm:top-[50%] sm:bottom-auto sm:translate-y-[-50%]"
+      >
         <header className="flex items-start justify-between gap-4 border-b hairline pb-4">
           <div>
             <p className="member-eyebrow">{t("packages.paymentMethod")}</p>
-            <h3 className="font-display text-3xl text-navy mt-1">{t("packages.paymentTitle")}</h3>
+            <DialogTitle asChild>
+              <h3 className="font-display text-3xl text-navy mt-1">{t("packages.paymentTitle")}</h3>
+            </DialogTitle>
           </div>
           <button
             type="button"
@@ -1080,7 +1108,7 @@ function PaymentMethodSheet({
             )}
             {method === "bit" && !hypEnabled && (
               <div className="overflow-hidden rounded-xl border border-gold/35 bg-ivory shadow-[0_18px_44px_-34px_rgba(11,29,58,0.45)]">
-                <div className="flex items-start gap-3 border-b border-gold/20 bg-white/55 p-4">
+                <div className="flex items-start gap-3 border-b border-gold/20 bg-card p-4">
                   <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-navy">
                     <Smartphone className="h-4 w-4" />
                   </span>
@@ -1166,8 +1194,8 @@ function PaymentMethodSheet({
             </button>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

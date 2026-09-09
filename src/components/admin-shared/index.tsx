@@ -46,7 +46,7 @@ export function AdminPageHeader({
   secondaryAction?: React.ReactNode;
 }) {
   return (
-    <header className="border-b border-gold/25 pb-6 text-start">
+    <header className="admin-section-header border-b border-gold/25 pb-6 text-start">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div className="min-w-0">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}

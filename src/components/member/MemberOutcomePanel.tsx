@@ -14,7 +14,7 @@ type MemberOutcomePanelProps = Omit<React.HTMLAttributes<HTMLElement>, "title"> 
 const TONE_CLASSES: Record<MemberOutcome["tone"], string> = {
   neutral: "border-border bg-background text-foreground",
   info: "border-powder bg-powder/25 text-navy",
-  success: "border-emerald-600/30 bg-emerald-50 text-emerald-950",
+  success: "border-[color:var(--color-success)] bg-card text-foreground",
   warning: "border-gold/45 bg-gold/10 text-navy",
   danger: "border-destructive/30 bg-destructive/5 text-destructive",
 };

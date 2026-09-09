@@ -1,3 +1,4 @@
+import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -67,7 +68,7 @@ function PublicHeader({
           to="/"
           className="public-shell-header__brand font-display text-xl font-semibold text-[var(--cc-text-primary)] focus-visible:outline-[var(--cc-focus-outline)] focus-visible:outline-offset-[var(--cc-focus-offset)]"
         >
-          {t("public.brand")}
+          <StudioLogo className="public-studio-logo" />
         </Link>
         {headerMode === "full" && (showSchedule || showAccount) ? (
           <nav

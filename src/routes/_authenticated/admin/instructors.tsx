@@ -1,3 +1,4 @@
+import { StaffFormDialog } from "@/components/admin/StaffFormDialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -340,7 +341,7 @@ function Page() {
               <li key={index} className="flex gap-3">
                 <span
                   aria-hidden="true"
-                  className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[11px] font-semibold text-gold"
+                  className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[11px] font-semibold text-[var(--color-accent-text)]"
                 >
                   {index + 1}
                 </span>
@@ -369,7 +370,10 @@ function Page() {
       </Dialog>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/40 p-0 backdrop-blur-sm md:items-center md:p-6">
+        <StaffFormDialog
+          title={editing.id ? t("admin.instructors.edit") : t("admin.instructors.add")}
+          onClose={() => setEditing(null)}
+        >
           <form
             className="w-full max-w-2xl rounded-t-2xl border border-gold/30 bg-ivory shadow-[0_30px_60px_-28px_var(--cc-alpha-navy-32)] md:rounded-2xl"
             onSubmit={(e) => {
@@ -475,7 +479,7 @@ function Page() {
               </button>
             </footer>
           </form>
-        </div>
+        </StaffFormDialog>
       )}
     </AdminPageShell>
   );

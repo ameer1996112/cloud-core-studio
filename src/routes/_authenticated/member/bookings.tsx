@@ -2,7 +2,7 @@ import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, CalendarPlus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +57,8 @@ function MyBookings() {
     queryFn: () => fetchConcierge(),
   });
   const [tab, setTab] = useState<Tab>("upcoming");
+  const cancelTrigger = useRef<HTMLButtonElement | null>(null);
+  const activeTab = useRef<HTMLButtonElement | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<any | null>(null);
   const [openClass, setOpenClass] = useState<string | null>(null);
   const [detailViewerCacheKey, setDetailViewerCacheKey] = useState<string | undefined>(undefined);
@@ -245,7 +247,6 @@ function MyBookings() {
   return (
     <section dir={dir} className="member-page aura-member-page aura-bookings-page">
       <header className="aura-page-heading">
-        <p className="member-eyebrow">{t("member.bookings.kicker")}</p>
         <h1>{t("nav.myBookings")}</h1>
         <p>{t("member.bookings.body")}</p>
       </header>
@@ -254,6 +255,7 @@ function MyBookings() {
         {(["upcoming", "waitlist", "past", "cancelled"] as Tab[]).map((tabKey) => (
           <button
             key={tabKey}
+            ref={tab === tabKey ? activeTab : undefined}
             onClick={() => setTab(tabKey)}
             aria-pressed={tab === tabKey}
             className={`member-tab-button ${
@@ -329,7 +331,14 @@ function MyBookings() {
                 booking={b}
                 attendance={attMap[b.id]}
                 onOpen={() => setOpenClass(b.class.id)}
-                onCancel={tab === "upcoming" ? () => setConfirmCancel(b) : undefined}
+                onCancel={
+                  tab === "upcoming"
+                    ? (trigger) => {
+                        cancelTrigger.current = trigger;
+                        setConfirmCancel(b);
+                      }
+                    : undefined
+                }
                 muted={tab !== "upcoming"}
                 studio={settings ?? null}
               />
@@ -339,7 +348,7 @@ function MyBookings() {
       {showConciergeOnboarding && (
         <section className="member-card overflow-hidden border-gold/30">
           <div className="bg-navy px-5 py-5 text-cream sm:px-7">
-            <div className="flex items-center gap-2 text-gold">
+            <div className="flex items-center gap-2 text-[var(--color-accent-text)]">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
               <p className="text-xs font-semibold uppercase tracking-[0.18em]">
                 {onboardingCopy.eyebrow}
@@ -361,7 +370,7 @@ function MyBookings() {
                 type="button"
                 disabled={resolveOnboarding.isPending}
                 onClick={() => resolveOnboarding.mutate({ kind: "choice", choice })}
-                className="rounded-2xl border border-gold/25 bg-white p-4 text-start transition hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-sm disabled:opacity-50"
+                className="rounded-2xl border border-gold/25 bg-card p-4 text-start transition hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-sm disabled:opacity-50"
               >
                 <span className="block font-semibold text-navy">{label}</span>
                 <span className="mt-1 block text-xs leading-5 text-slate">{note}</span>
@@ -380,7 +389,7 @@ function MyBookings() {
       )}
 
       {firstVisitBooking?.class && (
-        <section className="member-card member-panel-sand p-5 sm:p-7">
+        <section className="booking-first-visit member-card member-panel-sand p-5 sm:p-7">
           <p className="member-eyebrow">{firstVisitCopy.eyebrow}</p>
           <h2 className="member-section-title mt-2">{firstVisitCopy.title}</h2>
           <p className="mt-3 font-medium text-navy">{firstVisitBooking.class.title}</p>
@@ -391,7 +400,7 @@ function MyBookings() {
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {[firstVisitCopy.arrival, firstVisitCopy.clothing, firstVisitCopy.expectation].map(
               (item) => (
-                <div key={item} className="rounded-xl border border-gold/20 bg-white/70 p-4">
+                <div key={item} className="rounded-xl border border-gold/20 bg-card p-4">
                   <p className="text-sm leading-6 text-slate">{item}</p>
                 </div>
               ),
@@ -418,7 +427,17 @@ function MyBookings() {
       )}
 
       <Dialog open={!!confirmCancel} onOpenChange={(v) => !v && setConfirmCancel(null)}>
-        <DialogContent dir={dir} className="max-w-md bg-ivory border-gold/30">
+        <DialogContent
+          dir={dir}
+          className="member-cancel-dialog max-w-md bg-ivory border-gold/30"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            const target = cancelTrigger.current?.isConnected
+              ? cancelTrigger.current
+              : activeTab.current;
+            target?.focus();
+          }}
+        >
           <DialogTitle className="font-display text-2xl text-navy">
             {t("bookings.cancelTitle")}
           </DialogTitle>
@@ -487,7 +506,7 @@ function BookingCard({
   booking: any;
   attendance?: { status: string; marked_at: string | null };
   onOpen: () => void;
-  onCancel?: () => void;
+  onCancel?: (trigger: HTMLButtonElement) => void;
   muted?: boolean;
   studio?: any;
 }) {
@@ -555,25 +574,25 @@ function BookingCard({
     >
       {isUpcoming && (
         <>
-          <span className="basis-full text-xs text-slate leading-relaxed">
+          <p className="reservation-policy">
             {t("booking.cancelWindow", { hours: cls.cancellation_window_hours })}
-          </span>
+          </p>
           <div className="lesson-reservation-card__action-row">
-            <button
-              onClick={addToCalendar}
-              className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
-            >
-              <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
-            </button>
-            <span className="basis-full text-xs text-slate leading-relaxed">
-              {t("member.calendarHelp")}
-            </span>
+            <div className="reservation-calendar">
+              <button
+                onClick={addToCalendar}
+                className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
+              >
+                <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
+              </button>
+              <p className="reservation-calendar-help">{t("member.calendarHelp")}</p>
+            </div>
             {canCancel && onCancel ? (
               <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onCancel();
+                  onCancel(e.currentTarget);
                 }}
                 className="btn-ghost min-h-10 px-0 text-xs hover:btn-ghost-hover"
               >

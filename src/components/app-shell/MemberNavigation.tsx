@@ -8,10 +8,12 @@ export function MemberHeader({
   pathname,
   notifications,
   signOut,
+  language,
 }: {
   pathname: string;
   notifications: ReactNode;
   signOut: ReactNode;
+  language: ReactNode;
 }) {
   const tabs = bottomTabsForRole("member");
   return (
@@ -33,6 +35,7 @@ export function MemberHeader({
           ))}
         </nav>
         <div className="studio-member-tools">
+          {language}
           {notifications}
           {signOut}
         </div>

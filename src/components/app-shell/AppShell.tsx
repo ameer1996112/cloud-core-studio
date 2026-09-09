@@ -1,3 +1,4 @@
+import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
@@ -177,7 +178,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className={`${useBottomNav ? "member-app" : ""} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
+      className={`${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}
@@ -256,6 +257,12 @@ export function AppShell({ role, children }: Props) {
                 </div>
               </>
             }
+            language={
+              <div className="member-appearance-tools">
+                <LanguageButtons lang={lang} compact placement="down" />
+                <AppearanceControl />
+              </div>
+            }
             signOut={signOutControl}
           />
         ) : (
@@ -317,13 +324,13 @@ function SidebarPanel({
   return (
     <aside
       dir={isRtl ? "rtl" : "ltr"}
-      className={`relative flex h-full flex-col bg-[var(--color-surface-warm)] text-navy ${isMobileDrawer ? "mobile-sidebar-panel" : "w-[min(75vw,300px)] px-4 pb-6 shadow-[var(--shadow-sidebar)] lg:w-72"} ${className}`}
+      className={`staff-sidebar relative flex h-full flex-col bg-[var(--color-surface-warm)] text-navy ${isMobileDrawer ? "mobile-sidebar-panel" : "w-[min(75vw,300px)] px-4 pb-6 shadow-[var(--shadow-sidebar)] lg:w-72"} ${className}`}
     >
       {onNavigate && (
         <button
           onClick={onNavigate}
           aria-label={t("shell.closeMenu")}
-          className="absolute inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-white/84 text-[var(--color-text-muted)] shadow-[var(--shadow-card)] transition-[background-color,color,transform] duration-200 hover:bg-white hover:text-[var(--color-text-primary)] active:scale-[0.98] lg:hidden"
+          className="absolute inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-pill)] bg-card text-[var(--color-text-muted)] shadow-[var(--shadow-card)] transition-[background-color,color,transform] duration-200 hover:bg-card hover:text-[var(--color-text-primary)] active:scale-[0.98] lg:hidden"
           style={{
             top: "calc(env(safe-area-inset-top) + 10px)",
             insetInlineStart: "0.75rem",
@@ -357,7 +364,7 @@ function SidebarPanel({
         {groups.map((group) => (
           <div key={group.label}>
             <p
-              className={`text-start font-semibold text-gold ${isMobileDrawer ? "mobile-sidebar-group-label" : "mb-1.5 mt-4 px-0 text-[12px] tracking-normal"}`}
+              className={`text-start font-semibold text-[var(--color-accent-text)] ${isMobileDrawer ? "mobile-sidebar-group-label" : "mb-1.5 mt-4 px-0 text-[12px] tracking-normal"}`}
             >
               {group.label}
             </p>
@@ -369,6 +376,7 @@ function SidebarPanel({
                   <li key={item.to}>
                     <Link
                       to={item.to}
+                      activeOptions={{ exact: item.exact }}
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={`group flex items-center justify-start gap-2.5 text-start font-normal transition-[background-color,color,box-shadow,transform] duration-200 ${isMobileDrawer ? "mobile-sidebar-nav-item" : "h-11 rounded-[var(--radius-md)] px-3 text-[14px]"} ${
@@ -381,13 +389,13 @@ function SidebarPanel({
                         <>
                           <span className="min-w-0 truncate">{item.label}</span>
                           <Icon
-                            className={`h-[15px] w-[15px] shrink-0 ${active ? "text-gold" : "text-[var(--color-text-secondary)] opacity-85 group-hover:text-[var(--color-text-primary)]"}`}
+                            className={`h-[15px] w-[15px] shrink-0 ${active ? "text-[var(--color-accent-text)]" : "text-[var(--color-text-secondary)] opacity-85 group-hover:text-[var(--color-text-primary)]"}`}
                           />
                         </>
                       ) : (
                         <>
                           <Icon
-                            className={`h-[15px] w-[15px] shrink-0 ${active ? "text-gold" : "text-[var(--color-text-secondary)] opacity-85 group-hover:text-[var(--color-text-primary)]"}`}
+                            className={`h-[15px] w-[15px] shrink-0 ${active ? "text-[var(--color-accent-text)]" : "text-[var(--color-text-secondary)] opacity-85 group-hover:text-[var(--color-text-primary)]"}`}
                           />
                           <span className="min-w-0 truncate">{item.label}</span>
                         </>
@@ -408,12 +416,13 @@ function SidebarPanel({
             : "mt-auto border-t border-[var(--color-sand)] pt-4"
         }
       >
-        <div className="space-y-3 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-white/72 p-3 shadow-[var(--shadow-card)] backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-3 text-start">
+        <div className="space-y-3 rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-card p-3 shadow-[var(--shadow-card)] backdrop-blur-sm">
+          <div className="appearance-settings flex items-center justify-between gap-3 text-start">
             <p className="min-w-0 flex-1 text-[11px] font-semibold text-slate tracking-normal">
               {t("nav.settings")}
             </p>
             <LanguageButtons lang={lang} />
+            <AppearanceControl />
           </div>
           <button
             onClick={onSignOut}
@@ -437,7 +446,15 @@ function SidebarPanel({
   );
 }
 
-function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: boolean }) {
+function LanguageButtons({
+  lang,
+  compact = false,
+  placement = "up",
+}: {
+  lang: Lang;
+  compact?: boolean;
+  placement?: "up" | "down";
+}) {
   const [open, setOpen] = useState(false);
   const menuWrapperRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -489,7 +506,7 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
         type="button"
         ref={triggerRef}
         onClick={() => setOpen((value) => !value)}
-        className={`inline-flex max-w-full shrink-0 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border)] bg-white/78 text-[var(--color-text-secondary)] shadow-[var(--shadow-card)] transition-[background-color,color,border-color] duration-200 hover:bg-white ${
+        className={`inline-flex max-w-full shrink-0 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border)] bg-card text-[var(--color-text-secondary)] shadow-[var(--shadow-card)] transition-[background-color,color,border-color] duration-200 hover:bg-card ${
           compact ? "h-10 w-10 px-0" : "min-h-11 px-4 text-xs"
         }`}
         aria-label={compact ? current.label : undefined}
@@ -510,7 +527,7 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
         <div
           id={menuId}
           role="menu"
-          className="absolute bottom-full end-0 z-50 mb-2 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[var(--color-surface-warm)] p-1 shadow-[var(--shadow-elevated)] backdrop-blur-xl"
+          className={`absolute end-0 z-50 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-[color:var(--color-border)] bg-[var(--color-surface-warm)] p-1 shadow-[var(--shadow-elevated)] ${placement === "down" ? "top-full mt-2" : "bottom-full mb-2"}`}
         >
           {codes.map((code) => (
             <button
@@ -526,11 +543,13 @@ function LanguageButtons({ lang, compact = false }: { lang: Lang; compact?: bool
               className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--radius-md)] px-3 text-sm transition-[background-color,color] duration-200 ${
                 currentLang === code
                   ? "bg-[linear-gradient(135deg,var(--color-navy)_0%,var(--color-navy-elevated)_100%)] text-ivory"
-                  : "text-slate hover:bg-white hover:text-navy"
+                  : "text-slate hover:bg-card hover:text-navy"
               }`}
             >
               <span className="truncate">{LANG_META[code].label}</span>
-              {currentLang === code && <Check className="h-4 w-4 shrink-0 text-gold" />}
+              {currentLang === code && (
+                <Check className="h-4 w-4 shrink-0 text-[var(--color-accent-text)]" />
+              )}
             </button>
           ))}
         </div>
@@ -601,22 +620,11 @@ function BrandLockup({ className = "" }: { className?: string }) {
 }
 
 function BrandSidebarLockup({ compact = false }: { compact?: boolean }) {
-  return (
-    <span className="inline-flex min-h-11 max-w-full items-center gap-2.5 text-start">
-      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-gold/35 bg-white/72 shadow-[var(--shadow-card)]">
-        <BrandMark className="h-6 w-6" />
-      </span>
-      <BrandWordmark className={compact ? "w-[8.6rem] sm:w-[9.25rem]" : "w-[9.25rem]"} />
-    </span>
-  );
+  return <StudioLogo className={compact ? "staff-logo-compact" : "staff-logo"} />;
 }
 
 function BrandHeaderWordmark({ className = "" }: { className?: string }) {
-  return (
-    <span className={`inline-flex min-w-0 items-center justify-center ${className}`.trim()}>
-      <BrandWordmark className="w-[10.5rem] sm:w-[11rem]" />
-    </span>
-  );
+  return <StudioLogo className={`staff-logo-compact ${className}`} />;
 }
 
 function StandardMenuIcon() {

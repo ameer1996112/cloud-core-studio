@@ -2,11 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { readSupabaseSession } from "@/integrations/supabase/read-session";
+import { withDeadline } from "@/lib/async-deadline";
 import { supabase } from "@/integrations/supabase/client";
 import { listAvailableClasses } from "@/lib/member.functions";
 import { deriveClassState } from "@/components/member/PremiumClassCard";
 import { MemberScheduleView } from "@/components/member/MemberScheduleView";
-import { GUEST_SCHEDULE_COPY, GUEST_SCHEDULE_STATS } from "@/components/member/guest-schedule-copy";
+import { GUEST_SCHEDULE_COPY } from "@/components/member/guest-schedule-copy";
 import { ClassDetailSheet, deriveGuestClassState } from "@/components/member/ClassDetailSheet";
 import { AppShell } from "@/components/app-shell/AppShell";
 import { YogaPromoBanner } from "@/components/member/YogaPromoBanner";
@@ -67,21 +69,68 @@ function MemberSchedulePublic({
   const isAuthSnapshotInitialized = authSnapshot?.initialized === true;
   const [session, setSession] = useState<any>(authSnapshot?.session ?? null);
   const [checkingSession, setCheckingSession] = useState(!isAuthSnapshotInitialized);
+  const [sessionError, setSessionError] = useState(false);
+  const [sessionAttempt, setSessionAttempt] = useState(0);
   const guestCopy = GUEST_SCHEDULE_COPY[lang];
   const authHref = buildAuthReturnToHref(buildMemberScheduleReturnTo(selectedClassId));
 
   useEffect(() => {
     if (isAuthSnapshotInitialized) return;
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let active = true;
+    setCheckingSession(true);
+    setSessionError(false);
+    const checkSession = () => {
+      void readSupabaseSession()
+        .then(({ data, error }) => {
+          if (!active) return;
+          if (error) throw error;
+          setSession(data.session);
+          setSessionError(false);
+          setCheckingSession(false);
+        })
+        .catch(() => {
+          if (!active) return;
+          setSessionError(true);
+          setCheckingSession(false);
+        });
+    };
+    checkSession();
+    window.addEventListener("online", checkSession);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) return;
+      setSession(nextSession);
       setCheckingSession(false);
+      setSessionError(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [isAuthSnapshotInitialized]);
+    return () => {
+      active = false;
+      window.removeEventListener("online", checkSession);
+      sub.subscription.unsubscribe();
+    };
+  }, [isAuthSnapshotInitialized, sessionAttempt]);
+
+  if (sessionError && !session) {
+    return (
+      <main id="main-content" dir={dir} className="member-page px-4 py-8">
+        <div className="member-page-panel p-6" role="alert">
+          <h1 className="text-xl font-medium">{t("recovery.error.title")}</h1>
+          <p className="my-4">{t("member.outcome.offline.body")}</p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              className="cta-navy min-h-11 px-5"
+              onClick={() => setSessionAttempt((value) => value + 1)}
+            >
+              {t("common.retry")}
+            </button>
+            <Link to="/member" className="inline-flex min-h-11 items-center px-4">
+              {t("nav.home")}
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (checkingSession && !session) {
     return (
@@ -153,7 +202,7 @@ function MemberSchedulePublic({
             </Link>
             <Link
               to={authHref}
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-gold/40 bg-white px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors hover:bg-gold/8"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-gold/40 bg-card px-4 text-xs font-semibold uppercase tracking-[0.18em] text-navy shadow-sm transition-colors hover:bg-gold/8"
             >
               {guestCopy.primaryCta}
             </Link>
@@ -165,59 +214,9 @@ function MemberSchedulePublic({
         id="main-content"
         className="public-safe-main relative mx-auto flex max-w-7xl flex-col gap-6 px-4 pb-6 sm:px-6 lg:px-8"
       >
-        <section className="member-page-panel grid overflow-hidden lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-          <div className="member-page-copy p-5 sm:p-8 md:p-10">
-            <p className="member-eyebrow">{guestCopy.eyebrow}</p>
-            <h1 className="member-page-title mt-3">{guestCopy.title}</h1>
-            <p className="member-page-body mt-3 max-w-2xl">{guestCopy.body}</p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link
-                to={authHref}
-                className="btn-primary min-h-12 justify-center px-5 hover:btn-primary-hover"
-              >
-                {guestCopy.primaryCta}
-              </Link>
-              <Link
-                to="/support"
-                className="btn-outline min-h-12 justify-center px-5 hover:btn-outline-hover"
-              >
-                {guestCopy.secondaryCta}
-              </Link>
-            </div>
-          </div>
-          <div className="relative min-h-[220px] border-t border-gold/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(232,223,209,0.58)_100%)] p-5 sm:p-8 lg:border-t-0 lg:border-s lg:p-10">
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(212,175,106,0.16),transparent_30%),radial-gradient(circle_at_82%_82%,rgba(11,29,58,0.08),transparent_34%)]"
-            />
-            <div className="relative flex h-full flex-col justify-between gap-6">
-              <div className="space-y-3">
-                <p className="member-eyebrow text-slate">{guestCopy.panelEyebrow}</p>
-                <p className="text-2xl font-semibold leading-tight text-navy sm:text-3xl">
-                  {guestCopy.panelTitle}
-                </p>
-                <p className="member-page-body max-w-md">{guestCopy.panelBody}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[calc(var(--cc-radius-card)-2px)] border border-gold/20 bg-white/75 p-4 shadow-[0_24px_60px_-40px_rgba(11,29,58,0.4)] backdrop-blur-sm">
-                  <p className="member-eyebrow text-slate">{guestCopy.statWindow}</p>
-                  <p className="mt-2 text-lg font-semibold text-navy">
-                    {GUEST_SCHEDULE_STATS[lang].windowValue}
-                  </p>
-                </div>
-                <div className="rounded-[calc(var(--cc-radius-card)-2px)] border border-gold/20 bg-white/75 p-4 shadow-[0_24px_60px_-40px_rgba(11,29,58,0.4)] backdrop-blur-sm">
-                  <p className="member-eyebrow text-slate">{guestCopy.statAccess}</p>
-                  <p className="mt-2 text-lg font-semibold text-navy">
-                    {GUEST_SCHEDULE_STATS[lang].accessValue}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate">
-                    {GUEST_SCHEDULE_STATS[lang].accessNote}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <aside className="guest-schedule-intro">
+          <p className="member-page-body">{guestCopy.scheduleHint}</p>
+        </aside>
         <MemberScheduleContent
           session={null}
           selectedClassId={selectedClassId}
@@ -245,7 +244,8 @@ export function MemberScheduleContent({
       : null;
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: getMemberScheduleQueryKey(resolvedViewerCacheKey),
-    queryFn: () => fetchSchedule({ data: { days: 14 } }),
+    queryFn: () => withDeadline(fetchSchedule({ data: { days: 14 } }), 12_000),
+    retry: 1,
   });
 
   const [uncontrolledOpenClass, setUncontrolledOpenClass] = useState<string | null>(

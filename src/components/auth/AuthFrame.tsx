@@ -1,8 +1,9 @@
 import { MapPin } from "lucide-react";
+import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { StudioLogo } from "@/components/brand/StudioLogo";
-import { authImages } from "@/lib/auth-assets";
+import { EditorialImage } from "@/components/visual/EditorialImage";
 import { LANG_META, t, type Lang } from "@/lib/i18n";
 
 const STUDIO_LOCATION: Record<Lang, string> = {
@@ -36,7 +37,7 @@ export function AuthFrame({
     >
       <header className="auth-page-header">
         <div className="auth-masthead-logo">
-          <StudioLogo />
+          <StudioLogo priority />
         </div>
         <div className="auth-language-switcher" role="group" aria-label={t("profile.language")}>
           {(["he", "en", "ar"] as const).map((code) => (
@@ -53,26 +54,24 @@ export function AuthFrame({
             </button>
           ))}
         </div>
+        <AppearanceControl lang={lang} />
       </header>
-      <section className="auth-studio-photo" aria-labelledby="auth-scene-title">
-        <img
-          src={authImages.hero.src}
-          alt=""
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-          width={853}
-          height={1280}
+      <section className="auth-studio-photo" aria-hidden="true">
+        <EditorialImage
+          scene="arrival"
+          priority="low"
+          eager
+          sizes="(min-width: 768px) 55vw, 100vw"
         />
-        <div className="auth-scene-heading">
-          <p className="member-eyebrow">{eyebrow}</p>
-          <h1 id="auth-scene-title" className="auth-form-title">
-            {title}
-          </h1>
-        </div>
       </section>
       <div className="auth-content">
         <div className="auth-mobile-panel">
+          <div className="auth-scene-heading">
+            <p className="member-eyebrow">{eyebrow}</p>
+            <h1 id="auth-scene-title" className="auth-form-title">
+              {title}
+            </h1>
+          </div>
           {children}
           <footer className="auth-footer">
             <nav className="auth-legal-links" aria-label={t("legal.terms")}>

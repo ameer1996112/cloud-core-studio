@@ -64,7 +64,10 @@ export function ClassRosterDrawer({ classId, onClose }: Props) {
         if (!v) onClose();
       }}
     >
-      <SheetContent side="end" className="w-full sm:max-w-2xl overflow-y-auto bg-ivory p-0 h-dvh">
+      <SheetContent
+        side="end"
+        className="staff-roster w-full sm:max-w-2xl overflow-y-auto bg-ivory p-0 h-dvh"
+      >
         {classId && <RosterBody classId={classId} />}
       </SheetContent>
     </Sheet>
@@ -403,9 +406,9 @@ function RosterBody({ classId }: { classId: string }) {
         </div>
 
         {/* Studio operations summary metadata grid */}
-        <div className="grid grid-cols-2 gap-4 mt-4 bg-white/60 backdrop-blur-sm rounded-xl p-3.5 border border-gold/10">
+        <div className="grid grid-cols-2 gap-4 mt-4 bg-card backdrop-blur-sm rounded-xl p-3.5 border border-gold/10">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+            <p className="text-[10px] uppercase tracking-wider text-slate">
               {t("admin.classes.time")}
             </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5" dir="ltr">
@@ -418,7 +421,7 @@ function RosterBody({ classId }: { classId: string }) {
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+            <p className="text-[10px] uppercase tracking-wider text-slate">
               {t("admin.classes.durationMin")}
             </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">
@@ -426,11 +429,11 @@ function RosterBody({ classId }: { classId: string }) {
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">{t("common.room")}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate">{t("common.room")}</p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">{roomName}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+            <p className="text-[10px] uppercase tracking-wider text-slate">
               {t("admin.classes.instructor")}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
@@ -443,7 +446,7 @@ function RosterBody({ classId }: { classId: string }) {
             </div>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+            <p className="text-[10px] uppercase tracking-wider text-slate">
               {t("admin.classes.capacityPlaces")}
             </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">
@@ -451,7 +454,7 @@ function RosterBody({ classId }: { classId: string }) {
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate/80">
+            <p className="text-[10px] uppercase tracking-wider text-slate">
               {t("roster.waitlist")}
             </p>
             <p className="font-display text-sm text-navy font-medium mt-0.5">
@@ -481,7 +484,7 @@ function RosterBody({ classId }: { classId: string }) {
                     }}
                     className="btn-outline inline-flex h-9 items-center gap-1.5 px-3 text-xs hover:btn-outline-hover"
                   >
-                    <CalendarClock className="h-3.5 w-3.5 text-gold" />
+                    <CalendarClock className="h-3.5 w-3.5 text-[var(--color-accent-text)]" />
                     {t("roster.changeTime")}
                   </button>
                   <button
@@ -511,13 +514,14 @@ function RosterBody({ classId }: { classId: string }) {
                 }}
                 className="btn-outline inline-flex h-9 items-center gap-1.5 px-3 text-xs hover:btn-outline-hover"
               >
-                <Bell className="h-3.5 w-3.5 text-gold" /> {t("roster.prepareReminders")}
+                <Bell className="h-3.5 w-3.5 text-[var(--color-accent-text)]" />{" "}
+                {t("roster.prepareReminders")}
               </button>
             </>
           )}
         </div>
         {isAdmin && editingTime && c.status === "scheduled" && (
-          <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-gold/20 bg-white/80 p-3">
+          <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-gold/20 bg-card p-3">
             <label className="min-w-56 flex-1 text-start">
               <span className="mb-1 block text-xs font-medium text-slate">
                 {t("roster.newTime")}
@@ -543,13 +547,14 @@ function RosterBody({ classId }: { classId: string }) {
 
       {/* Add member — admin only */}
       {isAdmin && (
-        <div className="px-5 sm:px-6 py-4 border-b border-gold/15 bg-white/40">
+        <div className="px-5 sm:px-6 py-4 border-b border-gold/15 bg-card">
           {!adding ? (
             <button
               onClick={() => setAdding(true)}
               className="btn-outline inline-flex items-center gap-2 px-3 py-2 text-xs hover:btn-outline-hover"
             >
-              <UserPlus className="h-3.5 w-3.5 text-gold" /> {t("roster.addMember")}
+              <UserPlus className="h-3.5 w-3.5 text-[var(--color-accent-text)]" />{" "}
+              {t("roster.addMember")}
             </button>
           ) : (
             <div className="space-y-3">
@@ -563,7 +568,7 @@ function RosterBody({ classId }: { classId: string }) {
                   className="editorial-input ps-10"
                 />
               </div>
-              <div className="max-h-56 overflow-y-auto rounded-xl border border-gold/20 divide-y divide-gold/10 bg-white">
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-gold/20 divide-y divide-gold/10 bg-card">
                 {(candidates ?? []).length === 0 && (
                   <p className="p-4 text-xs italic text-slate font-display">
                     {t("roster.noMatches")}
@@ -604,7 +609,7 @@ function RosterBody({ classId }: { classId: string }) {
           <h3 className="section-title">
             {t("roster.booked")} ({data.bookings.filter((b) => b.status === "booked").length})
           </h3>
-          <span className="text-xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-semibold text-[var(--color-accent-text)] bg-gold/10 px-2.5 py-1 rounded-full">
             {t("roster.checkedIn", { count: data.checked_in_count })}
           </span>
         </div>
@@ -658,7 +663,7 @@ function RosterBody({ classId }: { classId: string }) {
       </div>
 
       {/* Waitlist */}
-      <div className="px-5 sm:px-6 py-5 border-t border-gold/15 bg-white/10">
+      <div className="px-5 sm:px-6 py-5 border-t border-gold/15 bg-card">
         <h3 className="section-title mb-4">
           {t("roster.waitlist")} (
           {
@@ -669,7 +674,7 @@ function RosterBody({ classId }: { classId: string }) {
         </h3>
 
         {data.waitlist.length === 0 ? (
-          <div className="border border-dashed border-gold/30 rounded-xl p-6 text-center bg-white/40">
+          <div className="border border-dashed border-gold/30 rounded-xl p-6 text-center bg-card">
             <Clock className="h-5 w-5 text-gold/60 mx-auto mb-2" />
             <p className="font-display text-sm font-medium text-navy">
               {lang === "he"
@@ -691,7 +696,7 @@ function RosterBody({ classId }: { classId: string }) {
             {data.waitlist.map((w: any, i: number) => (
               <div
                 key={w.id}
-                className="editorial-card p-4 flex items-center justify-between gap-3 border border-gold/15 rounded-xl bg-white text-start"
+                className="editorial-card p-4 flex items-center justify-between gap-3 border border-gold/15 rounded-xl bg-card text-start"
               >
                 <div className="min-w-0">
                   <p className="font-display text-base font-medium text-navy">{w.member?.name}</p>
@@ -708,7 +713,8 @@ function RosterBody({ classId }: { classId: string }) {
                         title="Mark as offered"
                         className="btn-outline inline-flex h-9 items-center gap-1 px-2.5 text-xs hover:btn-outline-hover rounded-full"
                       >
-                        <Bell className="h-3.5 w-3.5 text-gold" /> {t("roster.offer")}
+                        <Bell className="h-3.5 w-3.5 text-[var(--color-accent-text)]" />{" "}
+                        {t("roster.offer")}
                       </button>
                     )}
                     <button
@@ -716,14 +722,14 @@ function RosterBody({ classId }: { classId: string }) {
                         prepareWaitlistOffer(w.member.id, w.member.name, w.member.phone, i + 1)
                       }
                       title="Copy/open WhatsApp"
-                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
+                      className="btn-outline inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => promote.mutate(w.id)}
                       title="Promote to booking"
-                      className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
+                      className="btn-outline inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
                     >
                       <ArrowUpCircle className="h-4 w-4" />
                     </button>
@@ -765,7 +771,7 @@ function RosterRow({
   const st = b.attendance_state;
 
   return (
-    <div className="editorial-card p-4 hover:border-gold/30 transition-all hover:shadow-[0_4px_12px_var(--cc-alpha-navy-03)] bg-white rounded-xl border border-gold/15">
+    <div className="editorial-card p-4 hover:border-gold/30 transition-all hover:shadow-[0_4px_12px_rgba(11,29,58,0.03)] bg-card rounded-xl border border-gold/15">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Member Details */}
         <div className="min-w-0 flex-1 space-y-1.5 text-start">
@@ -773,13 +779,13 @@ function RosterRow({
             <Link
               to="/admin/members/$id"
               params={{ id: m.id }}
-              className="font-display text-base font-medium text-navy hover:text-gold transition-colors truncate"
+              className="font-display text-base font-medium text-navy hover:text-[var(--color-accent-text)] transition-colors truncate"
             >
               {m.name}
             </Link>
 
             {m.is_first_timer && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold border border-gold/25">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-accent-text)] border border-gold/25">
                 <Sparkles className="h-2.5 w-2.5" /> {t("roster.first")}
               </span>
             )}
@@ -802,11 +808,11 @@ function RosterRow({
                 <span dir="ltr">{m.phone}</span>
               </span>
             )}
-            <span className="text-slate/40">·</span>
+            <span className="text-slate">·</span>
             <span>
               {m.remaining_credits ?? 0} {t("common.credits")}
             </span>
-            <span className="text-slate/40">·</span>
+            <span className="text-slate">·</span>
             <span
               className={`font-semibold ${
                 st === "attended"
@@ -856,7 +862,7 @@ function RosterRow({
             <button
               title={t("roster.prepareReminder")}
               onClick={onReminder}
-              className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
+              className="btn-outline inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-outline-hover rounded-full"
             >
               <MessageCircle className="h-4 w-4" />
             </button>
@@ -866,8 +872,8 @@ function RosterRow({
           <Link
             to="/admin/members/$id"
             params={{ id: m.id }}
-            title={t("common.view" as any)}
-            className="btn-outline inline-flex h-9 w-9 items-center justify-center p-0 hover:btn-outline-hover rounded-full text-slate"
+            aria-label={`${t("common.member")}: ${m.name}`}
+            className="btn-outline inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-outline-hover rounded-full text-slate"
           >
             <Eye className="h-4 w-4" />
           </Link>

@@ -1,3 +1,4 @@
+import { StaffFormDialog } from "@/components/admin/StaffFormDialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -414,7 +415,10 @@ function Page() {
     { k: "inbox" as const, l: copy.inbox },
     { k: "composer" as const, l: copy.send },
   ];
-  const toolGroups: { label: string; items: ToolTab[] }[] = [
+  const toolGroups: {
+    label: string;
+    items: { k: Tab; l: string; help: string; icon: typeof Pencil }[];
+  }[] = [
     {
       label: copy.toolsOperations,
       items: [
@@ -487,15 +491,15 @@ function Page() {
           </button>
           {toolsOpen && (
             <div className="absolute right-0 top-full z-30 mt-2 w-[min(82vw,420px)] overflow-hidden rounded-2xl border border-gold/25 bg-ivory shadow-[0_24px_70px_var(--cc-alpha-admin-message-shadow)]">
-              <div className="border-b border-gold/20 bg-navy px-5 py-5 text-ivory">
+              <div className="border-b border-border bg-card px-5 py-5 text-foreground">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-serif text-xl">{copy.toolsTitle}</p>
-                    <p className="mt-1 max-w-sm text-xs leading-relaxed text-ivory/65">
+                    <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
                       {copy.toolsIntro}
                     </p>
                   </div>
-                  <Settings2 className="mt-1 h-5 w-5 shrink-0 text-gold" />
+                  <Settings2 className="mt-1 h-5 w-5 shrink-0 text-[var(--color-accent-text)]" />
                 </div>
               </div>
               <div className="max-h-[68vh] space-y-5 overflow-y-auto p-3">
@@ -523,7 +527,7 @@ function Page() {
                             <span
                               className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border ${
                                 selected
-                                  ? "border-gold/50 bg-ivory/10 text-gold"
+                                  ? "border-gold/50 bg-ivory/10 text-[var(--color-accent-text)]"
                                   : "border-gold/30 bg-ivory text-navy"
                               }`}
                             >
@@ -541,7 +545,7 @@ function Page() {
                             </span>
                             <ChevronRight
                               className={`h-4 w-4 shrink-0 ${
-                                selected ? "text-gold" : "text-gold/60"
+                                selected ? "text-[var(--color-accent-text)]" : "text-gold/60"
                               }`}
                             />
                           </button>
@@ -843,7 +847,7 @@ function NotificationEventRolloutsTab() {
                     {event.channels.map((channel: MessageChannel) => (
                       <label
                         key={channel}
-                        className="flex items-center gap-1.5 rounded-full bg-white/60 px-2.5 py-1 text-[10px] uppercase text-slate"
+                        className="flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1 text-[10px] uppercase text-slate"
                       >
                         <input
                           type="checkbox"
@@ -984,7 +988,7 @@ function PremiumJourneyLabTab() {
               />
             </label>
             {!selectedMember && memberSearch.trim() && (
-              <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-gold/20 bg-white p-2 shadow-lg">
+              <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-gold/20 bg-card p-2 shadow-lg">
                 {(members.data ?? []).map((member: any) => (
                   <button
                     key={member.id}
@@ -1036,7 +1040,7 @@ function PremiumJourneyLabTab() {
             {familyPreviews.map((preview: any) => (
               <article
                 key={preview.eventType}
-                className="rounded-2xl border border-gold/15 bg-white/60 p-4"
+                className="rounded-2xl border border-gold/15 bg-card p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -1086,7 +1090,7 @@ function TemplateDeploymentStatus() {
       </div>
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
         {(deployments.data ?? []).map((deployment: any) => (
-          <div key={deployment.id} className="rounded-xl border border-gold/15 bg-white/60 p-3">
+          <div key={deployment.id} className="rounded-xl border border-gold/15 bg-card p-3">
             <p className="truncate text-sm font-medium text-navy">{deployment.template_name}</p>
             <div className="mt-1 flex items-center justify-between text-xs text-slate">
               <span>{deployment.language}</span>
@@ -1828,8 +1832,8 @@ function ComposerTab() {
             </div>
           )}
           <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate">
-            <Users className="h-3 w-3 text-gold" /> {audience.data?.members.length ?? 0}{" "}
-            {copy.recipients}
+            <Users className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
+            {audience.data?.members.length ?? 0} {copy.recipients}
           </p>
         </div>
 
@@ -2181,15 +2185,131 @@ function PreviewRow({
 }
 
 function ChannelIcon({ c }: { c: string }) {
-  if (c === "whatsapp") return <MessageCircle className="h-3 w-3 text-gold" />;
-  if (c === "email") return <Mail className="h-3 w-3 text-gold" />;
-  return <Sparkles className="h-3 w-3 text-gold" />;
+  if (c === "whatsapp")
+    return <MessageCircle className="h-3 w-3 text-[var(--color-accent-text)]" />;
+  if (c === "email") return <Mail className="h-3 w-3 text-[var(--color-accent-text)]" />;
+  return <Sparkles className="h-3 w-3 text-[var(--color-accent-text)]" />;
 }
 
 /* ---------------- Templates ---------------- */
 
+const TEMPLATE_COPY: Record<Lang, Record<string, string>> = {
+  en: {
+    new: "New template",
+    edit: "Edit template",
+    label: "Label",
+    key: "Key",
+    channel: "Channel",
+    language: "Language",
+    trigger: "Trigger",
+    subject: "Subject",
+    body: "Body",
+    variables: "Available variables include",
+    active: "Active",
+    preview: "Preview",
+    previewEmpty: "Start typing the body to see a preview.",
+    previewWhatsapp: "Preview in WhatsApp",
+    cancel: "Cancel",
+    saving: "Saving…",
+    save: "Save template",
+    saved: "Saved",
+    failed: "Failed to save",
+    duplicated: "Duplicated",
+    duplicate: "Duplicate",
+    disable: "Disable",
+    enable: "Enable",
+    email: "Email",
+    in_app: "In-app",
+    whatsapp: "WhatsApp",
+    manual: "Manual",
+    class_reminder: "Class reminder",
+    booking_confirmation: "Booking confirmation",
+    cancellation_confirmation: "Cancellation confirmation",
+    waitlist_spot: "Waitlist spot available",
+    package_expiring: "Package expiring",
+    low_credits: "Low credits",
+    trial_followup: "Trial follow-up",
+    no_show_followup: "No-show follow-up",
+  },
+  he: {
+    new: "תבנית חדשה",
+    edit: "עריכת תבנית",
+    label: "שם התבנית",
+    key: "מזהה תבנית",
+    channel: "ערוץ",
+    language: "שפה",
+    trigger: "אירוע מפעיל",
+    subject: "נושא",
+    body: "תוכן ההודעה",
+    variables: "אפשר להשתמש במשתנים",
+    active: "פעילה",
+    preview: "תצוגה מקדימה",
+    previewEmpty: "הקלידו את תוכן ההודעה לצפייה בתצוגה המקדימה.",
+    previewWhatsapp: "תצוגה מקדימה ב־WhatsApp",
+    cancel: "ביטול",
+    saving: "שומר…",
+    save: "שמירת תבנית",
+    saved: "נשמר",
+    failed: "השמירה נכשלה",
+    duplicated: "התבנית שוכפלה",
+    duplicate: "שכפול",
+    disable: "השבתה",
+    enable: "הפעלה",
+    email: "אימייל",
+    in_app: "באפליקציה",
+    whatsapp: "WhatsApp",
+    manual: "ידני",
+    class_reminder: "תזכורת לשיעור",
+    booking_confirmation: "אישור הרשמה",
+    cancellation_confirmation: "אישור ביטול",
+    waitlist_spot: "התפנה מקום ברשימת המתנה",
+    package_expiring: "חבילה עומדת לפוג",
+    low_credits: "יתרה נמוכה",
+    trial_followup: "מעקב אחרי שיעור ניסיון",
+    no_show_followup: "מעקב אחרי אי־הגעה",
+  },
+  ar: {
+    new: "قالب جديد",
+    edit: "تعديل القالب",
+    label: "اسم القالب",
+    key: "معرّف القالب",
+    channel: "القناة",
+    language: "اللغة",
+    trigger: "الحدث المُفعِّل",
+    subject: "الموضوع",
+    body: "محتوى الرسالة",
+    variables: "يمكن استخدام المتغيّرات",
+    active: "مفعّل",
+    preview: "معاينة",
+    previewEmpty: "اكتب محتوى الرسالة لعرض المعاينة.",
+    previewWhatsapp: "معاينة في WhatsApp",
+    cancel: "إلغاء",
+    saving: "جارٍ الحفظ…",
+    save: "حفظ القالب",
+    saved: "تم الحفظ",
+    failed: "تعذّر الحفظ",
+    duplicated: "تم نسخ القالب",
+    duplicate: "نسخ القالب",
+    disable: "تعطيل",
+    enable: "تفعيل",
+    email: "البريد الإلكتروني",
+    in_app: "داخل التطبيق",
+    whatsapp: "WhatsApp",
+    manual: "يدوي",
+    class_reminder: "تذكير بالدرس",
+    booking_confirmation: "تأكيد الحجز",
+    cancellation_confirmation: "تأكيد الإلغاء",
+    waitlist_spot: "توفر مكان في قائمة الانتظار",
+    package_expiring: "قرب انتهاء الباقة",
+    low_credits: "رصيد منخفض",
+    trial_followup: "متابعة الدرس التجريبي",
+    no_show_followup: "متابعة عدم الحضور",
+  },
+};
+
 function TemplatesTab() {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
+  const copy = TEMPLATE_COPY[lang];
   const qc = useQueryClient();
   const listFn = useServerFn(listMessageTemplates);
   const upFn = useServerFn(upsertMessageTemplate);
@@ -2203,16 +2323,16 @@ function TemplatesTab() {
   const save = useMutation({
     mutationFn: (v: any) => upFn({ data: v }),
     onSuccess: () => {
-      toast.success("Saved");
+      toast.success(copy.saved);
       invalidate();
       setEditing(null);
     },
-    onError: (e: any) => toast.error(e.message ?? "Failed"),
+    onError: (e: any) => toast.error(e.message ?? copy.failed),
   });
   const dup = useMutation({
     mutationFn: (id: string) => dupFn({ data: { id } }),
     onSuccess: () => {
-      toast.success("Duplicated");
+      toast.success(copy.duplicated);
       invalidate();
     },
   });
@@ -2225,7 +2345,7 @@ function TemplatesTab() {
     <div className="space-y-4">
       <div className="flex justify-end">
         <button onClick={() => setEditing("new")} className="btn-navy hover:btn-navy-hover">
-          <Plus className="h-3 w-3" /> New template
+          <Plus className="h-3 w-3" /> {copy.new}
         </button>
       </div>
 
@@ -2242,19 +2362,20 @@ function TemplatesTab() {
               <div className="min-w-0">
                 <p className="font-display text-lg text-navy">{t.label}</p>
                 <p className="mt-0.5 text-xs font-medium text-slate">
-                  {t.channel} · {t.language} ·{" "}
-                  {TRIGGER_TYPES.find((x) => x.key === t.trigger_type)?.label ?? t.trigger_type}
+                  {copy[t.channel] ?? t.channel} ·{" "}
+                  {LANGUAGES.find((l) => l.key === t.language)?.label ?? t.language} ·{" "}
+                  {copy[t.trigger_type] ?? t.trigger_type}
                 </p>
               </div>
               <div className="flex gap-1 shrink-0">
-                <IconBtn title="Edit" onClick={() => setEditing(t)}>
+                <IconBtn title={copy.edit} onClick={() => setEditing(t)}>
                   <Pencil className="h-3.5 w-3.5" />
                 </IconBtn>
-                <IconBtn title="Duplicate" onClick={() => dup.mutate(t.id)}>
+                <IconBtn title={copy.duplicate} onClick={() => dup.mutate(t.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </IconBtn>
                 <IconBtn
-                  title={t.active ? "Disable" : "Enable"}
+                  title={t.active ? copy.disable : copy.enable}
                   onClick={() => tog.mutate({ id: t.id, active: !t.active })}
                 >
                   <Power className="h-3.5 w-3.5" />
@@ -2279,6 +2400,8 @@ function TemplatesTab() {
 }
 
 function TemplateEditor({ initial, onClose, onSave, saving }: any) {
+  const { lang, t } = useI18n();
+  const copy = TEMPLATE_COPY[lang];
   const [f, setF] = useState({
     id: initial?.id,
     key: initial?.key ?? `tpl_${Date.now().toString(36)}`,
@@ -2294,48 +2417,53 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
   const previewSubject = f.subject ? renderTemplate(f.subject, PREVIEW_VARS) : "";
   const previewBody = f.body ? renderTemplate(f.body, PREVIEW_VARS) : "";
   return (
-    <div className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
-      <div className="w-full max-w-4xl space-y-4 overflow-y-auto rounded-2xl border border-gold/30 bg-ivory p-6 max-h-[90vh]">
-        <div className="flex justify-between items-center">
-          <h3 className="font-display text-2xl text-navy">
-            {initial ? "Edit template" : "New template"}
-          </h3>
-          <button onClick={onClose} className="btn-ghost p-1.5 hover:btn-ghost-hover">
+    <StaffFormDialog title={initial ? copy.edit : copy.new} onClose={onClose}>
+      <div className="w-full space-y-4 p-6">
+        <header className="flex items-center justify-between gap-4">
+          <h3 className="font-display text-2xl text-navy">{initial ? copy.edit : copy.new}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("common.close")}
+            className="btn-ghost inline-flex h-11 w-11 shrink-0 items-center justify-center"
+          >
             <X className="h-4 w-4" />
           </button>
-        </div>
+        </header>
         <div className="grid sm:grid-cols-[minmax(0,1fr)_320px] gap-6">
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
-              <L label="Label">
+              <L label={copy.label}>
                 <input
                   className="editorial-input"
                   value={f.label}
                   onChange={(e) => setF({ ...f, label: e.target.value })}
                 />
               </L>
-              <L label="Key">
+              <L label={copy.key}>
                 <input
                   className="editorial-input"
                   value={f.key}
                   onChange={(e) => setF({ ...f, key: e.target.value })}
                 />
               </L>
-              <L label="Channel">
+              <L label={copy.channel}>
                 <select
+                  aria-label={copy.channel}
                   className="editorial-input"
                   value={f.channel}
                   onChange={(e) => setF({ ...f, channel: e.target.value })}
                 >
                   {CHANNELS.map((c) => (
                     <option key={c.key} value={c.key}>
-                      {c.label}
+                      {copy[c.key] ?? c.label}
                     </option>
                   ))}
                 </select>
               </L>
-              <L label="Language">
+              <L label={copy.language}>
                 <select
+                  aria-label={copy.language}
                   className="editorial-input"
                   value={f.language}
                   onChange={(e) => setF({ ...f, language: e.target.value })}
@@ -2347,21 +2475,22 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
                   ))}
                 </select>
               </L>
-              <L label="Trigger">
+              <L label={copy.trigger}>
                 <select
+                  aria-label={copy.trigger}
                   className="editorial-input"
                   value={f.trigger_type}
                   onChange={(e) => setF({ ...f, trigger_type: e.target.value })}
                 >
                   {TRIGGER_TYPES.map((t) => (
                     <option key={t.key} value={t.key}>
-                      {t.label}
+                      {copy[t.key] ?? t.label}
                     </option>
                   ))}
                 </select>
               </L>
               {f.channel === "email" && (
-                <L label="Subject">
+                <L label={copy.subject}>
                   <input
                     className="editorial-input"
                     value={f.subject ?? ""}
@@ -2370,7 +2499,7 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
                 </L>
               )}
             </div>
-            <L label="Body">
+            <L label={copy.body}>
               <textarea
                 rows={6}
                 className="editorial-input"
@@ -2379,7 +2508,7 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
               />
             </L>
             <p className="text-xs text-slate">
-              Use variables like {`{{member_name}}`}, {`{{class_name}}`}, {`{{class_date}}`},{" "}
+              {copy.variables} {`{{member_name}}`}, {`{{class_name}}`}, {`{{class_date}}`},{" "}
               {`{{studio_name}}`}…
             </p>
             <label className="flex items-center gap-2 text-sm text-navy">
@@ -2389,22 +2518,20 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
                 onChange={(e) => setF({ ...f, active: e.target.checked })}
                 className="accent-gold"
               />{" "}
-              Active
+              {copy.active}
             </label>
           </div>
           <div className="self-start space-y-3 rounded-2xl border border-gold/20 bg-sand/20 p-4">
-            <p className="eyebrow">Preview</p>
+            <p className="eyebrow">{copy.preview}</p>
             {previewSubject && (
               <p className="text-xs text-slate">
-                <span className="font-medium">Subject</span>
+                <span className="font-medium">{copy.subject}</span>
                 {" · "}
                 {previewSubject}
               </p>
             )}
             <pre className="min-h-[120px] rounded-xl border border-gold/15 bg-sand/40 p-3 font-sans text-sm leading-relaxed text-navy whitespace-pre-wrap">
-              {previewBody || (
-                <span className="text-slate italic">Start typing the body to see a preview...</span>
-              )}
+              {previewBody || <span className="text-slate italic">{copy.previewEmpty}</span>}
             </pre>
             {f.channel === "whatsapp" && previewBody && (
               <a
@@ -2413,14 +2540,14 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
                 rel="noreferrer"
                 className="btn-ghost inline-flex items-center gap-1.5 text-xs hover:btn-ghost-hover"
               >
-                <MessageCircle className="h-3 w-3" /> Preview in WhatsApp →
+                <MessageCircle className="h-3 w-3" /> {copy.previewWhatsapp}
               </a>
             )}
           </div>
         </div>
         <div className="flex gap-2 justify-end pt-2">
           <button onClick={onClose} className="btn-ghost hover:btn-ghost-hover">
-            Cancel
+            {copy.cancel}
           </button>
           <button
             disabled={saving || !f.label || !f.body}
@@ -2433,11 +2560,11 @@ function TemplateEditor({ initial, onClose, onSave, saving }: any) {
             }
             className="btn-navy hover:btn-navy-hover disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Save template"}
+            {saving ? copy.saving : copy.save}
           </button>
         </div>
       </div>
-    </div>
+    </StaffFormDialog>
   );
 }
 
@@ -2453,7 +2580,7 @@ function IconBtn({ children, ...rest }: any) {
   return (
     <button
       {...rest}
-      className="btn-ghost inline-flex h-8 w-8 items-center justify-center p-0 hover:btn-ghost-hover"
+      className="btn-ghost inline-flex h-11 w-11 items-center justify-center p-0 hover:btn-ghost-hover"
     >
       {children}
     </button>
