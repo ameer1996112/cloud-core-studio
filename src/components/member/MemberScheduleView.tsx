@@ -229,6 +229,9 @@ export function MemberScheduleView({
           {!isLoading && !hasBlockingError && filtered.length === 0 && (
             <MemberEmptyState
               variant="schedule"
+              illustration={null}
+              eyebrow=""
+              align="start"
               title={hasNoClasses ? t("member.empty.schedule.title") : t("member.noSessions")}
               body={hasNoClasses ? t("member.empty.schedule.body") : t("member.clearFilters")}
               primaryAction={emptyStatePrimaryAction}
