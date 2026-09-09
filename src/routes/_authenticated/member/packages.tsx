@@ -402,24 +402,23 @@ function MemberPackages() {
         />
       )}
 
-      <div className="aura-account-history">
-        <div className="space-y-3">
-          <div className="member-section-heading">
-            <h2 className="member-section-title">{t("packages.creditHistory")}</h2>
+      <div className="aura-account-history account-history-refined">
+        <section className="account-history-section">
+          <div className="account-history-heading">
+            <span className="account-history-icon" aria-hidden="true">
+              <Wallet size={21} strokeWidth={1.5} />
+            </span>
+            <h2>{t("packages.creditHistory")}</h2>
           </div>
           {data?.ledger.length === 0 ? (
-            <MemberEmptyState
-              variant="packages"
-              title={t("packages.noCredit")}
-              body={t("member.empty.creditHistory.body")}
-              align="start"
-              tone="sand"
-              illustration={null}
-            />
+            <div className="account-history-empty">
+              <h3>{t("packages.noCredit")}</h3>
+              <p>{t("member.empty.creditHistory.body")}</p>
+            </div>
           ) : (
-            <div className="member-card divide-y hairline">
+            <div className="account-history-records">
               {data?.ledger.map((t: any) => (
-                <div key={t.id} className="px-4 py-3 flex items-center justify-between text-sm">
+                <div key={t.id} className="account-history-record">
                   <div className="min-w-0">
                     <p className="text-navy">{formatCreditReason(t.reason, t.amount_delta)}</p>
                     <p className="mt-0.5 text-xs font-medium text-slate">
@@ -436,29 +435,26 @@ function MemberPackages() {
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="space-y-3">
-          <div className="member-section-heading">
-            <h2 className="member-section-title">{t("packages.paymentHistory")}</h2>
+        <section className="account-history-section">
+          <div className="account-history-heading">
+            <span className="account-history-icon" aria-hidden="true">
+              <FileText size={21} strokeWidth={1.5} />
+            </span>
+            <h2>{t("packages.paymentHistory")}</h2>
           </div>
           {visiblePaymentHistory.length === 0 ? (
-            <MemberEmptyState
-              variant="payments"
-              title={t("packages.noPayments")}
-              body={t("member.empty.payments.body")}
-              align="start"
-              tone="ivory"
-            />
+            <div className="account-history-empty">
+              <h3>{t("packages.noPayments")}</h3>
+              <p>{t("member.empty.payments.body")}</p>
+            </div>
           ) : (
-            <div className="member-card divide-y hairline">
+            <div className="account-history-records">
               {visiblePaymentHistory.map((p: any) => {
                 const receipt = Array.isArray(p.receipt) ? p.receipt[0] : p.receipt;
                 return (
-                  <div
-                    key={p.id}
-                    className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
-                  >
+                  <div key={p.id} className="account-history-record">
                     <div className="min-w-0">
                       <p className="text-navy">
                         {p.plan ? getPlanDisplay(p.plan, lang).name : t("receipt.studioPayment")}
@@ -487,7 +483,7 @@ function MemberPackages() {
               })}
             </div>
           )}
-        </div>
+        </section>
       </div>
     </section>
   );
