@@ -2,6 +2,13 @@ import type { LocalizedCatalog } from "../types";
 
 export const coreCatalog = {
   en: {
+    "member.packageGuide.eyebrow": "Before you book",
+    "member.packageGuide.title": "First a package. Then your class.",
+    "member.packageGuide.body":
+      "Buy a package with available credits. Once it is active, return to the schedule to book your place.",
+    "member.packageGuide.paid": "Already paid? Check your package status before paying again.",
+    "member.packageGuide.action": "View packages & purchase",
+
     "schedule.availability.open": "Open for booking",
     "schedule.availability.few": "Few spots left",
     "schedule.availability.waitlist": "Full · Waitlist available",
@@ -496,6 +503,13 @@ export const coreCatalog = {
     "promotionManager.viewSchedule": "View schedule",
   },
   he: {
+    "member.packageGuide.eyebrow": "לפני ההרשמה",
+    "member.packageGuide.title": "קודם חבילה, ואז נרשמים לשיעור",
+    "member.packageGuide.body":
+      "כדי להירשם צריך לרכוש חבילה עם כניסות זמינות. לאחר הפעלתה, חוזרים ללוח ונרשמים לשיעור הרצוי.",
+    "member.packageGuide.paid": "כבר שילמת? אפשר לבדוק את מצב החבילה לפני תשלום נוסף.",
+    "member.packageGuide.action": "לבחירת חבילה ורכישה",
+
     "schedule.availability.open": "פתוח להרשמה",
     "schedule.availability.few": "נותרו מקומות אחרונים",
     "schedule.availability.waitlist": "מלא · רשימת המתנה פתוחה",
@@ -963,6 +977,13 @@ export const coreCatalog = {
     "promotionManager.viewSchedule": "לצפייה בלוח השיעורים",
   },
   ar: {
+    "member.packageGuide.eyebrow": "قبل الحجز",
+    "member.packageGuide.title": "الباقة أولاً، ثم حجز الحصة",
+    "member.packageGuide.body":
+      "للتسجيل، يجب شراء باقة برصيد متاح. بعد تفعيلها، ارجع إلى الجدول واحجز مكانك في الحصة.",
+    "member.packageGuide.paid": "دفعت بالفعل؟ تحقّق من حالة الباقة قبل الدفع مرة أخرى.",
+    "member.packageGuide.action": "اختيار باقة وشراؤها",
+
     "schedule.availability.open": "متاح للحجز",
     "schedule.availability.few": "أماكن محدودة متبقية",
     "schedule.availability.waitlist": "مكتمل · قائمة الانتظار متاحة",

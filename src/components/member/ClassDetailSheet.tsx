@@ -1,3 +1,4 @@
+import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
 import { deriveGuestClassState } from "./guest-class-state";
 // eslint-disable-next-line react-refresh/only-export-components
@@ -442,9 +443,12 @@ export function ClassDetailSheet({
                     {join.isPending ? "…" : t("booking.joinWaitlist")}
                   </button>
                 ) : state?.kind === "package_required" ? (
-                  <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
-                    {t("booking.choosePackage")}
-                  </Link>
+                  <div className="detail-package-guide">
+                    <PackageBookingGuide />
+                    <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
+                      {t("member.packageGuide.action")}
+                    </Link>
+                  </div>
                 ) : state?.kind === "low_credits" ? (
                   <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
                     {t("class.cta.topUpCredits")}
