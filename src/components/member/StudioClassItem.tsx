@@ -23,6 +23,7 @@ type ClassPresentationProps = {
   action: ReactNode;
   secondaryAction?: ReactNode;
   note?: ReactNode;
+  guidance?: ReactNode;
   metadata?: ReactNode;
   showDate?: boolean;
   statusLabel?: string;
@@ -43,6 +44,7 @@ export function StudioClassItem({
   secondaryAction,
   imageSrc,
   note,
+  guidance,
   metadata,
   showDate = true,
   statusLabel,
@@ -148,9 +150,12 @@ export function StudioClassItem({
         </div>
         {featured && (
           <div className="studio-class-footer">
-            <div className="studio-class-status">
-              {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
-            </div>
+            {guidance}
+            {showStatus && (
+              <div className="studio-class-status">
+                {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
+              </div>
+            )}
             <div className="studio-class-actions">
               {action}
               {secondaryAction}

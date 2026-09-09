@@ -1,0 +1,96 @@
+/* Package prerequisite: one explanatory group and one next step. */
+.package-booking-guide {
+  text-align: start;
+  max-width: 42rem;
+}
+.package-booking-guide p {
+  margin: 0;
+}
+.package-booking-guide .package-booking-kicker {
+  color: var(--color-accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.package-booking-guide .package-booking-title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+  text-wrap: balance;
+}
+.package-booking-guide .package-booking-copy {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-text-primary);
+}
+.package-booking-guide .package-booking-help {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}
+.member-app .reference-home .home-next .studio-class-footer:has(.package-booking-guide) {
+  gap: 16px;
+  border-block-start: 1px solid var(--color-border);
+}
+.member-app
+  .reference-home
+  .home-next
+  .studio-class-footer:has(.package-booking-guide)
+  .studio-class-actions {
+  align-items: stretch;
+}
+.member-app .reference-home .package-booking-action {
+  flex: 1;
+  justify-content: center;
+}
+.member-app .reference-home .home-package-summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 0;
+  border-block: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+.home-package-summary > span {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+.home-package-summary strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.home-package-summary > span > span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.schedule-package-guide {
+  display: grid;
+  gap: 16px;
+  padding-block: 20px;
+  margin-bottom: 16px;
+  border-block: 1px solid var(--color-border);
+}
+.schedule-package-guide > a {
+  justify-self: start;
+  min-height: 44px;
+}
+.detail-package-guide {
+  display: grid;
+  gap: 16px;
+}
+.package-booking-action {
+  min-height: 44px;
+}
+@media (min-width: 768px) {
+  .schedule-package-guide {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 24px;
+  }
+}

@@ -1,3 +1,4 @@
+import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
 import {
@@ -51,6 +52,14 @@ export function MemberHomeContent({
   const featuredRecommendation = !next ? recommended[0] : undefined;
   const moreClasses = recommended.filter((cls) => cls.id !== featuredRecommendation?.id);
   const credits = data?.member?.remaining_credits;
+  const recommendationNeedsPackage =
+    !!featuredRecommendation &&
+    deriveClassState(featuredRecommendation, {
+      booked: false,
+      waiting: false,
+      remainingCredits: credits ?? 0,
+      hasActivePackage: !!data?.activePlan,
+    }).kind === "package_required";
   const announcement = settings?.announcement_text?.trim();
   const welcome = settings?.welcome_text?.trim();
   const concierge = data?.concierge;
@@ -97,8 +106,19 @@ export function MemberHomeContent({
             )}
           </h1>
           <p>{greeting}</p>
-          <Link to="/member/schedule" className="home-welcome-action">
-            {t("member.browseSchedule")}
+          <Link
+            to={
+              recommendationNeedsPackage && !failed && !isLoading
+                ? "/member/packages"
+                : "/member/schedule"
+            }
+            className="home-welcome-action"
+          >
+            {t(
+              recommendationNeedsPackage && !failed && !isLoading
+                ? "member.packageGuide.action"
+                : "member.browseSchedule",
+            )}
             <ArrowRight size={18} className="directional-icon-forward" aria-hidden="true" />
           </Link>
         </div>
@@ -181,6 +201,21 @@ export function MemberHomeContent({
                 ) : featuredRecommendation ? (
                   <BookingPass
                     cls={featuredRecommendation}
+                    showStatus={!recommendationNeedsPackage}
+                    guidance={recommendationNeedsPackage ? <PackageBookingGuide /> : undefined}
+                    secondaryAction={
+                      recommendationNeedsPackage ? (
+                        <button
+                          type="button"
+                          className="home-text-action"
+                          aria-haspopup="dialog"
+                          aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
+                          onClick={() => onOpenClass(featuredRecommendation.id)}
+                        >
+                          {t("member.viewClass")}
+                        </button>
+                      ) : undefined
+                    }
                     state={deriveClassState(featuredRecommendation, {
                       booked: false,
                       waiting: false,
@@ -189,19 +224,30 @@ export function MemberHomeContent({
                     })}
                     timeZone={settings?.timezone}
                     action={
-                      <button
-                        type="button"
-                        className="home-primary"
-                        onClick={() => onOpenClass(featuredRecommendation.id)}
-                        aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
-                      >
-                        {t("member.viewClass")}
-                        <ArrowRight
-                          size={16}
-                          className="directional-icon-forward"
-                          aria-hidden="true"
-                        />
-                      </button>
+                      recommendationNeedsPackage ? (
+                        <Link to="/member/packages" className="home-primary package-booking-action">
+                          {t("member.packageGuide.action")}
+                          <ArrowRight
+                            size={16}
+                            className="directional-icon-forward"
+                            aria-hidden="true"
+                          />
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          className="home-primary"
+                          onClick={() => onOpenClass(featuredRecommendation.id)}
+                          aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
+                        >
+                          {t("member.viewClass")}
+                          <ArrowRight
+                            size={16}
+                            className="directional-icon-forward"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      )
                     }
                   />
                 ) : (
@@ -216,15 +262,22 @@ export function MemberHomeContent({
                       decoding="async"
                     />
                     <div className="home-choose-copy">
-                      <p>
+                      {!data.activePlan && credits <= 0 ? (
+                        <PackageBookingGuide />
+                      ) : (
+                        <p>{t("member.empty.bookings.body")}</p>
+                      )}
+                      <Link
+                        to={
+                          !data.activePlan && credits <= 0 ? "/member/packages" : "/member/schedule"
+                        }
+                        className="home-primary"
+                      >
                         {t(
-                          data.activePlan
-                            ? "member.empty.bookings.body"
-                            : "member.home.noPackageBody",
+                          !data.activePlan && credits <= 0
+                            ? "member.packageGuide.action"
+                            : "member.browseSchedule",
                         )}
-                      </p>
-                      <Link to="/member/schedule" className="home-primary">
-                        {t("member.browseSchedule")}
                         <ArrowRight
                           size={16}
                           className="directional-icon-forward"
@@ -391,6 +444,19 @@ function MembershipPass({
   const { lang, locale } = useI18n();
   const { unlimited, expired } = membershipPresentation(activePlan);
   const planName = activePlan?.plan ? getPlanDisplay(activePlan.plan, lang).name : null;
+  if (!activePlan)
+    return (
+      <Link to="/member/packages" className="home-package-summary">
+        <CreditCard size={20} aria-hidden="true" />
+        <span>
+          <strong>{t("member.noActivePackage")}</strong>
+          <span>
+            {credits} {t("member.creditsRemaining")}
+          </span>
+        </span>
+        <ArrowRight size={18} className="directional-icon-forward" aria-hidden="true" />
+      </Link>
+    );
   return (
     <Link
       to="/member/packages"
