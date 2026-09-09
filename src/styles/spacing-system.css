@@ -1,0 +1,113 @@
+/* Shared rhythm: compact controls, reading panels, page sections, marketing sections.
+   Page spacing never changes row density inside calendars, ledgers or rosters. */
+:root {
+  --cc-space-inline: 16px;
+  --cc-space-control: 8px;
+  --cc-space-content: 16px;
+  --cc-space-section: 24px;
+  --cc-space-panel: 20px;
+  --cc-space-marketing: 48px;
+}
+@media (min-width: 768px) {
+  :root {
+    --cc-space-inline: 32px;
+    --cc-space-content: 20px;
+    --cc-space-section: 32px;
+    --cc-space-panel: 24px;
+    --cc-space-marketing: 72px;
+  }
+}
+.member-app .member-page:is(.reference-home, .aura-member-page, .aura-schedule-page) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-space-section);
+  padding-block-start: var(--cc-space-content);
+}
+.member-app .reference-home .home-primary-layout,
+.member-app .aura-schedule-page .schedule-reading-surface,
+.member-app .aura-packages-page .aura-packages-layout {
+  margin-block-start: 0;
+}
+.member-app .reference-home .home-greeting,
+.member-app .aura-schedule-page .aura-schedule-heading,
+.member-app .aura-packages-page .packages-editorial-heading {
+  margin-block-end: 0;
+  border-radius: 18px;
+}
+.member-app .reference-home .home-primary-layout,
+.member-app .aura-schedule-page .schedule-reading-surface,
+.member-app .aura-packages-page .aura-packages-layout {
+  padding: var(--cc-space-panel);
+  border-radius: 18px;
+}
+.member-app .aura-member-page .aura-account-layout,
+.member-app .aura-member-page .aura-account-main,
+.member-app .aura-member-page .aura-account-utilities {
+  gap: var(--cc-space-section);
+}
+.member-app .aura-packages-page .account-history-refined {
+  margin-block-start: 0;
+}
+.member-app .bookings-editorial .bookings-heading {
+  padding-block-start: 0;
+}
+.member-app .aura-member-page .package-pricing-grid {
+  gap: var(--cc-space-content);
+}
+.admin-page-shell.admin-page-shell {
+  gap: var(--cc-space-section);
+  padding-block-start: var(--cc-space-content);
+}
+.admin-metric-card.admin-metric-card {
+  padding: var(--cc-space-panel);
+}
+.app-shell-content {
+  padding-inline: var(--cc-space-inline);
+}
+.auth-page.auth-entry {
+  gap: var(--cc-space-section);
+}
+.auth-page.auth-entry .auth-mobile-panel {
+  padding: var(--cc-space-panel);
+}
+.auth-page.auth-entry .auth-page-header {
+  gap: var(--cc-space-content);
+}
+.public-shell-main > [data-product-view] > article.member-card {
+  padding: var(--cc-space-panel);
+}
+.app-marketing .app-marketing__features,
+.app-marketing .app-marketing__screens-section,
+.app-marketing .app-marketing__steps {
+  padding-block: var(--cc-space-marketing);
+}
+.app-marketing
+  :is(.app-marketing__feature-grid, .app-marketing__screenshots, .app-marketing__steps-list) {
+  gap: var(--cc-space-section);
+}
+.ig-editorial :is(.ig-editorial__routes, .ig-editorial__studio) {
+  gap: var(--cc-space-section);
+}
+
+.studio-pulse-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cc-space-section);
+  padding-block-start: var(--cc-space-content);
+}
+
+.member-app .reference-home .home-greeting {
+  margin-inline: 0;
+  width: 100%;
+}
+
+/* The staff logo must fit its 52px mobile header without crossing the content. */
+.member-mobile-header-pad .studio-logo.staff-logo-compact {
+  width: 76px;
+  height: 44px;
+}
+.member-mobile-header-pad .staff-logo-compact img {
+  width: 100%;
+  height: 44px;
+  object-fit: contain;
+}

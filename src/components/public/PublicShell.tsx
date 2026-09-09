@@ -44,7 +44,7 @@ export function PublicShell({
           showAccount={showAccount}
         />
       ) : null}
-      <main id="main-content" className={mainClassName}>
+      <main id="main-content" className={`public-shell-main ${mainClassName ?? ""}`}>
         {children}
       </main>
       {showFooter ? <PublicFooter /> : null}
