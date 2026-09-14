@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import type { ReactNode } from "react";
 import type { BookingViewState } from "@/lib/booking-view-state";
 
@@ -71,13 +72,14 @@ export function BookingActionPanel({
             </p>
           ))}
           {outcome.recovery?.kind === "retry" && onRetry ? (
-            <button
+            <ReviewButton
               type="button"
               onClick={onRetry}
+              variant="ghost"
               className="btn-ghost mt-2 min-h-10 px-0 text-xs hover:btn-ghost-hover"
             >
               {outcome.recovery.label}
-            </button>
+            </ReviewButton>
           ) : outcome.recovery?.kind === "link" ? (
             <a
               href={outcome.recovery.href}
@@ -94,19 +96,19 @@ export function BookingActionPanel({
           (action.kind === "recover" ? (
             <a
               href={action.href}
-              className="btn-navy flex w-full justify-center hover:btn-navy-hover"
+              className="cc-button cc-button--primary flex w-full justify-center hover:btn-navy-hover"
             >
               {action.label}
             </a>
           ) : action.kind === "unavailable" ? null : (
-            <button
+            <ReviewButton
               type="button"
               onClick={onAction}
               disabled={state.actionLocked || !onAction}
               className="btn-navy w-full justify-center hover:btn-navy-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {action.label}
-            </button>
+            </ReviewButton>
           )))
         : null}
     </section>

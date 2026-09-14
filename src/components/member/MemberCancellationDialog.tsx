@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { useRef } from "react";
 import { BookingActionPanel } from "@/components/member/BookingActionPanel";
 import { BidiValue } from "@/components/ui/bidi";
@@ -42,7 +43,7 @@ export function MemberCancellationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         dir={dir}
-        className="max-w-md bg-ivory border-gold/30"
+        className="cc-review cc-rollout cc-dialog max-w-md bg-ivory border-gold/30"
         data-product-view="member-cancellation-dialog"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
@@ -64,22 +65,24 @@ export function MemberCancellationDialog({
             onRetry={onRetry}
             actionSlot={
               <div className="flex gap-2">
-                <button
+                <ReviewButton
+                  variant="ghost"
                   ref={keepButtonRef}
                   type="button"
                   onClick={() => onOpenChange(false)}
                   className="btn-ghost flex-1 hover:btn-ghost-hover"
                 >
                   {keepLabel}
-                </button>
-                <button
+                </ReviewButton>
+                <ReviewButton
+                  variant="primary"
                   type="button"
                   onClick={onConfirm}
                   disabled={pending}
                   className="btn-navy flex-1 hover:btn-navy-hover disabled:opacity-60"
                 >
                   {confirmLabel}
-                </button>
+                </ReviewButton>
               </div>
             }
           />

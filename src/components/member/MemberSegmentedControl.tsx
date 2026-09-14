@@ -55,12 +55,7 @@ export function MemberSegmentedControl<Value extends string>({
 
   return (
     <div className="member-segmented-control-frame" dir={dir}>
-      <div
-        className="member-segmented-control no-scrollbar"
-        role="tablist"
-        aria-label={label}
-        dir={dir}
-      >
+      <div className="member-segmented-control cc-tabs" role="tablist" aria-label={label} dir={dir}>
         {items.map((item, index) => {
           const selected = item.value === selectedValue;
           const { tabId, panelId } = memberSegmentIds(baseId, item.value);

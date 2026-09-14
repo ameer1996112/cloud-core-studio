@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as DesignReviewRouteImport } from './routes/design-review'
 import { Route as DownalodRouteImport } from './routes/downalod'
 import { Route as DownloadRouteImport } from './routes/download'
 import { Route as InstagramRouteImport } from './routes/instagram'
@@ -25,6 +26,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedHealthParentRouteImport } from './routes/_authenticated/health-parent'
 import { Route as AuthenticatedInstructorRouteRouteImport } from './routes/_authenticated/instructor/route'
 import { Route as AuthenticatedMemberRouteRouteImport } from './routes/_authenticated/member/route'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
@@ -34,6 +36,7 @@ import { Route as AppArRouteImport } from './routes/app.ar'
 import { Route as AppEnRouteImport } from './routes/app.en'
 import { Route as AppHeRouteImport } from './routes/app.he'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
+import { Route as HealthParentRouteImport } from './routes/health/parent'
 import { Route as MemberScheduleRouteImport } from './routes/member.schedule'
 import { Route as PromoSlugRouteImport } from './routes/promo.$slug'
 import { Route as PromoYogaLinaRouteImport } from './routes/promo.yoga-lina'
@@ -65,6 +68,7 @@ import { Route as AuthenticatedInstructorIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedMemberIndexRouteImport } from './routes/_authenticated/member/index'
 import { Route as AuthenticatedMemberAccountRouteImport } from './routes/_authenticated/member/account'
 import { Route as AuthenticatedMemberBookingsRouteImport } from './routes/_authenticated/member/bookings'
+import { Route as AuthenticatedMemberHealthRouteImport } from './routes/_authenticated/member/health'
 import { Route as AuthenticatedMemberPackagesRouteImport } from './routes/_authenticated/member/packages'
 import { Route as AuthenticatedReceiptsIdRouteImport } from './routes/_authenticated/receipts/$id'
 import { Route as InternalNotificationsDeliverRouteImport } from './routes/internal/notifications/deliver'
@@ -111,6 +115,11 @@ const AuthRoute = AuthRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignReviewRoute = DesignReviewRouteImport.update({
+  id: '/design-review',
+  path: '/design-review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DownalodRoute = DownalodRouteImport.update({
@@ -168,6 +177,12 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHealthParentRoute =
+  AuthenticatedHealthParentRouteImport.update({
+    id: '/health-parent',
+    path: '/health-parent',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInstructorRouteRoute =
   AuthenticatedInstructorRouteRouteImport.update({
     id: '/instructor',
@@ -213,6 +228,11 @@ const AppHeRoute = AppHeRouteImport.update({
 const AuthResetRoute = AuthResetRouteImport.update({
   id: '/auth_/reset',
   path: '/auth/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthParentRoute = HealthParentRouteImport.update({
+  id: '/health/parent',
+  path: '/health/parent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MemberScheduleRoute = MemberScheduleRouteImport.update({
@@ -391,6 +411,12 @@ const AuthenticatedMemberBookingsRoute =
     path: '/bookings',
     getParentRoute: () => AuthenticatedMemberRouteRoute,
   } as any)
+const AuthenticatedMemberHealthRoute =
+  AuthenticatedMemberHealthRouteImport.update({
+    id: '/health',
+    path: '/health',
+    getParentRoute: () => AuthenticatedMemberRouteRoute,
+  } as any)
 const AuthenticatedMemberPackagesRoute =
   AuthenticatedMemberPackagesRouteImport.update({
     id: '/packages',
@@ -532,6 +558,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/design-review': typeof DesignReviewRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
   '/instagram': typeof InstagramRoute
@@ -545,6 +572,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/instructor': typeof AuthenticatedInstructorRouteRouteWithChildren
   '/member': typeof AuthenticatedMemberRouteRouteWithChildren
+  '/health-parent': typeof AuthenticatedHealthParentRoute
   '/plans': typeof AuthenticatedPlansRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
@@ -552,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/app/en': typeof AppEnRoute
   '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
+  '/health/parent': typeof HealthParentRoute
   '/member/schedule': typeof MemberScheduleRoute
   '/promo/$slug': typeof PromoSlugRoute
   '/promo/yoga-lina': typeof PromoYogaLinaRoute
@@ -579,6 +608,7 @@ export interface FileRoutesByFullPath {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/member/account': typeof AuthenticatedMemberAccountRoute
   '/member/bookings': typeof AuthenticatedMemberBookingsRoute
+  '/member/health': typeof AuthenticatedMemberHealthRoute
   '/member/packages': typeof AuthenticatedMemberPackagesRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
   '/internal/notifications/deliver': typeof InternalNotificationsDeliverRoute
@@ -612,6 +642,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/design-review': typeof DesignReviewRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
   '/instagram': typeof InstagramRoute
@@ -622,6 +653,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/health-parent': typeof AuthenticatedHealthParentRoute
   '/plans': typeof AuthenticatedPlansRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/studio': typeof AuthenticatedStudioRoute
@@ -629,6 +661,7 @@ export interface FileRoutesByTo {
   '/app/en': typeof AppEnRoute
   '/app/he': typeof AppHeRoute
   '/auth/reset': typeof AuthResetRoute
+  '/health/parent': typeof HealthParentRoute
   '/member/schedule': typeof MemberScheduleRoute
   '/promo/$slug': typeof PromoSlugRoute
   '/promo/yoga-lina': typeof PromoYogaLinaRoute
@@ -656,6 +689,7 @@ export interface FileRoutesByTo {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/member/account': typeof AuthenticatedMemberAccountRoute
   '/member/bookings': typeof AuthenticatedMemberBookingsRoute
+  '/member/health': typeof AuthenticatedMemberHealthRoute
   '/member/packages': typeof AuthenticatedMemberPackagesRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
   '/internal/notifications/deliver': typeof InternalNotificationsDeliverRoute
@@ -691,6 +725,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/design-review': typeof DesignReviewRoute
   '/downalod': typeof DownalodRoute
   '/download': typeof DownloadRoute
   '/instagram': typeof InstagramRoute
@@ -704,6 +739,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/instructor': typeof AuthenticatedInstructorRouteRouteWithChildren
   '/_authenticated/member': typeof AuthenticatedMemberRouteRouteWithChildren
+  '/_authenticated/health-parent': typeof AuthenticatedHealthParentRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
@@ -711,6 +747,7 @@ export interface FileRoutesById {
   '/app/en': typeof AppEnRoute
   '/app/he': typeof AppHeRoute
   '/auth_/reset': typeof AuthResetRoute
+  '/health/parent': typeof HealthParentRoute
   '/member/schedule': typeof MemberScheduleRoute
   '/promo/$slug': typeof PromoSlugRoute
   '/promo/yoga-lina': typeof PromoYogaLinaRoute
@@ -738,6 +775,7 @@ export interface FileRoutesById {
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/member/account': typeof AuthenticatedMemberAccountRoute
   '/_authenticated/member/bookings': typeof AuthenticatedMemberBookingsRoute
+  '/_authenticated/member/health': typeof AuthenticatedMemberHealthRoute
   '/_authenticated/member/packages': typeof AuthenticatedMemberPackagesRoute
   '/_authenticated/receipts/$id': typeof AuthenticatedReceiptsIdRoute
   '/internal/notifications/deliver': typeof InternalNotificationsDeliverRoute
@@ -773,6 +811,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/checkout'
+    | '/design-review'
     | '/downalod'
     | '/download'
     | '/instagram'
@@ -786,6 +825,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/instructor'
     | '/member'
+    | '/health-parent'
     | '/plans'
     | '/schedule'
     | '/studio'
@@ -793,6 +833,7 @@ export interface FileRouteTypes {
     | '/app/en'
     | '/app/he'
     | '/auth/reset'
+    | '/health/parent'
     | '/member/schedule'
     | '/promo/$slug'
     | '/promo/yoga-lina'
@@ -820,6 +861,7 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/member/account'
     | '/member/bookings'
+    | '/member/health'
     | '/member/packages'
     | '/receipts/$id'
     | '/internal/notifications/deliver'
@@ -853,6 +895,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/checkout'
+    | '/design-review'
     | '/downalod'
     | '/download'
     | '/instagram'
@@ -863,6 +906,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/health-parent'
     | '/plans'
     | '/schedule'
     | '/studio'
@@ -870,6 +914,7 @@ export interface FileRouteTypes {
     | '/app/en'
     | '/app/he'
     | '/auth/reset'
+    | '/health/parent'
     | '/member/schedule'
     | '/promo/$slug'
     | '/promo/yoga-lina'
@@ -897,6 +942,7 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/member/account'
     | '/member/bookings'
+    | '/member/health'
     | '/member/packages'
     | '/receipts/$id'
     | '/internal/notifications/deliver'
@@ -931,6 +977,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/checkout'
+    | '/design-review'
     | '/downalod'
     | '/download'
     | '/instagram'
@@ -944,6 +991,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/instructor'
     | '/_authenticated/member'
+    | '/_authenticated/health-parent'
     | '/_authenticated/plans'
     | '/_authenticated/schedule'
     | '/_authenticated/studio'
@@ -951,6 +999,7 @@ export interface FileRouteTypes {
     | '/app/en'
     | '/app/he'
     | '/auth_/reset'
+    | '/health/parent'
     | '/member/schedule'
     | '/promo/$slug'
     | '/promo/yoga-lina'
@@ -978,6 +1027,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings/$id'
     | '/_authenticated/member/account'
     | '/_authenticated/member/bookings'
+    | '/_authenticated/member/health'
     | '/_authenticated/member/packages'
     | '/_authenticated/receipts/$id'
     | '/internal/notifications/deliver'
@@ -1013,6 +1063,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
+  DesignReviewRoute: typeof DesignReviewRoute
   DownalodRoute: typeof DownalodRoute
   DownloadRoute: typeof DownloadRoute
   InstagramRoute: typeof InstagramRoute
@@ -1024,6 +1075,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   AuthResetRoute: typeof AuthResetRoute
+  HealthParentRoute: typeof HealthParentRoute
   MemberScheduleRoute: typeof MemberScheduleRoute
   PromoSlugRoute: typeof PromoSlugRoute
   PromoYogaLinaRoute: typeof PromoYogaLinaRoute
@@ -1080,6 +1132,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-review': {
+      id: '/design-review'
+      path: '/design-review'
+      fullPath: '/design-review'
+      preLoaderRoute: typeof DesignReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/downalod': {
@@ -1159,6 +1218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/health-parent': {
+      id: '/_authenticated/health-parent'
+      path: '/health-parent'
+      fullPath: '/health-parent'
+      preLoaderRoute: typeof AuthenticatedHealthParentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/instructor': {
       id: '/_authenticated/instructor'
       path: '/instructor'
@@ -1220,6 +1286,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/reset'
       fullPath: '/auth/reset'
       preLoaderRoute: typeof AuthResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health/parent': {
+      id: '/health/parent'
+      path: '/health/parent'
+      fullPath: '/health/parent'
+      preLoaderRoute: typeof HealthParentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/member/schedule': {
@@ -1437,6 +1510,13 @@ declare module '@tanstack/react-router' {
       path: '/bookings'
       fullPath: '/member/bookings'
       preLoaderRoute: typeof AuthenticatedMemberBookingsRouteImport
+      parentRoute: typeof AuthenticatedMemberRouteRoute
+    }
+    '/_authenticated/member/health': {
+      id: '/_authenticated/member/health'
+      path: '/health'
+      fullPath: '/member/health'
+      preLoaderRoute: typeof AuthenticatedMemberHealthRouteImport
       parentRoute: typeof AuthenticatedMemberRouteRoute
     }
     '/_authenticated/member/packages': {
@@ -1687,6 +1767,7 @@ const AuthenticatedInstructorRouteRouteWithChildren =
 interface AuthenticatedMemberRouteRouteChildren {
   AuthenticatedMemberAccountRoute: typeof AuthenticatedMemberAccountRoute
   AuthenticatedMemberBookingsRoute: typeof AuthenticatedMemberBookingsRoute
+  AuthenticatedMemberHealthRoute: typeof AuthenticatedMemberHealthRoute
   AuthenticatedMemberPackagesRoute: typeof AuthenticatedMemberPackagesRoute
   AuthenticatedMemberIndexRoute: typeof AuthenticatedMemberIndexRoute
 }
@@ -1695,6 +1776,7 @@ const AuthenticatedMemberRouteRouteChildren: AuthenticatedMemberRouteRouteChildr
   {
     AuthenticatedMemberAccountRoute: AuthenticatedMemberAccountRoute,
     AuthenticatedMemberBookingsRoute: AuthenticatedMemberBookingsRoute,
+    AuthenticatedMemberHealthRoute: AuthenticatedMemberHealthRoute,
     AuthenticatedMemberPackagesRoute: AuthenticatedMemberPackagesRoute,
     AuthenticatedMemberIndexRoute: AuthenticatedMemberIndexRoute,
   }
@@ -1708,6 +1790,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedInstructorRouteRoute: typeof AuthenticatedInstructorRouteRouteWithChildren
   AuthenticatedMemberRouteRoute: typeof AuthenticatedMemberRouteRouteWithChildren
+  AuthenticatedHealthParentRoute: typeof AuthenticatedHealthParentRoute
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
@@ -1721,6 +1804,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInstructorRouteRoute:
     AuthenticatedInstructorRouteRouteWithChildren,
   AuthenticatedMemberRouteRoute: AuthenticatedMemberRouteRouteWithChildren,
+  AuthenticatedHealthParentRoute: AuthenticatedHealthParentRoute,
   AuthenticatedPlansRoute: AuthenticatedPlansRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
@@ -1752,6 +1836,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
+  DesignReviewRoute: DesignReviewRoute,
   DownalodRoute: DownalodRoute,
   DownloadRoute: DownloadRoute,
   InstagramRoute: InstagramRoute,
@@ -1763,6 +1848,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   AuthResetRoute: AuthResetRoute,
+  HealthParentRoute: HealthParentRoute,
   MemberScheduleRoute: MemberScheduleRoute,
   PromoSlugRoute: PromoSlugRoute,
   PromoYogaLinaRoute: PromoYogaLinaRoute,

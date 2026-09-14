@@ -1,3 +1,7 @@
+import "@/styles/member.css";
+import "@/styles/packages.css";
+import "@/components/member/design/member-system.css";
+import "@/components/member/design/production-adapter.css";
 import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
 import { StudioLogo } from "@/components/brand/StudioLogo";
@@ -180,7 +184,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className={`${isPackagesReview ? "packages-reference-shell" : isHomeReview ? "home-reference-shell" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
+      className={`${useBottomNav ? "member-design-shell cc-review cc-rollout" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}
@@ -246,11 +250,7 @@ export function AppShell({ role, children }: Props) {
           </div>
         )}
 
-        {isHomeReview ? (
-          <HomeReferenceHeader pathname={pathname} lang={lang} signOut={signOutControl} />
-        ) : isPackagesReview ? (
-          <PackagesReviewHeader pathname={pathname} lang={lang} signOut={signOutControl} />
-        ) : useBottomNav ? (
+        {useBottomNav ? (
           <MemberHeader
             pathname={pathname}
             notifications={

@@ -1,3 +1,6 @@
+import heroImage from "@/assets/classes/pilates-sculpt-hero.webp";
+import { ReviewHero, ReviewSurface } from "@/components/member/design/VisualSystem";
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
@@ -105,42 +108,40 @@ export function MemberHomeContent({
           </h1>
           <p>{greeting}</p>
         </div>
-        <div className="home-reference-banner">
-          <EditorialImage
-            scene="welcome-context"
-            eager
-            sizes="(min-width: 768px) 1060px, 100vw"
-            className="home-welcome-photo"
-          />
-          <p className="home-banner-motto">
-            Small steps.
+        <ReviewHero
+          image={heroImage}
+          action={
+            <Link
+              to={
+                recommendationNeedsPackage && !failed && !isLoading
+                  ? "/member/packages"
+                  : "/member/schedule"
+              }
+              className="cc-button cc-button--secondary home-welcome-action"
+            >
+              {t(
+                recommendationNeedsPackage && !failed && !isLoading
+                  ? "member.packageGuide.action"
+                  : "member.browseSchedule",
+              )}
+              <ArrowRight size={18} className="directional-icon-forward" aria-hidden="true" />
+            </Link>
+          }
+        >
+          <p lang="en">
+            SMALL STEPS.
             <br />
-            Lasting change.
+            LASTING CHANGE.
           </p>
-          <Link
-            to={
-              recommendationNeedsPackage && !failed && !isLoading
-                ? "/member/packages"
-                : "/member/schedule"
-            }
-            className="home-welcome-action"
-          >
-            {t(
-              recommendationNeedsPackage && !failed && !isLoading
-                ? "member.packageGuide.action"
-                : "member.browseSchedule",
-            )}
-            <ArrowRight size={18} className="directional-icon-forward" aria-hidden="true" />
-          </Link>
-        </div>
+        </ReviewHero>
       </header>
       {failed ? (
         <section className="home-status" role="alert">
           <h2>{t("page.error.eyebrow")}</h2>
           <p>{t("page.error.body")}</p>
-          <button className="home-primary" onClick={onRetry}>
+          <ReviewButton variant="primary" type="submit" className="home-primary" onClick={onRetry}>
             {t("common.retry")}
-          </button>
+          </ReviewButton>
         </section>
       ) : isLoading ? (
         <div
@@ -178,7 +179,10 @@ export function MemberHomeContent({
                     })}
                     timeZone={settings?.timezone}
                     action={
-                      <Link to="/member/bookings" className="home-primary">
+                      <Link
+                        to="/member/bookings"
+                        className="cc-button cc-button--primary home-primary"
+                      >
                         {t("member.viewBooking")}
                         <ArrowRight
                           size={16}
@@ -236,7 +240,10 @@ export function MemberHomeContent({
                     timeZone={settings?.timezone}
                     action={
                       recommendationNeedsPackage ? (
-                        <Link to="/member/packages" className="home-primary package-booking-action">
+                        <Link
+                          to="/member/packages"
+                          className="cc-button cc-button--primary home-primary package-booking-action"
+                        >
                           {t("member.packageGuide.action")}
                           <ArrowRight
                             size={16}
@@ -245,7 +252,8 @@ export function MemberHomeContent({
                           />
                         </Link>
                       ) : (
-                        <button
+                        <ReviewButton
+                          variant="primary"
                           type="button"
                           className="home-primary"
                           onClick={() => onOpenClass(featuredRecommendation.id)}
@@ -257,7 +265,7 @@ export function MemberHomeContent({
                             className="directional-icon-forward"
                             aria-hidden="true"
                           />
-                        </button>
+                        </ReviewButton>
                       )
                     }
                   />
@@ -273,7 +281,7 @@ export function MemberHomeContent({
                         to={
                           !data.activePlan && credits <= 0 ? "/member/packages" : "/member/schedule"
                         }
-                        className="home-primary"
+                        className="cc-button cc-button--primary home-primary"
                       >
                         {t(
                           !data.activePlan && credits <= 0
@@ -305,7 +313,12 @@ export function MemberHomeContent({
                 </Link>
               </nav>
             </div>
-            <aside dir={dir} className="home-account" aria-label={t("nav.plans")}>
+            <ReviewSurface
+              as="aside"
+              dir={dir}
+              className="home-account"
+              aria-label={t("nav.plans")}
+            >
               <MembershipPass
                 activePlan={data.activePlan}
                 credits={credits}
@@ -402,7 +415,7 @@ export function MemberHomeContent({
                   />
                 </div>
               )}
-            </aside>
+            </ReviewSurface>
           </div>
           {(announcement || welcome) && (
             <section className="home-announcement">

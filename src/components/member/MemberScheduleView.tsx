@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { ScheduleDateStrip } from "./ScheduleDateStrip";
 import { studioDateKey } from "@/lib/member-schedule-date";
@@ -216,7 +217,10 @@ export function MemberScheduleView({
             filtered.some((c: ScheduleClass) => cardStateFor(c).kind === "package_required") && (
               <section className="schedule-package-guide">
                 <PackageBookingGuide />
-                <Link to="/member/packages" className="home-primary package-booking-action">
+                <Link
+                  to="/member/packages"
+                  className="cc-button cc-button--primary home-primary package-booking-action"
+                >
                   {t("member.packageGuide.action")}
                 </Link>
               </section>
@@ -233,9 +237,14 @@ export function MemberScheduleView({
             <section role="alert" className="home-status">
               <h2>{t("page.error.eyebrow")}</h2>
               <p>{data ? staleScheduleCopy[lang] : t("page.error.body")}</p>
-              <button className="home-primary" onClick={onRetry}>
+              <ReviewButton
+                variant="primary"
+                type="submit"
+                className="home-primary"
+                onClick={onRetry}
+              >
                 {t("common.retry")}
-              </button>
+              </ReviewButton>
             </section>
           )}
           {!isLoading && !hasBlockingError && filtered.length === 0 && (
@@ -257,6 +266,7 @@ export function MemberScheduleView({
               <ScheduleDaySection key={key} date={new Date(key)} count={items.length}>
                 {items.map((c: ScheduleClass) => (
                   <StudioClassItem
+                    thumbnail
                     inlineStatus
                     key={c.id}
                     showRoom={false}
@@ -290,15 +300,14 @@ export function MemberScheduleView({
                       ) : undefined
                     }
                     action={
-                      <button
+                      <ReviewButton
                         type="button"
-                        className="home-text-action"
                         aria-haspopup="dialog"
                         aria-label={`${t("member.viewClass")}: ${localizedClassTitle(c)}`}
                         onClick={() => setOpenClass(c.id)}
                       >
                         {t("member.viewClass")}
-                      </button>
+                      </ReviewButton>
                     }
                   />
                 ))}

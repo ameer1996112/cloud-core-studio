@@ -35,6 +35,19 @@ describe("production security headers", () => {
     expect(headers["x-content-type-options"]).toBe("nosniff");
   });
 
+  test("preserves health no-referrer without allowing a weaker referrer policy", () => {
+    for (const name of ["referrer-policy", "Referrer-Policy"]) {
+      const headers = addSecurityHeaders({ [name]: "no-referrer" });
+      expect(headers["referrer-policy"]).toBe("no-referrer");
+      expect(
+        Object.keys(headers).filter((key) => key.toLowerCase() === "referrer-policy"),
+      ).toHaveLength(1);
+    }
+    expect(addSecurityHeaders({ "referrer-policy": "unsafe-url" })["referrer-policy"]).toBe(
+      SECURITY_HEADERS["referrer-policy"],
+    );
+  });
+
   test("copies the shared header module into the production image", () => {
     expect(dockerfile).toContain(
       "COPY --from=build /app/scripts/security-headers.mjs ./scripts/security-headers.mjs",

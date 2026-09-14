@@ -1,3 +1,4 @@
+import { ReviewButton, ReviewSurface } from "@/components/member/design/VisualSystem";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { getLocale, t, useI18n } from "@/lib/i18n";
@@ -247,7 +248,7 @@ function EmptyAction({
   variant: "primary" | "secondary";
 }) {
   const className =
-    variant === "primary" ? "btn-navy hover:btn-navy-hover" : "btn-ghost hover:btn-ghost-hover";
+    variant === "primary" ? "cc-button cc-button--primary" : "cc-button cc-button--secondary";
   if (action.to) {
     return (
       <Link to={action.to} className={className}>
@@ -257,9 +258,9 @@ function EmptyAction({
   }
   if (!action.onClick) return null;
   return (
-    <button type="button" onClick={action.onClick} className={className}>
+    <ReviewButton variant={variant} type="button" onClick={action.onClick}>
       {action.label}
-    </button>
+    </ReviewButton>
   );
 }
 
@@ -345,7 +346,7 @@ export function MemberEmptyState({
   const resolvedTone = tone ?? defaultEmptyTone[variant];
 
   return (
-    <div
+    <ReviewSurface
       dir={dir}
       data-product-view={variant === "schedule" ? "guest-schedule-empty" : undefined}
       className={`member-empty-state member-empty-state-${resolvedTone} member-empty-state-${align}`}
@@ -366,7 +367,7 @@ export function MemberEmptyState({
           {secondaryAction && <EmptyAction action={secondaryAction} variant="secondary" />}
         </div>
       )}
-    </div>
+    </ReviewSurface>
   );
 }
 

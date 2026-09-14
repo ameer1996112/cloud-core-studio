@@ -1,0 +1,439 @@
+.health-declaration-form {
+  color: var(--color-text-primary);
+  line-height: 1.65;
+}
+.health-form-intro {
+  border-block-start: 3px solid var(--color-gold);
+  padding-block: 28px;
+}
+.health-form-intro > svg {
+  color: var(--color-accent-text);
+  margin-block-end: 16px;
+}
+.health-form-intro h2 {
+  font-family: var(--font-phase-display);
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+  line-height: 1.25;
+  font-weight: 600;
+  text-wrap: balance;
+  margin-block-end: 16px;
+}
+.health-form-intro p {
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+.health-form-progress {
+  padding-block: 8px 28px;
+}
+.health-form-progress > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-block-end: 12px;
+}
+.health-form-progress h3,
+.health-signing-heading h3 {
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+.health-form-progress span {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.health-form-progress progress {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--color-border);
+  accent-color: var(--color-action-primary);
+}
+.health-form-progress progress::-webkit-progress-bar {
+  background: var(--color-border);
+}
+.health-form-progress progress::-webkit-progress-value {
+  background: var(--color-action-primary);
+}
+.health-form-progress progress::-moz-progress-bar {
+  background: var(--color-action-primary);
+}
+.health-declaration-form fieldset {
+  min-inline-size: 0;
+}
+.health-declaration-form .health-question {
+  padding: 0 0 24px;
+  margin: 0 0 24px;
+  border: 0;
+  border-block-end: 1px solid var(--color-border);
+}
+.health-question legend {
+  display: flex;
+  gap: 12px;
+  float: inline-start;
+  width: 100%;
+  padding: 0;
+  margin-block-end: 16px;
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+.health-question-number {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  line-height: 2.1;
+}
+.health-answer-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  clear: both;
+  padding: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface-subtle);
+}
+.health-answer-option {
+  display: flex;
+  flex: 1 1 80px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.health-answer-option:has(input:checked) {
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: var(--cc-palette-navy-950);
+  box-shadow: 0 2px 5px rgb(11 29 58 / 6%);
+}
+.health-answer-option input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+  border: 1px solid var(--color-control-soft);
+  border-radius: 50%;
+  background: transparent;
+  cursor: inherit;
+}
+.health-answer-option input::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cc-palette-navy-950);
+  transform: scale(0);
+}
+.health-answer-option input:checked {
+  border-color: var(--cc-palette-navy-950);
+}
+.health-answer-option input:checked::before {
+  transform: scale(1);
+}
+@media (hover: hover) {
+  .health-answer-option:hover:not(:has(input:disabled, input:checked)) {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+  }
+  .health-form-submit:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .health-answer-option {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .health-answer-option input {
+    appearance: auto;
+  }
+  .health-answer-option input::before {
+    display: none;
+  }
+  .health-answer-option:has(input:checked) {
+    border-color: Highlight;
+  }
+}
+.health-answer-option:has(input:focus-visible),
+.health-confirmation:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-outer);
+  outline-offset: 3px;
+}
+.health-declaration-form .health-form-privacy {
+  padding: 24px;
+  background: var(--color-surface-subtle);
+  border-radius: 14px;
+  margin-block: 8px 32px;
+  overflow-wrap: anywhere;
+}
+.health-form-privacy h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  margin-block-end: 12px;
+}
+.health-form-privacy h3 svg {
+  flex-shrink: 0;
+}
+.health-form-privacy p {
+  color: var(--color-text-secondary);
+}
+.health-signing-panel {
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+}
+.health-signing-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block-end: 20px;
+  margin-block-end: 4px;
+  border-block-end: 1px solid var(--color-border);
+}
+.health-signing-heading svg {
+  color: var(--color-accent-text);
+  flex-shrink: 0;
+}
+.health-declaration-form .health-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-height: 64px;
+  padding: 20px 0;
+  margin: 0;
+  border-block-end: 1px solid var(--color-border);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.health-confirmation input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+  border: 1px solid var(--color-control-soft);
+  border-radius: 7px;
+  background: var(--color-surface);
+  cursor: inherit;
+}
+.health-confirmation input:checked {
+  background: var(--color-gold);
+  border-color: var(--color-accent-text);
+}
+.health-confirmation input::before {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-inline-start: 2px solid var(--cc-palette-navy-950);
+  border-block-end: 2px solid var(--cc-palette-navy-950);
+  direction: ltr;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+}
+.health-confirmation input:checked::before {
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+}
+.health-declaration-form .health-signer-confirmation {
+  margin-block-start: 20px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface-subtle);
+  font-weight: 500;
+}
+.health-declaration-form .health-signer-confirmation:has(input:checked) {
+  border-color: var(--color-accent-text);
+}
+@media (max-width: 420px) {
+  .health-signing-panel {
+    padding: 20px 16px;
+  }
+  .health-declaration-form .health-signer-confirmation {
+    padding: 16px;
+  }
+}
+@media (forced-colors: active) {
+  .health-confirmation input {
+    appearance: auto;
+  }
+  .health-confirmation input::before {
+    display: none;
+  }
+}
+.health-form-footer {
+  padding-block: 24px 12px;
+}
+.health-form-footer p {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin-block-end: 16px;
+}
+.health-form-submit {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 24px;
+  border: 1px solid var(--color-action-primary);
+  border-radius: 999px;
+  box-shadow: 0 3px 8px rgb(11 29 58 / 10%);
+  background: var(--color-action-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.health-form-submit:focus-visible {
+  outline: 2px solid var(--color-focus-outer);
+  outline-offset: 4px;
+}
+.health-form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.health-declaration-form fieldset:disabled label {
+  cursor: not-allowed;
+}
+@media (min-width: 640px) {
+  .health-answer-options {
+    margin-inline-start: 30px;
+    max-width: 440px;
+  }
+  .health-answer-option {
+    flex: 1 1 100px;
+  }
+}
+
+.health-privacy-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 16px 20px;
+  margin-block: 8px 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+.health-privacy-link > svg {
+  flex-shrink: 0;
+}
+.health-privacy-link > span:first-of-type {
+  flex: 1;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.health-privacy-link:focus-visible {
+  outline: 2px solid var(--color-focus-outer);
+  outline-offset: 3px;
+}
+.health-privacy-page {
+  max-width: 680px;
+  padding: 32px;
+}
+.health-privacy-title {
+  padding-inline-end: 40px;
+  line-height: 1.5;
+}
+.health-privacy-copy {
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.health-privacy-copy p + p {
+  margin-block-start: 20px;
+}
+@media (max-width: 639px) {
+  .health-privacy-page {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding: 60px 24px 24px;
+    align-content: start;
+    gap: 28px;
+  }
+}
+
+.health-signing-statements {
+  padding-block: 16px 4px;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+.health-signing-statements p + p {
+  margin-block-start: 16px;
+}
+.health-signing-statements .health-signer-statement {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+.health-signing-panel > .health-confirmation:last-child {
+  border-block-end: 0;
+  padding-block-end: 0;
+}
+
+.health-signing-panel > .health-confirmation:last-child {
+  border-block-end: 1px solid var(--color-border);
+  padding-block-end: 20px;
+  margin-block-start: 12px;
+}
+.health-signing-panel > .health-confirmation:has(input:checked) {
+  border-color: var(--color-accent-text);
+  background: var(--color-gold-soft);
+}
+.health-form-footer {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-block: 24px 12px;
+}
+.health-form-footer p {
+  margin: 0;
+  text-align: center;
+}
+.health-form-footer .health-form-submit {
+  max-width: 440px;
+  min-height: 56px;
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: var(--cc-palette-navy-950);
+  box-shadow: none;
+}
+.health-form-footer .health-form-submit:disabled {
+  opacity: 1;
+  border-color: var(--color-border);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+}
+.health-form-footer .health-form-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}

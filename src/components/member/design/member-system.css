@@ -1,0 +1,1164 @@
+/* Member/auth rollout of the reviewed visual system. Public/admin are outside this scope. */
+.cc-review.cc-rollout {
+  background: var(--cc-v-ivory);
+}
+.cc-review.cc-rollout .member-page {
+  padding-top: 28px;
+}
+.cc-review.cc-rollout .member-page-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0;
+  margin: 0 0 24px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  min-height: 0;
+}
+.cc-review.cc-rollout .member-page-intro::before,
+.cc-review.cc-rollout .member-page-intro::after {
+  display: none;
+}
+.cc-review.cc-rollout .member-page-intro__title {
+  font:
+    700 30px/1.2 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+  letter-spacing: 0;
+}
+.cc-review.cc-rollout .member-page-intro__body {
+  color: var(--cc-v-muted);
+  font-size: 16px;
+  margin-top: 6px;
+  max-width: 560px;
+}
+.cc-review.cc-rollout .member-page-intro__copy {
+  min-width: 0;
+  flex: 1;
+}
+.cc-review.cc-rollout .member-page-intro .member-eyebrow {
+  font-size: 13px;
+  color: var(--cc-v-muted);
+  letter-spacing: 0;
+}
+.cc-review.cc-rollout .member-section {
+  gap: 12px;
+}
+.cc-review.cc-rollout .member-section__heading {
+  padding: 0;
+  border: 0;
+}
+.cc-review.cc-rollout :is(.member-section__title, .member-section-title) {
+  font:
+    700 22px/1.3 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+}
+.cc-review.cc-rollout .member-card,
+.cc-review.cc-rollout .member-page-panel {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 9px;
+  background: var(--cc-v-surface);
+  box-shadow: var(--cc-v-shadow);
+}
+.cc-review.cc-rollout .cc-button {
+  min-height: 44px;
+  background: linear-gradient(160deg, #36516a, #132f49 48%, #091f34);
+  border: 1px solid var(--cc-v-gold);
+  color: #fffdf8;
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 0;
+  box-shadow:
+    inset 0 1px 3px #fff5,
+    0 3px 6px #563c2928;
+}
+.cc-review.cc-rollout .cc-button--secondary {
+  background: linear-gradient(#fffdf8, #f1e6d5);
+  color: var(--cc-v-ink);
+}
+.cc-review.cc-rollout .cc-button--ghost,
+.cc-review.cc-rollout .cc-button--icon {
+  background: var(--cc-v-surface);
+  color: var(--cc-v-ink);
+  border-color: var(--cc-v-border);
+  box-shadow: none;
+}
+.cc-review.cc-rollout .cc-button--destructive {
+  background: #f6ecdf;
+  color: #a32d39;
+  border-color: #ddc9b0;
+  box-shadow: none;
+}
+.cc-review.cc-rollout .cc-field-surface {
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.cc-review.cc-rollout .cc-field :is(input, select, textarea) {
+  min-height: 44px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+  background: #fffdf9;
+  padding: 9px 12px;
+  box-shadow: none;
+  font: inherit;
+}
+.cc-review.cc-rollout .cc-field label,
+.cc-review.cc-rollout .cc-field .field-label {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.cc-review.cc-rollout .cc-tabs {
+  display: flex;
+  width: 100%;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--cc-v-border);
+  box-shadow: none;
+}
+.cc-review.cc-rollout .cc-tabs [role="tab"] {
+  flex: 1;
+  white-space: normal;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: 8px;
+  color: var(--cc-v-muted);
+  font: inherit;
+}
+.cc-review.cc-rollout .cc-tabs [role="tab"][aria-selected="true"] {
+  border-bottom-color: var(--cc-v-gold);
+  color: #926327;
+  font-weight: 700;
+}
+.cc-review.cc-rollout .member-segmented-control__count {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  color: inherit;
+}
+.cc-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 240px;
+}
+.cc-hero > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 65% 40%;
+}
+.cc-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #f5ead8e6, transparent 65%);
+  pointer-events: none;
+}
+.cc-hero__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 25px;
+  padding: 35px;
+  min-height: 240px;
+  direction: ltr;
+}
+.cc-hero__copy > p {
+  font:
+    600 28px/1.2 "Cormorant Garamond",
+    serif;
+  letter-spacing: 3px;
+  color: #493e2e;
+}
+.cc-hero__copy .cc-button {
+  min-width: 180px;
+}
+.cc-review.cc-rollout .member-home-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 22px;
+  align-items: start;
+}
+.cc-review.cc-rollout .member-home-page > * {
+  min-width: 0;
+  margin: 0;
+}
+.cc-review.cc-rollout .member-home-page > .member-page-intro,
+.cc-review.cc-rollout .member-home-page > .cc-hero {
+  grid-column: 1 / -1;
+}
+.cc-review.cc-rollout .member-home-page > .cc-membership {
+  grid-column: 2;
+  grid-row: 3;
+  display: block;
+  padding: 20px;
+}
+.cc-review.cc-rollout .member-home-page > :is(#next-booking, #recommended) {
+  grid-column: 1;
+  grid-row: 3;
+}
+.cc-review.cc-rollout
+  .member-home-page
+  > :is(
+    #for-you,
+    .member-home-contact-link,
+    .member-announcement-bar,
+    .member-route-error,
+    .member-route-skeleton,
+    .member-empty-state
+  ) {
+  grid-column: 1 / -1;
+}
+.cc-review.cc-rollout .member-home-package-mini {
+  display: block;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  padding: 10px 0 0;
+  min-height: 0;
+}
+.cc-review.cc-rollout .member-home-package-mini > [aria-hidden] {
+  display: none;
+}
+.cc-review.cc-rollout .member-home-package-mini__summary {
+  white-space: normal;
+  font-family: inherit;
+  font-size: 18px;
+}
+.cc-review.cc-rollout .member-home-package-mini__empty-action {
+  margin-top: 12px;
+  font-size: 14px;
+}
+.cc-review.cc-rollout .member-home-page #for-you .member-section__content > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+/* The real class components retain callbacks, state and data; shared surfaces replace decorative art wrappers. */
+.cc-review.cc-rollout .premium-lesson-card {
+  padding: 14px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 9px;
+  background: var(--cc-v-surface);
+  box-shadow: var(--cc-v-shadow);
+  min-height: 0;
+  overflow: hidden;
+}
+.cc-review.cc-rollout .lesson-card__accent {
+  display: none;
+}
+.cc-review.cc-rollout .premium-lesson-card__layout {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 18px;
+  direction: ltr;
+}
+.cc-review.cc-rollout .premium-lesson-card__media {
+  position: relative;
+  width: 100px;
+  height: 118px;
+  min-height: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  grid-column: 1;
+  grid-row: 1;
+}
+.cc-review.cc-rollout .premium-lesson-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cc-review.cc-rollout .premium-lesson-card__media [class*="gradient"] {
+  opacity: 0;
+}
+.cc-review.cc-rollout .premium-lesson-card__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 18px;
+  padding: 0;
+  direction: rtl;
+  align-content: center;
+}
+.cc-review.cc-rollout:dir(ltr) .premium-lesson-card__content {
+  direction: ltr;
+}
+.cc-review.cc-rollout .lesson-card__title {
+  grid-column: 1;
+  grid-row: 1;
+  font:
+    700 21px/1.25 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+  margin: 0;
+}
+.cc-review.cc-rollout .premium-lesson-card__meta {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout .lesson-card__time-badge {
+  font-size: 16px;
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--cc-v-ink);
+}
+.cc-review.cc-rollout .premium-lesson-card__descriptor {
+  grid-column: 1;
+  grid-row: 3;
+  font-size: 13px;
+  margin: 0;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout .lesson-card__chips {
+  grid-column: 1;
+  grid-row: 4;
+  margin: 0;
+  gap: 5px;
+}
+.cc-review.cc-rollout .member-class-meta-chip {
+  font-size: 12px;
+  padding: 1px 7px;
+  min-height: 22px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 20px;
+  background: #f6f0e7;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout .premium-lesson-card__content > .lesson-availability-meter {
+  grid-column: 1;
+  grid-row: 5;
+  max-width: 240px;
+  margin-top: 0;
+  font-size: 11px;
+}
+.cc-review.cc-rollout .lesson-availability-meter__track {
+  height: 2px;
+  background: #ede5d8;
+}
+.cc-review.cc-rollout .premium-lesson-card__actions {
+  grid-column: 2;
+  grid-row: 1 / span 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  max-width: 200px;
+}
+.cc-review.cc-rollout .lesson-card__cta {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border-radius: 28px !important;
+  padding: 7px 22px;
+  border: 1px solid var(--cc-v-gold);
+  background: linear-gradient(160deg, #36516a, #132f49 48%, #091f34);
+  color: #fffdf8;
+  font-size: 15px;
+  font-family: inherit;
+  box-shadow:
+    inset 0 1px 3px #fff5,
+    0 3px 6px #563c2928;
+}
+.cc-review.cc-rollout .premium-lesson-card__actions .lesson-card__state-copy {
+  color: var(--cc-v-muted);
+  font-size: 12px;
+  text-align: center;
+}
+.cc-review.cc-rollout .member-home-page .premium-lesson-card__content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+.cc-review.cc-rollout .member-home-page .premium-lesson-card__actions {
+  align-items: stretch;
+  max-width: none;
+}
+.cc-review.cc-rollout .member-home-page #for-you .premium-lesson-card__layout {
+  grid-template-columns: 65px minmax(0, 1fr);
+  gap: 10px;
+}
+.cc-review.cc-rollout .member-home-page #for-you .premium-lesson-card__media {
+  width: 65px;
+  height: 95px;
+}
+.cc-review.cc-rollout .member-home-page #for-you .lesson-card__title {
+  font-size: 17px;
+}
+.cc-review.cc-rollout
+  .member-home-page
+  #for-you
+  .premium-lesson-card__content
+  > .lesson-availability-meter {
+  display: none;
+}
+.cc-review.cc-rollout .member-schedule-filter-panel {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.cc-review.cc-rollout .member-action-bar {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 14px;
+}
+.cc-review.cc-rollout .member-schedule-filter-panel__primary {
+  gap: 12px;
+}
+.cc-review.cc-rollout .member-schedule-search-field {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  background: var(--cc-v-surface);
+  min-height: 44px;
+}
+.cc-review.cc-rollout .member-schedule-segmented {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  background: var(--cc-v-surface);
+  padding: 3px;
+}
+.cc-review.cc-rollout .member-schedule-segment {
+  min-height: 40px;
+  border-radius: 6px;
+  font-size: 14px;
+  background: none;
+}
+.cc-review.cc-rollout .member-schedule-segment-active {
+  background: var(--cc-v-sand);
+  color: #926327;
+  box-shadow: none;
+}
+.cc-review.cc-rollout .member-schedule-filter-chip {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 20px;
+  min-height: 36px;
+  padding: 5px 12px;
+  background: var(--cc-v-surface);
+  color: var(--cc-v-muted);
+  font-size: 13px;
+}
+.cc-review.cc-rollout .member-schedule-filter-chip-active {
+  background: var(--cc-v-sand);
+  border-color: var(--cc-v-gold);
+  color: #926327;
+}
+.cc-review.cc-rollout .member-schedule-secondary-filters--desktop {
+  margin-top: 12px;
+  border: 0;
+  padding: 0;
+}
+.cc-review.cc-rollout .schedule-day-header {
+  min-height: 0;
+  margin: 20px 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.cc-review.cc-rollout .schedule-day-header__title {
+  font:
+    700 20px/1.3 Assistant,
+    sans-serif;
+}
+.cc-review.cc-rollout .schedule-day-section__cards {
+  gap: 12px;
+}
+.cc-review.cc-rollout .lesson-reservation-card {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  direction: ltr;
+  gap: 16px;
+  padding: 14px;
+}
+.cc-review.cc-rollout .lesson-reservation-card__media {
+  width: 90px;
+  height: 110px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cc-review.cc-rollout .lesson-reservation-card__copy {
+  direction: rtl;
+}
+.cc-review.cc-rollout:dir(ltr) .lesson-reservation-card__copy {
+  direction: ltr;
+}
+.cc-review.cc-rollout .lesson-reservation-card__primary-action {
+  margin-top: 10px;
+}
+.cc-review.cc-rollout .member-account-page__content {
+  display: grid;
+  gap: 16px;
+}
+.cc-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.cc-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(140deg, #ede1ce, #ccb898);
+  border: 3px solid #fffdf9;
+  box-shadow: 0 0 0 1px var(--cc-v-border);
+  font-size: 32px;
+  color: var(--cc-v-ink);
+  flex-shrink: 0;
+}
+.cc-account-section > summary {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+  padding: 16px 22px;
+  cursor: pointer;
+}
+.cc-account-section > summary::after {
+  content: "‹";
+  font-size: 25px;
+  color: #94713e;
+}
+.cc-account-section[open] > summary::after {
+  transform: rotate(-90deg);
+}
+.cc-account-section > summary h2 {
+  font-size: 19px;
+  font-weight: 600;
+}
+.cc-account-section > .member-section__content {
+  padding: 4px 22px 24px;
+}
+.cc-review.cc-rollout .member-account-fields {
+  gap: 18px;
+}
+.cc-review.cc-rollout .member-account-summary {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.cc-review.cc-rollout .member-account-since {
+  font-size: 12px;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout.lesson-detail {
+  border-radius: 12px;
+  max-width: 780px;
+  background: var(--cc-v-ivory);
+}
+.cc-review.cc-rollout .lesson-detail__summary {
+  background: var(--cc-v-ivory);
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--cc-v-border);
+}
+.cc-review.cc-rollout .lesson-detail__title {
+  font:
+    700 28px/1.3 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+}
+.cc-review.cc-rollout .lesson-detail__body {
+  padding: 22px;
+  gap: 18px;
+}
+.cc-review.cc-rollout .lesson-detail__visual {
+  border-radius: 7px;
+  overflow: hidden;
+  min-height: 200px;
+}
+.cc-review.cc-rollout .lesson-detail__section,
+.cc-review.cc-rollout .lesson-detail__key-card {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  background: var(--cc-v-surface);
+  box-shadow: none;
+}
+.cc-review.cc-rollout .lesson-detail__cta {
+  background: var(--cc-v-ivory);
+  border-color: var(--cc-v-border);
+}
+/* Auth uses the original studio photograph, with the approved split composition. */
+.cc-auth-shell .auth-page {
+  background: var(--cc-v-ivory);
+}
+.cc-auth-shell .auth-page > .pointer-events-none {
+  width: 46%;
+  right: auto;
+  left: 0;
+  position: fixed;
+}
+.cc-auth-shell .auth-page > .pointer-events-none img {
+  opacity: 1;
+  filter: saturate(0.65);
+  object-position: center;
+}
+.cc-auth-shell .auth-page > .pointer-events-none > div {
+  display: none;
+}
+.cc-auth-shell .auth-page > .relative {
+  width: 54%;
+  margin-left: 46%;
+}
+.cc-auth-shell .auth-mobile-topbar {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  z-index: 20;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.cc-auth-shell .auth-mobile-stage {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 70px 32px 24px;
+}
+.cc-auth-shell .auth-mobile-panel {
+  width: 100%;
+  max-width: 400px;
+}
+.cc-auth-shell .auth-brand-logo {
+  width: 185px;
+  height: auto;
+  max-height: none;
+}
+.cc-auth-shell .auth-form-card {
+  padding: 24px 0 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.cc-auth-shell .auth-form-title {
+  font:
+    700 30px/1.3 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+  margin-top: 8px;
+}
+.cc-auth-shell .auth-form-card > .member-eyebrow {
+  display: none;
+}
+.cc-auth-shell .auth-brand-lockup {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.cc-auth-shell .auth-field {
+  margin-top: 14px;
+}
+.cc-auth-shell .auth-field input {
+  background: #fffdf9;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+  min-height: 44px;
+  box-shadow: none;
+}
+.cc-auth-shell .auth-form .cc-button {
+  width: 100%;
+}
+.cc-auth-shell .auth-form .auth-password-toggle {
+  width: 40px;
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 6px;
+}
+.cc-auth-shell .auth-switch-action {
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--cc-v-gold);
+  background: linear-gradient(#fffdf8, #f1e6d5);
+  color: var(--cc-v-ink);
+}
+.cc-auth-shell .auth-legal-links {
+  gap: 16px;
+  font-size: 13px;
+}
+@media (max-width: 1100px) and (min-width: 768px) {
+  .cc-review.cc-rollout .member-home-page {
+    grid-template-columns: minmax(0, 1fr) 220px;
+  }
+  .cc-review.cc-rollout .member-home-page #for-you .member-section__content > div {
+    grid-template-columns: 1fr;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__actions {
+    align-items: stretch;
+    max-width: none;
+  }
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .member-page {
+    padding-top: 12px;
+  }
+  .cc-review.cc-rollout .member-page-intro {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .cc-review.cc-rollout .member-page-intro__title {
+    font-size: 25px;
+  }
+  .cc-review.cc-rollout .member-page-intro__body {
+    font-size: 14px;
+  }
+  .cc-review.cc-rollout .member-home-page {
+    display: flex;
+    gap: 16px;
+  }
+  .cc-hero,
+  .cc-hero__copy {
+    min-height: 180px;
+  }
+  .cc-hero__copy {
+    padding: 22px;
+    gap: 20px;
+  }
+  .cc-hero__copy > p {
+    font-size: 22px;
+  }
+  .cc-hero__copy .cc-button {
+    min-width: 150px;
+  }
+  .cc-review.cc-rollout .member-home-page > .cc-membership {
+    display: flex;
+    width: 100%;
+    padding: 15px;
+  }
+  .cc-review.cc-rollout .member-home-page #for-you .member-section__content > div {
+    grid-template-columns: 1fr;
+  }
+  .cc-review.cc-rollout .premium-lesson-card {
+    padding: 10px;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__layout {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__media {
+    width: 76px;
+    height: 115px;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .cc-review.cc-rollout .lesson-card__title {
+    font-size: 19px;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__actions {
+    max-width: none;
+    align-items: stretch;
+  }
+  .cc-review.cc-rollout .lesson-card__cta {
+    border-radius: 8px !important;
+    min-height: 44px;
+    padding: 7px 10px;
+    font-size: 14px;
+  }
+  .cc-review.cc-rollout .lesson-reservation-card {
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .cc-review.cc-rollout .lesson-reservation-card__media {
+    width: 74px;
+    height: 100px;
+  }
+  .cc-review.cc-rollout .member-schedule-credit-aside {
+    padding: 10px;
+    min-width: 65px;
+  }
+  .cc-review.cc-rollout .cc-account-section > summary {
+    padding: 14px;
+    flex-wrap: wrap;
+  }
+  .cc-review.cc-rollout .cc-account-section > summary h2 {
+    font-size: 17px;
+  }
+  .cc-review.cc-rollout .cc-account-section > .member-section__content {
+    padding: 0 14px 18px;
+  }
+  .cc-review.cc-rollout .member-account-since {
+    width: 100%;
+  }
+  .cc-review.cc-rollout.lesson-detail {
+    border-radius: 10px;
+    max-height: calc(100dvh - 12px);
+  }
+  .cc-review.cc-rollout .lesson-detail__summary {
+    padding: 20px 18px;
+  }
+  .cc-review.cc-rollout .lesson-detail__body {
+    padding: 14px;
+  }
+  .cc-review.cc-rollout .lesson-detail__visual {
+    min-height: 210px;
+    max-height: 240px;
+  }
+  .cc-auth-shell .auth-page > .pointer-events-none {
+    width: 100%;
+    opacity: 0.16;
+  }
+  .cc-auth-shell .auth-page > .relative {
+    width: 100%;
+    margin: 0;
+  }
+  .cc-auth-shell .auth-mobile-stage {
+    padding: 70px 24px 24px;
+    min-height: 100dvh;
+  }
+  .cc-auth-shell .auth-mobile-topbar {
+    top: 12px;
+    right: 15px;
+  }
+  .cc-auth-shell .auth-brand-logo {
+    width: 175px;
+  }
+  .cc-auth-shell .auth-form-title {
+    font-size: 28px;
+  }
+  .cc-auth-shell .auth-form-card {
+    padding-top: 10px;
+  }
+}
+.cc-review.cc-rollout .cc-health-route {
+  padding-block: 28px;
+}
+.cc-review.cc-rollout .cc-health-route > main {
+  padding: 24px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 9px;
+  background: var(--cc-v-surface);
+}
+.cc-review.cc-rollout .health-form {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 9px;
+  box-shadow: var(--cc-v-shadow);
+  background: var(--cc-v-surface);
+}
+.cc-review.cc-rollout
+  .health-form
+  :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+  background: #fffdf9;
+  min-height: 44px;
+  padding: 10px;
+}
+.cc-review.cc-rollout .health-form-submit {
+  width: auto;
+}
+.cc-review.cc-rollout .cc-health-status h2 {
+  font-size: 19px;
+  font-weight: 600;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .cc-health-route > main {
+    padding: 16px;
+  }
+}
+
+/* Reset legacy grid placement as well as dimensions for the reviewed row composition. */
+.cc-review.cc-rollout .premium-lesson-card__layout {
+  padding: 0;
+  min-height: 0;
+}
+.cc-review.cc-rollout .premium-lesson-card__content {
+  grid-column: 2;
+  grid-row: 1;
+  align-items: stretch;
+  text-align: start;
+}
+.cc-review.cc-rollout .premium-lesson-card__media {
+  aspect-ratio: auto;
+  border-radius: 6px;
+}
+.cc-review.cc-rollout .premium-lesson-card::before {
+  display: none;
+}
+.cc-review.cc-rollout .member-home-page > * {
+  width: 100%;
+}
+.cc-review.cc-rollout .member-home-page > .member-page-intro {
+  text-align: start;
+}
+.cc-review.cc-rollout .member-page-intro__title,
+.cc-review.cc-rollout .member-page-intro__body {
+  text-align: start !important;
+}
+.cc-review.cc-rollout .lesson-availability-meter {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+}
+.cc-review.cc-rollout .cc-account-section > summary {
+  flex-wrap: nowrap;
+}
+.cc-review.cc-rollout .member-account-since {
+  width: auto;
+  margin-inline-start: auto;
+  font-size: 11px;
+}
+.cc-review.cc-rollout .lesson-reservation-card__copy {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+.cc-review.cc-rollout .lesson-reservation-card__media {
+  grid-column: 1;
+  grid-row: 1;
+  aspect-ratio: auto;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .member-home-page {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cc-review.cc-rollout .premium-lesson-card__layout {
+    gap: 12px;
+  }
+  .cc-review.cc-rollout .premium-lesson-card[data-lesson-variant] .lesson-card__title {
+    font-size: 19px;
+  }
+  .cc-review.cc-rollout .premium-lesson-card.lesson-reservation-card {
+    grid-template-columns: 74px minmax(0, 1fr);
+  }
+  .cc-review.cc-rollout
+    .premium-lesson-card.lesson-reservation-card
+    .lesson-reservation-card__media {
+    width: 74px;
+    height: 100px;
+    grid-row: 1;
+    grid-column: 1;
+    aspect-ratio: auto;
+    border-radius: 6px;
+  }
+  .cc-review.cc-rollout
+    .premium-lesson-card.lesson-reservation-card
+    .lesson-reservation-card__copy {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}
+
+.cc-review.cc-rollout.cc-auth-shell .auth-form-card {
+  padding: 24px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.cc-review.cc-rollout .schedule-day-section {
+  gap: 12px;
+  padding-bottom: 0;
+}
+.cc-review.cc-rollout .schedule-day-section + .schedule-day-section {
+  margin-top: 14px;
+}
+.cc-review.cc-rollout .premium-lesson-card__media .pointer-events-none {
+  display: none;
+}
+.cc-review.cc-rollout .premium-lesson-card__media {
+  align-self: start;
+}
+.cc-review.cc-rollout .member-home-page .premium-lesson-card__meta {
+  order: 1;
+}
+.cc-review.cc-rollout .member-home-page .lesson-card__title {
+  order: 0;
+}
+.cc-review.cc-rollout
+  .member-home-page
+  :is(
+    .premium-lesson-card__descriptor,
+    .lesson-card__chips,
+    .lesson-availability-meter,
+    .premium-lesson-card__actions
+  ) {
+  order: 2;
+}
+
+.cc-review.cc-rollout .cc-next-class {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 12px 18px;
+  direction: ltr;
+  padding: 18px;
+}
+.cc-next-class__image {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 100px;
+  height: 140px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cc-next-class__heading {
+  grid-column: 2;
+  text-align: start;
+  direction: rtl;
+}
+.cc-next-class__heading h3 {
+  font:
+    700 22px/1.3 Assistant,
+    sans-serif;
+}
+.cc-review.cc-rollout .cc-next-class .member-cloud-card-body {
+  grid-column: 2;
+  padding: 0;
+  background: none;
+  color: var(--cc-v-ink);
+  direction: rtl;
+  gap: 10px;
+}
+.cc-review.cc-rollout .cc-next-class .member-cloud-card-summary {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.cc-review.cc-rollout .cc-next-class .member-cloud-card-note {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+}
+.cc-review.cc-rollout .cc-next-class .member-cloud-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cc-review.cc-rollout .cc-next-class .member-cloud-card-helper {
+  font-size: 12px;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout:dir(ltr)
+  .cc-next-class
+  :is(.cc-next-class__heading, .member-cloud-card-body) {
+  direction: ltr;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .cc-next-class {
+    grid-template-columns: 76px minmax(0, 1fr);
+    padding: 12px;
+  }
+  .cc-next-class__image {
+    width: 76px;
+    height: 110px;
+  }
+  .cc-review.cc-rollout .cc-next-class .member-cloud-card-actions .cc-button {
+    width: 100%;
+  }
+}
+
+.cc-review.cc-rollout .member-empty-state {
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  border-radius: 9px;
+  box-shadow: var(--cc-v-shadow);
+  padding: 28px;
+  min-height: 180px;
+}
+.cc-review.cc-rollout
+  .member-empty-state
+  :is(.member-empty-hairline, .member-empty-cloud-card, .member-empty-illustration) {
+  display: none;
+}
+.cc-review.cc-rollout .member-empty-title {
+  font:
+    700 25px/1.3 Assistant,
+    sans-serif;
+}
+.cc-review.cc-rollout .member-empty-body {
+  font-size: 16px;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout .member-empty-copy {
+  grid-column: 1 / span 2;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .member-empty-state {
+    display: flex;
+    flex-direction: column;
+    padding: 24px 18px;
+    gap: 18px;
+  }
+  .cc-review.cc-rollout .member-empty-actions {
+    width: 100%;
+  }
+  .cc-review.cc-rollout .member-empty-actions .cc-button {
+    width: 100%;
+  }
+}
+
+.cc-review.cc-rollout .schedule-day-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+}
+.cc-review.cc-rollout .schedule-day-header__rule {
+  flex: 1;
+  min-width: 20px;
+  margin: 0;
+}
+.cc-review.cc-rollout .schedule-day-header__date {
+  width: auto;
+}
+.cc-review.cc-rollout .premium-lesson-card__actions .lesson-card__state-copy {
+  line-height: 1.3;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .member-bookings-page .member-page-intro {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cc-review.cc-rollout .member-bookings-page .member-page-intro__copy,
+  .cc-review.cc-rollout .member-bookings-page .member-page-intro__aside {
+    width: 100%;
+    min-width: 0;
+  }
+}

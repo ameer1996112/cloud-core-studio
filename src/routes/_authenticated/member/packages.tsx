@@ -1,3 +1,4 @@
+import { ReviewPlanCard, ReviewPrice, ReviewButton } from "@/components/member/design/VisualSystem";
 import { MemberPageIntro } from "@/components/member/MemberPage";
 import packagesCss from "@/styles/packages.css?url";
 import matDetail from "@/assets/mat-detail.webp";
@@ -563,81 +564,38 @@ function PackagePricingCard({
   const creditsLine = getPackageCreditsLine(plan.credits, lang);
   const cardId = `package-plan-${String(plan.id).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   return (
-    <article
+    <ReviewPlanCard
       id={cardId}
-      data-package-plan-card="true"
-      tabIndex={-1}
-      aria-labelledby={`${cardId}-title`}
-      className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
-      data-plan-kind={marketing.kind}
-    >
-      <div className="package-plan-heading min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 id={`${cardId}-title`} className="font-display text-2xl leading-tight text-navy">
-            {display.name.replace(/[—–]/g, "-")}
-          </h3>
-          {marketing.badge || marketing.secondaryBadge ? (
-            <span className="package-plan-badge">
-              {marketing.badge || marketing.secondaryBadge}
-            </span>
-          ) : null}
-        </div>
-        {marketing.subtitle ? (
-          <p className="mt-1.5 text-sm text-slate">{marketing.subtitle}</p>
-        ) : null}
-      </div>
-      <div className="package-plan-price">
-        <p className="numeric-display font-display text-4xl text-navy">
-          <bdi dir="ltr">{formatPlanPrice(plan)}</bdi>
-        </p>
-      </div>
-      <div className="package-plan-details">
-        <p>
-          <Check className="h-4 w-4" />{" "}
-          {plan.credits >= 999 || /unlim/i.test(plan.name) ? t("packages.unlimited") : creditsLine}
-        </p>
-        <p>
-          <Check className="h-4 w-4" />
-          {plan.duration_days
-            ? t("packages.validDays", { days: plan.duration_days })
-            : t("packages.noExpiry")}
-        </p>
-      </div>
-      {marketing.savings || marketing.priceNote ? (
-        <p className="package-plan-recommendation">{marketing.savings || marketing.priceNote}</p>
-      ) : null}
-      {isRecurringMonthly ? (
-        <p className="package-recurring-disclosure">
-          <RefreshCw className="h-3.5 w-3.5" />
-          {t("packages.recurringDisclosure")}
-        </p>
-      ) : null}
-      <div className="package-plan-action">
-        {payment ? (
-          <span className="package-plan-state" role="status">
-            <Wallet className="h-3 w-3 text-gold" /> {t("packages.pendingPayment")}
-          </span>
+      title={display.name}
+      image={matDetail}
+      highlighted={isRecommended}
+      badge={marketing.badge || marketing.secondaryBadge}
+      price={<ReviewPrice value={formatPlanPrice(plan)} />}
+      features={[
+        creditsLine,
+        plan.duration_days
+          ? t("packages.validDays", { days: plan.duration_days })
+          : t("packages.noExpiry"),
+      ]}
+      note={marketing.savings || marketing.priceNote}
+      disclosure={isRecurringMonthly ? t("packages.recurringDisclosure") : undefined}
+      action={
+        payment ? (
+          <span role="status">{t("packages.pendingPayment")}</span>
         ) : blockedByActivePackage ? (
-          <span className="package-plan-state">
-            <Wallet className="h-3 w-3 text-gold" /> {t("packages.activePackageBadge")}
-          </span>
+          <span>{t("packages.activePackageBadge")}</span>
         ) : request && request.status !== "cancelled" ? (
-          <span className="package-plan-state" role="status">
-            <MessageCircle className="h-3 w-3 text-gold" />{" "}
+          <span role="status">
             {request.status === "paid" ? t("packages.activated") : t("packages.requested")}
           </span>
         ) : (
-          <button
-            onClick={onRequest}
-            aria-label={`${t("packages.choosePackage")}: ${display.name}`}
-            disabled={pending}
-            className="btn-navy min-h-11 w-full hover:btn-navy-hover disabled:opacity-50"
-          >
-            <ArrowRight className="h-4 w-4" /> {marketing.cta}
-          </button>
-        )}
-      </div>
-    </article>
+          <ReviewButton disabled={pending} onClick={onRequest}>
+            <ArrowRight aria-hidden="true" size={17} />
+            {marketing.cta}
+          </ReviewButton>
+        )
+      }
+    />
   );
 }
 
@@ -651,8 +609,8 @@ type PricingPlanLike = {
 };
 
 const planOrder: Record<PricingKind, number> = {
-  recommended: 0,
-  monthly5: 1,
+  recommended: 1,
+  monthly5: 0,
   single: 2,
   card10: 3,
   default: 4,

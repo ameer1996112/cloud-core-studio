@@ -9,7 +9,7 @@ import {
   type ImageVariant,
 } from "@/lib/image-assets";
 import { getLocale } from "@/lib/i18n";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 type Motif = ReturnType<() => (typeof classMoods)[ClassMoodKey]["motif"]>;
 
@@ -91,7 +91,15 @@ export function ClassMoodImage({
   const matched = !imageUrl ? classImageFor([programTypeName ?? "", title ?? ""]) : null;
   const fallback = !imageUrl && !matched && !useMotifFallback ? DEFAULT_CLASS_IMAGE : null;
   const resolvedAsset = matched ?? fallback;
-  const resolvedSrc = imageUrl ?? variantSrc(resolvedAsset, variant);
+  const requestedSrc = imageUrl ?? variantSrc(resolvedAsset, variant);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const resolvedSrc =
+    failedSrc === requestedSrc
+      ? variantSrc(
+          classImageFor([programTypeName ?? "", title ?? ""]) ?? DEFAULT_CLASS_IMAGE,
+          variant,
+        )
+      : requestedSrc;
   const alt = resolvedAsset ? localizedAlt(resolvedAsset, getLocale()) : "";
   const fit = imageFit ?? resolvedAsset?.fit ?? "cover";
   const position = imagePosition ?? resolvedAsset?.position ?? "center center";
@@ -106,6 +114,9 @@ export function ClassMoodImage({
           {fit === "contain" && (
             <img
               src={resolvedSrc}
+              onError={() => {
+                if (failedSrc !== requestedSrc) setFailedSrc(requestedSrc ?? null);
+              }}
               alt=""
               aria-hidden="true"
               loading={eager ? "eager" : "lazy"}
@@ -117,6 +128,9 @@ export function ClassMoodImage({
           )}
           <img
             src={resolvedSrc}
+            onError={() => {
+              if (failedSrc !== requestedSrc) setFailedSrc(requestedSrc ?? null);
+            }}
             alt={alt}
             loading={eager ? "eager" : "lazy"}
             decoding="async"

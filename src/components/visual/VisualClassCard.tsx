@@ -1,10 +1,10 @@
+import { ReviewSurface } from "@/components/member/design/VisualSystem";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpLeft, CalendarPlus, ChevronLeft } from "lucide-react";
 import { getLocale, t, useI18n, type Lang } from "@/lib/i18n";
 import { ClassMoodImage } from "@/components/visual/ClassMoodImage";
 import { initialsFor, resolveClassImagePosition, resolveClassImageSrc } from "@/lib/image-assets";
 import { type ClassState } from "@/components/member/PremiumClassCard";
-import { BookingActionPanel } from "@/components/member/BookingActionPanel";
 import { bookingAvailabilityForClassState, deriveBookingViewState } from "@/lib/booking-view-state";
 import {
   localizedClassMetadataChips,
@@ -695,7 +695,8 @@ export function PremiumLessonReservationCard({
       }}
       className="group block w-full text-start animate-fade-in premium-lesson-card-trigger"
     >
-      <article
+      <ReviewSurface
+        as="article"
         dir={dir}
         data-lesson-variant={layoutVariant}
         className={`lesson-card premium-lesson-card premium-lesson-card--live class-card-shell transition-[transform,box-shadow] duration-300 ${tone.card}`}
@@ -761,29 +762,13 @@ export function PremiumLessonReservationCard({
               ))}
             </div>
 
-            <LessonAvailabilityMeter
-              capacity={totalCapacity}
-              bookedCount={cls.booked_count}
-              lang={lang}
-              dir={dir}
-            />
-
             <div className="premium-lesson-card__actions lesson-card__footer">
-              {bookingViewState ? (
-                <BookingActionPanel
-                  state={bookingViewState}
-                  showAction={false}
-                  bare
-                  seatClassName={`lesson-card__state-copy ${tone.soft}`}
-                  summaryClassName={`lesson-card__state-copy ${tone.soft}`}
-                />
-              ) : stateCopy ? (
-                <div className={`lesson-card__state-copy ${tone.soft}`}>
-                  <span dir="auto">
-                    <bdi>{stateCopy}</bdi>
-                  </span>
+              {(bookingViewState?.consequence || stateCopy) && (
+                <div className={`lesson-card__state-copy ${tone.soft}`} dir="auto">
+                  {bookingViewState?.consequence && <p>{bookingViewState.consequence}</p>}
+                  {stateCopy && <p>{stateCopy}</p>}
                 </div>
-              ) : null}
+              )}
               {participants.length > 0 && (
                 <div className="premium-lesson-card__participants">
                   {participants.slice(0, 4).map((n, i) => (
@@ -831,7 +816,7 @@ export function PremiumLessonReservationCard({
             )}
           </div>
         </div>
-      </article>
+      </ReviewSurface>
     </div>
   );
 }
@@ -947,7 +932,7 @@ export function LessonReservationCard({
   const spotsLeft = Math.max(0, totalCapacity - (cls.booked_count ?? 0));
   const time = formatTimeParts(cls.starts_at);
   const accent = getLessonProgramAccent(cls);
-  const tileVariant = getArtTileVariant(cls, 0);
+
   const displayStatus = statusLabel ?? chipLabel;
   const descriptor = instructorDescriptor(instructor, lang);
   const openLabel = classCardOpenLabel({
@@ -957,7 +942,8 @@ export function LessonReservationCard({
   });
 
   return (
-    <article
+    <ReviewSurface
+      as="article"
       dir={dir}
       aria-label={localizedClassTitle(cls)}
       data-lesson-variant="booking"
@@ -974,12 +960,10 @@ export function LessonReservationCard({
     >
       <span className="lesson-card__accent" aria-hidden="true" />
       <div className="lesson-reservation-card__media" aria-hidden="true">
-        <ClassArtTile
-          programType={cls.program_type}
-          tone={typeof cls.energy === "string" ? cls.energy : null}
-          lang={lang}
-          compact
-          variant={tileVariant}
+        <ClassMoodImage
+          title={localizedClassTitle(cls)}
+          imageUrl={resolveClassImageSrc(cls)}
+          className="h-full w-full"
         />
       </div>
       <div className="lesson-reservation-card__copy">
@@ -1049,7 +1033,7 @@ export function LessonReservationCard({
         </button>
         {children ? <div className="lesson-reservation-card__actions">{children}</div> : null}
       </div>
-    </article>
+    </ReviewSurface>
   );
 }
 

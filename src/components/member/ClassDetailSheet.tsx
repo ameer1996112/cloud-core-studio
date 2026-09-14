@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
 import { deriveGuestClassState } from "./guest-class-state";
@@ -334,7 +335,11 @@ export function ClassDetailSheet({
         onOpenChange(v);
       }}
     >
-      <DialogContent dir={dir} className="lesson-detail aura-class-detail" {...returnFocus}>
+      <DialogContent
+        dir={dir}
+        className="cc-review cc-rollout cc-dialog lesson-detail aura-class-detail"
+        {...returnFocus}
+      >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
         <DialogDescription className="sr-only">{t("booking.bring")}</DialogDescription>
         <button
@@ -359,9 +364,14 @@ export function ClassDetailSheet({
           <section className="p-6 pt-16 space-y-4 text-center" role="alert">
             <h2 className="text-xl font-semibold text-navy">{t("page.error.eyebrow")}</h2>
             <p className="text-slate">{t("page.error.body")}</p>
-            <button className="btn-navy" onClick={() => void refetch()}>
+            <ReviewButton
+              variant="primary"
+              type="submit"
+              className="btn-navy"
+              onClick={() => void refetch()}
+            >
               {t("common.retry")}
-            </button>
+            </ReviewButton>
           </section>
         ) : isLoading || !cls ? (
           <div className="h-80 skeleton-brand" role="status" aria-label={t("common.loading")} />
@@ -409,13 +419,18 @@ export function ClassDetailSheet({
                 {guestDetailCta ? (
                   <>
                     {guestDetailCta.disabled ? (
-                      <button disabled className="btn-ghost w-full opacity-60 cursor-not-allowed">
+                      <ReviewButton
+                        variant="ghost"
+                        type="submit"
+                        disabled
+                        className="btn-ghost w-full opacity-60 cursor-not-allowed"
+                      >
                         {guestDetailCta.label}
-                      </button>
+                      </ReviewButton>
                     ) : (
                       <Link
                         to={guestDetailCta.to}
-                        className="btn-navy w-full hover:btn-navy-hover text-center justify-center flex items-center gap-2"
+                        className="cc-button cc-button--primary btn-navy w-full hover:btn-navy-hover text-center justify-center flex items-center gap-2"
                       >
                         {guestDetailCta.label}
                       </Link>
@@ -423,48 +438,68 @@ export function ClassDetailSheet({
                     <p className="text-sm leading-6 text-slate">{guestDetailCta.supportingCopy}</p>
                   </>
                 ) : data?.myBooking?.status === "booked" ? (
-                  <Link to="/member/bookings" className="btn-navy w-full hover:btn-navy-hover">
+                  <Link
+                    to="/member/bookings"
+                    className="cc-button cc-button--primary btn-navy w-full hover:btn-navy-hover"
+                  >
                     {t("booking.viewMine")}{" "}
                     <ArrowRight className="h-3 w-3 directional-icon-forward" />
                   </Link>
                 ) : state?.kind === "waiting" && data?.myWaitlist?.id ? (
-                  <button
+                  <ReviewButton
+                    variant="ghost"
+                    type="submit"
                     onClick={() => leave.mutate(data.myWaitlist!.id)}
                     className="btn-ghost w-full hover:btn-ghost-hover"
                   >
                     {t("booking.leaveWaitlist")}
-                  </button>
+                  </ReviewButton>
                 ) : state?.kind === "waitlist_available" ? (
-                  <button
+                  <ReviewButton
+                    variant="primary"
+                    type="submit"
                     onClick={() => join.mutate()}
                     disabled={join.isPending}
                     className="btn-navy w-full hover:btn-navy-hover disabled:opacity-60"
                   >
                     {join.isPending ? "…" : t("booking.joinWaitlist")}
-                  </button>
+                  </ReviewButton>
                 ) : state?.kind === "package_required" ? (
                   <div className="detail-package-guide">
                     <PackageBookingGuide />
-                    <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
+                    <Link
+                      to="/member/packages"
+                      className="cc-button cc-button--primary btn-navy w-full hover:btn-navy-hover"
+                    >
                       {t("member.packageGuide.action")}
                     </Link>
                   </div>
                 ) : state?.kind === "low_credits" ? (
-                  <Link to="/member/packages" className="btn-navy w-full hover:btn-navy-hover">
+                  <Link
+                    to="/member/packages"
+                    className="cc-button cc-button--primary btn-navy w-full hover:btn-navy-hover"
+                  >
                     {t("class.cta.topUpCredits")}
                   </Link>
                 ) : state?.kind === "closed" || state?.kind === "cancelled" ? (
-                  <button disabled className="btn-ghost w-full opacity-60 cursor-not-allowed">
+                  <ReviewButton
+                    variant="ghost"
+                    type="submit"
+                    disabled
+                    className="btn-ghost w-full opacity-60 cursor-not-allowed"
+                  >
                     {t("booking.registrationClosed")}
-                  </button>
+                  </ReviewButton>
                 ) : (
-                  <button
+                  <ReviewButton
+                    variant="primary"
+                    type="submit"
                     onClick={() => book.mutate()}
                     disabled={book.isPending}
                     className="btn-navy w-full hover:btn-navy-hover disabled:opacity-60"
                   >
                     {book.isPending ? t("booking.saving") : t("booking.bookCredit")}
-                  </button>
+                  </ReviewButton>
                 )}
               </>
             }
@@ -570,12 +605,22 @@ function ConfirmationView({
       <p className="text-center text-xs text-slate font-display">{t("booking.savedLine")}</p>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <button onClick={addToCalendar} className="btn-outline w-full justify-center">
+        <ReviewButton
+          variant="secondary"
+          type="submit"
+          onClick={addToCalendar}
+          className="btn-outline w-full justify-center"
+        >
           <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
-        </button>
-        <button onClick={onDone} className="btn-navy w-full justify-center hover:btn-navy-hover">
+        </ReviewButton>
+        <ReviewButton
+          variant="primary"
+          type="submit"
+          onClick={onDone}
+          className="btn-navy w-full justify-center hover:btn-navy-hover"
+        >
           {t("booking.myBookings")} <ArrowRight className="h-3 w-3 directional-icon-forward" />
-        </button>
+        </ReviewButton>
       </div>
     </div>
   );

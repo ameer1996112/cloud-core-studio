@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import bookingsCss from "@/styles/bookings-editorial.css?url";
 import { EditorialImage } from "@/components/visual/EditorialImage";
 import { MemberPageState } from "@/components/member/MemberPageState";
@@ -482,19 +483,23 @@ function MyBookings() {
                 {t("bookings.creditReturned", { count: confirmCancel.credit_cost })}
               </p>
               <div className="flex gap-2">
-                <button
+                <ReviewButton
+                  variant="ghost"
+                  type="submit"
                   onClick={() => setConfirmCancel(null)}
                   className="btn-ghost flex-1 hover:btn-ghost-hover"
                 >
                   {t("bookings.keep")}
-                </button>
-                <button
+                </ReviewButton>
+                <ReviewButton
+                  variant="primary"
+                  type="submit"
                   onClick={() => cancel.mutate(confirmCancel.id)}
                   disabled={cancel.isPending}
                   className="btn-navy flex-1 hover:btn-navy-hover"
                 >
                   {cancel.isPending ? "…" : t("bookings.cancelBooking")}
-                </button>
+                </ReviewButton>
               </div>
             </div>
           )}
@@ -604,16 +609,20 @@ function BookingCard({
           </p>
           <div className="lesson-reservation-card__action-row">
             <div className="reservation-calendar">
-              <button
+              <ReviewButton
+                variant="ghost"
+                type="submit"
                 onClick={addToCalendar}
                 className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
               >
                 <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
-              </button>
+              </ReviewButton>
               <p className="reservation-calendar-help">{t("member.calendarHelp")}</p>
             </div>
             {canCancel && onCancel ? (
-              <button
+              <ReviewButton
+                variant="ghost"
+                type="submit"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -622,14 +631,14 @@ function BookingCard({
                 className="btn-ghost min-h-10 px-0 text-xs hover:btn-ghost-hover"
               >
                 {t("common.cancel")}
-              </button>
+              </ReviewButton>
             ) : (
               <a
                 href={contactUrl}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
+                className="cc-button cc-button--ghost btn-ghost inline-flex min-h-10 items-center gap-1 px-0 text-xs hover:btn-ghost-hover"
               >
                 <MessageCircle className="h-3 w-3" /> {t("member.contactStudio")}
               </a>
@@ -663,7 +672,9 @@ function WaitlistCard({
       statusLabel={entry.status === "offered" ? t("bookings.offered") : t("bookings.waitingNote")}
       onOpen={onOpen}
     >
-      <button
+      <ReviewButton
+        variant="ghost"
+        type="submit"
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -672,7 +683,7 @@ function WaitlistCard({
         className="btn-ghost min-h-10 px-0 text-xs hover:btn-ghost-hover"
       >
         {t("booking.leaveWaitlist")}
-      </button>
+      </ReviewButton>
     </ReservationRow>
   );
 }

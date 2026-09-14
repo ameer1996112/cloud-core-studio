@@ -50,6 +50,14 @@ export default {
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
+      if (
+        /^\/(?:health\/parent|health-parent|(?:member|admin)\/health(?:-parent)?)(?:\/|$)/.test(
+          new URL(request.url).pathname,
+        )
+      ) {
+        response.headers.set("Cache-Control", "private, no-store, max-age=0");
+        response.headers.set("Referrer-Policy", "no-referrer");
+      }
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);

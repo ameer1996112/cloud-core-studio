@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Eye, EyeOff } from "lucide-react";
@@ -429,14 +430,15 @@ function AuthPage() {
                     autoCorrect="off"
                     spellCheck={false}
                   />
-                  <button
+                  <ReviewButton
+                    variant="icon"
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
                     aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  </ReviewButton>
                 </div>
                 {mode === "signup" && <PasswordStrength password={password} />}
               </Field>
@@ -469,7 +471,8 @@ function AuthPage() {
             )}
 
             {mode !== "check-email" && (
-              <button
+              <ReviewButton
+                variant="primary"
                 type="submit"
                 disabled={busy}
                 className={busy ? "cta-navy cta-navy-disabled" : "cta-navy hover:cta-navy-hover"}
@@ -481,20 +484,22 @@ function AuthPage() {
                     : mode === "signup"
                       ? t("auth.reserve")
                       : t("auth.reset")}
-              </button>
+              </ReviewButton>
             )}
 
             {mode === "signin" && (
-              <button
+              <ReviewButton
+                variant="secondary"
                 type="button"
                 onClick={() => switchMode("forgot")}
                 className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
               >
                 {t("auth.forgot")}
-              </button>
+              </ReviewButton>
             )}
 
-            <button
+            <ReviewButton
+              variant="secondary"
               type="button"
               onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
               className="auth-switch-action block w-full text-center text-navy hover:text-[var(--color-accent-text)] pt-2 border-t hairline"
@@ -504,7 +509,7 @@ function AuthPage() {
                 : mode === "signup"
                   ? t("auth.already")
                   : t("auth.back")}
-            </button>
+            </ReviewButton>
             <section className="auth-guest-section" aria-labelledby="auth-guest-entry">
               <p id="auth-guest-entry">{guestEntryTitle}</p>
               <Link to="/member/schedule" className="auth-guest-action">

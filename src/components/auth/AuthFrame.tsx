@@ -1,3 +1,5 @@
+import "@/components/member/design/member-system.css";
+import "@/components/member/design/production-adapter.css";
 import { MapPin } from "lucide-react";
 import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import type { ReactNode } from "react";
@@ -33,7 +35,7 @@ export function AuthFrame({
       id="main-content"
       dir={LANG_META[lang].dir}
       lang={lang}
-      className={`auth-page auth-entry aura-auth${recovery ? " auth-recovery" : ""}`}
+      className={`cc-review cc-rollout auth-page auth-entry aura-auth cc-production-auth${recovery ? " auth-recovery" : ""}`}
     >
       <header className="auth-page-header">
         <div className="auth-masthead-logo">
@@ -66,6 +68,9 @@ export function AuthFrame({
       </section>
       <div className="auth-content">
         <div className="auth-mobile-panel">
+          <div className="cc-auth-logo">
+            <StudioLogo priority />
+          </div>
           <div className="auth-scene-heading">
             <p className="member-eyebrow">{eyebrow}</p>
             <h1 id="auth-scene-title" className="auth-form-title">

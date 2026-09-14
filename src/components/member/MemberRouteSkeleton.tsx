@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { t } from "@/lib/i18n";
 
 export type MemberRoute = "home" | "schedule" | "bookings" | "packages" | "account";
@@ -39,9 +40,14 @@ export function MemberRouteError({ onRetry }: { onRetry: () => void }) {
     <section className="member-route-error" role="alert">
       <h2 className="member-section__title">{t("member.error.title")}</h2>
       <p>{t("member.error.body")}</p>
-      <button type="button" className="btn-outline min-h-11" onClick={onRetry}>
+      <ReviewButton
+        variant="secondary"
+        type="button"
+        className="btn-outline min-h-11"
+        onClick={onRetry}
+      >
         {t("common.retry")}
-      </button>
+      </ReviewButton>
     </section>
   );
 }

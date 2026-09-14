@@ -5,6 +5,13 @@ let lastCapturedError: { error: unknown; at: number } | undefined;
 const TTL_MS = 5_000;
 
 function record(error: unknown) {
+  if (
+    typeof window !== "undefined" &&
+    /\/(?:health\/parent|health-parent|(?:member|admin)\/health(?:-parent)?)(?:\/|$)/.test(
+      window.location.pathname,
+    )
+  )
+    return;
   lastCapturedError = { error, at: Date.now() };
 }
 

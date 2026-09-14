@@ -27,5 +27,17 @@ export const SECURITY_HEADERS = Object.freeze({
 });
 
 export function addSecurityHeaders(headers = {}) {
-  return { ...headers, ...SECURITY_HEADERS };
+  const result = { ...headers, ...SECURITY_HEADERS };
+  // Health pages require the stricter policy supplied by the application.
+  if (
+    Object.entries(headers).some(
+      ([name, value]) => name.toLowerCase() === "referrer-policy" && value === "no-referrer",
+    )
+  ) {
+    for (const name of Object.keys(result)) {
+      if (name.toLowerCase() === "referrer-policy") delete result[name];
+    }
+    result["referrer-policy"] = "no-referrer";
+  }
+  return result;
 }

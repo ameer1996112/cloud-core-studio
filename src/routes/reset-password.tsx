@@ -1,3 +1,4 @@
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AuthFrame } from "@/components/auth/AuthFrame";
@@ -134,14 +135,15 @@ function ResetPasswordPage() {
                   spellCheck={false}
                   className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus pe-10"
                 />
-                <button
+                <ReviewButton
+                  variant="icon"
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
                   aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                </ReviewButton>
               </div>
             </label>
             <label className="block text-start">
@@ -163,14 +165,15 @@ function ResetPasswordPage() {
                   spellCheck={false}
                   className="auth-ltr-input auth-password-input editorial-input focus:editorial-input-focus pe-10"
                 />
-                <button
+                <ReviewButton
+                  variant="icon"
                   type="button"
                   onClick={() => setShowConfirm((v) => !v)}
                   className="auth-password-toggle absolute top-1/2 -translate-y-1/2 text-slate hover:text-navy"
                   aria-label={showConfirm ? t("auth.hidePassword") : t("auth.showPassword")}
                 >
                   {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                </ReviewButton>
               </div>
             </label>
 
@@ -180,25 +183,30 @@ function ResetPasswordPage() {
               </p>
             )}
 
-            <button
+            <ReviewButton
+              variant="primary"
+              type="submit"
               disabled={busy}
               className={
                 busy ? "cta-navy cta-navy-disabled mt-3" : "cta-navy hover:cta-navy-hover mt-3"
               }
             >
               {busy ? t("reset.saving") : t("reset.submit")}
-            </button>
+            </ReviewButton>
           </form>
         )}
 
         {status === "invalid" && (
           <div className="mt-7 space-y-3">
-            <a href="/auth?mode=forgot" className="cta-navy hover:cta-navy-hover block text-center">
+            <a
+              href="/auth?mode=forgot"
+              className="cc-button cc-button--primary cta-navy hover:cta-navy-hover block text-center"
+            >
               {t("reset.requestNew")}
             </a>
             <Link
               to="/auth"
-              className="auth-secondary-action block w-full text-center text-slate hover:text-navy"
+              className="cc-button cc-button--secondary auth-secondary-action block w-full text-center text-slate hover:text-navy"
             >
               {t("auth.back")}
             </Link>

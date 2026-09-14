@@ -1,3 +1,4 @@
+import { ReviewSurface } from "@/components/member/design/VisualSystem";
 import type { ReactNode } from "react";
 import { UserRound } from "lucide-react";
 import {
@@ -75,7 +76,7 @@ export function StudioClassItem({
   const room = cls.room_ref?.name || cls.room;
   const featured = variant === "featured";
   return (
-    <article className={`studio-class studio-class--${variant}`} dir={dir}>
+    <ReviewSurface as="article" className={`studio-class studio-class--${variant}`} dir={dir}>
       {thumbnail && !featured && (
         <img
           className="studio-class-thumbnail"
@@ -182,7 +183,7 @@ export function StudioClassItem({
         )
       )}
       {note && <div className="studio-class-note">{note}</div>}
-    </article>
+    </ReviewSurface>
   );
 }
 

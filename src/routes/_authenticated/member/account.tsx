@@ -1,3 +1,6 @@
+import { HealthStatusCard } from "@/components/health/HealthStatusCard";
+import { ReviewAvatar } from "@/components/member/design/VisualSystem";
+import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { MemberPageState } from "@/components/member/MemberPageState";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -60,6 +63,7 @@ export const Route = createFileRoute("/_authenticated/member/account")({
 });
 
 function MemberAccount() {
+  const { user } = Route.useRouteContext();
   const { lang, dir, locale } = useI18n();
   useDocumentTitle("page.profile.title");
   const fetchPkg = useServerFn(getMyPackages);
@@ -227,6 +231,7 @@ function MemberAccount() {
   return (
     <section dir={dir} className="member-page aura-member-page aura-account-page">
       <header className="aura-page-heading aura-profile-heading">
+        <ReviewAvatar name={me?.name || ""} />
         <div>
           <p className="member-eyebrow">{t("member.account.kicker")}</p>
           <h1>
@@ -238,6 +243,7 @@ function MemberAccount() {
       </header>
       <div className="aura-account-layout">
         <div className="aura-account-main">
+          <HealthStatusCard participantId={user.id} />
           <div className="aura-settings-section aura-profile-details">
             <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
               <div>
@@ -314,14 +320,16 @@ function MemberAccount() {
               </div>
             </fieldset>
             <div className="aura-form-submit">
-              <button
+              <ReviewButton
+                variant="primary"
+                type="submit"
                 disabled={update.isPending || Object.keys(form).length === 0}
                 onClick={() => update.mutate()}
                 className="btn-navy hover:btn-navy-hover disabled:opacity-50"
               >
                 <Save className="h-3 w-3" />{" "}
                 {update.isPending ? t("common.saving") : t("profile.save")}
-              </button>
+              </ReviewButton>
             </div>
           </div>
 
@@ -364,7 +372,9 @@ function MemberAccount() {
                   />
                   {conciergeCopy.pause}
                 </label>
-                <button
+                <ReviewButton
+                  variant="primary"
+                  type="submit"
                   className="btn-navy hover:btn-navy-hover disabled:opacity-50"
                   disabled={
                     saveBetweenUs.isPending || (!conciergePace && !conciergeIntention.trim())
@@ -373,7 +383,7 @@ function MemberAccount() {
                 >
                   <Save className="h-3 w-3" />
                   {conciergeCopy.save}
-                </button>
+                </ReviewButton>
               </div>
             </section>
           )}
@@ -401,13 +411,22 @@ function MemberAccount() {
             </div>
             <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
             <div className="aura-legal-links">
-              <Link to="/privacy" className="btn-outline hover:btn-outline-hover justify-center">
+              <Link
+                to="/privacy"
+                className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
+              >
                 {t("legal.privacy")}
               </Link>
-              <Link to="/terms" className="btn-outline hover:btn-outline-hover justify-center">
+              <Link
+                to="/terms"
+                className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
+              >
                 {t("legal.terms")}
               </Link>
-              <Link to="/support" className="btn-outline hover:btn-outline-hover justify-center">
+              <Link
+                to="/support"
+                className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
+              >
                 {t("legal.support")}
               </Link>
             </div>
@@ -464,7 +483,8 @@ function MemberAccount() {
                 </MemberFeedbackPanel>
               )}
               <div className="mt-3 flex justify-start">
-                <button
+                <ReviewButton
+                  variant="ghost"
                   ref={deletionTriggerRef}
                   type="button"
                   disabled={
@@ -479,7 +499,7 @@ function MemberAccount() {
                   {deletion.isPending
                     ? t("profile.deleteRequestSubmitting")
                     : t("profile.deleteRequest")}
-                </button>
+                </ReviewButton>
               </div>
             </div>
           </div>

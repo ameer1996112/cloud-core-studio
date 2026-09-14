@@ -17,24 +17,33 @@ export function MemberHeader({
 }) {
   const tabs = bottomTabsForRole("member");
   return (
-    <header className="studio-member-header">
-      <div className="studio-member-header-inner">
-        <Link to="/member" aria-label={t("nav.home")} className="studio-member-brand">
+    <header className="studio-member-header member-desktop-header">
+      <div className="studio-member-header-inner member-desktop-header__row">
+        <Link
+          to="/member"
+          aria-label={t("nav.home")}
+          className="studio-member-brand member-desktop-header__brand"
+        >
           <StudioLogo />
         </Link>
-        <nav aria-label={t("shell.practice")} className="studio-member-desktop-nav">
+        <nav
+          aria-label={t("shell.practice")}
+          className="studio-member-desktop-nav member-desktop-header__nav"
+        >
           {tabs.map((item) => (
             <Link
               key={item.to}
+              className={`member-desktop-nav__link ${isActive(pathname, item) ? "member-desktop-nav__link--active" : ""}`}
               to={item.to}
               activeOptions={{ exact: !!item.exact }}
               aria-current={isActive(pathname, item) ? "page" : undefined}
             >
+              <item.icon size={17} aria-hidden="true" />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="studio-member-tools">
+        <div className="studio-member-tools member-desktop-header__actions">
           {language}
           {notifications}
           {signOut}

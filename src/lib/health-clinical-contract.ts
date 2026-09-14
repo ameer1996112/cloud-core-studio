@@ -1,0 +1,40 @@
+import type { FormContent, HealthAnswers } from "./health-real-form";
+import type { HealthParticipant } from "./health-contract";
+export type ClinicalResponse = {
+  renewalDue?: boolean;
+  expiresAt?: string;
+  retentionAdmin?: boolean;
+  retentionItems?: {
+    id: string;
+    participant_name: string;
+    declaration_review_at: string;
+    document_review_at: string | null;
+    signed_on: string | null;
+    has_document: boolean;
+    held: boolean;
+  }[];
+  hasDocument?: boolean;
+  error?: string;
+  id?: string;
+  status?: string;
+  ok?: boolean;
+  duplicate?: boolean;
+  participants?: HealthParticipant[];
+  form?: { version: string; approved: boolean; wording: Record<"en" | "he" | "ar", FormContent> };
+  testOnly?: boolean;
+  items?: { id: string; participant_name: string; status: string }[];
+  declaration?: {
+    id: string;
+    participantId: string;
+    signerId: string;
+    answers: HealthAnswers;
+    confirmations: Record<string, boolean>;
+    snapshot: { wording: FormContent; signerRole: "adult" | "parent" };
+    submittedAt: string;
+    expiresAt: string;
+    locale: string;
+    templateVersion: string;
+  };
+  base64?: string;
+  mimeType?: string;
+};

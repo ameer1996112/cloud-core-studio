@@ -1,3 +1,4 @@
+import { ReviewSurface } from "@/components/member/design/VisualSystem";
 import { cloneElement, type ReactElement } from "react";
 import { t } from "@/lib/i18n";
 
@@ -16,12 +17,12 @@ export function MemberField({
   children: ReactElement<MemberFieldControlProps>;
 }) {
   return (
-    <div className="member-field">
+    <ReviewSurface className="member-field cc-field cc-field-surface">
       <label htmlFor={id} className="field-label">
         {label}
       </label>
       {cloneElement(children, { id })}
-    </div>
+    </ReviewSurface>
   );
 }
 
