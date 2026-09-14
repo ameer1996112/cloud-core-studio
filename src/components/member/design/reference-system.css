@@ -1,0 +1,2426 @@
+/* First approved design board. Shared by the real member routes and component gallery. */
+.cc-reference.cc-review {
+  --cc-v-ivory: #faf7f1;
+  --cc-v-surface: #fffefa;
+  --cc-v-ink: #0f2d4a;
+  --cc-v-muted: #66727e;
+  --cc-v-gold: #c5a064;
+  --cc-v-sand: #e8dcc6;
+  --cc-v-border: #e9e2d7;
+  --cc-v-shadow: 0 2px 7px #4e3b2510;
+  --cc-v-radius: 8px;
+  --color-text-primary: var(--cc-v-ink);
+  --color-text-secondary: var(--cc-v-muted);
+  --color-surface: var(--cc-v-surface);
+  --color-surface-warm: var(--cc-v-ivory);
+  --color-border: var(--cc-v-border);
+  color: var(--cc-v-ink);
+  font-family: Assistant, "Noto Sans Arabic", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cc-reference.cc-review {
+  background: var(--cc-v-ivory);
+}
+.cc-reference.cc-review :is(h1, h2, h3, p) {
+  letter-spacing: 0;
+}
+.cc-reference.cc-review :is(h1, h2, h3) {
+  color: var(--cc-v-ink);
+  font-family: inherit;
+}
+.cc-reference.cc-review :is(button, a, input, select, summary):focus-visible {
+  outline: 2px solid var(--cc-v-ink);
+  outline-offset: 3px;
+}
+.cc-reference.cc-review :is(.cc-button, .btn-navy, .btn-outline, .btn-ghost) {
+  min-height: 42px;
+  padding: 9px 18px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: var(--cc-v-ink);
+  color: #fff;
+  box-shadow: 0 2px 4px #0f2d4a12;
+  font:
+    600 14px/1.35 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  transition:
+    background 0.16s,
+    border-color 0.16s,
+    transform 0.16s;
+}
+.cc-reference.cc-review .cc-button {
+  background: var(--cc-v-ink);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 4px #0f2d4a12;
+  font-size: 14px;
+  min-height: 42px;
+}
+.cc-reference.cc-review :is(.cc-button, .btn-navy):hover:not(:disabled) {
+  background: #23445f;
+  box-shadow: 0 2px 6px #0f2d4a18;
+}
+.cc-reference.cc-review :is(.cc-button, .btn-navy):active:not(:disabled) {
+  transform: translateY(1px);
+}
+.cc-reference.cc-review :is(.cc-button--secondary, .btn-outline) {
+  color: var(--cc-v-ink);
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  box-shadow: none;
+}
+.cc-reference.cc-review :is(.cc-button--ghost, .cc-button--icon, .btn-ghost) {
+  background: transparent;
+  color: var(--cc-v-ink);
+  border-color: transparent;
+  box-shadow: none;
+}
+.cc-reference.cc-review .cc-button--destructive {
+  background: transparent;
+  color: #bd303d;
+  border-color: #e5adae;
+  box-shadow: none;
+}
+.cc-reference.cc-review .cc-button:not(.cc-button--primary):hover:not(:disabled) {
+  background: var(--cc-v-sand);
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .cc-button:disabled {
+  background: #d4d3d0;
+  color: #fff;
+  opacity: 1;
+  box-shadow: none;
+}
+.cc-reference.cc-review .cc-badge {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 3px 9px;
+  background: var(--cc-v-sand);
+  border: 0;
+  border-radius: 14px;
+  color: #594c36;
+  box-shadow: none;
+}
+.cc-reference.cc-review :is(.editorial-input, .cc-field input, .cc-field select) {
+  min-height: 44px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+  background: var(--cc-v-surface);
+  color: var(--cc-v-ink);
+  padding: 10px 12px;
+  font-size: 16px;
+  box-shadow: none;
+}
+.cc-reference.cc-review :is(.cc-field input, .editorial-input):focus {
+  border-color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .cc-field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.cc-reference.cc-review .cc-surface {
+  border-radius: 8px;
+  box-shadow: var(--cc-v-shadow);
+}
+
+/* Frame and navigation. The board's desktop rail stays on the left in every locale. */
+.cc-reference.cc-review.member-app .member-shell-main {
+  background: var(--cc-v-ivory);
+  margin-left: 212px;
+}
+.cc-reference.cc-review.member-app .member-content-frame {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-inline: 40px;
+}
+.cc-reference.cc-review.member-app .app-shell-content {
+  padding: 0 0 40px;
+}
+.cc-reference.cc-review .member-page {
+  width: 100%;
+  padding: 10px 0 32px;
+  margin: 0 auto;
+  max-width: none;
+}
+.ref-member-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 212px;
+  padding: 32px 20px;
+  background: var(--cc-v-ivory);
+  border-right: 1px solid var(--cc-v-border);
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  z-index: 35;
+}
+.ref-sidebar-logo {
+  display: block;
+  width: 150px;
+  margin: 0 auto;
+}
+.ref-member-links {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ref-member-links a {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 11px 13px;
+  min-height: 44px;
+  border-radius: 7px;
+  color: var(--cc-v-muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+.ref-member-links a:hover {
+  background: #efe7da;
+  color: var(--cc-v-ink);
+}
+.ref-member-links a[aria-current="page"] {
+  background: var(--cc-v-sand);
+  color: var(--cc-v-ink);
+  font-weight: 700;
+}
+.ref-member-sidebar .ref-menu-signout {
+  margin-top: auto;
+}
+.cc-reference.cc-review .ref-desktop-header {
+  min-height: 68px;
+  padding: 10px 40px 0;
+  border: 0;
+  position: static;
+  background: transparent;
+  box-shadow: none;
+}
+.cc-reference.cc-review .ref-desktop-header .studio-member-header-inner {
+  min-height: 44px;
+  padding: 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.cc-reference.cc-review .member-appearance-tools {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.cc-reference.cc-review .ref-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--cc-v-ink);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+.ref-icon-button:hover {
+  background: var(--cc-v-sand);
+}
+.ref-menu-signout {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  font-size: 13px;
+  color: #b43c40;
+}
+.ref-menu-signout button {
+  color: inherit;
+}
+.cc-reference.cc-review.ref-menu-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  width: min(330px, 88vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 52px) 28px
+    calc(env(safe-area-inset-bottom, 0px) + 28px);
+  border: 0;
+  border-radius: 0 14px 14px 0;
+  background: var(--cc-v-ivory);
+}
+.ref-menu-logo {
+  width: 150px;
+  margin-inline: auto;
+}
+.ref-menu-close {
+  position: absolute;
+  right: 12px;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+}
+.ref-menu-preferences {
+  padding-top: 14px;
+  border-top: 1px solid var(--cc-v-border);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.ref-menu-dialog .ref-menu-signout {
+  margin-top: auto;
+}
+.cc-reference.cc-review .studio-member-bottom-nav {
+  display: none;
+}
+
+/* Page titles and the Home banner. */
+.cc-reference.cc-review .ref-page-heading {
+  display: block;
+  padding: 0;
+  margin: 0 0 25px;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.cc-reference.cc-review .ref-page-heading h1 {
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 750;
+  margin: 0;
+}
+.cc-reference.cc-review .ref-page-heading-body {
+  color: var(--cc-v-muted);
+  font-size: 14px;
+  margin: 6px auto 0;
+  max-width: 560px;
+}
+.cc-reference.cc-review .home-greeting {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin: 0 0 24px;
+}
+.cc-reference.cc-review .home-welcome-copy {
+  display: block;
+  text-align: start;
+  margin: 0 0 18px;
+}
+.cc-reference.cc-review .home-welcome-copy h1 {
+  font-size: 30px;
+  font-weight: 750;
+  line-height: 1.3;
+  margin: 0;
+}
+.cc-reference.cc-review .home-welcome-copy p {
+  font-size: 14px;
+  color: var(--cc-v-muted);
+  margin: 4px 0 0;
+}
+.ref-home-banner {
+  height: 210px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.ref-home-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 52%;
+}
+.cc-reference.cc-review .home-primary-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: start;
+  gap: 28px;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+.cc-reference.cc-review :is(.home-main-column, .home-account, .home-next, .home-discovery) {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  min-width: 0;
+}
+.cc-reference.cc-review .home-account {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.cc-reference.cc-review .home-next > h2,
+.cc-reference.cc-review .home-section-heading h2,
+.cc-reference.cc-review .home-discovery > h2 {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+.cc-reference.cc-review .home-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  margin: 0 0 12px;
+}
+.cc-reference.cc-review .home-section-heading h2 {
+  margin: 0;
+}
+.cc-reference.cc-review .home-section-heading a {
+  font-size: 12px;
+}
+.cc-reference.cc-review .home-text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+  min-height: 36px;
+  width: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cc-v-ink);
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cc-reference.cc-review .home-text-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cc-reference.cc-review .home-discovery {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cc-reference.cc-review :is(.home-package-summary, .home-membership) {
+  padding: 15px 18px;
+  border: 1px solid var(--cc-v-border);
+  background: var(--cc-v-surface);
+  border-radius: 8px;
+  box-shadow: var(--cc-v-shadow);
+  font-size: 13px;
+}
+.cc-reference.cc-review .home-package-summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.cc-reference.cc-review .home-package-summary strong {
+  font-size: 15px;
+}
+.cc-reference.cc-review :is(.home-membership-image, .home-membership > img) {
+  display: none;
+}
+.cc-reference.cc-review .home-utilities {
+  margin-top: 18px;
+  padding: 0;
+}
+.cc-reference.cc-review
+  :is(.home-announcement, .home-concierge, .home-status, .home-choose, .home-empty) {
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+.cc-reference.cc-review :is(.home-announcement, .home-concierge) h2 {
+  font-size: 18px;
+}
+
+/* Actual class cards; controllers continue to supply all state and actions. */
+.ref-session {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  grid-template-areas: "body photo" "guidance guidance" "note note";
+  column-gap: 16px;
+  row-gap: 0;
+  background: var(--cc-v-surface, #fffefa);
+  border: 1px solid var(--cc-v-border, #e9e2d7);
+  box-shadow: var(--cc-v-shadow, 0 2px 7px #4e3b2510);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+.ref-session-photo {
+  grid-area: photo;
+  width: 100%;
+  height: 100%;
+  min-height: 122px;
+  max-height: 176px;
+  border-radius: 5px;
+  object-fit: cover;
+  object-position: 65% center;
+  align-self: start;
+}
+.ref-session-body {
+  grid-area: body;
+  min-width: 0;
+}
+.ref-session-datetime {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+.ref-session-datetime time {
+  font-size: 24px;
+  font-weight: 750;
+  line-height: 1.2;
+  color: var(--cc-v-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ref-session-datetime > span {
+  color: var(--cc-v-muted);
+  font-size: 12px;
+}
+.cc-reference.cc-review .ref-session h3 {
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 6px 0;
+  padding: 0;
+}
+.ref-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  font-size: 12px;
+  color: var(--cc-v-muted);
+  line-height: 1.5;
+}
+.ref-session-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ref-session-meta svg {
+  flex-shrink: 0;
+  stroke-width: 1.5;
+}
+.ref-session-metadata {
+  display: flex;
+  gap: 6px;
+  color: var(--cc-v-muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.ref-session-status {
+  font-size: 11px;
+  margin-top: 6px;
+}
+.ref-session-status :is(.state-badge, .cc-badge, [class*="badge"]) {
+  font-size: 11px;
+  padding: 2px 7px;
+  min-height: 0;
+}
+.ref-session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cc-reference.cc-review .ref-session-actions :is(.cc-button, .btn-outline) {
+  min-height: 36px;
+  padding: 7px 13px;
+  font-size: 13px;
+  gap: 5px;
+}
+.cc-reference.cc-review .ref-session-actions svg {
+  width: 14px;
+  height: 14px;
+}
+.cc-reference.cc-review .ref-session-actions .home-text-action {
+  font-size: 12px;
+  min-height: 36px;
+}
+.ref-session--featured {
+  grid-template-columns: minmax(0, 1fr) 122px;
+  padding: 18px;
+}
+.ref-session--featured .ref-session-photo {
+  min-height: 164px;
+}
+.ref-session-guidance {
+  grid-area: guidance;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cc-v-border);
+}
+.ref-session-note {
+  grid-area: note;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--cc-v-muted);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cc-v-border);
+}
+.ref-session--compact {
+  grid-template-columns: minmax(0, 1fr) 74px;
+  padding: 12px;
+  gap: 0 12px;
+}
+.ref-session--compact .ref-session-photo {
+  min-height: 110px;
+  max-height: 140px;
+}
+.ref-session--compact .ref-session-datetime time {
+  font-size: 20px;
+}
+.cc-reference.cc-review .ref-session--compact h3 {
+  font-size: 16px;
+}
+.cc-reference.cc-review .package-booking-guide {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: start;
+}
+.cc-reference.cc-review .package-booking-title {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 600;
+}
+.cc-reference.cc-review .package-booking-details {
+  margin-top: 4px;
+  color: var(--cc-v-muted);
+  font-size: 12px;
+}
+.cc-reference.cc-review .package-booking-details summary {
+  min-height: 32px;
+  cursor: pointer;
+}
+.cc-reference.cc-review .package-booking-details p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+/* Two-column photo-topped packages. */
+.cc-reference.cc-review .package-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+.ref-plan {
+  position: relative;
+  min-width: 0;
+  background: var(--cc-v-surface, #fffefa);
+  border: 1px solid var(--cc-v-border, #e9e2d7);
+  border-radius: 8px;
+  box-shadow: var(--cc-v-shadow, 0 2px 7px #4e3b2510);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ref-plan--highlighted {
+  border-color: #c5a064;
+}
+.ref-plan-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center;
+}
+.ref-plan-badge {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 12px;
+  z-index: 1;
+}
+.ref-plan-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 18px 20px 20px;
+}
+.cc-reference.cc-review .ref-plan-heading h3 {
+  font-size: 20px;
+  line-height: 1.35;
+  margin: 0;
+  font-weight: 700;
+}
+.ref-plan-heading p {
+  font-size: 13px;
+  color: var(--cc-v-muted);
+  margin-top: 5px;
+}
+.ref-plan-price {
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  margin-top: 12px;
+  color: var(--cc-v-ink);
+}
+.ref-plan-price small {
+  font-size: 20px;
+  font-weight: 600;
+}
+.ref-plan-features {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+.ref-plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--cc-v-muted);
+}
+.ref-plan-features svg {
+  color: #448661;
+  flex: 0 0 14px;
+}
+.ref-plan-terms {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--cc-v-muted);
+}
+.ref-plan-terms p {
+  margin: 4px 0 0;
+}
+.ref-plan-action {
+  margin-top: auto;
+  padding-top: 18px;
+}
+.ref-plan-action > :is(button, a) {
+  width: 100%;
+}
+.cc-reference.cc-review :is(.package-category-tabs, .bookings-tabs) {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--cc-v-border);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  margin-bottom: 22px;
+}
+.cc-reference.cc-review :is(.package-category-tabs, .bookings-tabs) button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  padding: 10px 16px;
+  color: var(--cc-v-muted);
+  background: none;
+  box-shadow: none;
+  font-size: 14px;
+}
+.cc-reference.cc-review :is(.package-category-tabs, .bookings-tabs) button[aria-pressed="true"] {
+  color: var(--cc-v-ink);
+  box-shadow: inset 0 -2px var(--cc-v-ink);
+  background: transparent;
+  font-weight: 700;
+}
+
+/* Schedule controls and rows. */
+.cc-reference.cc-review .schedule-reading-surface {
+  background: none;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.cc-reference.cc-review .schedule-control-region {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.cc-reference.cc-review .schedule-date-strip {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-bottom: 18px;
+}
+.cc-reference.cc-review .schedule-month-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.cc-reference.cc-review .schedule-month-navigation button {
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--cc-v-muted);
+  border: 0;
+  background: transparent;
+}
+.cc-reference.cc-review .schedule-month-navigation p {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cc-v-ink);
+  margin: 0;
+}
+.cc-reference.cc-review .schedule-date-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 9px;
+}
+.cc-reference.cc-review .schedule-date-days button {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-height: 62px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 6px 2px;
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .schedule-date-days button span {
+  font-size: 12px;
+}
+.cc-reference.cc-review .schedule-date-days button strong {
+  font-size: 17px;
+  color: var(--cc-v-ink);
+  font-weight: 700;
+}
+.cc-reference.cc-review .schedule-date-days button[data-today] {
+  background: var(--cc-v-surface);
+}
+.cc-reference.cc-review .schedule-date-days button[aria-pressed="true"] {
+  background: #eee4d2;
+  border-color: var(--cc-v-gold);
+}
+.cc-reference.cc-review .member-schedule-filter-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 18px;
+  padding: 0;
+}
+.cc-reference.cc-review .member-schedule-segmented {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 5px;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.cc-reference.cc-review .member-schedule-segment {
+  min-height: 36px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  padding: 5px 16px;
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .member-schedule-segment-active {
+  background: var(--cc-v-sand);
+  color: var(--cc-v-ink);
+  border-color: var(--cc-v-sand);
+}
+.cc-reference.cc-review .schedule-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cc-reference.cc-review .schedule-tools-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-width: 0;
+  min-height: 44px;
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+}
+.cc-reference.cc-review .schedule-tools-search input {
+  width: 100%;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  font-size: 16px;
+  min-width: 0;
+  outline-offset: -2px;
+}
+.cc-reference.cc-review .schedule-tools-search svg {
+  width: 16px;
+  color: var(--cc-v-muted);
+  flex-shrink: 0;
+}
+.cc-reference.cc-review .schedule-tools-trigger {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  border-radius: 6px;
+  padding: 8px 13px;
+  font-size: 13px;
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .schedule-package-guide {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  background: #f2ecdf;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 7px;
+  padding: 12px 16px;
+  margin: 0 0 20px;
+}
+.cc-reference.cc-review .schedule-package-guide > a {
+  flex-shrink: 0;
+  min-height: 36px;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+.cc-reference.cc-review .aura-schedule-results {
+  margin: 0;
+  padding: 0;
+}
+.cc-reference.cc-review .aura-schedule-day {
+  margin: 0 0 22px;
+}
+.cc-reference.cc-review .aura-schedule-day > header {
+  border: 0;
+  padding: 0;
+  margin-bottom: 10px;
+}
+.cc-reference.cc-review .aura-schedule-day > header h2 {
+  font-size: 15px;
+}
+.cc-reference.cc-review .aura-schedule-day .ref-session + .ref-session {
+  margin-top: 10px;
+}
+
+/* Bookings and account. */
+.cc-reference.cc-review .bookings-results {
+  margin-top: 0;
+}
+.cc-reference.cc-review .bookings-entries {
+  display: grid;
+  gap: 14px;
+}
+.cc-reference.cc-review .aura-reservation {
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.cc-reference.cc-review .bookings-empty {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  gap: 0;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--cc-v-surface);
+}
+.cc-reference.cc-review .bookings-empty-photo {
+  height: 280px;
+}
+.cc-reference.cc-review .bookings-empty-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cc-reference.cc-review .bookings-empty-copy {
+  padding: 28px;
+  align-self: center;
+}
+.cc-reference.cc-review .bookings-empty-copy h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+.cc-reference.cc-review .bookings-empty-copy p {
+  font-size: 14px;
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .bookings-empty-copy .cc-button {
+  margin-top: 18px;
+}
+.cc-reference.cc-review .aura-account-page {
+  max-width: 580px;
+}
+.cc-reference.cc-review .ref-profile-summary {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 0 0 18px;
+}
+.cc-reference.cc-review .cc-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  background: var(--cc-v-sand);
+  border: 3px solid var(--cc-v-surface);
+  border-radius: 50%;
+  font:
+    600 36px/1 Assistant,
+    sans-serif;
+  color: var(--cc-v-ink);
+  box-shadow: 0 0 0 1px var(--cc-v-border);
+}
+.cc-reference.cc-review .ref-profile-summary h2 {
+  font-size: 22px;
+  margin: 14px 0 5px;
+}
+.cc-reference.cc-review .aura-profile-status {
+  font-size: 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--cc-v-muted);
+  padding: 0;
+}
+.ref-profile-contact {
+  width: 100%;
+  margin: 20px 0 0;
+}
+.ref-profile-contact > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--cc-v-border);
+  font-size: 14px;
+  text-align: start;
+}
+.ref-profile-contact dd {
+  margin: 0;
+}
+.cc-reference.cc-review .aura-account-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.cc-reference.cc-review :is(.aura-account-main, .aura-account-utilities) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.ref-profile-editor {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 7px;
+  background: var(--cc-v-surface);
+  margin-bottom: 26px;
+}
+.ref-profile-editor > summary,
+.ref-settings-disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  list-style: none;
+}
+.ref-profile-editor > summary::-webkit-details-marker,
+.ref-settings-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.ref-profile-editor > summary svg:last-child,
+.ref-settings-disclosure > summary svg:last-child {
+  margin-inline-start: auto;
+  transition: transform 0.16s;
+}
+.ref-profile-editor[open] > summary svg:last-child,
+.ref-settings-disclosure[open] > summary svg:last-child {
+  transform: rotate(-90deg);
+}
+.ref-settings-disclosure {
+  border-top: 1px solid var(--cc-v-border);
+}
+.cc-reference.cc-review .aura-settings-section {
+  border: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px 16px;
+}
+.cc-reference.cc-review .aura-settings-section .member-section-title {
+  font-size: 18px;
+}
+.cc-reference.cc-review .aura-profile-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.cc-reference.cc-review .profile-field-group {
+  margin-top: 20px;
+  border: 0;
+  padding: 0;
+}
+.cc-reference.cc-review .profile-field-group legend {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 0 12px;
+}
+.cc-reference.cc-review .aura-form-submit {
+  margin-top: 20px;
+}
+.cc-reference.cc-review .aura-form-submit button {
+  width: 100%;
+}
+.cc-reference.cc-review .aura-account-utilities .aura-session-section {
+  order: 10;
+  margin-top: 24px;
+  padding: 0;
+  display: block;
+}
+.cc-reference.cc-review .aura-session-section > div {
+  display: none;
+}
+.cc-reference.cc-review .account-signout {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #df999b;
+  border-radius: 6px;
+  color: #bd303d;
+  justify-content: center;
+  width: 100%;
+}
+.cc-reference.cc-review .cc-health-status {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Photographed sign-in screen from the first board. */
+.cc-reference.cc-review.ref-auth {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 34px 24px 24px;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+.cc-reference.cc-review.ref-auth::before,
+.cc-reference.cc-review.ref-auth::after {
+  display: none;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-background {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  z-index: -2;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 43%;
+  opacity: 1;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #f7f1e336;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(440px, 100%);
+  min-height: 0;
+  padding: 0;
+  margin: 0 0 26px;
+  border: 0;
+  background: none;
+}
+.cc-reference.cc-review.ref-auth .auth-masthead-logo {
+  display: block;
+  width: 190px;
+  margin: 0;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-header > button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #fffefaab;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-content {
+  display: block;
+  width: min(440px, 100%);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-panel {
+  padding: 30px 32px 22px;
+  width: 100%;
+  border: 1px solid #ffffff80;
+  border-radius: 9px;
+  background: #fffefaf7;
+  box-shadow: 0 8px 28px #42331e18;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-heading {
+  text-align: center;
+  margin: 0 0 22px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 7px;
+}
+.cc-reference.cc-review.ref-auth .auth-form-title {
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 750;
+  margin: 0;
+}
+.cc-reference.cc-review.ref-auth .member-eyebrow {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--cc-v-muted);
+  text-transform: none;
+}
+.cc-reference.cc-review.ref-auth :is(.auth-form, .auth-form-stack) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  gap: 15px;
+  box-shadow: none;
+}
+.cc-reference.cc-review.ref-auth input {
+  min-height: 44px;
+  font-size: 16px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid var(--cc-v-border);
+}
+.cc-reference.cc-review.ref-auth .auth-submit {
+  min-height: 44px;
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: var(--cc-v-ink);
+  color: white;
+  box-shadow: none;
+  font-size: 15px;
+}
+.cc-reference.cc-review.ref-auth .auth-footer {
+  margin: 20px 0 0;
+  padding-top: 15px;
+  border-top: 1px solid var(--cc-v-border);
+}
+.cc-reference.cc-review.ref-auth .auth-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  font-size: 11px;
+}
+.cc-reference.cc-review.ref-auth .auth-studio-signature {
+  display: none;
+}
+.cc-reference.cc-review.ref-auth > .auth-language-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #faf7f1c9;
+}
+.cc-reference.cc-review.ref-auth .auth-language-switcher button {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 9px 8px;
+  font-size: 13px;
+  color: var(--cc-v-ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cc-reference.cc-review.ref-auth .auth-language-switcher button[data-active="true"] {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+/* The real detail dialog: photo, facts, description, booking action. */
+.cc-reference.cc-review.ref-detail {
+  width: min(560px, calc(100vw - 32px));
+  max-width: 560px;
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 10px;
+  background: var(--cc-v-surface);
+  overflow-y: auto;
+  display: block;
+}
+.cc-reference.cc-review.ref-detail .ref-detail-close {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: var(--cc-v-surface);
+  border: 0;
+  border-radius: 50%;
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .ref-detail-hero {
+  display: block;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 0;
+  position: relative;
+  background: none;
+}
+.cc-reference.cc-review .ref-detail-hero > img {
+  display: block;
+  width: 100%;
+  height: 255px;
+  object-fit: cover;
+  border-radius: 0;
+  opacity: 1;
+}
+.cc-reference.cc-review .ref-detail-heading {
+  display: block;
+  position: static;
+  background: none;
+  margin: 0;
+  padding: 22px 26px 0;
+  border: 0;
+  box-shadow: none;
+  color: var(--cc-v-ink);
+  text-align: start;
+}
+.cc-reference.cc-review .ref-detail-heading h2 {
+  font-size: 25px;
+  line-height: 1.3;
+  margin: 6px 0;
+}
+.cc-reference.cc-review .ref-detail-heading p {
+  font-size: 13px;
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .ref-detail-reading {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 26px 26px;
+  gap: 18px;
+  background: none;
+}
+.cc-reference.cc-review .ref-detail-facts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  gap: 0;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 7px;
+}
+.cc-reference.cc-review .ref-detail-facts > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 13px;
+  min-height: 46px;
+  border: 0;
+  border-bottom: 1px solid var(--cc-v-border);
+  background: none;
+}
+.cc-reference.cc-review .ref-detail-facts > div:last-child {
+  border-bottom: 0;
+}
+.cc-reference.cc-review .ref-detail-facts dt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--cc-v-muted);
+  min-width: 80px;
+}
+.cc-reference.cc-review .ref-detail-facts dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .ref-detail-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.cc-reference.cc-review .ref-detail-notes {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  color: var(--cc-v-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.cc-reference.cc-review .ref-detail-notes h3 {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+.cc-reference.cc-review .ref-detail-cta {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.cc-reference.cc-review .ref-detail-cta > button,
+.cc-reference.cc-review .ref-detail-cta > a {
+  width: 100%;
+}
+.cc-reference.cc-review .ref-detail-cta .package-booking-guide {
+  margin-bottom: 12px;
+}
+.cc-reference.cc-review .cc-gallery {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 30px 36px 70px;
+}
+.cc-reference.cc-review .cc-gallery h1 {
+  font-size: 26px;
+}
+.cc-reference.cc-review .cc-gallery-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 767px) {
+  .cc-reference.cc-review.member-app .member-shell-main {
+    margin: 0;
+  }
+  .cc-reference.cc-review.member-app .member-content-frame {
+    padding: 0 20px;
+  }
+  .cc-reference.cc-review.member-app .app-shell-content {
+    padding-bottom: calc(var(--member-nav-height, 74px) + 26px);
+  }
+  .cc-reference.cc-review .member-page {
+    padding: 10px 0 10px;
+  }
+  .cc-reference.cc-review .ref-mobile-header {
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+    top: auto;
+    min-height: 0;
+    height: auto;
+    margin: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 4px;
+    background: var(--cc-v-ivory);
+    border: 0;
+    box-shadow: none;
+    z-index: 30;
+  }
+  .cc-reference.cc-review .ref-mobile-header .studio-member-header-inner {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    min-height: 50px;
+    max-width: none;
+    width: 100%;
+    gap: 8px;
+    padding: 0;
+  }
+  .cc-reference.cc-review .ref-mobile-header .studio-member-brand {
+    display: block;
+    width: 104px;
+    margin: auto;
+    padding: 0;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    padding: 4px max(8px, env(safe-area-inset-left, 0px))
+      calc(env(safe-area-inset-bottom, 0px) + 6px);
+    background: var(--cc-v-surface);
+    border-top: 1px solid var(--cc-v-border);
+    box-shadow: 0 -2px 8px #4e3b2505;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav-inner {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    max-width: 500px;
+    margin: auto;
+    padding: 0;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav a {
+    min-height: 52px;
+    padding: 5px 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--cc-v-muted);
+    text-decoration: none;
+    font-size: 11px;
+    line-height: 1.3;
+    border: 0;
+    background: none;
+    border-radius: 0;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav a::before,
+  .cc-reference.cc-review .studio-member-bottom-nav a::after {
+    display: none;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav a[aria-current="page"] {
+    color: var(--cc-v-ink);
+    font-weight: 700;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav a[aria-current="page"] svg {
+    stroke-width: 2;
+    fill: #0f2d4a09;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav svg {
+    width: 20px;
+    height: 20px;
+  }
+  .cc-reference.cc-review .ref-page-heading {
+    margin: 4px 0 20px;
+  }
+  .cc-reference.cc-review .ref-page-heading h1 {
+    font-size: 25px;
+  }
+  .cc-reference.cc-review .ref-page-heading-body {
+    font-size: 13px;
+    margin-top: 5px;
+  }
+  .cc-reference.cc-review .home-greeting {
+    margin-bottom: 16px;
+  }
+  .cc-reference.cc-review .home-welcome-copy {
+    text-align: center;
+    margin: 0 0 16px;
+  }
+  .cc-reference.cc-review .home-welcome-copy h1 {
+    font-size: 25px;
+  }
+  .cc-reference.cc-review .home-welcome-copy p {
+    font-size: 12px;
+  }
+  .ref-home-banner {
+    height: 148px;
+    border-radius: 6px;
+  }
+  .cc-reference.cc-review .home-primary-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .cc-reference.cc-review .home-main-column,
+  .cc-reference.cc-review .home-account {
+    width: 100%;
+  }
+  .cc-reference.cc-review .home-next > h2,
+  .cc-reference.cc-review .home-section-heading h2 {
+    font-size: 17px;
+    margin-bottom: 10px;
+  }
+  .cc-reference.cc-review .home-section-heading h2 {
+    margin: 0;
+  }
+  .ref-session {
+    grid-template-columns: minmax(0, 1fr) 78px;
+    padding: 12px;
+    column-gap: 12px;
+  }
+  .ref-session-photo {
+    min-height: 112px;
+    max-height: 150px;
+    border-radius: 4px;
+  }
+  .ref-session-datetime time {
+    font-size: 21px;
+  }
+  .ref-session-datetime > span {
+    font-size: 11px;
+  }
+  .cc-reference.cc-review .ref-session h3 {
+    font-size: 17px;
+    margin: 5px 0;
+  }
+  .ref-session-meta {
+    gap: 3px 8px;
+    font-size: 11px;
+  }
+  .ref-session--featured {
+    grid-template-columns: minmax(0, 1fr) 94px;
+    padding: 13px;
+  }
+  .ref-session--featured .ref-session-photo {
+    min-height: 150px;
+    max-height: 170px;
+  }
+  .ref-session--compact {
+    grid-template-columns: minmax(0, 1fr) 72px;
+  }
+  .ref-session--compact .ref-session-photo {
+    min-height: 105px;
+  }
+  .cc-reference.cc-review .ref-session-actions :is(.cc-button, .btn-outline) {
+    min-height: 36px;
+    font-size: 12px;
+    padding: 7px 10px;
+  }
+  .cc-reference.cc-review .ref-session-actions .package-booking-action svg {
+    display: none;
+  }
+  .cc-reference.cc-review .package-pricing-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .ref-plan-image {
+    height: 166px;
+  }
+  .ref-plan-body {
+    padding: 16px 18px 18px;
+  }
+  .cc-reference.cc-review .ref-plan-heading h3 {
+    font-size: 19px;
+  }
+  .ref-plan-price {
+    font-size: 30px;
+    margin-top: 8px;
+  }
+  .ref-plan-features {
+    gap: 5px;
+    margin-top: 12px;
+  }
+  .ref-plan-action {
+    padding-top: 15px;
+  }
+  .cc-reference.cc-review .schedule-date-days {
+    gap: 4px;
+  }
+  .cc-reference.cc-review .schedule-date-days button {
+    min-height: 54px;
+  }
+  .cc-reference.cc-review .schedule-date-days button span {
+    font-size: 10px;
+  }
+  .cc-reference.cc-review .schedule-date-days button strong {
+    font-size: 16px;
+  }
+  .cc-reference.cc-review .schedule-month-navigation {
+    margin-bottom: 8px;
+  }
+  .cc-reference.cc-review .member-schedule-segment {
+    flex: 1;
+    font-size: 12px;
+    padding-inline: 7px;
+  }
+  .cc-reference.cc-review .schedule-package-guide {
+    padding: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cc-reference.cc-review .schedule-package-guide .package-booking-title {
+    font-size: 12px;
+  }
+  .cc-reference.cc-review .schedule-package-guide > a {
+    min-height: 36px;
+    font-size: 12px;
+  }
+  .cc-reference.cc-review .bookings-empty {
+    grid-template-columns: 1fr;
+  }
+  .cc-reference.cc-review .bookings-empty-photo {
+    height: 180px;
+  }
+  .cc-reference.cc-review .bookings-empty-copy {
+    padding: 24px 20px;
+  }
+  .cc-reference.cc-review .bookings-empty-copy h2 {
+    font-size: 22px;
+  }
+  .cc-reference.cc-review .ref-profile-summary {
+    padding-top: 4px;
+  }
+  .cc-reference.cc-review .ref-profile-summary h2 {
+    font-size: 20px;
+  }
+  .cc-reference.cc-review .ref-profile-contact {
+    margin-top: 20px;
+  }
+  .cc-reference.cc-review.ref-auth {
+    min-height: 100dvh;
+    justify-content: flex-start;
+    padding: calc(env(safe-area-inset-top, 0px) + 24px) 24px
+      calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-header {
+    margin: 0 0 24px;
+    padding: 0;
+    width: 100%;
+  }
+  .cc-reference.cc-review.ref-auth .auth-masthead-logo {
+    width: 162px;
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-panel {
+    padding: 25px 22px 20px;
+    border-radius: 8px;
+  }
+  .cc-reference.cc-review.ref-auth .auth-form-title {
+    font-size: 23px;
+  }
+  .cc-reference.cc-review.ref-auth > .auth-language-switcher {
+    margin-top: 20px;
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-background img {
+    object-position: 45% center;
+  }
+  .cc-reference.cc-review.ref-detail {
+    width: calc(100vw - 24px);
+    max-width: none;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 24px);
+    left: 50%;
+    top: calc(50% + env(safe-area-inset-top, 0px) / 2);
+    border-radius: 9px;
+  }
+  .cc-reference.cc-review .ref-detail-hero > img {
+    height: 225px;
+    object-position: 62% center;
+  }
+  .cc-reference.cc-review .ref-detail-heading {
+    padding: 18px 20px 0;
+  }
+  .cc-reference.cc-review .ref-detail-heading h2 {
+    font-size: 23px;
+  }
+  .cc-reference.cc-review .ref-detail-reading {
+    padding: 16px 20px 24px;
+    gap: 16px;
+  }
+  .cc-reference.cc-review .ref-detail-facts dt {
+    min-width: 68px;
+  }
+  .cc-reference.cc-review .cc-gallery {
+    padding: 20px 20px 100px;
+  }
+  .cc-reference.cc-review .cc-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dark .cc-reference.cc-review {
+  --cc-v-ivory: #112434;
+  --cc-v-surface: #192f40;
+  --cc-v-ink: #f1e9db;
+  --cc-v-muted: #b0b9bd;
+  --cc-v-border: #344858;
+  --cc-v-sand: #374a57;
+  --cc-v-shadow: 0 2px 7px #0002;
+}
+.dark .cc-reference.cc-review :is(.cc-button--primary, .btn-navy) {
+  background: #e2d2b4;
+  color: #102c44;
+}
+.dark .cc-reference.cc-review .schedule-package-guide {
+  background: #213746;
+}
+.dark .cc-reference.cc-review.ref-auth .ref-auth-panel {
+  background: #192f40f7;
+}
+.dark .cc-reference.cc-review.ref-auth input {
+  background: #142a3b;
+}
+.dark .cc-reference.cc-review.ref-auth > .auth-language-switcher {
+  background: #192f40e6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-reference.cc-review *,
+  .cc-reference.cc-review *::before,
+  .cc-reference.cc-review *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
+}
+/* Explicit layout ownership prevents retired page experiments from taking over. */
+.cc-reference.cc-review .ref-home {
+  display: block;
+}
+.cc-reference.cc-review .ref-home .home-greeting {
+  width: 100%;
+  min-height: 0;
+  grid-column: auto;
+}
+.cc-reference.cc-review .home-primary-layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+.cc-reference.cc-review .home-account {
+  width: 100%;
+}
+.cc-reference.cc-review .package-booking-guide--compact .package-booking-title {
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.cc-reference.cc-review .package-booking-details summary {
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 0;
+  min-height: 32px;
+}
+.cc-reference.cc-review .ref-detail-hero > img {
+  position: static;
+  inset: auto;
+  z-index: auto;
+}
+.cc-reference.cc-review .ref-detail-hero::after {
+  display: none;
+}
+.cc-reference.cc-review .ref-detail-heading > span {
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .ref-sidebar-logo .studio-logo,
+.cc-reference.cc-review .ref-sidebar-logo img {
+  width: 150px;
+}
+.cc-reference.cc-review .aura-account-layout {
+  width: 100%;
+  align-items: stretch;
+  max-width: none;
+}
+.cc-reference.cc-review :is(.aura-account-main, .aura-account-utilities) {
+  width: 100%;
+}
+.cc-reference.cc-review .package-category-tabs button {
+  flex: 1;
+  border: 0;
+}
+.cc-reference.cc-review.ref-auth .auth-form-card {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.cc-reference.cc-review.ref-auth .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0;
+}
+.cc-reference.cc-review.ref-auth .auth-field-label {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.cc-reference.cc-review.ref-auth .auth-form .cc-button {
+  width: 100%;
+  border-radius: 6px;
+}
+.cc-reference.cc-review.ref-auth .auth-password-toggle {
+  min-height: 40px;
+  width: 40px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cc-v-muted);
+  padding: 0;
+  border: 0;
+}
+.cc-reference.cc-review.ref-auth .auth-secondary-action {
+  padding: 3px 0;
+  min-height: 36px;
+  font-size: 13px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review.ref-auth .auth-switch-action {
+  border: 0;
+  border-top: 1px solid var(--cc-v-border);
+  border-radius: 0;
+  margin-top: 12px;
+  padding: 15px 0 0;
+  min-height: 36px;
+  font-size: 13px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review.ref-auth .auth-guest-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cc-v-border);
+  font-size: 12px;
+}
+.cc-reference.cc-review.ref-auth .auth-guest-action {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 0;
+  background: none;
+}
+.cc-reference.cc-review.ref-auth .auth-guest-action svg {
+  width: 14px;
+}
+@media (max-width: 767px) {
+  .cc-reference.cc-review .home-primary-layout {
+    display: flex;
+  }
+  .cc-reference.cc-review .home-welcome-copy {
+    text-align: center;
+  }
+  .cc-reference.cc-review.member-app .member-content-frame {
+    padding-inline: 20px;
+  }
+  .cc-reference.cc-review .ref-home {
+    padding: 10px 0;
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-panel {
+    padding: 24px 22px 18px;
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-heading {
+    margin-bottom: 18px;
+  }
+}
+.cc-reference.cc-review.member-app .member-shell-main {
+  padding: 0;
+}
+.cc-reference.cc-review .member-page {
+  display: block;
+  gap: 0;
+}
+.cc-reference.cc-review :is(.cc-button, .btn-navy, .btn-outline, .btn-ghost) {
+  border-radius: 7px !important;
+}
+.cc-reference.cc-review .ref-icon-button {
+  border-radius: 6px !important;
+}
+.cc-reference.cc-review .schedule-date-strip {
+  margin: 0 0 14px;
+}
+.cc-reference.cc-review .schedule-date-days button {
+  box-shadow: none;
+}
+.cc-reference.cc-review .schedule-date-days button[data-today] strong {
+  text-decoration: none;
+}
+.cc-reference.cc-review .member-schedule-filter-panel {
+  gap: 0;
+}
+.cc-reference.cc-review .aura-schedule-results {
+  display: block;
+}
+.cc-reference.cc-review .ref-session-guidance .package-booking-guide--compact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+.cc-reference.cc-review .ref-session-guidance .package-booking-details {
+  margin: 0;
+}
+.cc-reference.cc-review .ref-session-guidance .package-booking-details[open] {
+  flex-basis: 100%;
+}
+.cc-reference.cc-review.ref-auth .auth-password-toggle {
+  inset-inline-end: 4px;
+  top: 50%;
+}
+.cc-reference.cc-review.ref-auth :is(.auth-secondary-action, .auth-switch-action) {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.cc-reference.cc-review.ref-auth :is(.auth-secondary-action, .auth-switch-action)::before,
+.cc-reference.cc-review.ref-auth :is(.auth-secondary-action, .auth-switch-action)::after {
+  display: none;
+}
+.cc-reference.cc-review.ref-auth .auth-switch-action {
+  border-top: 1px solid var(--cc-v-border);
+}
+.cc-reference.cc-review.ref-auth .auth-footer {
+  margin-top: 10px;
+  padding-top: 8px;
+}
+.cc-reference.cc-review.ref-auth .auth-legal-links {
+  margin: 0;
+  padding: 0;
+  gap: 2px 12px;
+}
+.cc-reference.cc-review.ref-auth .auth-legal-link {
+  min-height: 36px;
+  font-size: 11px;
+}
+.cc-reference.cc-review.ref-auth .auth-secondary-action {
+  margin: 0;
+}
+.cc-reference.cc-review.ref-auth .auth-form .cc-button--primary {
+  min-height: 44px !important;
+}
+.cc-reference.cc-review .ref-confirmation {
+  padding: 54px 28px 28px;
+  text-align: center;
+}
+.cc-reference.cc-review .ref-confirmation-icon {
+  display: block;
+  margin: 0 auto 22px;
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .ref-confirmation h2 {
+  font-size: 26px;
+  margin: 0 0 24px;
+}
+.cc-reference.cc-review .ref-confirmation h3 {
+  font-size: 19px;
+  margin: 0 0 12px;
+}
+.cc-reference.cc-review .ref-confirmation > p {
+  color: var(--cc-v-muted);
+  font-size: 14px;
+  margin: 8px 0;
+}
+.cc-reference.cc-review .ref-confirmation-time {
+  font-variant-numeric: tabular-nums;
+}
+.ref-confirmation-receipt {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-block: 14px;
+  border-block: 1px solid var(--cc-v-border);
+  font-size: 12px;
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .ref-confirmation > .ref-confirmation-policy {
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.ref-confirmation-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 30px;
+}
+.ref-gallery-detail {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--cc-v-surface);
+}
+.cc-reference.cc-review .cc-health-route {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 10px 0 30px;
+}
+.cc-reference.cc-review .cc-health-route > section {
+  padding: 0;
+}
+.cc-reference.cc-review .cc-health-route h1 {
+  font-family: inherit;
+  font-size: 27px;
+  text-align: center;
+  margin: 0;
+}
+.cc-reference.cc-review .cc-health-route header {
+  text-align: center;
+  padding-bottom: 16px;
+}
+.cc-reference.cc-review .cc-health-route header > p {
+  color: var(--cc-v-muted);
+  font-size: 13px;
+}
+.cc-reference.cc-review .cc-health-route section > section {
+  border: 1px solid var(--cc-v-border);
+  border-radius: 8px;
+  padding: 20px;
+  background: var(--cc-v-surface);
+  font-size: 14px;
+}
+@media (max-width: 767px) {
+  .cc-reference.cc-review .ref-home-banner {
+    height: 124px;
+  }
+  .cc-reference.cc-review .ref-session--featured .ref-session-photo {
+    min-height: 124px;
+    max-height: 140px;
+  }
+  .cc-reference.cc-review .home-primary-layout {
+    gap: 20px;
+  }
+  .cc-reference.cc-review .ref-page-heading {
+    margin-bottom: 12px;
+  }
+  .cc-reference.cc-review .schedule-date-days button {
+    min-height: 50px;
+  }
+  .cc-reference.cc-review .schedule-month-navigation {
+    margin-bottom: 4px;
+  }
+  .cc-reference.cc-review .schedule-month-navigation button {
+    min-height: 36px;
+  }
+  .cc-reference.cc-review .schedule-package-guide {
+    padding: 10px 12px;
+  }
+  .cc-reference.cc-review .ref-session-guidance {
+    margin-top: 10px;
+    padding-top: 7px;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav {
+    background: var(--cc-v-surface);
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .cc-reference.cc-review .studio-member-bottom-nav-inner {
+    background: transparent;
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-heading {
+    text-align: center;
+    align-items: center;
+  }
+  .cc-reference.cc-review.ref-auth .ref-auth-header {
+    margin-bottom: 20px;
+  }
+  .cc-reference.cc-review.ref-auth > .auth-language-switcher {
+    margin-top: 16px;
+    background: #faf7f1c9;
+  }
+}
+.cc-reference.cc-review .ref-menu-signout {
+  position: relative;
+  min-height: 44px;
+}
+.cc-reference.cc-review .ref-menu-signout > button {
+  width: 100%;
+  height: 44px;
+  padding-inline: 10px;
+  justify-content: flex-start;
+  border-radius: 6px;
+}
+.cc-reference.cc-review .ref-menu-signout > span {
+  position: absolute;
+  inset-inline-start: 43px;
+  pointer-events: none;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-appearance {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+}
+.cc-reference.cc-review.ref-auth .auth-password-toggle {
+  position: absolute;
+}
+.cc-reference.cc-review .ref-session-photo {
+  object-position: 73% center;
+}
+.cc-reference.cc-review .aura-account-page {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.cc-reference.cc-review .ref-language-settings {
+  display: grid;
+  gap: 16px;
+}
+.cc-reference.cc-review.ref-auth .auth-form .auth-password-toggle.cc-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  inset-inline-end: 4px;
+}
+.cc-reference.cc-review.ref-auth .ref-auth-heading .member-eyebrow {
+  text-align: center;
+}
+.cc-reference.cc-review .member-schedule-filter-panel {
+  margin: 0 0 14px;
+}
+.cc-reference.cc-review .schedule-date-days {
+  margin: 0;
+  padding: 0;
+}
+.cc-reference.cc-review .home-discovery .home-section-heading {
+  margin-bottom: 0;
+}
+.cc-reference.cc-review.schedule-filter-dialog .member-schedule-segmented {
+  display: flex;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  margin: 0;
+}
+.cc-reference.cc-review.schedule-filter-dialog .member-schedule-segment {
+  flex: 1;
+  min-height: 40px;
+}
+@media (min-width: 768px) {
+  .cc-reference.cc-review .ref-home {
+    max-width: 760px;
+  }
+  .cc-reference.cc-review .ref-home .home-primary-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .cc-reference.cc-review .ref-home .home-main-column {
+    width: 100%;
+  }
+  .cc-reference.cc-review .ref-home .home-account > :is(.home-package-summary, .home-membership) {
+    order: 2;
+  }
+  .cc-reference.cc-review .ref-home .home-account > .home-utilities {
+    order: 3;
+  }
+  .cc-reference.cc-review .aura-schedule-page,
+  .cc-reference.cc-review .aura-bookings-page {
+    max-width: 820px;
+  }
+}
+.cc-reference.cc-review.ref-auth .ref-auth-subtitle {
+  font-size: 13px;
+  color: var(--cc-v-muted);
+  text-align: center;
+  margin: 0;
+  font-weight: 400;
+}
+.cc-reference.cc-review.ref-auth .auth-form-card {
+  display: block;
+}
+.cc-reference.cc-review.ref-auth .auth-form {
+  gap: 10px;
+}
+.cc-reference.cc-review.ref-auth .auth-switch-action {
+  margin-top: 4px;
+  padding-top: 10px;
+}
+.cc-reference.cc-review.ref-auth .auth-guest-section {
+  margin-top: 10px;
+  padding-top: 8px;
+}
+@media (max-width: 767px) {
+  .cc-reference.cc-review.ref-auth .ref-auth-panel {
+    padding: 22px 22px 16px;
+  }
+}
+
+.dark .cc-reference.cc-review.ref-auth .ref-auth-background::after {
+  background: #0a1a29a8;
+}
+.dark .cc-reference.cc-review .cc-badge {
+  color: var(--cc-v-ink);
+}
+.cc-reference.cc-review .package-category-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cc-reference.cc-review .ref-detail-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 14px 26px 18px;
+  border-top: 1px solid var(--cc-v-border);
+  background: var(--cc-v-surface);
+}
+.cc-reference.cc-review .ref-detail-footer .package-booking-guide--compact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+.cc-reference.cc-review .ref-detail-footer .package-booking-details[open] {
+  flex-basis: 100%;
+}
+@media (max-width: 767px) {
+  .cc-reference.cc-review .package-category-tabs {
+    margin-bottom: 16px;
+  }
+  .cc-reference.cc-review .ref-detail-footer {
+    padding: 12px 20px 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  .cc-reference.cc-review .ref-plan-image {
+    height: 148px;
+  }
+  .cc-reference.cc-review.ref-detail {
+    max-height: calc(
+      100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px
+    );
+    top: calc(50% + (env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 2);
+  }
+}
+.cc-reference.cc-review:is(.ref-payment-dialog, .ref-confirm-dialog) {
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  border-radius: 9px;
+  color: var(--cc-v-ink);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+}
+.cc-reference.cc-review.ref-payment-dialog header {
+  align-items: center;
+  padding-bottom: 14px;
+}
+.cc-reference.cc-review.ref-payment-dialog header h3 {
+  font-family: inherit;
+  font-size: 24px;
+  line-height: 1.3;
+}
+.cc-reference.cc-review.ref-payment-dialog header .member-eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.cc-reference.cc-review.ref-payment-dialog header button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+.cc-reference.cc-review .ref-payment-summary {
+  background: var(--cc-v-ivory);
+  border-color: var(--cc-v-border);
+  border-radius: 7px;
+  padding: 16px;
+  box-shadow: none;
+}
+.cc-reference.cc-review .ref-payment-summary .font-display {
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.cc-reference.cc-review .ref-payment-summary .numeric-display {
+  font-size: 28px;
+}
+.cc-reference.cc-review .ref-payment-summary .member-eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  margin-bottom: 6px;
+}
+.cc-reference.cc-review .ref-payment-summary .package-recurring-disclosure {
+  display: block;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--cc-v-muted);
+}
+.cc-reference.cc-review .ref-payment-summary .package-recurring-disclosure svg {
+  display: none;
+}
+.cc-reference.cc-review .ref-payment-option {
+  background: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-border);
+  border-radius: 7px;
+  box-shadow: none;
+  padding: 14px;
+}
+.cc-reference.cc-review .ref-payment-option[aria-pressed="true"] {
+  background: var(--cc-v-ivory);
+  border-color: var(--cc-v-ink);
+  box-shadow: 0 0 0 1px var(--cc-v-ink);
+}
+.cc-reference.cc-review .ref-payment-option .font-display {
+  font:
+    700 16px/1.4 Assistant,
+    "Noto Sans Arabic",
+    sans-serif;
+}
+.cc-reference.cc-review .ref-payment-option .text-sm {
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+.cc-reference.cc-review.ref-payment-dialog .btn-navy:disabled {
+  background: #c4c8ca;
+  color: #fff;
+  box-shadow: none;
+  opacity: 1;
+}
+.cc-reference.cc-review.ref-confirm-dialog h2 {
+  font-family: inherit;
+  font-size: 24px;
+}
+@media (max-width: 767px) {
+  .cc-reference.cc-review:is(.ref-payment-dialog, .ref-confirm-dialog) {
+    width: calc(100vw - 24px);
+    max-height: calc(
+      100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px
+    );
+    top: calc(50% + (env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 2);
+    padding: 20px;
+  }
+}

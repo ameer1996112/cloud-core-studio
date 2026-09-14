@@ -1,6 +1,6 @@
-import { ReviewSurface } from "@/components/member/design/VisualSystem";
 import type { ReactNode } from "react";
-import { UserRound } from "lucide-react";
+import { UserRound, MapPin, Clock3 } from "lucide-react";
+import "./design/reference-system.css";
 import {
   StateBadge,
   type ClassState,
@@ -52,7 +52,6 @@ export function StudioClassItem({
   thumbnail = false,
   showRoom = true,
   showStatus = true,
-  inlineStatus = false,
   compact = false,
 }: ClassPresentationProps & {
   variant?: "featured" | "row";
@@ -76,114 +75,73 @@ export function StudioClassItem({
   const room = cls.room_ref?.name || cls.room;
   const featured = variant === "featured";
   return (
-    <ReviewSurface as="article" className={`studio-class studio-class--${variant}`} dir={dir}>
-      {thumbnail && !featured && (
+    <article
+      className={`ref-session ref-session--${variant}${compact ? " ref-session--compact" : ""}`}
+      dir={dir}
+    >
+      {(thumbnail || featured) && (
         <img
-          className="studio-class-thumbnail"
-          src={resolveClassImageSrc(cls, "card")}
+          className="ref-session-photo"
+          src={imageSrc || resolveClassImageSrc(cls, "card")}
           alt=""
-          width={104}
-          height={120}
-          loading="lazy"
+          width={112}
+          height={140}
+          loading={featured ? "eager" : "lazy"}
         />
       )}
-      <div className={featured ? "studio-class-hero" : "studio-class-overview"}>
-        {featured && imageSrc && (
-          <div className="studio-class-media">
-            <img
-              className="studio-class-photo"
-              src={imageSrc}
-              alt=""
-              width={853}
-              height={1280}
-              loading="eager"
-            />
-          </div>
-        )}
-        <div className="studio-class-reading">
-          <div className="studio-class-content">
-            <h3>
-              <bdi>{localizedClassTitle(cls)}</bdi>
-            </h3>
-            <p className="studio-class-meta">
-              {instructor && (
-                <span>
-                  <UserRound size={16} strokeWidth={1.5} aria-hidden="true" />
-                  <bdi>{instructor}</bdi>
-                </span>
-              )}
-              {showRoom && room && (
-                <span>
-                  <bdi>{room}</bdi>
-                </span>
-              )}
-              {cls.credit_cost != null && (
-                <span>
-                  {cls.credit_cost === 1
-                    ? t("member.oneCredit")
-                    : t("common.classCreditValue", { count: cls.credit_cost })}
-                </span>
-              )}
-            </p>
-            {metadata && <div className="studio-class-descriptors">{metadata}</div>}
-            {!featured && inlineStatus && showStatus && (
-              <div className="studio-class-status studio-class-status-inline">
-                {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
-              </div>
-            )}
-          </div>
-          <div className="studio-class-time">
-            <time dateTime={cls.starts_at}>
-              <bdi>{time}</bdi>
-            </time>
-            {showDate && (
-              <span>
-                <bdi>{day}</bdi>
-              </span>
-            )}
-            <span>{formatDurationLabel(cls.duration_minutes)}</span>
-          </div>
-          {!featured && !compact && !inlineStatus && showStatus && (
-            <div className="studio-class-status">
-              {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
-            </div>
+      <div className="ref-session-body">
+        <div className="ref-session-datetime">
+          <time dateTime={cls.starts_at}>
+            <bdi>{time}</bdi>
+          </time>
+          {showDate && (
+            <span>
+              <bdi>{day}</bdi>
+            </span>
           )}
         </div>
-        {featured && (
-          <div className="studio-class-footer">
-            {guidance}
-            {showStatus && (
-              <div className="studio-class-status">
-                {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
-              </div>
-            )}
-            <div className="studio-class-actions">
-              {action}
-              {secondaryAction}
-            </div>
-          </div>
-        )}
-      </div>
-      {!featured && compact ? (
-        <div className="studio-class-row-footer">
-          <div className="studio-class-status">
+        <h3>
+          <bdi>{localizedClassTitle(cls)}</bdi>
+        </h3>
+        <div className="ref-session-meta">
+          {instructor && (
+            <span>
+              <UserRound size={13} aria-hidden="true" />
+              <bdi>{instructor}</bdi>
+            </span>
+          )}
+          {showRoom && room && (
+            <span>
+              <MapPin size={13} aria-hidden="true" />
+              <bdi>{room}</bdi>
+            </span>
+          )}
+          <span>
+            <Clock3 size={13} aria-hidden="true" />
+            {formatDurationLabel(cls.duration_minutes)}
+          </span>
+          {cls.credit_cost != null && (
+            <span>
+              {cls.credit_cost === 1
+                ? t("member.oneCredit")
+                : t("common.classCreditValue", { count: cls.credit_cost })}
+            </span>
+          )}
+        </div>
+        {metadata && <div className="ref-session-metadata">{metadata}</div>}
+        {showStatus && (
+          <div className="ref-session-status">
             {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
           </div>
-          <div className="studio-class-actions">
-            {action}
-            {secondaryAction}
-          </div>
+        )}
+        <div className="ref-session-actions">
+          {action}
+          {secondaryAction}
         </div>
-      ) : (
-        !featured && (
-          <div className="studio-class-actions">
-            {action}
-            {secondaryAction}
-          </div>
-        )
-      )}
-      {note && <div className="studio-class-note">{note}</div>}
-    </ReviewSurface>
+      </div>
+      {guidance && <div className="ref-session-guidance">{guidance}</div>}
+      {note && <div className="ref-session-note">{note}</div>}
+    </article>
   );
 }
 

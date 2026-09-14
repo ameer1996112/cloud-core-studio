@@ -64,29 +64,6 @@ export function MemberScheduleFilterPanel({
       className="member-schedule-filter-panel schedule-filter-refined"
       aria-label={t("nav.schedule")}
     >
-      <div className="member-schedule-segmented" role="group" aria-label={t("nav.schedule")}>
-        {dateOptions.map((scope) => (
-          <button
-            key={scope}
-            type="button"
-            aria-pressed={dateScope === scope}
-            onClick={() => onDateScopeChange(scope)}
-            className={
-              dateScope === scope
-                ? "member-schedule-segment member-schedule-segment-active"
-                : "member-schedule-segment"
-            }
-          >
-            {scope === "week"
-              ? t("common.thisWeek")
-              : scope === "today"
-                ? t("common.today")
-                : scope === "tomorrow"
-                  ? t("common.tomorrow")
-                  : t("common.all")}
-          </button>
-        ))}
-      </div>
       <Dialog>
         <div className="schedule-tools">
           <label className="schedule-tools-search">
@@ -118,7 +95,7 @@ export function MemberScheduleFilterPanel({
         </div>
         <DialogContent
           dir={dir}
-          className="schedule-filter-dialog left-0 top-auto bottom-0 translate-x-0 translate-y-0 sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2"
+          className="cc-reference cc-review schedule-filter-dialog left-0 top-auto bottom-0 translate-x-0 translate-y-0 sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2"
         >
           <header className="schedule-filter-dialog-heading">
             <DialogTitle>{t("member.schedule.filter.title")}</DialogTitle>
@@ -130,6 +107,29 @@ export function MemberScheduleFilterPanel({
                   : "Find the classes that fit your practice."}
             </DialogDescription>
           </header>
+          <div className="member-schedule-segmented" role="group" aria-label={t("nav.schedule")}>
+            {dateOptions.map((scope) => (
+              <button
+                key={scope}
+                type="button"
+                aria-pressed={dateScope === scope}
+                onClick={() => onDateScopeChange(scope)}
+                className={
+                  dateScope === scope
+                    ? "member-schedule-segment member-schedule-segment-active"
+                    : "member-schedule-segment"
+                }
+              >
+                {scope === "week"
+                  ? t("common.thisWeek")
+                  : scope === "today"
+                    ? t("common.today")
+                    : scope === "tomorrow"
+                      ? t("common.tomorrow")
+                      : t("common.all")}
+              </button>
+            ))}
+          </div>
           <div className="schedule-filter-dialog-options">
             {visibleFilters.map((group) => (
               <fieldset key={group.key} className="schedule-option-group">

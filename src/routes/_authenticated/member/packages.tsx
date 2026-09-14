@@ -3,6 +3,7 @@ import { ReviewPlanCard, ReviewPrice, ReviewButton } from "@/components/member/d
 import { MemberPageIntro } from "@/components/member/MemberPage";
 import packagesCss from "@/styles/packages.css?url";
 import matDetail from "@/assets/mat-detail.webp";
+import hammockDetail from "@/assets/hammock-detail.webp";
 import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -240,11 +241,7 @@ function MemberPackages() {
 
       <div className="packages-release-layout">
         <div className="package-selection">
-          <div className="member-section__heading">
-            <div>
-              <h2 className="member-section__title">{t("packages.available")}</h2>
-            </div>
-          </div>
+          <h2 className="sr-only">{t("packages.available")}</h2>
           {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
           {displayedPlans.length === 0 ? (
             <MemberEmptyState
@@ -567,7 +564,15 @@ function PackagePricingCard({
     <ReviewPlanCard
       id={cardId}
       title={display.name}
-      image={matDetail}
+      image={
+        marketing.kind === "recommended"
+          ? hammockDetail
+          : marketing.kind === "single"
+            ? "/images/editorial/welcome-960.webp"
+            : marketing.kind === "card10"
+              ? "/images/editorial/schedule-room-960.webp"
+              : matDetail
+      }
       highlighted={isRecommended}
       badge={marketing.badge || marketing.secondaryBadge}
       price={<ReviewPrice value={formatPlanPrice(plan)} />}
@@ -966,7 +971,7 @@ function PaymentMethodSheet({
           returnFocus.current?.focus();
         }}
         onInteractOutside={(event) => event.preventDefault()}
-        className="member-card member-sheet-content block w-full sm:max-w-xl max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 top-auto bottom-0 translate-y-0 sm:top-[50%] sm:bottom-auto sm:translate-y-[-50%]"
+        className="cc-review cc-reference ref-payment-dialog block sm:max-w-lg overflow-y-auto p-5 sm:p-6"
       >
         <header className="flex items-start justify-between gap-4 border-b hairline pb-4">
           <div>
@@ -985,7 +990,7 @@ function PaymentMethodSheet({
           </button>
         </header>
 
-        <div className="mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <div className="ref-payment-summary mt-5 rounded-xl border border-gold/25 bg-ivory/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
           <p className="member-eyebrow text-slate">{t("packages.purchaseSummary")}</p>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
@@ -1239,7 +1244,8 @@ function PaymentOption({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`w-full rounded-xl border p-4 text-start transition ${
+      aria-pressed={active || false}
+      className={`ref-payment-option w-full rounded-xl border p-4 text-start transition ${
         active
           ? "border-gold bg-gold/10 shadow-[0_18px_36px_-30px_rgba(11,29,58,0.38)]"
           : disabled

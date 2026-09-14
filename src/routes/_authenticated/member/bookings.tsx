@@ -460,7 +460,7 @@ function MyBookings() {
       <Dialog open={!!confirmCancel} onOpenChange={(v) => !v && setConfirmCancel(null)}>
         <DialogContent
           dir={dir}
-          className="member-cancel-dialog max-w-md bg-ivory border-gold/30"
+          className="cc-review cc-reference ref-confirm-dialog member-cancel-dialog max-w-md bg-ivory border-gold/30"
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             const target = cancelTrigger.current?.isConnected

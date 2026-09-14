@@ -1,3 +1,6 @@
+import { StudioBanner } from "@/components/member/StudioBanner";
+import { BookingConfirmationContent } from "@/components/member/BookingConfirmationContent";
+import { ClassDetailContent } from "@/components/member/ClassDetailContent";
 import { StudioClassItem } from "@/components/member/StudioClassItem";
 import hero from "@/assets/classes/pilates-sculpt-hero.webp";
 import { useState } from "react";
@@ -15,7 +18,6 @@ import {
   ReviewMembership,
   ReviewFeedback,
   ReviewClassRow,
-  ReviewHero,
   ReviewAvatar,
 } from "./VisualSystem";
 import {
@@ -39,7 +41,7 @@ export default function ComponentGallery() {
   const tabs = bottomTabsForRole("member");
   return (
     <div
-      className="member-app member-design-shell cc-review cc-rollout"
+      className="member-app member-design-shell cc-review cc-reference"
       style={{ minHeight: "100vh" }}
     >
       <div className="member-shell-main">
@@ -81,7 +83,13 @@ export default function ComponentGallery() {
                   title={p.title}
                   price={<ReviewPrice value={`₪${p.price}`} />}
                   features={p.features}
-                  image={mat}
+                  image={
+                    [
+                      "/images/editorial/welcome-960.webp",
+                      "/images/editorial/studio-ritual-v1.png",
+                      "/images/editorial/fabric-960.webp",
+                    ][i]
+                  }
                   highlighted={i === 1}
                   badge={i === 1 ? "דוגמת תג" : undefined}
                   disclosure={i ? "דוגמה בלבד · חידוש חודשי בכרטיס אשראי" : undefined}
@@ -201,23 +209,10 @@ export default function ComponentGallery() {
               <p>תמונת אווירה · ללא פרטי מדריכה</p>
             </ReviewClassRow>
           </section>
-          <section className="cc-review cc-rollout">
+          <section className="cc-review">
             <h2>רכיבי הדפים · בית ופרטי שיעור</h2>
             <ReviewAvatar name="Member example" />
-            <ReviewHero
-              image={hero}
-              action={
-                <ReviewButton variant="secondary" onClick={() => setClicks(clicks + 1)}>
-                  פעולת דוגמה
-                </ReviewButton>
-              }
-            >
-              <p>
-                SMALL STEPS.
-                <br />
-                LASTING CHANGE.
-              </p>
-            </ReviewHero>
+            <StudioBanner />
             <StudioClassItem
               thumbnail
               cls={{
@@ -236,6 +231,29 @@ export default function ComponentGallery() {
             />
           </section>
           <section>
+            <h2>פרטי שיעור ואישור הזמנה · רכיבי האפליקציה</h2>
+            <p>Local fixtures only — the controls below never create a booking.</p>
+            <div className="cc-gallery-grid">
+              <div className="ref-gallery-detail">
+                <ClassDetailContent
+                  cls={galleryClass}
+                  state={{ kind: "available", spotsLeft: 8 }}
+                  action={
+                    <ReviewButton onClick={() => setClicks((n) => n + 1)}>הזמנת דוגמה</ReviewButton>
+                  }
+                />
+              </div>
+              <div className="ref-gallery-detail">
+                <BookingConfirmationContent
+                  cls={galleryClass}
+                  confirmation={{ bookingId: "DEMO-ONLY", remaining: 4 }}
+                  onAddCalendar={() => setClicks((n) => n + 1)}
+                  onDone={() => setClicks((n) => n + 1)}
+                />
+              </div>
+            </div>
+          </section>
+          <section>
             <h2>חלונית וניווט מקלדת</h2>
             <Dialog>
               <DialogTrigger asChild>
@@ -244,7 +262,7 @@ export default function ComponentGallery() {
                   פתיחת חלונית לדוגמה
                 </ReviewButton>
               </DialogTrigger>
-              <DialogContent className="cc-dialog" dir="rtl">
+              <DialogContent className="cc-dialog cc-review cc-reference" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>פרטי שיעור לדוגמה</DialogTitle>
                   <DialogDescription>
@@ -261,3 +279,16 @@ export default function ComponentGallery() {
     </div>
   );
 }
+
+const galleryClass = {
+  id: "gallery-class-detail",
+  starts_at: "2030-01-15T09:00:00+02:00",
+  duration_minutes: 60,
+  capacity: 12,
+  booked_count: 4,
+  credit_cost: 1,
+  cancellation_window_hours: 24,
+  title: "יוגה אווירית · דוגמה",
+  image_url: classPhoto,
+  instructor: { name: "מדריכת הדוגמה" },
+};

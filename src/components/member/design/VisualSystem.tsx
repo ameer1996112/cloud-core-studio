@@ -9,6 +9,7 @@ import {
 } from "react";
 import { Check, LoaderCircle } from "lucide-react";
 import "./visual-system.css";
+import "./reference-system.css";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export function ReviewButton({
@@ -204,34 +205,36 @@ export function ReviewPlanCard({
       tabIndex={-1}
       data-package-plan-card="true"
       aria-labelledby={`${id}-title`}
-      className={`cc-plan cc-surface ${highlighted ? "cc-plan--highlighted" : ""}`}
+      className={`ref-plan ${highlighted ? "ref-plan--highlighted" : ""}`}
     >
       {badge && (
-        <div className="cc-plan__badge">
+        <div className="ref-plan-badge">
           <ReviewBadge>{badge}</ReviewBadge>
         </div>
       )}
-      <img className="cc-plan__image" src={image} alt="" />
-      <div className="cc-plan__heading">
-        <h3 id={`${id}-title`}>{title}</h3>
-        {subtitle && <p>{subtitle}</p>}
-      </div>
-      <div className="cc-plan__price">{price}</div>
-      <ul className="cc-plan__features">
-        {features.map((feature, i) => (
-          <li key={i}>
-            <Check aria-hidden="true" size={15} />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-      {(note || disclosure) && (
-        <div className="cc-plan__terms">
-          {note && <p>{note}</p>}
-          {disclosure && <p>{disclosure}</p>}
+      <img className="ref-plan-image" src={image} alt="" />
+      <div className="ref-plan-body">
+        <div className="ref-plan-heading">
+          <h3 id={`${id}-title`}>{title}</h3>
+          {subtitle && <p>{subtitle}</p>}
         </div>
-      )}
-      <div className="cc-plan__action">{action}</div>
+        <div className="ref-plan-price">{price}</div>
+        <ul className="ref-plan-features">
+          {features.map((feature, i) => (
+            <li key={i}>
+              <Check aria-hidden="true" size={15} />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        {(note || disclosure) && (
+          <div className="ref-plan-terms">
+            {note && <p>{note}</p>}
+            {disclosure && <p>{disclosure}</p>}
+          </div>
+        )}
+        <div className="ref-plan-action">{action}</div>
+      </div>
     </article>
   );
 }

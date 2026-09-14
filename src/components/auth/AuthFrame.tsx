@@ -1,12 +1,9 @@
-import "@/components/member/design/member-system.css";
-import "@/components/member/design/production-adapter.css";
-import "@/components/member/design/member-atelier.css";
+import "@/components/member/design/reference-system.css";
 import { MapPin } from "lucide-react";
 import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { StudioLogo } from "@/components/brand/StudioLogo";
-import { EditorialImage } from "@/components/visual/EditorialImage";
 import { LANG_META, t, type Lang } from "@/lib/i18n";
 
 const STUDIO_LOCATION: Record<Lang, string> = {
@@ -36,45 +33,30 @@ export function AuthFrame({
       id="main-content"
       dir={LANG_META[lang].dir}
       lang={lang}
-      className={`cc-review cc-rollout auth-page auth-entry aura-auth cc-production-auth atelier-auth${recovery ? " auth-recovery" : ""}`}
+      className={`cc-review auth-page cc-reference ref-auth${recovery ? " auth-recovery" : ""}`}
     >
-      <header className="auth-page-header">
+      <header className="ref-auth-header">
         <div className="auth-masthead-logo">
           <StudioLogo priority />
         </div>
-        <div className="auth-language-switcher" role="group" aria-label={t("profile.language")}>
-          {(["he", "en", "ar"] as const).map((code) => (
-            <button
-              key={code}
-              type="button"
-              data-active={lang === code}
-              aria-pressed={lang === code}
-              lang={code}
-              dir={LANG_META[code].dir}
-              onClick={() => onLocaleChange(code)}
-            >
-              {LANG_META[code].label}
-            </button>
-          ))}
+
+        <div className="ref-auth-appearance">
+          <AppearanceControl lang={lang} />
         </div>
-        <AppearanceControl lang={lang} />
       </header>
-      <section className="auth-studio-photo" aria-hidden="true">
+      <section className="ref-auth-background" aria-hidden="true">
         <img
-          src="/images/editorial/studio-ritual-v1.png"
+          src="/images/editorial/arrival-1440.webp"
           alt=""
           width={1024}
           height={1536}
           fetchPriority="high"
         />
       </section>
-      <div className="auth-content">
-        <div className="auth-mobile-panel">
-          <div className="cc-auth-logo">
-            <StudioLogo priority />
-          </div>
-          <div className="auth-scene-heading">
-            <p className="member-eyebrow">{eyebrow}</p>
+      <div className="ref-auth-content">
+        <div className="ref-auth-panel">
+          <div className="ref-auth-heading">
+            <p className="ref-auth-subtitle">{eyebrow}</p>
             <h1 id="auth-scene-title" className="auth-form-title">
               {title}
             </h1>
@@ -106,6 +88,21 @@ export function AuthFrame({
             </address>
           </footer>
         </div>
+      </div>
+      <div className="auth-language-switcher" role="group" aria-label={t("profile.language")}>
+        {(["he", "en", "ar"] as const).map((code) => (
+          <button
+            key={code}
+            type="button"
+            data-active={lang === code}
+            aria-pressed={lang === code}
+            lang={code}
+            dir={LANG_META[code].dir}
+            onClick={() => onLocaleChange(code)}
+          >
+            {LANG_META[code].label}
+          </button>
+        ))}
       </div>
     </main>
   );

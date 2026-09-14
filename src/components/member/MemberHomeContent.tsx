@@ -1,5 +1,6 @@
-import "@/components/member/design/home-atelier.css";
-import { ReviewHero, ReviewButton } from "@/components/member/design/VisualSystem";
+import "@/components/member/design/reference-system.css";
+import { ReviewButton } from "@/components/member/design/VisualSystem";
+import { StudioBanner } from "./StudioBanner";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
@@ -10,14 +11,7 @@ import {
 } from "@/lib/member-home-presentation";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import {
-  Calendar,
-  CreditCard,
-  MessageCircle,
-  ArrowRight,
-  Megaphone,
-  ChevronRight,
-} from "lucide-react";
+import { Calendar, CreditCard, MessageCircle, ArrowRight, Megaphone } from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 import { getPlanDisplay } from "@/lib/planDisplay";
@@ -27,7 +21,6 @@ import { deriveClassState } from "./PremiumClassCard";
 import { BookingPass, StudioClassItem } from "./StudioClassItem";
 import type { getMemberHome } from "@/lib/member.functions";
 import type { PublicStudioSettings } from "@/lib/studioSettings.functions";
-import { EditorialImage } from "@/components/visual/EditorialImage";
 
 export type MemberHomeData = Awaited<ReturnType<typeof getMemberHome>>;
 export type MemberHomeContentProps = {
@@ -99,7 +92,7 @@ export function MemberHomeContent({
   }
 
   return (
-    <section className="member-page member-home-page home-atelier" dir={dir}>
+    <section className="member-page ref-home" dir={dir}>
       <header className="home-greeting">
         <div className="home-welcome-copy">
           <h1>
@@ -114,41 +107,7 @@ export function MemberHomeContent({
           </h1>
           <p>{greeting}</p>
         </div>
-        <ReviewHero
-          image="/images/editorial/studio-sanctuary-v1.png"
-          action={
-            !failed && !isLoading ? (
-              <Link
-                to={
-                  recommendationNeedsPackage && !failed && !isLoading
-                    ? "/member/packages"
-                    : "/member/schedule"
-                }
-                className="cc-button cc-button--secondary home-reference-hero-action"
-                aria-label={t(
-                  recommendationNeedsPackage && !failed && !isLoading
-                    ? "member.packageGuide.homeAction"
-                    : "member.browseSchedule",
-                )}
-              >
-                <span>
-                  {t(
-                    recommendationNeedsPackage && !failed && !isLoading
-                      ? "member.packageGuide.homeAction"
-                      : "member.browseSchedule",
-                  )}
-                </span>
-                <ChevronRight size={18} aria-hidden="true" />
-              </Link>
-            ) : null
-          }
-        >
-          <p lang="en">
-            Small steps.
-            <br />
-            Lasting change.
-          </p>
-        </ReviewHero>
+        <StudioBanner />
       </header>
       {failed ? (
         <section className="home-status" role="alert">

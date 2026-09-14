@@ -1,6 +1,5 @@
 import { AtelierPageHeading } from "@/components/member/design/AtelierPageHeading";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
-import { PackageBookingGuide } from "./PackageBookingGuide";
 import { ScheduleDateStrip } from "./ScheduleDateStrip";
 import { studioDateKey } from "@/lib/member-schedule-date";
 import { Link } from "@tanstack/react-router";
@@ -140,7 +139,7 @@ export function MemberScheduleView({
         title={t("nav.schedule")}
         image="/images/editorial/studio-sanctuary-v1.png"
       >
-        <p>{session ? t("member.schedule.body") : guestCopy?.scheduleHint}</p>
+        {!session && <p>{guestCopy?.scheduleHint}</p>}
       </AtelierPageHeading>
       <div className="schedule-reading-surface">
         <div className="schedule-control-region">
@@ -202,20 +201,6 @@ export function MemberScheduleView({
           />
         </div>
         <div className="aura-schedule-results">
-          {!isLoading &&
-            !hasBlockingError &&
-            session &&
-            filtered.some((c: ScheduleClass) => cardStateFor(c).kind === "package_required") && (
-              <section className="schedule-package-guide">
-                <PackageBookingGuide />
-                <Link
-                  to="/member/packages"
-                  className="cc-button cc-button--primary home-primary package-booking-action"
-                >
-                  {t("member.packageGuide.action")}
-                </Link>
-              </section>
-            )}
           {isLoading && (
             <div className="space-y-3">
               {[0, 1, 2, 3].map((i) => (

@@ -67,7 +67,7 @@ export function ClassDetailContent({
   ];
   return (
     <>
-      <div className="aura-detail-hero">
+      <div className="ref-detail-hero">
         <img
           src={resolveClassImageSrc(cls, "hero")}
           alt=""
@@ -75,7 +75,7 @@ export function ClassDetailContent({
           height={960}
           decoding="async"
         />
-        <div className="aura-detail-heading">
+        <div className="ref-detail-heading">
           {state && <StateBadge state={state} />}
           <h2>
             <bdi>{localizedClassTitle(cls)}</bdi>
@@ -87,9 +87,8 @@ export function ClassDetailContent({
           </p>
         </div>
       </div>
-      <div className="aura-detail-reading">
-        <div className="lesson-detail__cta">{action}</div>
-        <dl className="aura-detail-facts">
+      <div className="ref-detail-reading">
+        <dl className="ref-detail-facts">
           {facts.map((f) => (
             <div key={f.label}>
               <dt>
@@ -122,17 +121,18 @@ export function ClassDetailContent({
             ))}
         </div>
         {description && (
-          <p className="aura-detail-description" dir="auto">
+          <p className="ref-detail-description" dir="auto">
             {description}
           </p>
         )}
         {promotion}
-        <section className="aura-detail-notes">
+        <section className="ref-detail-notes">
           <h3>{t("booking.notes")}</h3>
           <p>{t("booking.cancelWindow", { hours: cls.cancellation_window_hours })}</p>
           <p>{t("booking.bring")}</p>
         </section>
       </div>
+      <div className="ref-detail-cta ref-detail-footer">{action}</div>
     </>
   );
 }

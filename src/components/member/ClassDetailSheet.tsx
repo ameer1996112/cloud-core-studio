@@ -1,4 +1,5 @@
-import "@/components/member/design/member-atelier.css";
+import "@/components/member/design/reference-system.css";
+import { BookingConfirmationContent } from "./BookingConfirmationContent";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
@@ -13,7 +14,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowRight, CalendarPlus, Clock, Sparkles, X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { getClassDetail, joinWaitlist, leaveWaitlist } from "@/lib/member.functions";
 import { bookClass } from "@/lib/cloud-core.functions";
 import { recordMemberNotificationCampaignBooking } from "@/lib/memberNotifications.functions";
@@ -338,7 +339,7 @@ export function ClassDetailSheet({
     >
       <DialogContent
         dir={dir}
-        className="cc-review cc-rollout cc-dialog lesson-detail aura-class-detail atelier-detail"
+        className="cc-review cc-dialog lesson-detail cc-reference ref-detail"
         {...returnFocus}
       >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
@@ -346,7 +347,7 @@ export function ClassDetailSheet({
         <button
           onClick={() => onOpenChange(false)}
           aria-label={t("common.close")}
-          className="aura-detail-close"
+          className="ref-detail-close"
         >
           <X className="h-4 w-4 text-navy" />
         </button>
@@ -467,7 +468,7 @@ export function ClassDetailSheet({
                   </ReviewButton>
                 ) : state?.kind === "package_required" ? (
                   <div className="detail-package-guide">
-                    <PackageBookingGuide />
+                    <PackageBookingGuide compact />
                     <Link
                       to="/member/packages"
                       className="cc-button cc-button--primary btn-navy w-full hover:btn-navy-hover"
@@ -520,7 +521,6 @@ function ConfirmationView({
   confirmation: { bookingId: string; remaining: number };
   onDone: () => void;
 }) {
-  const code = confirmation.bookingId.slice(0, 6).toUpperCase();
   const title = localizedClassTitle(cls);
   const instructor = localizedOptionalInstructorName(cls.instructor?.name);
 
@@ -542,96 +542,11 @@ function ConfirmationView({
   }
 
   return (
-    <div className="p-6 sm:p-8 space-y-5">
-      <div className="text-center space-y-3">
-        <div className="member-panel-powder mx-auto h-14 w-14 rounded-full flex items-center justify-center">
-          <Sparkles className="h-6 w-6 text-[var(--color-accent-text)]" />
-        </div>
-        <p className="text-xs font-medium text-slate">{t("booking.cloudCard")}</p>
-        <h2 className="font-display text-3xl text-navy leading-tight">{t("booking.saved")}</h2>
-      </div>
-
-      {/* The card itself — premium, print-friendly look */}
-      <div
-        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-ivory shadow-[0_1px_0_rgba(212,175,106,0.4),0_24px_60px_-30px_rgba(11,29,58,0.35)]"
-        style={{
-          backgroundImage:
-            "linear-gradient(135deg, rgba(183,204,230,0.18), rgba(232,223,209,0.25) 60%, rgba(212,175,106,0.12))",
-        }}
-      >
-        <div className="absolute inset-x-5 top-0 h-px bg-gold/30" />
-        <div className="px-5 sm:px-6 py-5 space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-slate">{t("bookings.confirmed")}</p>
-              <p className="font-display text-2xl text-navy mt-1 leading-tight truncate" dir="auto">
-                <bdi>{title}</bdi>
-              </p>
-            </div>
-            <div className="shrink-0 text-end">
-              <p className="text-xs font-medium text-slate">{t("common.code")}</p>
-              <p className="font-mono text-sm text-navy mt-0.5">{code}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <CardField
-              label={t("common.when")}
-              value={`${formatDate(cls.starts_at)} · ${formatTime(cls.starts_at)}`}
-            />
-            <CardField
-              label={t("common.duration")}
-              value={t("member.durationMinutes", { count: cls.duration_minutes })}
-            />
-            <CardField label={t("common.where")} value={t("member.locationStudio")} />
-            {instructor && <CardField label={t("common.with")} value={instructor} />}
-          </div>
-
-          <div className="flex items-center justify-between border-t hairline pt-3 text-xs text-slate">
-            <span className="inline-flex items-center gap-1.5">
-              <Clock className="h-3 w-3 text-[var(--color-accent-text)]" />
-              {t("booking.cancelWindow", { hours: cls.cancellation_window_hours }).replace(
-                /\.$/,
-                "",
-              )}
-            </span>
-            <span className="text-navy">
-              {t("booking.left", { count: confirmation.remaining })}
-            </span>
-          </div>
-        </div>
-        <div className="absolute inset-x-5 bottom-0 h-px bg-gold/30" />
-      </div>
-
-      <p className="text-center text-xs text-slate font-display">{t("booking.savedLine")}</p>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <ReviewButton
-          variant="secondary"
-          type="submit"
-          onClick={addToCalendar}
-          className="btn-outline w-full justify-center"
-        >
-          <CalendarPlus className="h-3 w-3" /> {t("member.addCalendar")}
-        </ReviewButton>
-        <ReviewButton
-          variant="primary"
-          type="submit"
-          onClick={onDone}
-          className="btn-navy w-full justify-center hover:btn-navy-hover"
-        >
-          {t("booking.myBookings")} <ArrowRight className="h-3 w-3 directional-icon-forward" />
-        </ReviewButton>
-      </div>
-    </div>
-  );
-}
-
-function CardField({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs font-medium text-slate">{label}</p>
-      <p className="font-display text-sm text-navy mt-0.5 truncate">{value}</p>
-    </div>
+    <BookingConfirmationContent
+      cls={cls}
+      confirmation={confirmation}
+      onAddCalendar={addToCalendar}
+      onDone={onDone}
+    />
   );
 }

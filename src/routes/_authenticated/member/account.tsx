@@ -1,3 +1,4 @@
+import { healthCopy } from "@/lib/health-copy";
 import { HealthStatusCard } from "@/components/health/HealthStatusCard";
 import { ReviewAvatar } from "@/components/member/design/VisualSystem";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
@@ -8,7 +9,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { friendlyErrorMessage } from "@/lib/error-messages";
-import { LogOut, Save, Trash2 } from "lucide-react";
+import {
+  LogOut,
+  Save,
+  Trash2,
+  Phone,
+  Mail,
+  ChevronLeft,
+  UserRound,
+  ShieldCheck,
+  Globe,
+} from "lucide-react";
 import { getMyPackages, requestMyAccountDeletion, updateMyProfile } from "@/lib/member.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { flushSync } from "react-dom";
@@ -230,109 +241,160 @@ function MemberAccount() {
 
   return (
     <section dir={dir} className="member-page aura-member-page aura-account-page">
-      <header className="aura-page-heading aura-profile-heading">
-        <ReviewAvatar name={me?.name || ""} />
-        <div>
-          <p className="member-eyebrow">{t("member.account.kicker")}</p>
-          <h1>
-            <bdi>{me?.name ?? t("nav.profile")}</bdi>
-          </h1>
-          <p>{me?.email ? <LtrInline>{me.email}</LtrInline> : t("member.account.body")}</p>
-        </div>
-        {me?.status && <span className="aura-profile-status">{labelForStatus(me.status)}</span>}
+      <header className="ref-page-heading">
+        <h1>{t("nav.profile")}</h1>
       </header>
+      <div className="ref-profile-summary">
+        <ReviewAvatar name={me?.name || ""} />
+        <h2>
+          <bdi>{me?.name ?? t("nav.profile")}</bdi>
+        </h2>
+        {me?.status && <span className="aura-profile-status">{labelForStatus(me.status)}</span>}
+        <dl className="ref-profile-contact">
+          {me?.phone && (
+            <div>
+              <dt>
+                <Phone size={16} aria-hidden="true" />
+                <span className="sr-only">{t("profile.phone")}</span>
+              </dt>
+              <dd>
+                <LtrInline>{me.phone}</LtrInline>
+              </dd>
+            </div>
+          )}
+          {me?.email && (
+            <div>
+              <dt>
+                <Mail size={16} aria-hidden="true" />
+                <span className="sr-only">{t("auth.email")}</span>
+              </dt>
+              <dd>
+                <LtrInline>{me.email}</LtrInline>
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
       <div className="aura-account-layout">
         <div className="aura-account-main">
-          <HealthStatusCard participantId={user.id} />
-          <div className="aura-settings-section aura-profile-details">
-            <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
-              <div>
-                <h2 className="member-section-title">{t("profile.details")}</h2>
-              </div>
-              {me?.created_at && (
-                <div className="aura-member-since">
-                  {t("profile.memberSince")}{" "}
-                  <span className="font-semibold">
-                    {new Date(me.created_at).toLocaleDateString(locale, {
-                      year: "numeric",
-                      month: "long",
-                    })}
-                  </span>
+          <details className="ref-profile-editor">
+            <summary>
+              <UserRound size={16} aria-hidden="true" />
+              {t("profile.details")}
+              <ChevronLeft className="directional-icon-forward" size={17} aria-hidden="true" />
+            </summary>
+            <div className="aura-settings-section aura-profile-details">
+              <div className="member-section-heading flex flex-row justify-between items-center flex-wrap gap-2">
+                <div>
+                  <h2 className="member-section-title">{t("profile.details")}</h2>
                 </div>
-              )}
-            </div>
+                {me?.created_at && (
+                  <div className="aura-member-since">
+                    {t("profile.memberSince")}{" "}
+                    <span className="font-semibold">
+                      {new Date(me.created_at).toLocaleDateString(locale, {
+                        year: "numeric",
+                        month: "long",
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-            <fieldset className="profile-field-group">
-              <legend>{t("profile.contactDetails")}</legend>
-              <div className="aura-profile-fields">
-                <Field label={t("profile.name")}>
-                  <input
-                    className="editorial-input"
-                    dir={val("name") ? "auto" : undefined}
-                    value={val("name")}
-                    onChange={(e) => set("name", e.target.value)}
-                  />
-                </Field>
-                <Field label={t("profile.phone")}>
-                  <input
-                    className="editorial-input"
-                    inputMode="tel"
-                    dir="ltr"
-                    autoComplete="tel"
-                    value={val("phone") ?? ""}
-                    onChange={(e) => set("phone", e.target.value)}
-                  />
-                </Field>
-                <Field label={t("profile.emergency")}>
-                  <input
-                    className="editorial-input"
-                    dir={val("emergency_contact") ? "auto" : undefined}
-                    value={val("emergency_contact") ?? ""}
-                    onChange={(e) => set("emergency_contact", e.target.value)}
-                    placeholder={t("profile.emergencyPlaceholder")}
-                  />
-                </Field>
+              <fieldset className="profile-field-group">
+                <legend>{t("profile.contactDetails")}</legend>
+                <div className="aura-profile-fields">
+                  <Field label={t("profile.name")}>
+                    <input
+                      className="editorial-input"
+                      dir={val("name") ? "auto" : undefined}
+                      value={val("name")}
+                      onChange={(e) => set("name", e.target.value)}
+                    />
+                  </Field>
+                  <Field label={t("profile.phone")}>
+                    <input
+                      className="editorial-input"
+                      inputMode="tel"
+                      dir="ltr"
+                      autoComplete="tel"
+                      value={val("phone") ?? ""}
+                      onChange={(e) => set("phone", e.target.value)}
+                    />
+                  </Field>
+                  <Field label={t("profile.emergency")}>
+                    <input
+                      className="editorial-input"
+                      dir={val("emergency_contact") ? "auto" : undefined}
+                      value={val("emergency_contact") ?? ""}
+                      onChange={(e) => set("emergency_contact", e.target.value)}
+                      placeholder={t("profile.emergencyPlaceholder")}
+                    />
+                  </Field>
+                </div>
+              </fieldset>
+              <fieldset className="profile-field-group">
+                <legend>{t("profile.preferences")}</legend>
+                <div className="aura-profile-fields">
+                  <Field label={t("profile.energy")}>
+                    <input
+                      className="editorial-input"
+                      dir={val("energy_preference") ? "auto" : undefined}
+                      value={val("energy_preference") ?? ""}
+                      onChange={(e) => set("energy_preference", e.target.value)}
+                      placeholder={t("profile.energyPlaceholder")}
+                    />
+                  </Field>
+                </div>
+              </fieldset>
+              <div className="aura-form-submit">
+                <ReviewButton
+                  variant="primary"
+                  type="submit"
+                  disabled={update.isPending || Object.keys(form).length === 0}
+                  onClick={() => update.mutate()}
+                  className="btn-navy hover:btn-navy-hover disabled:opacity-50"
+                >
+                  <Save className="h-3 w-3" />{" "}
+                  {update.isPending ? t("common.saving") : t("profile.save")}
+                </ReviewButton>
               </div>
-            </fieldset>
-            <fieldset className="profile-field-group">
-              <legend>{t("profile.preferences")}</legend>
-              <div className="aura-profile-fields">
-                <Field label={t("profile.language")}>
-                  <select
-                    className="editorial-input"
-                    value={selectedLanguage}
-                    onChange={(e) => setLanguage(e.target.value)}
-                  >
-                    <option value="en">English</option>
-                    <option value="he">עברית</option>
-                    <option value="ar">العربية</option>
-                  </select>
-                </Field>
-                <Field label={t("profile.energy")}>
-                  <input
-                    className="editorial-input"
-                    dir={val("energy_preference") ? "auto" : undefined}
-                    value={val("energy_preference") ?? ""}
-                    onChange={(e) => set("energy_preference", e.target.value)}
-                    placeholder={t("profile.energyPlaceholder")}
-                  />
-                </Field>
-              </div>
-            </fieldset>
-            <div className="aura-form-submit">
+            </div>
+          </details>
+          <details className="ref-settings-disclosure">
+            <summary>
+              <ShieldCheck size={17} aria-hidden="true" />
+              {healthCopy[lang].title}
+              <ChevronLeft className="directional-icon-forward" size={17} aria-hidden="true" />
+            </summary>
+            <HealthStatusCard participantId={user.id} />
+          </details>
+          <details className="ref-settings-disclosure">
+            <summary>
+              <Globe size={17} aria-hidden="true" />
+              {t("profile.language")}
+              <ChevronLeft className="directional-icon-forward" size={17} aria-hidden="true" />
+            </summary>
+            <div className="aura-settings-section ref-language-settings">
+              <Field label={t("profile.language")}>
+                <select
+                  className="editorial-input"
+                  value={selectedLanguage}
+                  onChange={(e) => setLanguage(e.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="he">עברית</option>
+                  <option value="ar">العربية</option>
+                </select>
+              </Field>
               <ReviewButton
-                variant="primary"
-                type="submit"
                 disabled={update.isPending || Object.keys(form).length === 0}
                 onClick={() => update.mutate()}
-                className="btn-navy hover:btn-navy-hover disabled:opacity-50"
               >
-                <Save className="h-3 w-3" />{" "}
                 {update.isPending ? t("common.saving") : t("profile.save")}
               </ReviewButton>
             </div>
-          </div>
-
+          </details>
           {concierge?.available && (
             <section id="between-us" className="aura-settings-section space-y-5">
               <div>
@@ -402,107 +464,114 @@ function MemberAccount() {
             </button>
           </div>
 
-          <div className="aura-settings-section space-y-4">
-            <div className="member-section-heading">
-              <div>
-                <p className="member-eyebrow">{t("profile.privacyKicker")}</p>
-                <h2 className="member-section-title mt-1">{t("profile.privacyTitle")}</h2>
+          <details className="ref-settings-disclosure ref-privacy-disclosure">
+            <summary>
+              <ShieldCheck size={17} aria-hidden="true" />
+              {t("profile.privacyTitle")}
+              <ChevronLeft className="directional-icon-forward" size={17} aria-hidden="true" />
+            </summary>
+            <div className="aura-settings-section space-y-4">
+              <div className="member-section-heading">
+                <div>
+                  <p className="member-eyebrow">{t("profile.privacyKicker")}</p>
+                  <h2 className="member-section-title mt-1">{t("profile.privacyTitle")}</h2>
+                </div>
               </div>
-            </div>
-            <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
-            <div className="aura-legal-links">
-              <Link
-                to="/privacy"
-                className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
-              >
-                {t("legal.privacy")}
-              </Link>
-              <Link
-                to="/terms"
-                className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
-              >
-                {t("legal.terms")}
-              </Link>
-              <Link
-                to="/support"
-                className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
-              >
-                {t("legal.support")}
-              </Link>
-            </div>
-            <div className="border-t hairline pt-4">
-              <Field label={t("profile.deleteReason")}>
-                <textarea
-                  className="editorial-input min-h-24 resize-y"
-                  dir="auto"
-                  value={deletionReason}
-                  onChange={(e) => setDeletionReason(e.target.value)}
-                  placeholder={t("profile.deleteReasonPlaceholder")}
-                />
-              </Field>
-              <p className="mt-3 text-sm leading-6 text-slate">
-                {t("profile.deleteRequestExplanation")}
-              </p>
-              {deletionFeedback === "submitted" && (
-                <MemberFeedbackPanel
-                  ref={deletionFeedbackRef}
-                  variant="success"
-                  title={t("profile.deleteRequestSubmittedTitle")}
-                  live="polite"
-                  className="mt-4"
+              <p className="text-sm leading-6 text-slate">{t("profile.privacyBody")}</p>
+              <div className="aura-legal-links">
+                <Link
+                  to="/privacy"
+                  className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
                 >
-                  {t("profile.deleteRequestSubmittedBody")}
-                </MemberFeedbackPanel>
-              )}
-              {deletionFeedback === "already-requested" && (
-                <MemberFeedbackPanel
-                  ref={deletionFeedbackRef}
-                  variant="info"
-                  title={t("profile.deleteAlreadyRequested")}
-                  live="polite"
-                  className="mt-4"
+                  {t("legal.privacy")}
+                </Link>
+                <Link
+                  to="/terms"
+                  className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
                 >
-                  {t("profile.deleteAlreadyRequestedBody")}
-                </MemberFeedbackPanel>
-              )}
-              {deletionFeedback === "error" && (
-                <MemberFeedbackPanel
-                  ref={deletionFeedbackRef}
-                  variant="error"
-                  title={t("profile.deleteRequestError")}
-                  live="assertive"
-                  className="mt-4"
+                  {t("legal.terms")}
+                </Link>
+                <Link
+                  to="/support"
+                  className="cc-button cc-button--secondary btn-outline hover:btn-outline-hover justify-center"
                 >
-                  {t("profile.deleteRequestErrorBody")}{" "}
-                  <Link
-                    to="/support"
-                    className="font-semibold text-navy underline underline-offset-2"
+                  {t("legal.support")}
+                </Link>
+              </div>
+              <div className="border-t hairline pt-4">
+                <Field label={t("profile.deleteReason")}>
+                  <textarea
+                    className="editorial-input min-h-24 resize-y"
+                    dir="auto"
+                    value={deletionReason}
+                    onChange={(e) => setDeletionReason(e.target.value)}
+                    placeholder={t("profile.deleteReasonPlaceholder")}
+                  />
+                </Field>
+                <p className="mt-3 text-sm leading-6 text-slate">
+                  {t("profile.deleteRequestExplanation")}
+                </p>
+                {deletionFeedback === "submitted" && (
+                  <MemberFeedbackPanel
+                    ref={deletionFeedbackRef}
+                    variant="success"
+                    title={t("profile.deleteRequestSubmittedTitle")}
+                    live="polite"
+                    className="mt-4"
                   >
-                    {t("profile.deleteRequestSupport")}
-                  </Link>
-                </MemberFeedbackPanel>
-              )}
-              <div className="mt-3 flex justify-start">
-                <ReviewButton
-                  variant="ghost"
-                  ref={deletionTriggerRef}
-                  type="button"
-                  disabled={
-                    deletion.isPending ||
-                    deletionFeedback === "submitted" ||
-                    deletionFeedback === "already-requested"
-                  }
-                  onClick={() => setDeletionDialogOpen(true)}
-                  className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  {deletion.isPending
-                    ? t("profile.deleteRequestSubmitting")
-                    : t("profile.deleteRequest")}
-                </ReviewButton>
+                    {t("profile.deleteRequestSubmittedBody")}
+                  </MemberFeedbackPanel>
+                )}
+                {deletionFeedback === "already-requested" && (
+                  <MemberFeedbackPanel
+                    ref={deletionFeedbackRef}
+                    variant="info"
+                    title={t("profile.deleteAlreadyRequested")}
+                    live="polite"
+                    className="mt-4"
+                  >
+                    {t("profile.deleteAlreadyRequestedBody")}
+                  </MemberFeedbackPanel>
+                )}
+                {deletionFeedback === "error" && (
+                  <MemberFeedbackPanel
+                    ref={deletionFeedbackRef}
+                    variant="error"
+                    title={t("profile.deleteRequestError")}
+                    live="assertive"
+                    className="mt-4"
+                  >
+                    {t("profile.deleteRequestErrorBody")}{" "}
+                    <Link
+                      to="/support"
+                      className="font-semibold text-navy underline underline-offset-2"
+                    >
+                      {t("profile.deleteRequestSupport")}
+                    </Link>
+                  </MemberFeedbackPanel>
+                )}
+                <div className="mt-3 flex justify-start">
+                  <ReviewButton
+                    variant="ghost"
+                    ref={deletionTriggerRef}
+                    type="button"
+                    disabled={
+                      deletion.isPending ||
+                      deletionFeedback === "submitted" ||
+                      deletionFeedback === "already-requested"
+                    }
+                    onClick={() => setDeletionDialogOpen(true)}
+                    className="btn-ghost hover:btn-ghost-hover border-destructive/30 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    {deletion.isPending
+                      ? t("profile.deleteRequestSubmitting")
+                      : t("profile.deleteRequest")}
+                  </ReviewButton>
+                </div>
               </div>
             </div>
-          </div>
+          </details>
         </aside>
       </div>
       <AlertDialog
@@ -512,13 +581,16 @@ function MemberAccount() {
           if (!open) requestAnimationFrame(() => deletionTriggerRef.current?.focus());
         }}
       >
-        <AlertDialogContent dir={dir}>
+        <AlertDialogContent dir={dir} className="cc-review cc-reference ref-confirm-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("profile.deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{t("profile.deleteConfirmDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletion.isPending}>
+            <AlertDialogCancel
+              className="cc-button cc-button--secondary"
+              disabled={deletion.isPending}
+            >
               {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
@@ -527,7 +599,7 @@ function MemberAccount() {
                 event.preventDefault();
                 if (!deletion.isPending) deletion.mutate();
               }}
-              className="border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="cc-button cc-button--destructive border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deletion.isPending
                 ? t("profile.deleteRequestSubmitting")

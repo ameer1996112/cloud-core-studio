@@ -47,9 +47,9 @@ try {
       const auth = route === "/auth";
       const selector =
         auth && width < 768
-          ? ".auth-page-header .auth-masthead-logo"
+          ? ".ref-auth-header .auth-masthead-logo"
           : auth
-            ? ".auth-page-header"
+            ? ".ref-auth-header"
             : ".studio-member-header-inner";
       const box = await page.locator(selector).boundingBox();
       assert(box, "Shared header must be visible");
