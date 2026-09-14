@@ -217,6 +217,7 @@
 .cc-production-auth .auth-studio-photo {
   position: fixed;
   left: 0;
+  right: auto;
   top: 0;
   bottom: 0;
   width: 46%;
