@@ -3,7 +3,7 @@ import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronLeft, ChevronDown, Globe2, X, LogOut } from "lucide-react";
+import { Check, ChevronLeft, ChevronDown, Globe2, X, LogOut, Menu, UserRound } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createClientOnlyFn } from "@tanstack/react-start";
@@ -66,6 +66,7 @@ export function AppShell({ role, children }: Props) {
   // admin/instructor use sidebar+drawer (no bottom nav).
   const useBottomNav = role === "member";
   const isPackagesReview = role === "member" && pathname === "/member/packages";
+  const isHomeReview = role === "member" && (pathname === "/member" || pathname === "/member/");
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
@@ -179,7 +180,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className={`${isPackagesReview ? "packages-reference-shell" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
+      className={`${isPackagesReview ? "packages-reference-shell" : isHomeReview ? "home-reference-shell" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}
@@ -245,7 +246,9 @@ export function AppShell({ role, children }: Props) {
           </div>
         )}
 
-        {isPackagesReview ? (
+        {isHomeReview ? (
+          <HomeReferenceHeader pathname={pathname} lang={lang} signOut={signOutControl} />
+        ) : isPackagesReview ? (
           <PackagesReviewHeader pathname={pathname} lang={lang} signOut={signOutControl} />
         ) : useBottomNav ? (
           <MemberHeader
@@ -707,6 +710,73 @@ function PackagesReviewHeader({
           </div>
         </div>
       </header>
+    </>
+  );
+}
+
+function HomeReferenceHeader({
+  pathname,
+  lang,
+  signOut,
+}: {
+  pathname: string;
+  lang: Lang;
+  signOut: ReactNode;
+}) {
+  return (
+    <>
+      <header className="home-reference-header">
+        <Link to="/member" aria-label="Cloud & Core" className="home-reference-brand">
+          <StudioLogo priority />
+        </Link>
+        <nav className="home-reference-nav" aria-label={t("shell.practice")}>
+          {bottomTabsForRole("member").map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              aria-current={isActive(pathname, item) ? "page" : undefined}
+            >
+              <item.icon size={18} aria-hidden="true" />
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="home-reference-desktop-tools">
+          <LanguageButtons lang={lang} compact placement="up" />
+          <AppearanceControl lang={lang} />
+          {signOut}
+        </div>
+        <details
+          className="home-reference-menu"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }}
+        >
+          <summary aria-label={t("shell.practice")}>
+            <Menu size={22} aria-hidden="true" />
+          </summary>
+          <div className="home-reference-menu-panel">
+            <MemberNotificationCenter viewport="mobile" />
+            {bottomTabsForRole("member").map((item) => (
+              <Link key={item.to} to={item.to}>
+                {item.label}
+              </Link>
+            ))}
+            <LanguageButtons lang={lang} compact placement="down" />
+            <AppearanceControl lang={lang} />
+            {signOut}
+          </div>
+        </details>
+        <Link to="/member/profile" className="home-reference-profile" aria-label={t("nav.profile")}>
+          <UserRound size={23} aria-hidden="true" />
+        </Link>
+      </header>
+      <div className="home-reference-notifications">
+        <MemberNotificationCenter viewport="desktop" />
+      </div>
     </>
   );
 }

@@ -8,7 +8,7 @@ import {
 } from "@/lib/member-home-presentation";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Calendar, CreditCard, MessageCircle, ArrowRight, Megaphone } from "lucide-react";
+import { Calendar, CreditCard, MessageCircle, ArrowRight, Megaphone, Heart } from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 import { getPlanDisplay } from "@/lib/planDisplay";
@@ -18,7 +18,6 @@ import { deriveClassState } from "./PremiumClassCard";
 import { BookingPass, StudioClassItem } from "./StudioClassItem";
 import type { getMemberHome } from "@/lib/member.functions";
 import type { PublicStudioSettings } from "@/lib/studioSettings.functions";
-import { authImages } from "@/lib/auth-assets";
 import { EditorialImage } from "@/components/visual/EditorialImage";
 
 export type MemberHomeData = Awaited<ReturnType<typeof getMemberHome>>;
@@ -91,9 +90,8 @@ export function MemberHomeContent({
   }
 
   return (
-    <section className="member-page member-home-page reference-home" dir={dir}>
+    <section className="member-page member-home-page reference-home home-refined" dir={dir}>
       <header className="home-greeting">
-        <EditorialImage scene="welcome-context" eager className="home-welcome-photo" />
         <div className="home-welcome-copy">
           <h1>
             {greetingName ? (
@@ -106,6 +104,19 @@ export function MemberHomeContent({
             )}
           </h1>
           <p>{greeting}</p>
+        </div>
+        <div className="home-reference-banner">
+          <EditorialImage
+            scene="welcome-context"
+            eager
+            sizes="(min-width: 768px) 1060px, 100vw"
+            className="home-welcome-photo"
+          />
+          <p className="home-banner-motto">
+            Small steps.
+            <br />
+            Lasting change.
+          </p>
           <Link
             to={
               recommendationNeedsPackage && !failed && !isLoading
@@ -182,7 +193,7 @@ export function MemberHomeContent({
                         onClick={addToCalendar}
                         className="home-text-action home-calendar-action"
                         aria-label={t("member.addCalendar")}
-                        title={`${t("member.addCalendar")} — ${t("member.calendarHelp")}`}
+                        title={`${t("member.addCalendar")} - ${t("member.calendarHelp")}`}
                       >
                         <Calendar size={16} aria-hidden="true" />
                         <span>{t("member.addCalendar")}</span>
@@ -252,15 +263,6 @@ export function MemberHomeContent({
                   />
                 ) : (
                   <div className="home-choose">
-                    <img
-                      className="home-choose-photo"
-                      src={authImages.hero.src}
-                      alt={authImages.hero.alt[lang]}
-                      width={853}
-                      height={1280}
-                      loading="eager"
-                      decoding="async"
-                    />
                     <div className="home-choose-copy">
                       {!data.activePlan && credits <= 0 ? (
                         <PackageBookingGuide />
@@ -288,9 +290,20 @@ export function MemberHomeContent({
                   </div>
                 )}
               </section>
-              <div className="home-atmosphere" aria-hidden="true">
-                <EditorialImage scene="membership" sizes="(min-width: 768px) 50vw, 100vw" />
-              </div>
+              <nav className="home-reference-shortcuts" aria-label={t("member.quickActions")}>
+                <Link to="/member/schedule">
+                  <Calendar size={24} aria-hidden="true" />
+                  {t("nav.schedule")}
+                </Link>
+                <Link to="/member/packages">
+                  <CreditCard size={24} aria-hidden="true" />
+                  {t("nav.plans")}
+                </Link>
+                <Link to="/member/bookings">
+                  <Heart size={24} aria-hidden="true" />
+                  {t("nav.bookings")}
+                </Link>
+              </nav>
             </div>
             <aside dir={dir} className="home-account" aria-label={t("nav.plans")}>
               <MembershipPass

@@ -1,3 +1,4 @@
+import homeCss from "@/styles/member-home-refinement.css?url";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +11,10 @@ import { getMemberViewerCacheKey } from "@/lib/memberQueryKeys";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
 
-export const Route = createFileRoute("/_authenticated/member/")({ component: MemberHome });
+export const Route = createFileRoute("/_authenticated/member/")({
+  component: MemberHome,
+  head: () => ({ links: [{ rel: "stylesheet", href: homeCss }] }),
+});
 
 function MemberHome() {
   useDocumentTitle("page.home.title");
