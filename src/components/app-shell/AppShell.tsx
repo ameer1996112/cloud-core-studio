@@ -668,7 +668,7 @@ function PackagesReviewHeader({
   return (
     <>
       <div className="member-mobile-header-pad packages-release-mobile-header">
-        <span />
+        <AppearanceControl lang={lang} />
         <h1 className="packages-mobile-title">
           {lang === "he"
             ? "חבילות ומנויים"
@@ -683,7 +683,7 @@ function PackagesReviewHeader({
       <header className="member-desktop-header packages-release-desktop-header">
         <div className="member-desktop-header__row">
           <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
-            <img src="/brand/cloud-core-logo-full.png" alt="Cloud & Core" />
+            <StudioLogo priority />
           </Link>
           <nav className="member-desktop-header__nav" aria-label={t("shell.practice")}>
             {bottomTabsForRole("member").map((item) => (
@@ -698,6 +698,9 @@ function PackagesReviewHeader({
               </Link>
             ))}
           </nav>
+          <div className="packages-appearance">
+            <AppearanceControl lang={lang} />
+          </div>
           <div className="member-desktop-header__actions">
             <MemberNotificationCenter viewport="desktop" />
             {signOut}

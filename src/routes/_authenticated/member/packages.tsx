@@ -183,17 +183,44 @@ function MemberPackages() {
   const requestsByPlan: Record<string, any> = {};
   for (const r of requests ?? []) if (r.plan_id) requestsByPlan[r.plan_id] = r;
 
-  if (isLoading || isError)
+  const displayedPlans = visiblePlans.filter(
+    (plan: any) =>
+      category === "all" ||
+      (category === "subscriptions" ? isRecurringCardPlan(plan) : !isRecurringCardPlan(plan)),
+  );
+  const categoryCounts = {
+    all: visiblePlans.length,
+    subscriptions: visiblePlans.filter(isRecurringCardPlan).length,
+    cards: visiblePlans.filter((plan: any) => !isRecurringCardPlan(plan)).length,
+  };
+
+  if (isLoading)
     return (
-      <MemberPageState title={t("nav.plans")} error={isError} onRetry={() => void refetch()} />
+      <section
+        className="member-page member-package-page package-loading"
+        aria-busy="true"
+        aria-label={t("common.loading")}
+      >
+        <div className="package-loading-heading skeleton-brand" />
+        <div className="package-pricing-grid">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div className="package-loading-card skeleton-brand" key={index} />
+          ))}
+        </div>
+      </section>
     );
+  if (isError)
+    return <MemberPageState title={t("nav.plans")} error onRetry={() => void refetch()} />;
 
   return (
     <section dir={dir} className="member-page member-package-page">
-      <MemberPageIntro
-        title={reconstructionCopy[lang].title}
-        body={reconstructionCopy[lang].subtitle}
-      />
+      <div className="package-introduction">
+        <MemberPageIntro
+          title={reconstructionCopy[lang].title}
+          body={reconstructionCopy[lang].subtitle}
+        />
+        <img className="package-studio-image" src={matDetail} width={600} height={299} alt="" />
+      </div>
       <div className="package-category-tabs" aria-label={t("packages.available")}>
         {(["all", "subscriptions", "cards"] as const).map((value) => (
           <button
@@ -203,6 +230,9 @@ function MemberPackages() {
             onClick={() => setCategory(value)}
           >
             {reconstructionCopy[lang][value]}
+            <span className="package-category-count" aria-hidden="true">
+              {categoryCounts[value]}
+            </span>
           </button>
         ))}
       </div>
@@ -215,7 +245,7 @@ function MemberPackages() {
             </div>
           </div>
           {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
-          {visiblePlans.length === 0 && !isLoading ? (
+          {displayedPlans.length === 0 ? (
             <MemberEmptyState
               variant="packages"
               title={t("member.empty.packages.title")}
@@ -223,31 +253,23 @@ function MemberPackages() {
             />
           ) : (
             <div className="package-pricing-grid">
-              {visiblePlans
-                .filter(
-                  (plan: any) =>
-                    category === "all" ||
-                    (category === "subscriptions"
-                      ? isRecurringCardPlan(plan)
-                      : !isRecurringCardPlan(plan)),
-                )
-                .map((p: any) => (
-                  <PackagePricingCard
-                    key={p.id}
-                    plan={p}
-                    lang={lang}
-                    request={requestsByPlan[p.id]}
-                    payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
-                    onRequest={() => setSelectedPlan(p)}
-                    pending={
-                      manualPayment.isPending ||
-                      checkoutPayment.isPending ||
-                      hasUsableActivePackage ||
-                      hasRunningSubscription
-                    }
-                    blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
-                  />
-                ))}
+              {displayedPlans.map((p: any) => (
+                <PackagePricingCard
+                  key={p.id}
+                  plan={p}
+                  lang={lang}
+                  request={requestsByPlan[p.id]}
+                  payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
+                  onRequest={() => setSelectedPlan(p)}
+                  pending={
+                    manualPayment.isPending ||
+                    checkoutPayment.isPending ||
+                    hasUsableActivePackage ||
+                    hasRunningSubscription
+                  }
+                  blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -549,11 +571,10 @@ function PackagePricingCard({
       className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
       data-plan-kind={marketing.kind}
     >
-      <img className="package-plan-image" src={matDetail} alt="" />
       <div className="package-plan-heading min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <h3 id={`${cardId}-title`} className="font-display text-2xl leading-tight text-navy">
-            {display.name}
+            {display.name.replace(/[—–]/g, "-")}
           </h3>
           {marketing.badge || marketing.secondaryBadge ? (
             <span className="package-plan-badge">
@@ -608,6 +629,7 @@ function PackagePricingCard({
         ) : (
           <button
             onClick={onRequest}
+            aria-label={`${t("packages.choosePackage")}: ${display.name}`}
             disabled={pending}
             className="btn-navy min-h-11 w-full hover:btn-navy-hover disabled:opacity-50"
           >
@@ -665,18 +687,18 @@ const pricingCopy: Record<
   { subtitle: string; valueStripLabel: string; valueChips: string[] }
 > = {
   he: {
-    subtitle: "בחרי את החבילה שמתאימה לקצב שלך — לשיעור ניסיון, התמדה חודשית או גמישות מלאה.",
+    subtitle: "בחרי את החבילה שמתאימה לקצב שלך, לשיעור ניסיון, התמדה חודשית או גמישות מלאה.",
     valueStripLabel: "השוואת ערך בין החבילות",
     valueChips: ["₪80 לשיעור בודד", "₪35 לשיעור במנוי המומלץ", "חיסכון של ₪450"],
   },
   en: {
     subtitle:
-      "Choose the package that fits your rhythm — a trial class, monthly consistency, or full flexibility.",
+      "Choose the package that fits your rhythm, a trial class, monthly consistency, or full flexibility.",
     valueStripLabel: "Package value comparison",
     valueChips: ["₪80 for a drop-in", "₪35 per class on the recommended plan", "Save ₪450"],
   },
   ar: {
-    subtitle: "اختاري الباقة المناسبة لإيقاعك — تجربة واحدة، التزام شهري، أو مرونة كاملة.",
+    subtitle: "اختاري الباقة المناسبة لإيقاعك, تجربة واحدة، التزام شهري، أو مرونة كاملة.",
     valueStripLabel: "مقارنة قيمة الباقات",
     valueChips: ["₪80 للحصة الواحدة", "₪35 للحصة في الباقة الموصى بها", "توفير ₪450"],
   },
