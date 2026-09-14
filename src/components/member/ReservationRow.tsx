@@ -23,6 +23,7 @@ export function ReservationRow({
   return (
     <div className="aura-reservation" data-history={muted || undefined}>
       <StudioClassItem
+        thumbnail
         cls={cls}
         state={state}
         statusLabel={statusLabel}

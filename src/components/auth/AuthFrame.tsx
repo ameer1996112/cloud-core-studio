@@ -1,5 +1,6 @@
 import "@/components/member/design/member-system.css";
 import "@/components/member/design/production-adapter.css";
+import "@/components/member/design/member-atelier.css";
 import { MapPin } from "lucide-react";
 import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import type { ReactNode } from "react";
@@ -35,7 +36,7 @@ export function AuthFrame({
       id="main-content"
       dir={LANG_META[lang].dir}
       lang={lang}
-      className={`cc-review cc-rollout auth-page auth-entry aura-auth cc-production-auth${recovery ? " auth-recovery" : ""}`}
+      className={`cc-review cc-rollout auth-page auth-entry aura-auth cc-production-auth atelier-auth${recovery ? " auth-recovery" : ""}`}
     >
       <header className="auth-page-header">
         <div className="auth-masthead-logo">
@@ -59,11 +60,12 @@ export function AuthFrame({
         <AppearanceControl lang={lang} />
       </header>
       <section className="auth-studio-photo" aria-hidden="true">
-        <EditorialImage
-          scene="arrival"
-          priority="low"
-          eager
-          sizes="(min-width: 768px) 55vw, 100vw"
+        <img
+          src="/images/editorial/studio-ritual-v1.png"
+          alt=""
+          width={1024}
+          height={1536}
+          fetchPriority="high"
         />
       </section>
       <div className="auth-content">

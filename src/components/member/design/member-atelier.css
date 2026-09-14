@@ -1,0 +1,1114 @@
+/* Shared member-page design. Route controllers remain responsible for data and actions. */
+.cc-review.cc-rollout.cc-atelier-shell {
+  --atelier-line: color-mix(in srgb, var(--cc-v-ink) 13%, transparent);
+}
+.cc-review.cc-rollout.cc-atelier-shell .member-page:not(.home-atelier) {
+  width: 100%;
+  max-width: 1120px;
+  padding: 36px 40px 48px;
+  margin: 0 auto;
+}
+.cc-atelier-shell .atelier-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  margin: 0 0 28px;
+  min-width: 0;
+  text-align: start;
+}
+.cc-atelier-shell .atelier-page-heading--photo {
+  min-height: 208px;
+  background: #ede7dc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.cc-atelier-shell .atelier-page-heading-copy {
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+.cc-atelier-shell .atelier-page-heading--photo .atelier-page-heading-copy {
+  padding: 32px;
+}
+.cc-atelier-shell .atelier-page-heading h1 {
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  color: var(--cc-v-ink);
+}
+.cc-atelier-shell .atelier-page-heading-body {
+  font-size: 15px;
+  color: var(--cc-v-muted);
+  line-height: 1.6;
+  max-width: 35em;
+}
+.cc-atelier-shell .atelier-page-heading-body p {
+  margin: 0;
+}
+.cc-atelier-shell .atelier-page-heading-image {
+  width: 38%;
+  height: 208px;
+  object-fit: cover;
+  object-position: center 67%;
+  align-self: stretch;
+}
+.cc-atelier-shell .aura-schedule-page .atelier-page-heading-image {
+  object-position: 70% center;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .member-package-page, .aura-member-page)
+  :is(.cc-button, .btn-navy, .btn-outline, .bookings-schedule-link) {
+  border-radius: 4px;
+  min-height: 44px;
+  box-shadow: none;
+  font-weight: 500;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .member-package-page, .aura-member-page)
+  :is(.cc-button--primary, .btn-navy, .bookings-schedule-link) {
+  background: var(--cc-v-ink);
+  color: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-ink);
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-button--secondary {
+  background: transparent;
+  color: var(--cc-v-ink);
+  border: 1px solid var(--cc-v-border);
+}
+.cc-review.cc-rollout.cc-atelier-shell :is(.home-text-action, .btn-ghost) {
+  min-height: 44px;
+  font-size: 13px;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-reading-surface {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-control-region {
+  position: static;
+  border: 0;
+  padding: 0 0 20px;
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-strip {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0 0 18px;
+}
+.cc-atelier-shell .schedule-month-navigation {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cc-atelier-shell .schedule-date-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-days button {
+  border: 1px solid var(--atelier-line);
+  background: transparent;
+  border-radius: 4px;
+  box-shadow: none;
+  min-height: 72px;
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-days button strong {
+  font-size: 24px;
+  font-weight: 400;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-days button[aria-pressed="true"] {
+  background: var(--cc-v-ink);
+  border-color: var(--cc-v-ink);
+  color: var(--cc-v-surface);
+}
+.cc-atelier-shell .member-schedule-filter-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.cc-atelier-shell .schedule-tools {
+  border-radius: 4px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-package-guide {
+  padding: 18px 20px;
+  border: 0;
+  border-inline-start: 2px solid var(--cc-v-gold);
+  border-radius: 0;
+  background: var(--cc-v-sand);
+  box-shadow: none;
+  margin-bottom: 24px;
+}
+.cc-atelier-shell .schedule-package-guide .package-booking-title {
+  font-size: 18px;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class--row {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) auto;
+  gap: 24px;
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid var(--atelier-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  direction: ltr;
+  align-items: center;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-thumbnail {
+  width: 140px;
+  height: 148px;
+  grid-column: 1;
+  grid-row: 1;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-overview {
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  min-width: 0;
+  direction: rtl;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)[dir="ltr"]
+  .studio-class-overview {
+  direction: ltr;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-reading {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class
+  h3 {
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-meta {
+  font-size: 13px;
+  gap: 8px;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-time {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: auto;
+  font-size: 13px;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-time
+  time {
+  font-size: 26px;
+  font-weight: 400;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class
+  > .studio-class-actions {
+  grid-column: 3;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .aura-bookings-page)
+  .studio-class-note {
+  grid-column: 2 / -1;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  direction: rtl;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-reservation {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .bookings-tabs {
+  border: 0;
+  border-bottom: 1px solid var(--atelier-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  gap: 28px;
+  margin-bottom: 30px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .bookings-tabs .member-tab-button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 14px 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cc-v-muted);
+  font-weight: 400;
+}
+.cc-review.cc-rollout.cc-atelier-shell .bookings-tabs .member-tab-button[aria-pressed="true"] {
+  border-bottom-color: var(--cc-v-ink);
+  color: var(--cc-v-ink);
+}
+.cc-review.cc-rollout.cc-atelier-shell .bookings-empty {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--cc-v-surface);
+  box-shadow: none;
+}
+.cc-atelier-shell .bookings-empty-photo {
+  min-height: 350px;
+}
+.cc-atelier-shell .bookings-empty-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% center;
+}
+.cc-review.cc-rollout.cc-atelier-shell .bookings-empty-copy {
+  padding: 36px;
+}
+.cc-atelier-shell .bookings-empty h2 {
+  font-size: 28px;
+  font-weight: 500;
+}
+.cc-review.cc-rollout.cc-atelier-shell .package-category-tabs {
+  border: 0;
+  border-bottom: 1px solid var(--atelier-line);
+  background: none;
+  border-radius: 0;
+  padding: 0 0 12px;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .package-category-tabs button {
+  border-radius: 4px;
+  box-shadow: none;
+  background: transparent;
+  border: 1px solid transparent;
+}
+.cc-review.cc-rollout.cc-atelier-shell .package-category-tabs button[aria-pressed="true"] {
+  border-color: var(--atelier-line);
+  background: var(--cc-v-surface);
+  color: var(--cc-v-ink);
+}
+.cc-review.cc-rollout.cc-atelier-shell .package-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan {
+  min-width: 0;
+  padding: 30px 24px 24px;
+  border: 1px solid var(--atelier-line);
+  border-radius: 4px;
+  background: var(--cc-v-surface);
+  box-shadow: none;
+  transform: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan--highlighted {
+  border-color: var(--cc-v-gold);
+  background: var(--cc-v-sand);
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__image {
+  display: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__badge {
+  position: static;
+  width: fit-content;
+  margin: -10px 0 16px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--cc-v-ink);
+  color: var(--cc-v-surface);
+  font-size: 11px;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__heading h2 {
+  font-size: 25px;
+  font-weight: 500;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__price {
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: -1px;
+  margin: 22px 0;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__features {
+  border-top: 1px solid var(--atelier-line);
+  padding-top: 20px;
+  gap: 12px;
+  font-size: 14px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__action .cc-button {
+  width: 100%;
+  background: var(--cc-v-ink);
+  color: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-ink);
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-profile-heading {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 0 0 30px;
+  margin: 0 0 30px;
+  border: 0;
+  border-bottom: 1px solid var(--atelier-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-profile-heading h1 {
+  font-size: 36px;
+  font-weight: 500;
+  margin: 6px 0;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-profile-heading .cc-avatar {
+  width: 80px;
+  height: 80px;
+  background: var(--cc-v-sand);
+  color: var(--cc-v-ink);
+  border: 1px solid var(--atelier-line);
+  font-size: 32px;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-profile-status {
+  background: transparent;
+  border: 1px solid var(--atelier-line);
+  border-radius: 3px;
+  font-size: 12px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-account-layout {
+  gap: 32px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-settings-section {
+  padding: 24px;
+  border: 1px solid var(--atelier-line);
+  border-radius: 4px;
+  background: var(--cc-v-surface);
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .member-section-title {
+  font-size: 23px;
+  font-weight: 500;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-profile-fields {
+  gap: 20px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-account-page :is(input, textarea, select) {
+  border: 1px solid var(--atelier-line);
+  border-radius: 4px;
+  background: transparent;
+  min-height: 46px;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.cc-atelier-shell .aura-account-page .field-label {
+  font-size: 12px;
+  color: var(--cc-v-muted);
+  margin-bottom: 8px;
+}
+.cc-review.cc-rollout.atelier-detail {
+  border-radius: 5px;
+  box-shadow: 0 24px 80px #0c1d2c35;
+  border: 1px solid var(--cc-v-border);
+  background: var(--cc-v-surface);
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero {
+  border-radius: 0;
+  overflow: hidden;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero img {
+  width: 100%;
+  height: 270px;
+  max-height: none;
+  object-fit: cover;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-heading {
+  position: static;
+  padding: 26px 30px 0;
+  background: var(--cc-v-surface);
+  color: var(--cc-v-ink);
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-heading h2 {
+  font-size: 34px;
+  font-weight: 500;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-heading p {
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-reading {
+  padding: 24px 30px 30px;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-facts {
+  border: 0;
+  border-top: 1px solid var(--cc-v-border);
+  border-bottom: 1px solid var(--cc-v-border);
+  border-radius: 0;
+  background: transparent;
+  padding: 20px 0;
+  box-shadow: none;
+  gap: 22px;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-facts > div {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-facts dd {
+  font-size: 17px;
+  font-weight: 500;
+}
+.cc-review.cc-rollout.atelier-detail :is(.btn-navy, .cc-button--primary) {
+  background: var(--cc-v-ink);
+  color: var(--cc-v-surface);
+  border: 1px solid var(--cc-v-ink);
+  border-radius: 4px;
+  box-shadow: none;
+  min-height: 48px;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-notes {
+  padding: 20px 0 0;
+  border: 0;
+  border-top: 1px solid var(--cc-v-border);
+  background: transparent;
+}
+.cc-review.cc-rollout.atelier-auth {
+  background: var(--cc-v-ivory);
+}
+.cc-review.cc-rollout.atelier-auth .auth-studio-photo {
+  width: 48%;
+  opacity: 1;
+}
+.cc-review.cc-rollout.atelier-auth .auth-studio-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 65%;
+}
+.cc-review.cc-rollout.atelier-auth .auth-content {
+  width: 52%;
+  margin-inline-start: auto;
+  padding: 130px 56px 48px;
+  background: var(--cc-v-ivory);
+}
+.cc-review.cc-rollout.atelier-auth .auth-mobile-panel {
+  width: 100%;
+  max-width: 440px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.cc-review.cc-rollout.atelier-auth .auth-form-card {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.atelier-auth .auth-form-title {
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+}
+.cc-review.cc-rollout.atelier-auth :is(input.auth-text-input, input.auth-ltr-input) {
+  min-height: 50px;
+  border: 1px solid var(--cc-v-border);
+  border-radius: 4px;
+  background: var(--cc-v-surface);
+  box-shadow: none;
+}
+.cc-review.cc-rollout.atelier-auth .cta-navy {
+  min-height: 50px;
+  border-radius: 4px;
+  background: var(--cc-v-ink);
+  color: var(--cc-v-surface);
+  box-shadow: none;
+  border: 1px solid var(--cc-v-ink);
+}
+:root[data-theme="dark"] :is(.cc-atelier-shell, .atelier-auth, .atelier-detail) {
+  --cc-v-ivory: #111f29;
+  --cc-v-surface: #182a36;
+  --cc-v-ink: #ede8df;
+  --cc-v-muted: #b3bdc6;
+  --cc-v-border: #354550;
+  --cc-v-sand: #24343e;
+  --cc-v-gold: #c1a379;
+  color: var(--cc-v-ink);
+  background: var(--cc-v-ivory);
+}
+:root[data-theme="dark"]
+  .cc-atelier-shell
+  :is(
+    .member-shell-main,
+    .app-shell-content,
+    .studio-member-header,
+    .studio-member-bottom-nav,
+    .studio-member-bottom-nav-inner
+  ) {
+  background: var(--cc-v-ivory);
+}
+:root[data-theme="dark"]
+  .cc-atelier-shell
+  :is(.atelier-page-heading--photo, .aura-settings-section) {
+  background: var(--cc-v-surface);
+}
+:root[data-theme="dark"] .cc-atelier-shell .studio-member-bottom-nav a[aria-current="page"] {
+  color: var(--cc-v-ink);
+}
+@media (max-width: 1000px) {
+  .cc-review.cc-rollout.cc-atelier-shell .package-pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.cc-atelier-shell .member-page:not(.home-atelier) {
+    padding: 24px 20px 36px;
+  }
+  .cc-atelier-shell .atelier-page-heading {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .cc-atelier-shell .atelier-page-heading--photo {
+    min-height: 152px;
+  }
+  .cc-atelier-shell .atelier-page-heading--photo .atelier-page-heading-copy {
+    padding: 20px;
+  }
+  .cc-atelier-shell .atelier-page-heading h1 {
+    font-size: 28px;
+    letter-spacing: -0.5px;
+  }
+  .cc-atelier-shell .atelier-page-heading-body {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .cc-atelier-shell .atelier-page-heading-image {
+    width: 32%;
+    height: 166px;
+  }
+  .cc-atelier-shell .schedule-date-days {
+    gap: 5px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .schedule-date-days button {
+    padding: 8px 2px;
+    min-height: 63px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .schedule-date-days button strong {
+    font-size: 22px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class--row {
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 12px 16px;
+    padding: 22px 0;
+    align-items: start;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class-thumbnail {
+    width: 100px;
+    height: 136px;
+    grid-row: 1 / 3;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class
+    h3 {
+    font-size: 22px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class-meta {
+    font-size: 12px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class-time
+    time {
+    font-size: 23px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class
+    > .studio-class-actions {
+    grid-column: 2;
+    grid-row: 2;
+    align-items: stretch;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell
+    :is(.aura-schedule-page, .aura-bookings-page)
+    .studio-class-note {
+    grid-column: 1 / -1;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .bookings-tabs {
+    gap: 20px;
+    justify-content: flex-start;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .bookings-empty {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cc-atelier-shell .bookings-empty-photo {
+    height: 210px;
+    min-height: 0;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .bookings-empty-copy {
+    padding: 24px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .package-pricing-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .cc-plan {
+    padding: 24px;
+    min-height: 0;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .cc-plan__price {
+    margin: 16px 0;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .aura-profile-heading {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .aura-profile-heading h1 {
+    font-size: 28px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .aura-profile-heading .cc-avatar {
+    width: 62px;
+    height: 62px;
+    font-size: 26px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .aura-profile-status {
+    margin-inline-start: 78px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .aura-settings-section {
+    padding: 22px 18px;
+  }
+  .cc-review.cc-rollout.atelier-detail {
+    border-radius: 8px 8px 0 0;
+  }
+  .cc-review.cc-rollout.atelier-detail .aura-detail-hero img {
+    height: 210px;
+  }
+  .cc-review.cc-rollout.atelier-detail .aura-detail-heading {
+    padding: 22px 22px 0;
+  }
+  .cc-review.cc-rollout.atelier-detail .aura-detail-heading h2 {
+    font-size: 30px;
+  }
+  .cc-review.cc-rollout.atelier-detail .aura-detail-reading {
+    padding: 22px;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-studio-photo {
+    position: relative;
+    inset: auto;
+    width: calc(100% - 40px);
+    height: 180px;
+    margin: 12px 20px 0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-studio-photo img {
+    object-position: center 68%;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-content {
+    width: 100%;
+    margin: 0;
+    padding: 26px 24px 40px;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-form-title {
+    font-size: 31px;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-mobile-panel {
+    margin: 0 auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-atelier-shell * {
+    scroll-behavior: auto;
+  }
+}
+/* Reset earlier presentation variants at the reusable component boundary. */
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: start;
+  gap: 0;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan > * {
+  grid-column: auto;
+  grid-row: auto;
+  width: auto;
+  margin-inline: 0;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__heading {
+  min-height: 60px;
+  text-align: start;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__price {
+  display: block;
+  text-align: start;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__features {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__action {
+  margin-top: auto;
+  padding-top: 24px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__badge span {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  color: inherit;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .member-package-page, .aura-member-page)
+  :is(.cc-button, .btn-navy, .btn-outline, .bookings-schedule-link),
+.cc-review.cc-rollout.atelier-detail :is(.btn-navy, .cc-button),
+.cc-review.cc-rollout.atelier-auth :is(.cta-navy, .auth-secondary-action, .auth-switch-action) {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.cc-review.cc-rollout.cc-atelier-shell
+  :is(.aura-schedule-page, .member-package-page, .aura-member-page)
+  :is(.cc-button--primary, .btn-navy),
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__action .cc-button,
+.cc-review.cc-rollout.atelier-auth .cta-navy {
+  background: var(--cc-v-ink) !important;
+  border: 1px solid var(--cc-v-ink) !important;
+  color: var(--cc-v-surface) !important;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-days button {
+  width: 100%;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-control-region {
+  gap: 12px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .schedule-date-strip {
+  margin: 0;
+}
+.cc-review.cc-rollout.atelier-auth .auth-studio-photo::after {
+  display: none;
+}
+.cc-review.cc-rollout.atelier-auth .auth-content {
+  min-height: 0;
+  height: auto;
+  display: block;
+  margin-left: 48%;
+  margin-right: 0;
+  padding-top: 48px;
+}
+.cc-review.cc-rollout.atelier-auth .auth-page-header {
+  position: relative;
+  inset: auto;
+  width: 52%;
+  margin-left: 48%;
+  padding: 24px 40px;
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cc-review.cc-rollout.atelier-auth .auth-language-switcher {
+  position: static;
+  width: auto;
+  background: transparent;
+}
+.cc-review.cc-rollout.atelier-auth .auth-page-header .appearance-control {
+  position: static;
+}
+.cc-review.cc-rollout.atelier-auth .auth-secondary-action,
+.cc-review.cc-rollout.atelier-auth .auth-switch-action {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--cc-v-ink);
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.cc-atelier-shell .aura-schedule-page .atelier-page-heading {
+    min-height: 120px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .aura-schedule-page .atelier-page-heading-image {
+    height: 136px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .schedule-control-region {
+    gap: 8px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .schedule-month-navigation {
+    margin: 0 0 10px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .schedule-date-strip {
+    padding-bottom: 8px;
+  }
+  .cc-review.cc-rollout.cc-atelier-shell .cc-plan__heading {
+    min-height: 0;
+  }
+  .cc-review.cc-rollout.atelier-auth {
+    display: block;
+    padding: 0;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-page-header {
+    width: 100%;
+    margin: 0;
+    padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    min-height: 0;
+    height: auto;
+    border-bottom: 1px solid var(--cc-v-border);
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-masthead-logo {
+    display: block;
+    width: 86px;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-masthead-logo img {
+    width: 86px;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-language-switcher {
+    gap: 0;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-language-switcher button {
+    padding: 6px;
+    min-width: 36px;
+    font-size: 11px;
+  }
+  .cc-review.cc-rollout.atelier-auth .cc-auth-logo {
+    display: none;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-content {
+    width: 100%;
+    margin: 0;
+    padding: 26px 24px 40px;
+    min-height: 0;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-studio-photo {
+    display: block;
+    height: 160px;
+    margin-top: 20px;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-mobile-panel {
+    padding: 0;
+    min-height: 0;
+  }
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero {
+  display: block;
+  height: auto;
+  min-height: 0;
+  background: transparent;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero::after,
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero::before {
+  display: none;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero img {
+  position: static;
+  opacity: 1;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-heading {
+  position: static !important;
+  transform: none;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-reading {
+  margin: 0;
+  border-radius: 0;
+  background: var(--cc-v-surface);
+  box-shadow: none;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-heading :is(h2, p) {
+  color: var(--cc-v-ink);
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-heading > span {
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-close {
+  width: 44px;
+  height: 44px;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__action {
+  width: 100%;
+  align-self: stretch;
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__action :is(a, button) {
+  width: 100%;
+  display: flex;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.atelier-auth .auth-page-header {
+    flex-direction: row !important;
+    border-radius: 0;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-page-header > * {
+    flex: 0 0 auto;
+    position: static;
+    margin: 0;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-mobile-panel {
+    display: block;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-scene-heading {
+    margin: 0 0 24px;
+    padding: 0;
+    min-height: 0;
+  }
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.atelier-auth .auth-content {
+    padding: 26px 24px 40px !important;
+  }
+  .cc-review.cc-rollout.atelier-auth .auth-scene-heading .auth-form-title {
+    font-size: 30px !important;
+    line-height: 1.25 !important;
+  }
+}
+.cc-review.cc-rollout.cc-atelier-shell .cc-plan__badge {
+  position: static !important;
+  transform: none !important;
+  inset: auto;
+  width: fit-content;
+  min-width: 0;
+  align-self: flex-start;
+  margin: 0 0 14px;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.atelier-auth .auth-page-header {
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+}
+:root[data-theme="dark"] .cc-review.cc-rollout.cc-atelier-shell .cc-health-status {
+  background: var(--cc-v-surface);
+  color: var(--cc-v-ink);
+  border-color: var(--cc-v-border);
+  box-shadow: none;
+}
+:root[data-theme="dark"] .cc-review.cc-rollout.cc-atelier-shell .cc-health-status :is(h2, p, a),
+:root[data-theme="dark"] .cc-review.cc-rollout.cc-atelier-shell .aura-profile-status {
+  color: var(--cc-v-ink);
+}
+:root[data-theme="dark"]
+  .cc-review.cc-rollout.cc-atelier-shell
+  .aura-account-page
+  :is(input, textarea, select) {
+  background: var(--cc-v-surface) !important;
+  color: var(--cc-v-ink) !important;
+}
+:root[data-theme="dark"]
+  .cc-review.cc-rollout.cc-atelier-shell
+  .aura-account-page
+  :is(input, textarea)::placeholder {
+  color: var(--cc-v-muted);
+}
+.cc-review.cc-rollout.atelier-detail {
+  display: block;
+  padding: 0;
+  gap: 0;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-hero {
+  padding: 0;
+  margin: 0;
+}
+.cc-review.cc-rollout.atelier-detail .aura-detail-close {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  margin: 0;
+  z-index: 5;
+}
+.cc-review.cc-rollout.atelier-detail :is(.cc-button--primary, .btn-navy, .package-booking-action) {
+  background: var(--cc-v-ink) !important;
+  color: var(--cc-v-surface) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--cc-v-ink) !important;
+  border-radius: 4px !important;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.atelier-detail {
+    top: calc(env(safe-area-inset-top) + 12px) !important;
+    bottom: 0;
+    left: 12px !important;
+    right: 12px;
+    transform: none !important;
+    width: calc(100% - 24px);
+    max-height: calc(100dvh - env(safe-area-inset-top) - 12px);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.atelier-detail {
+    translate: none !important;
+  }
+}
+/* The shared dialog utility owns its -50% centering translation. */
+@media (max-width: 767px) {
+  .cc-review.cc-rollout.atelier-detail {
+    left: 50% !important;
+    right: auto;
+    top: calc(50% + (env(safe-area-inset-top) + 12px) / 2) !important;
+    bottom: auto;
+    height: calc(100dvh - env(safe-area-inset-top) - 12px);
+  }
+}

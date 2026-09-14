@@ -1,3 +1,4 @@
+import { AtelierPageHeading } from "@/components/member/design/AtelierPageHeading";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
 import bookingsCss from "@/styles/bookings-editorial.css?url";
 import { EditorialImage } from "@/components/visual/EditorialImage";
@@ -253,8 +254,7 @@ function MyBookings() {
       dir={dir}
       className="member-page aura-member-page aura-bookings-page bookings-editorial"
     >
-      <header className="aura-page-heading bookings-heading">
-        <h1>{t("nav.myBookings")}</h1>
+      <AtelierPageHeading title={t("nav.myBookings")}>
         <p>
           {lang === "he"
             ? "השיעורים שלך, מההזמנה ועד הביקור הבא."
@@ -262,7 +262,7 @@ function MyBookings() {
               ? "حصصك، من الحجز حتى زيارتك القادمة."
               : "Your classes, from booking to your next visit."}
         </p>
-      </header>
+      </AtelierPageHeading>
 
       <div
         className="member-control-panel member-tab-bar no-scrollbar bookings-tabs"
@@ -306,7 +306,12 @@ function MyBookings() {
         {!isLoading && current.length === 0 && (
           <section className="bookings-empty">
             <div className="bookings-empty-photo">
-              <EditorialImage scene="mat" eager sizes="(min-width: 768px) 480px, 100vw" />
+              <img
+                src="/images/editorial/studio-sanctuary-v1.png"
+                alt=""
+                width={1536}
+                height={1024}
+              />
             </div>
             <div className="bookings-empty-copy">
               <h2>

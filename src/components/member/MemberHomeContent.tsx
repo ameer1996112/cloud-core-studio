@@ -1,5 +1,5 @@
-import "@/components/member/design/home-composed.css";
-import { ReviewButton } from "@/components/member/design/VisualSystem";
+import "@/components/member/design/home-atelier.css";
+import { ReviewHero, ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
@@ -10,7 +10,14 @@ import {
 } from "@/lib/member-home-presentation";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Calendar, CreditCard, MessageCircle, ArrowRight, Megaphone } from "lucide-react";
+import {
+  Calendar,
+  CreditCard,
+  MessageCircle,
+  ArrowRight,
+  Megaphone,
+  ChevronRight,
+} from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 import { getPlanDisplay } from "@/lib/planDisplay";
@@ -92,10 +99,7 @@ export function MemberHomeContent({
   }
 
   return (
-    <section
-      className="member-page member-home-page reference-home home-refined home-composed"
-      dir={dir}
-    >
+    <section className="member-page member-home-page home-atelier" dir={dir}>
       <header className="home-greeting">
         <div className="home-welcome-copy">
           <h1>
@@ -110,6 +114,41 @@ export function MemberHomeContent({
           </h1>
           <p>{greeting}</p>
         </div>
+        <ReviewHero
+          image="/images/editorial/studio-sanctuary-v1.png"
+          action={
+            !failed && !isLoading ? (
+              <Link
+                to={
+                  recommendationNeedsPackage && !failed && !isLoading
+                    ? "/member/packages"
+                    : "/member/schedule"
+                }
+                className="cc-button cc-button--secondary home-reference-hero-action"
+                aria-label={t(
+                  recommendationNeedsPackage && !failed && !isLoading
+                    ? "member.packageGuide.homeAction"
+                    : "member.browseSchedule",
+                )}
+              >
+                <span>
+                  {t(
+                    recommendationNeedsPackage && !failed && !isLoading
+                      ? "member.packageGuide.homeAction"
+                      : "member.browseSchedule",
+                  )}
+                </span>
+                <ChevronRight size={18} aria-hidden="true" />
+              </Link>
+            ) : null
+          }
+        >
+          <p lang="en">
+            Small steps.
+            <br />
+            Lasting change.
+          </p>
+        </ReviewHero>
       </header>
       {failed ? (
         <section className="home-status" role="alert">
@@ -280,7 +319,7 @@ export function MemberHomeContent({
               </section>
             </div>
             <aside dir={dir} className="home-account" aria-label={t("nav.plans")}>
-              {(!recommendationNeedsPackage || data.activePlan) && (
+              {(!isMobile || !recommendationNeedsPackage || data.activePlan) && (
                 <MembershipPass
                   activePlan={data.activePlan}
                   credits={credits}
@@ -288,7 +327,10 @@ export function MemberHomeContent({
                 />
               )}
               {(!featuredRecommendation || moreClasses.length > 0) && (
-                <section className="home-discovery home-recommendations">
+                <section
+                  className="home-discovery home-recommendations"
+                  data-count={Math.min(moreClasses.length, 3)}
+                >
                   <div className="home-section-heading">
                     <h2>{t("member.forYou")}</h2>
                     <Link to="/member/schedule" className="home-text-action">

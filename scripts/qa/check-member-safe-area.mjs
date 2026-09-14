@@ -45,7 +45,12 @@ try {
       assert.equal(new URL(page.url()).pathname, route, "Expected the real requested page");
       await page.evaluate(() => document.fonts.ready);
       const auth = route === "/auth";
-      const selector = auth ? ".auth-page-header" : ".studio-member-header-inner";
+      const selector =
+        auth && width < 768
+          ? ".auth-page-header .auth-masthead-logo"
+          : auth
+            ? ".auth-page-header"
+            : ".studio-member-header-inner";
       const box = await page.locator(selector).boundingBox();
       assert(box, "Shared header must be visible");
       if (width < 768) {
@@ -55,8 +60,19 @@ try {
           `${route}: header at ${box.y}, must clear safe area at ${minimum}`,
         );
         if (auth) {
-          const logo = await page.locator(".cc-auth-logo").boundingBox();
-          assert(logo.y >= box.y + box.height, "Auth logo must clear language controls");
+          const controls = page.locator(".auth-language-switcher");
+          const controlsBox = await controls.boundingBox();
+          assert(
+            controlsBox && controlsBox.y >= top,
+            "Auth language controls must clear the safe area",
+          );
+          assert(
+            controlsBox.x + controlsBox.width <= box.x ||
+              box.x + box.width <= controlsBox.x ||
+              controlsBox.y >= box.y + box.height ||
+              box.y >= controlsBox.y + controlsBox.height,
+            "Auth logo and language controls must not overlap",
+          );
         }
       }
       assert(

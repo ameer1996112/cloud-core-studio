@@ -2,6 +2,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { bottomTabsForRole, isActive } from "./useRoleNav";
 import { StudioLogo } from "@/components/brand/StudioLogo";
+import { Menu, UserRound } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { t } from "@/lib/i18n";
 
 export function MemberHeader({
@@ -16,6 +18,34 @@ export function MemberHeader({
   language: ReactNode;
 }) {
   const tabs = bottomTabsForRole("member");
+  const isMobile = useIsMobile();
+  if (isMobile)
+    return (
+      <header className="studio-member-header home-reference-header">
+        <div className="studio-member-header-inner">
+          <details className="cc-home-menu">
+            <summary aria-label={t("shell.openMenu")}>
+              <Menu size={22} aria-hidden="true" />
+            </summary>
+            <div className="cc-home-menu-content">
+              {language}
+              {notifications}
+              {signOut}
+            </div>
+          </details>
+          <Link to="/member" aria-label={t("nav.home")} className="studio-member-brand">
+            <StudioLogo />
+          </Link>
+          <Link
+            to="/member/account"
+            className="cc-home-account-control"
+            aria-label={t("nav.profile")}
+          >
+            <UserRound size={23} aria-hidden="true" />
+          </Link>
+        </div>
+      </header>
+    );
   return (
     <header className="studio-member-header member-desktop-header">
       <div className="studio-member-header-inner member-desktop-header__row">

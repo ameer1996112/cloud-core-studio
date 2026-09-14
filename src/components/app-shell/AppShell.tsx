@@ -2,6 +2,8 @@ import "@/styles/member.css";
 import "@/styles/packages.css";
 import "@/components/member/design/member-system.css";
 import "@/components/member/design/production-adapter.css";
+import "@/components/member/design/home-atelier.css";
+import "@/components/member/design/member-atelier.css";
 import { AppearanceControl } from "@/components/app-shell/AppearanceControl";
 import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
 import { StudioLogo } from "@/components/brand/StudioLogo";
@@ -184,7 +186,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className={`${useBottomNav ? "member-design-shell cc-review cc-rollout" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
+      className={`${useBottomNav ? "member-design-shell cc-review cc-rollout cc-atelier-shell" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}

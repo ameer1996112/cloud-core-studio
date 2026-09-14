@@ -1,3 +1,4 @@
+import { AtelierPageHeading } from "@/components/member/design/AtelierPageHeading";
 import { ReviewPlanCard, ReviewPrice, ReviewButton } from "@/components/member/design/VisualSystem";
 import { MemberPageIntro } from "@/components/member/MemberPage";
 import packagesCss from "@/styles/packages.css?url";
@@ -215,13 +216,12 @@ function MemberPackages() {
 
   return (
     <section dir={dir} className="member-page member-package-page">
-      <div className="package-introduction">
-        <MemberPageIntro
-          title={reconstructionCopy[lang].title}
-          body={reconstructionCopy[lang].subtitle}
-        />
-        <img className="package-studio-image" src={matDetail} width={600} height={299} alt="" />
-      </div>
+      <AtelierPageHeading
+        title={reconstructionCopy[lang].title}
+        image="/images/editorial/studio-ritual-v1.png"
+      >
+        <p>{reconstructionCopy[lang].subtitle}</p>
+      </AtelierPageHeading>
       <div className="package-category-tabs" aria-label={t("packages.available")}>
         {(["all", "subscriptions", "cards"] as const).map((value) => (
           <button

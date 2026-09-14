@@ -1,3 +1,4 @@
+import { AtelierPageHeading } from "@/components/member/design/AtelierPageHeading";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { ScheduleDateStrip } from "./ScheduleDateStrip";
@@ -135,22 +136,12 @@ export function MemberScheduleView({
   return (
     <section dir={dir} className="member-page aura-schedule-page">
       {promotion}
-      <header className="aura-schedule-heading">
-        <img
-          src="/images/editorial/schedule-room-1440.webp"
-          srcSet="/images/editorial/schedule-room-480.webp 480w, /images/editorial/schedule-room-960.webp 960w, /images/editorial/schedule-room-1440.webp 1440w"
-          sizes="(max-width: 767px) 100vw, 960px"
-          alt=""
-          width={1440}
-          height={960}
-          fetchPriority="high"
-          className="schedule-editorial-photo"
-        />
-        <div>
-          <h1>{t("nav.schedule")}</h1>
-          <p>{session ? t("member.schedule.body") : guestCopy?.scheduleHint}</p>
-        </div>
-      </header>
+      <AtelierPageHeading
+        title={t("nav.schedule")}
+        image="/images/editorial/studio-sanctuary-v1.png"
+      >
+        <p>{session ? t("member.schedule.body") : guestCopy?.scheduleHint}</p>
+      </AtelierPageHeading>
       <div className="schedule-reading-surface">
         <div className="schedule-control-region">
           <ScheduleDateStrip

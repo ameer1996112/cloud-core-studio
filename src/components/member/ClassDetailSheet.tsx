@@ -1,3 +1,4 @@
+import "@/components/member/design/member-atelier.css";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useDialogReturnFocus } from "@/hooks/use-dialog-return-focus";
@@ -337,7 +338,7 @@ export function ClassDetailSheet({
     >
       <DialogContent
         dir={dir}
-        className="cc-review cc-rollout cc-dialog lesson-detail aura-class-detail"
+        className="cc-review cc-rollout cc-dialog lesson-detail aura-class-detail atelier-detail"
         {...returnFocus}
       >
         <DialogTitle className="sr-only">{t("booking.details")}</DialogTitle>
