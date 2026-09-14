@@ -10,7 +10,7 @@ import {
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 import { t, useI18n } from "@/lib/i18n";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
-import { resolveClassImageSrc } from "@/lib/image-assets";
+import { resolveClassImagePosition, resolveClassImageSrc } from "@/lib/image-assets";
 
 export type StudioClass = PremiumClassCardClass & {
   id: string;
@@ -82,7 +82,8 @@ export function StudioClassItem({
       {(thumbnail || featured) && (
         <img
           className="ref-session-photo"
-          src={imageSrc || resolveClassImageSrc(cls, "card")}
+          src={imageSrc || resolveClassImageSrc(cls, "thumb")}
+          style={{ objectPosition: imageSrc ? "center" : resolveClassImagePosition(cls, "thumb") }}
           alt=""
           width={112}
           height={140}
@@ -146,11 +147,5 @@ export function StudioClassItem({
 }
 
 export function BookingPass(props: ClassPresentationProps) {
-  return (
-    <StudioClassItem
-      {...props}
-      variant="featured"
-      imageSrc={resolveClassImageSrc(props.cls, "card")}
-    />
-  );
+  return <StudioClassItem {...props} variant="featured" />;
 }

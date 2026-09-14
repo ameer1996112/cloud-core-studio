@@ -1,11 +1,11 @@
-import studioInterior from "@/assets/studio-interior.webp";
 import "./design/reference-system.css";
+import { homeStudioImage } from "@/lib/editorial-assets";
 
-/** The same studio photograph and crop in Home and the review gallery. */
+/** Generated studio atmosphere. Shared framing in Home and the review gallery. */
 export function StudioBanner() {
   return (
     <div className="ref-home-banner">
-      <img src={studioInterior} alt="" width={960} height={440} fetchPriority="high" />
+      <img {...homeStudioImage} alt="" fetchPriority="high" />
     </div>
   );
 }

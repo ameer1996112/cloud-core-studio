@@ -10,10 +10,23 @@ import { MemberHomeContent } from "@/components/member/MemberHomeContent";
 import { getMemberViewerCacheKey } from "@/lib/memberQueryKeys";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { WeeklyPromoBanner } from "@/components/member/WeeklyPromoBanner";
+import { homeStudioImage } from "@/lib/editorial-assets";
 
 export const Route = createFileRoute("/_authenticated/member/")({
   component: MemberHome,
-  head: () => ({ links: [{ rel: "stylesheet", href: homeCss }] }),
+  head: () => ({
+    links: [
+      { rel: "stylesheet", href: homeCss },
+      {
+        rel: "preload",
+        as: "image",
+        href: homeStudioImage.src,
+        imageSrcSet: homeStudioImage.srcSet,
+        imageSizes: homeStudioImage.sizes,
+        fetchPriority: "high",
+      },
+    ],
+  }),
 });
 
 function MemberHome() {

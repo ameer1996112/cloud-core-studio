@@ -424,10 +424,25 @@ export function resolveClassImageSrc(
 }
 
 /** Resolve the tuned object-position for mapped class photography. */
-export function resolveClassImagePosition(cls: ClassImageSource | null | undefined): string {
+export function resolveClassImagePosition(
+  cls: ClassImageSource | null | undefined,
+  variant: ImageVariant = "card",
+): string {
   const pt = cls?.program_type ?? cls?.program ?? null;
   const ptName = pt?.name_en ?? pt?.name_he ?? pt?.name ?? pt?.label ?? null;
   const matched = classImageFor([ptName ?? "", cls?.title ?? ""]) ?? DEFAULT_CLASS_IMAGE;
+
+  if (variant === "thumb") {
+    const src = resolveClassImageSrc(cls, variant);
+    const path = src.split(/[?#]/)[0];
+    // These landscape photographs have different subject positions. Keep the
+    // catalog image authoritative while framing its subject in a portrait row.
+    if (path === "/images/classes/core-balance.webp") return "88% center";
+    if (/^\/images\/editorial\/mat-(480|960|1440)\.webp$/.test(path)) return "38% center";
+    if (/^\/images\/editorial\/welcome-v2-(480|960|1440)\.webp$/.test(path)) return "70% center";
+    const mappedSources = [matched.src, ...Object.values(matched.variants ?? {})];
+    if (!mappedSources.includes(src)) return "center center";
+  }
   return matched.position ?? "center center";
 }
 

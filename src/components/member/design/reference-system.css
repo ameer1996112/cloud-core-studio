@@ -308,34 +308,45 @@
   display: block;
   border: 0;
   padding: 0;
-  margin: 0 0 24px;
+  margin: 0 0 28px;
 }
 .cc-reference.cc-review .home-welcome-copy {
-  display: block;
+  display: grid;
+  gap: 5px;
   text-align: start;
-  margin: 0 0 18px;
+  margin: 0 0 22px;
 }
 .cc-reference.cc-review .home-welcome-copy h1 {
-  font-size: 30px;
-  font-weight: 750;
-  line-height: 1.3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.22em;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.25;
   margin: 0;
+}
+.cc-reference.cc-review .home-welcome-copy h1 bdi {
+  font-weight: 700;
 }
 .cc-reference.cc-review .home-welcome-copy p {
   font-size: 14px;
+  font-weight: 500;
   color: var(--cc-v-muted);
-  margin: 4px 0 0;
+  margin: 0;
 }
 .ref-home-banner {
-  height: 210px;
+  aspect-ratio: 2.7;
   overflow: hidden;
   border-radius: 8px;
+  background: var(--cc-v-sand);
 }
 .ref-home-banner img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 52%;
+  object-position: center 54%;
 }
 .cc-reference.cc-review .home-primary-layout {
   display: grid;
@@ -459,12 +470,11 @@
 .ref-session-photo {
   grid-area: photo;
   width: 100%;
-  height: 100%;
-  min-height: 122px;
-  max-height: 176px;
+  height: auto;
+  aspect-ratio: 4 / 5;
   border-radius: 5px;
   object-fit: cover;
-  object-position: 65% center;
+  object-position: center;
   align-self: start;
 }
 .ref-session-body {
@@ -553,9 +563,6 @@
   grid-template-columns: minmax(0, 1fr) 122px;
   padding: 18px;
 }
-.ref-session--featured .ref-session-photo {
-  min-height: 164px;
-}
 .ref-session-guidance {
   grid-area: guidance;
   margin-top: 12px;
@@ -572,13 +579,9 @@
   border-top: 1px solid var(--cc-v-border);
 }
 .ref-session--compact {
-  grid-template-columns: minmax(0, 1fr) 74px;
+  grid-template-columns: minmax(0, 1fr) 88px;
   padding: 12px;
   gap: 0 12px;
-}
-.ref-session--compact .ref-session-photo {
-  min-height: 110px;
-  max-height: 140px;
 }
 .ref-session--compact .ref-session-datetime time {
   font-size: 20px;
@@ -1547,21 +1550,21 @@
     margin-top: 5px;
   }
   .cc-reference.cc-review .home-greeting {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
   }
   .cc-reference.cc-review .home-welcome-copy {
-    text-align: center;
-    margin: 0 0 16px;
+    text-align: start;
+    gap: 4px;
+    margin: 0 0 18px;
   }
   .cc-reference.cc-review .home-welcome-copy h1 {
-    font-size: 25px;
+    font-size: 28px;
   }
   .cc-reference.cc-review .home-welcome-copy p {
-    font-size: 12px;
+    font-size: 13px;
   }
   .ref-home-banner {
-    height: 148px;
-    border-radius: 6px;
+    aspect-ratio: 2.15;
   }
   .cc-reference.cc-review .home-primary-layout {
     display: flex;
@@ -1586,8 +1589,6 @@
     column-gap: 12px;
   }
   .ref-session-photo {
-    min-height: 112px;
-    max-height: 150px;
     border-radius: 4px;
   }
   .ref-session-datetime time {
@@ -1605,18 +1606,11 @@
     font-size: 11px;
   }
   .ref-session--featured {
-    grid-template-columns: minmax(0, 1fr) 94px;
+    grid-template-columns: minmax(0, 1fr) 100px;
     padding: 13px;
   }
-  .ref-session--featured .ref-session-photo {
-    min-height: 150px;
-    max-height: 170px;
-  }
   .ref-session--compact {
-    grid-template-columns: minmax(0, 1fr) 72px;
-  }
-  .ref-session--compact .ref-session-photo {
-    min-height: 105px;
+    grid-template-columns: minmax(0, 1fr) 78px;
   }
   .cc-reference.cc-review .ref-session-actions :is(.cc-button, .btn-outline) {
     min-height: 36px;
@@ -1925,9 +1919,6 @@
   .cc-reference.cc-review .home-primary-layout {
     display: flex;
   }
-  .cc-reference.cc-review .home-welcome-copy {
-    text-align: center;
-  }
   .cc-reference.cc-review.member-app .member-content-frame {
     padding-inline: 20px;
   }
@@ -2100,13 +2091,6 @@
   font-size: 14px;
 }
 @media (max-width: 767px) {
-  .cc-reference.cc-review .ref-home-banner {
-    height: 124px;
-  }
-  .cc-reference.cc-review .ref-session--featured .ref-session-photo {
-    min-height: 124px;
-    max-height: 140px;
-  }
   .cc-reference.cc-review .home-primary-layout {
     gap: 20px;
   }
@@ -2172,9 +2156,6 @@
 }
 .cc-reference.cc-review.ref-auth .auth-password-toggle {
   position: absolute;
-}
-.cc-reference.cc-review .ref-session-photo {
-  object-position: 73% center;
 }
 .cc-reference.cc-review .aura-account-page {
   border: 0;

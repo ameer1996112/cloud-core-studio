@@ -1,9 +1,9 @@
-import { StudioBanner } from "@/components/member/StudioBanner";
+import { StudioWelcome } from "@/components/member/StudioWelcome";
 import { BookingConfirmationContent } from "@/components/member/BookingConfirmationContent";
 import { ClassDetailContent } from "@/components/member/ClassDetailContent";
 import { StudioClassItem } from "@/components/member/StudioClassItem";
 import hero from "@/assets/classes/pilates-sculpt-hero.webp";
-import { useState } from "react";
+import { use, useState } from "react";
 import { ArrowRight, Calendar, Heart } from "lucide-react";
 import {
   ReviewTabs,
@@ -30,11 +30,12 @@ import {
 } from "@/components/ui/dialog";
 import { MemberHeader, MemberBottomNavigation } from "@/components/app-shell/MemberNavigation.tsx";
 import { bottomTabsForRole } from "@/components/app-shell/useRoleNav";
-import { useI18n } from "@/lib/i18n";
+import { i18nNamespaceReady, useI18n } from "@/lib/i18n";
 import mat from "@/assets/mat-detail.webp";
 import classPhoto from "@/assets/classes/pilates-sculpt-thumb.webp";
 
 export default function ComponentGallery() {
+  use(i18nNamespaceReady("member"));
   const { dir } = useI18n();
   const [filter, setFilter] = useState("all");
   const [clicks, setClicks] = useState(0);
@@ -212,7 +213,7 @@ export default function ComponentGallery() {
           <section className="cc-review">
             <h2>רכיבי הדפים · בית ופרטי שיעור</h2>
             <ReviewAvatar name="Member example" />
-            <StudioBanner />
+            <StudioWelcome name="נעמה" greeting="בוקר טוב" />
             <StudioClassItem
               thumbnail
               cls={{

@@ -1,6 +1,6 @@
 import "@/components/member/design/reference-system.css";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
-import { StudioBanner } from "./StudioBanner";
+import { StudioWelcome } from "./StudioWelcome";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
@@ -42,7 +42,7 @@ export function MemberHomeContent({
   onOpenClass,
   promotion,
 }: MemberHomeContentProps) {
-  const { lang, dir } = useI18n();
+  const { dir } = useI18n();
   const isMobile = useIsMobile();
   const failed =
     isError || (!isLoading && (!data?.member || data.member.remaining_credits == null));
@@ -93,22 +93,7 @@ export function MemberHomeContent({
 
   return (
     <section className="member-page ref-home" dir={dir}>
-      <header className="home-greeting">
-        <div className="home-welcome-copy">
-          <h1>
-            {greetingName ? (
-              <>
-                {t(lang === "en" ? "member.welcomeBackName" : "member.helloName")}{" "}
-                <bdi>{greetingName}</bdi>
-              </>
-            ) : (
-              t("nav.home")
-            )}
-          </h1>
-          <p>{greeting}</p>
-        </div>
-        <StudioBanner />
-      </header>
+      <StudioWelcome name={greetingName} greeting={greeting} />
       {failed ? (
         <section className="home-status" role="alert">
           <h2>{t("page.error.eyebrow")}</h2>
