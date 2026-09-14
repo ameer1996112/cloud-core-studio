@@ -562,3 +562,79 @@
     padding: 16px;
   }
 }
+.cc-review.cc-rollout .studio-class--row {
+  display: grid !important;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  gap: 16px;
+  direction: ltr;
+}
+.cc-review.cc-rollout .studio-class--row .studio-class-thumbnail {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100px;
+  height: 118px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.cc-review.cc-rollout .studio-class--row .studio-class-overview {
+  grid-column: 2;
+  grid-row: 1;
+  direction: rtl;
+  width: auto;
+  min-width: 0;
+}
+.cc-review.cc-rollout .studio-class--row .studio-class-footer {
+  grid-column: 3;
+  grid-row: 1;
+  direction: rtl;
+  min-width: 0;
+  width: auto;
+}
+.cc-review.cc-rollout .studio-class--row .studio-class-content h3 {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  min-width: 0;
+  max-width: none;
+}
+.cc-review.cc-rollout .cc-button--primary {
+  background: linear-gradient(160deg, #36516a, #132f49 48%, #091f34) !important;
+  color: #fffdf8 !important;
+  border: 1px solid var(--cc-v-gold) !important;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .studio-class--row {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 10px 12px;
+  }
+  .cc-review.cc-rollout .studio-class--row .studio-class-thumbnail {
+    grid-row: 1 / span 2;
+    width: 76px;
+    height: 115px;
+  }
+  .cc-review.cc-rollout .studio-class--row .studio-class-reading {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .cc-review.cc-rollout .studio-class--row .studio-class-time {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+    width: auto;
+  }
+  .cc-review.cc-rollout .studio-class--row .studio-class-footer {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .cc-review.cc-rollout .studio-class--row .studio-class-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  .cc-review.cc-rollout .studio-class--row .studio-class-actions .cc-button {
+    width: 100%;
+  }
+}

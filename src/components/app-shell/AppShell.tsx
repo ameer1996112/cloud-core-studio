@@ -770,7 +770,7 @@ function HomeReferenceHeader({
             {signOut}
           </div>
         </details>
-        <Link to="/member/profile" className="home-reference-profile" aria-label={t("nav.profile")}>
+        <Link to="/member/account" className="home-reference-profile" aria-label={t("nav.profile")}>
           <UserRound size={23} aria-hidden="true" />
         </Link>
       </header>
