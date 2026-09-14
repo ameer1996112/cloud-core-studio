@@ -2,7 +2,8 @@ import type { LocalizedCatalog } from "../types";
 
 export const coreCatalog = {
   en: {
-    "member.packageGuide.compactTitle": "Choose a package to book",
+    "member.packageGuide.homeAction": "Choose a package",
+    "member.packageGuide.compactTitle": "A package is needed to book",
     "member.packageGuide.helpLabel": "How booking works",
     "member.packageGuide.eyebrow": "Before you book",
     "member.packageGuide.title": "First a package. Then your class.",
@@ -505,7 +506,8 @@ export const coreCatalog = {
     "promotionManager.viewSchedule": "View schedule",
   },
   he: {
-    "member.packageGuide.compactTitle": "בוחרים חבילה ומצטרפים לשיעור",
+    "member.packageGuide.homeAction": "לבחירת חבילה",
+    "member.packageGuide.compactTitle": "נדרשת חבילה להרשמה",
     "member.packageGuide.helpLabel": "איך נרשמים?",
     "member.packageGuide.eyebrow": "לפני ההרשמה",
     "member.packageGuide.title": "קודם חבילה, ואז נרשמים לשיעור",
@@ -981,7 +983,8 @@ export const coreCatalog = {
     "promotionManager.viewSchedule": "לצפייה בלוח השיעורים",
   },
   ar: {
-    "member.packageGuide.compactTitle": "اختر باقة للانضمام إلى الحصة",
+    "member.packageGuide.homeAction": "اختيار باقة",
+    "member.packageGuide.compactTitle": "يلزم وجود باقة للحجز",
     "member.packageGuide.helpLabel": "كيف أحجز؟",
     "member.packageGuide.eyebrow": "قبل الحجز",
     "member.packageGuide.title": "الباقة أولاً، ثم حجز الحصة",

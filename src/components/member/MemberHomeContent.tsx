@@ -1,5 +1,4 @@
-import heroImage from "@/assets/classes/pilates-sculpt-hero.webp";
-import { ReviewHero } from "@/components/member/design/VisualSystem";
+import "@/components/member/design/home-composed.css";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -93,7 +92,10 @@ export function MemberHomeContent({
   }
 
   return (
-    <section className="member-page member-home-page reference-home home-refined" dir={dir}>
+    <section
+      className="member-page member-home-page reference-home home-refined home-composed"
+      dir={dir}
+    >
       <header className="home-greeting">
         <div className="home-welcome-copy">
           <h1>
@@ -108,32 +110,6 @@ export function MemberHomeContent({
           </h1>
           <p>{greeting}</p>
         </div>
-        <ReviewHero
-          image={heroImage}
-          action={
-            <Link
-              to={
-                recommendationNeedsPackage && !failed && !isLoading
-                  ? "/member/packages"
-                  : "/member/schedule"
-              }
-              className="cc-button cc-button--secondary home-welcome-action"
-            >
-              {t(
-                recommendationNeedsPackage && !failed && !isLoading
-                  ? "member.packageGuide.action"
-                  : "member.browseSchedule",
-              )}
-              <ArrowRight size={18} className="directional-icon-forward" aria-hidden="true" />
-            </Link>
-          }
-        >
-          <p lang="en">
-            SMALL STEPS.
-            <br />
-            LASTING CHANGE.
-          </p>
-        </ReviewHero>
       </header>
       {failed ? (
         <section className="home-status" role="alert">
@@ -248,7 +224,7 @@ export function MemberHomeContent({
                           to="/member/packages"
                           className="cc-button cc-button--primary home-primary package-booking-action"
                         >
-                          {t("member.packageGuide.action")}
+                          {t("member.packageGuide.homeAction")}
                           <ArrowRight
                             size={16}
                             className="directional-icon-forward"
@@ -289,7 +265,7 @@ export function MemberHomeContent({
                       >
                         {t(
                           !data.activePlan && credits <= 0
-                            ? "member.packageGuide.action"
+                            ? "member.packageGuide.homeAction"
                             : "member.browseSchedule",
                         )}
                         <ArrowRight
