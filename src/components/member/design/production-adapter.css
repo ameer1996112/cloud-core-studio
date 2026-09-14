@@ -641,3 +641,128 @@
     width: 100%;
   }
 }
+
+/* Home: one package prompt, then an unboxed class list. */
+.cc-review.cc-rollout .home-primary-layout--simple {
+  grid-template-columns: minmax(0, 1fr);
+}
+.cc-review.cc-rollout .home-account {
+  border: 0;
+  box-shadow: none;
+  background: none;
+  border-radius: 0;
+}
+.cc-review.cc-rollout .home-next .studio-class-footer {
+  padding-top: 20px;
+  margin-top: 20px;
+  gap: 16px;
+}
+.cc-review.cc-rollout .package-booking-guide--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.cc-review.cc-rollout .package-booking-guide--compact .package-booking-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: balance;
+  color: var(--color-text-primary);
+}
+.cc-review.cc-rollout .package-booking-details {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.cc-review.cc-rollout .package-booking-details summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: list-item;
+  align-content: center;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.cc-review.cc-rollout .package-booking-details[open] {
+  flex-basis: 100%;
+}
+.cc-review.cc-rollout .package-booking-details p {
+  max-width: 60ch;
+  margin: 8px 0;
+}
+.cc-review.cc-rollout .package-booking-details summary:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 4px;
+}
+.cc-review.cc-rollout .home-account > .home-package-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border: 0;
+  border-block: 1px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+.cc-review.cc-rollout .home-package-summary > span {
+  flex: 1;
+}
+.cc-review.cc-rollout .home-discovery {
+  margin-top: 12px;
+}
+.cc-review.cc-rollout .home-discovery .studio-class--row {
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: 16px 0;
+  margin: 0;
+}
+@media (max-width: 767px) {
+  .cc-review.cc-rollout .home-primary-layout {
+    gap: 28px;
+  }
+  .cc-review.cc-rollout .home-next .studio-class-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .cc-review.cc-rollout .home-next .studio-class-actions > * {
+    min-height: 48px;
+  }
+  .cc-review.cc-rollout .home-section-heading h2 {
+    font-size: 22px;
+  }
+}
+.cc-review.cc-rollout .home-primary-layout--simple > .home-main-column,
+.cc-review.cc-rollout .home-primary-layout--simple .home-discovery {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+}
+:root[data-theme="dark"] .cc-review.cc-rollout:has(.home-refined) {
+  --cc-v-ivory: var(--color-surface-warm);
+  --cc-v-surface: var(--color-surface);
+  --cc-v-ink: var(--color-text-primary);
+  --cc-v-muted: var(--color-text-secondary);
+  --cc-v-border: var(--color-border);
+}
+:root[data-theme="dark"] .cc-review.cc-rollout:has(.home-refined)
+  :is(.member-shell-main, .studio-member-bottom-nav, .studio-member-header) {
+  background: var(--color-surface-warm);
+}
+:root[data-theme="dark"] .cc-review.cc-rollout:has(.home-refined)
+  .studio-member-bottom-nav-inner {
+  background: var(--color-surface-warm);
+}
+:root[data-theme="dark"] .cc-review.cc-rollout:has(.home-refined)
+  .studio-member-bottom-nav a[aria-current="page"] {
+  color: var(--color-text-primary);
+}

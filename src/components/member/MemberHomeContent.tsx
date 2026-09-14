@@ -1,5 +1,5 @@
 import heroImage from "@/assets/classes/pilates-sculpt-hero.webp";
-import { ReviewHero, ReviewSurface } from "@/components/member/design/VisualSystem";
+import { ReviewHero } from "@/components/member/design/VisualSystem";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -11,7 +11,7 @@ import {
 } from "@/lib/member-home-presentation";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Calendar, CreditCard, MessageCircle, ArrowRight, Megaphone, Heart } from "lucide-react";
+import { Calendar, CreditCard, MessageCircle, ArrowRight, Megaphone } from "lucide-react";
 import { t, useI18n } from "@/lib/i18n";
 import { localizedClassTitle, localizedOptionalInstructorName } from "@/lib/localized-content";
 import { getPlanDisplay } from "@/lib/planDisplay";
@@ -157,7 +157,9 @@ export function MemberHomeContent({
         </div>
       ) : data?.member && credits != null ? (
         <>
-          <div className="home-primary-layout">
+          <div
+            className={`home-primary-layout${recommendationNeedsPackage && !data.activePlan ? " home-primary-layout--simple" : ""}`}
+          >
             <div className="home-main-column" dir={dir}>
               <section className="home-next">
                 <h2>
@@ -217,7 +219,9 @@ export function MemberHomeContent({
                   <BookingPass
                     cls={featuredRecommendation}
                     showStatus={!recommendationNeedsPackage}
-                    guidance={recommendationNeedsPackage ? <PackageBookingGuide /> : undefined}
+                    guidance={
+                      recommendationNeedsPackage ? <PackageBookingGuide compact /> : undefined
+                    }
                     secondaryAction={
                       recommendationNeedsPackage ? (
                         <button
@@ -273,7 +277,7 @@ export function MemberHomeContent({
                   <div className="home-choose">
                     <div className="home-choose-copy">
                       {!data.activePlan && credits <= 0 ? (
-                        <PackageBookingGuide />
+                        <PackageBookingGuide compact />
                       ) : (
                         <p>{t("member.empty.bookings.body")}</p>
                       )}
@@ -298,32 +302,15 @@ export function MemberHomeContent({
                   </div>
                 )}
               </section>
-              <nav className="home-reference-shortcuts" aria-label={t("member.quickActions")}>
-                <Link to="/member/schedule">
-                  <Calendar size={24} aria-hidden="true" />
-                  {t("nav.schedule")}
-                </Link>
-                <Link to="/member/packages">
-                  <CreditCard size={24} aria-hidden="true" />
-                  {t("nav.plans")}
-                </Link>
-                <Link to="/member/bookings">
-                  <Heart size={24} aria-hidden="true" />
-                  {t("nav.bookings")}
-                </Link>
-              </nav>
             </div>
-            <ReviewSurface
-              as="aside"
-              dir={dir}
-              className="home-account"
-              aria-label={t("nav.plans")}
-            >
-              <MembershipPass
-                activePlan={data.activePlan}
-                credits={credits}
-                timeZone={settings?.timezone}
-              />
+            <aside dir={dir} className="home-account" aria-label={t("nav.plans")}>
+              {(!recommendationNeedsPackage || data.activePlan) && (
+                <MembershipPass
+                  activePlan={data.activePlan}
+                  credits={credits}
+                  timeZone={settings?.timezone}
+                />
+              )}
               {(!featuredRecommendation || moreClasses.length > 0) && (
                 <section className="home-discovery home-recommendations">
                   <div className="home-section-heading">
@@ -415,7 +402,7 @@ export function MemberHomeContent({
                   />
                 </div>
               )}
-            </ReviewSurface>
+            </aside>
           </div>
           {(announcement || welcome) && (
             <section className="home-announcement">
