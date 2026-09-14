@@ -1,4 +1,6 @@
-import { EditorialImage } from "@/components/visual/EditorialImage";
+import { MemberPageIntro } from "@/components/member/MemberPage";
+import packagesCss from "@/styles/packages.css?url";
+import matDetail from "@/assets/mat-detail.webp";
 import { MemberPageState } from "@/components/member/MemberPageState";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,7 +15,7 @@ import {
   FileText,
   MessageCircle,
   RefreshCw,
-  Send,
+  ArrowRight,
   Smartphone,
   Wallet,
   X,
@@ -53,6 +55,7 @@ function isVisiblePaymentHistory(payment: any) {
 }
 
 export const Route = createFileRoute("/_authenticated/member/packages")({
+  head: () => ({ links: [{ rel: "stylesheet", href: packagesCss }] }),
   component: MemberPackages,
 });
 
@@ -66,6 +69,7 @@ function MemberPackages() {
   const createCheckout = useServerFn(createCheckoutSession);
   const cancelSubscription = useServerFn(cancelMySubscription);
   const qc = useQueryClient();
+  const [category, setCategory] = useState<"all" | "subscriptions" | "cards">("all");
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [checkoutFeedback, setCheckoutFeedback] = useState<"error" | null>(null);
 
@@ -185,177 +189,29 @@ function MemberPackages() {
     );
 
   return (
-    <section dir={dir} className="member-page aura-member-page aura-packages-page">
-      <header className="aura-page-heading packages-editorial-heading">
-        <EditorialImage scene="membership" eager className="packages-editorial-photo" />
-        <p className="member-eyebrow">{t("member.packages.kicker")}</p>
-        <h1>{t("nav.plans")}</h1>
-        <p>{t("member.packages.body")}</p>
-      </header>
-      <div className="aura-packages-layout">
-        <aside className="aura-wallet" aria-label={t("nav.plans")}>
-          <div className="aura-wallet-summary">
-            <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <h2 className="aura-wallet-title">
-                {isLoading ? (
-                  t("common.loading")
-                ) : active?.plan ? (
-                  <bdi>{getPlanDisplay(active.plan, lang).name}</bdi>
-                ) : (
-                  t("member.noActivePackage")
-                )}
-              </h2>
-              {!isLoading && (
-                <p className="aura-wallet-balance">
-                  {active?.plan &&
-                  (active.plan.credits >= 999 || /unlim/i.test(active.plan.name)) ? (
-                    t("packages.unlimited")
-                  ) : (
-                    <>
-                      <strong>
-                        <bdi>{credits}</bdi>
-                      </strong>
-                      <span>{t("member.stat.credits")}</span>
-                    </>
-                  )}
-                </p>
-              )}
-              {active?.expires_at && (
-                <p className="text-sm text-slate">
-                  {t("member.expires")}{" "}
-                  <bdi dir={lang === "en" ? "ltr" : "rtl"} className="text-navy">
-                    {new Date(active.expires_at).toLocaleDateString(locale, {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </bdi>
-                </p>
-              )}
-            </div>
-            {activeSubscription && (
-              <div className="mt-4 rounded-xl border border-gold/25 bg-card p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
-                      <RefreshCw className="h-4 w-4 text-[var(--color-accent-text)]" />
-                      {activeSubscription.status === "past_due"
-                        ? t("packages.subscriptionPastDue")
-                        : t("packages.subscriptionActive")}
-                    </p>
-                    <p className="mt-1 text-sm text-slate">
-                      {t("packages.subscriptionRenews", {
-                        date: new Date(
-                          activeSubscription.next_charge_at ??
-                            activeSubscription.current_period_end ??
-                            Date.now(),
-                        ).toLocaleDateString(locale),
-                      })}
-                    </p>
-                    {activeSubscription.card_mask && (
-                      <p className="mt-1 text-xs font-medium text-slate">
-                        {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => cancelSubscriptionMutation.mutate()}
-                    disabled={cancelSubscriptionMutation.isPending}
-                    className="btn-outline shrink-0 disabled:opacity-50"
-                  >
-                    {cancelSubscriptionMutation.isPending
-                      ? t("common.saving")
-                      : t("packages.subscriptionCancel")}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+    <section dir={dir} className="member-page member-package-page">
+      <MemberPageIntro
+        title={reconstructionCopy[lang].title}
+        body={reconstructionCopy[lang].subtitle}
+      />
+      <div className="package-category-tabs" aria-label={t("packages.available")}>
+        {(["all", "subscriptions", "cards"] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={category === value}
+            onClick={() => setCategory(value)}
+          >
+            {reconstructionCopy[lang][value]}
+          </button>
+        ))}
+      </div>
 
-          {promoEntitlements.map((entitlement: any) => (
-            <div
-              key={entitlement.id}
-              className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-card p-5 text-foreground shadow-sm sm:p-6"
-              data-testid="yoga-promo-wallet-credit"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="member-eyebrow text-[var(--color-accent-text)]">Cloud &amp; Core</p>
-                  <h2 className="mt-2 font-display text-2xl text-foreground">
-                    {t("promo.yoga.walletTitle")}
-                  </h2>
-                  <p className="mt-3 text-sm font-semibold text-foreground">
-                    {t("promo.yoga.quantity")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {t("promo.yoga.restriction")}
-                  </p>
-                  {entitlement.expires_at ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {t("promo.yoga.validUntil", {
-                        date: new Date(entitlement.expires_at).toLocaleDateString(locale),
-                      })}
-                    </p>
-                  ) : null}
-                </div>
-                <Sparkles
-                  className="h-6 w-6 shrink-0 text-[var(--color-accent-text)]"
-                  aria-hidden="true"
-                />
-              </div>
-            </div>
-          ))}
-
-          {requests && requests.length > 0 && (
-            <div className="space-y-2">
-              <h2 className="member-eyebrow">{t("packages.recent")}</h2>
-              <div className="member-card divide-y hairline">
-                {requests.slice(0, 4).map((r: any) => (
-                  <div
-                    key={r.id}
-                    className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-navy">
-                        {r.plan ? getPlanDisplay(r.plan, lang).name : t("nav.plans")}
-                      </p>
-                      <p className="mt-0.5 text-xs font-medium text-slate">
-                        {new Date(r.created_at).toLocaleDateString(locale)}
-                      </p>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
-                        r.status === "paid"
-                          ? "border-navy bg-navy text-ivory"
-                          : r.status === "contacted"
-                            ? "border-powder/70 bg-powder/75 text-navy"
-                            : r.status === "cancelled"
-                              ? "border-sand bg-sand/70 text-slate"
-                              : "border-gold/35 bg-gold/12 text-navy"
-                      }`}
-                    >
-                      {labelForStatus(r.status)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!isLoading && pendingPayments.length > 0 && (
-            <p className="aura-pending-payments">
-              {t("payments.pending")}: <bdi>{pendingPayments.length}</bdi>
-            </p>
-          )}
-        </aside>
-        <div className="aura-plan-selection space-y-4">
-          <div className="member-section-heading">
+      <div className="packages-release-layout">
+        <div className="package-selection">
+          <div className="member-section__heading">
             <div>
-              <h2 className="member-section-title">{t("packages.available")}</h2>
-              <p className="member-page-body mt-2 max-w-2xl text-sm sm:text-base">
-                {pricingCopy[lang].subtitle}
-              </p>
+              <h2 className="member-section__title">{t("packages.available")}</h2>
             </div>
           </div>
           {isLoading && <div className="h-40 skeleton-brand rounded-[var(--cc-radius-card)]" />}
@@ -367,27 +223,190 @@ function MemberPackages() {
             />
           ) : (
             <div className="package-pricing-grid">
-              {visiblePlans.map((p: any) => (
-                <PackagePricingCard
-                  key={p.id}
-                  plan={p}
-                  lang={lang}
-                  request={requestsByPlan[p.id]}
-                  payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
-                  onRequest={() => setSelectedPlan(p)}
-                  pending={
-                    manualPayment.isPending ||
-                    checkoutPayment.isPending ||
-                    hasUsableActivePackage ||
-                    hasRunningSubscription
-                  }
-                  blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
-                />
-              ))}
+              {visiblePlans
+                .filter(
+                  (plan: any) =>
+                    category === "all" ||
+                    (category === "subscriptions"
+                      ? isRecurringCardPlan(plan)
+                      : !isRecurringCardPlan(plan)),
+                )
+                .map((p: any) => (
+                  <PackagePricingCard
+                    key={p.id}
+                    plan={p}
+                    lang={lang}
+                    request={requestsByPlan[p.id]}
+                    payment={pendingPayments.find((payment: any) => payment.plan?.id === p.id)}
+                    onRequest={() => setSelectedPlan(p)}
+                    pending={
+                      manualPayment.isPending ||
+                      checkoutPayment.isPending ||
+                      hasUsableActivePackage ||
+                      hasRunningSubscription
+                    }
+                    blockedByActivePackage={hasUsableActivePackage || hasRunningSubscription}
+                  />
+                ))}
             </div>
           )}
         </div>
       </div>
+      <details className="member-history-disclosure member-card package-current-status">
+        <summary>{t("member.activePackage")}</summary>
+        <div className="aura-wallet-summary">
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <h2 className="aura-wallet-title">
+              {isLoading ? (
+                t("common.loading")
+              ) : active?.plan ? (
+                <bdi>{getPlanDisplay(active.plan, lang).name}</bdi>
+              ) : (
+                t("member.noActivePackage")
+              )}
+            </h2>
+            {!isLoading && (
+              <p className="aura-wallet-balance">
+                {active?.plan && (active.plan.credits >= 999 || /unlim/i.test(active.plan.name)) ? (
+                  t("packages.unlimited")
+                ) : (
+                  <>
+                    <strong>
+                      <bdi>{credits}</bdi>
+                    </strong>
+                    <span>{t("member.stat.credits")}</span>
+                  </>
+                )}
+              </p>
+            )}
+            {active?.expires_at && (
+              <p className="text-sm text-slate">
+                {t("member.expires")}{" "}
+                <bdi dir={lang === "en" ? "ltr" : "rtl"} className="text-navy">
+                  {new Date(active.expires_at).toLocaleDateString(locale, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </bdi>
+              </p>
+            )}
+          </div>
+          {activeSubscription && (
+            <div className="mt-4 rounded-xl border border-gold/25 bg-card p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="inline-flex items-center gap-2 text-sm font-semibold text-navy">
+                    <RefreshCw className="h-4 w-4 text-[var(--color-accent-text)]" />
+                    {activeSubscription.status === "past_due"
+                      ? t("packages.subscriptionPastDue")
+                      : t("packages.subscriptionActive")}
+                  </p>
+                  <p className="mt-1 text-sm text-slate">
+                    {t("packages.subscriptionRenews", {
+                      date: new Date(
+                        activeSubscription.next_charge_at ??
+                          activeSubscription.current_period_end ??
+                          Date.now(),
+                      ).toLocaleDateString(locale),
+                    })}
+                  </p>
+                  {activeSubscription.card_mask && (
+                    <p className="mt-1 text-xs font-medium text-slate">
+                      {t("packages.subscriptionCard", { card: activeSubscription.card_mask })}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => cancelSubscriptionMutation.mutate()}
+                  disabled={cancelSubscriptionMutation.isPending}
+                  className="btn-outline shrink-0 disabled:opacity-50"
+                >
+                  {cancelSubscriptionMutation.isPending
+                    ? t("common.saving")
+                    : t("packages.subscriptionCancel")}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {promoEntitlements.map((entitlement: any) => (
+          <div
+            key={entitlement.id}
+            className="relative overflow-hidden rounded-[1.5rem] border border-gold/45 bg-card p-5 text-foreground shadow-sm sm:p-6"
+            data-testid="yoga-promo-wallet-credit"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="member-eyebrow text-[var(--color-accent-text)]">Cloud &amp; Core</p>
+                <h2 className="mt-2 font-display text-2xl text-foreground">
+                  {t("promo.yoga.walletTitle")}
+                </h2>
+                <p className="mt-3 text-sm font-semibold text-foreground">
+                  {t("promo.yoga.quantity")}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("promo.yoga.restriction")}</p>
+                {entitlement.expires_at ? (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t("promo.yoga.validUntil", {
+                      date: new Date(entitlement.expires_at).toLocaleDateString(locale),
+                    })}
+                  </p>
+                ) : null}
+              </div>
+              <Sparkles
+                className="h-6 w-6 shrink-0 text-[var(--color-accent-text)]"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        ))}
+
+        {requests && requests.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="member-eyebrow">{t("packages.recent")}</h2>
+            <div className="member-card divide-y hairline">
+              {requests.slice(0, 4).map((r: any) => (
+                <div
+                  key={r.id}
+                  className="px-4 py-3 flex items-center justify-between gap-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="text-navy">
+                      {r.plan ? getPlanDisplay(r.plan, lang).name : t("nav.plans")}
+                    </p>
+                    <p className="mt-0.5 text-xs font-medium text-slate">
+                      {new Date(r.created_at).toLocaleDateString(locale)}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                      r.status === "paid"
+                        ? "border-navy bg-navy text-ivory"
+                        : r.status === "contacted"
+                          ? "border-powder/70 bg-powder/75 text-navy"
+                          : r.status === "cancelled"
+                            ? "border-sand bg-sand/70 text-slate"
+                            : "border-gold/35 bg-gold/12 text-navy"
+                    }`}
+                  >
+                    {labelForStatus(r.status)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!isLoading && pendingPayments.length > 0 && (
+          <p className="aura-pending-payments">
+            {t("payments.pending")}: <bdi>{pendingPayments.length}</bdi>
+          </p>
+        )}
+      </details>
+      <p className="member-page-body mt-4">{pricingCopy[lang].subtitle}</p>
       {selectedPlan && (
         <PaymentMethodSheet
           plan={selectedPlan}
@@ -515,83 +534,84 @@ function PackagePricingCard({
   pending: boolean;
   blockedByActivePackage: boolean;
 }) {
-  const isUnlimited = plan.credits >= 999 || /unlim/i.test(plan.name);
   const display = getPlanDisplay(plan, lang);
-  const price = formatPlanPrice(plan);
   const marketing = getPackageMarketing(plan, lang);
   const isRecommended = marketing.kind === "recommended";
   const isRecurringMonthly = isRecurringCardPlan(plan);
   const creditsLine = getPackageCreditsLine(plan.credits, lang);
+  const cardId = `package-plan-${String(plan.id).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   return (
-    <article className="package-plan-card aura-plan-card" data-plan-kind={marketing.kind}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="aura-plan-name">
-              <bdi>{display.name}</bdi>
-            </h3>
-            {isRecurringMonthly && (
-              <span className="package-plan-badge is-secondary">
-                {t("packages.subscriptionRecurringBadge")}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate mt-1.5">{display.description}</p>
+    <article
+      id={cardId}
+      data-package-plan-card="true"
+      tabIndex={-1}
+      aria-labelledby={`${cardId}-title`}
+      className={`package-plan-card member-card ${isRecommended ? "is-recommended" : ""}`}
+      data-plan-kind={marketing.kind}
+    >
+      <img className="package-plan-image" src={matDetail} alt="" />
+      <div className="package-plan-heading min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 id={`${cardId}-title`} className="font-display text-2xl leading-tight text-navy">
+            {display.name}
+          </h3>
+          {marketing.badge || marketing.secondaryBadge ? (
+            <span className="package-plan-badge">
+              {marketing.badge || marketing.secondaryBadge}
+            </span>
+          ) : null}
         </div>
+        {marketing.subtitle ? (
+          <p className="mt-1.5 text-sm text-slate">{marketing.subtitle}</p>
+        ) : null}
       </div>
-      <div>
-        <p className="aura-plan-price">
-          <LtrInline>{price}</LtrInline>
+      <div className="package-plan-price">
+        <p className="numeric-display font-display text-4xl text-navy">
+          <bdi dir="ltr">{formatPlanPrice(plan)}</bdi>
         </p>
       </div>
-      <div className="aura-plan-facts">
-        <div>
-          <span>{t("member.stat.credits")}</span>
-          <p>{isUnlimited ? t("packages.unlimited") : creditsLine}</p>
-        </div>
-        <div>
-          <p>
-            {plan.duration_days
-              ? t("packages.validDays", { days: plan.duration_days })
-              : t("packages.noExpiry")}
-          </p>
-        </div>
-        {isRecurringMonthly && (
-          <p className="package-recurring-disclosure">
-            <RefreshCw className="h-3.5 w-3.5" />
-            {t("packages.recurringDisclosure")}
-          </p>
-        )}
+      <div className="package-plan-details">
+        <p>
+          <Check className="h-4 w-4" />{" "}
+          {plan.credits >= 999 || /unlim/i.test(plan.name) ? t("packages.unlimited") : creditsLine}
+        </p>
+        <p>
+          <Check className="h-4 w-4" />
+          {plan.duration_days
+            ? t("packages.validDays", { days: plan.duration_days })
+            : t("packages.noExpiry")}
+        </p>
       </div>
-      <div className="mt-auto flex items-end justify-between gap-3 pt-3 border-t hairline">
-        <p className="text-xs font-medium text-slate">{t("packages.choosePackage")}</p>
+      {marketing.savings || marketing.priceNote ? (
+        <p className="package-plan-recommendation">{marketing.savings || marketing.priceNote}</p>
+      ) : null}
+      {isRecurringMonthly ? (
+        <p className="package-recurring-disclosure">
+          <RefreshCw className="h-3.5 w-3.5" />
+          {t("packages.recurringDisclosure")}
+        </p>
+      ) : null}
+      <div className="package-plan-action">
         {payment ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
-            <Wallet className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
-            {t("packages.pendingPayment")}
+          <span className="package-plan-state" role="status">
+            <Wallet className="h-3 w-3 text-gold" /> {t("packages.pendingPayment")}
           </span>
         ) : blockedByActivePackage ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
-            <Wallet className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
-            {t("packages.activePackageBadge")}
+          <span className="package-plan-state">
+            <Wallet className="h-3 w-3 text-gold" /> {t("packages.activePackageBadge")}
           </span>
         ) : request && request.status !== "cancelled" ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-ivory px-3 py-2 text-xs font-medium text-navy">
-            <MessageCircle className="h-3 w-3 text-[var(--color-accent-text)]" />{" "}
+          <span className="package-plan-state" role="status">
+            <MessageCircle className="h-3 w-3 text-gold" />{" "}
             {request.status === "paid" ? t("packages.activated") : t("packages.requested")}
           </span>
         ) : (
           <button
             onClick={onRequest}
             disabled={pending}
-            aria-label={`${t("packages.choosePackage")}: ${display.name}`}
-            className={
-              isRecommended
-                ? "btn-navy hover:btn-navy-hover disabled:opacity-50"
-                : "btn-outline hover:btn-ghost-hover disabled:opacity-50"
-            }
+            className="btn-navy min-h-11 w-full hover:btn-navy-hover disabled:opacity-50"
           >
-            <Send className="h-3 w-3" /> {t("packages.choosePackage")}
+            <ArrowRight className="h-4 w-4" /> {marketing.cta}
           </button>
         )}
       </div>
@@ -614,6 +634,30 @@ const planOrder: Record<PricingKind, number> = {
   single: 2,
   card10: 3,
   default: 4,
+};
+
+const reconstructionCopy = {
+  he: {
+    title: "חבילות מנוי",
+    subtitle: "בחירת החבילה שמתאימה לך",
+    all: "כל החבילות",
+    subscriptions: "מנויים",
+    cards: "כרטיסיות",
+  },
+  en: {
+    title: "Membership packages",
+    subtitle: "Choose the package that suits you",
+    all: "All packages",
+    subscriptions: "Memberships",
+    cards: "Class packs",
+  },
+  ar: {
+    title: "باقات الاشتراك",
+    subtitle: "اختاري الباقة المناسبة لك",
+    all: "كل الباقات",
+    subscriptions: "اشتراكات",
+    cards: "بطاقات حصص",
+  },
 };
 
 const pricingCopy: Record<
