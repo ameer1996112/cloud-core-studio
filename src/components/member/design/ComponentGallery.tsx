@@ -1,4 +1,8 @@
-import { StudioWelcome } from "@/components/member/StudioWelcome";
+import {
+  StudioHomeFeature,
+  StudioHomeLoading,
+  StudioWelcome,
+} from "@/components/member/StudioWelcome";
 import { BookingConfirmationContent } from "@/components/member/BookingConfirmationContent";
 import { ClassDetailContent } from "@/components/member/ClassDetailContent";
 import { StudioClassItem } from "@/components/member/StudioClassItem";
@@ -213,23 +217,34 @@ export default function ComponentGallery() {
           <section className="cc-review">
             <h2>רכיבי הדפים · בית ופרטי שיעור</h2>
             <ReviewAvatar name="Member example" />
-            <StudioWelcome name="נעמה" greeting="בוקר טוב" />
-            <StudioClassItem
-              thumbnail
-              cls={{
-                id: "gallery-class",
-                starts_at: "2030-01-15T09:00:00+02:00",
-                duration_minutes: 60,
-                capacity: 12,
-                booked_count: 4,
-                title: "פילאטיס לדוגמה",
-                image_url: classPhoto,
-              }}
-              state={{ kind: "available", spotsLeft: 8 }}
-              action={
-                <ReviewButton onClick={() => setClicks(clicks + 1)}>פרטי שיעור לדוגמה</ReviewButton>
-              }
-            />
+            <div className="ref-home ref-gallery-home">
+              <StudioWelcome name="נעמה" greeting="בוקר טוב" />
+              <StudioHomeFeature>
+                <StudioClassItem
+                  variant="featured"
+                  thumbnail
+                  cls={{
+                    id: "gallery-class",
+                    starts_at: "2030-01-15T09:00:00+02:00",
+                    duration_minutes: 60,
+                    capacity: 12,
+                    booked_count: 4,
+                    title: "פילאטיס לדוגמה",
+                    image_url: classPhoto,
+                  }}
+                  state={{ kind: "available", spotsLeft: 8 }}
+                  action={
+                    <ReviewButton onClick={() => setClicks(clicks + 1)}>
+                      פרטי שיעור לדוגמה
+                    </ReviewButton>
+                  }
+                />
+              </StudioHomeFeature>
+            </div>
+            <details className="ref-home ref-home-loading-preview">
+              <summary>מצב טעינה של דף הבית</summary>
+              <StudioHomeLoading />
+            </details>
           </section>
           <section>
             <h2>פרטי שיעור ואישור הזמנה · רכיבי האפליקציה</h2>

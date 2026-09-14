@@ -1,6 +1,6 @@
 import "@/components/member/design/reference-system.css";
 import { ReviewButton } from "@/components/member/design/VisualSystem";
-import { StudioWelcome } from "./StudioWelcome";
+import { StudioHomeFeature, StudioHomeLoading, StudioWelcome } from "./StudioWelcome";
 import { PackageBookingGuide } from "./PackageBookingGuide";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { STUDIO_TIMEZONE } from "@/lib/studio-time";
@@ -103,164 +103,158 @@ export function MemberHomeContent({
           </ReviewButton>
         </section>
       ) : isLoading ? (
-        <div
-          className="home-loading"
-          role="status"
-          aria-label={t("common.loading")}
-          aria-busy="true"
-        >
-          <div className="home-loading-main" />
-          <div className="home-loading-summary" />
-          <div className="home-loading-row" />
-          <div className="home-loading-row" />
-        </div>
+        <StudioHomeLoading />
       ) : data?.member && credits != null ? (
         <>
           <div
             className={`home-primary-layout${recommendationNeedsPackage && !data.activePlan ? " home-primary-layout--simple" : ""}`}
           >
             <div className="home-main-column" dir={dir}>
-              <section className="home-next">
-                <h2>
-                  {t(
-                    next
-                      ? "member.yourNextClass"
-                      : featuredRecommendation
-                        ? "member.chooseNextClass"
-                        : "member.empty.bookings.title",
-                  )}
-                </h2>
-                {next ? (
-                  <BookingPass
-                    cls={next.class}
-                    state={deriveClassState(next.class, {
-                      booked: true,
-                      waiting: false,
-                      remainingCredits: credits,
-                    })}
-                    timeZone={settings?.timezone}
-                    action={
-                      <Link
-                        to="/member/bookings"
-                        className="cc-button cc-button--primary home-primary"
-                      >
-                        {t("member.viewBooking")}
-                        <ArrowRight
-                          size={16}
-                          className="directional-icon-forward"
-                          aria-hidden="true"
-                        />
-                      </Link>
-                    }
-                    secondaryAction={
-                      <button
-                        type="button"
-                        onClick={addToCalendar}
-                        className="home-text-action home-calendar-action"
-                        aria-label={t("member.addCalendar")}
-                        title={`${t("member.addCalendar")} - ${t("member.calendarHelp")}`}
-                      >
-                        <Calendar size={16} aria-hidden="true" />
-                        <span>{t("member.addCalendar")}</span>
-                      </button>
-                    }
-                    note={
-                      <>
-                        <p>
-                          {t("booking.cancelWindow", {
-                            hours: next.class.cancellation_window_hours,
-                          })}
-                        </p>
-                      </>
-                    }
-                  />
-                ) : featuredRecommendation ? (
-                  <BookingPass
-                    cls={featuredRecommendation}
-                    showStatus={!recommendationNeedsPackage}
-                    guidance={
-                      recommendationNeedsPackage ? <PackageBookingGuide compact /> : undefined
-                    }
-                    secondaryAction={
-                      recommendationNeedsPackage ? (
-                        <button
-                          type="button"
-                          className="home-text-action"
-                          aria-haspopup="dialog"
-                          aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
-                          onClick={() => onOpenClass(featuredRecommendation.id)}
-                        >
-                          {t("member.viewClass")}
-                        </button>
-                      ) : undefined
-                    }
-                    state={deriveClassState(featuredRecommendation, {
-                      booked: false,
-                      waiting: false,
-                      remainingCredits: credits,
-                      hasActivePackage: !!data.activePlan,
-                    })}
-                    timeZone={settings?.timezone}
-                    action={
-                      recommendationNeedsPackage ? (
+              <StudioHomeFeature>
+                <section className="home-next">
+                  <h2>
+                    {t(
+                      next
+                        ? "member.yourNextClass"
+                        : featuredRecommendation
+                          ? "member.chooseNextClass"
+                          : "member.empty.bookings.title",
+                    )}
+                  </h2>
+                  {next ? (
+                    <BookingPass
+                      cls={next.class}
+                      state={deriveClassState(next.class, {
+                        booked: true,
+                        waiting: false,
+                        remainingCredits: credits,
+                      })}
+                      timeZone={settings?.timezone}
+                      action={
                         <Link
-                          to="/member/packages"
-                          className="cc-button cc-button--primary home-primary package-booking-action"
+                          to="/member/bookings"
+                          className="cc-button cc-button--primary home-primary"
                         >
-                          {t("member.packageGuide.homeAction")}
+                          {t("member.viewBooking")}
                           <ArrowRight
                             size={16}
                             className="directional-icon-forward"
                             aria-hidden="true"
                           />
                         </Link>
-                      ) : (
-                        <ReviewButton
-                          variant="primary"
+                      }
+                      secondaryAction={
+                        <button
                           type="button"
-                          className="home-primary"
-                          onClick={() => onOpenClass(featuredRecommendation.id)}
-                          aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
+                          onClick={addToCalendar}
+                          className="home-text-action home-calendar-action"
+                          aria-label={t("member.addCalendar")}
+                          title={`${t("member.addCalendar")} - ${t("member.calendarHelp")}`}
                         >
-                          {t("member.viewClass")}
+                          <Calendar size={16} aria-hidden="true" />
+                          <span>{t("member.addCalendar")}</span>
+                        </button>
+                      }
+                      note={
+                        <>
+                          <p>
+                            {t("booking.cancelWindow", {
+                              hours: next.class.cancellation_window_hours,
+                            })}
+                          </p>
+                        </>
+                      }
+                    />
+                  ) : featuredRecommendation ? (
+                    <BookingPass
+                      cls={featuredRecommendation}
+                      showStatus={!recommendationNeedsPackage}
+                      guidance={
+                        recommendationNeedsPackage ? <PackageBookingGuide compact /> : undefined
+                      }
+                      secondaryAction={
+                        recommendationNeedsPackage ? (
+                          <button
+                            type="button"
+                            className="home-text-action"
+                            aria-haspopup="dialog"
+                            aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
+                            onClick={() => onOpenClass(featuredRecommendation.id)}
+                          >
+                            {t("member.viewClass")}
+                          </button>
+                        ) : undefined
+                      }
+                      state={deriveClassState(featuredRecommendation, {
+                        booked: false,
+                        waiting: false,
+                        remainingCredits: credits,
+                        hasActivePackage: !!data.activePlan,
+                      })}
+                      timeZone={settings?.timezone}
+                      action={
+                        recommendationNeedsPackage ? (
+                          <Link
+                            to="/member/packages"
+                            className="cc-button cc-button--primary home-primary package-booking-action"
+                          >
+                            {t("member.packageGuide.homeAction")}
+                            <ArrowRight
+                              size={16}
+                              className="directional-icon-forward"
+                              aria-hidden="true"
+                            />
+                          </Link>
+                        ) : (
+                          <ReviewButton
+                            variant="primary"
+                            type="button"
+                            className="home-primary"
+                            onClick={() => onOpenClass(featuredRecommendation.id)}
+                            aria-label={`${t("member.viewClass")}: ${localizedClassTitle(featuredRecommendation)}`}
+                          >
+                            {t("member.viewClass")}
+                            <ArrowRight
+                              size={16}
+                              className="directional-icon-forward"
+                              aria-hidden="true"
+                            />
+                          </ReviewButton>
+                        )
+                      }
+                    />
+                  ) : (
+                    <div className="home-choose">
+                      <div className="home-choose-copy">
+                        {!data.activePlan && credits <= 0 ? (
+                          <PackageBookingGuide compact />
+                        ) : (
+                          <p>{t("member.empty.bookings.body")}</p>
+                        )}
+                        <Link
+                          to={
+                            !data.activePlan && credits <= 0
+                              ? "/member/packages"
+                              : "/member/schedule"
+                          }
+                          className="cc-button cc-button--primary home-primary"
+                        >
+                          {t(
+                            !data.activePlan && credits <= 0
+                              ? "member.packageGuide.homeAction"
+                              : "member.browseSchedule",
+                          )}
                           <ArrowRight
                             size={16}
                             className="directional-icon-forward"
                             aria-hidden="true"
                           />
-                        </ReviewButton>
-                      )
-                    }
-                  />
-                ) : (
-                  <div className="home-choose">
-                    <div className="home-choose-copy">
-                      {!data.activePlan && credits <= 0 ? (
-                        <PackageBookingGuide compact />
-                      ) : (
-                        <p>{t("member.empty.bookings.body")}</p>
-                      )}
-                      <Link
-                        to={
-                          !data.activePlan && credits <= 0 ? "/member/packages" : "/member/schedule"
-                        }
-                        className="cc-button cc-button--primary home-primary"
-                      >
-                        {t(
-                          !data.activePlan && credits <= 0
-                            ? "member.packageGuide.homeAction"
-                            : "member.browseSchedule",
-                        )}
-                        <ArrowRight
-                          size={16}
-                          className="directional-icon-forward"
-                          aria-hidden="true"
-                        />
-                      </Link>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </section>
+                  )}
+                </section>
+              </StudioHomeFeature>
             </div>
             <aside dir={dir} className="home-account" aria-label={t("nav.plans")}>
               {(!isMobile || !recommendationNeedsPackage || data.activePlan) && (

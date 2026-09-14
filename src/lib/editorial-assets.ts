@@ -10,10 +10,10 @@ export type EditorialScene =
   | "arrival";
 
 export const homeStudioImage = {
-  src: "/images/editorial/home-studio-v2-960.webp",
+  src: "/images/editorial/home-practice-960.webp",
   srcSet:
-    "/images/editorial/home-studio-v2-640.webp 640w, /images/editorial/home-studio-v2-960.webp 960w, /images/editorial/home-studio-v2-1600.webp 1600w",
-  sizes: "(max-width: 767px) calc(100vw - 40px), 760px",
+    "/images/editorial/home-practice-640.webp 640w, /images/editorial/home-practice-960.webp 960w, /images/editorial/home-practice-1600.webp 1600w",
+  sizes: "(max-width: 767px) calc(100vw - 56px), (max-width: 1023px) 510px, 490px",
   width: 1600,
   height: 800,
 } as const;

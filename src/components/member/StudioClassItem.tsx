@@ -130,14 +130,16 @@ export function StudioClassItem({
           )}
         </div>
         {metadata && <div className="ref-session-metadata">{metadata}</div>}
-        {showStatus && (
-          <div className="ref-session-status">
-            {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
+        <div className="ref-session-footer">
+          {showStatus && (
+            <div className="ref-session-status">
+              {statusLabel ? <span>{statusLabel}</span> : <StateBadge state={state} />}
+            </div>
+          )}
+          <div className="ref-session-actions">
+            {action}
+            {secondaryAction}
           </div>
-        )}
-        <div className="ref-session-actions">
-          {action}
-          {secondaryAction}
         </div>
       </div>
       {guidance && <div className="ref-session-guidance">{guidance}</div>}
