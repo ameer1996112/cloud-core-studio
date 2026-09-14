@@ -25,13 +25,20 @@ __pycache__/
 *.local
 .openwa/
 .worktrees/
-artifacts/ui-audit/current/
 supabase/.temp/
 supabase/backups/
 
-# Local Xcode release artifacts
-tmp/ios-archive/*.xcarchive/
-tmp/ios-export/
+# Ignored asset dumps and temporary files
+tmp/
+.gstack/
+artifacts/
+app-store-assets/
+exports/
+native-fallback/
+.superpowers/
+docs/screenshots/
+docs/ui-ux-audit/screenshots/
+docs/*-report.md
 
 # Wrangler / Cloudflare
 .wrangler/
