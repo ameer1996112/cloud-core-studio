@@ -3,7 +3,7 @@ import { MemberHeader, MemberBottomNavigation } from "./MemberNavigation.tsx";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, Globe2, X, LogOut } from "lucide-react";
+import { Check, ChevronLeft, ChevronDown, Globe2, X, LogOut } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createClientOnlyFn } from "@tanstack/react-start";
@@ -65,6 +65,7 @@ export function AppShell({ role, children }: Props) {
   // Shell separation: members use bottom nav (no drawer);
   // admin/instructor use sidebar+drawer (no bottom nav).
   const useBottomNav = role === "member";
+  const isPackagesReview = role === "member" && pathname === "/member/packages";
   const useDrawer = role === "admin" || role === "instructor";
   const contentFrameClass = useBottomNav ? "member-content-frame" : "admin-content-frame";
   const isRtl = LANG_META[lang].dir === "rtl";
@@ -178,7 +179,7 @@ export function AppShell({ role, children }: Props) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className={`${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
+      className={`${isPackagesReview ? "packages-reference-shell" : ""} ${useBottomNav ? "member-app" : "staff-app"} fixed inset-0 flex overflow-hidden bg-[var(--color-surface-warm)] text-foreground`}
     >
       {role === "member" && <MemberWhatsappOnboarding />}
       {role === "member" && <MemberPushOnboarding />}
@@ -244,7 +245,9 @@ export function AppShell({ role, children }: Props) {
           </div>
         )}
 
-        {useBottomNav ? (
+        {isPackagesReview ? (
+          <PackagesReviewHeader pathname={pathname} lang={lang} signOut={signOutControl} />
+        ) : useBottomNav ? (
           <MemberHeader
             pathname={pathname}
             notifications={
@@ -651,4 +654,56 @@ function currentSectionLabel(pathname: string, groups: NavGroup[]): string {
     }
   }
   return "Cloud & Core";
+}
+
+function PackagesReviewHeader({
+  pathname,
+  lang,
+  signOut,
+}: {
+  pathname: string;
+  lang: Lang;
+  signOut: ReactNode;
+}) {
+  return (
+    <>
+      <div className="member-mobile-header-pad packages-release-mobile-header">
+        <span />
+        <h1 className="packages-mobile-title">
+          {lang === "he"
+            ? "חבילות ומנויים"
+            : lang === "ar"
+              ? "الباقات والاشتراكات"
+              : "Packages & memberships"}
+        </h1>
+        <Link to="/member" aria-label={t("nav.home")} className="packages-mobile-back">
+          <ChevronLeft size={24} />
+        </Link>
+      </div>
+      <header className="member-desktop-header packages-release-desktop-header">
+        <div className="member-desktop-header__row">
+          <Link to="/member" aria-label="Cloud & Core" className="member-desktop-header__brand">
+            <img src="/brand/cloud-core-logo-full.png" alt="Cloud & Core" />
+          </Link>
+          <nav className="member-desktop-header__nav" aria-label={t("shell.practice")}>
+            {bottomTabsForRole("member").map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={isActive(pathname, item) ? "page" : undefined}
+                className={`member-desktop-nav__link ${isActive(pathname, item) ? "member-desktop-nav__link--active" : ""}`}
+              >
+                <item.icon size={16} />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+          <div className="member-desktop-header__actions">
+            <MemberNotificationCenter viewport="desktop" />
+            {signOut}
+          </div>
+        </div>
+      </header>
+    </>
+  );
 }
