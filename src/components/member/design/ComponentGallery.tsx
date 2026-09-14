@@ -220,25 +220,27 @@ export default function ComponentGallery() {
             <div className="ref-home ref-gallery-home">
               <StudioWelcome name="נעמה" greeting="בוקר טוב" />
               <StudioHomeFeature>
-                <StudioClassItem
-                  variant="featured"
-                  thumbnail
-                  cls={{
-                    id: "gallery-class",
-                    starts_at: "2030-01-15T09:00:00+02:00",
-                    duration_minutes: 60,
-                    capacity: 12,
-                    booked_count: 4,
-                    title: "פילאטיס לדוגמה",
-                    image_url: classPhoto,
-                  }}
-                  state={{ kind: "available", spotsLeft: 8 }}
-                  action={
-                    <ReviewButton onClick={() => setClicks(clicks + 1)}>
-                      פרטי שיעור לדוגמה
-                    </ReviewButton>
-                  }
-                />
+                <section className="home-next">
+                  <StudioClassItem
+                    variant="featured"
+                    thumbnail
+                    cls={{
+                      id: "gallery-class",
+                      starts_at: "2030-01-15T09:00:00+02:00",
+                      duration_minutes: 60,
+                      capacity: 12,
+                      booked_count: 4,
+                      title: "פילאטיס לדוגמה",
+                      image_url: "/images/editorial/mat-480.webp",
+                    }}
+                    state={{ kind: "available", spotsLeft: 8 }}
+                    action={
+                      <ReviewButton onClick={() => setClicks(clicks + 1)}>
+                        פרטי שיעור לדוגמה
+                      </ReviewButton>
+                    }
+                  />
+                </section>
               </StudioHomeFeature>
             </div>
             <details className="ref-home ref-home-loading-preview">
